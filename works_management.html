@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作品库管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+
+        /* --- [统一] 侧边栏样式 --- */
+        .sidebar { transition: width 0.3s ease-in-out; }
+        .main-content { transition: margin-left 0.3s ease-in-out; }
+        .sidebar-collapsed { width: 5rem; }
+        .sidebar-collapsed .nav-text, .sidebar-collapsed .app-title-text { display: none; }
+        .sidebar-collapsed .nav-link, .sidebar-collapsed .nav-toggle { justify-content: center; }
+        .sidebar-collapsed .submenu { display: none; }
+        .sidebar-collapsed .app-title { justify-content: center; }
+        .nav-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 600; color: #1f2937; border-radius: 0.5rem; }
+        .nav-toggle:hover { background-color: #f3f4f6; }
+        .nav-link { display: flex; align-items: center; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 500; color: #4b5563; border-radius: 0.5rem; position: relative; }
+        .nav-link:hover { background-color: #f3f4f6; }
+        .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; }
+
+        /* --- [统一] 分页样式 --- */
+        .pagination-btn { padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; background-color: white; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; }
+        .pagination-btn:hover:not(:disabled) { background-color: #f3f4f6; }
+        .pagination-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
+        .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* --- [v3.0 修复] 子行展开/折叠样式 --- */
+        /* 我们将动画效果应用在单元格内的div上，而不是tr本身 */
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        /* 当父级 tr.collapsible-row 拥有 .expanded 类时，展开内容 */
+        .collapsible-row.expanded .collapsible-content {
+            max-height: 500px; /* 一个足够大的值以显示所有内容 */
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        .rotate-icon { transition: transform 0.3s ease; }
+        .rotate-icon.rotated { transform: rotate(180deg); }
+    </style>
+</head>
+<body>
+    
+    <div id="sidebar-container"></div>
+
+    <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8" style="margin-left: 9.5rem;">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">作品库管理</h1>
+                <p class="text-sm text-gray-500 mt-1">查看与管理所有合作及非合作的作品数据。</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm"><p class="text-sm font-medium text-gray-500">作品总数</p><p id="stats-total-works" class="text-3xl font-bold text-blue-600 mt-2">0</p></div>
+            <div class="bg-white p-6 rounded-xl shadow-sm"><p class="text-sm font-medium text-gray-500">合作作品数</p><p id="stats-collab-works" class="text-3xl font-bold text-green-600 mt-2">0</p></div>
+            <div class="bg-white p-6 rounded-xl shadow-sm"><p class="text-sm font-medium text-gray-500">非合作作品数</p><p id="stats-organic-works" class="text-3xl font-bold text-teal-600 mt-2">0</p></div>
+            <div class="bg-white p-6 rounded-xl shadow-sm"><p class="text-sm font-medium text-gray-500">累计总播放量</p><p id="stats-total-views" class="text-3xl font-bold text-yellow-600 mt-2">0</p></div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">项目筛选</label>
+                    <select id="project-filter" class="w-full text-sm rounded-md border-gray-300 shadow-sm">
+                        <!-- JS 动态填充 -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">作品来源</label>
+                    <select id="source-filter" class="w-full text-sm rounded-md border-gray-300 shadow-sm">
+                        <option value="">所有来源</option>
+                        <option value="COLLABORATION">合作作品</option>
+                        <option value="ORGANIC">非合作作品</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">达人昵称</label>
+                    <input type="search" id="talent-search" class="w-full text-sm rounded-md border-gray-300 shadow-sm" placeholder="搜索达人...">
+                </div>
+                <div class="flex gap-2">
+                    <button id="apply-filters-btn" class="w-full px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700">筛选</button>
+                    <button id="reset-filters-btn" class="w-full px-4 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-300">重置</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-2 py-3 w-12 text-center"></th> <!-- [v3.0 新增] 展开/折叠列 -->
+                            <th scope="col" class="px-6 py-3">作品ID</th>
+                            <th scope="col" class="px-6 py-3">所属项目</th>
+                            <th scope="col" class="px-6 py-3">关联达人</th>
+                            <th scope="col" class="px-6 py-3">作品来源</th>
+                            <th scope="col" class="px-6 py-3">发布时间</th>
+                            <th scope="col" class="px-6 py-3">总播放量</th>
+                            <th scope="col" class="px-6 py-3 text-center">操作</th> <!-- [v3.0 新增] 操作列 -->
+                        </tr>
+                    </thead>
+                    <tbody id="works-list-body">
+                        <!-- JS 动态生成行 -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="pagination-controls" class="px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <!-- JS 动态生成分页控件 -->
+            </div>
+        </div>
+    </main>
+
+    <!-- [v3.0 新增] 通用二次确认模态框 -->
+    <div id="confirm-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 flex items-center justify-center p-4">
+        <div class="relative mx-auto p-5 border w-full max-w-sm shadow-lg rounded-md bg-white">
+            <h3 class="text-lg font-bold text-gray-900" id="confirm-modal-title">请确认</h3>
+            <div class="mt-2 py-3">
+                <p class="text-sm text-gray-500" id="confirm-modal-message"></p>
+            </div>
+            <div class="mt-4 flex justify-end space-x-2">
+                <button id="confirm-modal-cancel-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">取消</button>
+                <button id="confirm-modal-confirm-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">确定</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="sidebar.js" defer></script>
+    <script src="works_management.js" defer></script>
+</body>
+</html>
+

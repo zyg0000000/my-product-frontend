@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台 - 智能协同系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8f9fa;
+        }
+        .main-content { transition: margin-left 0.3s ease-in-out; }
+        .tab-btn.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+            font-weight: 600;
+        }
+        .notification-toggle:checked + .block {
+            background-color: #2563eb;
+        }
+        .notification-toggle:checked + .block + .dot {
+            transform: translateX(1.5rem);
+        }
+        
+        /* --- [核心修复] 从 index.html 复制过来的侧边栏样式 --- */
+        .sidebar { transition: width 0.3s ease-in-out; }
+        .sidebar-collapsed { width: 5rem; }
+        .sidebar-collapsed .nav-text, .sidebar-collapsed .app-title-text { display: none; }
+        .sidebar-collapsed .nav-link, .sidebar-collapsed .nav-toggle { justify-content: center; }
+        .sidebar-collapsed .submenu { display: none; }
+        .sidebar-collapsed .app-title { justify-content: center; }
+        .nav-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 600; color: #1f2937; border-radius: 0.5rem; }
+        .nav-toggle:hover { background-color: #f3f4f6; }
+        .nav-link { display: flex; align-items: center; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 500; color: #4b5563; border-radius: 0.5rem; position: relative; }
+        .nav-link:hover { background-color: #f3f4f6; }
+        .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; }
+    </style>
+</head>
+<body class="flex">
+
+    <!-- [核心] 侧边栏容器 (由 sidebar.js 动态填充) -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Content -->
+    <main id="main-content" class="main-content flex-1 p-8" style="margin-left: 9.5rem;">
+        <header class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800">系统设置</h2>
+            <p class="text-gray-500 mt-1">管理系统的全局配置和通知选项。</p>
+        </header>
+
+        <div class="w-full">
+            <!-- Tabs -->
+            <div class="border-b border-gray-200 mb-6">
+                <nav id="admin-tabs" class="-mb-px flex space-x-6" aria-label="Tabs">
+                    <button data-tab-target="tab-general" class="tab-btn active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-blue-600 hover:border-blue-500">
+                        通用设置
+                    </button>
+                    <button data-tab-target="tab-notifications" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-blue-600 hover:border-blue-500">
+                        通知设置
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Panes -->
+            <div id="tab-content">
+                <!-- 通用设置 Tab -->
+                <div id="tab-general" class="tab-pane space-y-8">
+                    <!-- 额外返点费类型 -->
+                    <div class="bg-white p-6 border rounded-xl shadow-sm">
+                        <h4 class="text-lg font-semibold text-gray-700 mb-4">额外返点费类型</h4>
+                        <div id="adjustment-type-list" class="space-y-2 mb-4"></div>
+                        <form id="add-adjustment-type-form" class="grid grid-cols-4 gap-4 items-center">
+                            <div class="col-span-3">
+                                <input type="text" id="new-adjustment-type-name" class="block w-full rounded-md border-gray-300 shadow-sm" placeholder="例如: 客户返点" required>
+                            </div>
+                            <div class="text-right"><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">添加类型</button></div>
+                        </form>
+                    </div>
+                    <!-- 资金成本费率 -->
+                    <div class="bg-white p-6 border rounded-xl shadow-sm">
+                        <h4 class="text-lg font-semibold text-gray-700 mb-4">资金成本费率</h4>
+                        <div id="capital-rate-list" class="space-y-2 mb-4"></div>
+                        <form id="add-capital-rate-form" class="grid grid-cols-4 gap-4 items-center">
+                            <div class="col-span-2"><input type="text" id="new-rate-name" class="block w-full rounded-md border-gray-300 shadow-sm" placeholder="例如: 2025年Q4" required></div>
+                            <div><input type="number" step="0.01" id="new-rate-value" class="block w-full rounded-md border-gray-300 shadow-sm" placeholder="例如: 5.25" required></div>
+                            <div class="text-right"><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">添加费率</button></div>
+                        </form>
+                    </div>
+                    <!-- 框架协议折扣 -->
+                    <div class="bg-white p-6 border rounded-xl shadow-sm">
+                        <h4 class="text-lg font-semibold text-gray-700 mb-4">框架协议折扣</h4>
+                        <div id="framework-discount-list" class="space-y-2 mb-4"></div>
+                        <form id="add-framework-discount-form" class="grid grid-cols-4 gap-4 items-center">
+                            <div class="col-span-2"><input type="text" id="new-discount-name" class="block w-full rounded-md border-gray-300 shadow-sm" placeholder="例如: 2025年度框架" required></div>
+                            <div><input type="text" id="new-discount-value" class="block w-full rounded-md border-gray-300 shadow-sm" placeholder="例如: 0.95" required></div>
+                            <div class="text-right"><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">添加折扣</button></div>
+                        </form>
+                    </div>
+                </div>
+                <!-- 通知设置 Tab -->
+                <div id="tab-notifications" class="tab-pane hidden">
+                    <div class="bg-white p-6 border rounded-xl shadow-sm">
+                        <h4 class="text-lg font-semibold text-gray-700 mb-2">飞书通知开关</h4>
+                        <p class="text-sm text-gray-500 mb-6">管理哪些类型的任务会自动通过飞书机器人发送通知。</p>
+                        <div id="notification-settings-container" class="space-y-4">
+                            <!-- 开关将由JS动态渲染 -->
+                        </div>
+                        <div class="mt-8 text-right">
+                            <button id="save-notification-settings-btn" class="px-5 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">保存通知设置</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 脚本 -->
+    <script src="sidebar.js" defer></script>
+    <script src="admin.js"></script>
+
+</body>
+</html>

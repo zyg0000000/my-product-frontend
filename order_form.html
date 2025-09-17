@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>录入合作达人</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style> 
+        /* --- [统一] 全局样式 --- */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8f9fa; 
+        } 
+
+        /* --- Page Specific Styles --- */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2563eb; /* [统一] 颜色与主色调匹配 */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-2xl">
+        <div class="flex items-center mb-6">
+            <a href="#" id="back-link" class="text-gray-500 hover:text-gray-800 mr-4">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </a>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">录入合作达人</h1>
+                <p id="project-name-display" class="text-gray-500 mt-1">为项目: ...</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 sm:p-8">
+            <div id="loading-indicator" class="flex justify-center items-center py-16">
+                <div class="loader"></div>
+                <p class="ml-4 text-gray-600">正在加载达人数据...</p>
+            </div>
+
+            <form id="collaborator-form" class="space-y-6 hidden">
+                <div>
+                    <label for="talent-search" class="block text-sm font-medium text-gray-700">选择达人 <span class="text-red-500">*</span></label>
+                    <div class="relative mt-1" id="talent-search-container">
+                        <input type="search" id="talent-search" autocomplete="off" class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="输入达人昵称或星图ID搜索...">
+                        <ul id="search-results" class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg hidden"></ul>
+                    </div>
+                    <div id="selected-talent-display" class="hidden mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p class="text-sm font-medium text-blue-800">已选择: <span id="selected-talent-name" class="font-bold"></span></p>
+                    </div>
+                </div>
+                
+                <!-- [改造步骤 5] 增加计划发布日期输入框 -->
+                <div>
+                    <label for="planned-release-date" class="block text-sm font-medium text-gray-700">计划发布日期</label>
+                    <input type="date" id="planned-release-date" class="mt-1 w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                
+                <div id="price-selection-container" class="hidden">
+                    <label for="price-select" class="block text-sm font-medium text-gray-700">选择一口价 <span class="text-red-500">*</span></label>
+                    <select id="price-select" required class="mt-1 w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+                </div>
+
+                <div id="rebate-selection-container" class="hidden">
+                    <label for="rebate-select" class="block text-sm font-medium text-gray-700">选择返点率 <span class="text-red-500">*</span></label>
+                    <select id="rebate-select" required class="mt-1 w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">下单方式 <span class="text-red-500">*</span></label>
+                    <div class="mt-2 flex items-center space-x-6 p-1">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="order-type" value="modified" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500" checked>
+                            <span class="ml-2 text-sm text-gray-700">改价下单</span>
+                        </label>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="order-type" value="original" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700">原价下单</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-4">
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 shadow-sm">确认录入</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- [统一] Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-sm text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mt-4">录入成功！</h3>
+            <div class="mt-4 flex space-x-2">
+                <button id="close-modal-btn" class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">关闭</button>
+                <a id="continue-adding-btn" href="#" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">继续录入</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="order_form.js" defer></script>
+</body>
+</html>

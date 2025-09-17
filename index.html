@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目中心</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8f9fa;
+        }
+        .modal { transition: opacity 0.3s ease; }
+        .modal-content { transition: transform 0.3s ease, opacity 0.3s ease; }
+        .pagination-btn { padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; background-color: white; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; }
+        .pagination-btn:hover:not(:disabled) { background-color: #f3f4f6; }
+        .pagination-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
+        .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .modal-tab-btn { padding: 0.5rem 1rem; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 500; color: #6b7280; }
+        .modal-tab-btn.active { border-color: #2563eb; color: #2563eb; font-weight: 600; }
+        .drag-over { border-style: dashed; background-color: #e0e7ff !important; }
+
+        /* --- 侧边栏样式 --- */
+        .sidebar { transition: width 0.3s ease-in-out; }
+        .main-content { transition: margin-left 0.3s ease-in-out; }
+        .sidebar-collapsed { width: 5rem; }
+        .sidebar-collapsed .nav-text, .sidebar-collapsed .app-title-text { display: none; }
+        .sidebar-collapsed .nav-link, .sidebar-collapsed .nav-toggle { justify-content: center; }
+        .sidebar-collapsed .submenu { display: none; }
+        .sidebar-collapsed .app-title { justify-content: center; }
+        .nav-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 600; color: #1f2937; border-radius: 0.5rem; }
+        .nav-toggle:hover { background-color: #f3f4f6; }
+        .nav-link { display: flex; align-items: center; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 500; color: #4b5563; border-radius: 0.5rem; position: relative; }
+        .nav-link:hover { background-color: #f3f4f6; }
+        .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; }
+        
+        /* --- 页面专属样式 --- */
+        .filter-select, .filter-input { @apply w-full px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500; }
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content { display: none; position: absolute; right: 0; background-color: #f9f9f9; min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2); z-index: 10; border-radius: 0.5rem; overflow: hidden; border: 1px solid #ddd; }
+        .dropdown-content a { color: black; padding: 10px 14px; text-decoration: none; display: block; font-size: 0.875rem; white-space: nowrap; }
+        .dropdown-content a.disabled { color: #9ca3af; cursor: not-allowed; background-color: #f3f4f6; }
+        .dropdown-content a:not(.disabled):hover { background-color: #f1f1f1; }
+        .dropdown:hover .dropdown-content { display: block; }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <div id="sidebar-container"></div>
+
+    <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 main-content" style="margin-left: 9.5rem;">
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+            <div>
+                 <h1 class="text-2xl font-bold text-gray-800">项目库</h1>
+                 <p class="text-sm text-gray-500 mt-1">创建和管理您的所有项目。</p>
+            </div>
+            <div class="flex items-center gap-2 mt-4 sm:mt-0">
+                <!-- [新增] 显示设置按钮，用于打开本地显示偏好设置弹窗 -->
+                <button id="display-settings-btn" class="p-2 bg-white text-gray-600 rounded-md border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 transition" title="显示设置">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" /></svg>
+                </button>
+                <!-- 系统设置按钮，链接到独立的管理后台 -->
+                <a href="admin.html" id="admin-settings-link" class="p-2 bg-white text-gray-600 rounded-md border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 transition" title="系统设置">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.438.995a6.427 6.427 0 010 .255c0 .382.145.755.438.995l1.003.827c.48.398.668 1.03.26 1.431l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.437-.995a6.427 6.427 0 010-.255c0-.382-.145-.755-.437-.995l-1.004-.827a1.125 1.125 0 01-.26-1.431l1.296-2.247a1.125 1.125 0 011.37.49l1.217.456c.355.133.75.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                </a>
+                 <button id="add-project-btn" class="px-4 py-2 flex items-center bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition">创建新项目</button>
+            </div>
+        </header>
+
+        <div class="space-y-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                 <div class="flex justify-between items-end">
+                    <div class="flex items-end gap-3">
+                        <div class="w-64">
+                            <label for="filter-name" class="block text-xs font-medium text-gray-600 mb-1">项目名称</label>
+                            <input type="search" id="filter-name" class="filter-input" placeholder="搜索项目名称、编号...">
+                        </div>
+                        <div class="w-40">
+                            <label for="filter-type" class="block text-xs font-medium text-gray-600 mb-1">项目类型</label>
+                            <select id="filter-type" class="filter-select"></select>
+                        </div>
+                        <div class="w-40">
+                            <label for="filter-status" class="block text-xs font-medium text-gray-600 mb-1">项目状态</label>
+                            <select id="filter-status" class="filter-select"></select>
+                        </div>
+                    </div>
+                    <div class="flex items-end gap-3">
+                        <div class="flex items-end gap-2 border-l border-gray-200 pl-4">
+                            <div class="w-40">
+                                <label for="filter-time-dimension" class="block text-xs font-medium text-gray-600 mb-1">时间维度</label>
+                                <select id="filter-time-dimension" class="filter-select">
+                                    <option value="financial">财务月份</option>
+                                    <option value="customer">客户月份</option>
+                                </select>
+                            </div>
+                            <div class="w-32">
+                                <label for="filter-year" class="block text-xs font-medium text-gray-600 mb-1">年份</label>
+                                <select id="filter-year" class="filter-select"></select>
+                            </div>
+                            <div class="w-32">
+                                <label for="filter-month" class="block text-xs font-medium text-gray-600 mb-1">月份</label>
+                                <select id="filter-month" class="filter-select"></select>
+                            </div>
+                        </div>
+                        <div>
+                            <button id="reset-filters-btn" class="px-4 h-[34px] bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-300">重置</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="stats-dashboard" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"></div>
+
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="px-6 py-3 border-b border-gray-200 hidden md:grid grid-cols-10 gap-4 items-center">
+                    <div class="col-span-2 text-sm font-semibold text-gray-500 uppercase">项目名称</div>
+                    <div class="col-span-3 text-sm font-semibold text-gray-500 uppercase text-center">经营指标</div>
+                    <div class="col-span-3 text-sm font-semibold text-gray-500 uppercase text-center">财务指标</div>
+                    <div class="col-span-2 text-sm font-semibold text-gray-500 uppercase text-center">操作</div>
+                </div>
+                <div id="project-list" class="divide-y divide-gray-200"></div>
+                <div id="no-projects-message" class="hidden text-center py-16 px-6">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                    <h3 class="mt-2 text-lg font-medium text-gray-900">暂无项目</h3>
+                    <p class="mt-1 text-sm text-gray-500">点击右上角的“创建新项目”来开始吧。</p>
+                </div>
+                <div id="pagination-controls" class="px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 创建/编辑项目 Modal (保持不变) -->
+    <div id="project-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden modal z-50">
+        <div id="project-modal-content" class="relative top-10 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white opacity-0 scale-95 modal-content">
+            <div class="flex justify-between items-center pb-3 border-b">
+                <h3 id="modal-title" class="text-lg font-medium text-gray-900">创建新项目</h3>
+                <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
+            <div class="mt-4">
+                <form id="project-form" class="space-y-4">
+                    <input type="hidden" id="editing-project-id">
+                    <div>
+                        <label for="project-name" class="block text-sm font-medium text-gray-700">项目名称 <span class="text-red-500">*</span></label>
+                        <input type="text" id="project-name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="project-type" class="block text-sm font-medium text-gray-700">项目类型 <span class="text-red-500">*</span></label>
+                            <select id="project-type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></select>
+                        </div>
+                        <div id="new-type-container" class="hidden">
+                            <label for="new-project-type" class="block text-sm font-medium text-gray-700">新类型名称 <span class="text-red-500">*</span></label>
+                            <input type="text" id="new-project-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="project-qianchuan-id" class="block text-sm font-medium text-gray-700">仟传项目编号</label>
+                        <input type="text" id="project-qianchuan-id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="project-budget" class="block text-sm font-medium text-gray-700">客户项目预算 (¥)</label>
+                            <input type="number" step="0.01" id="project-budget" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                         <div>
+                            <label for="project-benchmark-cpm" class="block text-sm font-medium text-gray-700">目标CPM (¥)</label>
+                            <input type="number" step="0.01" id="project-benchmark-cpm" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div class="p-3 bg-gray-50 rounded-md space-y-3">
+                        <p class="text-sm font-semibold text-gray-800">客户归属月份</p>
+                         <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="project-year" class="block text-xs font-medium text-gray-500">年份</label>
+                                <select id="project-year" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                            </div>
+                            <div>
+                                <label for="project-month" class="block text-xs font-medium text-gray-500">月份</label>
+                                <select id="project-month" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="p-3 bg-blue-50 rounded-md space-y-3">
+                        <p class="text-sm font-semibold text-gray-800">财务归属月份 <span class="text-red-500">*</span></p>
+                        <p id="financial-month-warning" class="hidden text-xs text-red-600">注意：此项目缺少财务月份，请尽快补全。</p>
+                         <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="project-financial-year" class="block text-xs font-medium text-gray-500">年份</label>
+                                <select id="project-financial-year" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                            </div>
+                            <div>
+                                <label for="project-financial-month" class="block text-xs font-medium text-gray-500">月份</label>
+                                <select id="project-financial-month" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="project-discount" class="block text-sm font-medium text-gray-700">框架折扣</label>
+                            <select id="project-discount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="project-capital-rate" class="block text-sm font-medium text-gray-700">资金占用费率</label>
+                            <select id="project-capital-rate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex justify-end">
+                        <button type="submit" id="modal-submit-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">确认创建</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- [新增] 显示设置 Modal (轻量版) -->
+    <div id="display-settings-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden modal z-50">
+        <div class="relative top-10 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium">显示设置</h3>
+                <button id="close-display-settings-modal-btn" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
+            <div>
+                <div class="border-b border-gray-200">
+                    <nav id="display-settings-modal-tabs" class="-mb-px flex space-x-8" aria-label="Tabs">
+                        <button data-tab-target="tab-metrics" class="modal-tab-btn active">指标显示</button>
+                        <button data-tab-target="tab-dashboard" class="modal-tab-btn">看板布局</button>
+                    </nav>
+                </div>
+                <div class="mt-4" style="max-height: 70vh; overflow-y: auto; padding-right: 1rem;">
+                    <div id="tab-metrics" class="modal-tab-pane">
+                        <fieldset id="metric-settings-tab">
+                            <legend class="text-base font-medium text-gray-900 mb-4">选择项目列表中显示的指标 (每类最多3项)</legend>
+                            <div class="grid grid-cols-2 gap-6">
+                                <div>
+                                    <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">经营指标</h4>
+                                    <div id="operational-metric-selection" class="space-y-3 mt-2"></div>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-700 mb-2 border-b pb-1">财务指标</h4>
+                                    <div id="financial-metric-selection" class="space-y-3 mt-2"></div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div id="tab-dashboard" class="modal-tab-pane hidden">
+                        <p class="text-sm text-gray-600 mb-4">拖拽下方的指标，自定义首页看板中显示的6个核心数据。</p>
+                        <div class="grid grid-cols-6 gap-4 mb-6" id="dashboard-slots"></div>
+                        <h4 class="font-semibold text-gray-700 mb-3 border-t pt-4">可用指标池</h4>
+                        <div id="metric-pool" class="flex flex-wrap gap-3 p-4 bg-gray-100 rounded-lg"></div>
+                         <div class="mt-6 text-right">
+                             <button id="save-dashboard-settings-btn" class="px-5 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">保存看板布局</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="sidebar.js" defer></script>
+    <script src="index.js" defer></script>
+</body>
+</html>
+
