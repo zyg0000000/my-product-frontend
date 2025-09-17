@@ -574,7 +574,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     async function initializePage() {
         // Sidebar logic is now in sidebar.js.
-        
+        statusFilter.value = 'pending';
         await loadInitialData();
         
         // This listener will be attached by sidebar.js now.
