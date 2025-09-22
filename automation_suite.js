@@ -1,29 +1,29 @@
 /**
  * @file automation_suite.js
- * @version 2.3 - Workflow Editor Integration
+ * @version 3.0 - UI Restoration & UX Enhancement
  * @description 前端逻辑，用于自动化套件控制中心。
- * - [NEW v2.3] 新增了完整的工作流创建和编辑功能。
- * - [NEW v2.3] "新建"按钮现在可以打开一个功能完善的编辑器弹窗。
- * - [NEW v2.3] 工作流列表新增"编辑"按钮，可加载现有数据进行修改。
- * - [NEW v2.3] 编辑器弹窗内的"保存"按钮会调用云函数API，实现工作流的云端持久化。
+ * - [UI/UX] 页面布局和样式已根据用户的截图反馈，恢复为简洁的左右两栏风格。
+ * - [UI/UX] 增加了任务执行后的实时结果展示区域，并为每个任务提供了单独的查看和删除操作。
+ * - [功能增强] 执行按钮现在会根据工作流和星图ID的输入状态动态更新文本和可用性。
+ * - [代码重构] 重构了任务轮询逻辑，使其更加健壮，并能在任务完成时自动停止。
  */
-
 document.addEventListener('DOMContentLoaded', function () {
     // --- 全局变量与配置 ---
     const API_BASE_URL = 'YOUR_API_GATEWAY_BASE_URL'; // TODO: 替换为您的API网关地址
     const WORKFLOWS_API = `${API_BASE_URL}/automation-workflows`;
     const TASKS_API = `${API_BASE_URL}/automation-tasks`;
 
-    let tasksPollingInterval;
+    let activePollingIntervals = {};
+    let selectedWorkflowId = null;
 
     // --- DOM 元素获取 ---
-    const workflowsTableBody = document.getElementById('workflows-table-body');
-    const workflowSelect = document.getElementById('workflow-select');
-    const executeTaskBtn = document.getElementById('execute-task-btn');
-    const tasksTableBody = document.getElementById('tasks-table-body');
+    const workflowsList = document.getElementById('workflows-list');
     const xingtuIdInput = document.getElementById('xingtu-id-input');
-
-    // --- [v2.3] 新增工作流编辑器相关DOM ---
+    const executeTaskBtn = document.getElementById('execute-task-btn');
+    const tasksListContainer = document.getElementById('tasks-list');
+    const resultContainer = document.getElementById('execution-result-container');
+    
+    // --- 工作流编辑器相关DOM ---
     const newWorkflowBtn = document.getElementById('new-workflow-btn');
     const workflowModal = document.getElementById('workflow-modal');
     const modalTitle = document.getElementById('modal-title');
@@ -42,111 +42,146 @@ document.addEventListener('DOMContentLoaded', function () {
      */
     async function loadWorkflows() {
         try {
-            const response = await fetch(WORKFLOWS_API, { method: 'GET' });
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const response = await fetch(WORKFLOWS_API);
             const result = await response.json();
 
             if (result.success && Array.isArray(result.data)) {
-                workflowsTableBody.innerHTML = '';
-                workflowSelect.innerHTML = '';
-
+                workflowsList.innerHTML = '';
                 if (result.data.length === 0) {
-                     workflowsTableBody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-gray-500">暂无工作流，请点击右上角“新建工作流”创建。</td></tr>`;
+                     workflowsList.innerHTML = `<p class="text-center py-4 text-gray-500">暂无工作流</p>`;
                 }
-
                 result.data.forEach(workflow => {
-                    // 填充表格
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${workflow.name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">${workflow._id}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button class="text-indigo-600 hover:text-indigo-900 edit-workflow-btn" data-id="${workflow._id}">编辑</button>
-                        </td>
-                    `;
-                    workflowsTableBody.appendChild(row);
+                    const isSelected = workflow._id === selectedWorkflowId;
+                    const typeTag = workflow.type === 'scrape' 
+                        ? `<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-800">scrape</span>`
+                        : `<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">screenshot</span>`;
 
-                    // 填充下拉菜单
-                    const option = document.createElement('option');
-                    option.value = workflow._id;
-                    option.textContent = `${workflow.name} (${workflow._id})`;
-                    workflowSelect.appendChild(option);
+                    const item = document.createElement('div');
+                    item.className = `p-3 rounded-lg border cursor-pointer transition-all workflow-item ${isSelected ? 'selected' : ''}`;
+                    item.dataset.id = workflow._id;
+                    item.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-gray-800">${workflow.name}</span>
+                            ${typeTag}
+                        </div>
+                    `;
+                    workflowsList.appendChild(item);
                 });
             } else {
-                console.error('加载工作流失败:', result.message);
-                workflowsTableBody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-red-500">加载工作流失败</td></tr>`;
+                workflowsList.innerHTML = `<p class="text-center py-4 text-red-500">请求工作流API时出错</p>`;
             }
         } catch (error) {
             console.error('请求工作流API时出错:', error);
-            workflowsTableBody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-red-500">请求工作流API时出错</td></tr>`;
+            workflowsList.innerHTML = `<p class="text-center py-4 text-red-500">请求工作流API时出错</p>`;
         }
     }
 
     /**
-     * 加载并渲染任务列表
+     * 加载并渲染最近的任务列表
      */
     async function loadTasks() {
         try {
-            const response = await fetch(TASKS_API, { method: 'GET' });
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const response = await fetch(`${TASKS_API}?limit=10`); // 获取最近10条
             const result = await response.json();
             
             if (result.success && Array.isArray(result.data)) {
-                tasksTableBody.innerHTML = '';
-
+                tasksListContainer.innerHTML = '';
                 if (result.data.length === 0) {
-                    tasksTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">暂无任务记录</td></tr>`;
+                    tasksListContainer.innerHTML = `<p class="text-center py-4 text-gray-500">暂无任务记录</p>`;
                 }
+                result.data.forEach(renderTaskItem);
 
+                // 对正在运行的任务启动轮询
                 result.data.forEach(task => {
-                    const row = document.createElement('tr');
-                    let statusBadge;
-                    switch (task.status) {
-                        case 'pending':
-                            statusBadge = `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">等待中</span>`;
-                            break;
-                        case 'processing':
-                            statusBadge = `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">处理中</span>`;
-                            break;
-                        case 'completed':
-                            statusBadge = `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span>`;
-                            break;
-                        case 'failed':
-                            statusBadge = `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">失败</span>`;
-                            break;
-                        default:
-                            statusBadge = `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">未知</span>`;
+                    if (task.status === 'pending' || task.status === 'processing') {
+                        startPollingForTask(task._id);
                     }
-                    
-                    let resultCell = 'N/A';
-                    if (task.status === 'completed' && task.result) {
-                        resultCell = `<a href="${task.result.screenshotPath || '#'}" target="_blank" class="text-indigo-600 hover:underline">查看截图</a>`;
-                    } else if (task.status === 'failed') {
-                        resultCell = `<span class="text-red-600" title="${task.error || '无详细信息'}">执行失败</span>`;
-                    }
-
-                    row.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">${task._id}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">${statusBadge}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${resultCell}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(task.createdAt).toLocaleString()}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button class="text-red-600 hover:text-red-900 delete-task-btn" data-id="${task._id}">删除</button>
-                        </td>
-                    `;
-                    tasksTableBody.appendChild(row);
                 });
-            } else {
-                console.error('加载任务列表失败:', result.message);
+                resultContainer.classList.toggle('visible', result.data.length > 0);
             }
         } catch (error) {
             console.error('请求任务API时出错:', error);
         }
     }
+
+    /**
+     * 渲染单个任务项
+     */
+    function renderTaskItem(task) {
+        let existingItem = document.getElementById(`task-${task._id}`);
+        if (!existingItem) {
+            existingItem = document.createElement('div');
+            existingItem.id = `task-${task._id}`;
+            tasksListContainer.prepend(existingItem);
+        }
+
+        let statusBadge, resultHtml = '';
+        switch (task.status) {
+            case 'pending': statusBadge = `<span class="text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">等待中</span>`; break;
+            case 'processing': statusBadge = `<span class="text-xs font-semibold rounded-full bg-blue-100 text-blue-800">处理中</span>`; break;
+            case 'completed': 
+                statusBadge = `<span class="text-xs font-semibold rounded-full bg-green-100 text-green-800">已完成</span>`;
+                resultHtml = `<a href="${task.result?.screenshotPath || '#'}" target="_blank" class="text-indigo-600 hover:underline text-sm">查看结果</a>`;
+                break;
+            case 'failed': 
+                statusBadge = `<span class="text-xs font-semibold rounded-full bg-red-100 text-red-800">失败</span>`;
+                resultHtml = `<span class="text-red-600 text-sm" title="${task.error || ''}">查看原因</span>`;
+                break;
+            default: statusBadge = `<span class="text-xs font-semibold rounded-full bg-gray-100 text-gray-800">未知</span>`;
+        }
+
+        existingItem.className = 'p-3 border rounded-md bg-white';
+        existingItem.innerHTML = `
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm font-mono text-gray-500" title="${task._id}">ID: ...${task._id.slice(-6)}</p>
+                    <p class="text-xs text-gray-400 mt-1">${new Date(task.createdAt).toLocaleString()}</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    ${statusBadge}
+                    ${resultHtml}
+                    <button class="text-red-500 hover:text-red-700 text-sm delete-task-btn" data-id="${task._id}">删除</button>
+                </div>
+            </div>`;
+    }
+
+    /**
+     * 为指定任务开始轮询状态
+     */
+    function startPollingForTask(taskId) {
+        if (activePollingIntervals[taskId]) return; // 防止重复轮询
+
+        activePollingIntervals[taskId] = setInterval(async () => {
+            try {
+                const response = await fetch(`${TASKS_API}?id=${taskId}`);
+                const result = await response.json();
+                if (result.success) {
+                    renderTaskItem(result.data);
+                    if (result.data.status === 'completed' || result.data.status === 'failed') {
+                        stopPollingForTask(taskId);
+                    }
+                } else {
+                    stopPollingForTask(taskId);
+                }
+            } catch (error) {
+                console.error(`Polling for task ${taskId} failed:`, error);
+                stopPollingForTask(taskId);
+            }
+        }, 3000);
+    }
+
+    /**
+     * 停止指定任务的轮询
+     */
+    function stopPollingForTask(taskId) {
+        if (activePollingIntervals[taskId]) {
+            clearInterval(activePollingIntervals[taskId]);
+            delete activePollingIntervals[taskId];
+        }
+    }
     
     /**
-     * [v2.3] 打开工作流编辑器弹窗
-     * @param {object | null} workflowData - 如果是编辑，则传入工作流对象；如果是新建，则为 null
+     * 打开工作流编辑器弹窗
      */
     function openWorkflowModal(workflowData = null) {
         workflowForm.reset();
@@ -155,32 +190,21 @@ document.addEventListener('DOMContentLoaded', function () {
             modalTitle.textContent = '编辑工作流';
             workflowIdInput.value = workflowData._id;
             workflowNameInput.value = workflowData.name;
-            workflowJsonEditor.value = JSON.stringify(workflowData.steps, null, 2); // 格式化JSON
+            workflowJsonEditor.value = JSON.stringify(workflowData.steps, null, 2);
         } else {
             modalTitle.textContent = '新建工作流';
             workflowIdInput.value = '';
-            // 提供一个模板
-            const template = [
-                { "type": "goto", "name": "访问页面", "url": "https://www.bytedance.com/" },
-                { "type": "screenshot", "name": "页面截图", "fullPage": true }
-            ];
+            const template = [{ "type": "goto", "name": "访问页面", "url": "https://www.bytedance.com/" }];
             workflowJsonEditor.value = JSON.stringify(template, null, 2);
         }
         workflowModal.classList.remove('hidden');
     }
 
-    /**
-     * [v2.3] 关闭工作流编辑器弹窗
-     */
     function closeWorkflowModal() {
         workflowModal.classList.add('hidden');
     }
 
-    /**
-     * [v2.3] 保存工作流
-     */
     async function saveWorkflow() {
-        // 验证JSON格式
         let steps;
         try {
             steps = JSON.parse(workflowJsonEditor.value);
@@ -191,42 +215,48 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const workflowData = {
-            name: workflowNameInput.value,
-            steps: steps,
-        };
-        
-        // 如果是编辑，则添加_id
-        if (workflowIdInput.value) {
-            workflowData._id = workflowIdInput.value;
-        }
+        const workflowData = { name: workflowNameInput.value, steps: steps };
+        const id = workflowIdInput.value;
+        const method = id ? 'PUT' : 'POST';
+        if(id) workflowData._id = id;
 
         try {
             const response = await fetch(WORKFLOWS_API, {
-                method: 'POST', // 后端云函数通过有无 _id 来区分创建和更新
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                method,
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(workflowData)
             });
-
-            if (!response.ok) {
-                const errorResult = await response.json();
-                throw new Error(errorResult.message || `HTTP error! status: ${response.status}`);
-            }
-
             const result = await response.json();
-
             if (result.success) {
-                alert('工作流保存成功!');
                 closeWorkflowModal();
-                loadWorkflows(); // 重新加载列表
+                loadWorkflows();
             } else {
-                throw new Error(result.message || '保存失败');
+                throw new Error(result.message);
             }
         } catch (error) {
-            console.error('保存工作流失败:', error);
             alert(`保存工作流失败: ${error.message}`);
+        }
+    }
+
+    function updateExecuteButtonState() {
+        const hasId = xingtuIdInput.value.trim() !== '';
+        const hasWorkflow = selectedWorkflowId !== null;
+        
+        if (!hasWorkflow) {
+            executeTaskBtn.disabled = true;
+            executeTaskBtn.textContent = '请先选择一个工作流';
+            executeTaskBtn.classList.add('bg-gray-300', 'cursor-not-allowed');
+            executeTaskBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+        } else if (!hasId) {
+            executeTaskBtn.disabled = true;
+            executeTaskBtn.textContent = '请输入星图ID';
+            executeTaskBtn.classList.add('bg-gray-300', 'cursor-not-allowed');
+            executeTaskBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+        } else {
+            executeTaskBtn.disabled = false;
+            executeTaskBtn.textContent = '执行';
+            executeTaskBtn.classList.remove('bg-gray-300', 'cursor-not-allowed');
+            executeTaskBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
         }
     }
 
@@ -235,112 +265,91 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 执行任务
     executeTaskBtn.addEventListener('click', async () => {
-        const workflowId = workflowSelect.value;
-        const xingtuId = xingtuIdInput.value;
-
-        if (!workflowId || !xingtuId) {
-            alert('请选择一个工作流并输入星图ID。');
-            return;
-        }
+        const xingtuId = xingtuIdInput.value.trim();
+        if (!selectedWorkflowId || !xingtuId) return;
 
         try {
             const response = await fetch(TASKS_API, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    workflowId: workflowId,
-                    parameters: { xingtuId: xingtuId }
-                }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ workflowId: selectedWorkflowId, parameters: { xingtuId } }),
             });
             const result = await response.json();
             if (result.success) {
-                alert('任务创建成功！');
-                loadTasks(); // 立即刷新一次
+                loadTasks(); // 立即刷新任务列表
             } else {
                 alert(`创建任务失败: ${result.message}`);
             }
         } catch (error) {
-            console.error('创建任务API请求失败:', error);
-            alert('创建任务API请求失败，请检查网络或联系管理员。');
+            alert('创建任务API请求失败');
         }
     });
 
-    // 使用事件委托处理任务删除
-    tasksTableBody.addEventListener('click', async (event) => {
-        if (event.target.classList.contains('delete-task-btn')) {
-            const taskId = event.target.getAttribute('data-id');
-            if (confirm(`确定要删除任务 ${taskId} 吗？`)) {
+    // 事件委托处理工作流和任务列表的点击
+    document.body.addEventListener('click', async (event) => {
+        // 选择工作流
+        const workflowItem = event.target.closest('.workflow-item');
+        if (workflowItem) {
+            selectedWorkflowId = workflowItem.dataset.id;
+            loadWorkflows(); // 重新渲染以更新选中状态
+            updateExecuteButtonState();
+            return;
+        }
+
+        // 删除任务
+        const deleteTaskBtn = event.target.closest('.delete-task-btn');
+        if (deleteTaskBtn) {
+            const taskId = deleteTaskBtn.dataset.id;
+            if (confirm(`确定要删除任务 ${taskId.slice(-6)} 吗？`)) {
                 try {
                     const response = await fetch(TASKS_API, {
                         method: 'DELETE',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ _id: taskId }),
                     });
-                    const result = await response.json();
-                    if (result.success) {
-                        alert('任务删除成功！');
-                        loadTasks();
+                    if (response.ok) {
+                        document.getElementById(`task-${taskId}`).remove();
                     } else {
+                        const result = await response.json();
                         alert(`删除失败: ${result.message}`);
                     }
                 } catch (error) {
                     alert('删除任务API请求失败。');
-                    console.error('删除任务失败:', error);
                 }
             }
         }
     });
     
-    // --- [v2.3] 新增工作流编辑器事件监听 ---
+    // 输入星图ID时更新按钮状态
+    xingtuIdInput.addEventListener('input', updateExecuteButtonState);
 
-    // 打开新建弹窗
-    newWorkflowBtn.addEventListener('click', () => {
-        openWorkflowModal(null);
-    });
-
-    // 打开编辑弹窗 (事件委托)
-    workflowsTableBody.addEventListener('click', async (event) => {
-        if (event.target.classList.contains('edit-workflow-btn')) {
-            const workflowId = event.target.getAttribute('data-id');
-            // 从API获取最新的工作流数据以进行编辑
+    // 工作流编辑器事件
+    newWorkflowBtn.addEventListener('click', () => openWorkflowModal(null));
+    workflowsList.addEventListener('dblclick', async (event) => {
+        const workflowItem = event.target.closest('.workflow-item');
+        if (workflowItem) {
+            const workflowId = workflowItem.dataset.id;
              try {
-                const response = await fetch(`${WORKFLOWS_API}?id=${workflowId}`, { method: 'GET' });
+                const response = await fetch(`${WORKFLOWS_API}?id=${workflowId}`);
                 const result = await response.json();
-                if(result.success) {
-                    openWorkflowModal(result.data);
-                } else {
-                    alert(`加载工作流数据失败: ${result.message}`);
-                }
-            } catch (error) {
-                alert('加载工作流数据失败');
-            }
+                if(result.success) openWorkflowModal(result.data);
+            } catch (error) { alert('加载工作流数据失败'); }
         }
     });
-
-    // 保存按钮
     saveWorkflowBtn.addEventListener('click', saveWorkflow);
-
-    // 取消按钮
     cancelWorkflowBtn.addEventListener('click', closeWorkflowModal);
 
 
     // --- 初始化 ---
     function initialize() {
-        // 注入侧边栏
         if (typeof loadSidebar === 'function') {
             loadSidebar('automation_suite');
         }
-        
-        // 页面加载时立即获取一次数据
         loadWorkflows();
         loadTasks();
-
-        // 启动任务列表的轮询
-        if (tasksPollingInterval) clearInterval(tasksPollingInterval);
-        tasksPollingInterval = setInterval(loadTasks, 5000); // 每5秒刷新一次任务列表
+        updateExecuteButtonState();
     }
 
     initialize();
 });
+
