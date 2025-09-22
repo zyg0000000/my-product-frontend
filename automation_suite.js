@@ -1,5 +1,5 @@
 /**
- * @file screenshot_suite.js
+ * @file automation_suite.js
  * @version 2.0 (Phase 1 Completed)
  * @description Automation suite for creating, managing, and testing screenshot workflows.
  * --- UPDATE LOG ---
@@ -292,4 +292,3 @@ document.addEventListener('DOMContentLoaded', function () {
 
     initialize();
 });
-
