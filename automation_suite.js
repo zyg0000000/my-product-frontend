@@ -1,16 +1,14 @@
 /**
  * @file automation_suite.js
- * @version 2.0 (Phase 1 Completed)
+ * @version 2.1 (Sidebar Interaction Fix)
  * @description Automation suite for creating, managing, and testing screenshot workflows.
  * --- UPDATE LOG ---
+ * V2.1:
+ * - CRITICAL FIX: Added the `initializeSidebar` function to correctly handle sidebar toggle and collapse interactions, ensuring UI consistency with other pages like index.html.
  * V2.0:
- * - Replaced all mock data and functions with production-ready API call structures.
- * - Implemented `pollTaskStatus` function to periodically check task completion status after execution.
- * - Added logic to dynamically render results (screenshot and data) from the API response.
- * - Wired up the "Delete Result" button to call the backend delete endpoint.
- * - Integrated a toast notification system for user feedback.
- * V1.0:
- * - Initial setup with UI interaction and mock data.
+ * - Replaced all mock data with production-ready API call structures.
+ * - Implemented `pollTaskStatus` for asynchronous task state checking.
+ * - Added logic to dynamically render results from API responses.
  */
 document.addEventListener('DOMContentLoaded', function () {
     // --- API Configuration (To be updated in Phase 2) ---
@@ -37,14 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let pollingInterval = null;
 
     // --- Helper Functions ---
-
-    /**
-     * Shows a toast notification.
-     * @param {string} message - The message to display.
-     * @param {boolean} isError - Whether the toast is for an error.
-     */
     function showToast(message, isError = false) {
-        // A simple implementation. Can be replaced with a more robust library.
         const toast = document.createElement('div');
         toast.textContent = message;
         toast.className = `fixed bottom-5 right-5 z-50 px-4 py-2 rounded-md text-white shadow-lg ${isError ? 'bg-red-500' : 'bg-green-500'}`;
@@ -52,16 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(() => toast.remove(), 3000);
     }
 
-    /**
-     * Makes a request to the backend API.
-     * @param {string} endpoint - The API endpoint to call.
-     * @param {string} method - The HTTP method.
-     * @param {object|null} body - The request body.
-     * @returns {Promise<object>} - The JSON response.
-     */
     async function apiRequest(endpoint, method = 'GET', body = null) {
-        // In a real scenario, this would be replaced with actual fetch calls.
-        // For Phase 1, we simulate API calls to demonstrate the logic.
         console.log(`API Request: ${method} ${endpoint}`, body);
         return new Promise((resolve, reject) => {
             setTimeout(() => {
@@ -77,7 +59,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     currentTaskId = `task_${Date.now()}`;
                     resolve({ success: true, taskId: currentTaskId });
                 } else if (endpoint.startsWith(TASKS_API_ENDPOINT + '/') && method === 'GET') {
-                    // Simulate polling
                     const random = Math.random();
                     if (random < 0.7) {
                         resolve({ success: true, task: { id: currentTaskId, status: 'running' } });
@@ -104,10 +85,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- Core Logic ---
-
-    /**
-     * Fetches workflows from the backend and renders them.
-     */
     async function fetchAndRenderScenes() {
         try {
             const response = await apiRequest(WORKFLOWS_API_ENDPOINT);
@@ -122,9 +99,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    /**
-     * Renders the list of scenes.
-     */
     function renderSceneList() {
         sceneList.innerHTML = '';
         if (scenes.length === 0) {
@@ -151,12 +125,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
     
-    /**
-     * Starts polling for the status of a given task ID.
-     * @param {string} taskId - The ID of the task to poll.
-     */
     function pollTaskStatus(taskId) {
-        stopPolling(); // Ensure no other polling is running
+        stopPolling();
         pollingInterval = setInterval(async () => {
             try {
                 const response = await apiRequest(`${TASKS_API_ENDPOINT}/${taskId}`);
@@ -169,12 +139,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 stopPolling();
                 handleTaskCompletion({ status: 'failed', errorMessage: error.message });
             }
-        }, 3000); // Poll every 3 seconds
+        }, 3000);
     }
 
-    /**
-     * Stops the current polling interval.
-     */
     function stopPolling() {
         if (pollingInterval) {
             clearInterval(pollingInterval);
@@ -182,10 +149,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    /**
-     * Handles the completion of a task, rendering the result or an error.
-     * @param {object} task - The completed task object.
-     */
     function handleTaskCompletion(task) {
         setLoading(false);
         if (task.status === 'success') {
@@ -198,10 +161,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    /**
-     * Sets the loading state for the execute button.
-     * @param {boolean} isLoading - Whether the button should be in a loading state.
-     */
     function setLoading(isLoading) {
         executeBtn.disabled = isLoading;
         executeBtnLoader.classList.toggle('hidden', !isLoading);
@@ -209,9 +168,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if(!isLoading) updateExecuteButtonState();
     }
     
-    /**
-     * Updates the enabled/disabled state of the execute button.
-     */
     function updateExecuteButtonState() {
         const hasId = xingtuIdInput.value.trim() !== '';
         const hasScene = selectedSceneId !== null;
@@ -224,20 +180,7 @@ document.addEventListener('DOMContentLoaded', function () {
             executeBtnText.textContent = '请选择一个工作流';
         }
     }
-
-    /**
-     * Main initialization function.
-     */
-    function initialize() {
-        fetchAndRenderScenes();
-        xingtuIdInput.addEventListener('input', updateExecuteButtonState);
-        executeBtn.addEventListener('click', handleExecute);
-        deleteResultBtn.addEventListener('click', handleDeleteResult);
-    }
     
-    /**
-     * Handles the click of the "Execute" button.
-     */
     async function handleExecute() {
         if (executeBtn.disabled) return;
         
@@ -262,9 +205,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    /**
-     * Handles the click of the "Delete Result" button.
-     */
     async function handleDeleteResult() {
         if (!currentTaskId) return;
         
@@ -280,9 +220,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    /**
-     * Clears the result display area.
-     */
     function clearResult() {
         currentTaskId = null;
         resultContainer.classList.remove('visible');
@@ -290,5 +227,48 @@ document.addEventListener('DOMContentLoaded', function () {
         dataPreview.textContent = '';
     }
 
-    initialize();
+    // --- Sidebar Interaction Logic (CRITICAL FIX) ---
+    function initializeSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        if (!sidebar) return; // Guard against missing sidebar
+
+        // This logic is adapted from index.js to ensure consistent behavior
+        sidebar.querySelectorAll('.nav-toggle').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                // Do not allow toggling if sidebar is collapsed
+                if (sidebar.classList.contains('sidebar-collapsed')) {
+                    return;
+                }
+                const submenuId = toggle.getAttribute('data-toggle');
+                const submenu = document.getElementById(submenuId);
+                if (submenu) {
+                    const isHidden = submenu.classList.contains('hidden');
+                    submenu.classList.toggle('hidden', !isHidden);
+                    
+                    const plusIcon = toggle.querySelector('.toggle-icon-plus');
+                    const minusIcon = toggle.querySelector('.toggle-icon-minus');
+                    if (plusIcon && minusIcon) {
+                        plusIcon.classList.toggle('hidden', !isHidden);
+                        minusIcon.classList.toggle('hidden', isHidden);
+                    }
+                }
+            });
+        });
+    }
+
+    /**
+     * Main initialization function.
+     */
+    function initializePage() {
+        fetchAndRenderScenes();
+        initializeSidebar(); // <-- This is the crucial addition
+        
+        // Event listeners for page-specific functions
+        xingtuIdInput.addEventListener('input', updateExecuteButtonState);
+        executeBtn.addEventListener('click', handleExecute);
+        deleteResultBtn.addEventListener('click', handleDeleteResult);
+    }
+
+    initializePage();
 });
+
