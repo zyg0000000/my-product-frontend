@@ -1,11 +1,9 @@
 /**
  * @file automation_suite.js
- * @version 3.0 - UI Restoration & UX Enhancement
+ * @version 3.1 - Standalone Sidebar Implementation
  * @description 前端逻辑，用于自动化套件控制中心。
- * - [UI/UX] 页面布局和样式已根据用户的截图反馈，恢复为简洁的左右两栏风格。
- * - [UI/UX] 增加了任务执行后的实时结果展示区域，并为每个任务提供了单独的查看和删除操作。
- * - [功能增强] 执行按钮现在会根据工作流和星图ID的输入状态动态更新文本和可用性。
- * - [代码重构] 重构了任务轮询逻辑，使其更加健壮，并能在任务完成时自动停止。
+ * - [核心改造] 移除了对外部 sidebar.js 的依赖。
+ * - [代码内嵌] 从 index.js 严格迁移了侧边栏的全部交互逻辑，并内嵌到本文件的 initializePage 函数中，确保此页面拥有独立且正确的侧边栏功能。
  */
 document.addEventListener('DOMContentLoaded', function () {
     // --- 全局变量与配置 ---
@@ -35,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const saveWorkflowBtn = document.getElementById('save-workflow-btn');
     const cancelWorkflowBtn = document.getElementById('cancel-workflow-btn');
     
-    // --- 函数定义 ---
+    // --- 函数定义 (页面核心逻辑) ---
 
     /**
      * 加载并渲染工作流列表
@@ -341,15 +339,66 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // --- 初始化 ---
-    function initialize() {
-        if (typeof loadSidebar === 'function') {
-            loadSidebar('automation_suite');
+    function initializePage() {
+        // --- [核心改造] 从 index.js 严格迁移过来的侧边栏交互逻辑 ---
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        const sidebarToggleBtn = document.getElementById('sidebar-toggle');
+        const navToggles = sidebar.querySelectorAll('.nav-toggle');
+        const SIDEBAR_STATE_KEY = 'sidebarCollapsed';
+
+        // 高亮当前页面链接
+        const activeLink = document.getElementById('nav-automation_suite'); // 直接指定当前页ID
+        if (activeLink) {
+            activeLink.classList.add('active');
+            const parentMenu = activeLink.closest('.submenu');
+            if (parentMenu) {
+                parentMenu.classList.remove('hidden');
+                const toggleButton = document.querySelector(`button[data-toggle="${parentMenu.id}"]`);
+                if (toggleButton) {
+                    toggleButton.querySelector('.toggle-icon-plus')?.classList.add('hidden');
+                    toggleButton.querySelector('.toggle-icon-minus')?.classList.remove('hidden');
+                }
+            }
         }
+        
+        // 设置侧边栏状态函数
+        function setSidebarState(isCollapsed) {
+            if (!sidebar || !mainContent) return;
+            sidebar.classList.toggle('sidebar-collapsed', isCollapsed);
+            mainContent.style.marginLeft = isCollapsed ? '5rem' : '9.5rem';
+            document.getElementById('toggle-icon-collapse')?.classList.toggle('hidden', isCollapsed);
+            document.getElementById('toggle-icon-expand')?.classList.toggle('hidden', !isCollapsed);
+        }
+
+        // 绑定事件
+        sidebarToggleBtn?.addEventListener('click', () => {
+            const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
+            setSidebarState(!isCollapsed);
+            localStorage.setItem(SIDEBAR_STATE_KEY, JSON.stringify(!isCollapsed));
+        });
+
+        navToggles.forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                if (sidebar.classList.contains('sidebar-collapsed')) return;
+                const submenu = document.getElementById(toggle.dataset.toggle);
+                submenu?.classList.toggle('hidden');
+                toggle.querySelector('.toggle-icon-plus')?.classList.toggle('hidden');
+                toggle.querySelector('.toggle-icon-minus')?.classList.toggle('hidden');
+            });
+        });
+
+        // 恢复状态
+        setSidebarState(JSON.parse(localStorage.getItem(SIDEBAR_STATE_KEY)));
+        // --- 侧边栏逻辑结束 ---
+
+        
+        // 页面核心功能加载
         loadWorkflows();
         loadTasks();
         updateExecuteButtonState();
     }
 
-    initialize();
+    initializePage();
 });
 
