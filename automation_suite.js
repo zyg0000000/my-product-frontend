@@ -1,13 +1,14 @@
 /**
  * @file automation_suite.js
- * @version 3.1 - Standalone Sidebar Implementation
+ * @version 3.2 - API Endpoint Configuration
  * @description 前端逻辑，用于自动化套件控制中心。
- * - [核心改造] 移除了对外部 sidebar.js 的依赖。
- * - [代码内嵌] 从 index.js 严格迁移了侧边栏的全部交互逻辑，并内嵌到本文件的 initializePage 函数中，确保此页面拥有独立且正确的侧边栏功能。
+ * - [核心配置] 增加了 API_BASE_URL 的配置项，现在需要您填入真实的API网关地址。
+ * - [代码内嵌] 保持了从 index.js 迁移过来的独立侧边栏交互逻辑。
  */
 document.addEventListener('DOMContentLoaded', function () {
     // --- 全局变量与配置 ---
-    const API_BASE_URL = 'YOUR_API_GATEWAY_BASE_URL'; // TODO: 替换为您的API网关地址
+    // !!! 关键步骤: 请将下面的占位符替换为您的真实API网关地址 !!!
+    const API_BASE_URL = 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com'; 
     const WORKFLOWS_API = `${API_BASE_URL}/automation-workflows`;
     const TASKS_API = `${API_BASE_URL}/automation-tasks`;
 
@@ -39,14 +40,21 @@ document.addEventListener('DOMContentLoaded', function () {
      * 加载并渲染工作流列表
      */
     async function loadWorkflows() {
+        if (API_BASE_URL.includes('YOUR_API_GATEWAY_BASE_URL')) {
+            workflowsList.innerHTML = `<p class="text-center py-4 text-red-500">错误：请先在 JS 文件中配置API网关地址</p>`;
+            return;
+        }
         try {
             const response = await fetch(WORKFLOWS_API);
+             if (!response.ok) { // 首先检查网络层面的错误
+                throw new Error(`网络错误: ${response.status} ${response.statusText}`);
+            }
             const result = await response.json();
 
             if (result.success && Array.isArray(result.data)) {
                 workflowsList.innerHTML = '';
                 if (result.data.length === 0) {
-                     workflowsList.innerHTML = `<p class="text-center py-4 text-gray-500">暂无工作流</p>`;
+                     workflowsList.innerHTML = `<p class="text-center py-4 text-gray-500">暂无工作流，请点击“新建”创建第一个。</p>`;
                 }
                 result.data.forEach(workflow => {
                     const isSelected = workflow._id === selectedWorkflowId;
@@ -60,17 +68,22 @@ document.addEventListener('DOMContentLoaded', function () {
                     item.innerHTML = `
                         <div class="flex justify-between items-center">
                             <span class="font-semibold text-gray-800">${workflow.name}</span>
-                            ${typeTag}
+                            <div class="flex items-center gap-2">
+                                ${typeTag}
+                                <button class="edit-workflow-btn p-1 rounded-md hover:bg-gray-200 text-gray-400" data-id="${workflow._id}">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
+                                </button>
+                            </div>
                         </div>
                     `;
                     workflowsList.appendChild(item);
                 });
             } else {
-                workflowsList.innerHTML = `<p class="text-center py-4 text-red-500">请求工作流API时出错</p>`;
+                workflowsList.innerHTML = `<p class="text-center py-4 text-red-500">请求工作流API时出错: ${result.message}</p>`;
             }
         } catch (error) {
             console.error('请求工作流API时出错:', error);
-            workflowsList.innerHTML = `<p class="text-center py-4 text-red-500">请求工作流API时出错</p>`;
+            workflowsList.innerHTML = `<p class="text-center py-4 text-red-500">请求工作流API时出错: ${error.message}</p>`;
         }
     }
 
@@ -78,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
      * 加载并渲染最近的任务列表
      */
     async function loadTasks() {
+        if (API_BASE_URL.includes('YOUR_API_GATEWAY_BASE_URL')) return;
         try {
             const response = await fetch(`${TASKS_API}?limit=10`); // 获取最近10条
             const result = await response.json();
@@ -294,6 +308,18 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // 编辑工作流 (通过按钮)
+        const editWorkflowBtn = event.target.closest('.edit-workflow-btn');
+        if (editWorkflowBtn) {
+            const workflowId = editWorkflowBtn.dataset.id;
+             try {
+                const response = await fetch(`${WORKFLOWS_API}?id=${workflowId}`);
+                const result = await response.json();
+                if(result.success) openWorkflowModal(result.data);
+            } catch (error) { alert('加载工作流数据失败'); }
+            return;
+        }
+
         // 删除任务
         const deleteTaskBtn = event.target.closest('.delete-task-btn');
         if (deleteTaskBtn) {
@@ -323,17 +349,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 工作流编辑器事件
     newWorkflowBtn.addEventListener('click', () => openWorkflowModal(null));
-    workflowsList.addEventListener('dblclick', async (event) => {
-        const workflowItem = event.target.closest('.workflow-item');
-        if (workflowItem) {
-            const workflowId = workflowItem.dataset.id;
-             try {
-                const response = await fetch(`${WORKFLOWS_API}?id=${workflowId}`);
-                const result = await response.json();
-                if(result.success) openWorkflowModal(result.data);
-            } catch (error) { alert('加载工作流数据失败'); }
-        }
-    });
     saveWorkflowBtn.addEventListener('click', saveWorkflow);
     cancelWorkflowBtn.addEventListener('click', closeWorkflowModal);
 
