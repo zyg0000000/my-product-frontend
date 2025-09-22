@@ -1,13 +1,11 @@
 /**
  * @file automation_suite.js
- * @version 3.2 - API Endpoint Configuration
+ * @version 3.3 - API Payload Fix
  * @description 前端逻辑，用于自动化套件控制中心。
- * - [核心配置] 增加了 API_BASE_URL 的配置项，现在需要您填入真实的API网关地址。
- * - [代码内嵌] 保持了从 index.js 迁移过来的独立侧边栏交互逻辑。
+ * - [核心修复] 修正了 `executeTaskBtn` 事件监听器中创建任务的API请求体(payload)。现在 `xingtuId` 会作为顶级字段发送，解决了 "workflowId and xingtuId are required" 的错误。
  */
 document.addEventListener('DOMContentLoaded', function () {
     // --- 全局变量与配置 ---
-    // !!! 关键步骤: 请将下面的占位符替换为您的真实API网关地址 !!!
     const API_BASE_URL = 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com'; 
     const WORKFLOWS_API = `${API_BASE_URL}/automation-workflows`;
     const TASKS_API = `${API_BASE_URL}/automation-tasks`;
@@ -36,17 +34,15 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // --- 函数定义 (页面核心逻辑) ---
 
-    /**
-     * 加载并渲染工作流列表
-     */
     async function loadWorkflows() {
+        // ... (此函数内容保持不变) ...
         if (API_BASE_URL.includes('YOUR_API_GATEWAY_BASE_URL')) {
             workflowsList.innerHTML = `<p class="text-center py-4 text-red-500">错误：请先在 JS 文件中配置API网关地址</p>`;
             return;
         }
         try {
             const response = await fetch(WORKFLOWS_API);
-             if (!response.ok) { // 首先检查网络层面的错误
+             if (!response.ok) {
                 throw new Error(`网络错误: ${response.status} ${response.statusText}`);
             }
             const result = await response.json();
@@ -87,13 +83,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    /**
-     * 加载并渲染最近的任务列表
-     */
     async function loadTasks() {
+        // ... (此函数内容保持不变) ...
         if (API_BASE_URL.includes('YOUR_API_GATEWAY_BASE_URL')) return;
         try {
-            const response = await fetch(`${TASKS_API}?limit=10`); // 获取最近10条
+            const response = await fetch(`${TASKS_API}?limit=10`);
             const result = await response.json();
             
             if (result.success && Array.isArray(result.data)) {
@@ -102,8 +96,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     tasksListContainer.innerHTML = `<p class="text-center py-4 text-gray-500">暂无任务记录</p>`;
                 }
                 result.data.forEach(renderTaskItem);
-
-                // 对正在运行的任务启动轮询
                 result.data.forEach(task => {
                     if (task.status === 'pending' || task.status === 'processing') {
                         startPollingForTask(task._id);
@@ -116,10 +108,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    /**
-     * 渲染单个任务项
-     */
     function renderTaskItem(task) {
+        // ... (此函数内容保持不变) ...
         let existingItem = document.getElementById(`task-${task._id}`);
         if (!existingItem) {
             existingItem = document.createElement('div');
@@ -157,11 +147,9 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>`;
     }
 
-    /**
-     * 为指定任务开始轮询状态
-     */
     function startPollingForTask(taskId) {
-        if (activePollingIntervals[taskId]) return; // 防止重复轮询
+        // ... (此函数内容保持不变) ...
+        if (activePollingIntervals[taskId]) return;
 
         activePollingIntervals[taskId] = setInterval(async () => {
             try {
@@ -182,20 +170,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 3000);
     }
 
-    /**
-     * 停止指定任务的轮询
-     */
     function stopPollingForTask(taskId) {
-        if (activePollingIntervals[taskId]) {
+        // ... (此函数内容保持不变) ...
+         if (activePollingIntervals[taskId]) {
             clearInterval(activePollingIntervals[taskId]);
             delete activePollingIntervals[taskId];
         }
     }
     
-    /**
-     * 打开工作流编辑器弹窗
-     */
     function openWorkflowModal(workflowData = null) {
+        // ... (此函数内容保持不变) ...
         workflowForm.reset();
         jsonError.classList.add('hidden');
         if (workflowData) {
@@ -213,10 +197,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function closeWorkflowModal() {
+        // ... (此函数内容保持不变) ...
         workflowModal.classList.add('hidden');
     }
 
     async function saveWorkflow() {
+        // ... (此函数内容保持不变) ...
         let steps;
         try {
             steps = JSON.parse(workflowJsonEditor.value);
@@ -251,6 +237,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateExecuteButtonState() {
+        // ... (此函数内容保持不变) ...
         const hasId = xingtuIdInput.value.trim() !== '';
         const hasWorkflow = selectedWorkflowId !== null;
         
@@ -275,40 +262,48 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- 事件监听 ---
 
-    // 执行任务
+    // [核心修复] 执行任务按钮的事件监听器
     executeTaskBtn.addEventListener('click', async () => {
         const xingtuId = xingtuIdInput.value.trim();
         if (!selectedWorkflowId || !xingtuId) return;
 
         try {
+            // [修复] 构建正确的请求体，将 xingtuId 作为顶级字段
+            const payload = {
+                workflowId: selectedWorkflowId,
+                xingtuId: xingtuId 
+            };
+            
             const response = await fetch(TASKS_API, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ workflowId: selectedWorkflowId, parameters: { xingtuId } }),
+                body: JSON.stringify(payload),
             });
+            
             const result = await response.json();
+            
             if (result.success) {
                 loadTasks(); // 立即刷新任务列表
             } else {
-                alert(`创建任务失败: ${result.message}`);
+                // 如果后端返回的错误信息更具体，就显示它
+                alert(`创建任务失败: ${result.message || '未知错误'}`);
             }
         } catch (error) {
-            alert('创建任务API请求失败');
+            console.error('创建任务API请求失败:', error);
+            alert('创建任务API请求失败: ' + error.message);
         }
     });
 
-    // 事件委托处理工作流和任务列表的点击
+    // ... (其他事件监听器保持不变) ...
     document.body.addEventListener('click', async (event) => {
-        // 选择工作流
         const workflowItem = event.target.closest('.workflow-item');
         if (workflowItem) {
             selectedWorkflowId = workflowItem.dataset.id;
-            loadWorkflows(); // 重新渲染以更新选中状态
+            loadWorkflows();
             updateExecuteButtonState();
             return;
         }
 
-        // 编辑工作流 (通过按钮)
         const editWorkflowBtn = event.target.closest('.edit-workflow-btn');
         if (editWorkflowBtn) {
             const workflowId = editWorkflowBtn.dataset.id;
@@ -320,7 +315,6 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // 删除任务
         const deleteTaskBtn = event.target.closest('.delete-task-btn');
         if (deleteTaskBtn) {
             const taskId = deleteTaskBtn.dataset.id;
@@ -344,10 +338,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     
-    // 输入星图ID时更新按钮状态
     xingtuIdInput.addEventListener('input', updateExecuteButtonState);
-
-    // 工作流编辑器事件
     newWorkflowBtn.addEventListener('click', () => openWorkflowModal(null));
     saveWorkflowBtn.addEventListener('click', saveWorkflow);
     cancelWorkflowBtn.addEventListener('click', closeWorkflowModal);
@@ -355,15 +346,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- 初始化 ---
     function initializePage() {
-        // --- [核心改造] 从 index.js 严格迁移过来的侧边栏交互逻辑 ---
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.getElementById('main-content');
         const sidebarToggleBtn = document.getElementById('sidebar-toggle');
         const navToggles = sidebar.querySelectorAll('.nav-toggle');
         const SIDEBAR_STATE_KEY = 'sidebarCollapsed';
 
-        // 高亮当前页面链接
-        const activeLink = document.getElementById('nav-automation_suite'); // 直接指定当前页ID
+        const activeLink = document.getElementById('nav-automation_suite');
         if (activeLink) {
             activeLink.classList.add('active');
             const parentMenu = activeLink.closest('.submenu');
@@ -377,7 +366,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
         
-        // 设置侧边栏状态函数
         function setSidebarState(isCollapsed) {
             if (!sidebar || !mainContent) return;
             sidebar.classList.toggle('sidebar-collapsed', isCollapsed);
@@ -386,7 +374,6 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('toggle-icon-expand')?.classList.toggle('hidden', !isCollapsed);
         }
 
-        // 绑定事件
         sidebarToggleBtn?.addEventListener('click', () => {
             const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
             setSidebarState(!isCollapsed);
@@ -403,12 +390,8 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
 
-        // 恢复状态
         setSidebarState(JSON.parse(localStorage.getItem(SIDEBAR_STATE_KEY)));
-        // --- 侧边栏逻辑结束 ---
-
         
-        // 页面核心功能加载
         loadWorkflows();
         loadTasks();
         updateExecuteButtonState();
