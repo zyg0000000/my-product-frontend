@@ -1,10 +1,12 @@
 /**
  * @file automation_suite.js
- * @version 2.1 (Sidebar Interaction Fix)
+ * @version 2.2 (Refactor: Remove Redundant Sidebar Logic)
  * @description Automation suite for creating, managing, and testing screenshot workflows.
  * --- UPDATE LOG ---
+ * V2.2:
+ * - REFACTOR: Removed the redundant `initializeSidebar` function. The page now correctly relies on the reusable `sidebar.js` component for all sidebar interactions, ensuring consistency and maintainability.
  * V2.1:
- * - CRITICAL FIX: Added the `initializeSidebar` function to correctly handle sidebar toggle and collapse interactions, ensuring UI consistency with other pages like index.html.
+ * - (Deprecated) Added a temporary fix for sidebar interactions. This has been superseded by the V2.2 refactor.
  * V2.0:
  * - Replaced all mock data with production-ready API call structures.
  * - Implemented `pollTaskStatus` for asynchronous task state checking.
@@ -208,6 +210,8 @@ document.addEventListener('DOMContentLoaded', function () {
     async function handleDeleteResult() {
         if (!currentTaskId) return;
         
+        // Using a custom modal for confirmation would be better in a real app
+        // For now, we stick to confirm() as per original, but it's not ideal.
         const confirmed = confirm('您确定要删除这条执行结果吗？此操作将删除截图文件和数据库记录。');
         if (confirmed) {
             try {
@@ -227,41 +231,11 @@ document.addEventListener('DOMContentLoaded', function () {
         dataPreview.textContent = '';
     }
 
-    // --- Sidebar Interaction Logic (CRITICAL FIX) ---
-    function initializeSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        if (!sidebar) return; // Guard against missing sidebar
-
-        // This logic is adapted from index.js to ensure consistent behavior
-        sidebar.querySelectorAll('.nav-toggle').forEach(toggle => {
-            toggle.addEventListener('click', () => {
-                // Do not allow toggling if sidebar is collapsed
-                if (sidebar.classList.contains('sidebar-collapsed')) {
-                    return;
-                }
-                const submenuId = toggle.getAttribute('data-toggle');
-                const submenu = document.getElementById(submenuId);
-                if (submenu) {
-                    const isHidden = submenu.classList.contains('hidden');
-                    submenu.classList.toggle('hidden', !isHidden);
-                    
-                    const plusIcon = toggle.querySelector('.toggle-icon-plus');
-                    const minusIcon = toggle.querySelector('.toggle-icon-minus');
-                    if (plusIcon && minusIcon) {
-                        plusIcon.classList.toggle('hidden', !isHidden);
-                        minusIcon.classList.toggle('hidden', isHidden);
-                    }
-                }
-            });
-        });
-    }
-
     /**
      * Main initialization function.
      */
     function initializePage() {
         fetchAndRenderScenes();
-        initializeSidebar(); // <-- This is the crucial addition
         
         // Event listeners for page-specific functions
         xingtuIdInput.addEventListener('input', updateExecuteButtonState);
@@ -271,4 +245,3 @@ document.addEventListener('DOMContentLoaded', function () {
 
     initializePage();
 });
-
