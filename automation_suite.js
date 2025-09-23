@@ -1,8 +1,8 @@
 /**
  * @file automation_suite.js
- * @version 3.3 - API Payload Fix
+ * @version 3.4 - Schema Alignment
  * @description 前端逻辑，用于自动化套件控制中心。
- * - [核心修复] 修正了 `executeTaskBtn` 事件监听器中创建任务的API请求体(payload)。现在 `xingtuId` 会作为顶级字段发送，解决了 "workflowId and xingtuId are required" 的错误。
+ * - [核心修复 v3.4] 为了与整个产品线保持一致，将发送给后端的字段名从 `targetXingtuId` 统一为 `xingtuId`。
  */
 document.addEventListener('DOMContentLoaded', function () {
     // --- 全局变量与配置 ---
@@ -35,7 +35,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- 函数定义 (页面核心逻辑) ---
 
     async function loadWorkflows() {
-        // ... (此函数内容保持不变) ...
         if (API_BASE_URL.includes('YOUR_API_GATEWAY_BASE_URL')) {
             workflowsList.innerHTML = `<p class="text-center py-4 text-red-500">错误：请先在 JS 文件中配置API网关地址</p>`;
             return;
@@ -84,7 +83,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function loadTasks() {
-        // ... (此函数内容保持不变) ...
         if (API_BASE_URL.includes('YOUR_API_GATEWAY_BASE_URL')) return;
         try {
             const response = await fetch(`${TASKS_API}?limit=10`);
@@ -109,7 +107,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function renderTaskItem(task) {
-        // ... (此函数内容保持不变) ...
         let existingItem = document.getElementById(`task-${task._id}`);
         if (!existingItem) {
             existingItem = document.createElement('div');
@@ -123,11 +120,11 @@ document.addEventListener('DOMContentLoaded', function () {
             case 'processing': statusBadge = `<span class="text-xs font-semibold rounded-full bg-blue-100 text-blue-800">处理中</span>`; break;
             case 'completed': 
                 statusBadge = `<span class="text-xs font-semibold rounded-full bg-green-100 text-green-800">已完成</span>`;
-                resultHtml = `<a href="${task.result?.screenshotPath || '#'}" target="_blank" class="text-indigo-600 hover:underline text-sm">查看结果</a>`;
+                resultHtml = `<a href="#" class="view-results-btn text-indigo-600 hover:underline text-sm" data-task-id="${task._id}">查看结果</a>`;
                 break;
             case 'failed': 
                 statusBadge = `<span class="text-xs font-semibold rounded-full bg-red-100 text-red-800">失败</span>`;
-                resultHtml = `<span class="text-red-600 text-sm" title="${task.error || ''}">查看原因</span>`;
+                resultHtml = `<span class="text-red-600 text-sm cursor-pointer" title="${task.errorMessage || ''}">查看原因</span>`;
                 break;
             default: statusBadge = `<span class="text-xs font-semibold rounded-full bg-gray-100 text-gray-800">未知</span>`;
         }
@@ -148,7 +145,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function startPollingForTask(taskId) {
-        // ... (此函数内容保持不变) ...
         if (activePollingIntervals[taskId]) return;
 
         activePollingIntervals[taskId] = setInterval(async () => {
@@ -171,7 +167,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function stopPollingForTask(taskId) {
-        // ... (此函数内容保持不变) ...
          if (activePollingIntervals[taskId]) {
             clearInterval(activePollingIntervals[taskId]);
             delete activePollingIntervals[taskId];
@@ -179,7 +174,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function openWorkflowModal(workflowData = null) {
-        // ... (此函数内容保持不变) ...
         workflowForm.reset();
         jsonError.classList.add('hidden');
         if (workflowData) {
@@ -190,19 +184,17 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             modalTitle.textContent = '新建工作流';
             workflowIdInput.value = '';
-            const template = [{ "type": "goto", "name": "访问页面", "url": "https://www.bytedance.com/" }];
+            const template = [{ "action": "wait", "description": "等待2秒", "milliseconds": 2000 }];
             workflowJsonEditor.value = JSON.stringify(template, null, 2);
         }
         workflowModal.classList.remove('hidden');
     }
 
     function closeWorkflowModal() {
-        // ... (此函数内容保持不变) ...
         workflowModal.classList.add('hidden');
     }
 
     async function saveWorkflow() {
-        // ... (此函数内容保持不变) ...
         let steps;
         try {
             steps = JSON.parse(workflowJsonEditor.value);
@@ -213,7 +205,11 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const workflowData = { name: workflowNameInput.value, steps: steps };
+        const workflowData = { 
+            name: workflowNameInput.value, 
+            steps: steps,
+            type: "screenshot" // 默认类型
+        };
         const id = workflowIdInput.value;
         const method = id ? 'PUT' : 'POST';
         if(id) workflowData._id = id;
@@ -225,11 +221,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: JSON.stringify(workflowData)
             });
             const result = await response.json();
-            if (result.success) {
+            if (response.ok) {
                 closeWorkflowModal();
-                loadWorkflows();
+                await loadWorkflows();
             } else {
-                throw new Error(result.message);
+                throw new Error(result.message || '保存失败');
             }
         } catch (error) {
             alert(`保存工作流失败: ${error.message}`);
@@ -237,7 +233,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateExecuteButtonState() {
-        // ... (此函数内容保持不变) ...
         const hasId = xingtuIdInput.value.trim() !== '';
         const hasWorkflow = selectedWorkflowId !== null;
         
@@ -253,25 +248,24 @@ document.addEventListener('DOMContentLoaded', function () {
             executeTaskBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
         } else {
             executeTaskBtn.disabled = false;
-            executeTaskBtn.textContent = '执行';
+            executeTaskBtn.textContent = '执行任务';
             executeTaskBtn.classList.remove('bg-gray-300', 'cursor-not-allowed');
             executeTaskBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
         }
     }
 
-
     // --- 事件监听 ---
-
-    // [核心修复] 执行任务按钮的事件监听器
     executeTaskBtn.addEventListener('click', async () => {
         const xingtuId = xingtuIdInput.value.trim();
         if (!selectedWorkflowId || !xingtuId) return;
 
+        executeTaskBtn.disabled = true;
+        executeTaskBtn.textContent = '正在创建...';
+
         try {
-            // [修复] 构建正确的请求体，将 xingtuId 作为顶级字段
             const payload = {
                 workflowId: selectedWorkflowId,
-                xingtuId: xingtuId 
+                xingtuId: xingtuId // [核心修复 v3.4]
             };
             
             const response = await fetch(TASKS_API, {
@@ -283,35 +277,50 @@ document.addEventListener('DOMContentLoaded', function () {
             const result = await response.json();
             
             if (result.success) {
-                loadTasks(); // 立即刷新任务列表
+                renderTaskItem(result.data); // 直接渲染新任务
+                startPollingForTask(result.data._id); // 开始轮询
+                resultContainer.classList.add('visible');
             } else {
-                // 如果后端返回的错误信息更具体，就显示它
                 alert(`创建任务失败: ${result.message || '未知错误'}`);
             }
         } catch (error) {
             console.error('创建任务API请求失败:', error);
             alert('创建任务API请求失败: ' + error.message);
+        } finally {
+            executeTaskBtn.disabled = false;
+            executeTaskBtn.textContent = '执行任务';
         }
     });
 
-    // ... (其他事件监听器保持不变) ...
     document.body.addEventListener('click', async (event) => {
         const workflowItem = event.target.closest('.workflow-item');
         if (workflowItem) {
             selectedWorkflowId = workflowItem.dataset.id;
-            loadWorkflows();
+            // 重新渲染工作流列表以更新选中样式
+            const allItems = workflowsList.querySelectorAll('.workflow-item');
+            allItems.forEach(item => {
+                item.classList.toggle('selected', item.dataset.id === selectedWorkflowId);
+            });
             updateExecuteButtonState();
             return;
         }
 
         const editWorkflowBtn = event.target.closest('.edit-workflow-btn');
         if (editWorkflowBtn) {
+            event.stopPropagation(); // 防止触发父元素的点击事件
             const workflowId = editWorkflowBtn.dataset.id;
              try {
+                // 这个API需要后端支持通过ID查询单个workflow
                 const response = await fetch(`${WORKFLOWS_API}?id=${workflowId}`);
                 const result = await response.json();
-                if(result.success) openWorkflowModal(result.data);
-            } catch (error) { alert('加载工作流数据失败'); }
+                if(result.success && result.data.length > 0) {
+                     openWorkflowModal(result.data[0]);
+                } else {
+                    throw new Error(result.message || '未找到工作流');
+                }
+            } catch (error) { 
+                alert(`加载工作流数据失败: ${error.message}`); 
+            }
             return;
         }
 
@@ -342,7 +351,6 @@ document.addEventListener('DOMContentLoaded', function () {
     newWorkflowBtn.addEventListener('click', () => openWorkflowModal(null));
     saveWorkflowBtn.addEventListener('click', saveWorkflow);
     cancelWorkflowBtn.addEventListener('click', closeWorkflowModal);
-
 
     // --- 初始化 ---
     function initializePage() {
@@ -390,7 +398,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
 
-        setSidebarState(JSON.parse(localStorage.getItem(SIDEBAR_STATE_KEY)));
+        setSidebarState(JSON.parse(localStorage.getItem(SIDEBAR_STATE_KEY) || 'false'));
         
         loadWorkflows();
         loadTasks();
