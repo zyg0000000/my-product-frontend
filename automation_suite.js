@@ -1,10 +1,10 @@
 /**
  * @file automation_suite.js
- * @version 3.4 - Instant Task Feedback
+ * @version 3.5 - Robust Event Listeners
  * @description 前端逻辑，用于自动化套件控制中心。
- * - [核心优化] "执行任务"按钮的逻辑被重构。现在它会直接使用创建任务API返回的新任务对象，
- * 立即在任务列表顶部渲染该任务并启动轮询。
- * - 这解决了之前的时序竞争问题，为用户提供了即时的操作反馈，并减少了一次多余的 `loadTasks` API调用。
+ * - [核心修复] 为所有的 addEventListener 调用增加了空值检查 (null check)。
+ * - 这可以防止在HTML元素未能成功加载时，脚本因尝试访问 null 的属性而崩溃，从而提高了代码的健壮性。
+ * - [优化] 强化了侧边栏初始化逻辑，如果相关元素缺失，会提前退出以防止错误。
  */
 document.addEventListener('DOMContentLoaded', function () {
     // --- 全局变量与配置 ---
@@ -61,20 +61,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function loadWorkflows() {
         const response = await apiCall(WORKFLOWS_API);
-        if (response && response.success) {
+        if (response && response.success && workflowsList) {
             workflowsList.innerHTML = '';
             response.data.forEach(wf => {
                 const li = document.createElement('li');
-                li.className = 'p-3 rounded-lg cursor-pointer transition-all duration-200';
+                li.className = 'p-3 rounded-lg cursor-pointer transition-all duration-200 bg-white hover:bg-gray-100';
                 li.textContent = wf.name;
                 li.dataset.workflowId = wf._id;
                 li.addEventListener('click', () => {
-                    if (selectedWorkflowId) {
-                        document.querySelector(`[data-workflow-id="${selectedWorkflowId}"]`).classList.remove('bg-blue-600', 'text-white', 'shadow-md');
-                         document.querySelector(`[data-workflow-id="${selectedWorkflowId}"]`).classList.add('bg-white', 'hover:bg-gray-100');
+                    const currentSelected = document.querySelector('.workflow-selected');
+                    if(currentSelected) {
+                        currentSelected.classList.remove('bg-blue-600', 'text-white', 'shadow-md', 'workflow-selected');
+                        currentSelected.classList.add('bg-white', 'hover:bg-gray-100');
                     }
                     selectedWorkflowId = wf._id;
-                    li.classList.add('bg-blue-600', 'text-white', 'shadow-md');
+                    li.classList.add('bg-blue-600', 'text-white', 'shadow-md', 'workflow-selected');
                     li.classList.remove('bg-white', 'hover:bg-gray-100');
                     updateExecuteButtonState();
                 });
@@ -85,13 +86,17 @@ document.addEventListener('DOMContentLoaded', function () {
     
     async function loadTasks() {
         const response = await apiCall(TASKS_API);
-        tasksListContainer.innerHTML = ''; // 清空现有列表
+        if (tasksListContainer) {
+            tasksListContainer.innerHTML = ''; // 清空现有列表
+        }
         if (response && response.success && Array.isArray(response.data)) {
             response.data.forEach(task => renderTask(task));
         }
     }
     
     function renderTask(task, prepend = false) {
+        if (!tasksListContainer) return;
+
         // 如果任务已存在，先移除旧的DOM元素
         const existingTaskElement = document.getElementById(`task-${task._id}`);
         if (existingTaskElement) {
@@ -129,9 +134,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         // 绑定事件
-        taskElement.querySelector('.delete-task-btn').addEventListener('click', () => deleteTask(task._id));
+        taskElement.querySelector('.delete-task-btn')?.addEventListener('click', () => deleteTask(task._id));
         if(task.result) {
-            taskElement.querySelector('.view-result-btn').addEventListener('click', () => showResult(task));
+            taskElement.querySelector('.view-result-btn')?.addEventListener('click', () => showResult(task));
         }
 
         // 根据状态决定是否轮询
@@ -143,6 +148,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateExecuteButtonState() {
+        if (!executeTaskBtn || !xingtuIdInput) return;
         const xingtuId = xingtuIdInput.value.trim();
         executeTaskBtn.disabled = !selectedWorkflowId || !xingtuId;
     }
@@ -155,6 +161,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function showResult(task) {
+        if (!resultContainer) return;
         resultContainer.innerHTML = '';
         if (task.status === 'completed' && task.result) {
             const screenshotsHtml = task.result.screenshots.map(img => `
@@ -185,7 +192,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const response = await apiCall(`${TASKS_API}?taskId=${taskId}`);
             if (response && response.success) {
                 const updatedTask = response.data;
-                // 重新渲染任务，会更新UI并根据新状态决定是否继续轮询
                 renderTask(updatedTask);
             }
         }, 5000); // 5秒轮询一次
@@ -201,9 +207,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- 事件绑定 ---
-    xingtuIdInput.addEventListener('input', updateExecuteButtonState);
+    if(xingtuIdInput) xingtuIdInput.addEventListener('input', updateExecuteButtonState);
 
-    executeTaskBtn.addEventListener('click', async () => {
+    if(executeTaskBtn) executeTaskBtn.addEventListener('click', async () => {
+        if (!xingtuIdInput) return;
         const xingtuId = xingtuIdInput.value.trim();
         if (!selectedWorkflowId || !xingtuId) return;
 
@@ -215,16 +222,13 @@ document.addEventListener('DOMContentLoaded', function () {
             targetXingtuId: xingtuId
         };
         
-        // [关键修改]
         const response = await apiCall(TASKS_API, 'POST', payload);
         
         if (response && response.success) {
             const newTask = response.data;
-            // 直接将新任务渲染到列表顶部，并自动开始轮询
             renderTask(newTask, true); 
-            xingtuIdInput.value = ''; // 清空输入框
+            xingtuIdInput.value = '';
         } else {
-            // 可以在这里添加创建失败的提示
             alert('创建任务失败，请检查网络或联系管理员。');
         }
 
@@ -235,6 +239,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // --- 工作流编辑器事件绑定 ---
     function openWorkflowModal(workflow = null) {
+        if (!workflowForm || !jsonError || !modalTitle || !workflowIdInput || !workflowNameInput || !workflowJsonEditor || !deleteWorkflowBtn || !workflowModal) return;
         workflowForm.reset();
         jsonError.classList.add('hidden');
         if (workflow) {
@@ -253,13 +258,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function closeWorkflowModal() {
-        workflowModal.classList.add('hidden');
+        if(workflowModal) workflowModal.classList.add('hidden');
     }
 
-    newWorkflowBtn.addEventListener('click', () => openWorkflowModal());
-    cancelWorkflowBtn.addEventListener('click', closeWorkflowModal);
+    if(newWorkflowBtn) newWorkflowBtn.addEventListener('click', () => openWorkflowModal());
+    if(cancelWorkflowBtn) cancelWorkflowBtn.addEventListener('click', closeWorkflowModal);
     
-    workflowsList.addEventListener('dblclick', async (e) => {
+    if(workflowsList) workflowsList.addEventListener('dblclick', async (e) => {
         if (e.target && e.target.dataset.workflowId) {
             const wfId = e.target.dataset.workflowId;
             const response = await apiCall(`${WORKFLOWS_API}?workflowId=${wfId}`);
@@ -269,7 +274,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    workflowJsonEditor.addEventListener('input', () => {
+    if(workflowJsonEditor) workflowJsonEditor.addEventListener('input', () => {
+        if (!jsonError || !saveWorkflowBtn) return;
         try {
             JSON.parse(workflowJsonEditor.value);
             jsonError.classList.add('hidden');
@@ -281,7 +287,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    saveWorkflowBtn.addEventListener('click', async () => {
+    if(saveWorkflowBtn) saveWorkflowBtn.addEventListener('click', async () => {
+        if (!workflowIdInput || !workflowNameInput || !workflowJsonEditor) return;
         const id = workflowIdInput.value;
         const name = workflowNameInput.value.trim();
         let actions;
@@ -311,7 +318,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    deleteWorkflowBtn.addEventListener('click', async () => {
+    if(deleteWorkflowBtn) deleteWorkflowBtn.addEventListener('click', async () => {
+        if (!workflowIdInput) return;
         const id = workflowIdInput.value;
         if (!id || !confirm('确定要删除这个工作流吗？')) return;
 
@@ -332,19 +340,22 @@ document.addEventListener('DOMContentLoaded', function () {
         const navToggles = document.querySelectorAll('[data-toggle]');
         const SIDEBAR_STATE_KEY = 'sidebarCollapsed';
 
-        if (!sidebar) {
-            console.warn('Sidebar element not found. Page will render without sidebar functionality.');
+        if (!sidebar || !mainContent || !sidebarToggleBtn) {
+            console.warn('Sidebar elements not found. Page will render without sidebar functionality.');
+            loadWorkflows();
+            loadTasks();
+            updateExecuteButtonState();
+            return; 
         }
         
         function setSidebarState(isCollapsed) {
-            if (!sidebar || !mainContent) return;
             sidebar.classList.toggle('sidebar-collapsed', isCollapsed);
-            mainContent.style.marginLeft = isCollapsed ? '5rem' : '9.5rem'; // Adjust this value to match sidebar width
+            mainContent.style.marginLeft = isCollapsed ? '5rem' : '9.5rem'; 
             document.getElementById('toggle-icon-collapse')?.classList.toggle('hidden', isCollapsed);
             document.getElementById('toggle-icon-expand')?.classList.toggle('hidden', !isCollapsed);
         }
 
-        sidebarToggleBtn?.addEventListener('click', () => {
+        sidebarToggleBtn.addEventListener('click', () => {
             const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
             setSidebarState(!isCollapsed);
             localStorage.setItem(SIDEBAR_STATE_KEY, JSON.stringify(!isCollapsed));
@@ -352,7 +363,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         navToggles.forEach(toggle => {
             toggle.addEventListener('click', () => {
-                if (sidebar?.classList.contains('sidebar-collapsed')) return;
+                if (sidebar.classList.contains('sidebar-collapsed')) return;
                 const submenu = document.getElementById(toggle.dataset.toggle);
                 submenu?.classList.toggle('hidden');
                 toggle.querySelector('.toggle-icon-plus')?.classList.toggle('hidden');
@@ -372,3 +383,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
     initializePage();
 });
+
