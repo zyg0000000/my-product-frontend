@@ -1,25 +1,32 @@
 /**
  * @file automation_suite.js
- * @version 5.10 - Smart Screenshot Toggle
- * @description 前端逻辑，用于自动化套件控制中心。这是一个完整的、无任何代码缺省的版本。
- * - [v5.10] [核心功能] 为“截取区域”积木块增加了一个“长截图模式”的开关选项。
- * 这允许用户在创建工作流时，明确指定哪些截图需要启用分段拼接模式，
- * 从而为普通截图和长截图提供了最高效、最稳定的执行路径。
- * - [v5.9] 实现了“靶向滚动”的UI。
+ * @version 7.0 - Composite Workflows & Data Viewer
+ * @description Frontend logic for the Automation Suite Control Center. This is a complete, unabridged version.
+ * --- UPDATE (v7.0) ---
+ * - [核心功能] 新增“组合工作流”类型，允许用户创建包含截图和数据抓取等多种步骤的任务。
+ * - [核心功能] 新增“数据详情”弹窗，以表格形式清晰展示数据抓取结果，并提供“一键复制”功能。
+ * - [UI 增强] 任务历史列表现在可以智能判断任务结果，并同时显示“查看截图”和“查看数据”按钮。
  */
 document.addEventListener('DOMContentLoaded', function () {
-    // --- 全局变量与配置 ---
+    // --- Global Variables & Configuration ---
     const API_BASE_URL = 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com';
     const WORKFLOWS_API = `${API_BASE_URL}/automation-workflows`;
     const TASKS_API = `${API_BASE_URL}/automation-tasks`;
+    const TASKS_PER_PAGE = 20;
 
     let activePollingIntervals = {};
     let selectedWorkflowId = null;
     let workflowsCache = [];
+    let tasksCache = {};
     let sortableCanvas = null;
     let sortableLibrary = null;
 
-    // --- DOM 元素获取 ---
+    // --- Pagination State ---
+    let currentPage = 1;
+    let hasNextPage = true;
+    let isLoadingTasks = false;
+
+    // --- DOM Element Acquisition ---
     const workflowsListContainer = document.getElementById('workflows-list');
     const xingtuIdInput = document.getElementById('xingtu-id-input');
     const executeTaskBtn = document.getElementById('execute-task-btn');
@@ -39,8 +46,28 @@ document.addEventListener('DOMContentLoaded', function () {
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.getElementById('main-content');
     const sidebarToggleBtn = document.getElementById('sidebar-toggle');
+    
+    // --- Screenshot Modal Elements ---
+    const screenshotModal = document.getElementById('screenshot-modal');
+    const screenshotModalTitle = document.getElementById('screenshot-modal-title');
+    const closeScreenshotModalBtn = document.getElementById('close-screenshot-modal');
+    const modalMainImage = document.getElementById('modal-main-image');
+    const modalThumbnails = document.getElementById('modal-thumbnails');
+    const modalPrevBtn = document.getElementById('modal-prev-btn');
+    const modalNextBtn = document.getElementById('modal-next-btn');
 
-    // --- API 调用封装 ---
+    // --- Data Modal Elements ---
+    const dataModal = document.getElementById('data-modal');
+    const dataModalTitle = document.getElementById('data-modal-title');
+    const closeDataModalBtn = document.getElementById('close-data-modal');
+    const dataModalTableBody = document.getElementById('data-modal-table-body');
+    const copyDataBtn = document.getElementById('copy-data-btn');
+
+    // --- Load More Button ---
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    const loadMoreContainer = document.getElementById('load-more-container');
+
+    // --- API Call Wrapper ---
     async function apiCall(url, method = 'GET', body = null) {
         const options = {
             method,
@@ -63,9 +90,9 @@ document.addEventListener('DOMContentLoaded', function () {
             throw error;
         }
     }
-    
+
     // =================================================================
-    // "积木式"工作流编辑器核心逻辑
+    // "Block-based" Workflow Editor Core Logic
     // =================================================================
     const ACTION_DEFINITIONS = {
         waitForSelector: {
@@ -86,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 { name: 'selector', label: 'CSS 选择器 *', type: 'text', placeholder: '#some-button-id', required: true },
             ]
         },
-        screenshot: { // [v5.10] 增强
+        screenshot: {
             title: '截取区域',
             color: 'teal',
             icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>`,
@@ -94,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 { name: 'description', label: '步骤描述', type: 'text', placeholder: '例如：截取价格区域' },
                 { name: 'selector', label: 'CSS 选择器 *', type: 'text', placeholder: '.price-container', required: true },
                 { name: 'saveAs', label: '保存为 *', type: 'text', placeholder: '价格截图.png', required: true },
-                { name: 'stitched', label: '长截图模式', type: 'checkbox' } // 新增开关
+                { name: 'stitched', label: '长截图模式', type: 'checkbox' }
             ]
         },
         wait: {
@@ -265,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const steps = [];
         workflowCanvas.querySelectorAll('.step-block').forEach(block => {
             const step = { action: block.dataset.actionType };
-            const inputs = block.querySelectorAll('.step-block-content input');
+            const inputs = block.querySelectorAll('.step-block-content input, .step-block-content textarea');
             inputs.forEach(input => {
                 if (input.type === 'checkbox') {
                     if (input.checked) {
@@ -320,6 +347,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // =================================================================
+    // Workflow & Task Management Logic
+    // =================================================================
+    
     async function loadWorkflows() {
         try {
             const response = await apiCall(WORKFLOWS_API);
@@ -337,16 +368,19 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         workflowsCache.forEach(workflow => {
-            const typeLabel = workflow.type === 'data_scraping' ? '数据抓取' : '截图';
-            const typeColor = workflow.type === 'data_scraping' ? 'bg-blue-200 text-blue-800' : 'bg-indigo-200 text-indigo-800';
+            const typeLabels = {
+                'screenshot': { label: '截图', color: 'bg-indigo-200 text-indigo-800' },
+                'data_scraping': { label: '数据抓取', color: 'bg-blue-200 text-blue-800' },
+                'composite': { label: '组合任务', color: 'bg-emerald-200 text-emerald-800' }
+            };
+            const typeInfo = typeLabels[workflow.type] || { label: '未知', color: 'bg-gray-200 text-gray-800' };
             const item = document.createElement('div');
             item.className = 'workflow-item flex justify-between items-center p-2 rounded hover:bg-gray-200';
             item.dataset.id = workflow._id;
-
             item.innerHTML = `
                 <div class="flex-grow cursor-pointer">
                     <span class="font-medium text-gray-800">${workflow.name}</span>
-                    <span class="ml-2 text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full ${typeColor}">${typeLabel}</span>
+                    <span class="ml-2 text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full ${typeInfo.color}">${typeInfo.label}</span>
                 </div>
                 <div class="space-x-2 flex-shrink-0">
                     <button class="edit-workflow-btn text-gray-500 hover:text-indigo-600 text-sm" data-id="${workflow._id}">编辑</button>
@@ -433,10 +467,37 @@ document.addEventListener('DOMContentLoaded', function () {
     
     function renderTask(task, prepend = false) {
         const existingTaskElement = document.getElementById(`task-${task._id}`);
-        if (existingTaskElement) existingTaskElement.remove();
+        if (existingTaskElement) {
+            // Smart update to avoid full re-render if only status changed
+            const statusElement = existingTaskElement.querySelector('.task-status');
+            const resultElement = existingTaskElement.querySelector('.task-result-container');
+            if (statusElement && resultElement) {
+                 const currentStatus = statusElement.dataset.status;
+                 if (currentStatus !== task.status) {
+                     existingTaskElement.innerHTML = buildTaskInnerHTML(task);
+                     if (task.status === 'pending' || task.status === 'processing') startPolling(task._id);
+                     else stopPolling(task._id);
+                 }
+                 return; // Avoid full prepend/append
+            }
+        }
+
         const taskElement = document.createElement('div');
         taskElement.id = `task-${task._id}`;
         taskElement.className = 'task-item p-3 bg-white rounded-lg border border-gray-200 shadow-sm';
+        taskElement.innerHTML = buildTaskInnerHTML(task);
+        
+        if (prepend) {
+            tasksListContainer.prepend(taskElement);
+        } else {
+            tasksListContainer.appendChild(taskElement);
+        }
+
+        if (task.status === 'pending' || task.status === 'processing') startPolling(task._id);
+        else stopPolling(task._id);
+    }
+    
+    function buildTaskInnerHTML(task) {
         const statusColors = {
             pending: { text: '等待中', bg: 'bg-yellow-100', textClr: 'text-yellow-800' },
             processing: { text: '处理中', bg: 'bg-blue-100', textClr: 'text-blue-800' },
@@ -444,21 +505,29 @@ document.addEventListener('DOMContentLoaded', function () {
             failed: { text: '失败', bg: 'bg-red-100', textClr: 'text-red-800' }
         };
         const statusInfo = statusColors[task.status] || { text: '未知', bg: 'bg-gray-100', textClr: 'text-gray-800' };
-        let resultHtml = '';
-        const screenshotUrl = task.result?.screenshots?.[0]?.url;
-        if (task.status === 'completed' && (screenshotUrl || task.result?.data)) {
-            if (screenshotUrl && screenshotUrl.startsWith('http')) {
-                resultHtml = `<a href="${screenshotUrl}" target="_blank" class="text-indigo-600 hover:underline text-sm">查看结果</a>`;
-            } else {
-                 resultHtml = `<span class="text-gray-500 text-sm cursor-help" title="结果已生成，包含数据或本地截图。">结果已生成</span>`;
+
+        let resultButtons = [];
+        const screenshots = task.result?.screenshots;
+        const data = task.result?.data;
+
+        if (task.status === 'completed') {
+            if (screenshots?.length > 0) {
+                resultButtons.push(`<button data-task-id="${task._id}" class="view-screenshots-btn text-indigo-600 hover:underline text-sm font-medium">查看截图 (${screenshots.length})</button>`);
             }
-        } else if (task.status === 'failed') {
+            if (data && Object.keys(data).length > 0) {
+                resultButtons.push(`<button data-task-id="${task._id}" class="view-data-btn text-sky-600 hover:underline text-sm font-medium">查看数据</button>`);
+            }
+        }
+        
+        let resultHtml = resultButtons.join('<span class="mx-1 text-gray-300">|</span>');
+
+        if (task.status === 'failed') {
              resultHtml = `<span class="text-red-500 text-sm cursor-pointer" title="${task.errorMessage || '无详细错误信息'}">查看错误</span>`;
         }
-        const deleteButton = `<button data-id="${task._id}" class="delete-task-btn text-gray-400 hover:text-red-600 p-1 rounded-full transition-colors">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
-        </button>`;
-        taskElement.innerHTML = `
+
+        const deleteButton = `<button data-id="${task._id}" class="delete-task-btn text-gray-400 hover:text-red-600 p-1 rounded-full transition-colors"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg></button>`;
+        
+        return `
             <div class="flex justify-between items-center">
                 <div class="flex-grow min-w-0">
                     <p class="text-sm font-semibold text-gray-800 truncate" title="星图ID: ${task.xingtuId}\n任务ID: ${task._id}">
@@ -469,36 +538,56 @@ document.addEventListener('DOMContentLoaded', function () {
                     </p>
                 </div>
                 <div class="flex items-center gap-3 flex-shrink-0">
-                    <span class="text-xs font-semibold px-2 py-1 rounded-full ${statusInfo.bg} ${statusInfo.textClr}">${statusInfo.text}</span>
-                    ${resultHtml}
+                    <span class="task-status text-xs font-semibold px-2 py-1 rounded-full ${statusInfo.bg} ${statusInfo.textClr}" data-status="${task.status}">${statusInfo.text}</span>
+                    <div class="task-result-container flex items-center gap-2">${resultHtml}</div>
                     ${deleteButton}
                 </div>
             </div>`;
-        if (prepend) tasksListContainer.prepend(taskElement);
-        else tasksListContainer.appendChild(taskElement);
-        if (task.status === 'pending' || task.status === 'processing') startPolling(task._id);
-        else stopPolling(task._id);
     }
-    async function loadTasks() {
+    
+    async function loadTasks(page = 1) {
+        if (isLoadingTasks) return;
+        isLoadingTasks = true;
+        loadMoreBtn.textContent = '加载中...';
+
         try {
-            const response = await apiCall(TASKS_API);
-            tasksListContainer.innerHTML = '';
-            (response.data || []).forEach(task => renderTask(task));
+            const response = await apiCall(`${TASKS_API}?page=${page}&limit=${TASKS_PER_PAGE}`);
+            
+            if (page === 1) {
+                tasksListContainer.innerHTML = '';
+                tasksCache = {};
+            }
+
+            const tasks = response.data || [];
+            tasks.forEach(task => {
+                tasksCache[task._id] = task;
+                renderTask(task, false);
+            });
+
+            hasNextPage = response.pagination?.hasNextPage || false;
+            loadMoreContainer.classList.toggle('hidden', !hasNextPage);
+
         } catch (error) {
             tasksListContainer.innerHTML = '<p class="text-red-500">加载任务历史失败。</p>';
+        } finally {
+            isLoadingTasks = false;
+            loadMoreBtn.textContent = '加载更多';
         }
     }
+
     function startPolling(taskId) {
         if (activePollingIntervals[taskId]) return;
         activePollingIntervals[taskId] = setInterval(async () => {
             try {
-                const fullTaskListResponse = await apiCall(TASKS_API);
-                const updatedTask = (fullTaskListResponse.data || []).find(t => t._id === taskId);
+                const singleTaskResponse = await apiCall(`${TASKS_API}?id=${taskId}`);
+                const updatedTask = singleTaskResponse.data;
                 if(updatedTask) {
-                    renderTask(updatedTask, true);
-                    if (updatedTask.status === 'completed' || updatedTask.status === 'failed') {
-                        stopPolling(taskId);
+                    const taskFromCache = tasksCache[taskId];
+                    if (!updatedTask.workflowName && taskFromCache && taskFromCache.workflowName) {
+                        updatedTask.workflowName = taskFromCache.workflowName;
                     }
+                    tasksCache[taskId] = updatedTask;
+                    renderTask(updatedTask, true);
                 } else {
                      stopPolling(taskId);
                 }
@@ -507,53 +596,178 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }, 5000);
     }
+
     function stopPolling(taskId) {
         if (activePollingIntervals[taskId]) {
             clearInterval(activePollingIntervals[taskId]);
             delete activePollingIntervals[taskId];
         }
     }
+
     function updateExecuteButtonState() {
         executeTaskBtn.disabled = !(selectedWorkflowId && xingtuIdInput.value.trim() !== '');
     }
 
+    // --- Screenshot Modal Logic ---
+    function openScreenshotModal(taskId) {
+        const task = tasksCache[taskId];
+        if (!task || !task.result?.screenshots?.length) return;
+
+        const screenshots = task.result.screenshots;
+        screenshotModal.dataset.screenshots = JSON.stringify(screenshots);
+        screenshotModal.dataset.currentIndex = "0";
+        
+        modalThumbnails.innerHTML = '';
+        screenshots.forEach((ss, index) => {
+            const thumbItem = document.createElement('div');
+            thumbItem.className = 'thumbnail-item p-1 border-2 border-transparent rounded-md cursor-pointer hover:border-indigo-400';
+            thumbItem.dataset.index = index;
+            thumbItem.innerHTML = `<img src="${ss.url}" alt="${ss.name}" class="w-full h-20 object-cover rounded">
+                                 <p class="text-xs text-gray-600 truncate mt-1" title="${ss.name}">${ss.name}</p>`;
+            modalThumbnails.appendChild(thumbItem);
+        });
+
+        updateModalView();
+        screenshotModal.classList.remove('hidden');
+    }
+
+    function closeScreenshotModal() {
+        screenshotModal.classList.add('hidden');
+        modalMainImage.src = '';
+    }
+
+    function updateModalView() {
+        const screenshots = JSON.parse(screenshotModal.dataset.screenshots || '[]');
+        let currentIndex = parseInt(screenshotModal.dataset.currentIndex, 10);
+        if (screenshots.length === 0) return;
+
+        modalMainImage.src = screenshots[currentIndex].url;
+        screenshotModalTitle.textContent = `截图结果 (${currentIndex + 1} / ${screenshots.length}) - ${screenshots[currentIndex].name}`;
+
+        modalThumbnails.querySelectorAll('.thumbnail-item').forEach(thumb => {
+            const isActive = parseInt(thumb.dataset.index, 10) === currentIndex;
+            thumb.classList.toggle('active', isActive);
+            if (isActive) {
+                thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+        modalPrevBtn.hidden = currentIndex === 0;
+        modalNextBtn.hidden = currentIndex === screenshots.length - 1;
+    }
+    
+    function changeModalImage(direction) {
+        let currentIndex = parseInt(screenshotModal.dataset.currentIndex, 10);
+        const screenshots = JSON.parse(screenshotModal.dataset.screenshots || '[]');
+        const newIndex = currentIndex + direction;
+        if (newIndex >= 0 && newIndex < screenshots.length) {
+            screenshotModal.dataset.currentIndex = newIndex.toString();
+            updateModalView();
+        }
+    }
+
+    // --- Data Modal Logic ---
+    function openDataModal(taskId) {
+        const task = tasksCache[taskId];
+        const data = task?.result?.data;
+        if (!data || Object.keys(data).length === 0) return;
+
+        dataModalTitle.textContent = `数据抓取结果 (星图ID: ${task.xingtuId})`;
+        dataModalTableBody.innerHTML = '';
+
+        for (const key in data) {
+            const row = dataModalTableBody.insertRow();
+            const keyCell = row.insertCell();
+            keyCell.className = "px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900";
+            keyCell.textContent = key;
+            
+            const valueCell = row.insertCell();
+            valueCell.className = "px-6 py-4 whitespace-pre-wrap text-sm text-gray-500";
+            valueCell.innerHTML = String(data[key]).replace(/\n/g, '<br>');
+        }
+        
+        copyDataBtn.dataset.taskData = JSON.stringify(data);
+        dataModal.classList.remove('hidden');
+    }
+
+    function closeDataModal() {
+        dataModal.classList.add('hidden');
+        dataModalTableBody.innerHTML = '';
+        delete copyDataBtn.dataset.taskData;
+    }
+
+    function handleCopyData() {
+        const data = JSON.parse(copyDataBtn.dataset.taskData || '{}');
+        const textToCopy = Object.entries(data).map(([key, value]) => `${key}: ${value}`).join('\n');
+        
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalText = copyDataBtn.textContent;
+            copyDataBtn.textContent = '已复制!';
+            setTimeout(() => {
+                copyDataBtn.textContent = originalText;
+            }, 2000);
+        }).catch(err => {
+            alert('复制失败: ' + err);
+        });
+    }
+
+    // --- Page Initialization ---
     function initializePage() {
         populateActionLibrary();
         xingtuIdInput.addEventListener('input', updateExecuteButtonState);
+        
         workflowsListContainer.addEventListener('click', (event) => {
             const target = event.target;
             const workflowItem = target.closest('.workflow-item');
             if (!workflowItem) return;
             const workflowId = workflowItem.dataset.id;
-            if (target.closest('.edit-workflow-btn')) openWorkflowModalForEdit(workflowId);
-            else if (target.closest('.delete-workflow-btn')) handleDeleteWorkflow(workflowId);
-            else {
+            if (target.closest('.edit-workflow-btn')) {
+                openWorkflowModalForEdit(workflowId);
+            } else if (target.closest('.delete-workflow-btn')) {
+                handleDeleteWorkflow(workflowId);
+            } else {
                 document.querySelectorAll('.workflow-item').forEach(el => el.classList.remove('bg-indigo-100'));
                 workflowItem.classList.add('bg-indigo-100');
                 selectedWorkflowId = workflowId;
                 updateExecuteButtonState();
             }
         });
+        
         tasksListContainer.addEventListener('click', async (event) => {
             const deleteBtn = event.target.closest('.delete-task-btn');
-            if (!deleteBtn) return;
-            const taskId = deleteBtn.dataset.id;
-            if (confirm(`确定要删除此任务记录吗？`)) {
-                try {
-                    await apiCall(`${TASKS_API}?id=${taskId}`, 'DELETE');
-                    document.getElementById(`task-${taskId}`)?.remove();
-                } catch (error) {}
+            if (deleteBtn) {
+                const taskId = deleteBtn.dataset.id;
+                if (confirm(`确定要删除此任务记录吗？`)) {
+                    try {
+                        await apiCall(`${TASKS_API}?id=${taskId}`, 'DELETE');
+                        document.getElementById(`task-${taskId}`)?.remove();
+                    } catch (error) {}
+                }
+                return;
+            }
+
+            const viewScreenshotsBtn = event.target.closest('.view-screenshots-btn');
+            if (viewScreenshotsBtn) {
+                openScreenshotModal(viewScreenshotsBtn.dataset.taskId);
+                return;
+            }
+
+            const viewDataBtn = event.target.closest('.view-data-btn');
+            if (viewDataBtn) {
+                openDataModal(viewDataBtn.dataset.taskId);
             }
         });
+
         executeTaskBtn.addEventListener('click', async () => {
             const payload = { workflowId: selectedWorkflowId, xingtuId: xingtuIdInput.value.trim() };
             try {
                 await apiCall(TASKS_API, 'POST', payload);
-                loadTasks();
+                currentPage = 1;
+                loadTasks(currentPage);
                 xingtuIdInput.value = '';
                 updateExecuteButtonState();
             } catch (error) {}
         });
+
         newWorkflowBtn.addEventListener('click', openWorkflowModalForCreate);
         cancelWorkflowBtn.addEventListener('click', () => workflowModal.classList.add('hidden'));
         workflowForm.addEventListener('submit', handleWorkflowFormSubmit);
@@ -575,31 +789,44 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             const addSourceBtn = event.target.closest('.add-source-btn');
             if(addSourceBtn) {
-                 const container = addSourceBtn.previousElementSibling;
-                 container.appendChild(createCompositeSourceElement());
+                 addSourceBtn.previousElementSibling.appendChild(createCompositeSourceElement());
             }
             const removeSourceBtn = event.target.closest('.remove-source-btn');
             if(removeSourceBtn) removeSourceBtn.closest('.composite-source-item').remove();
         });
-        const SIDEBAR_STATE_KEY = 'sidebar_collapsed_state';
-        function setSidebarState(isCollapsed) {
-            if (!sidebar || !mainContent) return;
-            sidebar.classList.toggle('sidebar-collapsed', isCollapsed);
-            mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem';
-            document.getElementById('toggle-icon-collapse')?.classList.toggle('hidden', isCollapsed);
-            document.getElementById('toggle-icon-expand')?.classList.toggle('hidden', !isCollapsed);
-        }
-        sidebarToggleBtn?.addEventListener('click', () => {
-            const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
-            setSidebarState(!isCollapsed);
-            localStorage.setItem(SIDEBAR_STATE_KEY, JSON.stringify(!isCollapsed));
+        
+        closeScreenshotModalBtn.addEventListener('click', closeScreenshotModal);
+        modalPrevBtn.addEventListener('click', () => changeModalImage(-1));
+        modalNextBtn.addEventListener('click', () => changeModalImage(1));
+        modalThumbnails.addEventListener('click', (event) => {
+            const thumb = event.target.closest('.thumbnail-item');
+            if (thumb) {
+                screenshotModal.dataset.currentIndex = thumb.dataset.index;
+                updateModalView();
+            }
         });
+        
+        closeDataModalBtn.addEventListener('click', closeDataModal);
+        copyDataBtn.addEventListener('click', handleCopyData);
+
+        loadMoreBtn.addEventListener('click', () => {
+            if (hasNextPage && !isLoadingTasks) {
+                currentPage++;
+                loadTasks(currentPage);
+            }
+        });
+
+        const SIDEBAR_STATE_KEY = 'sidebar_collapsed_state';
+        function setSidebarState(isCollapsed) { if (!sidebar || !mainContent) return; sidebar.classList.toggle('sidebar-collapsed', isCollapsed); mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem'; document.getElementById('toggle-icon-collapse')?.classList.toggle('hidden', isCollapsed); document.getElementById('toggle-icon-expand')?.classList.toggle('hidden', !isCollapsed); }
+        sidebarToggleBtn?.addEventListener('click', () => { const isCollapsed = sidebar.classList.contains('sidebar-collapsed'); setSidebarState(!isCollapsed); localStorage.setItem(SIDEBAR_STATE_KEY, JSON.stringify(!isCollapsed)); });
         const storedState = localStorage.getItem(SIDEBAR_STATE_KEY);
         if (storedState) setSidebarState(JSON.parse(storedState));
+        
         loadWorkflows();
-        loadTasks();
+        loadTasks(currentPage);
         updateExecuteButtonState();
     }
+
     initializePage();
 });
 
