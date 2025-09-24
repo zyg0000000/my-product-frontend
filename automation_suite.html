@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+        
+        /* --- 移植自 index.html 的侧边栏样式 --- */
         .sidebar { transition: width 0.3s ease-in-out; }
         .main-content { transition: margin-left 0.3s ease-in-out; }
         .sidebar-collapsed { width: 5rem; }
@@ -16,8 +18,15 @@
         .sidebar-collapsed .nav-link, .sidebar-collapsed .nav-toggle { justify-content: center; }
         .sidebar-collapsed .submenu { display: none; }
         .sidebar-collapsed .app-title { justify-content: center; }
-        .nav-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; line-height: 1.25rem; border-radius: 0.375rem; }
+        .nav-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 600; color: #1f2937; border-radius: 0.5rem; }
+        .nav-toggle:hover { background-color: #f3f4f6; }
+        .nav-link { display: flex; align-items: center; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 500; color: #4b5563; border-radius: 0.5rem; position: relative; }
+        .nav-link:hover { background-color: #f3f4f6; }
+        /* 注意：active 状态由 sidebar.js 自动处理，这里提供高亮样式 */
+        .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; }
         .submenu { padding-left: 1rem; }
+
+        /* --- 页面原有样式 (保持不变) --- */
         .step-block-handle { cursor: grab; }
         .step-block-handle:active { cursor: grabbing; }
         .sortable-ghost { background: #c7d2fe; border-radius: 0.5rem; }
@@ -30,32 +39,12 @@
 </head>
 <body class="flex bg-gray-100">
 
-    <!-- 侧边栏 -->
-    <aside id="sidebar" class="sidebar bg-white text-gray-800 w-64 min-h-screen p-4 shadow-lg fixed">
-        <div class="app-title flex items-center mb-8">
-             <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M12 6V3m0 18v-3"></path></svg>
-             <span class="app-title-text text-xl font-bold ml-2">协同系统</span>
-        </div>
-        <nav class="space-y-2">
-            <a href="/index.html" class="nav-link flex items-center p-2 rounded-lg hover:bg-gray-200">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                <span class="nav-text ml-3">主面板</span>
-            </a>
-            <a href="/automation_suite.html" class="nav-link flex items-center p-2 rounded-lg bg-indigo-100 text-indigo-700">
-                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                <span class="nav-text ml-3">自动化套件</span>
-            </a>
-        </nav>
-        <div class="absolute bottom-4 left-4 right-4">
-             <button id="sidebar-toggle" class="w-full flex items-center justify-center p-2 rounded-lg hover:bg-gray-200">
-                <svg id="toggle-icon-collapse" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
-                <svg id="toggle-icon-expand" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
-            </button>
-        </div>
-    </aside>
+    <!-- [核心修改] 替换为 sidebar.js 的注入容器 -->
+    <div id="sidebar-container"></div>
 
-    <!-- 主内容区 -->
-    <main id="main-content" class="main-content flex-1 p-8 ml-64">
+    <!-- [核心修改] 调整 margin-left 以精确匹配新侧边栏 -->
+    <main id="main-content" class="main-content flex-1 p-8" style="margin-left: 9.5rem;">
+        <!-- 主内容区的所有现有功能和HTML结构保持完全不变 -->
         <header class="mb-8">
             <h1 class="text-3xl font-bold text-gray-800">自动化套件</h1>
             <p class="text-gray-500 mt-1">创建和管理您的自动化工作流，并执行截图与数据抓取任务。</p>
@@ -94,7 +83,7 @@
         </div>
     </main>
 
-    <!-- 工作流编辑/新建模态框 -->
+    <!-- 所有模态框和模板的HTML结构保持完全不变 -->
     <div id="workflow-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 overflow-y-auto">
         <div class="relative top-10 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-xl bg-white flex flex-col" style="max-height: calc(100vh - 5rem);">
             <header class="flex-shrink-0">
@@ -147,7 +136,6 @@
         </div>
     </div>
 
-    <!-- 截图画廊模态框 -->
     <div id="screenshot-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 h-full w-full hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-6xl h-full max-h-[90vh] flex flex-col">
             <header class="flex-shrink-0 p-4 border-b flex justify-between items-center">
@@ -165,7 +153,6 @@
         </div>
     </div>
 
-    <!-- [新增] 数据结果模态框 -->
     <div id="data-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 h-full w-full hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
             <header class="flex-shrink-0 p-4 border-b flex justify-between items-center">
@@ -181,7 +168,6 @@
                         </tr>
                     </thead>
                     <tbody id="data-modal-table-body" class="bg-white divide-y divide-gray-200">
-                        <!-- JS 动态填充 -->
                     </tbody>
                 </table>
             </main>
@@ -204,7 +190,8 @@
         </div>
     </template>
 
+    <!-- [核心修改] 引入 sidebar.js, 并保持 automation_suite.js 在最后加载 -->
+    <script src="sidebar.js" defer></script>
     <script src="automation_suite.js"></script>
 </body>
 </html>
-

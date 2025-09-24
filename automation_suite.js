@@ -1,14 +1,14 @@
 /**
  * @file automation_suite.js
- * @version 7.0 - Composite Workflows & Data Viewer
- * @description Frontend logic for the Automation Suite Control Center. This is a complete, unabridged version.
- * --- UPDATE (v7.0) ---
- * - [核心功能] 新增“组合工作流”类型，允许用户创建包含截图和数据抓取等多种步骤的任务。
- * - [核心功能] 新增“数据详情”弹窗，以表格形式清晰展示数据抓取结果，并提供“一键复制”功能。
- * - [UI 增强] 任务历史列表现在可以智能判断任务结果，并同时显示“查看截图”和“查看数据”按钮。
+ * @version 7.1 - Sidebar Unification
+ * @description Frontend logic for the Automation Suite.
+ * --- UPDATE (v7.1) ---
+ * - [核心修改] 移除了所有与旧的、硬编码侧边栏相关的 JavaScript 逻辑。
+ * - [代码清理] 删除了不再需要的 `sidebar` 和 `sidebarToggleBtn` DOM 元素获取。
+ * - [依赖关系] 此版本现在完全依赖外部的 `sidebar.js` 来处理所有侧边栏交互。
  */
 document.addEventListener('DOMContentLoaded', function () {
-    // --- Global Variables & Configuration ---
+    // --- Global Variables & Configuration (不变) ---
     const API_BASE_URL = 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com';
     const WORKFLOWS_API = `${API_BASE_URL}/automation-workflows`;
     const TASKS_API = `${API_BASE_URL}/automation-tasks`;
@@ -21,12 +21,13 @@ document.addEventListener('DOMContentLoaded', function () {
     let sortableCanvas = null;
     let sortableLibrary = null;
 
-    // --- Pagination State ---
+    // --- Pagination State (不变) ---
     let currentPage = 1;
     let hasNextPage = true;
     let isLoadingTasks = false;
 
     // --- DOM Element Acquisition ---
+    // [核心修改] 移除了 sidebar 和 sidebarToggleBtn 的获取
     const workflowsListContainer = document.getElementById('workflows-list');
     const xingtuIdInput = document.getElementById('xingtu-id-input');
     const executeTaskBtn = document.getElementById('execute-task-btn');
@@ -43,11 +44,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const actionLibrary = document.getElementById('action-library');
     const workflowCanvas = document.getElementById('workflow-canvas');
     const stepBlockTemplate = document.getElementById('step-block-template');
-    const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('main-content');
-    const sidebarToggleBtn = document.getElementById('sidebar-toggle');
     
-    // --- Screenshot Modal Elements ---
+    // Screenshot Modal Elements (不变)
     const screenshotModal = document.getElementById('screenshot-modal');
     const screenshotModalTitle = document.getElementById('screenshot-modal-title');
     const closeScreenshotModalBtn = document.getElementById('close-screenshot-modal');
@@ -56,19 +54,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalPrevBtn = document.getElementById('modal-prev-btn');
     const modalNextBtn = document.getElementById('modal-next-btn');
 
-    // --- Data Modal Elements ---
+    // Data Modal Elements (不变)
     const dataModal = document.getElementById('data-modal');
     const dataModalTitle = document.getElementById('data-modal-title');
     const closeDataModalBtn = document.getElementById('close-data-modal');
     const dataModalTableBody = document.getElementById('data-modal-table-body');
     const copyDataBtn = document.getElementById('copy-data-btn');
 
-    // --- Load More Button ---
+    // Load More Button (不变)
     const loadMoreBtn = document.getElementById('load-more-btn');
     const loadMoreContainer = document.getElementById('load-more-container');
 
-    // --- API Call Wrapper ---
-    async function apiCall(url, method = 'GET', body = null) {
+    // --- 所有函数 (apiCall, ACTION_DEFINITIONS, 工作流和任务管理等) 均保持不变 ---
+    // ... 此处省略所有未作修改的函数代码 ...
+     async function apiCall(url, method = 'GET', body = null) {
         const options = {
             method,
             headers: { 'Content-Type': 'application/json' },
@@ -91,9 +90,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // =================================================================
-    // "Block-based" Workflow Editor Core Logic
-    // =================================================================
     const ACTION_DEFINITIONS = {
         waitForSelector: {
             title: '等待元素出现',
@@ -347,10 +343,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // =================================================================
-    // Workflow & Task Management Logic
-    // =================================================================
-    
     async function loadWorkflows() {
         try {
             const response = await apiCall(WORKFLOWS_API);
@@ -468,7 +460,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderTask(task, prepend = false) {
         const existingTaskElement = document.getElementById(`task-${task._id}`);
         if (existingTaskElement) {
-            // Smart update to avoid full re-render if only status changed
             const statusElement = existingTaskElement.querySelector('.task-status');
             const resultElement = existingTaskElement.querySelector('.task-result-container');
             if (statusElement && resultElement) {
@@ -478,7 +469,7 @@ document.addEventListener('DOMContentLoaded', function () {
                      if (task.status === 'pending' || task.status === 'processing') startPolling(task._id);
                      else stopPolling(task._id);
                  }
-                 return; // Avoid full prepend/append
+                 return;
             }
         }
 
@@ -608,7 +599,6 @@ document.addEventListener('DOMContentLoaded', function () {
         executeTaskBtn.disabled = !(selectedWorkflowId && xingtuIdInput.value.trim() !== '');
     }
 
-    // --- Screenshot Modal Logic ---
     function openScreenshotModal(taskId) {
         const task = tasksCache[taskId];
         if (!task || !task.result?.screenshots?.length) return;
@@ -665,7 +655,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // --- Data Modal Logic ---
     function openDataModal(taskId) {
         const task = tasksCache[taskId];
         const data = task?.result?.data;
@@ -816,11 +805,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        const SIDEBAR_STATE_KEY = 'sidebar_collapsed_state';
-        function setSidebarState(isCollapsed) { if (!sidebar || !mainContent) return; sidebar.classList.toggle('sidebar-collapsed', isCollapsed); mainContent.style.marginLeft = isCollapsed ? '5rem' : '16rem'; document.getElementById('toggle-icon-collapse')?.classList.toggle('hidden', isCollapsed); document.getElementById('toggle-icon-expand')?.classList.toggle('hidden', !isCollapsed); }
-        sidebarToggleBtn?.addEventListener('click', () => { const isCollapsed = sidebar.classList.contains('sidebar-collapsed'); setSidebarState(!isCollapsed); localStorage.setItem(SIDEBAR_STATE_KEY, JSON.stringify(!isCollapsed)); });
-        const storedState = localStorage.getItem(SIDEBAR_STATE_KEY);
-        if (storedState) setSidebarState(JSON.parse(storedState));
+        // --- [核心修改] ---
+        // 删除所有旧的、硬编码的侧边栏控制逻辑。
+        // 新的侧边栏将由 sidebar.js 完全接管。
         
         loadWorkflows();
         loadTasks(currentPage);
@@ -829,4 +816,3 @@ document.addEventListener('DOMContentLoaded', function () {
 
     initializePage();
 });
-
