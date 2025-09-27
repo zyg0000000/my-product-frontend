@@ -55,7 +55,8 @@
     
     <div id="sidebar-container"></div>
 
-    <main id="main-content" class="flex-1 p-6 main-content" style="margin-left: 9.5rem;">
+    <!-- [核心修复] 使用响应式 padding 替换固定的 p-6，与 index.html 保持一致 -->
+    <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 main-content" style="margin-left: 16rem;">
         <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">达人挑选</h1>

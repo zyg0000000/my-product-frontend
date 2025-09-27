@@ -10,7 +10,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
         
-        /* --- 移植自 index.html 的侧边栏样式 --- */
+        /* [核心修复] 以下样式已与 index.html 完全同步，确保视觉和交互特效 100% 一致 */
         .sidebar { transition: width 0.3s ease-in-out; }
         .main-content { transition: margin-left 0.3s ease-in-out; }
         .sidebar-collapsed { width: 5rem; }
@@ -22,11 +22,9 @@
         .nav-toggle:hover { background-color: #f3f4f6; }
         .nav-link { display: flex; align-items: center; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 500; color: #4b5563; border-radius: 0.5rem; position: relative; }
         .nav-link:hover { background-color: #f3f4f6; }
-        /* 注意：active 状态由 sidebar.js 自动处理，这里提供高亮样式 */
         .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; }
-        .submenu { padding-left: 1rem; }
 
-        /* --- 页面原有样式 (保持不变) --- */
+        /* --- 页面专属样式 --- */
         .step-block-handle { cursor: grab; }
         .step-block-handle:active { cursor: grabbing; }
         .sortable-ghost { background: #c7d2fe; border-radius: 0.5rem; }
@@ -37,14 +35,13 @@
         .thumbnail-item.active { border-color: #4f46e5; }
     </style>
 </head>
-<body class="flex bg-gray-100">
+<!-- [核心修复] 移除了 body 标签的 'flex' 类，与 index.html 保持一致的布局模式 -->
+<body class="bg-gray-100">
 
-    <!-- [核心修改] 替换为 sidebar.js 的注入容器 -->
     <div id="sidebar-container"></div>
 
-    <!-- [核心修改] 调整 margin-left 以精确匹配新侧边栏 -->
-    <main id="main-content" class="main-content flex-1 p-8" style="margin-left: 9.5rem;">
-        <!-- 主内容区的所有现有功能和HTML结构保持完全不变 -->
+    <!-- [核心修复] 统一使用响应式 padding，并由 sidebar.js 控制 margin-left -->
+    <main id="main-content" class="main-content flex-1 p-4 sm:p-6 lg:p-8">
         <header class="mb-8">
             <h1 class="text-3xl font-bold text-gray-800">自动化套件</h1>
             <p class="text-gray-500 mt-1">创建和管理您的自动化工作流，并执行截图与数据抓取任务。</p>
@@ -190,8 +187,8 @@
         </div>
     </template>
 
-    <!-- [核心修改] 引入 sidebar.js, 并保持 automation_suite.js 在最后加载 -->
     <script src="sidebar.js" defer></script>
     <script src="automation_suite.js"></script>
 </body>
 </html>
+

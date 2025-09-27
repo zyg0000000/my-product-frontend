@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模板管理 - 字节专项协同系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8f9fa;
+        }
+        .modal { transition: opacity 0.3s ease; }
+        .modal-content { transition: transform 0.3s ease, opacity 0.3s ease; }
+        .pagination-btn { padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; background-color: white; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; }
+        .pagination-btn:hover:not(:disabled) { background-color: #f3f4f6; }
+        .pagination-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
+        .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .modal-tab-btn { padding: 0.5rem 1rem; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 500; color: #6b7280; }
+        .modal-tab-btn.active { border-color: #2563eb; color: #2563eb; font-weight: 600; }
+        .drag-over { border-style: dashed; background-color: #e0e7ff !important; }
+
+        /* --- 侧边栏样式 (从 index.html 完整复制) --- */
+        .sidebar { transition: width 0.3s ease-in-out; }
+        .main-content { transition: margin-left 0.3s ease-in-out; }
+        .sidebar-collapsed { width: 5rem; }
+        .sidebar-collapsed .nav-text, .sidebar-collapsed .app-title-text { display: none; }
+        .sidebar-collapsed .nav-link, .sidebar-collapsed .nav-toggle { justify-content: center; }
+        .sidebar-collapsed .submenu { display: none; }
+        .sidebar-collapsed .app-title { justify-content: center; }
+        .nav-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 600; color: #1f2937; border-radius: 0.5rem; }
+        .nav-toggle:hover { background-color: #f3f4f6; }
+        .nav-link { display: flex; align-items: center; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 500; color: #4b5563; border-radius: 0.5rem; position: relative; }
+        .nav-link:hover { background-color: #f3f4f6; }
+        .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; }
+        
+        /* --- 页面专属样式 (从 index.html 完整复制) --- */
+        .filter-select, .filter-input { @apply w-full px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500; }
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content { display: none; position: absolute; right: 0; background-color: #f9f9f9; min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2); z-index: 10; border-radius: 0.5rem; overflow: hidden; border: 1px solid #ddd; }
+        .dropdown-content a { color: black; padding: 10px 14px; text-decoration: none; display: block; font-size: 0.875rem; white-space: nowrap; }
+        .dropdown-content a.disabled { color: #9ca3af; cursor: not-allowed; background-color: #f3f4f6; }
+        .dropdown-content a:not(.disabled):hover { background-color: #f1f1f1; }
+        .dropdown:hover .dropdown-content { display: block; }
+
+        /* 自定义滚动条 (保持) */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a3a3a3; }
+    </style>
+</head>
+<body class="flex bg-gray-100">
+
+    <!-- 侧边栏注入容器 (保持不变) -->
+    <div id="sidebar-container"></div>
+
+    <!-- 主内容区 - [核心修改] -->
+    <!-- 完全与 index.html 的 main 标签保持一致 -->
+    <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 main-content" style="margin-left: 9.5rem;">
+        <header class="mb-8 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">模板管理</h1>
+                <p class="text-gray-500 mt-1">创建和管理用于生成飞书报告的数据映射模板。</p>
+            </div>
+            <button id="new-template-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">
+                新建模板
+            </button>
+        </header>
+
+        <!-- 模板列表 (保持不变) -->
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">模板名称</th>
+                            <th scope="col" class="px-6 py-3">关联飞书表格</th>
+                            <th scope="col" class="px-6 py-3">创建时间</th>
+                            <th scope="col" class="px-6 py-3 text-right">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="templates-list-container">
+                        <!-- JS动态渲染 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- 新建/编辑模板模态框 (保持不变) -->
+    <div id="template-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 overflow-y-auto">
+        <div class="relative top-10 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-xl bg-white flex flex-col" style="max-height: calc(100vh - 5rem);">
+            <header class="flex-shrink-0">
+                 <h3 id="modal-title" class="text-xl leading-6 font-bold text-gray-900 mb-6">新建映射模板</h3>
+            </header>
+            
+            <div class="flex-grow min-h-0 overflow-y-auto pr-4 custom-scrollbar">
+                <form id="template-form" class="space-y-6">
+                    <input type="hidden" id="template-id-input">
+                    <!-- 步骤一：报告主体 -->
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">1. 报告主体</h4>
+                        <div>
+                            <label for="primary-collection-select" class="block text-sm font-medium text-gray-700">选择报告的每一行代表什么*</label>
+                            <select id="primary-collection-select" required class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                <option value="collaborations">合作信息 (Collaboration)</option>
+                                <option value="talents">达人信息 (Talent)</option>
+                            </select>
+                            <p class="mt-1 text-xs text-gray-500">这将决定报告的数据来源和聚合方式。</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 步骤二：基础信息 -->
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">2. 基础信息</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="template-name-input" class="block text-sm font-medium text-gray-700">模板名称 *</label>
+                                <input type="text" id="template-name-input" required class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+                            <div>
+                                <label for="template-description-input" class="block text-sm font-medium text-gray-700">描述 (可选)</label>
+                                <input type="text" id="template-description-input" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 步骤三：关联飞书模板 -->
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">3. 关联飞书模板</h4>
+                        <div>
+                            <label for="spreadsheet-url-input" class="block text-sm font-medium text-gray-700">飞书表格链接或Token *</label>
+                            <div class="mt-1 flex rounded-md shadow-sm">
+                                <input type="text" id="spreadsheet-url-input" required class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-l-md sm:text-sm border-gray-300">
+                                <button type="button" id="load-headers-btn" class="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 bg-gray-50 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-r-md">
+                                    加载表头
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 步骤四：配置数据映射 -->
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">4. 配置数据映射</h4>
+                        <div id="mapping-rules-container" class="space-y-3">
+                            <div id="mapping-placeholder" class="text-center text-gray-400 p-8 border-2 border-dashed rounded-lg">
+                                <p>请先加载飞书表格表头</p>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <footer class="mt-6 flex-shrink-0 flex justify-end gap-3 pt-4 border-t">
+                <button id="cancel-template-btn" type="button" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">取消</button>
+                <button id="save-template-btn" type="submit" form="template-form" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-gray-400">
+                    保存模板
+                </button>
+            </footer>
+        </div>
+    </div>
+    
+    <script src="sidebar.js" defer></script>
+    <script src="mapping_templates.js"></script>
+</body>
+</html>
+
