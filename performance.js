@@ -574,8 +574,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const response = await apiRequest(FEISHU_SYNC_ENDPOINT, 'POST', payload);
 
-            if (response.success && Array.isArray(response.data)) {
-                 prepareAndShowConfirmationModal(response.data);
+            if (response.success && response.data && Array.isArray(response.data.data)) {
+                 prepareAndShowConfirmationModal(response.data.data);
             } else {
                 throw new Error(response.error || (response.data && response.data.message) || '从飞书获取或处理数据失败。');
             }
