@@ -290,6 +290,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <div class="flex items-center gap-2 mt-1">
                                 <a href="order_list.html?projectId=${project.id}" class="px-3 py-1 text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200">进展</a>
                                 <a href="project_automation.html?id=${project.id}" class="px-3 py-1 text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200">自动化</a>
+                                <a href="project_report.html?projectId=${project.id}" class="px-3 py-1 text-xs font-medium rounded-md text-amber-700 bg-amber-100 hover:bg-amber-200">报告</a>
                                 <div class="dropdown">
                                     <button class="px-2 py-1 text-xs font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg></button>
                                     <div class="dropdown-content">

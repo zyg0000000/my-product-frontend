@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目执行报告</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- 全局及基础样式 --- */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f7f8fc; 
+        }
+        
+        /* --- 侧边栏样式 (与 index.html 保持一致) --- */
+        .sidebar { transition: width 0.3s ease-in-out; }
+        .main-content { transition: margin-left 0.3s ease-in-out; }
+        .sidebar-collapsed { width: 5rem; }
+        .sidebar-collapsed .nav-text, .sidebar-collapsed .app-title-text { display: none; }
+        .sidebar-collapsed .nav-link, .sidebar-collapsed .nav-toggle { justify-content: center; }
+        .sidebar-collapsed .submenu { display: none; }
+        .sidebar-collapsed .app-title { justify-content: center; }
+        .nav-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 600; color: #1f2937; border-radius: 0.5rem; }
+        .nav-toggle:hover { background-color: #f3f4f6; }
+        .nav-link { display: flex; align-items: center; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 500; color: #4b5563; border-radius: 0.5rem; position: relative; }
+        .nav-link:hover { background-color: #f3f4f6; }
+        .nav-link.active { background-color: #4338ca; color: white; font-weight: 600; }
+        
+        /* --- 页面专属及优化样式 --- */
+        .pagination-btn { padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; background-color: white; border-radius: 0.375rem; cursor: pointer; transition: all 0.2s ease; }
+        .pagination-btn:hover:not(:disabled) { background-color: #f3f4f6; border-color: #9ca3af; }
+        .pagination-btn.active { background-color: #4f46e5; color: white; border-color: #4f46e5; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2); }
+        .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .kpi-card { transition: all 0.2s ease-in-out; }
+        .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        
+        /* 模式切换 */
+        .display-mode .entry-mode-item { display: none; }
+        .entry-mode .display-mode-item { display: none; }
+    </style>
+</head>
+
+<body class="display-mode">
+    <div id="sidebar-container"></div>
+
+    <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 main-content" style="margin-left: 10rem;">
+        
+        <!-- 页面头部 -->
+        <header class="bg-white p-6 rounded-xl shadow-sm mb-8 border border-gray-200">
+            <nav class="text-sm mb-4" aria-label="Breadcrumb">
+                <ol class="list-none p-0 inline-flex">
+                    <li class="flex items-center"><a href="index.html" class="text-gray-500 hover:text-indigo-600 transition-colors">项目中心</a><svg class="fill-current w-3 h-3 mx-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569 9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z"/></svg></li>
+                    <li class="flex items-center"><span id="breadcrumb-project-name" class="font-semibold text-gray-700">加载中...</span></li>
+                </ol>
+            </nav>
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 id="project-main-title" class="text-3xl font-bold text-gray-900">项目执行报告</h1>
+                </div>
+                <button id="toggle-mode-btn" class="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-blue-600 hover:to-indigo-700 flex items-center gap-2 transition-all transform hover:scale-105">
+                    <span class="display-mode-item">录入数据</span>
+                    <span class="entry-mode-item">返回报告视图</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- 主内容区域 -->
+        <div class="space-y-8">
+
+            <!-- 报告展示视图 -->
+            <div id="report-display-view" class="display-mode-item space-y-8">
+                <div class="flex justify-between items-center border-b border-gray-200 pb-4">
+                    <h2 class="text-xl font-bold text-gray-700">日报</h2>
+                    <div id="daily-report-datepicker-container" class="flex items-center gap-2">
+                        <label for="report-date-picker" class="text-sm font-medium text-gray-700">选择报告日期:</label>
+                        <input type="date" id="report-date-picker" class="border-gray-300 rounded-md shadow-sm text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                     <h3 class="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-3">
+                        <svg class="w-6 h-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h12M3.75 3h16.5M3.75 3A2.25 2.25 0 016 5.25h12A2.25 2.25 0 0120.25 3M3.75 21v-7.5A2.25 2.25 0 016 11.25h12a2.25 2.25 0 012.25 2.25V21M3 3h18M3 21h18" /></svg>
+                        已发布视频总进展
+                    </h3>
+                    <dl id="overview-kpis" class="grid grid-cols-2 md:grid-cols-5 gap-6"></dl>
+                </div>
+                <div id="details-container"></div>
+            </div>
+
+            <!-- 数据录入视图 -->
+            <div id="data-entry-view" class="entry-mode-item bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800">每日数据录入</h2>
+                    <div class="flex items-center gap-2">
+                        <label for="entry-date-picker" class="text-sm font-medium text-gray-700">选择录入日期:</label>
+                        <input type="date" id="entry-date-picker" class="border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                </div>
+                <div class="border rounded-lg overflow-hidden shadow-md">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-100 text-left">
+                            <tr>
+                                <th class="px-6 py-3 font-semibold text-gray-600">达人名称</th>
+                                <th class="px-6 py-3 font-semibold text-gray-600">发布日期</th>
+                                <th class="px-6 py-3 font-semibold text-gray-600">当日总曝光</th>
+                            </tr>
+                        </thead>
+                        <tbody id="video-entry-list" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                    </table>
+                </div>
+                <!-- [修复] 增加固定的分页控件容器 -->
+                <div id="video-entry-pagination-controls" class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4"></div>
+                
+                <div class="mt-8 flex justify-end items-center gap-4">
+                    <button id="cancel-entry-btn" class="px-5 py-2.5 bg-gray-200 text-gray-800 text-sm font-semibold rounded-lg hover:bg-gray-300 transition-colors">取消</button>
+                    <button id="save-entry-btn" class="px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all transform hover:scale-105">保存当日数据</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="sidebar.js"></script>
+    <script src="project_report.js"></script>
+</body>
+</html>
+
