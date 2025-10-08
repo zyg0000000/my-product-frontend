@@ -1,6 +1,7 @@
 /**
  * @file project_report.js
- * @description [V2.4-错误修复] 修复了因移除仟传编号HTML元素后JS未同步更新而导致的页面加载失败问题。
+ * @description [V3.2-功能增强] 增加数据录入提醒功能。
+ * - [功能增强] 页面会显示一个醒目的提示，列出当天缺少播放数据的已发布视频。
  * - [修复] 删除了在 loadProjectDetails 函数中对已不存在的 'project-qianchuan-id' 元素的DOM操作。
  */
 document.addEventListener('DOMContentLoaded', function () {
@@ -26,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const detailsContainer = document.getElementById('details-container');
     const dataEntryView = document.getElementById('data-entry-view');
     const reportDatePicker = document.getElementById('report-date-picker');
+    const missingDataAlertContainer = document.getElementById('missing-data-alert-container');
 
     // --- Global State ---
     let currentProjectId = null;
@@ -91,8 +93,6 @@ document.addEventListener('DOMContentLoaded', function () {
         projectData = response.data;
         document.title = `${projectData.name} - 项目执行报告`;
         breadcrumbProjectName.textContent = projectData.name;
-        // [修复] 删除了下面这行导致错误的代码
-        // projectQianchuanId.textContent = `仟传编号: ${projectData.qianchuanId || 'N/A'}`;
     }
 
     // --- Mode Switching ---
@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
     async function loadReportData() {
         overviewKPIs.innerHTML = '<div class="text-center py-8 text-gray-500 col-span-5">加载中...</div>';
         detailsContainer.innerHTML = `<div class="text-center py-16 text-gray-500">正在加载报告详情...</div>`;
+        missingDataAlertContainer.innerHTML = ''; // 清空提醒
         try {
             const apiUrl = `${REPORT_API}?projectId=${currentProjectId}&date=${reportDatePicker.value}`;
             const response = await apiRequest(apiUrl);
@@ -201,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
             { label: '已发布视频数量', value: overview.publishedVideos || 0, color: 'text-gray-900' },
             { label: '总计金额', value: `¥${(overview.totalAmount || 0).toLocaleString()}`, color: 'text-green-600' },
             { label: '视频总曝光', value: (overview.totalViews || 0).toLocaleString(), color: 'text-blue-600' },
-            { label: '平均CPM', value: (overview.averageCPM || 0).toFixed(1), color: 'text-purple-600' }
+            { label: '整体CPM', value: (overview.averageCPM || 0).toFixed(1), color: 'text-purple-600' }
         ];
         overviewKPIs.innerHTML = kpis.map(kpi => `
             <div class="bg-gray-50 p-5 rounded-lg text-center kpi-card border border-gray-200">
@@ -209,6 +210,35 @@ document.addEventListener('DOMContentLoaded', function () {
                 <dd class="mt-2 text-3xl font-bold ${kpi.color}">${kpi.value}</dd>
             </div>
         `).join('');
+
+        // [新增] 渲染数据录入提醒
+        if (data.missingDataVideos && data.missingDataVideos.length > 0) {
+            const missingVideosList = data.missingDataVideos.map(v => `<span class="font-semibold">${v.talentName}</span>`).join('、');
+            missingDataAlertContainer.innerHTML = `
+                <div class="bg-orange-50 border-l-4 border-orange-400 p-4 rounded-r-lg mb-8 shadow">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-orange-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.636-1.026 2.252-1.026 2.888 0l6.252 10.086c.636 1.026-.174 2.315-1.444 2.315H3.449c-1.27 0-2.08-1.289-1.444-2.315L8.257 3.099zM10 6a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3 flex-1 md:flex md:justify-between">
+                            <p class="text-sm text-orange-700">
+                                <strong>数据录入提醒：</strong> 共 ${data.missingDataVideos.length} 条已发布视频缺少当日数据 (${missingVideosList})。
+                            </p>
+                            <p class="mt-3 text-sm md:mt-0 md:ml-6">
+                                <button id="go-to-entry-btn" class="whitespace-nowrap font-medium text-orange-700 hover:text-orange-600 bg-orange-200 hover:bg-orange-300 px-3 py-1.5 rounded-md transition-colors">
+                                    立即录入 &rarr;
+                                </button>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('go-to-entry-btn').addEventListener('click', () => setMode('entry'));
+        } else {
+            missingDataAlertContainer.innerHTML = '';
+        }
 
         const details = data.details || {};
         const sectionConfig = {
@@ -345,4 +375,3 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Start the application ---
     initializePage();
 });
-
