@@ -750,7 +750,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         }
-        const mainContentContainer = document.querySelector('.container.mx-auto');
+        const mainContentContainer = document.getElementById('main-content');
         if (mainContentContainer) {
             mainContentContainer.addEventListener('click', handleMainContentClick);
             mainContentContainer.addEventListener('change', handleMainContentChange);
