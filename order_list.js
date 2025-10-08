@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // DOM Elements (Page specific)
     const projectNameDisplay = document.getElementById('project-name-display');
-    const projectTagsDisplay = document.getElementById('project-tags-display');
     const statusAlertBanner = document.getElementById('status-alert-banner');
     const projectFilesContainer = document.getElementById('project-files-container');
     const projectFileInput = document.getElementById('project-file-input');
@@ -114,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const alertModalTitleEl = document.getElementById('alert-modal-title');
     const alertModalMessageEl = document.getElementById('alert-modal-message');
     const alertModalOkBtn = document.getElementById('alert-modal-ok-btn');
-    
+
     const showCustomAlert = (message, title = '提示', callback) => {
         alertModalTitleEl.textContent = title;
         alertModalMessageEl.innerHTML = message;
@@ -147,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
         confirmModal.classList.remove('hidden');
     };
-    
+
     const loadingModal = document.createElement('div');
     loadingModal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 flex items-center justify-center p-4';
     loadingModal.innerHTML = `<div class="relative mx-auto p-5 border w-full max-w-sm shadow-lg rounded-md bg-white"><h3 class="text-lg font-bold text-gray-900" id="loading-modal-title"></h3><div class="mt-2 py-3"><p class="text-sm text-gray-500" id="loading-modal-message"></p></div></div>`;
@@ -165,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
     };
-    
+
     // --- API Request Function ---
     async function apiRequest(endpoint, method = 'GET', body = null) {
         const url = new URL(`${API_BASE_URL}${endpoint}`);
@@ -193,14 +192,14 @@ document.addEventListener('DOMContentLoaded', function () {
             throw error;
         }
     }
-    
+
     // --- Data Loading Logic ---
     async function initializePage() {
         const urlParams = new URLSearchParams(window.location.search);
         currentProjectId = urlParams.get('projectId');
-        if (!currentProjectId) { 
-            if(projectNameDisplay) projectNameDisplay.textContent = '错误：缺少项目ID'; 
-            return; 
+        if (!currentProjectId) {
+            if (projectNameDisplay) projectNameDisplay.textContent = '错误：缺少项目ID';
+            return;
         }
         await loadInitialData();
         setupEventListeners();
@@ -220,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function () {
             allDiscounts = discountsResponse.data || [];
             adjustmentTypes = adjTypesResponse.data || [];
             effectDashboardData = null;
-            
+
             renderHeaderAndDashboard(project);
             renderStatusGuidance(project);
             renderProjectFiles(project);
@@ -230,10 +229,10 @@ document.addEventListener('DOMContentLoaded', function () {
             await switchTabAndLoadData();
 
         } catch (error) {
-            if(projectNameDisplay) projectNameDisplay.textContent = '数据加载失败';
+            if (projectNameDisplay) projectNameDisplay.textContent = '数据加载失败';
         }
     }
-    
+
     async function loadCollaborators(pageKey) {
         setLoadingState(true, pageKey);
         try {
@@ -244,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 sortBy: 'createdAt',
                 order: 'desc'
             });
-            
+
             paginatedData[pageKey] = response.data || [];
             totalItems[pageKey] = response.total || 0;
 
@@ -259,15 +258,15 @@ document.addEventListener('DOMContentLoaded', function () {
             setLoadingState(false, pageKey);
         }
     }
-    
+
     async function switchTabAndLoadData() {
         const activeTabBtn = mainTabs.querySelector('.tab-btn.active');
         if (!activeTabBtn) return;
         const activeTab = activeTabBtn.dataset.tabTarget;
-        
+
         mainTabContent.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
         const targetPane = document.getElementById(activeTab);
-        if(targetPane) targetPane.classList.remove('hidden');
+        if (targetPane) targetPane.classList.remove('hidden');
 
         let pageKey = activeTab.replace('-info', '');
         if (pageKey === 'data-performance') pageKey = 'performance';
@@ -282,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 await loadCollaborators(pageKey);
                 break;
             case 'effect-dashboard':
-                if (!effectDashboardData) { await loadEffectDashboardData(); } 
+                if (!effectDashboardData) { await loadEffectDashboardData(); }
                 else { renderEffectDashboard(effectDashboardData); }
                 break;
         }
@@ -290,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function setLoadingState(isLoading, pageKey) {
         const getBodyAndColspan = (key) => {
-            switch(key) {
+            switch (key) {
                 case 'basic': return { body: collaboratorListBody, colspan: 10 };
                 case 'performance': return { body: dataPerformanceListBody, colspan: 8 };
                 case 'financial': return { body: financialListBody, colspan: 10 };
@@ -302,17 +301,17 @@ document.addEventListener('DOMContentLoaded', function () {
             body.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-12 text-gray-500">正在加载...</td></tr>`;
         }
     }
-    
+
     function renderPage() {
         if (!project || !project.id) return;
-        
+
         renderHeaderAndDashboard(project);
         renderStatusGuidance(project);
         renderProjectFiles(project);
         updateAddButtonsState(project);
-        
+
         const activeTab = mainTabs.querySelector('.tab-btn.active').dataset.tabTarget;
-        
+
         switch (activeTab) {
             case 'basic-info': renderBasicInfoTab(paginatedData.basic, project); break;
             case 'data-performance': renderDataPerformanceTab(paginatedData.performance, project); break;
@@ -327,44 +326,45 @@ document.addEventListener('DOMContentLoaded', function () {
         const isExecuting = !['待结算', '已收款', '已终结'].includes(projectData.status);
         const singleAddUrl = `order_form.html?projectId=${currentProjectId}`;
         const batchAddUrl = `talent_selection.html?projectId=${currentProjectId}`;
-        if(addCollaboratorLink) addCollaboratorLink.href = singleAddUrl;
+        if (addCollaboratorLink) addCollaboratorLink.href = singleAddUrl;
         if (isExecuting) {
-            if(addSingleTalentBtn) { addSingleTalentBtn.href = singleAddUrl; addSingleTalentBtn.classList.remove('disabled'); }
-            if(addBatchTalentBtn) { addBatchTalentBtn.href = batchAddUrl; addBatchTalentBtn.classList.remove('disabled'); }
+            if (addSingleTalentBtn) { addSingleTalentBtn.href = singleAddUrl; addSingleTalentBtn.classList.remove('disabled'); }
+            if (addBatchTalentBtn) { addBatchTalentBtn.href = batchAddUrl; addBatchTalentBtn.classList.remove('disabled'); }
         } else {
-            if(addSingleTalentBtn) { addSingleTalentBtn.removeAttribute('href'); addSingleTalentBtn.classList.add('disabled');}
-            if(addBatchTalentBtn) { addBatchTalentBtn.removeAttribute('href'); addBatchTalentBtn.classList.add('disabled');}
+            if (addSingleTalentBtn) { addSingleTalentBtn.removeAttribute('href'); addSingleTalentBtn.classList.add('disabled'); }
+            if (addBatchTalentBtn) { addBatchTalentBtn.removeAttribute('href'); addBatchTalentBtn.classList.add('disabled'); }
         }
     }
 
     // --- Rendering Functions ---
     function renderHeaderAndDashboard(projectData) {
+        const breadcrumbProjectName = document.getElementById('breadcrumb-project-name');
+        const projectQianchuanId = document.getElementById('project-qianchuan-id');
         if (!projectNameDisplay) return;
         projectNameDisplay.textContent = projectData.name;
-        projectTagsDisplay.innerHTML = [
-            projectData.type && `<span class="tag"><span class="tag-dot" style="background-color: #7c3aed;"></span>${projectData.type}</span>`,
-            projectData.year && projectData.month && `<span class="tag" title="客户视角月份"><span class="tag-dot bg-green-400"></span>客-${(projectData.year || '').slice(-2)}年${projectData.month}</span>`,
-            projectData.financialYear && projectData.financialMonth && `<span class="tag" title="财务归属月份"><span class="tag-dot bg-purple-400"></span>财-${(projectData.financialYear || '').slice(-2)}年${projectData.financialMonth}</span>`
-        ].filter(Boolean).join('');
+        if (breadcrumbProjectName) breadcrumbProjectName.textContent = projectData.name;
+        if (projectQianchuanId) {
+            projectQianchuanId.textContent = `仟传编号: ${projectData.qianchuanId || 'N/A'}`;
+        }
         const metrics = projectData.metrics || {};
-        const formatCurrency = (num) => `¥ ${(Number(num) || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        const formatCurrency = (num) => `¥ ${(Number(num) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         const formatPercent = (num) => `${(Number(num) || 0).toFixed(2)}%`;
-        if(statsTotalBudget) statsTotalBudget.textContent = formatCurrency(metrics.projectBudget);
-        if(statsTotalCollaborators) statsTotalCollaborators.textContent = metrics.totalCollaborators || 0;
-        if(statsBudgetUtilization) statsBudgetUtilization.textContent = formatPercent(metrics.budgetUtilization);
-        if(statsTotalIncome) statsTotalIncome.textContent = formatCurrency(metrics.totalIncome);
-        if(statsTotalRebateReceivable) statsTotalRebateReceivable.textContent = formatCurrency(metrics.totalRebateReceivable);
-        if(statsIncomeAdjustments) statsIncomeAdjustments.textContent = formatCurrency(metrics.incomeAdjustments);
-        if(statsTotalOperationalCost) statsTotalOperationalCost.textContent = formatCurrency(metrics.totalOperationalCost);
-        if(statsTotalExpense) statsTotalExpense.textContent = formatCurrency(metrics.totalExpense);
-        if(statsFundsOccupationCost) statsFundsOccupationCost.textContent = formatCurrency(metrics.fundsOccupationCost);
-        if(statsExpenseAdjustments) statsExpenseAdjustments.textContent = formatCurrency(metrics.expenseAdjustments);
-        if(statsPreAdjustmentProfit) statsPreAdjustmentProfit.textContent = formatCurrency(metrics.preAdjustmentProfit);
-        if(statsPreAdjustmentMargin) statsPreAdjustmentMargin.textContent = formatPercent(metrics.preAdjustmentMargin);
-        if(statsOperationalProfit) statsOperationalProfit.textContent = formatCurrency(metrics.operationalProfit);
-        if(statsOperationalMargin) statsOperationalMargin.textContent = formatPercent(metrics.operationalMargin);
+        if (statsTotalBudget) statsTotalBudget.textContent = formatCurrency(metrics.projectBudget);
+        if (statsTotalCollaborators) statsTotalCollaborators.textContent = metrics.totalCollaborators || 0;
+        if (statsBudgetUtilization) statsBudgetUtilization.textContent = formatPercent(metrics.budgetUtilization);
+        if (statsTotalIncome) statsTotalIncome.textContent = formatCurrency(metrics.totalIncome);
+        if (statsTotalRebateReceivable) statsTotalRebateReceivable.textContent = formatCurrency(metrics.totalRebateReceivable);
+        if (statsIncomeAdjustments) statsIncomeAdjustments.textContent = formatCurrency(metrics.incomeAdjustments);
+        if (statsTotalOperationalCost) statsTotalOperationalCost.textContent = formatCurrency(metrics.totalOperationalCost);
+        if (statsTotalExpense) statsTotalExpense.textContent = formatCurrency(metrics.totalExpense);
+        if (statsFundsOccupationCost) statsFundsOccupationCost.textContent = formatCurrency(metrics.fundsOccupationCost);
+        if (statsExpenseAdjustments) statsExpenseAdjustments.textContent = formatCurrency(metrics.expenseAdjustments);
+        if (statsPreAdjustmentProfit) statsPreAdjustmentProfit.textContent = formatCurrency(metrics.preAdjustmentProfit);
+        if (statsPreAdjustmentMargin) statsPreAdjustmentMargin.textContent = formatPercent(metrics.preAdjustmentMargin);
+        if (statsOperationalProfit) statsOperationalProfit.textContent = formatCurrency(metrics.operationalProfit);
+        if (statsOperationalMargin) statsOperationalMargin.textContent = formatPercent(metrics.operationalMargin);
     }
-    
+
     function renderStatusGuidance(projectData) {
         if (!statusAlertBanner) return;
         statusAlertBanner.innerHTML = '';
@@ -417,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const talentNickname = talentInfo.nickname || '（已删除）';
                 const financials = c.metrics;
                 const isDeleteDisabled = c.status === '视频已发布' || projectData.status !== '执行中';
-                
+
                 let statusCellHtml = '';
                 const isStatusSelectDisabled = c.status === '视频已发布' || projectData.status !== '执行中';
                 let statusOptionsHtml = MANUAL_STATUS_OPTIONS.map(s => `<option value="${s}" ${c.status === s ? 'selected' : ''}>${s}</option>`).join('');
@@ -434,10 +434,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="flex items-center gap-2">
                             <input type="date" id="${dateInputId}" class="data-input w-full" value="${c.plannedReleaseDate || ''}" ${!isEditingThisRow ? 'disabled' : ''}>
                             <button class="p-1 rounded-md text-gray-500 hover:bg-gray-200 transition-colors inline-edit-date-btn" data-id="${c.id}" data-state="${isEditingThisRow ? 'save' : 'edit'}">
-                                ${isEditingThisRow ? 
-                                    '<svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>' :
-                                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L15.232 5.232z"></path></svg>'
-                                }
+                                ${isEditingThisRow ?
+                            '<svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>' :
+                            '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L15.232 5.232z"></path></svg>'
+                        }
                             </button>
                         </div>`;
                 } else {
@@ -458,7 +458,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="px-6 py-4">${orderTypeText}</td>
                     <td class="px-6 py-4" title="${c.priceInfo || ''}">¥ ${Number(c.amount || 0).toLocaleString()}</td>
                     <td class="px-6 py-4 text-center">${c.rebate || 'N/A'}%</td>
-                    <td class="px-6 py-4 font-medium">¥ ${(financials.income || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 font-medium">¥ ${(financials.income || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     <td class="px-6 py-4 font-semibold text-center ${(financials.grossProfitMargin || 0) < 0 ? 'text-red-600' : 'text-green-600'}">${(financials.grossProfitMargin || 0).toFixed(2)}%</td>
                     <td class="px-6 py-4">${statusCellHtml}</td>
                     <td class="px-6 py-4 flex items-center justify-center space-x-2">
@@ -468,8 +468,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const subRow = document.createElement('tr');
                 subRow.className = `collapsible-row bg-gray-50/70 ${openDetails.has(c.id) ? 'expanded' : ''}`;
-                
-                const tagsHtml = (talentInfo.tags && talentInfo.tags.length > 0) 
+
+                const tagsHtml = (talentInfo.tags && talentInfo.tags.length > 0)
                     ? talentInfo.tags.map(tag => `<span class="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join('')
                     : '<span class="text-gray-500">暂无</span>';
 
@@ -493,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             </div>
                         </div>
                     </td>`;
-                
+
                 fragment.appendChild(mainRow);
                 fragment.appendChild(subRow);
             });
@@ -502,7 +502,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         renderPagination(paginationControlsBasic, 'basic', totalItems.basic);
     }
-    
+
     function renderDataPerformanceTab(collaborators, projectData) {
         if (!dataPerformanceListBody || !noDataPerformanceMessage) return;
         const isReadOnly = projectData.status !== '执行中';
@@ -534,7 +534,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         return `<div class="flex items-center justify-between editable-cell ${isReadOnly ? '' : 'cursor-pointer'}" data-id="${c.id}" data-field="${fieldName}" title="点击编辑: ${value}"><span class="truncate">${displayValue}</span>${actionButtons}</div>`;
                     }
                 };
-                
+
                 const isRowDirty = dirtyPerformanceRows.has(c.id);
 
                 row.innerHTML = `
@@ -553,7 +553,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         renderPagination(paginationControlsPerformance, 'performance', totalItems.performance);
     }
-    
+
     function renderFinancialTab(collaborators, projectData) {
         if (!financialListBody || !noFinancialMessage) return;
         const isReadOnly = projectData.status === '已终结';
@@ -580,7 +580,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 const mainRow = document.createElement('tr');
                 mainRow.className = 'bg-white border-b hover:bg-gray-50';
-                mainRow.innerHTML = `<td class="px-4 py-4 w-12 text-center"><input type="checkbox" class="collaborator-checkbox-financial rounded text-blue-600" data-id="${c.id}" ${isReadOnly ? 'disabled' : ''}></td><td class="px-6 py-4 font-medium text-gray-900">${c.talentInfo.nickname || '(已删除)'}</td><td class="px-6 py-4">${c.plannedReleaseDate || '<span class="text-gray-400">待定</span>'}</td><td class="px-6 py-4">${talentSource}</td><td class="px-6 py-4">¥ ${Number(c.amount || 0).toLocaleString()}</td><td class="px-6 py-4">¥ ${(financials.income || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</td><td class="px-6 py-4">¥ ${(financials.expense || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</td><td class="px-6 py-4 font-semibold ${(financials.grossProfit || 0) < 0 ? 'text-red-600' : 'text-blue-600'}">¥ ${(financials.grossProfit || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</td><td class="px-6 py-4"><span class="text-xs font-semibold px-2.5 py-1 rounded-full ${rebateStatusColor}">${rebateStatus}</span></td><td class="px-6 py-4 text-center"><button data-id="${c.id}" class="toggle-details-btn p-1 rounded-md text-gray-500 hover:bg-gray-100"><svg class="w-5 h-5 rotate-icon ${openDetails.has(c.id) ? 'rotated' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button></td>`;
+                mainRow.innerHTML = `<td class="px-4 py-4 w-12 text-center"><input type="checkbox" class="collaborator-checkbox-financial rounded text-blue-600" data-id="${c.id}" ${isReadOnly ? 'disabled' : ''}></td><td class="px-6 py-4 font-medium text-gray-900">${c.talentInfo.nickname || '(已删除)'}</td><td class="px-6 py-4">${c.plannedReleaseDate || '<span class="text-gray-400">待定</span>'}</td><td class="px-6 py-4">${talentSource}</td><td class="px-6 py-4">¥ ${Number(c.amount || 0).toLocaleString()}</td><td class="px-6 py-4">¥ ${(financials.income || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td><td class="px-6 py-4">¥ ${(financials.expense || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td><td class="px-6 py-4 font-semibold ${(financials.grossProfit || 0) < 0 ? 'text-red-600' : 'text-blue-600'}">¥ ${(financials.grossProfit || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td><td class="px-6 py-4"><span class="text-xs font-semibold px-2.5 py-1 rounded-full ${rebateStatusColor}">${rebateStatus}</span></td><td class="px-6 py-4 text-center"><button data-id="${c.id}" class="toggle-details-btn p-1 rounded-md text-gray-500 hover:bg-gray-100"><svg class="w-5 h-5 rotate-icon ${openDetails.has(c.id) ? 'rotated' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button></td>`;
                 const subRow = document.createElement('tr');
                 subRow.className = `collapsible-row bg-gray-50/70 ${openDetails.has(c.id) ? 'expanded' : ''}`;
                 subRow.dataset.id = c.id;
@@ -596,7 +596,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const discountValue = project.discount || '1';
                 const discountInfo = allDiscounts.find(d => d.value === discountValue);
                 const discountDisplayName = discountInfo ? discountInfo.name : `${(Number(discountValue) * 100).toFixed(2)}%`;
-                subRow.innerHTML = `<td colspan="10" class="p-4 bg-gray-50 border-t"><div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm"><div class="space-y-2"><h4 class="font-semibold text-gray-800 mb-2 border-b pb-1">基础信息</h4><div class="flex justify-between items-center"><span>星图一口价:</span><span class="font-medium">¥ ${Number(c.amount || 0).toLocaleString()}</span></div><div class="flex justify-between items-center"><span>项目折扣:</span><span class="font-medium">${discountDisplayName}</span></div><div class="flex justify-between items-center"><span>返点率:</span><span class="font-medium">${c.rebate || 'N/A'}%</span></div><div class="flex justify-between items-center"><span>下单方式:</span><div class="flex items-center">${orderTypeHtml}</div></div><div class="flex justify-between items-center"><label class="font-medium">下单日期:</label><input type="date" class="date-input ${dateInputStyles}" data-type="orderDate" data-id="${c.id}" value="${hasPending?.orderDate ?? c.orderDate ?? ''}" ${isReadOnly ? 'disabled' : ''}></div><div class="flex justify-between items-center"><label class="font-medium">回款日期:</label><input type="date" class="date-input ${dateInputStyles}" data-type="paymentDate" data-id="${c.id}" value="${hasPending?.paymentDate ?? c.paymentDate ?? ''}" ${isReadOnly ? 'disabled' : ''}></div></div><div class="space-y-2"><h4 class="font-semibold text-gray-800 mb-2 border-b pb-1">财务明细</h4><div class="flex justify-between items-center"><span>收入 (执行价格):</span><span class="font-medium text-green-600">¥ ${(financials.income || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div><div class="flex justify-between items-center"><span>支出 (下单金额):</span><span class="font-medium text-red-600">¥ ${(financials.expense || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div><div class="flex justify-between items-center"><span>应收/实收返点:</span><span>¥ ${(financials.rebateReceivable || 0).toLocaleString(undefined, {minimumFractionDigits: 2})} / ${c.actualRebate != null ? '¥ ' + Number(c.actualRebate).toLocaleString(undefined, {minimumFractionDigits: 2}) : 'N/A'}</span></div><div class="flex justify-between items-center"><span>资金占用费用:</span><span class="font-medium text-red-600">¥ ${(financials.fundsOccupationCost || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div><div class="flex justify-between items-center border-t pt-2 mt-1"><strong>下单毛利:</strong><strong class="${(financials.grossProfit || 0) < 0 ? 'text-red-600' : 'text-blue-600'}">¥ ${(financials.grossProfit || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</strong></div><div class="flex justify-between items-center"><strong>下单毛利率:</strong><strong class="${(financials.grossProfitMargin || 0) < 0 ? 'text-red-600' : 'text-green-600'}">${(financials.grossProfitMargin || 0).toFixed(2)}%</strong></div>${c.status === '视频已发布' && talentSource !== '机构达人' ? `<div class="text-right mt-4"><a href="rebate_management.html?from=order_list&projectId=${currentProjectId}" class="text-blue-600 hover:underline">前往返点管理 &rarr;</a></div>` : ''}</div></div><div class="mt-4 text-right ${hasPending || isEditingOrderType ? '' : 'hidden'}"><span class="text-sm text-yellow-700 mr-4">有未保存的更改</span><button class="save-dates-btn px-4 py-2 text-sm bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700" data-id="${c.id}">保存日期/更改</button></div></td>`;
+                subRow.innerHTML = `<td colspan="10" class="p-4 bg-gray-50 border-t"><div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm"><div class="space-y-2"><h4 class="font-semibold text-gray-800 mb-2 border-b pb-1">基础信息</h4><div class="flex justify-between items-center"><span>星图一口价:</span><span class="font-medium">¥ ${Number(c.amount || 0).toLocaleString()}</span></div><div class="flex justify-between items-center"><span>项目折扣:</span><span class="font-medium">${discountDisplayName}</span></div><div class="flex justify-between items-center"><span>返点率:</span><span class="font-medium">${c.rebate || 'N/A'}%</span></div><div class="flex justify-between items-center"><span>下单方式:</span><div class="flex items-center">${orderTypeHtml}</div></div><div class="flex justify-between items-center"><label class="font-medium">下单日期:</label><input type="date" class="date-input ${dateInputStyles}" data-type="orderDate" data-id="${c.id}" value="${hasPending?.orderDate ?? c.orderDate ?? ''}" ${isReadOnly ? 'disabled' : ''}></div><div class="flex justify-between items-center"><label class="font-medium">回款日期:</label><input type="date" class="date-input ${dateInputStyles}" data-type="paymentDate" data-id="${c.id}" value="${hasPending?.paymentDate ?? c.paymentDate ?? ''}" ${isReadOnly ? 'disabled' : ''}></div></div><div class="space-y-2"><h4 class="font-semibold text-gray-800 mb-2 border-b pb-1">财务明细</h4><div class="flex justify-between items-center"><span>收入 (执行价格):</span><span class="font-medium text-green-600">¥ ${(financials.income || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></div><div class="flex justify-between items-center"><span>支出 (下单金额):</span><span class="font-medium text-red-600">¥ ${(financials.expense || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></div><div class="flex justify-between items-center"><span>应收/实收返点:</span><span>¥ ${(financials.rebateReceivable || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} / ${c.actualRebate != null ? '¥ ' + Number(c.actualRebate).toLocaleString(undefined, { minimumFractionDigits: 2 }) : 'N/A'}</span></div><div class="flex justify-between items-center"><span>资金占用费用:</span><span class="font-medium text-red-600">¥ ${(financials.fundsOccupationCost || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></div><div class="flex justify-between items-center border-t pt-2 mt-1"><strong>下单毛利:</strong><strong class="${(financials.grossProfit || 0) < 0 ? 'text-red-600' : 'text-blue-600'}">¥ ${(financials.grossProfit || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></div><div class="flex justify-between items-center"><strong>下单毛利率:</strong><strong class="${(financials.grossProfitMargin || 0) < 0 ? 'text-red-600' : 'text-green-600'}">${(financials.grossProfitMargin || 0).toFixed(2)}%</strong></div>${c.status === '视频已发布' && talentSource !== '机构达人' ? `<div class="text-right mt-4"><a href="rebate_management.html?from=order_list&projectId=${currentProjectId}" class="text-blue-600 hover:underline">前往返点管理 &rarr;</a></div>` : ''}</div></div><div class="mt-4 text-right ${hasPending || isEditingOrderType ? '' : 'hidden'}"><span class="text-sm text-yellow-700 mr-4">有未保存的更改</span><button class="save-dates-btn px-4 py-2 text-sm bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700" data-id="${c.id}">保存日期/更改</button></div></td>`;
                 fragment.appendChild(mainRow);
                 fragment.appendChild(subRow);
             });
@@ -606,53 +606,53 @@ document.addEventListener('DOMContentLoaded', function () {
         renderPagination(paginationControlsFinancial, 'financial', totalItems.financial);
         renderAdjustmentsSection(project, isReadOnly);
     }
-    
+
     function renderAdjustmentsSection(project, isReadOnly) {
-        if(!adjustmentsListBody) return;
+        if (!adjustmentsListBody) return;
         adjustmentsListBody.innerHTML = '';
-        if(addAdjustmentBtn) addAdjustmentBtn.style.display = isReadOnly ? 'none' : 'flex';
+        if (addAdjustmentBtn) addAdjustmentBtn.style.display = isReadOnly ? 'none' : 'flex';
         (project.adjustments || []).forEach(adj => {
             const amount = Number(adj.amount) || 0;
             const row = document.createElement('tr');
             row.className = 'bg-white border-b';
-            row.innerHTML = `<td class="px-6 py-4">${adj.date || ''}</td><td class="px-6 py-4">${adj.type || '未分类'}</td><td class="px-6 py-4">${adj.description || ''}</td><td class="px-6 py-4 font-medium ${amount > 0 ? 'text-green-600' : 'text-red-600'}">${amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</td><td class="px-6 py-4 text-center"><button data-id="${adj.id}" class="edit-adjustment-btn font-medium text-blue-600 hover:underline mr-2" ${isReadOnly ? 'disabled' : ''}>编辑</button><button data-id="${adj.id}" class="delete-adjustment-btn font-medium text-red-600 hover:underline" ${isReadOnly ? 'disabled' : ''}>删除</button></td>`;
+            row.innerHTML = `<td class="px-6 py-4">${adj.date || ''}</td><td class="px-6 py-4">${adj.type || '未分类'}</td><td class="px-6 py-4">${adj.description || ''}</td><td class="px-6 py-4 font-medium ${amount > 0 ? 'text-green-600' : 'text-red-600'}">${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td><td class="px-6 py-4 text-center"><button data-id="${adj.id}" class="edit-adjustment-btn font-medium text-blue-600 hover:underline mr-2" ${isReadOnly ? 'disabled' : ''}>编辑</button><button data-id="${adj.id}" class="delete-adjustment-btn font-medium text-red-600 hover:underline" ${isReadOnly ? 'disabled' : ''}>删除</button></td>`;
             adjustmentsListBody.appendChild(row);
         });
     }
 
     function renderPagination(container, pageKey, totalItems) {
-        if(!container) return;
+        if (!container) return;
         container.innerHTML = '';
         const totalPages = Math.ceil(totalItems / itemsPerPage);
         if (totalPages <= 1) return;
 
         let buttons = '';
         for (let i = 1; i <= totalPages; i++) {
-             buttons += `<button class="pagination-btn ${i === currentPage[pageKey] ? 'active' : ''}" data-page-key="${pageKey}" data-page="${i}">${i}</button>`;
+            buttons += `<button class="pagination-btn ${i === currentPage[pageKey] ? 'active' : ''}" data-page-key="${pageKey}" data-page="${i}">${i}</button>`;
         }
-        
+
         const perPageSelector = container.id.includes('basic') ? `<div class="flex items-center text-sm"><span>每页:</span><select id="items-per-page" class="ml-2 rounded-md border-gray-300"><option value="10" ${itemsPerPage === 10 ? 'selected' : ''}>10</option><option value="20" ${itemsPerPage === 20 ? 'selected' : ''}>20</option></select></div>` : '<div></div>';
         container.innerHTML = `${perPageSelector}<div class="flex items-center gap-2"><button class="pagination-btn prev-page-btn" data-page-key="${pageKey}" ${currentPage[pageKey] === 1 ? 'disabled' : ''}>&lt;</button>${buttons}<button class="pagination-btn next-page-btn" data-page-key="${pageKey}" ${currentPage[pageKey] === totalPages ? 'disabled' : ''}>&gt;</button></div>`;
     }
-    
+
     async function loadEffectDashboardData() {
-        if(effectDashboardLoading) effectDashboardLoading.classList.remove('hidden');
-        if(effectDashboardError) effectDashboardError.classList.add('hidden');
-        if(effectDashboardContent) effectDashboardContent.classList.add('hidden');
+        if (effectDashboardLoading) effectDashboardLoading.classList.remove('hidden');
+        if (effectDashboardError) effectDashboardError.classList.add('hidden');
+        if (effectDashboardContent) effectDashboardContent.classList.add('hidden');
         try {
             const response = await apiRequest(PERFORMANCE_API_ENDPOINT, 'POST', { projectId: currentProjectId });
             effectDashboardData = response;
             renderEffectDashboard(effectDashboardData);
         } catch (error) {
             console.error("Error loading dashboard data:", error);
-            if(effectDashboardLoading) effectDashboardLoading.classList.add('hidden');
-            if(effectDashboardError) effectDashboardError.classList.remove('hidden');
+            if (effectDashboardLoading) effectDashboardLoading.classList.add('hidden');
+            if (effectDashboardError) effectDashboardError.classList.remove('hidden');
         }
     }
 
     function renderEffectDashboard(data) {
-        if(effectDashboardLoading) effectDashboardLoading.classList.add('hidden');
-        if(effectDashboardContent) effectDashboardContent.classList.remove('hidden');
+        if (effectDashboardLoading) effectDashboardLoading.classList.add('hidden');
+        if (effectDashboardContent) effectDashboardContent.classList.remove('hidden');
         const { overall = {}, talents = [] } = data;
         const notEnteredSpan = `<span class="text-sm text-gray-400">暂未录入</span>`;
         const formatNumber = (num) => (num === null || num === undefined) ? notEnteredSpan : Number(num).toLocaleString();
@@ -664,7 +664,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const lastPublishDate = talents
                 .filter(t => t.publishDate)
                 .map(t => new Date(t.publishDate))
-                .sort((a, b) => b - a)[0]; 
+                .sort((a, b) => b - a)[0];
 
             if (lastPublishDate) {
                 const reviewDate = new Date(lastPublishDate);
@@ -676,34 +676,34 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const isT21DataAvailable = overall.t21_totalViews !== null && overall.t21_totalViews !== undefined;
-        if(effDeliveryDate) effDeliveryDate.textContent = `[${overall.deliveryDate || 'N/A'}]`;
-        if(effBenchmarkCpm) effBenchmarkCpm.innerHTML = formatCurrency(overall.benchmarkCPM);
+        if (effDeliveryDate) effDeliveryDate.textContent = `[${overall.deliveryDate || 'N/A'}]`;
+        if (effBenchmarkCpm) effBenchmarkCpm.innerHTML = formatCurrency(overall.benchmarkCPM);
         if (isT21DataAvailable) {
             const currentViews = overall.t21_totalViews;
             const targetViews = overall.targetViews;
-            if(effProgressSummary) effProgressSummary.innerHTML = `当前 <span class="font-bold">${currentViews.toLocaleString()}</span> / 目标 <span class="font-bold">${(targetViews || 0).toLocaleString()}</span>`;
+            if (effProgressSummary) effProgressSummary.innerHTML = `当前 <span class="font-bold">${currentViews.toLocaleString()}</span> / 目标 <span class="font-bold">${(targetViews || 0).toLocaleString()}</span>`;
             const progress = (targetViews && targetViews > 0) ? (currentViews / targetViews) * 100 : 0;
             const progressPercent = Math.min(progress, 100).toFixed(0);
-            if(effProgressBar) { effProgressBar.style.width = `${progressPercent}%`; effProgressBar.textContent = `${progressPercent}%`; }
+            if (effProgressBar) { effProgressBar.style.width = `${progressPercent}%`; effProgressBar.textContent = `${progressPercent}%`; }
             const gap = overall.viewsGap;
-            if(effViewsGap) effViewsGap.innerHTML = `GAP: <span class="font-bold ${gap >= 0 ? 'text-green-600' : 'text-red-500'}">${Number(gap || 0).toLocaleString()}</span>`;
-            if(effT21Views) effT21Views.innerHTML = `[${formatNumber(currentViews)}]`;
-            if(effT21Cpm) effT21Cpm.innerHTML = formatCurrency(overall.t21_cpm);
-            if(effTargetViews) effTargetViews.innerHTML = `[${formatNumber(targetViews)}]`;
+            if (effViewsGap) effViewsGap.innerHTML = `GAP: <span class="font-bold ${gap >= 0 ? 'text-green-600' : 'text-red-500'}">${Number(gap || 0).toLocaleString()}</span>`;
+            if (effT21Views) effT21Views.innerHTML = `[${formatNumber(currentViews)}]`;
+            if (effT21Cpm) effT21Cpm.innerHTML = formatCurrency(overall.t21_cpm);
+            if (effTargetViews) effTargetViews.innerHTML = `[${formatNumber(targetViews)}]`;
         } else {
-            if(effProgressSummary) effProgressSummary.innerHTML = `当前 ${notEnteredSpan} / 目标 ${notEnteredSpan}`;
-            if(effProgressBar) { effProgressBar.style.width = '0%'; effProgressBar.textContent = '0%'; }
-            if(effViewsGap) effViewsGap.innerHTML = `GAP: ${notEnteredSpan}`;
-            if(effT21Views) effT21Views.innerHTML = `[${notEnteredSpan}]`;
-            if(effT21Cpm) effT21Cpm.innerHTML = notEnteredSpan;
-            if(effTargetViews) effTargetViews.innerHTML = `[${notEnteredSpan}]`;
+            if (effProgressSummary) effProgressSummary.innerHTML = `当前 ${notEnteredSpan} / 目标 ${notEnteredSpan}`;
+            if (effProgressBar) { effProgressBar.style.width = '0%'; effProgressBar.textContent = '0%'; }
+            if (effViewsGap) effViewsGap.innerHTML = `GAP: ${notEnteredSpan}`;
+            if (effT21Views) effT21Views.innerHTML = `[${notEnteredSpan}]`;
+            if (effT21Cpm) effT21Cpm.innerHTML = notEnteredSpan;
+            if (effTargetViews) effTargetViews.innerHTML = `[${notEnteredSpan}]`;
         }
-        if(effT7Views) effT7Views.innerHTML = `[${formatNumber(overall.t7_totalViews)}]`;
-        if(effT7Interactions) effT7Interactions.innerHTML = `[${formatNumber(overall.t7_totalInteractions)}]`;
-        if(effT7Cpm) effT7Cpm.innerHTML = formatCurrency(overall.t7_cpm);
-        if(effT7Cpe) effT7Cpe.innerHTML = formatCurrency(overall.t7_cpe);
-        if(effT7Ctr) effT7Ctr.innerHTML = formatPercent(overall.t7_ctr);
-        if(effectTalentListBody) {
+        if (effT7Views) effT7Views.innerHTML = `[${formatNumber(overall.t7_totalViews)}]`;
+        if (effT7Interactions) effT7Interactions.innerHTML = `[${formatNumber(overall.t7_totalInteractions)}]`;
+        if (effT7Cpm) effT7Cpm.innerHTML = formatCurrency(overall.t7_cpm);
+        if (effT7Cpe) effT7Cpe.innerHTML = formatCurrency(overall.t7_cpe);
+        if (effT7Ctr) effT7Ctr.innerHTML = formatPercent(overall.t7_ctr);
+        if (effectTalentListBody) {
             effectTalentListBody.innerHTML = '';
             if (talents.length > 0) {
                 talents.forEach(talent => {
@@ -725,7 +725,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     }
-    
+
     // --- Event Listeners & Handlers ---
     function setupEventListeners() {
         if (dashboardTabs) {
@@ -736,7 +736,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     tabButton.classList.add('active');
                     document.querySelectorAll('#dashboard-tab-content > .tab-pane').forEach(pane => pane.classList.add('hidden'));
                     const targetPane = document.getElementById(tabButton.dataset.tabTarget);
-                    if(targetPane) targetPane.classList.remove('hidden');
+                    if (targetPane) targetPane.classList.remove('hidden');
                 }
             });
         }
@@ -746,7 +746,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (tabButton && !tabButton.classList.contains('active')) {
                     mainTabs.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
                     tabButton.classList.add('active');
-                    await switchTabAndLoadData(); 
+                    await switchTabAndLoadData();
                 }
             });
         }
@@ -759,7 +759,7 @@ document.addEventListener('DOMContentLoaded', function () {
             projectFilesContainer.addEventListener('click', async (e) => {
                 const target = e.target.closest('button');
                 if (!target) return;
-                if (target.id === 'upload-file-btn') { if (projectFileInput) projectFileInput.click(); } 
+                if (target.id === 'upload-file-btn') { if (projectFileInput) projectFileInput.click(); }
                 else if (target.classList.contains('view-file-btn')) {
                     const proxyUrl = target.dataset.url;
                     const fileName = target.dataset.name;
@@ -776,8 +776,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (projectFileInput) projectFileInput.addEventListener('change', (e) => handleProjectFileUpload(e.target.files));
         if (closePreviewModalBtn) closePreviewModalBtn.addEventListener('click', () => {
-            if(filePreviewModal) filePreviewModal.classList.add('hidden');
-            if(previewModalIframe) previewModalIframe.src = 'about:blank';
+            if (filePreviewModal) filePreviewModal.classList.add('hidden');
+            if (previewModalIframe) previewModalIframe.src = 'about:blank';
         });
         if (batchActionSelect) {
             batchActionSelect.addEventListener('change', () => {
@@ -794,7 +794,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (closeAdjustmentModalBtn) closeAdjustmentModalBtn.addEventListener('click', () => adjustmentModal.classList.add('hidden'));
         if (adjustmentForm) adjustmentForm.addEventListener('submit', handleAdjustmentSubmit);
         [paginationControlsBasic, paginationControlsPerformance, paginationControlsFinancial].forEach(container => {
-            if(container) {
+            if (container) {
                 container.addEventListener('click', (e) => {
                     const button = e.target.closest('button.pagination-btn');
                     if (button) handlePaginationClick(button.dataset.pageKey, e);
@@ -826,7 +826,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     }
-    
+
     // --- REVISED AND FIXED FUNCTION ---
     function handleMainContentClick(e) {
         const button = e.target.closest('button');
@@ -841,7 +841,7 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (state === 'save') {
                 handleSavePlannedDate(collabId);
             }
-            return; 
+            return;
         }
 
         // --- FIX 1: Prevent cell edit mode when clicking on a button inside it ---
@@ -890,12 +890,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const cell = button.closest('td');
             // Corrected value retrieval
             const url = cell.querySelector('.editable-cell')?.title.replace('点击编辑: ', '');
-            if(url) window.open(url, '_blank');
+            if (url) window.open(url, '_blank');
         } else if (button.classList.contains('open-video-btn')) {
             const cell = button.closest('td');
             // Corrected value retrieval
             const videoId = cell.querySelector('.editable-cell')?.title.replace('点击编辑: ', '');
-            if(videoId) window.open(`https://www.douyin.com/video/${videoId}`, '_blank');
+            if (videoId) window.open(`https://www.douyin.com/video/${videoId}`, '_blank');
         } else if (button.classList.contains('toggle-details-btn')) {
             openDetails.has(collabId) ? openDetails.delete(collabId) : openDetails.add(collabId);
             renderPage();
@@ -910,7 +910,7 @@ document.addEventListener('DOMContentLoaded', function () {
             renderPage();
         } else if (button.classList.contains('fix-status-btn')) {
             handleFixStatus(collabId);
-        } else if (button.classList.contains('view-history-btn')) { 
+        } else if (button.classList.contains('view-history-btn')) {
             handleViewHistory(button.dataset.talentId, button.dataset.talentName);
         } else if (button.id === 'add-adjustment-btn') {
             openAdjustmentModal();
@@ -924,21 +924,21 @@ document.addEventListener('DOMContentLoaded', function () {
     function handleMainContentChange(e) {
         const target = e.target;
         if (target.matches('.status-select')) {
-             handleStatusChange(target.dataset.id, target.value);
+            handleStatusChange(target.dataset.id, target.value);
         } else if (target.matches('.date-input')) {
             const collabId = target.dataset.id;
             if (!pendingDateChanges[collabId]) pendingDateChanges[collabId] = {};
             pendingDateChanges[collabId][target.dataset.type] = target.value;
             const subRow = financialListBody.querySelector(`.collapsible-row[data-id="${collabId}"]`);
-            if(subRow) subRow.querySelector('.save-dates-btn').parentElement.classList.remove('hidden');
+            if (subRow) subRow.querySelector('.save-dates-btn').parentElement.classList.remove('hidden');
         } else if (target.matches('.publish-date-input') || target.matches('.performance-input')) {
             const collabId = target.closest('tr').dataset.id;
             dirtyPerformanceRows.add(collabId);
             const saveBtn = document.querySelector(`.save-performance-btn[data-id="${collabId}"]`);
-            if(saveBtn) saveBtn.disabled = false;
+            if (saveBtn) saveBtn.disabled = false;
         }
     }
-    
+
     async function handleViewHistory(talentId, talentName) {
         if (!talentId) return;
         const historyModal = document.createElement('div');
@@ -955,7 +955,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const historyModalTitle = historyModal.querySelector('#history-modal-title');
         const historyModalBody = historyModal.querySelector('#history-modal-body');
         const closeModalBtn = historyModal.querySelector('#history-modal-close-btn');
-        
+
         closeModalBtn.onclick = () => historyModal.remove();
         historyModal.onclick = (e) => { if (e.target === historyModal) historyModal.remove(); };
 
@@ -963,9 +963,9 @@ document.addEventListener('DOMContentLoaded', function () {
         historyModalBody.innerHTML = '<p class="text-center text-gray-500">正在加载历史记录...</p>';
 
         try {
-            const response = await apiRequest(HISTORY_API_ENDPOINT, 'GET', { 
-                talentId: talentId, 
-                excludeProjectId: currentProjectId 
+            const response = await apiRequest(HISTORY_API_ENDPOINT, 'GET', {
+                talentId: talentId,
+                excludeProjectId: currentProjectId
             });
             if (response.success && response.data.length > 0) {
                 const historyHtml = response.data.map(item => `
@@ -1018,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', function () {
             loadingAlert.close();
         }
     }
-    
+
     async function handleDeleteProjectFile(fileUrl) {
         showCustomConfirm('您确定要删除这个文件吗？<br><span class="text-xs text-red-500">此操作将从服务器永久删除文件，无法撤销。</span>', '确认删除', async (confirmed) => {
             if (confirmed) {
@@ -1053,25 +1053,25 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
-    
+
     async function handleStatusChange(collabId, newStatus) {
         if (newStatus === '客户已定档') {
             const collab = paginatedData.basic.find(c => c.id === collabId);
             if (!collab || !collab.plannedReleaseDate) {
                 showCustomAlert('请先为该合作指定一个计划发布日期，才能将其状态设置为“客户已定档”。');
                 const selectElement = document.querySelector(`.status-select[data-id="${collabId}"]`);
-                if(selectElement && collab) selectElement.value = collab.status;
+                if (selectElement && collab) selectElement.value = collab.status;
                 return;
             }
         }
         await apiRequest('/update-collaboration', 'PUT', { id: collabId, status: newStatus });
         await switchTabAndLoadData();
     }
-    
+
     async function handleSavePlannedDate(collabId) {
         const dateInput = document.getElementById(`planned-date-input-${collabId}`);
         if (!dateInput) return;
-        
+
         const newDate = dateInput.value;
         const loadingAlert = showLoadingAlert('正在保存档期...');
         try {
@@ -1079,14 +1079,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 id: collabId,
                 plannedReleaseDate: newDate || null
             });
-            
+
             const collabInBasic = paginatedData.basic.find(c => c.id === collabId);
-            if(collabInBasic) collabInBasic.plannedReleaseDate = newDate || null;
-            
-            editingDateId = null; 
+            if (collabInBasic) collabInBasic.plannedReleaseDate = newDate || null;
+
+            editingDateId = null;
             loadingAlert.close();
             showCustomAlert('合作档期更新成功！');
-            renderBasicInfoTab(paginatedData.basic, project); 
+            renderBasicInfoTab(paginatedData.basic, project);
         } catch (error) {
             loadingAlert.close();
             showCustomAlert('保存失败，请重试。');
@@ -1114,9 +1114,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!row) return;
 
         const currentCollaborator = paginatedData.performance.find(c => c.id === collabId);
-        if(!currentCollaborator) return;
-        
-        const payload = { 
+        if (!currentCollaborator) return;
+
+        const payload = {
             id: collabId,
             publishDate: row.querySelector('.publish-date-input')?.value.trim() || null,
             contentFile: row.querySelector('input[data-field="contentFile"]')?.value ?? currentCollaborator.contentFile,
@@ -1153,7 +1153,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function handleBatchAction() {
-        if(project.status === '已终结') return;
+        if (project.status === '已终结') return;
         const selectedAction = batchActionSelect.value;
         const batchDate = batchDateInput.value;
         const selectedIds = Array.from(document.querySelectorAll('.collaborator-checkbox-financial:checked')).map(cb => cb.dataset.id);
@@ -1183,7 +1183,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function openAdjustmentModal(adjId = null) {
-        if(!adjustmentForm) return;
+        if (!adjustmentForm) return;
         adjustmentForm.reset();
         adjustmentTypeSelect.innerHTML = adjustmentTypes.map(type => `<option value="${type}">${type}</option>`).join('');
         editingAdjustmentIdInput.value = '';
@@ -1223,10 +1223,10 @@ document.addEventListener('DOMContentLoaded', function () {
         await loadInitialData();
         adjustmentModal.classList.add('hidden');
     }
-    
+
     async function handleDeleteAdjustment(adjId) {
-         showCustomConfirm('确定要删除此条调整记录吗？', '确认删除', async (confirmed) => {
-            if(confirmed) {
+        showCustomConfirm('确定要删除此条调整记录吗？', '确认删除', async (confirmed) => {
+            if (confirmed) {
                 const updatedAdjustments = project.adjustments.filter(adj => adj.id !== adjId);
                 await apiRequest('/update-project', 'PUT', { id: currentProjectId, adjustments: updatedAdjustments });
                 await loadInitialData();
@@ -1241,10 +1241,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const totalPages = Math.ceil(totalItems[pageKey] / itemsPerPage);
         let newPage = currentPage[pageKey];
 
-        if (target.classList.contains('prev-page-btn')) { newPage--; } 
-        else if (target.classList.contains('next-page-btn')) { newPage++; } 
+        if (target.classList.contains('prev-page-btn')) { newPage--; }
+        else if (target.classList.contains('next-page-btn')) { newPage++; }
         else if (target.dataset.page) { newPage = Number(target.dataset.page); }
-        
+
         newPage = Math.max(1, Math.min(newPage, totalPages));
 
         if (newPage !== currentPage[pageKey]) {
@@ -1252,6 +1252,6 @@ document.addEventListener('DOMContentLoaded', function () {
             await loadCollaborators(pageKey);
         }
     }
-    
+
     initializePage();
 });
