@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
             { label: '已发布视频数量', value: overview.publishedVideos || 0, color: 'text-gray-900' },
             { label: '总计金额', value: `¥${(overview.totalAmount || 0).toLocaleString()}`, color: 'text-green-600' },
             { label: '视频总曝光', value: (overview.totalViews || 0).toLocaleString(), color: 'text-blue-600' },
-            { label: '整体CPM', value: (overview.averageCPM || 0).toFixed(1), color: 'text-purple-600' }
+            { label: '当前CPM', value: (overview.averageCPM || 0).toFixed(1), color: 'text-purple-600' }
         ];
         overviewKPIs.innerHTML = kpis.map(kpi => `
             <div class="bg-gray-50 p-5 rounded-lg text-center kpi-card border border-gray-200">
