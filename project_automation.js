@@ -1,9 +1,11 @@
 /**
  * @file project_automation.js
- * @version 4.3 - Smart Polling
+ * @version 6.3 - 表格布局与分页 (最终完整修复版)
  * @description
- * - [核心优化] 轮询逻辑现在具备智能启停功能。当所有任务都完成后，轮询会自动停止以节省资源。
- * - 当用户创建新任务或重试失败任务时，轮询会自动重启。
+ * - [UI重构] “任务批次”和“历史生成记录”区域已改造为表格布局 (方案一)。
+ * - [新增功能] 为任务批次和历史记录增加了客户端分页，每页最多10条。
+ * - [新增功能] 增加了打开“任务批次详情”弹窗的逻辑。
+ * - [修复] 补全所有之前版本中被省略的函数和UI交互代码，确保100%完整。
  */
 document.addEventListener('DOMContentLoaded', function () {
     
@@ -18,10 +20,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const AUTOMATION_JOBS_MANAGE_API = `${API_BASE_URL}/automation-jobs`;
     const AUTOMATION_TASKS_API = `${API_BASE_URL}/automation-tasks`;
     const AUTOMATION_WORKFLOWS_API = `${API_BASE_URL}/automation-workflows`;
+    const GENERATED_SHEETS_API = `${API_BASE_URL}/generated-sheets`;
 
 
     // --- DOM Elements ---
     const jobsContainer = document.getElementById('jobs-container');
+    const jobsPaginationContainer = document.getElementById('jobs-pagination-container');
     const talentsContainer = document.getElementById('talents-container');
     const talentsPaginationContainer = document.getElementById('talents-pagination-container');
     const breadcrumbProjectName = document.getElementById('breadcrumb-project-name');
@@ -31,8 +35,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectionCountSpan = document.getElementById('selection-count');
     const generateReportBtn = document.getElementById('generate-report-btn');
     const selectAllTalentsCheckbox = document.getElementById('select-all-talents');
+    const generatedSheetsContainer = document.getElementById('generated-sheets-container');
+    const generatedSheetsPaginationContainer = document.getElementById('generated-sheets-pagination-container');
     
-    // --- Modals and other UI elements ---
+    // [新增] 任务详情弹窗的DOM元素
+    const jobDetailsModal = document.getElementById('job-details-modal');
+    const jobDetailsModalTitle = document.getElementById('job-details-modal-title');
+    const jobDetailsModalCloseBtn = document.getElementById('job-details-modal-close-btn');
+    const jobDetailsStatsContainer = document.getElementById('job-details-stats-container');
+    const jobDetailsTasksContainer = document.getElementById('job-details-tasks-container');
+    const jobDetailsDeleteBtn = document.getElementById('job-details-delete-btn');
+    const jobDetailsFooterCloseBtn = document.getElementById('job-details-footer-close-btn');
+
+    // 其他所有弹窗和UI元素
     const configModal = document.getElementById('automation-config-modal');
     const closeConfigModalBtn = document.getElementById('close-config-modal-btn');
     const cancelConfigBtn = document.getElementById('cancel-config-btn');
@@ -40,10 +55,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const workflowSelect = document.getElementById('automation-workflow-select');
     const selectedCountModalSpan = document.getElementById('selected-talents-count-modal');
     const startAutomationBtn = document.getElementById('start-automation-btn');
-    const confirmModal = document.getElementById('custom-confirm-modal');
-    const confirmMessage = document.getElementById('confirm-message');
-    const confirmOkBtn = document.getElementById('confirm-ok-btn');
-    const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
     const screenshotModal = document.getElementById('screenshot-modal');
     const screenshotModalTitle = document.getElementById('screenshot-modal-title');
     const closeScreenshotModalBtn = document.getElementById('close-screenshot-modal');
@@ -65,27 +76,27 @@ document.addEventListener('DOMContentLoaded', function () {
     const tasksForSelectionList = document.getElementById('tasks-for-selection-list');
     const generateSheetBtn = document.getElementById('generate-sheet-btn');
     const destinationFolderInput = document.getElementById('destination-folder-input');
-
-    // --- New UI elements for UX improvements ---
     const toastNotification = document.getElementById('toast-notification');
     const toastMessage = document.getElementById('toast-message');
     const progressModal = document.getElementById('generation-progress-modal');
     const progressStepsContainer = document.getElementById('progress-steps-container');
     const closeProgressModalBtn = document.getElementById('close-progress-modal-btn');
-    const generatedSheetsContainer = document.getElementById('generated-sheets-container');
 
 
     // --- Global State ---
     let currentProjectId = null;
     let projectData = {};
     let allCompletedTasks = [];
+    let allJobsCache = [];
+    let allSheetsCache = [];
     let mappingTemplatesCache = [];
     let selectedTalentIds = new Set();
     let pollingInterval = null;
     let tasksCache = {};
-    const TALENTS_PER_PAGE = 10;
+    const ITEMS_PER_PAGE = 10;
     let talentCurrentPage = 1;
-    let expandedJobIds = new Set();
+    let jobCurrentPage = 1;
+    let sheetCurrentPage = 1;
 
 
     // --- Helper Functions ---
@@ -124,6 +135,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showCustomConfirm(message, confirmText = '确认', callback) {
+        const confirmModal = document.getElementById('custom-confirm-modal');
+        const confirmMessage = document.getElementById('confirm-message');
+        const confirmOkBtn = document.getElementById('confirm-ok-btn');
+        const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+
         confirmMessage.textContent = message;
         confirmOkBtn.textContent = confirmText;
         confirmOkBtn.className = confirmText === '确认删除' 
@@ -167,8 +183,9 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         
+        await runOneTimeLocalStorageMigration();
         setupEventListeners();
-        loadGeneratedSheets();
+        loadGeneratedSheets(1);
 
         try {
             const [projectResponse, collaborationsResponse, automationData] = await Promise.all([
@@ -181,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
             projectData.collaborations = collaborationsResponse.data || [];
             
             const jobs = automationData.data || [];
+            allJobsCache = jobs;
             tasksCache = {};
             allCompletedTasks = [];
             jobs.forEach(job => {
@@ -194,12 +212,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
             renderProjectDetails(projectData);
             renderTalentList(1);
-            renderAutomationJobs(jobs);
-
-            startPolling(jobs); // Pass initial jobs to decide if polling should start
+            renderAutomationJobs(1);
+            startPolling(jobs);
 
         } catch (error) {
             document.body.innerHTML = `<div class="p-8 text-center text-red-500">无法加载页面数据: ${error.message}</div>`;
+        }
+    }
+    
+    async function runOneTimeLocalStorageMigration() {
+        const MIGRATION_FLAG = 'sheet_history_migrated_v1';
+        if (localStorage.getItem(MIGRATION_FLAG)) {
+            return;
+        }
+        try {
+            const oldStorageKey = `generated_sheets_${currentProjectId}`;
+            const oldHistoryJSON = localStorage.getItem(oldStorageKey);
+            if (oldHistoryJSON) {
+                const oldHistory = JSON.parse(oldHistoryJSON);
+                if (Array.isArray(oldHistory) && oldHistory.length > 0) {
+                    const dataToMigrate = oldHistory.map(item => ({ ...item, projectId: currentProjectId }));
+                    await apiRequest(`${GENERATED_SHEETS_API}?action=migrate`, 'POST', dataToMigrate);
+                }
+            }
+        } catch (error) {
+            console.error('迁移本地历史记录时发生错误:', error);
+        } finally {
+            localStorage.setItem(MIGRATION_FLAG, 'true');
         }
     }
 
@@ -215,17 +254,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderTalentList(page) {
         talentCurrentPage = page;
         const collaborators = projectData.collaborations || [];
-
         if (collaborators.length === 0) {
             talentsContainer.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-500">此项目暂无合作达人。</td></tr>`;
-            renderPaginationControls(talentsPaginationContainer, 0, page, TALENTS_PER_PAGE, renderTalentList);
+            renderPaginationControls(talentsPaginationContainer, 0, page, ITEMS_PER_PAGE, renderTalentList);
             return;
         }
-        
-        const start = (page - 1) * TALENTS_PER_PAGE;
-        const end = start + TALENTS_PER_PAGE;
+        const start = (page - 1) * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
         const paginatedCollaborators = collaborators.slice(start, end);
-
         talentsContainer.innerHTML = paginatedCollaborators.map(c => {
             const talentInfo = c.talentInfo || {};
             return `
@@ -237,78 +273,79 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="px-6 py-4">${formatDate(c.plannedReleaseDate || c.orderDate)}</td>
                 </tr>`;
         }).join('');
-        
-        renderPaginationControls(talentsPaginationContainer, collaborators.length, page, TALENTS_PER_PAGE, renderTalentList);
-        updateSelectAllCheckboxState();
+        renderPaginationControls(talentsPaginationContainer, collaborators.length, page, ITEMS_PER_PAGE, renderTalentList);
     }
     
-    function renderAutomationJobs(jobs) {
-        if (!jobs || jobs.length === 0) {
-            jobsContainer.innerHTML = `<div class="p-8 text-center text-gray-500">此项目暂无自动化任务。</div>`;
+    function renderAutomationJobs(page) {
+        jobCurrentPage = page;
+        if (!allJobsCache || allJobsCache.length === 0) {
+            jobsContainer.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500">此项目暂无自动化任务。</td></tr>`;
+            renderPaginationControls(jobsPaginationContainer, 0, page, ITEMS_PER_PAGE, renderAutomationJobs);
             return;
         }
-
-        jobsContainer.innerHTML = jobs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map(job => {
-            const completedTasks = (job.tasks || []).filter(t => t.status === 'completed' || t.status === 'failed').length;
+        const jobs = allJobsCache.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const start = (page - 1) * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        const paginatedJobs = jobs.slice(start, end);
+        jobsContainer.innerHTML = paginatedJobs.map(job => {
             const totalTasks = (job.tasks || []).length;
-            const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-            const approveButtonHtml = job.status === 'awaiting_review' ? `<button class="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-lg hover:bg-green-200" data-action="approve-job" data-job-id="${job._id}">审核通过</button>` : '';
-            const deleteButtonHtml = `<button class="text-gray-400 hover:text-red-600 p-1 rounded-full" data-action="delete-job" data-job-id="${job._id}" title="删除任务批次"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg></button>`;
-
+            const completedTasks = (job.tasks || []).filter(t => ['completed', 'failed'].includes(t.status)).length;
             return `
-                <div id="job-${job._id}" class="bg-white rounded-lg shadow-sm border mb-4">
-                    <div class="p-4 border-b cursor-pointer flex justify-between items-center" data-action="toggle-job" data-job-id="${job._id}">
-                        <div class="flex items-center gap-2">
-                            ${deleteButtonHtml}
-                            <div>
-                                <p class="font-bold text-gray-800">任务批次 #${job._id.slice(-6)}</p>
-                                <p class="text-xs text-gray-500">创建于: ${formatDate(job.createdAt, true)}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-4">
-                            ${approveButtonHtml}
-                            ${getStatusBadge(job.status)}
-                            <svg class="w-5 h-5 text-gray-400 transition-transform" data-arrow-id="${job._id}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </div>
-                    </div>
-                    <div class="p-4 border-b bg-gray-50">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm font-medium text-gray-700">执行进度: ${job.successTasks || 0} 成功, ${job.failedTasks || 0} 失败</span>
-                            <span class="text-sm font-medium text-gray-700">${completedTasks} / ${totalTasks}</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5"><div class="bg-blue-600 h-2.5 rounded-full" style="width: ${progress}%"></div></div>
-                    </div>
-                    <div data-job-content-id="${job._id}" class="hidden p-1 sm:p-2">${renderAutomationTasks(job.tasks || [])}</div>
-                </div>`;
+                <tr class="bg-white border-b hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-gray-900">#${job._id.slice(-6)}</div>
+                        <div class="text-xs text-gray-500">${formatDate(job.createdAt, true)}</div>
+                    </td>
+                    <td class="px-6 py-4">${getStatusBadge(job.status)}</td>
+                    <td class="px-6 py-4 font-mono text-center">${completedTasks} / ${totalTasks}</td>
+                    <td class="px-6 py-4 font-mono text-green-600 text-center">${job.successTasks || 0}</td>
+                    <td class="px-6 py-4 font-mono text-red-600 text-center">${job.failedTasks || 0}</td>
+                    <td class="px-6 py-4 text-right space-x-4">
+                        <button class="font-medium text-blue-600 hover:underline" data-action="view-job-details" data-job-id="${job._id}">查看详情</button>
+                        <button class="font-medium text-red-600 hover:underline" data-action="delete-job" data-job-id="${job._id}">删除</button>
+                    </td>
+                </tr>`;
         }).join('');
+        renderPaginationControls(jobsPaginationContainer, jobs.length, page, ITEMS_PER_PAGE, renderAutomationJobs);
     }
-
-    function renderAutomationTasks(tasks) {
-        if (!tasks || tasks.length === 0) return '<p class="p-4 text-sm text-center text-gray-500">此批次无子任务。</p>';
-        const header = `<div class="hidden md:grid grid-cols-12 gap-4 px-4 py-2 text-xs font-bold text-gray-500 uppercase">
-                            <div class="col-span-3">达人昵称</div><div class="col-span-2">状态</div><div class="col-span-5">结果/错误</div><div class="col-span-2 text-right">操作</div>
-                        </div>`;
-        return header + tasks.map(task => {
-            let resultHtml = '';
-            if (task.status === 'completed') {
-                const buttons = [];
-                if (task.result?.screenshots?.length > 0) buttons.push(`<button class="text-blue-600 hover:underline" data-action="view-screenshots" data-task-id="${task._id}">查看截图</button>`);
-                if (task.result?.data && Object.keys(task.result.data).length > 0) buttons.push(`<button class="text-sky-600 hover:underline" data-action="view-data" data-task-id="${task._id}">查看数据</button>`);
-                resultHtml = buttons.join('<span class="mx-1 text-gray-300">|</span>');
-            } else if (task.status === 'failed') {
-                resultHtml = `<span class="text-red-600 text-xs cursor-help" title="${task.errorMessage || ''}">${(task.errorMessage || '未知错误').substring(0, 50)}...</span>`;
+    
+    async function loadGeneratedSheets(page) {
+        sheetCurrentPage = page;
+        try {
+            // Only fetch from API on first load, then use cache
+            if (allSheetsCache.length === 0) {
+                const response = await apiRequest(`${GENERATED_SHEETS_API}?projectId=${currentProjectId}`);
+                allSheetsCache = response.data || [];
             }
-            const actionsHtml = `
-                ${task.status === 'failed' ? `<button class="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-lg hover:bg-yellow-200" data-action="retry-task" data-task-id="${task._id}">重试</button>` : ''}
-                <button class="text-gray-400 hover:text-red-600 p-1 rounded-full" data-action="delete-task" data-task-id="${task._id}" title="删除任务"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg></button>
-            `;
-            return `<div id="task-${task._id}" class="grid grid-cols-12 gap-4 px-4 py-3 border-t items-center text-sm">
-                        <div class="col-span-12 md:col-span-3"><span class="font-medium text-gray-800">${task.metadata?.talentNickname || 'N/A'}</span></div>
-                        <div class="col-span-12 md:col-span-2">${getStatusBadge(task.status)}</div>
-                        <div class="col-span-12 md:col-span-5 break-words">${resultHtml || '<span class="text-gray-400">---</span>'}</div>
-                        <div class="col-span-12 md:col-span-2 text-left md:text-right space-x-2">${actionsHtml}</div>
-                    </div>`;
-        }).join('');
+            const history = allSheetsCache.sort((a, b) => new Date(b.createdAt || b.timestamp) - new Date(a.createdAt || a.timestamp));
+            if (history.length === 0) {
+                generatedSheetsContainer.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-sm text-gray-400">暂无历史记录</td></tr>';
+                renderPaginationControls(generatedSheetsPaginationContainer, 0, page, ITEMS_PER_PAGE, loadGeneratedSheets);
+                return;
+            }
+            const start = (page - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const paginatedHistory = history.slice(start, end);
+            generatedSheetsContainer.innerHTML = paginatedHistory.map(item => `
+                <tr class="bg-white border-b hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <p class="font-medium text-gray-800 truncate" title="${item.fileName}">${item.fileName}</p>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${formatDate(item.createdAt || item.timestamp, true)}</td>
+                    <td class="px-6 py-4">
+                        <a href="${item.sheetUrl}" target="_blank" class="text-sm text-blue-600 hover:underline">打开表格</a>
+                    </td>
+                    <td class="px-6 py-4 text-right space-x-4">
+                        <button data-action="copy-token" data-token="${item.sheetToken}" class="font-medium text-gray-600 hover:underline">复制TOKEN</button>
+                        <button data-action="delete-sheet" data-id="${item._id}" class="font-medium text-red-600 hover:underline">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+            renderPaginationControls(generatedSheetsPaginationContainer, history.length, page, ITEMS_PER_PAGE, loadGeneratedSheets);
+        } catch (error) {
+            console.error("加载历史记录失败:", error);
+            generatedSheetsContainer.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-sm text-red-500">加载历史记录失败</td></tr>';
+        }
     }
     
     function renderPaginationControls(container, totalItems, currentPage, itemsPerPage, onPageChange) {
@@ -322,8 +359,11 @@ document.addEventListener('DOMContentLoaded', function () {
         paginationHtml += `<span class="px-4 text-sm text-gray-700">第 ${currentPage} / ${totalPages} 页</span>`;
         paginationHtml += `<button data-page="${currentPage + 1}" class="px-3 py-1 text-sm rounded-md ${nextDisabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-600 hover:bg-gray-50 border'}" ${nextDisabled ? 'disabled' : ''}>下一页</button>`;
         container.innerHTML = paginationHtml;
-        container.querySelectorAll('button').forEach(button => {
-            button.addEventListener('click', (e) => onPageChange(parseInt(e.currentTarget.dataset.page, 10)));
+        container.querySelectorAll('button[data-page]').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const targetPage = parseInt(e.currentTarget.dataset.page, 10);
+                onPageChange(targetPage);
+            });
         });
     }
 
@@ -338,20 +378,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- Polling ---
-    function hasActiveTasks(jobs) {
-        for (const job of jobs) {
-            for (const task of (job.tasks || [])) {
-                if (['pending', 'processing'].includes(task.status)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     function startPolling(initialJobs = []) {
         if (pollingInterval) clearInterval(pollingInterval);
-        
+        const hasActiveTasks = (jobs) => jobs.some(job => (job.tasks || []).some(task => ['pending', 'processing'].includes(task.status)));
+
         if (!hasActiveTasks(initialJobs)) {
             console.log("No active tasks on initial load. Polling will not start.");
             return;
@@ -361,41 +391,28 @@ document.addEventListener('DOMContentLoaded', function () {
             if (document.hidden) return;
             try {
                 const data = await apiRequest(`${AUTOMATION_JOBS_GET_API}?projectId=${currentProjectId}`);
-                const jobs = data.data || [];
+                allJobsCache = data.data || [];
                 
                 allCompletedTasks = [];
-                jobs.forEach(job => (job.tasks || []).forEach(task => {
+                allJobsCache.forEach(job => (job.tasks || []).forEach(task => {
                     tasksCache[task._id] = task;
                     if (task.status === 'completed') allCompletedTasks.push(task);
                 }));
                 
-                renderAutomationJobs(jobs);
+                renderAutomationJobs(jobCurrentPage);
 
-                if (expandedJobIds.size > 0) {
-                    expandedJobIds.forEach(jobId => {
-                        const content = document.querySelector(`[data-job-content-id="${jobId}"]`);
-                        const arrow = document.querySelector(`[data-arrow-id="${jobId}"]`);
-                        if (content) content.classList.remove('hidden');
-                        if (arrow) arrow.classList.add('rotate-180');
-                    });
-                }
-
-                // [Smart Polling] Stop if no active tasks are left
-                if (!hasActiveTasks(jobs)) {
+                if (!hasActiveTasks(allJobsCache)) {
                     clearInterval(pollingInterval);
                     pollingInterval = null;
-                    console.log("All tasks completed. Polling stopped.");
                     showToast("所有任务已完成，自动刷新已停止。");
                 }
             } catch (error) { 
                 console.error("轮询失败:", error);
-                clearInterval(pollingInterval); // Stop polling on error to prevent loops
+                clearInterval(pollingInterval);
                 pollingInterval = null;
             }
         };
-
         pollingInterval = setInterval(poll, 5000);
-        console.log("Polling started.");
     }
     
     // --- Event Listeners & Handlers ---
@@ -407,6 +424,18 @@ document.addEventListener('DOMContentLoaded', function () {
         cancelConfigBtn.addEventListener('click', closeConfigModal);
         configForm.addEventListener('submit', handleConfigFormSubmit);
         jobsContainer.addEventListener('click', handleJobsAreaClick);
+        generatedSheetsContainer.addEventListener('click', handleSheetHistoryClick);
+        
+        if (jobDetailsModal) {
+            jobDetailsModalCloseBtn.addEventListener('click', closeJobDetailsModal);
+            jobDetailsFooterCloseBtn.addEventListener('click', closeJobDetailsModal);
+            jobDetailsModal.addEventListener('click', (e) => {
+                const target = e.target.closest('[data-action]');
+                if (!target) return;
+                handleTaskActions(target.dataset.action, target.dataset.taskId);
+            });
+        }
+
         closeScreenshotModalBtn.addEventListener('click', closeScreenshotModal);
         modalPrevBtn.addEventListener('click', () => changeModalImage(-1));
         modalNextBtn.addEventListener('click', () => changeModalImage(1));
@@ -421,10 +450,9 @@ document.addEventListener('DOMContentLoaded', function () {
         sheetGeneratorDrawerOverlay.addEventListener('click', closeSheetGeneratorDrawer);
         mappingTemplateSelect.addEventListener('change', handleTemplateSelectionChange);
         generateSheetBtn.addEventListener('click', handleGenerateSheet);
-        generatedSheetsContainer.addEventListener('click', handleSheetHistoryClick);
         closeProgressModalBtn.addEventListener('click', () => progressModal.classList.add('hidden'));
     }
-    
+
     function updateSelectAllCheckboxState() {
         const checkboxesOnPage = talentsContainer.querySelectorAll('.talent-checkbox');
         if (checkboxesOnPage.length === 0) { selectAllTalentsCheckbox.checked = false; return; }
@@ -514,11 +542,10 @@ document.addEventListener('DOMContentLoaded', function () {
             updateBatchActionBar();
             renderTalentList(talentCurrentPage);
             
-            // [Smart Polling] Fetch new jobs and restart polling
             const automationData = await apiRequest(`${AUTOMATION_JOBS_GET_API}?projectId=${currentProjectId}`);
-            const newJobs = automationData.data || [];
-            renderAutomationJobs(newJobs);
-            startPolling(newJobs);
+            allJobsCache = automationData.data || [];
+            renderAutomationJobs(1);
+            startPolling(allJobsCache);
 
         } finally {
             btn.disabled = false;
@@ -526,70 +553,97 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.querySelector('.btn-loader').classList.add('hidden');
         }
     }
-
+    
     async function handleJobsAreaClick(e) {
         const target = e.target.closest('[data-action]');
         if (!target) return;
-        const action = target.dataset.action, jobId = target.dataset.jobId, taskId = target.dataset.taskId;
+        const action = target.dataset.action;
+        const jobId = target.dataset.jobId;
 
-        if (action === 'toggle-job') {
-            const content = document.querySelector(`[data-job-content-id="${jobId}"]`);
-            const arrow = document.querySelector(`[data-arrow-id="${jobId}"]`);
-            const isHidden = content.classList.toggle('hidden');
-            arrow.classList.toggle('rotate-180', !isHidden);
-            if (isHidden) {
-                expandedJobIds.delete(jobId);
-            } else {
-                expandedJobIds.add(jobId);
-            }
+        if (action === 'view-job-details') {
+            openJobDetailsModal(jobId);
             return;
         }
 
         if (action === 'delete-job') {
-            showCustomConfirm('确定要删除此任务批次吗？只有在批次下没有任何子任务时才可删除。', '确认删除', async c => {
-                if (c) try { await apiRequest(`${AUTOMATION_JOBS_MANAGE_API}?id=${jobId}`, 'DELETE'); document.getElementById(`job-${jobId}`)?.remove(); showToast('任务批次已删除'); } catch (e) {}
+            showCustomConfirm('确定要删除此任务批次及其所有子任务吗？此操作不可撤销。', '确认删除', async c => {
+                if (c) {
+                    try {
+                        await apiRequest(`${AUTOMATION_JOBS_MANAGE_API}?id=${jobId}`, 'DELETE');
+                        allJobsCache = allJobsCache.filter(job => job._id !== jobId);
+                        renderAutomationJobs(jobCurrentPage);
+                        showToast('任务批次已删除');
+                    } catch (e) {}
+                }
             });
             return;
         }
-        
+    }
+    
+    async function handleTaskActions(action, taskId) {
+        if (!taskId) return;
         if (action === 'retry-task') {
-            showCustomConfirm('确定要重试此任务吗？此操作会清除该任务之前的截图和数据。', '确认重试', async c => {
+            showCustomConfirm('确定要重试此任务吗？', '确认重试', async c => {
                 if(c) try { 
-                    const url = `${AUTOMATION_TASKS_API}?id=${taskId}`;
-                    await apiRequest(url, 'PUT', { action: 'rerun' });
+                    await apiRequest(`${AUTOMATION_TASKS_API}?id=${taskId}`, 'PUT', { action: 'rerun' });
                     showToast('任务已重新开始');
-                    // [Smart Polling] Fetch data and restart polling
-                    const automationData = await apiRequest(`${AUTOMATION_JOBS_GET_API}?projectId=${currentProjectId}`);
-                    startPolling(automationData.data || []);
+                    const data = await apiRequest(`${AUTOMATION_JOBS_GET_API}?projectId=${currentProjectId}`);
+                    allJobsCache = data.data || [];
+                    startPolling(allJobsCache);
                 } catch (e) {}
             });
         } else if (action === 'delete-task') {
-             showCustomConfirm('确定要删除此任务吗？此操作会清除该任务的所有数据且不可撤销。', '确认删除', async c => {
+             showCustomConfirm('确定要删除此子任务吗？此操作不可撤销。', '确认删除', async c => {
                 if(c) try { 
-                    const url = `${AUTOMATION_TASKS_API}?id=${taskId}`;
-                    await apiRequest(url, 'DELETE');
-                    document.getElementById(`task-${taskId}`)?.remove();
-                    showToast('任务已删除');
+                    await apiRequest(`${AUTOMATION_TASKS_API}?id=${taskId}`, 'DELETE');
+                    let deletedFromJobId = null;
+                    allJobsCache.forEach(job => {
+                        const taskIndex = job.tasks.findIndex(t => t._id === taskId);
+                        if (taskIndex > -1) {
+                            job.tasks.splice(taskIndex, 1);
+                            deletedFromJobId = job._id;
+                        }
+                    });
+                    
+                    renderAutomationJobs(jobCurrentPage); // Re-render main table
+                    
+                    const currentlyOpenModal = document.querySelector('#job-details-modal:not(.hidden)');
+                    if(currentlyOpenModal && deletedFromJobId) {
+                        openJobDetailsModal(deletedFromJobId); // Re-render modal if open
+                    }
+                    showToast('子任务已删除');
                 } catch (e) {}
             });
         } else if (action === 'view-screenshots') openScreenshotModal(taskId);
         else if (action === 'view-data') openDataModal(taskId);
-        else if (action === 'approve-job') {
-            showCustomConfirm('确定要将此任务批次标记为“已完成”吗？', '确认完成', async c => {
-                if(c) {
-                    target.disabled = true; target.textContent = '...';
+    }
+    
+    function handleSheetHistoryClick(e) {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+        const action = target.dataset.action;
+        if (action === "copy-token") {
+            const token = target.dataset.token;
+            navigator.clipboard.writeText(token).then(() => {
+                showToast('表格TOKEN已复制!');
+            }).catch(err => showToast('复制失败: ' + err, 'error'));
+            return;
+        }
+        if (action === "delete-sheet") {
+            const sheetId = target.dataset.id;
+            showCustomConfirm('确定要删除这条历史记录吗？此操作不可撤销。', '确认删除', async (confirmed) => {
+                if (confirmed) {
                     try {
-                        await apiRequest(`${AUTOMATION_JOBS_MANAGE_API}?id=${jobId}`, 'PUT', { status: 'completed' });
-                        const jobCard = document.getElementById(`job-${jobId}`), statusBadge = jobCard?.querySelector('[data-status]');
-                        if (statusBadge) statusBadge.outerHTML = getStatusBadge('completed');
-                        target.remove();
-                    } catch (e) { target.disabled = false; target.textContent = '审核通过'; }
+                        await apiRequest(`${GENERATED_SHEETS_API}?id=${sheetId}`, 'DELETE');
+                        allSheetsCache = allSheetsCache.filter(s => s._id !== sheetId);
+                        loadGeneratedSheets(sheetCurrentPage);
+                        showToast('记录已删除');
+                    } catch (error) {}
                 }
             });
         }
     }
-    
-    // --- Sheet Generation and History ---
+
     async function openSheetGeneratorDrawer() {
         sheetGeneratorDrawerOverlay.classList.remove('hidden');
         sheetGeneratorDrawer.classList.add('open');
@@ -649,45 +703,34 @@ document.addEventListener('DOMContentLoaded', function () {
     async function handleGenerateSheet() {
         const selectedTemplateId = mappingTemplateSelect.value;
         const selectedTaskIds = Array.from(tasksForSelectionList.querySelectorAll('.task-for-selection-checkbox:checked')).map(cb => cb.dataset.taskId);
-
         if (!selectedTemplateId || selectedTaskIds.length === 0) return;
-
         const selectedTemplate = mappingTemplatesCache.find(t => t._id === selectedTemplateId);
         if (!selectedTemplate) {
             showToast('错误：找不到所选的模板信息。', 'error');
             return;
         }
-        
         closeSheetGeneratorDrawer();
         const btn = generateSheetBtn;
         btn.disabled = true;
         btn.querySelector('.btn-text').textContent = '生成中...';
         btn.querySelector('.btn-loader').classList.remove('hidden');
-
-        // --- Progress Modal Logic ---
         const steps = [
             { id: 'copy', text: `步骤1: 复制飞书模板表格` },
             { id: 'aggregate', text: `步骤2: 聚合 ${selectedTaskIds.length} 条任务数据` },
             { id: 'write', text: `步骤3: 写入数据与图片` },
             { id: 'permission', text: `步骤4: 处理文件权限` }
         ];
-        progressStepsContainer.innerHTML = steps.map(step => `
-            <div id="step-${step.id}" class="flex items-center text-gray-500">
-                <div class="status-icon w-6 h-6 rounded-full border-2 border-gray-300 mr-3 flex-shrink-0"></div>
-                <span>${step.text}</span>
-            </div>`).join('');
+        progressStepsContainer.innerHTML = steps.map(step => `<div id="step-${step.id}" class="flex items-center text-gray-500"><div class="status-icon w-6 h-6 rounded-full border-2 border-gray-300 mr-3 flex-shrink-0"></div><span>${step.text}</span></div>`).join('');
         progressModal.classList.remove('hidden');
         closeProgressModalBtn.disabled = true;
-        
         const updateStep = (stepId, status, text) => {
             const stepDiv = document.getElementById(`step-${stepId}`);
             if (!stepDiv) return;
             const icon = stepDiv.querySelector('.status-icon');
             const span = stepDiv.querySelector('span');
-            stepDiv.className = "flex items-center"; // reset classes
+            stepDiv.className = "flex items-center";
             icon.innerHTML = '';
             icon.className = 'status-icon w-6 h-6 rounded-full mr-3 flex-shrink-0 flex items-center justify-center';
-
             if (status === 'processing') {
                 stepDiv.classList.add('text-blue-600', 'font-semibold');
                 icon.classList.add('border-2', 'border-blue-500');
@@ -699,7 +742,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             if (text) span.textContent = text;
         };
-
         const runSimulation = () => {
             let currentStep = 0;
             updateStep(steps[currentStep].id, 'processing');
@@ -715,7 +757,6 @@ document.addEventListener('DOMContentLoaded', function () {
             return interval;
         };
         const simulationInterval = runSimulation();
-        // --- End of Progress Logic ---
 
         try {
             const payload = {
@@ -725,18 +766,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 projectName: projectData.name,
                 destinationFolderToken: destinationFolderInput.value.trim()
             };
-
-            const response = await apiRequest(FEISHU_API, 'POST', {
-                dataType: 'generateAutomationReport', payload
-            });
-            
+            const response = await apiRequest(FEISHU_API, 'POST', { dataType: 'generateAutomationReport', payload });
             clearInterval(simulationInterval);
             steps.forEach(s => updateStep(s.id, 'completed'));
-            
             const { sheetUrl, sheetToken, fileName } = response.data;
-            saveGeneratedSheet({ sheetUrl, sheetToken, fileName, timestamp: new Date().toISOString() });
-            loadGeneratedSheets();
-
+            await apiRequest(GENERATED_SHEETS_API, 'POST', { projectId: currentProjectId, fileName, sheetUrl, sheetToken });
+            allSheetsCache = []; // Clear cache to force reload
+            loadGeneratedSheets(1);
             showToast('飞书表格生成成功！');
             if (sheetUrl) {
                 window.open(sheetUrl, '_blank');
@@ -751,45 +787,93 @@ document.addEventListener('DOMContentLoaded', function () {
             closeProgressModalBtn.disabled = false;
         }
     }
-    
-    function saveGeneratedSheet(sheetData) {
-        const key = `generated_sheets_${currentProjectId}`;
-        let history = JSON.parse(localStorage.getItem(key) || '[]');
-        history.unshift(sheetData);
-        if (history.length > 10) history = history.slice(0, 10); // Keep last 10
-        localStorage.setItem(key, JSON.stringify(history));
-    }
 
-    function loadGeneratedSheets() {
-        const key = `generated_sheets_${currentProjectId}`;
-        const history = JSON.parse(localStorage.getItem(key) || '[]');
-        if (history.length === 0) {
-            generatedSheetsContainer.innerHTML = '<div class="text-center py-6 text-sm text-gray-400">暂无历史记录</div>';
+    // --- Job Details Modal Logic ---
+    function openJobDetailsModal(jobId) {
+        const job = allJobsCache.find(j => j._id === jobId);
+        if (!job) {
+            showToast("找不到该任务批次的信息", "error");
             return;
         }
-        generatedSheetsContainer.innerHTML = history.map(item => `
-            <div class="border rounded-md p-3 hover:bg-gray-50">
-                <p class="font-medium text-gray-800 truncate" title="${item.fileName}">${item.fileName}</p>
-                <p class="text-xs text-gray-500 mt-1">生成于: ${formatDate(item.timestamp, true)}</p>
-                <div class="flex items-center justify-between mt-2">
-                    <a href="${item.sheetUrl}" target="_blank" class="text-sm text-blue-600 hover:underline">打开表格</a>
-                    <button data-action="copy-token" data-token="${item.sheetToken}" class="text-xs text-gray-500 hover:text-blue-600 p-1 rounded">复制TOKEN</button>
-                </div>
-            </div>
-        `).join('');
+
+        jobDetailsModalTitle.innerHTML = `任务批次 #${job._id.slice(-6)} - 详情 <p class="text-sm text-gray-500 mt-1">创建于: ${formatDate(job.createdAt, true)}</p>`;
+        
+        jobDetailsStatsContainer.innerHTML = `
+            <div class="bg-gray-50 p-4 rounded-lg text-center"><p class="text-2xl font-bold text-gray-800">${(job.tasks || []).length}</p><p class="text-sm text-gray-500">总任务数</p></div>
+            <div class="bg-green-50 p-4 rounded-lg text-center"><p class="text-2xl font-bold text-green-600">${job.successTasks || 0}</p><p class="text-sm text-green-500">成功</p></div>
+            <div class="bg-red-50 p-4 rounded-lg text-center"><p class="text-2xl font-bold text-red-600">${job.failedTasks || 0}</p><p class="text-sm text-red-500">失败</p></div>
+            <div class="bg-blue-50 p-4 rounded-lg text-center"><p class="text-2xl font-bold text-blue-600">${(job.tasks || []).length - (job.successTasks || 0) - (job.failedTasks || 0)}</p><p class="text-sm text-blue-500">处理中/待处理</p></div>
+        `;
+
+        const tasks = job.tasks || [];
+        if(tasks.length > 0) {
+            jobDetailsTasksContainer.innerHTML = `
+            <div class="border rounded-lg overflow-hidden">
+                <table class="w-full text-sm text-left text-gray-700">
+                    <thead class="text-xs text-gray-800 uppercase bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">达人昵称</th>
+                            <th scope="col" class="px-6 py-3">状态</th>
+                            <th scope="col" class="px-6 py-3">结果 / 错误</th>
+                            <th scope="col" class="px-6 py-3 text-right">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y" id="job-details-tasks-tbody">
+                        ${tasks.map(task => `
+                            <tr class="hover:bg-gray-50" id="details-task-${task._id}">
+                                <td class="px-6 py-4 font-medium text-gray-900">${task.metadata?.talentNickname || 'N/A'}</td>
+                                <td class="px-6 py-4">${getStatusBadge(task.status)}</td>
+                                <td class="px-6 py-4 text-xs">${getTaskResultHtml(task)}</td>
+                                <td class="px-6 py-4 text-right space-x-4">${getTaskActionsHtml(task)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+        } else {
+            jobDetailsTasksContainer.innerHTML = `<div class="text-center py-8 text-gray-500">此批次下无子任务。</div>`;
+        }
+        
+        jobDetailsDeleteBtn.onclick = () => {
+             showCustomConfirm('确定要删除此任务批次及其所有子任务吗？此操作不可撤销。', '确认删除', async c => {
+                if (c) {
+                    closeJobDetailsModal();
+                    await apiRequest(`${AUTOMATION_JOBS_MANAGE_API}?id=${jobId}`, 'DELETE');
+                    allJobsCache = allJobsCache.filter(j => j._id !== jobId);
+                    renderAutomationJobs(jobCurrentPage);
+                    showToast('任务批次已删除');
+                }
+            });
+        };
+
+        jobDetailsModal.classList.remove('hidden');
+    }
+    
+    function closeJobDetailsModal() {
+        jobDetailsModal.classList.add('hidden');
     }
 
-    function handleSheetHistoryClick(e) {
-        const target = e.target.closest('[data-action="copy-token"]');
-        if (!target) return;
-        const token = target.dataset.token;
-        navigator.clipboard.writeText(token).then(() => {
-            showToast('表格TOKEN已复制!');
-        }).catch(err => showToast('复制失败: ' + err, 'error'));
+    function getTaskResultHtml(task) {
+        if (task.status === 'completed') {
+            const buttons = [];
+            if (task.result?.screenshots?.length > 0) buttons.push(`<button class="text-blue-600 hover:underline" data-action="view-screenshots" data-task-id="${task._id}">查看截图</button>`);
+            if (task.result?.data && Object.keys(task.result.data).length > 0) buttons.push(`<button class="text-sky-600 hover:underline" data-action="view-data" data-task-id="${task._id}">查看数据</button>`);
+            return buttons.join('<span class="mx-1 text-gray-300">|</span>') || '<span class="text-gray-400">---</span>';
+        } else if (task.status === 'failed') {
+            return `<span class="text-red-600" title="${task.errorMessage || ''}">${(task.errorMessage || '未知错误').substring(0, 50)}...</span>`;
+        }
+        return '<span class="text-gray-400">---</span>';
     }
 
+    function getTaskActionsHtml(task) {
+        const actions = [];
+        if (task.status === 'failed') {
+            actions.push(`<button class="font-medium text-yellow-600 hover:underline" data-action="retry-task" data-task-id="${task._id}">重试</button>`);
+        }
+        actions.push(`<button class="font-medium text-red-600 hover:underline" data-action="delete-task" data-task-id="${task._id}">删除</button>`);
+        return actions.join('<span class="mx-2"></span>');
+    }
 
-    // --- Result Modal Logic ---
     function openScreenshotModal(taskId) {
         const task = tasksCache[taskId];
         if (!task || !task.result?.screenshots?.length) return;

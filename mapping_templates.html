@@ -53,12 +53,9 @@
 </head>
 <body class="flex bg-gray-100">
 
-    <!-- 侧边栏注入容器 (保持不变) -->
     <div id="sidebar-container"></div>
 
-    <!-- 主内容区 - [核心修改] -->
-    <!-- 完全与 index.html 的 main 标签保持一致 -->
-    <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 main-content" style="margin-left: 9.5rem;">
+    <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 main-content">
         <header class="mb-8 flex justify-between items-center">
             <div>
                 <h1 class="text-3xl font-bold text-gray-800">模板管理</h1>
@@ -69,7 +66,6 @@
             </button>
         </header>
 
-        <!-- 模板列表 (保持不变) -->
         <div class="bg-white p-6 rounded-lg shadow-sm">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left text-gray-500">
@@ -81,15 +77,12 @@
                             <th scope="col" class="px-6 py-3 text-right">操作</th>
                         </tr>
                     </thead>
-                    <tbody id="templates-list-container">
-                        <!-- JS动态渲染 -->
-                    </tbody>
+                    <tbody id="templates-list-container"></tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <!-- 新建/编辑模板模态框 (保持不变) -->
     <div id="template-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 overflow-y-auto">
         <div class="relative top-10 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-xl bg-white flex flex-col" style="max-height: calc(100vh - 5rem);">
             <header class="flex-shrink-0">
@@ -99,22 +92,8 @@
             <div class="flex-grow min-h-0 overflow-y-auto pr-4 custom-scrollbar">
                 <form id="template-form" class="space-y-6">
                     <input type="hidden" id="template-id-input">
-                    <!-- 步骤一：报告主体 -->
                     <div>
-                        <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">1. 报告主体</h4>
-                        <div>
-                            <label for="primary-collection-select" class="block text-sm font-medium text-gray-700">选择报告的每一行代表什么*</label>
-                            <select id="primary-collection-select" required class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                <option value="collaborations">合作信息 (Collaboration)</option>
-                                <option value="talents">达人信息 (Talent)</option>
-                            </select>
-                            <p class="mt-1 text-xs text-gray-500">这将决定报告的数据来源和聚合方式。</p>
-                        </div>
-                    </div>
-                    
-                    <!-- 步骤二：基础信息 -->
-                    <div>
-                        <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">2. 基础信息</h4>
+                        <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">1. 基础信息</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label for="template-name-input" class="block text-sm font-medium text-gray-700">模板名称 *</label>
@@ -127,9 +106,8 @@
                         </div>
                     </div>
 
-                    <!-- 步骤三：关联飞书模板 -->
                     <div>
-                        <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">3. 关联飞书模板</h4>
+                        <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">2. 关联飞书模板</h4>
                         <div>
                             <label for="spreadsheet-url-input" class="block text-sm font-medium text-gray-700">飞书表格链接或Token *</label>
                             <div class="mt-1 flex rounded-md shadow-sm">
@@ -141,10 +119,9 @@
                         </div>
                     </div>
 
-                    <!-- 步骤四：配置数据映射 -->
                     <div>
-                        <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">4. 配置数据映射</h4>
-                        <div id="mapping-rules-container" class="space-y-3">
+                        <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">3. 配置数据映射</h4>
+                        <div id="mapping-rules-container" class="space-y-4">
                             <div id="mapping-placeholder" class="text-center text-gray-400 p-8 border-2 border-dashed rounded-lg">
                                 <p>请先加载飞书表格表头</p>
                             </div>
