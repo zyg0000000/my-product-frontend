@@ -1,15 +1,13 @@
 /**
  * @file order_list.js
- * @version 25.1-fix-performance-actions
- * @description [功能修复] 修复了“执行信息”选项卡中操作按钮（复制、打开链接）无效的问题，并优化了剪贴板功能。
- * * --- 更新日志 (v25.1) ---
- * - [BUG修复] 调整了 `handleMainContentClick` 事件处理函数。现在，点击单元格内的操作按钮（如复制、打开视频）会正确执行其功能，而不会错误地触发单元格的编辑模式。
- * - [功能优化] 将复制到剪贴板的功能从 `navigator.clipboard.writeText` 更改为使用 `document.execCommand('copy')`。这提高了在某些（如iframe）环境下的兼容性和稳定性。
- * - [代码优化] 修正了从单元格中提取数据值的逻辑，移除了一个不正确的后备方案，使代码更健壮。
- * * --- 历史更新 (v25.0) ---
- * - [业务规则] 新增核心逻辑：只有当合作状态不为“视频已发布”、“待结算”、“已收款”或“已终结”时，才允许用户编辑“合作档期”。
- * - [UI/UX优化] 在不允许编辑的状态下，“合作档期”列将只显示只读的日期文本，隐藏编辑按钮，界面更简洁。
- * - [代码重构] 重构了 renderBasicInfoTab 函数，以实现新的权限判断和UI渲染逻辑。
+ * @version 25.2-status-filtering
+ * @description [功能增强] 为 "执行信息" 选项卡的数据请求增加了状态 (status) 过滤，现在只请求执行阶段及之后的数据。
+ * * --- 更新日志 (v25.2) ---
+ * - [核心修改] 修改了 `loadCollaborators` 函数。当请求“执行信息”页签(performance)的数据时，会主动向API请求中添加 `statuses` 参数，只拉取 "客户已定档" 及之后状态的合作记录。
+ * - [兼容性] 此修改不影响“基础信息”和“财务信息”页签的数据加载逻辑。
+ * * --- 历史更新 (v25.1) ---
+ * - [BUG修复] 修复了“执行信息”选项卡中操作按钮（复制、打开链接）无效的问题。
+ * - [功能优化] 优化了剪贴板功能，提高了兼容性。
  */
 document.addEventListener('DOMContentLoaded', function () {
     // --- API Configuration & DOM Elements ---
@@ -236,13 +234,21 @@ document.addEventListener('DOMContentLoaded', function () {
     async function loadCollaborators(pageKey) {
         setLoadingState(true, pageKey);
         try {
-            const response = await apiRequest('/collaborations', 'GET', {
+            const params = {
                 projectId: currentProjectId,
                 page: currentPage[pageKey],
                 limit: itemsPerPage,
                 sortBy: 'createdAt',
                 order: 'desc'
-            });
+            };
+    
+            // **核心修改：当请求 "执行信息" Tab 的数据时，主动附带状态条件**
+            if (pageKey === 'performance'|| pageKey === 'financial') {
+                const performanceStatuses = ["客户已定档", "视频已发布"];
+                params.statuses = performanceStatuses.join(',');
+            }
+    
+            const response = await apiRequest('/collaborations', 'GET', params);
 
             paginatedData[pageKey] = response.data || [];
             totalItems[pageKey] = response.total || 0;
@@ -624,15 +630,19 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!container) return;
         container.innerHTML = '';
         const totalPages = Math.ceil(totalItems / itemsPerPage);
-        if (totalPages <= 1) return;
+        if (totalPages <= 0) return; // Hide pagination if no items
 
         let buttons = '';
         for (let i = 1; i <= totalPages; i++) {
             buttons += `<button class="pagination-btn ${i === currentPage[pageKey] ? 'active' : ''}" data-page-key="${pageKey}" data-page="${i}">${i}</button>`;
         }
-
-        const perPageSelector = container.id.includes('basic') ? `<div class="flex items-center text-sm"><span>每页:</span><select id="items-per-page" class="ml-2 rounded-md border-gray-300"><option value="10" ${itemsPerPage === 10 ? 'selected' : ''}>10</option><option value="20" ${itemsPerPage === 20 ? 'selected' : ''}>20</option></select></div>` : '<div></div>';
-        container.innerHTML = `${perPageSelector}<div class="flex items-center gap-2"><button class="pagination-btn prev-page-btn" data-page-key="${pageKey}" ${currentPage[pageKey] === 1 ? 'disabled' : ''}>&lt;</button>${buttons}<button class="pagination-btn next-page-btn" data-page-key="${pageKey}" ${currentPage[pageKey] === totalPages ? 'disabled' : ''}>&gt;</button></div>`;
+        
+        // [MODIFIED] Unify the pagination UI for all tabs
+        const perPageSelector = `<div class="flex items-center text-sm"><span>每页:</span><select class="items-per-page-select ml-2 rounded-md border-gray-300"><option value="10" ${itemsPerPage === 10 ? 'selected' : ''}>10</option><option value="20" ${itemsPerPage === 20 ? 'selected' : ''}>20</option></select></div>`;
+        const summary = `<div class="text-sm text-gray-700">共 ${totalItems} 条记录</div>`;
+        const pageButtonsContainer = totalPages > 1 ? `<div class="flex items-center gap-2"><button class="pagination-btn prev-page-btn" data-page-key="${pageKey}" ${currentPage[pageKey] === 1 ? 'disabled' : ''}>&lt;</button>${buttons}<button class="pagination-btn next-page-btn" data-page-key="${pageKey}" ${currentPage[pageKey] === totalPages ? 'disabled' : ''}>&gt;</button></div>` : '<div></div>';
+        
+        container.innerHTML = `${perPageSelector}<div class="flex items-center gap-4">${summary}${pageButtonsContainer}</div>`;
     }
 
     async function loadEffectDashboardData() {
@@ -801,15 +811,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
         });
-        if (paginationControlsBasic) {
-            paginationControlsBasic.addEventListener('change', async (e) => {
-                if (e.target.id === 'items-per-page') {
-                    itemsPerPage = Number(e.target.value);
-                    currentPage = { basic: 1, performance: 1, financial: 1 };
-                    await switchTabAndLoadData();
-                }
-            });
-        }
+
         document.addEventListener('projectDataLoaded', () => renderHeaderAndDashboard(project));
         const effectDashboard = document.getElementById('effect-dashboard');
         if (effectDashboard) {
@@ -844,8 +846,6 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // --- FIX 1: Prevent cell edit mode when clicking on a button inside it ---
-        // This condition now correctly checks if the click was on the cell itself, and not on a button within it.
         if (editableCell && !e.target.closest('button')) {
             const isReadOnly = project.status !== '执行中';
             if (isReadOnly) return;
@@ -863,13 +863,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!button) return;
         const collabId = button.dataset.id;
 
-        // --- FIX 2 & 3: Correctly handle button clicks that were previously ignored ---
         if (button.classList.contains('copy-btn')) {
             const cell = button.closest('td');
-            // Corrected value retrieval
             const fullValue = cell.querySelector('.editable-cell')?.title.replace('点击编辑: ', '');
             if (fullValue) {
-                // Use document.execCommand for better compatibility in iframe environments
                 const textArea = document.createElement("textarea");
                 textArea.value = fullValue;
                 textArea.style.position = 'fixed';
@@ -888,12 +885,10 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } else if (button.classList.contains('open-link-btn')) {
             const cell = button.closest('td');
-            // Corrected value retrieval
             const url = cell.querySelector('.editable-cell')?.title.replace('点击编辑: ', '');
             if (url) window.open(url, '_blank');
         } else if (button.classList.contains('open-video-btn')) {
             const cell = button.closest('td');
-            // Corrected value retrieval
             const videoId = cell.querySelector('.editable-cell')?.title.replace('点击编辑: ', '');
             if (videoId) window.open(`https://www.douyin.com/video/${videoId}`, '_blank');
         } else if (button.classList.contains('toggle-details-btn')) {
@@ -936,6 +931,10 @@ document.addEventListener('DOMContentLoaded', function () {
             dirtyPerformanceRows.add(collabId);
             const saveBtn = document.querySelector(`.save-performance-btn[data-id="${collabId}"]`);
             if (saveBtn) saveBtn.disabled = false;
+        } else if (target.matches('.items-per-page-select')) { // [NEW] Handle "items per page" change for all tabs
+            itemsPerPage = Number(target.value);
+            currentPage = { basic: 1, performance: 1, financial: 1 };
+            switchTabAndLoadData();
         }
     }
 
@@ -1255,3 +1254,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
     initializePage();
 });
+

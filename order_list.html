@@ -180,7 +180,7 @@
                         </table>
                     </div>
                     <div id="no-data-performance-message" class="hidden text-center py-12 px-6"><p class="text-gray-500">暂无已定档或已发布的达人。</p></div>
-                    <div id="pagination-controls-performance" class="px-6 py-4 border-t flex justify-center"></div>
+                    <div id="pagination-controls-performance" class="px-6 py-4 border-t flex justify-between items-center"></div>
                 </div>
                 <div id="financial-info" class="tab-pane hidden">
                     <div id="batch-actions-bar" class="px-6 py-4 flex items-center gap-4 bg-gray-50/50 border-b border-gray-200"><label class="text-sm font-medium text-gray-700">批量操作:</label><select id="batch-action-select" class="table-select w-48"><option value="">-- 请选择操作 --</option><option value="setOrderDate">录入下单日期</option><option value="setPaymentDate">录入回款日期</option></select><input type="date" id="batch-date-input" class="data-input w-48 hidden"><button id="execute-batch-btn" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg text-sm hover:bg-blue-700 disabled:bg-gray-400" disabled>执行</button></div>
@@ -204,7 +204,7 @@
                         </table>
                     </div>
                     <div id="no-financial-message" class="hidden text-center py-12 px-6"><p class="text-gray-500">暂无达人可查看财务信息。</p></div>
-                    <div id="pagination-controls-financial" class="px-6 py-4 border-t flex justify-center"></div>
+                    <div id="pagination-controls-financial" class="px-6 py-4 border-t flex justify-between items-center"></div>
                     <div id="adjustments-section" class="p-6 border-t border-gray-200">
                         <div class="flex justify-between items-center mb-4"><h3 class="text-md font-semibold text-gray-800">项目收支调整</h3><button id="add-adjustment-btn" class="px-3 py-1 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300"><svg class="w-4 h-4 mr-1 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg> 添加调整项</button></div>
                         <div class="overflow-x-auto border rounded-lg">
@@ -314,3 +314,4 @@
     <script src="order_list.js" defer></script>
 </body>
 </html>
+
