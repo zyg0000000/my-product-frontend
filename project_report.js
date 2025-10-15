@@ -1,8 +1,9 @@
 /**
  * @file project_report.js
- * @description [V3.2-功能增强] 增加数据录入提醒功能。
- * - [功能增强] 页面会显示一个醒目的提示，列出当天缺少播放数据的已发布视频。
- * - [修复] 删除了在 loadProjectDetails 函数中对已不存在的 'project-qianchuan-id' 元素的DOM操作。
+ * @description [V3.5-优化版] 增强数据录入页面的信息维度。
+ * - [核心优化] `renderVideoEntryList` 函数现在会渲染从后端获取的 `taskId` 和 `videoId` 字段。
+ * - [UI 增强] “录入数据”列表新增了“任务 ID”、“发布时间”、“视频链接”三列，提供了更丰富的上下文。
+ * - [健壮性] 为视频链接增加了非空判断，只有在 videoId 存在时才生成可点击的链接。
  */
 document.addEventListener('DOMContentLoaded', function () {
     
@@ -113,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
     async function loadReportData() {
         overviewKPIs.innerHTML = '<div class="text-center py-8 text-gray-500 col-span-5">加载中...</div>';
         detailsContainer.innerHTML = `<div class="text-center py-16 text-gray-500">正在加载报告详情...</div>`;
-        missingDataAlertContainer.innerHTML = ''; // 清空提醒
+        missingDataAlertContainer.innerHTML = '';
         try {
             const apiUrl = `${REPORT_API}?projectId=${currentProjectId}&date=${reportDatePicker.value}`;
             const response = await apiRequest(apiUrl);
@@ -125,14 +126,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function loadVideosForEntry() {
-        videoEntryList.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-gray-500">正在加载视频列表...</td></tr>`;
+        videoEntryList.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-500">正在加载视频列表...</td></tr>`;
         try {
             const response = await apiRequest(`${VIDEOS_FOR_ENTRY_API}?projectId=${currentProjectId}&date=${entryDatePicker.value}`);
             allVideosForEntry = response.data || [];
             entryCurrentPage = 1;
             renderEntryPage();
         } catch (error) {
-            videoEntryList.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-red-500">加载失败: ${error.message}</td></tr>`;
+            videoEntryList.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-red-500">加载失败: ${error.message}</td></tr>`;
         }
     }
     
@@ -211,7 +212,6 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `).join('');
 
-        // [新增] 渲染数据录入提醒
         if (data.missingDataVideos && data.missingDataVideos.length > 0) {
             const missingVideosList = data.missingDataVideos.map(v => `<span class="font-semibold">${v.talentName}</span>`).join('、');
             missingDataAlertContainer.innerHTML = `
@@ -298,20 +298,30 @@ document.addEventListener('DOMContentLoaded', function () {
     
     function renderVideoEntryList() {
         if (!allVideosForEntry || allVideosForEntry.length === 0) {
-            videoEntryList.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-gray-500">此项目暂无可录入数据的视频。</td></tr>`;
+            videoEntryList.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-500">此项目暂无可录入数据的视频。</td></tr>`;
             return;
         }
         const startIndex = (entryCurrentPage - 1) * entryItemsPerPage;
         const paginatedVideos = allVideosForEntry.slice(startIndex, startIndex + entryItemsPerPage);
-        videoEntryList.innerHTML = paginatedVideos.map(video => `
-            <tr class="hover:bg-indigo-50 transition-colors">
-                <td class="px-6 py-4 font-medium text-gray-900">${video.talentName}</td>
-                <td class="px-6 py-4 text-gray-500">${formatDate(video.publishDate)}</td>
-                <td class="px-6 py-4">
-                    <input type="number" class="view-input w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="请输入总曝光/播放量" value="${video.totalViews || ''}" data-collaboration-id="${video.collaborationId}">
-                </td>
-            </tr>
-        `).join('');
+        
+        videoEntryList.innerHTML = paginatedVideos.map(video => {
+            const videoLink = video.videoId
+                ? `<a href="https://www.douyin.com/video/${video.videoId}" target="_blank" class="text-blue-600 hover:underline">点击查看</a>`
+                : 'N/A';
+            
+            return `
+                <tr class="hover:bg-indigo-50 transition-colors">
+                    <td class="px-6 py-4 font-medium text-gray-900">${video.talentName}</td>
+                    <td class="px-6 py-4 font-mono text-xs text-gray-600">${video.taskId || 'N/A'}</td>
+                    <td class="px-6 py-4 text-gray-500">${formatDate(video.publishDate)}</td>
+                    <td class="px-6 py-4 text-center">${videoLink}</td>
+                    <td class="px-6 py-4">
+                        <input type="number" class="view-input w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="请输入总曝光/播放量" value="${video.totalViews || ''}" data-collaboration-id="${video.collaborationId}">
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
         videoEntryList.querySelectorAll('input.view-input').forEach(input => {
             input.addEventListener('input', e => {
                 const videoToUpdate = allVideosForEntry.find(v => v.collaborationId === e.target.dataset.collaborationId);
@@ -319,6 +329,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
+
 
     function renderEntryPagination() {
         const paginationContainer = document.getElementById('video-entry-pagination-controls');

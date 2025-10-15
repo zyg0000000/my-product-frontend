@@ -87,7 +87,6 @@
                     <dl id="overview-kpis" class="grid grid-cols-2 md:grid-cols-5 gap-6"></dl>
                 </div>
                 
-                <!-- [新增] 数据录入提醒容器 -->
                 <div id="missing-data-alert-container"></div>
 
                 <div id="details-container"></div>
@@ -106,8 +105,11 @@
                     <table class="w-full text-sm">
                         <thead class="bg-gray-100 text-left">
                             <tr>
+                                <!-- [优化] 增加新列 -->
                                 <th class="px-6 py-3 font-semibold text-gray-600">达人名称</th>
-                                <th class="px-6 py-3 font-semibold text-gray-600">发布日期</th>
+                                <th class="px-6 py-3 font-semibold text-gray-600">任务 ID</th>
+                                <th class="px-6 py-3 font-semibold text-gray-600">发布时间</th>
+                                <th class="px-6 py-3 font-semibold text-gray-600 text-center">视频链接</th>
                                 <th class="px-6 py-3 font-semibold text-gray-600">当日总曝光</th>
                             </tr>
                         </thead>
@@ -115,7 +117,6 @@
                         </tbody>
                     </table>
                 </div>
-                <!-- [修复] 增加固定的分页控件容器 -->
                 <div id="video-entry-pagination-controls" class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4"></div>
                 
                 <div class="mt-8 flex justify-end items-center gap-4">
