@@ -1,12 +1,12 @@
 /**
  * @file automation_suite.js
- * @version 8.0 - Pagination & Dynamic Inputs
+ * @version 8.1 - Enhanced Task Info
  * @description Frontend logic for the Automation Suite.
- * --- UPDATE (v8.0) ---
- * - [PERFORMANCE] Implemented server-side pagination for task history. `loadTasks` now fetches paged data.
- * - [FEATURE] Added project filtering for the task history list.
- * - [INTERACTIVITY] The "Target ID" input is now dynamic, changing its label and placeholder based on the selected workflow's `requiredInput` metadata.
- * - [API] The "Execute Task" action now correctly sends either `xingtuId` or `taskId` based on the workflow's requirements.
+ * --- UPDATE (v8.1) ---
+ * - [UI/UX] Enriched the task history display. Each task now shows its ID type (e.g., "达人ID") and project affiliation ("独立任务" if none).
+ * - [LOGIC] Added helper functions to determine ID type from workflow name and look up project names.
+ * - [DATA] The `loadProjectsForFilter` function now also populates a `projectMap` for quick lookups.
+ * - This change is based on the user-provided v8.0 file and implements the minimal-change request.
  */
 document.addEventListener('DOMContentLoaded', function () {
     // --- Global Variables & Configuration ---
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const WORKFLOWS_API = `${API_BASE_URL}/automation-workflows`;
     const TASKS_API = `${API_BASE_URL}/automation-tasks`;
     const PROJECTS_API = `${API_BASE_URL}/projects?view=simple`; // For filter
-    const TASKS_PER_PAGE = 10;
+    const TASKS_PER_PAGE = 5;
 
     let activePollingIntervals = {};
     let selectedWorkflowId = null;
@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let tasksCache = {};
     let sortableCanvas = null;
     let sortableLibrary = null;
+    let projectMap = new Map(); // [新增] 用于存储项目ID和名称的映射
 
     // --- Pagination State ---
     let currentPage = 1;
@@ -47,7 +48,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const workflowCanvas = document.getElementById('workflow-canvas');
     const stepBlockTemplate = document.getElementById('step-block-template');
     
-    // Screenshot & Data Modals (selectors remain the same)
     const screenshotModal = document.getElementById('screenshot-modal');
     const screenshotModalTitle = document.getElementById('screenshot-modal-title');
     const closeScreenshotModalBtn = document.getElementById('close-screenshot-modal');
@@ -61,13 +61,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const dataModalTableBody = document.getElementById('data-modal-table-body');
     const copyDataBtn = document.getElementById('copy-data-btn');
 
-    // [新增] Pagination & Filtering Elements
     const projectFilterSelect = document.getElementById('project-filter');
     const paginationContainer = document.getElementById('pagination-container');
 
 
-    // --- API & Helper Functions (Unchanged) ---
-     async function apiCall(url, method = 'GET', body = null) {
+    async function apiCall(url, method = 'GET', body = null) {
         const options = {
             method,
             headers: { 'Content-Type': 'application/json' },
@@ -88,6 +86,18 @@ document.addEventListener('DOMContentLoaded', function () {
             alert(`操作失败: ${error.message}`);
             throw error;
         }
+    }
+
+    // [新增] 根据工作流名称判断ID类型
+    function getIdType(workflowName) {
+        if (!workflowName) return { label: '目标ID', color: 'gray' };
+        if (workflowName.toLowerCase().includes('达人') || workflowName.includes('主页')) {
+            return { label: '达人ID', color: 'blue' };
+        }
+        if (workflowName.toLowerCase().includes('任务')) {
+            return { label: '任务ID', color: 'indigo' };
+        }
+        return { label: '星图ID', color: 'gray' };
     }
 
     const ACTION_DEFINITIONS = {
@@ -176,28 +186,20 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
     
-    // All other helper functions (populateActionLibrary, createStepBlockElement, etc.) remain unchanged
-    // ...
     function populateActionLibrary() {
         actionLibrary.innerHTML = '';
         for (const actionType in ACTION_DEFINITIONS) {
             const def = ACTION_DEFINITIONS[actionType];
             const div = document.createElement('div');
             div.className = 'action-library-item';
-            div.innerHTML = `<button type="button" data-action="${actionType}" class="add-step-btn w-full text-left p-2 rounded-md bg-white hover:bg-${def.color}-50 text-gray-700 border border-gray-200 hover:border-${def.color}-300 text-sm flex items-center gap-3 transition-all">
-                <span class="text-${def.color}-500">${def.icon}</span> 
-                <span>${def.title}</span>
-            </button>`;
+            div.innerHTML = `<button type="button" data-action="${actionType}" class="add-step-btn w-full text-left p-2 rounded-md bg-white hover:bg-${def.color}-50 text-gray-700 border border-gray-200 hover:border-${def.color}-300 text-sm flex items-center gap-3 transition-all"><span class="text-${def.color}-500">${def.icon}</span> <span>${def.title}</span></button>`;
             actionLibrary.appendChild(div);
         }
     }
     
     function checkCanvasEmptyState() {
         if (workflowCanvas.children.length === 0) {
-            workflowCanvas.innerHTML = `<div id="canvas-placeholder" class="text-center text-gray-400 p-10 border-2 border-dashed rounded-lg">
-                <p>画布为空</p>
-                <p class="text-xs mt-1">请从左侧拖拽或点击动作库中的步骤来添加</p>
-            </div>`;
+            workflowCanvas.innerHTML = `<div id="canvas-placeholder" class="text-center text-gray-400 p-10 border-2 border-dashed rounded-lg"><p>画布为空</p><p class="text-xs mt-1">请从左侧拖拽或点击动作库中的步骤来添加</p></div>`;
         } else {
             const placeholder = document.getElementById('canvas-placeholder');
             if (placeholder) placeholder.remove();
@@ -364,25 +366,24 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // --- Page Initialization ---
     async function initializePage() {
         populateActionLibrary();
         setupEventListeners();
         
-        await Promise.all([
-            loadWorkflows(),
-            loadProjectsForFilter()
-        ]);
+        await loadProjectsForFilter();
+        await loadWorkflows();
 
         await loadTasks(currentPage);
         updateExecuteButtonState();
     }
     
-    // --- [新增] Functions for Pagination & Filtering ---
     async function loadProjectsForFilter() {
         try {
             const response = await apiCall(PROJECTS_API);
             const projects = response.data || [];
+            projectMap.clear();
+            projects.forEach(p => projectMap.set(p.id, p.name));
+
             projectFilterSelect.innerHTML = '<option value="">所有项目</option>';
             projects.forEach(p => {
                 projectFilterSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
@@ -408,9 +409,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const response = await apiCall(url);
             const tasks = response.data || [];
             
-            if (page === 1) {
-                tasksCache = {};
-            }
+            tasksCache = {};
             tasks.forEach(task => tasksCache[task._id] = task);
 
             renderTasks(tasks);
@@ -448,7 +447,6 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
     }
 
-    // --- Dynamic Input Logic ---
     function handleWorkflowSelection(workflowId) {
         document.querySelectorAll('.workflow-item').forEach(el => el.classList.remove('bg-indigo-100'));
         const selectedItem = workflowsListContainer.querySelector(`.workflow-item[data-id="${workflowId}"]`);
@@ -457,7 +455,7 @@ document.addEventListener('DOMContentLoaded', function () {
             selectedWorkflowId = workflowId;
             
             const workflow = workflowsCache.find(w => w._id === workflowId);
-            const requiredInput = workflow?.requiredInput || { key: 'xingtuId', label: '达人星图ID' }; // Fallback
+            const requiredInput = workflow?.requiredInput || { key: 'xingtuId', label: '达人星图ID' };
             
             targetIdLabel.textContent = requiredInput.label;
             targetIdInput.placeholder = `请输入${requiredInput.label}`;
@@ -471,7 +469,6 @@ document.addEventListener('DOMContentLoaded', function () {
         updateExecuteButtonState();
     }
     
-    // --- All other functions (renderWorkflows, open/close modals, task rendering, etc.) remain the same ---
     function renderWorkflows() {
         workflowsListContainer.innerHTML = '';
         if (workflowsCache.length === 0) {
@@ -504,7 +501,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (selectedWorkflowId) {
             const selectedItem = workflowsListContainer.querySelector(`.workflow-item[data-id="${selectedWorkflowId}"]`);
             if (selectedItem) selectedItem.classList.add('bg-indigo-100');
-            else selectedWorkflowId = null;
+            else handleWorkflowSelection(null); 
+        } else {
+            handleWorkflowSelection(null);
         }
         updateExecuteButtonState();
     }
@@ -548,7 +547,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const steps = serializeCanvasToSteps();
         if (steps.length === 0) return alert('工作流至少需要一个步骤。');
         
-        // This part remains the same as it correctly gathers form data
         const workflowData = {
             name: workflowNameInput.value,
             type: workflowTypeSelect.value,
@@ -621,6 +619,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const deleteButton = `<button data-id="${task._id}" class="delete-task-btn text-gray-400 hover:text-red-600 p-1 rounded-full transition-colors"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg></button>`;
         
+        const idInfo = getIdType(task.workflowName);
+        const projectName = projectMap.get(task.projectId) || '独立任务';
+        const projectColor = task.projectId ? 'purple' : 'gray';
+
+        const idTag = `<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-${idInfo.color}-100 text-${idInfo.color}-800">${idInfo.label}</span>`;
+        const projectTag = `<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-${projectColor}-100 text-${projectColor}-800">${projectName}</span>`;
+        
         const targetId = task.targetId || task.xingtuId || 'N/A';
         return `
             <div class="flex justify-between items-center">
@@ -628,9 +633,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     <p class="text-sm font-semibold text-gray-800 truncate" title="目标ID: ${targetId}\n任务ID: ${task._id}">
                         <span class="font-mono bg-gray-100 px-1 rounded">${targetId}</span>
                     </p>
-                    <p class="text-xs text-gray-500 mt-1">
-                        <span class="font-medium">${task.workflowName || '...'}</span> @ ${new Date(task.createdAt).toLocaleTimeString()}
-                    </p>
+                    <div class="flex items-center gap-2 mt-1">
+                        ${idTag}
+                        ${projectTag}
+                        <p class="text-xs text-gray-500">
+                           @ ${new Date(task.createdAt).toLocaleTimeString()}
+                        </p>
+                    </div>
                 </div>
                 <div class="flex items-center gap-3 flex-shrink-0">
                     <span class="task-status text-xs font-semibold px-2 py-1 rounded-full ${statusInfo.bg} ${statusInfo.textClr}" data-status="${task.status}">${statusInfo.text}</span>
@@ -652,7 +661,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     tasksCache[taskId] = updatedTask;
                     renderTask(updatedTask);
                 } else stopPolling(taskId);
-            } catch (error) { stopPolling(taskId); }
+            } catch (error) {
+                stopPolling(taskId);
+            }
         }, 5000);
     }
 
@@ -666,7 +677,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateExecuteButtonState() {
         executeTaskBtn.disabled = !(selectedWorkflowId && targetIdInput.value.trim() !== '');
     }
-    // ... all modal functions (open/close/update) are unchanged
+
     function openScreenshotModal(taskId) {
         const task = tasksCache[taskId];
         if (!task || !task.result?.screenshots?.length) return;
@@ -767,7 +778,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- Event Listeners ---
     function setupEventListeners() {
         targetIdInput.addEventListener('input', updateExecuteButtonState);
         
@@ -847,7 +857,6 @@ document.addEventListener('DOMContentLoaded', function () {
         closeDataModalBtn.addEventListener('click', closeDataModal);
         copyDataBtn.addEventListener('click', handleCopyData);
         
-        // [新增] Pagination & Filter Listeners
         projectFilterSelect.addEventListener('change', () => {
             currentPage = 1;
             loadTasks(currentPage);
@@ -867,4 +876,3 @@ document.addEventListener('DOMContentLoaded', function () {
     
     initializePage();
 });
-
