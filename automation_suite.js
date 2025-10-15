@@ -1,18 +1,20 @@
 /**
  * @file automation_suite.js
- * @version 7.1 - Sidebar Unification
+ * @version 8.0 - Pagination & Dynamic Inputs
  * @description Frontend logic for the Automation Suite.
- * --- UPDATE (v7.1) ---
- * - [核心修改] 移除了所有与旧的、硬编码侧边栏相关的 JavaScript 逻辑。
- * - [代码清理] 删除了不再需要的 `sidebar` 和 `sidebarToggleBtn` DOM 元素获取。
- * - [依赖关系] 此版本现在完全依赖外部的 `sidebar.js` 来处理所有侧边栏交互。
+ * --- UPDATE (v8.0) ---
+ * - [PERFORMANCE] Implemented server-side pagination for task history. `loadTasks` now fetches paged data.
+ * - [FEATURE] Added project filtering for the task history list.
+ * - [INTERACTIVITY] The "Target ID" input is now dynamic, changing its label and placeholder based on the selected workflow's `requiredInput` metadata.
+ * - [API] The "Execute Task" action now correctly sends either `xingtuId` or `taskId` based on the workflow's requirements.
  */
 document.addEventListener('DOMContentLoaded', function () {
-    // --- Global Variables & Configuration (不变) ---
+    // --- Global Variables & Configuration ---
     const API_BASE_URL = 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com';
     const WORKFLOWS_API = `${API_BASE_URL}/automation-workflows`;
     const TASKS_API = `${API_BASE_URL}/automation-tasks`;
-    const TASKS_PER_PAGE = 20;
+    const PROJECTS_API = `${API_BASE_URL}/projects?view=simple`; // For filter
+    const TASKS_PER_PAGE = 10;
 
     let activePollingIntervals = {};
     let selectedWorkflowId = null;
@@ -21,15 +23,15 @@ document.addEventListener('DOMContentLoaded', function () {
     let sortableCanvas = null;
     let sortableLibrary = null;
 
-    // --- Pagination State (不变) ---
+    // --- Pagination State ---
     let currentPage = 1;
     let hasNextPage = true;
     let isLoadingTasks = false;
 
     // --- DOM Element Acquisition ---
-    // [核心修改] 移除了 sidebar 和 sidebarToggleBtn 的获取
     const workflowsListContainer = document.getElementById('workflows-list');
-    const xingtuIdInput = document.getElementById('xingtu-id-input');
+    const targetIdInput = document.getElementById('target-id-input');
+    const targetIdLabel = document.getElementById('target-id-label');
     const executeTaskBtn = document.getElementById('execute-task-btn');
     const tasksListContainer = document.getElementById('tasks-list');
     const newWorkflowBtn = document.getElementById('new-workflow-btn');
@@ -45,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const workflowCanvas = document.getElementById('workflow-canvas');
     const stepBlockTemplate = document.getElementById('step-block-template');
     
-    // Screenshot Modal Elements (不变)
+    // Screenshot & Data Modals (selectors remain the same)
     const screenshotModal = document.getElementById('screenshot-modal');
     const screenshotModalTitle = document.getElementById('screenshot-modal-title');
     const closeScreenshotModalBtn = document.getElementById('close-screenshot-modal');
@@ -53,20 +55,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalThumbnails = document.getElementById('modal-thumbnails');
     const modalPrevBtn = document.getElementById('modal-prev-btn');
     const modalNextBtn = document.getElementById('modal-next-btn');
-
-    // Data Modal Elements (不变)
     const dataModal = document.getElementById('data-modal');
     const dataModalTitle = document.getElementById('data-modal-title');
     const closeDataModalBtn = document.getElementById('close-data-modal');
     const dataModalTableBody = document.getElementById('data-modal-table-body');
     const copyDataBtn = document.getElementById('copy-data-btn');
 
-    // Load More Button (不变)
-    const loadMoreBtn = document.getElementById('load-more-btn');
-    const loadMoreContainer = document.getElementById('load-more-container');
+    // [新增] Pagination & Filtering Elements
+    const projectFilterSelect = document.getElementById('project-filter');
+    const paginationContainer = document.getElementById('pagination-container');
 
-    // --- 所有函数 (apiCall, ACTION_DEFINITIONS, 工作流和任务管理等) 均保持不变 ---
-    // ... 此处省略所有未作修改的函数代码 ...
+
+    // --- API & Helper Functions (Unchanged) ---
      async function apiCall(url, method = 'GET', body = null) {
         const options = {
             method,
@@ -91,6 +91,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const ACTION_DEFINITIONS = {
+        'Go to URL': {
+            title: '导航到页面',
+            color: 'cyan',
+            icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.536a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>`,
+            fields: [
+                { name: 'description', label: '步骤描述', type: 'text', placeholder: '例如：打开达人主页' },
+                { name: 'url', label: '页面URL *', type: 'text', placeholder: 'https://example.com/{{placeholder}}', required: true },
+            ]
+        },
         waitForSelector: {
             title: '等待元素出现',
             color: 'sky',
@@ -161,12 +170,14 @@ document.addEventListener('DOMContentLoaded', function () {
             fields: [
                 { name: 'description', label: '步骤描述', type: 'text', placeholder: '例如：拼接用户画像总结' },
                 { name: 'dataName', label: '最终数据名称 *', type: 'text', placeholder: '用户画像总结', required: true },
-                { name: 'template', label: '组合模板 *', type: 'textarea', placeholder: '触达用户 ${age_gender}\n集中 ${city_tier}', required: true }
+                { name: 'template', label: '组合模板 *', type: 'textarea', placeholder: '触达用户 ${age_gender}\\n集中 ${city_tier}', required: true }
             ],
             isComplex: true
         }
     };
     
+    // All other helper functions (populateActionLibrary, createStepBlockElement, etc.) remain unchanged
+    // ...
     function populateActionLibrary() {
         actionLibrary.innerHTML = '';
         for (const actionType in ACTION_DEFINITIONS) {
@@ -353,6 +364,114 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // --- Page Initialization ---
+    async function initializePage() {
+        populateActionLibrary();
+        setupEventListeners();
+        
+        await Promise.all([
+            loadWorkflows(),
+            loadProjectsForFilter()
+        ]);
+
+        await loadTasks(currentPage);
+        updateExecuteButtonState();
+    }
+    
+    // --- [新增] Functions for Pagination & Filtering ---
+    async function loadProjectsForFilter() {
+        try {
+            const response = await apiCall(PROJECTS_API);
+            const projects = response.data || [];
+            projectFilterSelect.innerHTML = '<option value="">所有项目</option>';
+            projects.forEach(p => {
+                projectFilterSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+            });
+        } catch(e) {
+            projectFilterSelect.innerHTML = '<option value="">加载项目失败</option>';
+        }
+    }
+
+    async function loadTasks(page = 1) {
+        if (isLoadingTasks) return;
+        isLoadingTasks = true;
+        
+        const projectId = projectFilterSelect.value;
+        let url = `${TASKS_API}?page=${page}&limit=${TASKS_PER_PAGE}`;
+        if (projectId) {
+            url += `&projectId=${projectId}`;
+        }
+        
+        tasksListContainer.innerHTML = '<p class="text-center py-10 text-gray-500">正在加载任务...</p>';
+
+        try {
+            const response = await apiCall(url);
+            const tasks = response.data || [];
+            
+            if (page === 1) {
+                tasksCache = {};
+            }
+            tasks.forEach(task => tasksCache[task._id] = task);
+
+            renderTasks(tasks);
+            renderPagination(response.pagination || {});
+        } catch (error) {
+            tasksListContainer.innerHTML = '<p class="text-red-500 text-center py-10">加载任务历史失败。</p>';
+        } finally {
+            isLoadingTasks = false;
+        }
+    }
+
+    function renderTasks(tasks) {
+        tasksListContainer.innerHTML = '';
+        if (tasks.length === 0) {
+            tasksListContainer.innerHTML = '<p class="text-center py-10 text-gray-500">没有找到相关任务。</p>';
+            return;
+        }
+        tasks.forEach(task => renderTask(task));
+    }
+
+    function renderPagination(pagination) {
+        paginationContainer.innerHTML = '';
+        const { total = 0, page = 1, limit = TASKS_PER_PAGE } = pagination;
+        const totalPages = Math.ceil(total / limit);
+
+        if (totalPages <= 1) return;
+
+        const prevDisabled = page === 1;
+        const nextDisabled = page === totalPages;
+
+        paginationContainer.innerHTML = `
+            <button data-page="${page - 1}" class="pagination-btn" ${prevDisabled ? 'disabled' : ''}>上一页</button>
+            <span class="px-4 text-sm text-gray-700">第 ${page} / ${totalPages} 页</span>
+            <button data-page="${page + 1}" class="pagination-btn" ${nextDisabled ? 'disabled' : ''}>下一页</button>
+        `;
+    }
+
+    // --- Dynamic Input Logic ---
+    function handleWorkflowSelection(workflowId) {
+        document.querySelectorAll('.workflow-item').forEach(el => el.classList.remove('bg-indigo-100'));
+        const selectedItem = workflowsListContainer.querySelector(`.workflow-item[data-id="${workflowId}"]`);
+        if (selectedItem) {
+            selectedItem.classList.add('bg-indigo-100');
+            selectedWorkflowId = workflowId;
+            
+            const workflow = workflowsCache.find(w => w._id === workflowId);
+            const requiredInput = workflow?.requiredInput || { key: 'xingtuId', label: '达人星图ID' }; // Fallback
+            
+            targetIdLabel.textContent = requiredInput.label;
+            targetIdInput.placeholder = `请输入${requiredInput.label}`;
+            targetIdInput.disabled = false;
+        } else {
+            selectedWorkflowId = null;
+            targetIdLabel.textContent = '目标 ID';
+            targetIdInput.placeholder = '请先选择一个工作流';
+            targetIdInput.disabled = true;
+        }
+        updateExecuteButtonState();
+    }
+    
+    // --- All other functions (renderWorkflows, open/close modals, task rendering, etc.) remain the same ---
     function renderWorkflows() {
         workflowsListContainer.innerHTML = '';
         if (workflowsCache.length === 0) {
@@ -428,6 +547,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const id = workflowIdInput.value;
         const steps = serializeCanvasToSteps();
         if (steps.length === 0) return alert('工作流至少需要一个步骤。');
+        
+        // This part remains the same as it correctly gathers form data
         const workflowData = {
             name: workflowNameInput.value,
             type: workflowTypeSelect.value,
@@ -451,7 +572,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (confirm(`确定要删除工作流 "${workflow.name}" 吗？此操作不可撤销。`)) {
             try {
                 await apiCall(`${WORKFLOWS_API}?id=${workflowId}`, 'DELETE');
-                if (selectedWorkflowId === workflowId) selectedWorkflowId = null;
+                if (selectedWorkflowId === workflowId) handleWorkflowSelection(null);
                 loadWorkflows();
             } catch (error) {}
         }
@@ -459,29 +580,18 @@ document.addEventListener('DOMContentLoaded', function () {
     
     function renderTask(task, prepend = false) {
         const existingTaskElement = document.getElementById(`task-${task._id}`);
+        const taskHtml = buildTaskInnerHTML(task);
         if (existingTaskElement) {
-            const statusElement = existingTaskElement.querySelector('.task-status');
-            const resultElement = existingTaskElement.querySelector('.task-result-container');
-            if (statusElement && resultElement) {
-                 const currentStatus = statusElement.dataset.status;
-                 if (currentStatus !== task.status) {
-                     existingTaskElement.innerHTML = buildTaskInnerHTML(task);
-                     if (task.status === 'pending' || task.status === 'processing') startPolling(task._id);
-                     else stopPolling(task._id);
-                 }
-                 return;
-            }
-        }
-
-        const taskElement = document.createElement('div');
-        taskElement.id = `task-${task._id}`;
-        taskElement.className = 'task-item p-3 bg-white rounded-lg border border-gray-200 shadow-sm';
-        taskElement.innerHTML = buildTaskInnerHTML(task);
-        
-        if (prepend) {
-            tasksListContainer.prepend(taskElement);
+             if (existingTaskElement.innerHTML !== taskHtml) {
+                existingTaskElement.innerHTML = taskHtml;
+             }
         } else {
-            tasksListContainer.appendChild(taskElement);
+            const taskElement = document.createElement('div');
+            taskElement.id = `task-${task._id}`;
+            taskElement.className = 'task-item p-3 bg-white rounded-lg border border-gray-200 shadow-sm';
+            taskElement.innerHTML = taskHtml;
+            if (prepend) tasksListContainer.prepend(taskElement);
+            else tasksListContainer.appendChild(taskElement);
         }
 
         if (task.status === 'pending' || task.status === 'processing') startPolling(task._id);
@@ -502,27 +612,21 @@ document.addEventListener('DOMContentLoaded', function () {
         const data = task.result?.data;
 
         if (task.status === 'completed') {
-            if (screenshots?.length > 0) {
-                resultButtons.push(`<button data-task-id="${task._id}" class="view-screenshots-btn text-indigo-600 hover:underline text-sm font-medium">查看截图 (${screenshots.length})</button>`);
-            }
-            if (data && Object.keys(data).length > 0) {
-                resultButtons.push(`<button data-task-id="${task._id}" class="view-data-btn text-sky-600 hover:underline text-sm font-medium">查看数据</button>`);
-            }
+            if (screenshots?.length > 0) resultButtons.push(`<button data-task-id="${task._id}" class="view-screenshots-btn text-indigo-600 hover:underline text-sm font-medium">查看截图 (${screenshots.length})</button>`);
+            if (data && Object.keys(data).length > 0) resultButtons.push(`<button data-task-id="${task._id}" class="view-data-btn text-sky-600 hover:underline text-sm font-medium">查看数据</button>`);
         }
         
         let resultHtml = resultButtons.join('<span class="mx-1 text-gray-300">|</span>');
-
-        if (task.status === 'failed') {
-             resultHtml = `<span class="text-red-500 text-sm cursor-pointer" title="${task.errorMessage || '无详细错误信息'}">查看错误</span>`;
-        }
+        if (task.status === 'failed') resultHtml = `<span class="text-red-500 text-sm cursor-pointer" title="${task.errorMessage || '无详细错误信息'}">查看错误</span>`;
 
         const deleteButton = `<button data-id="${task._id}" class="delete-task-btn text-gray-400 hover:text-red-600 p-1 rounded-full transition-colors"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg></button>`;
         
+        const targetId = task.targetId || task.xingtuId || 'N/A';
         return `
             <div class="flex justify-between items-center">
                 <div class="flex-grow min-w-0">
-                    <p class="text-sm font-semibold text-gray-800 truncate" title="星图ID: ${task.xingtuId}\n任务ID: ${task._id}">
-                        <span class="font-mono bg-gray-100 px-1 rounded">${task.xingtuId}</span>
+                    <p class="text-sm font-semibold text-gray-800 truncate" title="目标ID: ${targetId}\n任务ID: ${task._id}">
+                        <span class="font-mono bg-gray-100 px-1 rounded">${targetId}</span>
                     </p>
                     <p class="text-xs text-gray-500 mt-1">
                         <span class="font-medium">${task.workflowName || '...'}</span> @ ${new Date(task.createdAt).toLocaleTimeString()}
@@ -536,36 +640,6 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>`;
     }
     
-    async function loadTasks(page = 1) {
-        if (isLoadingTasks) return;
-        isLoadingTasks = true;
-        loadMoreBtn.textContent = '加载中...';
-
-        try {
-            const response = await apiCall(`${TASKS_API}?page=${page}&limit=${TASKS_PER_PAGE}`);
-            
-            if (page === 1) {
-                tasksListContainer.innerHTML = '';
-                tasksCache = {};
-            }
-
-            const tasks = response.data || [];
-            tasks.forEach(task => {
-                tasksCache[task._id] = task;
-                renderTask(task, false);
-            });
-
-            hasNextPage = response.pagination?.hasNextPage || false;
-            loadMoreContainer.classList.toggle('hidden', !hasNextPage);
-
-        } catch (error) {
-            tasksListContainer.innerHTML = '<p class="text-red-500">加载任务历史失败。</p>';
-        } finally {
-            isLoadingTasks = false;
-            loadMoreBtn.textContent = '加载更多';
-        }
-    }
-
     function startPolling(taskId) {
         if (activePollingIntervals[taskId]) return;
         activePollingIntervals[taskId] = setInterval(async () => {
@@ -574,17 +648,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 const updatedTask = singleTaskResponse.data;
                 if(updatedTask) {
                     const taskFromCache = tasksCache[taskId];
-                    if (!updatedTask.workflowName && taskFromCache && taskFromCache.workflowName) {
-                        updatedTask.workflowName = taskFromCache.workflowName;
-                    }
+                    if (!updatedTask.workflowName && taskFromCache && taskFromCache.workflowName) updatedTask.workflowName = taskFromCache.workflowName;
                     tasksCache[taskId] = updatedTask;
-                    renderTask(updatedTask, true);
-                } else {
-                     stopPolling(taskId);
-                }
-            } catch (error) {
-                stopPolling(taskId);
-            }
+                    renderTask(updatedTask);
+                } else stopPolling(taskId);
+            } catch (error) { stopPolling(taskId); }
         }, 5000);
     }
 
@@ -596,9 +664,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateExecuteButtonState() {
-        executeTaskBtn.disabled = !(selectedWorkflowId && xingtuIdInput.value.trim() !== '');
+        executeTaskBtn.disabled = !(selectedWorkflowId && targetIdInput.value.trim() !== '');
     }
-
+    // ... all modal functions (open/close/update) are unchanged
     function openScreenshotModal(taskId) {
         const task = tasksCache[taskId];
         if (!task || !task.result?.screenshots?.length) return;
@@ -660,7 +728,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const data = task?.result?.data;
         if (!data || Object.keys(data).length === 0) return;
 
-        dataModalTitle.textContent = `数据抓取结果 (星图ID: ${task.xingtuId})`;
+        dataModalTitle.textContent = `数据抓取结果 (目标ID: ${task.targetId || task.xingtuId})`;
         dataModalTableBody.innerHTML = '';
 
         for (const key in data) {
@@ -699,26 +767,18 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- Page Initialization ---
-    function initializePage() {
-        populateActionLibrary();
-        xingtuIdInput.addEventListener('input', updateExecuteButtonState);
+    // --- Event Listeners ---
+    function setupEventListeners() {
+        targetIdInput.addEventListener('input', updateExecuteButtonState);
         
         workflowsListContainer.addEventListener('click', (event) => {
             const target = event.target;
             const workflowItem = target.closest('.workflow-item');
             if (!workflowItem) return;
             const workflowId = workflowItem.dataset.id;
-            if (target.closest('.edit-workflow-btn')) {
-                openWorkflowModalForEdit(workflowId);
-            } else if (target.closest('.delete-workflow-btn')) {
-                handleDeleteWorkflow(workflowId);
-            } else {
-                document.querySelectorAll('.workflow-item').forEach(el => el.classList.remove('bg-indigo-100'));
-                workflowItem.classList.add('bg-indigo-100');
-                selectedWorkflowId = workflowId;
-                updateExecuteButtonState();
-            }
+            if (target.closest('.edit-workflow-btn')) openWorkflowModalForEdit(workflowId);
+            else if (target.closest('.delete-workflow-btn')) handleDeleteWorkflow(workflowId);
+            else handleWorkflowSelection(workflowId);
         });
         
         tasksListContainer.addEventListener('click', async (event) => {
@@ -733,26 +793,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 return;
             }
-
             const viewScreenshotsBtn = event.target.closest('.view-screenshots-btn');
-            if (viewScreenshotsBtn) {
-                openScreenshotModal(viewScreenshotsBtn.dataset.taskId);
-                return;
-            }
-
+            if (viewScreenshotsBtn) { openScreenshotModal(viewScreenshotsBtn.dataset.taskId); return; }
             const viewDataBtn = event.target.closest('.view-data-btn');
-            if (viewDataBtn) {
-                openDataModal(viewDataBtn.dataset.taskId);
-            }
+            if (viewDataBtn) { openDataModal(viewDataBtn.dataset.taskId); }
         });
 
         executeTaskBtn.addEventListener('click', async () => {
-            const payload = { workflowId: selectedWorkflowId, xingtuId: xingtuIdInput.value.trim() };
+            const workflow = workflowsCache.find(w => w._id === selectedWorkflowId);
+            if (!workflow) return;
+            const requiredInputKey = workflow.requiredInput?.key || 'xingtuId';
+            const payload = { 
+                workflowId: selectedWorkflowId, 
+                projectId: projectFilterSelect.value || null,
+                [requiredInputKey]: targetIdInput.value.trim() 
+            };
             try {
                 await apiCall(TASKS_API, 'POST', payload);
                 currentPage = 1;
                 loadTasks(currentPage);
-                xingtuIdInput.value = '';
+                targetIdInput.value = '';
                 updateExecuteButtonState();
             } catch (error) {}
         });
@@ -760,7 +820,6 @@ document.addEventListener('DOMContentLoaded', function () {
         newWorkflowBtn.addEventListener('click', openWorkflowModalForCreate);
         cancelWorkflowBtn.addEventListener('click', () => workflowModal.classList.add('hidden'));
         workflowForm.addEventListener('submit', handleWorkflowFormSubmit);
-        
         actionLibrary.addEventListener('click', (event) => {
             const btn = event.target.closest('.add-step-btn');
             if (btn) {
@@ -769,17 +828,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 if(newBlock) workflowCanvas.appendChild(newBlock);
             }
         });
-
         workflowCanvas.addEventListener('click', (event) => {
             const delBtn = event.target.closest('.delete-step-btn');
-            if(delBtn) {
-                delBtn.closest('.step-block').remove();
-                checkCanvasEmptyState();
-            }
+            if(delBtn) { delBtn.closest('.step-block').remove(); checkCanvasEmptyState(); }
             const addSourceBtn = event.target.closest('.add-source-btn');
-            if(addSourceBtn) {
-                 addSourceBtn.previousElementSibling.appendChild(createCompositeSourceElement());
-            }
+            if(addSourceBtn) addSourceBtn.previousElementSibling.appendChild(createCompositeSourceElement());
             const removeSourceBtn = event.target.closest('.remove-source-btn');
             if(removeSourceBtn) removeSourceBtn.closest('.composite-source-item').remove();
         });
@@ -787,32 +840,31 @@ document.addEventListener('DOMContentLoaded', function () {
         closeScreenshotModalBtn.addEventListener('click', closeScreenshotModal);
         modalPrevBtn.addEventListener('click', () => changeModalImage(-1));
         modalNextBtn.addEventListener('click', () => changeModalImage(1));
-        modalThumbnails.addEventListener('click', (event) => {
-            const thumb = event.target.closest('.thumbnail-item');
-            if (thumb) {
-                screenshotModal.dataset.currentIndex = thumb.dataset.index;
-                updateModalView();
-            }
+        modalThumbnails.addEventListener('click', (e) => {
+            const thumb = e.target.closest('.thumbnail-item');
+            if (thumb) { screenshotModal.dataset.currentIndex = thumb.dataset.index; updateModalView(); }
         });
-        
         closeDataModalBtn.addEventListener('click', closeDataModal);
         copyDataBtn.addEventListener('click', handleCopyData);
-
-        loadMoreBtn.addEventListener('click', () => {
-            if (hasNextPage && !isLoadingTasks) {
-                currentPage++;
-                loadTasks(currentPage);
-            }
+        
+        // [新增] Pagination & Filter Listeners
+        projectFilterSelect.addEventListener('change', () => {
+            currentPage = 1;
+            loadTasks(currentPage);
         });
 
-        // --- [核心修改] ---
-        // 删除所有旧的、硬编码的侧边栏控制逻辑。
-        // 新的侧边栏将由 sidebar.js 完全接管。
-        
-        loadWorkflows();
-        loadTasks(currentPage);
-        updateExecuteButtonState();
+        paginationContainer.addEventListener('click', e => {
+            const button = e.target.closest('button[data-page]');
+            if (button && !button.disabled) {
+                const targetPage = parseInt(button.dataset.page, 10);
+                if (targetPage !== currentPage) {
+                    currentPage = targetPage;
+                    loadTasks(currentPage);
+                }
+            }
+        });
     }
-
+    
     initializePage();
 });
+

@@ -10,7 +10,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
         
-        /* [核心修复] 以下样式已与 index.html 完全同步，确保视觉和交互特效 100% 一致 */
+        /* 侧边栏样式 */
         .sidebar { transition: width 0.3s ease-in-out; }
         .main-content { transition: margin-left 0.3s ease-in-out; }
         .sidebar-collapsed { width: 5rem; }
@@ -24,7 +24,7 @@
         .nav-link:hover { background-color: #f3f4f6; }
         .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; }
 
-        /* --- 页面专属样式 --- */
+        /* 页面专属样式 */
         .step-block-handle { cursor: grab; }
         .step-block-handle:active { cursor: grabbing; }
         .sortable-ghost { background: #c7d2fe; border-radius: 0.5rem; }
@@ -33,14 +33,16 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a3a3a3; }
         .thumbnail-item.active { border-color: #4f46e5; }
+        .pagination-btn { padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; background-color: white; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; }
+        .pagination-btn:hover:not(:disabled) { background-color: #f3f4f6; }
+        .pagination-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
+        .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
-<!-- [核心修复] 移除了 body 标签的 'flex' 类，与 index.html 保持一致的布局模式 -->
 <body class="bg-gray-100">
 
     <div id="sidebar-container"></div>
 
-    <!-- [核心修复] 统一使用响应式 padding，并由 sidebar.js 控制 margin-left -->
     <main id="main-content" class="main-content flex-1 p-4 sm:p-6 lg:p-8">
         <header class="mb-8">
             <h1 class="text-3xl font-bold text-gray-800">自动化套件</h1>
@@ -57,9 +59,11 @@
                     </div>
                     <div id="workflows-list" class="bg-gray-50 rounded-md p-3 max-h-64 overflow-y-auto space-y-2 custom-scrollbar"></div>
                 </div>
-                <div>
+                <!-- [改造] 动态输入区域 -->
+                <div id="dynamic-input-container">
                     <h3 class="text-lg font-semibold text-gray-700">2. 输入目标 ID</h3>
-                    <input type="text" id="xingtu-id-input" placeholder="请输入星图达人 ID" class="mt-2 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    <label for="target-id-input" id="target-id-label" class="block text-sm font-medium text-gray-700 mt-2">达人星图ID</label>
+                    <input type="text" id="target-id-input" placeholder="请先选择一个工作流" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" disabled>
                 </div>
                 <div>
                     <h3 class="text-lg font-semibold text-gray-700">3. 执行任务</h3>
@@ -69,13 +73,19 @@
                 </div>
             </div>
             <div class="bg-white p-6 rounded-lg shadow-sm flex flex-col">
-                <h3 class="text-lg font-semibold text-gray-700 mb-4 flex-shrink-0">任务执行历史</h3>
-                <div id="tasks-list" class="space-y-3 flex-grow min-h-0 overflow-y-auto custom-scrollbar pr-2"></div>
-                <div id="load-more-container" class="mt-4 text-center flex-shrink-0 hidden">
-                    <button id="load-more-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md text-sm font-medium hover:bg-gray-300">
-                        加载更多
-                    </button>
+                <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                    <h3 class="text-lg font-semibold text-gray-700">任务执行历史</h3>
+                    <!-- [新增] 项目筛选 -->
+                    <div>
+                        <label for="project-filter" class="text-sm font-medium text-gray-600 mr-2">项目:</label>
+                        <select id="project-filter" class="rounded-md border-gray-300 shadow-sm text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="">所有项目</option>
+                        </select>
+                    </div>
                 </div>
+                <div id="tasks-list" class="space-y-3 flex-grow min-h-0 overflow-y-auto custom-scrollbar pr-2"></div>
+                <!-- [新增] 分页控件 -->
+                <div id="pagination-container" class="mt-4 flex justify-center items-center flex-shrink-0"></div>
             </div>
         </div>
     </main>
