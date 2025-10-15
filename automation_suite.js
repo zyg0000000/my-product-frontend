@@ -3,7 +3,7 @@
  * @version 8.1 - Enhanced Task Info
  * @description Frontend logic for the Automation Suite.
  * --- UPDATE (v8.1) ---
- * - [UI/UX] Enriched the task history display. Each task now shows its ID type (e.g., "达人ID") and project affiliation ("独立任务" if none).
+ * - [UI/UX] Enriched the task history display. Each task now shows its ID type (e.g., "达人星图ID") and project affiliation ("独立任务" if none).
  * - [LOGIC] Added helper functions to determine ID type from workflow name and look up project names.
  * - [DATA] The `loadProjectsForFilter` function now also populates a `projectMap` for quick lookups.
  * - This change is based on the user-provided v8.0 file and implements the minimal-change request.
@@ -92,12 +92,12 @@ document.addEventListener('DOMContentLoaded', function () {
     function getIdType(workflowName) {
         if (!workflowName) return { label: '目标ID', color: 'gray' };
         if (workflowName.toLowerCase().includes('达人') || workflowName.includes('主页')) {
-            return { label: '达人ID', color: 'blue' };
+            return { label: '达人星图ID', color: 'blue' };
         }
         if (workflowName.toLowerCase().includes('任务')) {
             return { label: '任务ID', color: 'indigo' };
         }
-        return { label: '星图ID', color: 'gray' };
+        return { label: '星图任务ID', color: 'gray' };
     }
 
     const ACTION_DEFINITIONS = {
