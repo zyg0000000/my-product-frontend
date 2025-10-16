@@ -1,9 +1,9 @@
 /**
  * @file project_report.js
- * @version 4.2 - Persistence Support
+ * @version 4.3 - UX Optimization
  * @description “项目执行报告”页面自动化功能升级版
- * --- 更新日志 (v4.2) ---
- * - [核心功能] 在 `handleAutoScrape` 中，为每个 target 增加了 `reportDate` 字段，以便 local-agent 在持久化数据时知道该将数据写入哪一天。
+ * --- 更新日志 (v4.3) ---
+ * - [UX优化] 为“一键自动抓取”按钮增加了加载状态。点击后按钮会变为不可用并显示“创建任务中...”，防止重复提交并提供即时反馈。
  * - [依赖] 此版本需要配合 local-agent v3.2 或更高版本使用，以完成数据的持久化。
  */
 document.addEventListener('DOMContentLoaded', function () {
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const AUTOMATION_JOBS_GET_API = `${API_BASE_URL}/automation-jobs-get`;
     const AUTOMATION_TASKS_API = `${API_BASE_URL}/automation-tasks`;
 
-    // ... (其他DOM元素和状态变量保持不变) ...
+    // --- DOM Elements ---
     const body = document.body;
     const breadcrumbProjectName = document.getElementById('breadcrumb-project-name');
     const projectMainTitle = document.getElementById('project-main-title');
@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const missingDataAlertContainer = document.getElementById('missing-data-alert-container');
     const autoScrapeBtn = document.getElementById('auto-scrape-btn');
 
+    // --- Global State ---
     let currentProjectId = null;
     let projectData = {};
     let currentMode = 'display';
@@ -46,8 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let entryTasksStatus = {};
     let entryTasksPoller = null;
 
-
-    // --- Helper Functions (保持不变) ---
+    // --- Helper Functions ---
     async function apiRequest(url, method = 'GET', body = null) {
         const options = { method, headers: { 'Content-Type': 'application/json' } };
         if (body) options.body = JSON.stringify(body);
@@ -77,54 +77,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return `${year}-${month}-${day}`;
     }
 
-    // --- [核心修改] Automation Functions ---
-    async function handleAutoScrape() {
-        if(!autoScrapeBtn) return;
-        autoScrapeBtn.disabled = true;
-        const originalContent = autoScrapeBtn.innerHTML;
-        autoScrapeBtn.innerHTML = '创建任务中...';
-
-        const reportDate = entryDatePicker.value; // 获取当前选择的日期
-
-        const targets = allVideosForEntry
-            .filter(video => video.taskId && entryTasksStatus[video.collaborationId]?.status !== 'completed')
-            .map(video => ({
-                taskId: video.taskId,
-                collaborationId: video.collaborationId,
-                nickname: video.talentName,
-                reportDate: reportDate // [新增] 将报告日期传递给后端
-            }));
-
-        if (targets.length === 0) {
-            alert('没有需要抓取的视频任务。');
-            autoScrapeBtn.disabled = false;
-            autoScrapeBtn.innerHTML = originalContent;
-            return;
-        }
-
-        try {
-            const response = await apiRequest(AUTOMATION_JOBS_CREATE_API, 'POST', {
-                projectId: currentProjectId,
-                workflowId: "68ee679ef3daa8fdc9ea730f",
-                targets: targets
-            });
-            
-            if (response.data && response.data.jobId) {
-                startPollingTasks(response.data.jobId);
-                alert(`${targets.length} 个视频的抓取任务已创建！页面将自动刷新状态。`);
-            } else {
-                throw new Error("创建任务失败，未返回 Job ID。");
-            }
-
-        } catch (error) {
-            // Error is handled in apiRequest
-        } finally {
-            autoScrapeBtn.disabled = false;
-            autoScrapeBtn.innerHTML = originalContent;
-        }
-    }
-    
-    // ... 其他所有函数 (startPollingTasks, handleRetryScrape, initializePage, etc.) 保持 v4.1 版本不变 ...
     // --- Initialization ---
     async function initializePage() {
         currentProjectId = new URLSearchParams(window.location.search).get('projectId');
@@ -162,7 +114,66 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             body.classList.remove('entry-mode');
             body.classList.add('display-mode');
+            if (entryTasksPoller) clearInterval(entryTasksPoller); // 切换模式时停止轮询
             loadReportData();
+        }
+    }
+    
+    // --- [核心修改] Automation Functions ---
+    
+    async function handleAutoScrape() {
+        if(!autoScrapeBtn) return;
+        
+        // [UX优化] 禁用按钮并显示加载状态
+        autoScrapeBtn.disabled = true;
+        const originalContent = autoScrapeBtn.innerHTML;
+        autoScrapeBtn.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            创建任务中...
+        `;
+
+        const reportDate = entryDatePicker.value;
+
+        const targets = allVideosForEntry
+            .filter(video => video.taskId && entryTasksStatus[video.collaborationId]?.status !== 'completed')
+            .map(video => ({
+                taskId: video.taskId,
+                collaborationId: video.collaborationId,
+                nickname: video.talentName,
+                reportDate: reportDate
+            }));
+
+        if (targets.length === 0) {
+            alert('没有需要抓取的视频任务。');
+            // [UX优化] 恢复按钮状态
+            autoScrapeBtn.disabled = false;
+            autoScrapeBtn.innerHTML = originalContent;
+            return;
+        }
+
+        try {
+            const response = await apiRequest(AUTOMATION_JOBS_CREATE_API, 'POST', {
+                projectId: currentProjectId,
+                workflowId: "68ee679ef3daa8fdc9ea730f",
+                targets: targets
+            });
+            
+            if (response.data && response.data.jobId) {
+                startPollingTasks(response.data.jobId);
+                alert(`${targets.length} 个视频的抓取任务已创建！页面将自动刷新状态。`);
+            } else {
+                throw new Error("创建任务失败，未返回 Job ID。");
+            }
+
+        } catch (error) {
+            // 错误已在 apiRequest 中处理
+        } finally {
+            // [UX优化] 恢复按钮状态
+            autoScrapeBtn.disabled = false;
+            autoScrapeBtn.innerHTML = originalContent;
         }
     }
     
@@ -230,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-    // --- API Functions ---
+    // --- API Functions (保持不变) ---
     async function loadReportData() {
         overviewKPIs.innerHTML = '<div class="text-center py-8 text-gray-500 col-span-5">加载中...</div>';
         detailsContainer.innerHTML = `<div class="text-center py-16 text-gray-500">正在加载报告详情...</div>`;
