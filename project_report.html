@@ -105,12 +105,13 @@
                     <table class="w-full text-sm">
                         <thead class="bg-gray-100 text-left">
                             <tr>
-                                <!-- [优化] 增加新列 -->
                                 <th class="px-6 py-3 font-semibold text-gray-600">达人名称</th>
                                 <th class="px-6 py-3 font-semibold text-gray-600">任务 ID</th>
                                 <th class="px-6 py-3 font-semibold text-gray-600">发布时间</th>
                                 <th class="px-6 py-3 font-semibold text-gray-600 text-center">视频链接</th>
                                 <th class="px-6 py-3 font-semibold text-gray-600">当日总曝光</th>
+                                <!-- 新增列 -->
+                                <th class="px-6 py-3 font-semibold text-gray-600 text-center">抓取状态</th>
                             </tr>
                         </thead>
                         <tbody id="video-entry-list" class="bg-white divide-y divide-gray-200">
@@ -120,15 +121,20 @@
                 <div id="video-entry-pagination-controls" class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4"></div>
                 
                 <div class="mt-8 flex justify-end items-center gap-4">
+                    <!-- 新增按钮 -->
+                    <button id="auto-scrape-btn" class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-indigo-700 flex items-center gap-2 transition-all">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.82m5.84-2.56a16.95 16.95 0 00-2.32-.12A16.95 16.95 0 006 12a16.95 16.95 0 00-2.32.12m13.84-2.56a16.95 16.95 0 00-2.32.12M12 6a16.95 16.95 0 00-2.32-.12m-2.32 8.24a16.95 16.95 0 01-2.32.12M12 18a16.95 16.95 0 01-2.32.12m2.32-8.24A16.95 16.95 0 006 6m12 6a16.95 16.95 0 00-2.32.12m2.32-8.24a16.95 16.95 0 00-2.32-.12M12 6a16.95 16.95 0 00-2.32.12M12 18a16.95 16.95 0 01-2.32.12" /></svg>
+                        一键自动抓取
+                    </button>
                     <button id="cancel-entry-btn" class="px-5 py-2.5 bg-gray-200 text-gray-800 text-sm font-semibold rounded-lg hover:bg-gray-300 transition-colors">取消</button>
                     <button id="save-entry-btn" class="px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all transform hover:scale-105">保存当日数据</button>
                 </div>
             </div>
-
         </div>
     </main>
 
     <script src="sidebar.js"></script>
-    <script src="project_report.js"></script>
+    <script src="project_report.js" defer></script>
 </body>
 </html>
+

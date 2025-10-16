@@ -1,9 +1,10 @@
 /**
  * @file project_report.js
- * @description [V3.5-优化版] 增强数据录入页面的信息维度。
- * - [核心优化] `renderVideoEntryList` 函数现在会渲染从后端获取的 `taskId` 和 `videoId` 字段。
- * - [UI 增强] “录入数据”列表新增了“任务 ID”、“发布时间”、“视频链接”三列，提供了更丰富的上下文。
- * - [健壮性] 为视频链接增加了非空判断，只有在 videoId 存在时才生成可点击的链接。
+ * @version 4.2 - Persistence Support
+ * @description “项目执行报告”页面自动化功能升级版
+ * --- 更新日志 (v4.2) ---
+ * - [核心功能] 在 `handleAutoScrape` 中，为每个 target 增加了 `reportDate` 字段，以便 local-agent 在持久化数据时知道该将数据写入哪一天。
+ * - [依赖] 此版本需要配合 local-agent v3.2 或更高版本使用，以完成数据的持久化。
  */
 document.addEventListener('DOMContentLoaded', function () {
     
@@ -14,8 +15,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const VIDEOS_FOR_ENTRY_API = `${API_BASE_URL}/videos-for-entry`;
     const DAILY_STATS_API = `${API_BASE_URL}/daily-stats`;
     const REPORT_SOLUTION_API = `${API_BASE_URL}/report-solution`;
+    const AUTOMATION_JOBS_CREATE_API = `${API_BASE_URL}/automation-jobs-create`;
+    const AUTOMATION_JOBS_GET_API = `${API_BASE_URL}/automation-jobs-get`;
+    const AUTOMATION_TASKS_API = `${API_BASE_URL}/automation-tasks`;
 
-    // --- DOM Elements ---
+    // ... (其他DOM元素和状态变量保持不变) ...
     const body = document.body;
     const breadcrumbProjectName = document.getElementById('breadcrumb-project-name');
     const projectMainTitle = document.getElementById('project-main-title');
@@ -29,8 +33,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const dataEntryView = document.getElementById('data-entry-view');
     const reportDatePicker = document.getElementById('report-date-picker');
     const missingDataAlertContainer = document.getElementById('missing-data-alert-container');
+    const autoScrapeBtn = document.getElementById('auto-scrape-btn');
 
-    // --- Global State ---
     let currentProjectId = null;
     let projectData = {};
     let currentMode = 'display';
@@ -39,8 +43,11 @@ document.addEventListener('DOMContentLoaded', function () {
     let entryItemsPerPage = 10;
     const ITEMS_PER_PAGE_KEY = 'reportEntryItemsPerPage';
     let solutionSaveTimer = null;
+    let entryTasksStatus = {};
+    let entryTasksPoller = null;
 
-    // --- Helper Functions ---
+
+    // --- Helper Functions (保持不变) ---
     async function apiRequest(url, method = 'GET', body = null) {
         const options = { method, headers: { 'Content-Type': 'application/json' } };
         if (body) options.body = JSON.stringify(body);
@@ -63,12 +70,61 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!isoString) return 'N/A';
         const date = new Date(isoString);
         if (isNaN(date)) return '无效日期';
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
+        const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+        const year = localDate.getFullYear();
+        const month = String(localDate.getMonth() + 1).padStart(2, '0');
+        const day = String(localDate.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     }
 
+    // --- [核心修改] Automation Functions ---
+    async function handleAutoScrape() {
+        if(!autoScrapeBtn) return;
+        autoScrapeBtn.disabled = true;
+        const originalContent = autoScrapeBtn.innerHTML;
+        autoScrapeBtn.innerHTML = '创建任务中...';
+
+        const reportDate = entryDatePicker.value; // 获取当前选择的日期
+
+        const targets = allVideosForEntry
+            .filter(video => video.taskId && entryTasksStatus[video.collaborationId]?.status !== 'completed')
+            .map(video => ({
+                taskId: video.taskId,
+                collaborationId: video.collaborationId,
+                nickname: video.talentName,
+                reportDate: reportDate // [新增] 将报告日期传递给后端
+            }));
+
+        if (targets.length === 0) {
+            alert('没有需要抓取的视频任务。');
+            autoScrapeBtn.disabled = false;
+            autoScrapeBtn.innerHTML = originalContent;
+            return;
+        }
+
+        try {
+            const response = await apiRequest(AUTOMATION_JOBS_CREATE_API, 'POST', {
+                projectId: currentProjectId,
+                workflowId: "68ee679ef3daa8fdc9ea730f",
+                targets: targets
+            });
+            
+            if (response.data && response.data.jobId) {
+                startPollingTasks(response.data.jobId);
+                alert(`${targets.length} 个视频的抓取任务已创建！页面将自动刷新状态。`);
+            } else {
+                throw new Error("创建任务失败，未返回 Job ID。");
+            }
+
+        } catch (error) {
+            // Error is handled in apiRequest
+        } finally {
+            autoScrapeBtn.disabled = false;
+            autoScrapeBtn.innerHTML = originalContent;
+        }
+    }
+    
+    // ... 其他所有函数 (startPollingTasks, handleRetryScrape, initializePage, etc.) 保持 v4.1 版本不变 ...
     // --- Initialization ---
     async function initializePage() {
         currentProjectId = new URLSearchParams(window.location.search).get('projectId');
@@ -78,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         entryItemsPerPage = parseInt(localStorage.getItem(ITEMS_PER_PAGE_KEY) || '10');
         setupEventListeners();
-        const today = formatDate(new Date().toISOString());
+        const today = new Date().toISOString().split('T')[0];
         entryDatePicker.value = today;
         reportDatePicker.value = today;
         try {
@@ -109,6 +165,70 @@ document.addEventListener('DOMContentLoaded', function () {
             loadReportData();
         }
     }
+    
+    function startPollingTasks(jobId) {
+        if (entryTasksPoller) clearInterval(entryTasksPoller);
+
+        const poll = async () => {
+            try {
+                const response = await apiRequest(`${AUTOMATION_JOBS_GET_API}?jobId=${jobId}`);
+                const job = response.data;
+                let allDone = true;
+
+                (job.tasks || []).forEach(task => {
+                    const collabId = task.metadata?.collaborationId;
+                    if (collabId) {
+                        entryTasksStatus[collabId] = task;
+                    }
+                    if (task.status === 'pending' || task.status === 'processing') {
+                        allDone = false;
+                    }
+                });
+                
+                renderVideoEntryList();
+
+                if (allDone) {
+                    clearInterval(entryTasksPoller);
+                    entryTasksPoller = null;
+                    console.log('所有日报抓取任务已完成，轮询停止。');
+                }
+            } catch (error) {
+                console.error("轮询任务状态失败:", error);
+                clearInterval(entryTasksPoller);
+                entryTasksPoller = null;
+            }
+        };
+
+        poll();
+        entryTasksPoller = setInterval(poll, 5000);
+    }
+
+    async function handleRetryScrape(taskId) {
+        if (!taskId) return;
+    
+        const statusCell = document.querySelector(`button[data-task-id="${taskId}"]`)?.closest('td');
+        if (statusCell) {
+            statusCell.innerHTML = '<span class="text-xs font-semibold text-blue-600">请求重试...</span>';
+        }
+        
+        try {
+            await apiRequest(`${AUTOMATION_TASKS_API}?id=${taskId}`, 'PUT', { action: 'rerun' });
+            
+            let parentJobId = null;
+            for (const collabId in entryTasksStatus) {
+                if (entryTasksStatus[collabId]._id === taskId) {
+                    parentJobId = entryTasksStatus[collabId].jobId;
+                    break;
+                }
+            }
+            if (parentJobId) {
+                startPollingTasks(parentJobId);
+            }
+        } catch (error) {
+            renderVideoEntryList();
+        }
+    }
+
 
     // --- API Functions ---
     async function loadReportData() {
@@ -126,14 +246,16 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function loadVideosForEntry() {
-        videoEntryList.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-500">正在加载视频列表...</td></tr>`;
+        videoEntryList.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500">正在加载视频列表...</td></tr>`;
         try {
             const response = await apiRequest(`${VIDEOS_FOR_ENTRY_API}?projectId=${currentProjectId}&date=${entryDatePicker.value}`);
             allVideosForEntry = response.data || [];
             entryCurrentPage = 1;
+            entryTasksStatus = {};
+            if(entryTasksPoller) clearInterval(entryTasksPoller);
             renderEntryPage();
         } catch (error) {
-            videoEntryList.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-red-500">加载失败: ${error.message}</td></tr>`;
+            videoEntryList.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500">加载失败: ${error.message}</td></tr>`;
         }
     }
     
@@ -142,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .filter(video => video.totalViews !== null && video.totalViews !== undefined && String(video.totalViews).trim() !== '')
             .map(video => ({
                 collaborationId: video.collaborationId,
-                totalViews: parseInt(video.totalViews, 10)
+                totalViews: parseInt(String(video.totalViews).replace(/,/g, ''), 10)
             }));
         if (dataToSave.length === 0) {
             alert('您没有输入任何数据。');
@@ -298,26 +420,63 @@ document.addEventListener('DOMContentLoaded', function () {
     
     function renderVideoEntryList() {
         if (!allVideosForEntry || allVideosForEntry.length === 0) {
-            videoEntryList.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-500">此项目暂无可录入数据的视频。</td></tr>`;
+            videoEntryList.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500">此项目暂无可录入数据的视频。</td></tr>`;
             return;
         }
         const startIndex = (entryCurrentPage - 1) * entryItemsPerPage;
         const paginatedVideos = allVideosForEntry.slice(startIndex, startIndex + entryItemsPerPage);
         
         videoEntryList.innerHTML = paginatedVideos.map(video => {
-            const videoLink = video.videoId
-                ? `<a href="https://www.douyin.com/video/${video.videoId}" target="_blank" class="text-blue-600 hover:underline">点击查看</a>`
+            const task = entryTasksStatus[video.collaborationId];
+            let statusHtml = '<span class="text-xs text-gray-400">未开始</span>';
+            let isCompleted = false;
+
+            if (task) {
+                switch (task.status) {
+                    case 'pending':
+                        statusHtml = '<span class="text-xs font-semibold text-yellow-600">排队中...</span>';
+                        break;
+                    case 'processing':
+                        statusHtml = '<span class="text-xs font-semibold text-blue-600">抓取中...</span>';
+                        break;
+                    case 'completed':
+                        statusHtml = '<span class="text-xs font-semibold text-green-600">✓ 成功</span>';
+                        isCompleted = true;
+                        const views = task.result?.data?.['播放量']?.replace(/,/g, '');
+                        if (views) {
+                            const videoInMemory = allVideosForEntry.find(v => v.collaborationId === video.collaborationId);
+                            if(videoInMemory) videoInMemory.totalViews = views;
+                        }
+                        break;
+                    case 'failed':
+                        statusHtml = `<div class="flex items-center justify-center gap-2">
+                                          <span class="text-xs font-semibold text-red-600 cursor-pointer" title="${task.errorMessage || '未知错误'}">✗ 失败</span>
+                                          <button data-task-id="${task._id}" class="retry-scrape-btn text-xs text-blue-600 hover:underline">重试</button>
+                                      </div>`;
+                        break;
+                }
+            }
+            
+            const videoToRender = allVideosForEntry.find(v => v.collaborationId === video.collaborationId) || video;
+
+            const videoLink = videoToRender.videoId
+                ? `<a href="https://www.douyin.com/video/${videoToRender.videoId}" target="_blank" class="text-blue-600 hover:underline">点击查看</a>`
                 : 'N/A';
             
             return `
                 <tr class="hover:bg-indigo-50 transition-colors">
-                    <td class="px-6 py-4 font-medium text-gray-900">${video.talentName}</td>
-                    <td class="px-6 py-4 font-mono text-xs text-gray-600">${video.taskId || 'N/A'}</td>
-                    <td class="px-6 py-4 text-gray-500">${formatDate(video.publishDate)}</td>
+                    <td class="px-6 py-4 font-medium text-gray-900">${videoToRender.talentName}</td>
+                    <td class="px-6 py-4 font-mono text-xs text-gray-600">${videoToRender.taskId || 'N/A'}</td>
+                    <td class="px-6 py-4 text-gray-500">${formatDate(videoToRender.publishDate)}</td>
                     <td class="px-6 py-4 text-center">${videoLink}</td>
                     <td class="px-6 py-4">
-                        <input type="number" class="view-input w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="请输入总曝光/播放量" value="${video.totalViews || ''}" data-collaboration-id="${video.collaborationId}">
+                        <input type="number" class="view-input w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
+                               placeholder="请输入总曝光/播放量" 
+                               value="${videoToRender.totalViews || ''}" 
+                               data-collaboration-id="${videoToRender.collaborationId}"
+                               ${isCompleted ? 'disabled bg-gray-100' : ''}>
                     </td>
+                    <td class="px-6 py-4 text-center">${statusHtml}</td>
                 </tr>
             `;
         }).join('');
@@ -329,7 +488,6 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
-
 
     function renderEntryPagination() {
         const paginationContainer = document.getElementById('video-entry-pagination-controls');
@@ -353,6 +511,9 @@ document.addEventListener('DOMContentLoaded', function () {
         cancelEntryBtn.addEventListener('click', () => setMode('display'));
         saveEntryBtn.addEventListener('click', saveDailyData);
         entryDatePicker.addEventListener('change', loadVideosForEntry);
+        if(autoScrapeBtn) {
+            autoScrapeBtn.addEventListener('click', handleAutoScrape);
+        }
 
         if (reportDatePicker) {
             reportDatePicker.addEventListener('change', loadReportData);
@@ -381,8 +542,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 renderEntryPage();
             }
         });
+        
+        videoEntryList.addEventListener('click', (e) => {
+            const retryBtn = e.target.closest('.retry-scrape-btn');
+            if (retryBtn) {
+                const taskId = retryBtn.dataset.taskId;
+                handleRetryScrape(taskId);
+            }
+        });
     }
 
     // --- Start the application ---
     initializePage();
 });
+
