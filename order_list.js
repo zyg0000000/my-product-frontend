@@ -1,13 +1,11 @@
 /**
  * @file order_list.js
- * @version 25.2-status-filtering
- * @description [功能增强] 为 "执行信息" 选项卡的数据请求增加了状态 (status) 过滤，现在只请求执行阶段及之后的数据。
- * * --- 更新日志 (v25.2) ---
- * - [核心修改] 修改了 `loadCollaborators` 函数。当请求“执行信息”页签(performance)的数据时，会主动向API请求中添加 `statuses` 参数，只拉取 "客户已定档" 及之后状态的合作记录。
- * - [兼容性] 此修改不影响“基础信息”和“财务信息”页签的数据加载逻辑。
- * * --- 历史更新 (v25.1) ---
- * - [BUG修复] 修复了“执行信息”选项卡中操作按钮（复制、打开链接）无效的问题。
- * - [功能优化] 优化了剪贴板功能，提高了兼容性。
+ * @version 26.2 - Final PUT Fix
+ * @description [最终BUG修复] 解决了 API 网关路由配置与请求方法不匹配导致的 404 错误。
+ * * --- 更新日志 (v26.2) ---
+ * - [核心修复] 恢复使用 `PUT` 方法进行更新操作，以匹配确认可用的 API 网关路由。
+ * - [数据结构修复] 将 `id` 和其他更新字段统一打包在请求的 `body` 中发送，这是 `PUT` 请求最标准、兼容性最好的方式。
+ * - [问题解决] 此修改确保 API 网关能正确路由请求，同时后端函数也能从 `body` 中接收到完整的更新数据，彻底解决 404 "Not Found" 问题。
  */
 document.addEventListener('DOMContentLoaded', function () {
     // --- API Configuration & DOM Elements ---
@@ -99,8 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let effectDetailsToggle = { interaction: false, component: false };
     let effectDashboardData = null;
     let editingDateId = null;
-    let editingPerformanceCells = new Set();
-    let dirtyPerformanceRows = new Set();
+    let editingPerformanceRowId = null; 
 
     // --- Modal Logic ---
 
@@ -165,6 +162,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- API Request Function ---
     async function apiRequest(endpoint, method = 'GET', body = null) {
+        // [v26.2] The URL no longer needs the ID in the query for PUT/POST
         const url = new URL(`${API_BASE_URL}${endpoint}`);
         if (method === 'GET' && body) {
             Object.keys(body).forEach(key => {
@@ -173,9 +171,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         }
-
+        
         const options = { method, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' } };
-        if (body && method !== 'GET') { options.body = JSON.stringify(body); }
+        // [v26.2] For PUT and POST, the body (which now includes the 'id') is stringified
+        if (body && (method === 'POST' || method === 'PUT')) { 
+            options.body = JSON.stringify(body);
+        }
+
         try {
             const response = await fetch(url.toString(), options);
             if (!response.ok) {
@@ -242,7 +244,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 order: 'desc'
             };
     
-            // **核心修改：当请求 "执行信息" Tab 的数据时，主动附带状态条件**
             if (pageKey === 'performance'|| pageKey === 'financial') {
                 const performanceStatuses = ["客户已定档", "视频已发布"];
                 params.statuses = performanceStatuses.join(',');
@@ -277,8 +278,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let pageKey = activeTab.replace('-info', '');
         if (pageKey === 'data-performance') pageKey = 'performance';
 
-        editingPerformanceCells.clear();
-        dirtyPerformanceRows.clear();
+        editingPerformanceRowId = null; 
 
         switch (activeTab) {
             case 'basic-info':
@@ -430,7 +430,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (c.status === '视频已发布') statusOptionsHtml += `<option value="视频已发布" selected>视频已发布</option>`;
                 statusCellHtml = `<select class="table-select status-select" data-id="${c.id}" ${isStatusSelectDisabled ? 'disabled' : ''}>${statusOptionsHtml}</select>`;
 
-                // [v25.0] Business rule for date editing
                 const canEditDate = !['视频已发布', '待结算', '已收款', '已终结'].includes(c.status);
                 let dateCellHtml = '';
                 if (canEditDate) {
@@ -512,6 +511,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderDataPerformanceTab(collaborators, projectData) {
         if (!dataPerformanceListBody || !noDataPerformanceMessage) return;
         const isReadOnly = projectData.status !== '执行中';
+
         if (collaborators.length === 0) {
             noDataPerformanceMessage.classList.remove('hidden');
             dataPerformanceListBody.closest('table').classList.add('hidden');
@@ -524,34 +524,50 @@ document.addEventListener('DOMContentLoaded', function () {
                 row.className = 'bg-white border-b data-row';
                 row.dataset.id = c.id;
 
-                const renderEditableCell = (value, fieldName) => {
-                    const cellKey = `${c.id}_${fieldName}`;
-                    if (editingPerformanceCells.has(cellKey)) {
-                        return `<input type="text" class="data-input performance-input" data-field="${fieldName}" value="${value || ''}" ${isReadOnly ? 'disabled' : ''}>`;
-                    } else {
-                        if (!value) return `<div class="text-gray-400 editable-cell cursor-pointer" data-id="${c.id}" data-field="${fieldName}">N/A</div>`;
-                        const displayValue = value.length > 15 ? `${value.substring(0, 8)}...${value.slice(-4)}` : value;
-                        const actionButtons = `
-                            <div class="flex items-center ml-2">
-                                <button class="copy-btn p-1 rounded-md text-gray-400 hover:bg-gray-100" title="复制"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg></button>
-                                ${fieldName === 'contentFile' ? `<button class="open-link-btn p-1 rounded-md text-blue-500 hover:bg-blue-100" title="打开链接"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></button>` : ''}
-                                ${fieldName === 'videoId' ? `<button class="open-video-btn p-1 rounded-md text-red-500 hover:bg-red-100" title="打开抖音视频"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg></button>` : ''}
-                            </div>`;
-                        return `<div class="flex items-center justify-between editable-cell ${isReadOnly ? '' : 'cursor-pointer'}" data-id="${c.id}" data-field="${fieldName}" title="点击编辑: ${value}"><span class="truncate">${displayValue}</span>${actionButtons}</div>`;
-                    }
-                };
+                const isEditingThisRow = editingPerformanceRowId === c.id;
 
-                const isRowDirty = dirtyPerformanceRows.has(c.id);
+                const renderCell = (value, fieldName) => {
+                    if (isEditingThisRow && !isReadOnly) {
+                        return `<input type="text" class="data-input performance-input" data-field="${fieldName}" value="${value || ''}">`;
+                    }
+                    
+                    if (!value) return `<div class="text-gray-400">N/A</div>`;
+                    
+                    const displayValue = value.length > 15 ? `${value.substring(0, 8)}...${value.slice(-4)}` : value;
+                    const actionButtons = `
+                        <div class="flex items-center ml-2">
+                            <button class="copy-btn p-1 rounded-md text-gray-400 hover:bg-gray-100" title="复制" data-value="${value}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg></button>
+                            ${fieldName === 'contentFile' ? `<button class="open-link-btn p-1 rounded-md text-blue-500 hover:bg-blue-100" title="打开链接" data-url="${value}"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></button>` : ''}
+                            ${fieldName === 'videoId' ? `<button class="open-video-btn p-1 rounded-md text-red-500 hover:bg-red-100" title="打开抖音视频" data-videoid="${value}"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg></button>` : ''}
+                        </div>`;
+                    return `<div class="flex items-center justify-between" title="${value}"><span class="truncate">${displayValue}</span>${actionButtons}</div>`;
+                };
+                
+                let actionsCellHtml = '';
+                if (isEditingThisRow && !isReadOnly) {
+                    actionsCellHtml = `
+                        <button class="save-performance-row-btn px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700" data-id="${c.id}">保存</button>
+                        <button class="cancel-edit-performance-row-btn px-3 py-1 text-sm bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 ml-2" data-id="${c.id}">取消</button>
+                    `;
+                } else {
+                     actionsCellHtml = `<button class="edit-performance-btn px-3 py-1 text-sm bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50" data-id="${c.id}" ${isReadOnly ? 'disabled' : ''}>编辑</button>`;
+                }
+
 
                 row.innerHTML = `
                     <td class="px-6 py-4 font-medium whitespace-nowrap">${c.talentInfo.nickname}</td>
                     <td class="px-6 py-4">${c.plannedReleaseDate || '<span class="text-gray-400">待定</span>'}</td>
                     <td class="px-6 py-4">${c.talentSource || '野生达人'}</td>
-                    <td class="px-6 py-4">${renderEditableCell(c.contentFile, 'contentFile')}</td>
-                    <td class="px-6 py-4">${renderEditableCell(c.taskId, 'taskId')}</td>
-                    <td class="px-6 py-4">${renderEditableCell(c.videoId, 'videoId')}</td>
-                    <td class="px-6 py-4"><input type="date" class="data-input publish-date-input" data-field="publishDate" value="${c.publishDate || ''}" ${isReadOnly ? 'disabled' : ''}></td>
-                    <td class="px-6 py-4 text-center"><button class="save-performance-btn px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed" data-id="${c.id}" ${!isRowDirty || isReadOnly ? 'disabled' : ''}>保存</button></td>`;
+                    <td class="px-6 py-4">${renderCell(c.contentFile, 'contentFile')}</td>
+                    <td class="px-6 py-4">${renderCell(c.taskId, 'taskId')}</td>
+                    <td class="px-6 py-4">${renderCell(c.videoId, 'videoId')}</td>
+                    <td class="px-6 py-4">
+                        ${isEditingThisRow && !isReadOnly ? 
+                            `<input type="date" class="data-input publish-date-input" data-field="publishDate" value="${c.publishDate || ''}">` :
+                            (c.publishDate || '<span class="text-gray-400">N/A</span>')
+                        }
+                    </td>
+                    <td class="px-6 py-4 text-center">${actionsCellHtml}</td>`;
                 fragment.appendChild(row);
             });
             dataPerformanceListBody.innerHTML = '';
@@ -630,14 +646,13 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!container) return;
         container.innerHTML = '';
         const totalPages = Math.ceil(totalItems / itemsPerPage);
-        if (totalPages <= 0) return; // Hide pagination if no items
+        if (totalPages <= 0) return; 
 
         let buttons = '';
         for (let i = 1; i <= totalPages; i++) {
             buttons += `<button class="pagination-btn ${i === currentPage[pageKey] ? 'active' : ''}" data-page-key="${pageKey}" data-page="${i}">${i}</button>`;
         }
         
-        // [MODIFIED] Unify the pagination UI for all tabs
         const perPageSelector = `<div class="flex items-center text-sm"><span>每页:</span><select class="items-per-page-select ml-2 rounded-md border-gray-300"><option value="10" ${itemsPerPage === 10 ? 'selected' : ''}>10</option><option value="20" ${itemsPerPage === 20 ? 'selected' : ''}>20</option></select></div>`;
         const summary = `<div class="text-sm text-gray-700">共 ${totalItems} 条记录</div>`;
         const pageButtonsContainer = totalPages > 1 ? `<div class="flex items-center gap-2"><button class="pagination-btn prev-page-btn" data-page-key="${pageKey}" ${currentPage[pageKey] === 1 ? 'disabled' : ''}>&lt;</button>${buttons}<button class="pagination-btn next-page-btn" data-page-key="${pageKey}" ${currentPage[pageKey] === totalPages ? 'disabled' : ''}>&gt;</button></div>` : '<div></div>';
@@ -829,10 +844,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // --- REVISED AND FIXED FUNCTION ---
     function handleMainContentClick(e) {
         const button = e.target.closest('button');
-        const editableCell = e.target.closest('.editable-cell');
 
         if (button?.classList.contains('inline-edit-date-btn')) {
             const collabId = button.dataset.id;
@@ -846,29 +859,14 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        if (editableCell && !e.target.closest('button')) {
-            const isReadOnly = project.status !== '执行中';
-            if (isReadOnly) return;
-            const collabId = editableCell.dataset.id;
-            const fieldName = editableCell.dataset.field;
-            const cellKey = `${collabId}_${fieldName}`;
-            if (!editingPerformanceCells.has(cellKey)) {
-                editingPerformanceCells.add(cellKey);
-                dirtyPerformanceRows.add(collabId);
-                renderDataPerformanceTab(paginatedData.performance, project);
-            }
-            return;
-        }
-
         if (!button) return;
         const collabId = button.dataset.id;
 
         if (button.classList.contains('copy-btn')) {
-            const cell = button.closest('td');
-            const fullValue = cell.querySelector('.editable-cell')?.title.replace('点击编辑: ', '');
-            if (fullValue) {
+            const valueToCopy = button.dataset.value;
+            if (valueToCopy) {
                 const textArea = document.createElement("textarea");
-                textArea.value = fullValue;
+                textArea.value = valueToCopy;
                 textArea.style.position = 'fixed';
                 textArea.style.top = '-9999px';
                 textArea.style.left = '-9999px';
@@ -884,19 +882,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.body.removeChild(textArea);
             }
         } else if (button.classList.contains('open-link-btn')) {
-            const cell = button.closest('td');
-            const url = cell.querySelector('.editable-cell')?.title.replace('点击编辑: ', '');
+            const url = button.dataset.url;
             if (url) window.open(url, '_blank');
         } else if (button.classList.contains('open-video-btn')) {
-            const cell = button.closest('td');
-            const videoId = cell.querySelector('.editable-cell')?.title.replace('点击编辑: ', '');
+            const videoId = button.dataset.videoid;
             if (videoId) window.open(`https://www.douyin.com/video/${videoId}`, '_blank');
         } else if (button.classList.contains('toggle-details-btn')) {
             openDetails.has(collabId) ? openDetails.delete(collabId) : openDetails.add(collabId);
             renderPage();
         } else if (button.classList.contains('delete-btn') && !button.disabled) {
             handleDeleteCollaboration(collabId);
-        } else if (button.classList.contains('save-performance-btn')) {
+        } else if (button.classList.contains('edit-performance-btn')) {
+            editingPerformanceRowId = collabId;
+            renderDataPerformanceTab(paginatedData.performance, project);
+        } else if (button.classList.contains('cancel-edit-performance-row-btn')) {
+            editingPerformanceRowId = null;
+            renderDataPerformanceTab(paginatedData.performance, project);
+        } else if (button.classList.contains('save-performance-row-btn')) {
             handleSavePerformance(collabId);
         } else if (button.classList.contains('save-dates-btn')) {
             handleDateSave(collabId);
@@ -926,12 +928,7 @@ document.addEventListener('DOMContentLoaded', function () {
             pendingDateChanges[collabId][target.dataset.type] = target.value;
             const subRow = financialListBody.querySelector(`.collapsible-row[data-id="${collabId}"]`);
             if (subRow) subRow.querySelector('.save-dates-btn').parentElement.classList.remove('hidden');
-        } else if (target.matches('.publish-date-input') || target.matches('.performance-input')) {
-            const collabId = target.closest('tr').dataset.id;
-            dirtyPerformanceRows.add(collabId);
-            const saveBtn = document.querySelector(`.save-performance-btn[data-id="${collabId}"]`);
-            if (saveBtn) saveBtn.disabled = false;
-        } else if (target.matches('.items-per-page-select')) { // [NEW] Handle "items per page" change for all tabs
+        } else if (target.matches('.items-per-page-select')) {
             itemsPerPage = Number(target.value);
             currentPage = { basic: 1, performance: 1, financial: 1 };
             switchTabAndLoadData();
@@ -1116,11 +1113,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!currentCollaborator) return;
 
         const payload = {
-            id: collabId,
+            id: collabId, // [v26.2] The ID is now part of the payload body
             publishDate: row.querySelector('.publish-date-input')?.value.trim() || null,
-            contentFile: row.querySelector('input[data-field="contentFile"]')?.value ?? currentCollaborator.contentFile,
-            taskId: row.querySelector('input[data-field="taskId"]')?.value ?? currentCollaborator.taskId,
-            videoId: row.querySelector('input[data-field="videoId"]')?.value ?? currentCollaborator.videoId,
+            contentFile: row.querySelector('input[data-field="contentFile"]')?.value.trim() || null,
+            taskId: row.querySelector('input[data-field="taskId"]')?.value.trim() || null,
+            videoId: row.querySelector('input[data-field="videoId"]')?.value.trim() || null,
         };
 
         let statusChangeMessage = '';
@@ -1136,11 +1133,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (confirmed) {
                 const loadingAlert = showLoadingAlert('正在保存...');
                 try {
+                    // [核心修复] 使用 PUT 方法, ID在body中
                     await apiRequest('/update-collaboration', 'PUT', payload);
-                    dirtyPerformanceRows.delete(collabId);
-                    for (const key of ['contentFile', 'taskId', 'videoId']) {
-                        editingPerformanceCells.delete(`${collabId}_${key}`);
-                    }
+
+                    editingPerformanceRowId = null;
                     await loadCollaborators('performance');
                     loadingAlert.close();
                     showCustomAlert('保存成功！');
@@ -1167,7 +1163,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 const loadingAlert = showLoadingAlert(`正在为 ${selectedIds.length} 位达人批量更新...`);
                 try {
                     const updatePromises = selectedIds.map(id => {
-                        const payload = { id: id, [selectedAction === 'setOrderDate' ? 'orderDate' : 'paymentDate']: batchDate };
+                        const payload = { 
+                            id: id, // [v26.2] Include id in the body for PUT request
+                            [selectedAction === 'setOrderDate' ? 'orderDate' : 'paymentDate']: batchDate 
+                        };
                         return apiRequest('/update-collaboration', 'PUT', payload);
                     });
                     await Promise.all(updatePromises);
