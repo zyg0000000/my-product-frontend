@@ -1,0 +1,148 @@
+<!--
+  * @file project_analysis.html
+  * @version 2.2 - Time Dimension Filtering
+  * @description Added time dimension (Financial/Customer) and month filters.
+  *
+  * @changelog
+  * - v2.2 (2025-10-20):
+  * - [FEATURE] Added "Time Dimension" and "Month" dropdowns to the filter section.
+  * - [UI] Reorganized filter layout for better user experience.
+  * - v2.1 (2025-10-20): Fixed chart rendering height.
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目分析看板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8f9fa;
+        }
+        .kpi-card { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+        .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+
+        /* Sidebar Styles */
+        .sidebar { transition: width 0.3s ease-in-out; }
+        .main-content { transition: margin-left 0.3s ease-in-out; }
+        .sidebar-collapsed { width: 5rem; }
+        .sidebar-collapsed .nav-text, .sidebar-collapsed .app-title-text { display: none; }
+        .sidebar-collapsed .nav-link, .sidebar-collapsed .nav-toggle { justify-content: center; }
+        .sidebar-collapsed .submenu { display: none; }
+        .sidebar-collapsed .app-title { justify-content: center; }
+        .nav-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 600; color: #1f2937; border-radius: 0.5rem; }
+        .nav-toggle:hover { background-color: #f3f4f6; }
+        .nav-link { display: flex; align-items: center; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 500; color: #4b5563; border-radius: 0.5rem; position: relative; }
+        .nav-link:hover { background-color: #f3f4f6; }
+        .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+
+    <main id="main-content" class="main-content p-4 sm:p-6 lg:p-8" style="margin-left: 11rem;">
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">项目分析看板</h1>
+                <p class="text-gray-500 mt-1">从全局视角洞察业务表现和财务状况。</p>
+            </div>
+        </header>
+
+        <div id="loading-indicator" class="text-center py-20">
+            <p class="text-gray-500">正在加载分析数据...</p>
+        </div>
+
+        <div id="analysis-content" class="hidden space-y-6">
+            <!-- Filters -->
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                    <!-- Time Dimension Filters -->
+                    <div class="md:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label for="filter-time-dimension" class="block text-sm font-medium text-gray-700">时间维度</label>
+                            <select id="filter-time-dimension" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                                <option value="financial">财务月份</option>
+                                <option value="customer">客户月份</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filter-year" class="block text-sm font-medium text-gray-700">筛选年份</label>
+                            <select id="filter-year" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="filter-month" class="block text-sm font-medium text-gray-700">筛选月份</label>
+                            <select id="filter-month" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                        </div>
+                    </div>
+                    <!-- Other Filters -->
+                    <div class="md:col-span-1">
+                        <label for="filter-project-type" class="block text-sm font-medium text-gray-700">筛选项目类型</label>
+                        <select id="filter-project-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                    </div>
+                    <!-- Action Buttons -->
+                    <div class="md:col-span-1 flex gap-2">
+                        <button id="reset-filters-btn" class="w-full px-4 h-10 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 font-medium">重置</button>
+                        <button id="apply-filters-btn" class="w-full px-4 h-10 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold">应用筛选</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New 12-Card KPI Layout -->
+            <div class="space-y-6">
+                <!-- Row 1: Scale & Core Income -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-600 mb-3">规模与核心收入</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="kpi-card bg-white p-5 rounded-lg shadow-sm border"><p class="text-sm text-gray-500">总项目数</p><p id="kpi-total-projects" class="text-3xl font-bold mt-1">0</p></div>
+                        <div class="kpi-card bg-white p-5 rounded-lg shadow-sm border"><p class="text-sm text-gray-500">合作达人总数</p><p id="kpi-total-collaborators" class="text-3xl font-bold mt-1">0</p></div>
+                        <div class="kpi-card bg-white p-5 rounded-lg shadow-sm border"><p class="text-sm text-gray-500">客户收入 (不含调整)</p><p id="kpi-total-income-agg" class="text-3xl font-bold text-green-600 mt-1">¥0.00</p></div>
+                        <div class="kpi-card bg-white p-5 rounded-lg shadow-sm border"><p class="text-sm text-gray-500">收入调整</p><p id="kpi-income-adjustments" class="text-3xl font-bold text-green-600 mt-1">¥0.00</p></div>
+                    </div>
+                </div>
+
+                <!-- Row 2: Profit Funnel -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-600 mb-3">利润漏斗</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="kpi-card bg-white p-5 rounded-lg shadow-sm border"><p class="text-sm text-gray-500">下单毛利润</p><p id="kpi-pre-adjustment-profit" class="text-3xl font-bold text-blue-600 mt-1">¥0.00</p></div>
+                        <div class="kpi-card bg-white p-5 rounded-lg shadow-sm border"><p class="text-sm text-gray-500">下单毛利率</p><p id="kpi-pre-adjustment-margin" class="text-3xl font-bold text-blue-600 mt-1">0.00%</p></div>
+                        <div class="kpi-card bg-white p-5 rounded-lg shadow-sm border"><p class="text-sm text-gray-500">经营毛利润</p><p id="kpi-operational-profit" class="text-3xl font-bold text-indigo-600 mt-1">¥0.00</p></div>
+                        <div class="kpi-card bg-white p-5 rounded-lg shadow-sm border"><p class="text-sm text-gray-500">经营毛利率</p><p id="kpi-operational-margin" class="text-3xl font-bold text-indigo-600 mt-1">0.00%</p></div>
+                    </div>
+                </div>
+                
+                <!-- Row 3: Key Costs -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-600 mb-3">关键成本构成</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="kpi-card bg-white p-5 rounded-lg shadow-sm border"><p class="text-sm text-gray-500">星图下单支出</p><p id="kpi-total-expense" class="text-3xl font-bold text-red-600 mt-1">¥0.00</p></div>
+                        <div class="kpi-card bg-white p-5 rounded-lg shadow-sm border"><p class="text-sm text-gray-500">资金占用费用</p><p id="kpi-funds-occupation-cost" class="text-3xl font-bold text-red-600 mt-1">¥0.00</p></div>
+                        <div class="kpi-card bg-white p-5 rounded-lg shadow-sm border"><p class="text-sm text-gray-500">支出调整</p><p id="kpi-expense-adjustments" class="text-3xl font-bold text-red-600 mt-1">¥0.00</p></div>
+                         <div class="kpi-card bg-white p-5 rounded-lg shadow-sm border"><p class="text-sm text-gray-500">总运营成本</p><p id="kpi-total-operational-cost" class="text-3xl font-bold text-red-700 mt-1">¥0.00</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts & Tables -->
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <div id="tab-content-container">
+                    <div id="tab-monthly-trend" class="tab-pane">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">年度财务趋势</h3>
+                        <div class="relative h-96">
+                           <canvas id="monthly-trend-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script src="sidebar.js" defer></script>
+    <script src="project_analysis.js" defer></script>
+</body>
+</html>
+
