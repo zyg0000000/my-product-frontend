@@ -1,10 +1,11 @@
 /**
  * @file automation_suite.js
- * @version 9.4 - State Management & Robustness Fix
+ * @version 10.2 - Final Simplification & Cleanup
  * @description
- * - [核心BUG修复] 解决了因状态变量名不一致 (错用 `state.filter` 而非 `state.activeFilter`) 导致的 "Cannot read properties of undefined (reading 'type')" 运行时崩溃问题。
- * - [代码健壮性] 再次审查并增强了对无效 `job` 和 `workflow` 数据的过滤，确保即使关联数据被删除，页面也不会崩溃。
- * - [功能优化] 保留了 V9.3 版本的所有功能改进，包括项目视图下的下拉搜索功能和默认按工作流统计显示。
+ * - [UI简化] 根据最终要求，仅移除了非审查状态下的“查看详情”按钮，界面更加简洁。
+ * - [功能保留] “待审查”状态下的“完成审查”功能，以及为其他状态保留的“删除”功能，均保持不变。
+ * - [代码清理] 彻底移除了所有与“查看详情”弹窗相关的函数和逻辑。
+ * - [代码健壮性] 包含所有必要的辅助函数，确保无运行时错误。
  */
 document.addEventListener('DOMContentLoaded', function () {
     // --- 全局变量与配置 ---
@@ -13,26 +14,26 @@ document.addEventListener('DOMContentLoaded', function () {
         workflows: `${API_BASE_URL}/automation-workflows`,
         tasks: `${API_BASE_URL}/automation-tasks`,
         projects: `${API_BASE_URL}/projects?view=simple`,
-        jobs: `${API_BASE_URL}/automation-jobs-get`
+        jobs: `${API_BASE_URL}/automation-jobs-get`,
+        jobsManage: `${API_BASE_URL}/automation-jobs`
     };
     const JOBS_PER_PAGE = 4;
     const TASKS_PER_LOAD = 10;
 
     // --- 状态管理 ---
     let state = {
-        viewMode: 'workflow', // 'workflow' or 'project'
+        viewMode: 'workflow',
         activeFilter: { type: 'all', value: 'all' },
         currentPage: 1,
         projectSearchTerm: ''
     };
     let allWorkflows = [];
     let allProjects = [];
-    let allJobs = [];
+    let allJobsCache = [];
     let projectMap = new Map();
     let workflowMap = new Map();
     let openJobDetails = new Set();
-    let tasksPaginationState = {}; // { [jobId]: { loaded: number } }
-    let activePollingIntervals = {};
+    let tasksPaginationState = {};
     let selectedWorkflowId = null;
     let sortableCanvas = null;
     let sortableLibrary = null;
@@ -91,9 +92,75 @@ document.addEventListener('DOMContentLoaded', function () {
             return response.json();
         } catch (error) {
             console.error(`API call failed for ${method} ${url}:`, error);
-            alert(`操作失败: ${error.message}`);
+            showToast(`操作失败: ${error.message}`, 'error');
             throw error;
         }
+    }
+
+    // --- 辅助弹窗函数 ---
+    const confirmModal = document.createElement('div');
+    confirmModal.id = 'custom-confirm-modal';
+    confirmModal.className = 'fixed inset-0 z-[100] flex items-center justify-center hidden bg-gray-800 bg-opacity-60 p-4';
+    confirmModal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm mx-auto">
+            <div class="p-6">
+                <h3 id="confirm-modal-title-js" class="text-lg font-semibold text-gray-800"></h3>
+                <p id="confirm-modal-message-js" class="text-sm text-gray-600 mt-2 mb-6"></p>
+                <div class="flex justify-end space-x-3">
+                    <button id="confirm-modal-cancel-btn-js" class="px-5 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-sm font-medium">取消</button>
+                    <button id="confirm-modal-confirm-btn-js" class="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium">确定</button>
+                </div>
+            </div>
+        </div>`;
+    document.body.appendChild(confirmModal);
+
+    const toastNotification = document.createElement('div');
+    toastNotification.id = 'toast-notification-js';
+    toastNotification.className = 'fixed top-5 right-5 z-[110] text-white py-2 px-5 rounded-lg shadow-lg transform transition-all duration-300 opacity-0 hidden';
+    toastNotification.innerHTML = `<p id="toast-message-js"></p>`;
+    document.body.appendChild(toastNotification);
+    
+    function showToast(message, type = 'success') {
+        const toastMessageEl = document.getElementById('toast-message-js');
+        toastMessageEl.textContent = message;
+        toastNotification.className = `fixed top-5 right-5 z-[110] text-white py-2 px-5 rounded-lg shadow-lg transform transition-all duration-300`;
+        toastNotification.classList.toggle('bg-green-500', type === 'success');
+        toastNotification.classList.toggle('bg-red-500', type === 'error');
+        toastNotification.classList.remove('hidden', 'opacity-0');
+        setTimeout(() => {
+            toastNotification.classList.add('opacity-0');
+            setTimeout(() => toastNotification.classList.add('hidden'), 300);
+        }, 3000);
+    }
+    
+    function showCustomConfirm(message, title = '请确认', callback) {
+        const confirmModalEl = document.getElementById('custom-confirm-modal');
+        const confirmTitle = document.getElementById('confirm-modal-title-js');
+        const confirmMessage = document.getElementById('confirm-modal-message-js');
+        const confirmOkBtn = document.getElementById('confirm-modal-confirm-btn-js');
+        const confirmCancelBtn = document.getElementById('confirm-modal-cancel-btn-js');
+
+        confirmTitle.textContent = title;
+        confirmMessage.innerHTML = message;
+        
+        const handleOk = () => {
+            cleanup();
+            if (callback) callback(true);
+        };
+        const handleCancel = () => {
+            cleanup();
+            if (callback) callback(false);
+        };
+        const cleanup = () => {
+            confirmOkBtn.removeEventListener('click', handleOk);
+            confirmCancelBtn.removeEventListener('click', handleCancel);
+            confirmModalEl.classList.add('hidden');
+        };
+        
+        confirmOkBtn.addEventListener('click', handleOk, { once: true });
+        confirmCancelBtn.addEventListener('click', handleCancel, { once: true });
+        
+        confirmModalEl.classList.remove('hidden');
     }
 
     function formatRelativeTime(isoString) {
@@ -109,7 +176,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return `${diffDays}天前`;
     }
     
-    // --- 动作定义 ---
     const ACTION_DEFINITIONS = {
         'Go to URL': { title: '导航到页面', color: 'cyan', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.536a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>`, fields: [ { name: 'description', label: '步骤描述', type: 'text', placeholder: '例如：打开达人主页' }, { name: 'url', label: '页面URL *', type: 'text', placeholder: 'https://example.com/{{placeholder}}', required: true }, ] },
         waitForSelector: { title: '等待元素出现', color: 'sky', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>`, fields: [ { name: 'description', label: '步骤描述', type: 'text', placeholder: '例如：等待价格模块加载' }, { name: 'selector', label: 'CSS 选择器 *', type: 'text', placeholder: '.price-container .final-price', required: true }, ] },
@@ -127,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function () {
         setupEventListeners();
         populateActionLibrary();
         
-        renderApp(); // 立即渲染UI框架
+        renderApp();
 
         await Promise.all([
             loadWorkflows(),
@@ -136,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
         
         await loadAllJobs();
         
-        renderApp(); // 重新渲染以填充数据
+        renderApp();
     }
     
     async function loadWorkflows() {
@@ -169,10 +235,10 @@ document.addEventListener('DOMContentLoaded', function () {
         
         try {
             const results = await Promise.all([...jobPromises, independentJobsPromise]);
-            allJobs = results.flatMap(res => res.data || []);
+            allJobsCache = results.flatMap(res => res.data || []);
         } catch (error) {
             console.error("加载所有任务批次失败:", error);
-            allJobs = [];
+            allJobsCache = [];
         }
     }
 
@@ -184,12 +250,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function generateStatistics() {
         const grouped = {};
-        allJobs.filter(job => job && job._id && (state.viewMode !== 'workflow' || workflowMap.has(job.workflowId))).forEach(job => {
+        allJobsCache.filter(job => job && job._id && (state.viewMode !== 'workflow' || workflowMap.has(job.workflowId))).forEach(job => {
             let key, name, color;
             if (state.viewMode === 'workflow') {
                 const workflow = workflowMap.get(job.workflowId);
                 key = job.workflowId;
-                name = workflow.name;
+                name = workflow ? workflow.name : '未知工作流';
                 color = 'indigo';
             } else {
                 const projectName = projectMap.get(job.projectId);
@@ -259,15 +325,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function renderFilteredJobsList() {
-        let jobsToDisplay = [...allJobs].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-        
-        if (state.activeFilter.type !== 'all' && state.activeFilter.type !== 'none') {
-            jobsToDisplay = jobsToDisplay.filter(job => {
+        const jobsToDisplay = allJobsCache
+            .filter(job => {
+                if (!job || !job._id) return false;
+                if (state.activeFilter.type === 'all' || state.activeFilter.type === 'none') return true;
                 if (state.activeFilter.type === 'workflow') return job.workflowId === state.activeFilter.value;
                 if (state.activeFilter.type === 'project') return (job.projectId || 'independent') === state.activeFilter.value;
                 return true;
-            });
-        }
+            })
+            .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         filteredJobsList.innerHTML = '';
         const totalItems = jobsToDisplay.length;
@@ -304,17 +370,27 @@ document.addEventListener('DOMContentLoaded', function () {
         const progressPercent = total > 0 ? ((success + failed) / total) * 100 : 0;
         const statusConfig = { processing: { text: '执行中', color: 'blue' }, awaiting_review: { text: '待审查', color: 'yellow' }, completed: { text: '已完成', color: 'green' }, failed: { text: '失败', color: 'red' } };
         const statusInfo = statusConfig[job.status] || { text: job.status, color: 'gray' };
-        const workflow = workflowMap.get(job.workflowId);
+        
+        const workflow = workflowMap.get(job.workflowId) || { name: '未知工作流' };
 
+        // [v10.1 简化] 调整按钮逻辑
+        let topRightControls = `<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-${statusInfo.color}-100 text-${statusInfo.color}-800">${statusInfo.text}</span>`;
+        if (job.status === 'awaiting_review') {
+            topRightControls += `<button class="font-medium text-green-600 hover:text-green-800 text-xs bg-green-100 hover:bg-green-200 rounded-full px-3 py-1" data-action="complete-review" data-job-id="${job._id}">完成审查</button>`;
+        } else if (job.status !== 'completed') {
+             // 为 'processing', 'failed' 等状态保留删除按钮
+             topRightControls += `<button class="font-medium text-red-600 hover:text-red-800 text-xs bg-red-100 hover:bg-red-200 rounded-full px-3 py-1" data-action="delete-job" data-job-id="${job._id}">删除</button>`;
+        }
+        
         return `
-        <div class="job-header p-3 cursor-pointer hover:bg-gray-50" data-job-id="${job._id}">
+        <div class="job-header p-3 hover:bg-gray-50 cursor-pointer" data-action="toggle-details" data-job-id="${job._id}">
             <div class="flex justify-between items-center">
                 <div>
-                    <p class="font-semibold text-gray-800 text-sm">${workflow ? workflow.name : '未知工作流'}</p>
+                    <p class="font-semibold text-gray-800 text-sm">${workflow.name}</p>
                     <p class="text-xs text-gray-500">#${job._id.slice(-6)} &bull; ${formatRelativeTime(job.createdAt)}</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-${statusInfo.color}-100 text-${statusInfo.color}-800">${statusInfo.text}</span>
+                    ${topRightControls}
                     <svg class="w-4 h-4 text-gray-500 expand-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </div>
             </div>
@@ -474,33 +550,58 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         
         filteredJobsList.addEventListener('click', e => {
-            const header = e.target.closest('.job-header');
-            if (header) {
-                const jobId = header.dataset.jobId;
-                if (openJobDetails.has(jobId)) {
-                    openJobDetails.delete(jobId);
-                } else {
-                    openJobDetails.add(jobId);
-                    tasksPaginationState[jobId] = { loaded: 0 };
-                }
-                renderFilteredJobsList();
-                return;
+            const actionTarget = e.target.closest('[data-action]');
+            if (!actionTarget) return;
+        
+            const action = actionTarget.dataset.action;
+            const jobId = actionTarget.dataset.jobId;
+        
+            if (actionTarget.tagName === 'BUTTON') {
+                e.stopPropagation();
             }
-            const loadMoreBtn = e.target.closest('.load-more-tasks-btn');
-            if (loadMoreBtn) {
-                const jobId = loadMoreBtn.dataset.jobId;
-                const job = allJobs.find(j => j._id === jobId);
-                const sublist = loadMoreBtn.parentElement;
-                if(job && sublist) {
-                    renderTasksForJob(job, sublist);
-                }
-            }
-            const actionBtn = e.target.closest('button[data-action]');
-            if (actionBtn) {
-                handleTaskActions(actionBtn.dataset.action, actionBtn.dataset.taskId);
+        
+            switch (action) {
+                case 'toggle-details':
+                    if (openJobDetails.has(jobId)) {
+                        openJobDetails.delete(jobId);
+                    } else {
+                        openJobDetails.add(jobId);
+                        tasksPaginationState[jobId] = { loaded: 0 };
+                    }
+                    renderFilteredJobsList();
+                    break;
+                case 'complete-review':
+                    showCustomConfirm('确定要将此批次标记为“已完成”吗？', '确认', async (confirmed) => {
+                        if (confirmed) {
+                            try {
+                                await apiCall(`${API_PATHS.jobsManage}?id=${jobId}`, 'POST', { status: 'completed' });
+                                showToast('批次状态已更新为“已完成”');
+                                const job = allJobsCache.find(j => j._id === jobId);
+                                if (job) job.status = 'completed';
+                                renderFilteredJobsList();
+                            } catch (error) { /* handled in apiCall */ }
+                        }
+                    });
+                    break;
+                case 'delete-job':
+                    showCustomConfirm('确定要删除此任务批次吗？如果批次下仍有子任务，删除将失败。', '确认删除', async (confirmed) => {
+                        if (confirmed) {
+                            try {
+                                await apiCall(`${API_PATHS.jobsManage}?id=${jobId}`, 'DELETE');
+                                showToast('任务批次已删除');
+                                allJobsCache = allJobsCache.filter(j => j._id !== jobId);
+                                renderFilteredJobsList();
+                            } catch (error) { /* handled in apiCall */ }
+                        }
+                    });
+                    break;
+                default:
+                    const taskId = actionTarget.dataset.taskId;
+                    handleTaskActions(action, taskId);
+                    break;
             }
         });
-
+        
         jobsPaginationContainer.addEventListener('click', e => {
             const button = e.target.closest('button[data-page]');
             if (button && !button.disabled) {
@@ -545,7 +646,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         status: 'processing',
                         tasks: [response.data]
                     };
-                    allJobs.unshift(tempJob);
+                    allJobsCache.unshift(tempJob);
                     renderApp();
                 }
                 targetIdInput.value = '';
@@ -590,7 +691,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function handleTaskActions(action, taskId) {
-        const task = allJobs.flatMap(j => j.tasks || []).find(t => t._id === taskId);
+        if(!taskId) return;
+        const task = allJobsCache.flatMap(j => j.tasks || []).find(t => t._id === taskId);
         if(!task) return;
 
         switch(action) {
@@ -605,8 +707,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 break;
         }
     }
-
-    // --- 左侧面板功能函数 ---
+    
     function renderWorkflowsList() {
         if (!workflowsListContainer) return;
         if (allWorkflows.length === 0) {
@@ -635,7 +736,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             `}).join('');
     }
-
     function handleWorkflowSelection(workflowId) {
         document.querySelectorAll('.workflow-item').forEach(el => el.classList.remove('bg-indigo-100'));
         const selectedItem = workflowsListContainer.querySelector(`.workflow-item[data-id="${workflowId}"]`);
@@ -657,14 +757,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         updateExecuteButtonState();
     }
-    
     function updateExecuteButtonState() {
         if(!executeTaskBtn) return;
         executeTaskBtn.disabled = !(selectedWorkflowId && targetIdInput.value.trim() !== '');
     }
-
-    // --- 左侧面板 - 工作流编辑器相关函数 ---
-    function populateActionLibrary(){ 
+    function populateActionLibrary(){
         if (!actionLibrary) return;
         actionLibrary.innerHTML = Object.entries(ACTION_DEFINITIONS).map(([key, def]) => `
             <div class="action-library-item">
@@ -674,8 +771,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `).join('');
     }
-
-    function checkCanvasEmptyState(){ 
+    function checkCanvasEmptyState(){
         if (workflowCanvas && workflowCanvas.children.length === 0) {
             workflowCanvas.innerHTML = `<div id="canvas-placeholder" class="text-center text-gray-400 p-10 border-2 border-dashed rounded-lg"><p>画布为空</p><p class="text-xs mt-1">请从左侧拖拽或点击动作库中的步骤来添加</p></div>`;
         } else {
@@ -683,7 +779,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (placeholder) placeholder.remove();
         }
     }
-
     function createInputElement(field, value) {
         if (field.type === 'checkbox') {
             const wrapper = document.createElement('div');
@@ -709,7 +804,6 @@ document.addEventListener('DOMContentLoaded', function () {
         input.value = value || '';
         return input;
     }
-    
     function createCompositeSourceElement(source = {}) {
         const sourceDiv = document.createElement('div');
         sourceDiv.className = 'composite-source-item flex items-center gap-2 p-2 border rounded-md bg-gray-100';
@@ -724,7 +818,6 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
         return sourceDiv;
     }
-
     function createStepBlockElement(actionType, data = {}){
         const definition = ACTION_DEFINITIONS[actionType];
         if (!definition || !stepBlockTemplate) return null;
@@ -765,8 +858,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         return block;
     }
-
-    function serializeCanvasToSteps(){ 
+    function serializeCanvasToSteps(){
         const steps = [];
         workflowCanvas.querySelectorAll('.step-block').forEach(block => {
             const step = { action: block.dataset.actionType };
@@ -790,8 +882,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         return steps;
     }
-
-    function initializeSortable(){ 
+    function initializeSortable(){
         if (sortableCanvas) sortableCanvas.destroy();
         if (sortableLibrary) sortableLibrary.destroy();
         if(!workflowCanvas || !actionLibrary) return;
@@ -810,7 +901,6 @@ document.addEventListener('DOMContentLoaded', function () {
             sort: false,
         });
     }
-
     function openWorkflowModalForCreate() {
         if (!workflowForm) return;
         workflowForm.reset();
@@ -821,7 +911,6 @@ document.addEventListener('DOMContentLoaded', function () {
         initializeSortable();
         workflowModal.classList.remove('hidden');
     }
-
     function openWorkflowModalForEdit(workflowId) {
         const workflow = allWorkflows.find(w => w._id === workflowId);
         if (!workflow) return alert('找不到要编辑的工作流。');
@@ -844,7 +933,6 @@ document.addEventListener('DOMContentLoaded', function () {
         initializeSortable();
         workflowModal.classList.remove('hidden');
     }
-    
     async function handleWorkflowFormSubmit(event) {
         event.preventDefault();
         const saveBtn = document.getElementById('save-workflow-btn');
@@ -874,13 +962,12 @@ document.addEventListener('DOMContentLoaded', function () {
             workflowModal.classList.add('hidden');
             await loadWorkflows();
         } catch (error) {
-            // alert is handled in apiCall
+             alert(`保存失败: ${error.message}`);
         } finally {
             saveBtn.disabled = false;
             saveBtn.textContent = '保存工作流';
         }
     }
-
     async function handleDeleteWorkflow(workflowId) {
         const workflow = allWorkflows.find(w => w._id === workflowId);
         if (!workflow) return;
@@ -893,9 +980,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    // --- 各种模态框的打开/关闭/渲染函数 ---
     function openScreenshotModal(taskId) {
-        const task = allJobs.flatMap(j => j.tasks || []).find(t => t._id === taskId);
+        const task = allJobsCache.flatMap(j => j.tasks || []).find(t => t._id === taskId);
         if (!task || !task.result?.screenshots?.length) return;
         const screenshots = task.result.screenshots;
         screenshotModal.dataset.screenshots = JSON.stringify(screenshots);
@@ -939,7 +1025,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function openDataModal(taskId) {
-        const task = allJobs.flatMap(j => j.tasks || []).find(t => t._id === taskId);
+        const task = allJobsCache.flatMap(j => j.tasks || []).find(t => t._id === taskId);
         const data = task?.result?.data;
         if (!data || Object.keys(data).length === 0) return;
         dataModalTitle.textContent = `数据抓取结果 (目标ID: ${task.targetId || task.xingtuId})`;
