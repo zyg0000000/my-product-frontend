@@ -1,8 +1,9 @@
 /**
  * @file project_report.js
- * @version 4.3 - UX Optimization
+ * @version 4.4 - Metric Label Update
  * @description “项目执行报告”页面自动化功能升级版
- * --- 更新日志 (v4.3) ---
+ * --- 更新日志 (v4.4) ---
+ * - [指标口径调整] 根据最新业务需求，将“定档达人数量”的标签修改为“定档内容数量”，以准确反映其计算逻辑（统计合作总次数）。
  * - [UX优化] 为“一键自动抓取”按钮增加了加载状态。点击后按钮会变为不可用并显示“创建任务中...”，防止重复提交并提供即时反馈。
  * - [依赖] 此版本需要配合 local-agent v3.2 或更高版本使用，以完成数据的持久化。
  */
@@ -119,12 +120,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    // --- [核心修改] Automation Functions ---
+    // --- Automation Functions ---
     
     async function handleAutoScrape() {
         if(!autoScrapeBtn) return;
         
-        // [UX优化] 禁用按钮并显示加载状态
         autoScrapeBtn.disabled = true;
         const originalContent = autoScrapeBtn.innerHTML;
         autoScrapeBtn.innerHTML = `
@@ -148,7 +148,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (targets.length === 0) {
             alert('没有需要抓取的视频任务。');
-            // [UX优化] 恢复按钮状态
             autoScrapeBtn.disabled = false;
             autoScrapeBtn.innerHTML = originalContent;
             return;
@@ -169,9 +168,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
         } catch (error) {
-            // 错误已在 apiRequest 中处理
+            // Error is handled in apiRequest
         } finally {
-            // [UX优化] 恢复按钮状态
             autoScrapeBtn.disabled = false;
             autoScrapeBtn.innerHTML = originalContent;
         }
@@ -332,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         const overview = data.overview || {};
         const kpis = [
-            { label: '定档达人数量', value: overview.totalTalents || 0, color: 'text-gray-900' },
+            { label: '定档内容数量', value: overview.totalTalents || 0, color: 'text-gray-900' },
             { label: '已发布视频数量', value: overview.publishedVideos || 0, color: 'text-gray-900' },
             { label: '总计金额', value: `¥${(overview.totalAmount || 0).toLocaleString()}`, color: 'text-green-600' },
             { label: '视频总曝光', value: (overview.totalViews || 0).toLocaleString(), color: 'text-blue-600' },
@@ -566,4 +564,3 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Start the application ---
     initializePage();
 });
-
