@@ -1,11 +1,13 @@
 /**
  * @file order_list.js
- * @version 26.2 - Final PUT Fix
- * @description [最终BUG修复] 解决了 API 网关路由配置与请求方法不匹配导致的 404 错误。
- * * --- 更新日志 (v26.2) ---
- * - [核心修复] 恢复使用 `PUT` 方法进行更新操作，以匹配确认可用的 API 网关路由。
- * - [数据结构修复] 将 `id` 和其他更新字段统一打包在请求的 `body` 中发送，这是 `PUT` 请求最标准、兼容性最好的方式。
- * - [问题解决] 此修改确保 API 网关能正确路由请求，同时后端函数也能从 `body` 中接收到完整的更新数据，彻底解决 404 "Not Found" 问题。
+ * @version 27.1 - Complete & Final
+ * @description [功能重构] 实现了位于页面右侧的、支持多选的合作状态筛选器。此版本为包含所有功能的完整代码。
+ * * --- 更新日志 (v27.1) ---
+ * - [完整性] 补全了所有之前为简洁而省略的函数，确保文件可以直接使用。
+ * - [UI/UX] 将状态筛选器从左侧的单选下拉框改为右侧的按钮式多选下拉菜单，以匹配新的设计要求。
+ * - [核心逻辑] 重构了筛选器事件处理逻辑，以支持从多个复选框收集状态值。
+ * - [API调用] 更新了对 /collaborations 接口的调用方式，现在通过点击“应用”按钮来发送包含多个状态的筛选请求。
+ * - [交互优化] 筛选器仅在“基础信息”选项卡下显示，并增加了点击外部区域自动关闭下拉菜单的功能。
  */
 document.addEventListener('DOMContentLoaded', function () {
     // --- API Configuration & DOM Elements ---
@@ -80,6 +82,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const effT7Cpe = document.getElementById('eff-t7-cpe');
     const effT7Ctr = document.getElementById('eff-t7-ctr');
     const effectTalentListBody = document.getElementById('effect-talent-list-body');
+    
+    // [修改] 更新 DOM 元素引用以匹配新的多选筛选器
+    const statusFilterContainer = document.getElementById('basic-info-filter-container'); // 新增: 筛选器容器
+    const statusFilterButton = document.getElementById('status-filter-button');       // 新增: 筛选器触发按钮
+    const statusFilterDropdown = document.getElementById('status-filter-dropdown');     // 新增: 筛选器下拉菜单
+    const statusFilterOptions = document.getElementById('status-filter-options');       // 新增: 筛选器选项容器
+    const applyStatusFilterBtn = document.getElementById('apply-status-filter-btn');    // 新增: 应用按钮
 
     // --- State ---
     const MANUAL_STATUS_OPTIONS = ['待提报工作台', '工作台已提交', '客户已定档'];
@@ -100,7 +109,6 @@ document.addEventListener('DOMContentLoaded', function () {
     let editingPerformanceRowId = null; 
 
     // --- Modal Logic ---
-
     const alertModal = document.createElement('div');
     alertModal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 flex items-center justify-center p-4';
     alertModal.innerHTML = `<div class="relative mx-auto p-5 border w-full max-w-sm shadow-lg rounded-md bg-white"><h3 class="text-lg font-bold text-gray-900" id="alert-modal-title"></h3><div class="mt-2 py-3"><p class="text-sm text-gray-500" id="alert-modal-message"></p></div><div class="mt-4 flex justify-end"><button id="alert-modal-ok-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">确定</button></div></div>`;
@@ -162,18 +170,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- API Request Function ---
     async function apiRequest(endpoint, method = 'GET', body = null) {
-        // [v26.2] The URL no longer needs the ID in the query for PUT/POST
         const url = new URL(`${API_BASE_URL}${endpoint}`);
         if (method === 'GET' && body) {
             Object.keys(body).forEach(key => {
-                if (body[key] !== undefined && body[key] !== null) {
+                if (body[key] !== undefined && body[key] !== null && body[key] !== '') {
                     url.searchParams.append(key, body[key]);
                 }
             });
         }
         
         const options = { method, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' } };
-        // [v26.2] For PUT and POST, the body (which now includes the 'id') is stringified
         if (body && (method === 'POST' || method === 'PUT'|| method === 'DELETE')) { 
             options.body = JSON.stringify(body);
         }
@@ -233,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    async function loadCollaborators(pageKey) {
+    async function loadCollaborators(pageKey, statuses = '') {
         setLoadingState(true, pageKey);
         try {
             const params = {
@@ -243,10 +249,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 sortBy: 'createdAt',
                 order: 'desc'
             };
+            
+            if (statuses) {
+                params.statuses = statuses;
+            }
     
             if (pageKey === 'performance'|| pageKey === 'financial') {
                 const performanceStatuses = ["客户已定档", "视频已发布"];
-                params.statuses = performanceStatuses.join(',');
+                if(params.statuses) {
+                    const currentSelection = params.statuses.split(',');
+                    params.statuses = currentSelection.filter(s => performanceStatuses.includes(s)).join(',');
+                } else {
+                    params.statuses = performanceStatuses.join(',');
+                }
             }
     
             const response = await apiRequest('/collaborations', 'GET', params);
@@ -274,6 +289,10 @@ document.addEventListener('DOMContentLoaded', function () {
         mainTabContent.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
         const targetPane = document.getElementById(activeTab);
         if (targetPane) targetPane.classList.remove('hidden');
+
+        if (statusFilterContainer) {
+            statusFilterContainer.style.display = (activeTab === 'basic-info') ? 'block' : 'none';
+        }
 
         let pageKey = activeTab.replace('-info', '');
         if (pageKey === 'data-performance') pageKey = 'performance';
@@ -342,7 +361,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // --- Rendering Functions ---
     function renderHeaderAndDashboard(projectData) {
         const breadcrumbProjectName = document.getElementById('breadcrumb-project-name');
         const projectQianchuanId = document.getElementById('project-qianchuan-id');
@@ -507,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         renderPagination(paginationControlsBasic, 'basic', totalItems.basic);
     }
-
+    
     function renderDataPerformanceTab(collaborators, projectData) {
         if (!dataPerformanceListBody || !noDataPerformanceMessage) return;
         const isReadOnly = projectData.status !== '执行中';
@@ -751,7 +769,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // --- Event Listeners & Handlers ---
     function setupEventListeners() {
         if (dashboardTabs) {
             dashboardTabs.addEventListener('click', (e) => {
@@ -842,8 +859,46 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         }
-    }
+        
+        if (statusFilterButton && statusFilterDropdown && applyStatusFilterBtn) {
+            const statuses = ['待提报工作台', '工作台已提交', '客户已定档', '视频已发布'];
+            statusFilterOptions.innerHTML = statuses.map(status => `
+                <label class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                    <input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 status-filter-checkbox" value="${status}">
+                    <span class="ml-3">${status}</span>
+                </label>
+            `).join('');
 
+            statusFilterButton.addEventListener('click', () => {
+                statusFilterDropdown.classList.toggle('hidden');
+            });
+
+            applyStatusFilterBtn.addEventListener('click', async () => {
+                const selectedCheckboxes = statusFilterOptions.querySelectorAll('.status-filter-checkbox:checked');
+                const selectedStatuses = Array.from(selectedCheckboxes).map(cb => cb.value).join(',');
+                
+                const buttonText = document.getElementById('status-filter-button-text');
+                if (buttonText) {
+                    if (selectedCheckboxes.length > 0) {
+                        buttonText.textContent = `合作状态 (${selectedCheckboxes.length})`;
+                    } else {
+                        buttonText.textContent = '合作状态';
+                    }
+                }
+                
+                statusFilterDropdown.classList.add('hidden');
+                currentPage.basic = 1;
+                await loadCollaborators('basic', selectedStatuses);
+            });
+
+            document.addEventListener('click', (e) => {
+                if (statusFilterContainer && !statusFilterContainer.contains(e.target)) {
+                    statusFilterDropdown.classList.add('hidden');
+                }
+            });
+        }
+    }
+    
     function handleMainContentClick(e) {
         const button = e.target.closest('button');
 
@@ -1113,7 +1168,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!currentCollaborator) return;
 
         const payload = {
-            id: collabId, // [v26.2] The ID is now part of the payload body
+            id: collabId,
             publishDate: row.querySelector('.publish-date-input')?.value.trim() || null,
             contentFile: row.querySelector('input[data-field="contentFile"]')?.value.trim() || null,
             taskId: row.querySelector('input[data-field="taskId"]')?.value.trim() || null,
@@ -1133,9 +1188,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (confirmed) {
                 const loadingAlert = showLoadingAlert('正在保存...');
                 try {
-                    // [核心修复] 使用 PUT 方法, ID在body中
                     await apiRequest('/update-collaboration', 'PUT', payload);
-
                     editingPerformanceRowId = null;
                     await loadCollaborators('performance');
                     loadingAlert.close();
@@ -1164,7 +1217,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 try {
                     const updatePromises = selectedIds.map(id => {
                         const payload = { 
-                            id: id, // [v26.2] Include id in the body for PUT request
+                            id: id, 
                             [selectedAction === 'setOrderDate' ? 'orderDate' : 'paymentDate']: batchDate 
                         };
                         return apiRequest('/update-collaboration', 'PUT', payload);
@@ -1243,7 +1296,7 @@ document.addEventListener('DOMContentLoaded', function () {
         else if (target.classList.contains('next-page-btn')) { newPage++; }
         else if (target.dataset.page) { newPage = Number(target.dataset.page); }
 
-        newPage = Math.max(1, Math.min(newPage, totalPages));
+        newPage = Math.max(1, Math.min(newPage, totalPages || 1));
 
         if (newPage !== currentPage[pageKey]) {
             currentPage[pageKey] = newPage;
@@ -1251,6 +1304,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // --- Start the application ---
     initializePage();
 });
 
