@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function () {
         
         const options = { method, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' } };
         // [v26.2] For PUT and POST, the body (which now includes the 'id') is stringified
-        if (body && (method === 'POST' || method === 'PUT')) { 
+        if (body && (method === 'POST' || method === 'PUT'|| method === 'DELETE')) { 
             options.body = JSON.stringify(body);
         }
 
