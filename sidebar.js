@@ -1,9 +1,11 @@
 /**
  * @file sidebar.js
- * @version 2.1.1
+ * @version 2.3 - Relocate Data Export Center
  * @description 一个独立的、可重用的侧边栏组件。
  *
  * @changelog
+ * - v2.3 (2025-10-22): 根据要求，将 "数据导出中心" 的导航入口从 "达人管理" 移动到 "自动套件" 菜单下。
+ * - v2.2 (2025-10-22): 在 "达人管理" 菜单下增加了 "数据导出中心" 的导航入口。
  * - v2.1.1 (2025-10-19): 修正了 'project_analysis.html' 的文件命名并更新了变更日志。
  * - v2.1 (2025-10-19): 在 "项目管理" 下为 "项目分析" 添加了新的链接。
  * - v2.0 (2025-10-18): 添加了注释以说明在何处手动更改侧边栏宽度。
@@ -93,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <a href="automation_suite.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">爬虫套件</span></a>
                         <a href="mapping_templates.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">模版管理</span></a>
                         <a href="feishu_sync.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">飞书同步</span></a>
+                        <a href="data_export_center.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">数据导出</span></a>
                     </div>
                 </div>
             </div>
@@ -213,3 +216,4 @@ document.addEventListener('DOMContentLoaded', () => {
     const isCollapsed = JSON.parse(localStorage.getItem(SIDEBAR_STATE_KEY));
     setSidebarState(isCollapsed);
 });
+
