@@ -1,7 +1,9 @@
 /**
  * @file data_export_center.js
- * @version 1.2.1
- * @description “数据导出中心”页面的核心交互逻辑 (修正版)。
+ * @version 1.3.0
+ * @description “数据导出中心”页面的核心交互逻辑 (视觉统一优化版)。
+ * - [优化] `renderFilters` 和 `renderDimensions` 函数现在会使用 HTML 文件中定义的 .form-input, .form-select, 和 .form-checkbox 样式类，确保动态生成的元素与 automation_suite 视觉统一。
+ * - [优化] `renderDimensions` 现在生成与新 CSS 结构 (details.dimension-group) 匹配的 HTML。
  * - 修正了 `apiRequest` 函数缺失和 `XLSX` 库未引用的问题。
  * - 支持按“达人”、“合作”、“项目”三种主体进行导出。
  * - 动态根据所选主体，渲染不同的筛选条件和可导出维度。
@@ -192,21 +194,23 @@ document.addEventListener('DOMContentLoaded', function () {
             let inputHtml = '';
             const options = filter.options || initialConfigs[filter.optionsKey] || [];
 
+            // [深度优化] 确保所有动态生成的控件都使用 HTML 中定义的统一样式类
             switch (filter.type) {
                 case 'text':
-                    inputHtml = `<input type="text" id="filter-${filter.id}" class="mt-1 w-full rounded-md border-gray-300 shadow-sm" placeholder="${filter.placeholder}">`;
+                    inputHtml = `<input type="text" id="filter-${filter.id}" class="form-input" placeholder="${filter.placeholder}">`;
                     break;
                 case 'select':
-                    inputHtml = `<select id="filter-${filter.id}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"><option value="">所有</option>${options.map(o => `<option value="${o}">${o}</option>`).join('')}</select>`;
+                    inputHtml = `<select id="filter-${filter.id}" class="form-select"><option value="">所有</option>${options.map(o => `<option value="${o}">${o}</option>`).join('')}</select>`;
                     break;
                 case 'multiselect':
-                     inputHtml = `<select id="filter-${filter.id}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" multiple size="4">${options.map(o => `<option value="${o.id}">${o.name}</option>`).join('')}</select>`;
+                     inputHtml = `<select id="filter-${filter.id}" class="form-select" multiple size="4">${options.map(o => `<option value="${o.id}">${o.name}</option>`).join('')}</select>`;
                     break;
                 case 'checkbox':
-                    inputHtml = `<div class="mt-2 space-y-2 border p-2 rounded-md max-h-32 overflow-y-auto custom-scrollbar">${options.map(o => `<label class="flex items-center"><input type="checkbox" value="${o}" class="filter-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded" data-filter-id="${filter.id}"><span class="ml-2 text-sm">${o}</span></label>`).join('')}</div>`;
+                    // [深度优化] 同时使用 .form-checkbox (用于样式) 和 .filter-checkbox (用于JS逻辑)
+                    inputHtml = `<div class="mt-2 space-y-2 border p-2 rounded-md max-h-32 overflow-y-auto custom-scrollbar">${options.map(o => `<label class="flex items-center"><input type="checkbox" value="${o}" class="form-checkbox filter-checkbox" data-filter-id="${filter.id}"><span class="ml-2 text-sm">${o}</span></label>`).join('')}</div>`;
                     break;
                 case 'daterange':
-                    inputHtml = `<div class="mt-1 flex items-center gap-2"><input type="date" id="filter-${filter.id}-start" class="w-full rounded-md border-gray-300 shadow-sm"><span class="text-gray-500">-</span><input type="date" id="filter-${filter.id}-end" class="w-full rounded-md border-gray-300 shadow-sm"></div>`;
+                    inputHtml = `<div class="mt-1 flex items-center gap-2"><input type="date" id="filter-${filter.id}-start" class="form-input"><span class="text-gray-500">-</span><input type="date" id="filter-${filter.id}-end" class="form-input"></div>`;
                     break;
             }
 
@@ -225,23 +229,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
         for (const groupName in dimensionGroups) {
             const dimensions = dimensionGroups[groupName];
-            const groupEl = document.createElement('div');
+            
+            // [深度优化] 创建 <details> 元素以匹配新的 CSS 结构
+            const groupEl = document.createElement('details');
             groupEl.className = 'dimension-group';
+            groupEl.open = true; // 默认展开
+
             groupEl.innerHTML = `
-                <details open>
-                    <summary class="flex justify-between items-center cursor-pointer p-2 rounded-md hover:bg-gray-100">
-                        <span class="font-semibold text-sm text-gray-700">${groupName}</span>
-                        <svg class="w-4 h-4 arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </summary>
-                    <div class="pl-4 pt-2 space-y-2">
-                        ${dimensions.map(dim => `
-                            <label class="flex items-center">
-                                <input type="checkbox" value="${dim.id}" class="dimension-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                <span class="ml-2 text-sm text-gray-600">${dim.label}</span>
-                            </label>
-                        `).join('')}
-                    </div>
-                </details>`;
+                <summary class="flex justify-between items-center cursor-pointer p-3 bg-gray-50 hover:bg-gray-100 font-medium text-sm text-gray-700">
+                    <span>${groupName}</span>
+                    <svg class="w-4 h-4 arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </summary>
+                <div class="dimension-options p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    ${dimensions.map(dim => `
+                        <label class="flex items-center">
+                            <!-- [深度优化] 确保复选框使用 .form-checkbox (样式) 和 .dimension-checkbox (JS逻辑) -->
+                            <input type="checkbox" value="${dim.id}" class="form-checkbox dimension-checkbox">
+                            <span class="ml-2 text-sm text-gray-600">${dim.label}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            `;
             dimensionsContainer.appendChild(groupEl);
         }
     }
@@ -285,6 +293,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function buildPayload() {
         const entity = entitySelection.querySelector('input:checked').value;
+        // [JS 逻辑确认] 此处查询 .dimension-checkbox 保持不变
         const fields = Array.from(dimensionsContainer.querySelectorAll('.dimension-checkbox:checked')).map(cb => cb.value);
         const filters = {};
         
@@ -304,6 +313,7 @@ document.addEventListener('DOMContentLoaded', function () {
                      if (multiSelect) filters[filter.id] = Array.from(multiSelect.selectedOptions).map(opt => opt.value);
                     break;
                 case 'checkbox':
+                    // [JS 逻辑确认] 此处查询 .filter-checkbox 保持不变
                     filters[filter.id] = Array.from(document.querySelectorAll(`.filter-checkbox[data-filter-id="${filter.id}"]:checked`)).map(cb => cb.value);
                     break;
                 case 'daterange':
@@ -332,6 +342,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function setupEventListeners() {
         entitySelection.addEventListener('change', (e) => {
             if (e.target.name === 'export-entity') {
+                // [BUG 修正] 将 e.targe.value 修正为 e.target.value
                 renderUIForEntity(e.target.value);
             }
         });

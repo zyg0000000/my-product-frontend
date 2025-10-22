@@ -5,15 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>数据导出中心</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- [修正] 增加了对 xlsx.js 库的引用 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #f8f9fa;
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa; /* Consistent background from automation_suite */
         }
-        /* 侧边栏样式 */
+        /* --- Sidebar Styles (Copied from automation_suite.html) --- */
         .sidebar { transition: width 0.3s ease-in-out; }
         .main-content { transition: margin-left 0.3s ease-in-out; }
         .sidebar-collapsed { width: 5rem; }
@@ -27,107 +26,169 @@
         .nav-link:hover { background-color: #f3f4f6; }
         .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; }
 
-        /* 页面专属样式 */
-        .config-step {
-            @apply bg-white p-6 rounded-xl shadow-sm border border-gray-200;
+        /* --- Page Specific Styles (Aligned with automation_suite.html) --- */
+        /* Card style matching automation_suite panels */
+        .config-card {
+            @apply bg-white p-6 rounded-lg shadow-sm; /* Key style for the cards */
         }
-        .config-step h3 {
-            @apply text-lg font-semibold text-gray-800 flex items-center mb-4;
+        /* Card Title style matching automation_suite headers inside cards */
+        .config-card h3 {
+             /* Adjusted font size and weight */
+            @apply text-lg font-semibold text-gray-700 flex items-center mb-0; /* 将 mb-4 移除或改为 mb-0，由内部容器控制间距 */
         }
+        /* Step number styled similarly to icons/indicators in automation_suite */
         .step-number {
-            @apply bg-blue-600 text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm mr-3;
+             /* Using rounded-md as in automation_suite buttons/elements */
+            @apply bg-indigo-100 text-indigo-700 w-6 h-6 rounded-md flex items-center justify-center font-bold text-xs mr-3;
         }
-        .dimension-group > summary::-webkit-details-marker {
-            display: none;
+        /* Radio button choice styling */
+        .choice-label {
+            /* Mimics styling of selectable items */
+            @apply flex items-center p-3 border rounded-md cursor-pointer bg-white hover:bg-gray-50 transition duration-150 ease-in-out has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:ring-1 has-[:checked]:ring-indigo-200;
         }
-        .dimension-group > summary {
-            list-style: none;
+        .choice-input {
+             /* Consistent form element style */
+            @apply h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 rounded;
         }
-        .dimension-group[open] > summary .arrow-icon {
-            transform: rotate(90deg);
+        .choice-text {
+            @apply ml-3 text-sm font-medium text-gray-800;
         }
-        .arrow-icon {
-            transition: transform 0.2s;
+
+        /* Details/Summary styling for Dimension Groups */
+        details.dimension-group > summary::-webkit-details-marker { 
+            display: none; 
         }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #888; border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
+        details.dimension-group > summary { 
+            list-style: none; 
+            @apply cursor-pointer p-3 bg-gray-50 hover:bg-gray-100 flex justify-between items-center font-medium text-sm text-gray-700;
+        }
+        /* 修复折叠组的圆角问题 */
+        details.dimension-group {
+             @apply border border-gray-200 rounded-md overflow-hidden;
+        }
+        details.dimension-group[open] > summary {
+            /* 展开时移除底部圆角 */
+            @apply rounded-b-none;
+        }
+        details.dimension-group:not([open]) > summary {
+             /* 折叠时保持圆角 */
+            @apply rounded-md;
+        }
+        
+        details[open] > summary .arrow-icon { 
+            transform: rotate(90deg); 
+        }
+        .arrow-icon { 
+            /* 箭头样式和过渡 */
+            transition: transform 0.2s; 
+            @apply w-4 h-4 text-gray-500; 
+        }
+        .dimension-options { 
+            /* 选项容器，使用白色背景 */
+            @apply p-4 grid grid-cols-1 md:grid-cols-2 gap-3 bg-white; 
+        }
+
+
+        /* Form element styles matching automation_suite inputs/selects */
+        .form-input, .form-select {
+            @apply mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm;
+        }
+        .form-checkbox {
+             @apply h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500;
+        }
+        .form-label {
+             @apply block text-sm font-medium text-gray-700;
+        }
+
+        /* Custom scrollbar copied from automation_suite */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a3a3a3; }
+
+        /* [修复] 移除了 .btn-primary，因为样式将内联 */
     </style>
 </head>
-<body>
+<body class="bg-gray-100">
     <div id="sidebar-container"></div>
 
-    <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8" style="margin-left: 11rem;">
+    <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 main-content">
         <header class="mb-8">
             <h1 class="text-2xl font-bold text-gray-800">数据导出中心</h1>
             <p class="text-sm text-gray-500 mt-1">按需组合维度与筛选条件，生成定制化的业务报表。</p>
         </header>
 
-        <!-- 第一部分：导出配置区 -->
-        <div id="export-config-section" class="space-y-6">
+        <!-- Use space-y-8 for card spacing, matching automation_suite -->
+        <div class="space-y-8">
 
-            <!-- 步骤 1：选择导出主体 -->
-            <div class="config-step">
+            <!-- Step 1 Card -->
+            <div class="config-card">
                 <h3><span class="step-number">1</span>选择导出主体</h3>
-                <fieldset id="entity-selection" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition has-[:checked]:bg-blue-50 has-[:checked]:border-blue-400">
-                        <input type="radio" name="export-entity" value="talent" class="h-5 w-5 text-blue-600 focus:ring-blue-500" checked>
-                        <span class="ml-3 text-sm font-medium text-gray-700">按达人导出</span>
+                <fieldset id="entity-selection" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4"> <!-- 增加 pt-4 保持间距 -->
+                    <label class="choice-label">
+                        <input type="radio" name="export-entity" value="talent" class="choice-input" checked>
+                        <span class="choice-text">按达人导出</span>
                     </label>
-                    <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition has-[:checked]:bg-blue-50 has-[:checked]:border-blue-400">
-                        <input type="radio" name="export-entity" value="collaboration" class="h-5 w-5 text-blue-600 focus:ring-blue-500">
-                        <span class="ml-3 text-sm font-medium text-gray-700">按合作导出</span>
+                    <label class="choice-label">
+                        <input type="radio" name="export-entity" value="collaboration" class="choice-input">
+                        <span class="choice-text">按合作导出</span>
                     </label>
-                    <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition has-[:checked]:bg-blue-50 has-[:checked]:border-blue-400">
-                        <input type="radio" name="export-entity" value="project" class="h-5 w-5 text-blue-600 focus:ring-blue-500">
-                        <span class="ml-3 text-sm font-medium text-gray-700">按项目导出</span>
+                    <label class="choice-label">
+                        <input type="radio" name="export-entity" value="project" class="choice-input">
+                        <span class="choice-text">按项目导出</span>
                     </label>
                 </fieldset>
             </div>
 
-            <!-- 步骤 2：设定筛选条件 -->
-            <div id="filters-section" class="config-step">
+            <!-- Step 2 Card -->
+            <div id="filters-section" class="config-card">
                 <h3><span class="step-number">2</span>设定筛选条件</h3>
-                <div id="filters-container" class="space-y-4">
-                    <!-- JS will dynamically populate this area -->
-                    <p class="text-sm text-gray-500 p-4 text-center">正在根据您选择的导出主体加载筛选器...</p>
+                <!-- [UI 优化] 添加 bg-gray-50 容器，与 automation_suite 列表区域统一 -->
+                <div class="bg-gray-50 rounded-md p-4 mt-4">
+                    <div id="filters-container" class="space-y-4">
+                        <p class="text-sm text-gray-500 p-4 text-center">正在根据您选择的导出主体加载筛选器...</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- 步骤 3：选择导出维度 -->
-            <div id="dimensions-section" class="config-step">
+            <!-- Step 3 Card -->
+            <div id="dimensions-section" class="config-card">
                 <h3><span class="step-number">3</span>选择导出维度 (数据列)</h3>
-                <div id="dimensions-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-h-[50vh] overflow-y-auto custom-scrollbar p-2">
-                    <!-- JS will dynamically populate this area -->
-                    <p class="text-sm text-gray-500 p-4 text-center col-span-full">正在根据您选择的导出主体加载可选维度...</p>
+                <!-- [UI 优化] 添加 bg-gray-50 容器，并在此处应用滚动条 -->
+                <div class="bg-gray-50 rounded-md p-4 mt-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                    <div id="dimensions-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <p class="text-sm text-gray-500 p-4 text-center col-span-full">正在根据您选择的导出主体加载可选维度...</p>
+                        <!-- Dimension groups will be injected here by JS -->
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 第二部分：操作区 -->
-        <div id="export-action-section" class="mt-8 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-                <div>
-                    <label for="export-filename" class="block text-sm font-medium text-gray-700">导出文件名</label>
-                    <input type="text" id="export-filename" class="mt-1 w-full rounded-md border-gray-300 shadow-sm" placeholder="默认为“数据导出报表”">
+            <!-- Step 4 Card -->
+            <div id="export-action-section" class="config-card">
+                 <h3><span class="step-number">4</span>生成报表</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end pt-4"> <!-- 增加 pt-4 保持间距 -->
+                    <div>
+                        <label for="export-filename" class="form-label">导出文件名</label>
+                        <input type="text" id="export-filename" class="form-input" placeholder="默认为“数据导出报表”">
+                    </div>
+                    <div>
+                        <label for="export-time-month" class="form-label">数据月份 (用于价格等)</label>
+                        <input type="month" id="export-time-month" class="form-input">
+                    </div>
+                    <!-- [TAILWIND 修复] 将样式类直接内联到按钮上，而不是使用 @apply -->
+                    <button id="generate-export-btn" class="w-full h-10 px-5 flex items-center justify-center bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        <span id="export-btn-text">生成并下载 Excel</span>
+                        <div id="export-btn-loader" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    </button>
                 </div>
-                <div>
-                    <label for="export-time-month" class="block text-sm font-medium text-gray-700">数据月份 (用于价格等)</label>
-                    <input type="month" id="export-time-month" class="mt-1 w-full rounded-md border-gray-300 shadow-sm">
-                </div>
-                <button id="generate-export-btn" class="w-full h-10 px-5 flex items-center justify-center bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition shadow-sm">
-                    <span id="export-btn-text">生成并下载</span>
-                    <div id="export-btn-loader" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                </button>
             </div>
         </div>
     </main>
 
     <!-- Loading Overlay -->
-    <div id="loading-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="flex items-center space-x-3 bg-white p-4 rounded-lg shadow-xl">
-            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+    <div id="loading-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center hidden z-50">
+        <div class="flex items-center space-x-3 bg-white p-5 rounded-lg shadow-xl">
+            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
             <span class="text-gray-700 font-medium">正在处理数据，请稍候...</span>
         </div>
     </div>
