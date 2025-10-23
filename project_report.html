@@ -39,6 +39,13 @@
         /* 模式切换 */
         .display-mode .entry-mode-item { display: none; }
         .entry-mode .display-mode-item { display: none; }
+
+        /* 自定义滚动条 (用于弹窗) */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
     </style>
 </head>
 
@@ -110,8 +117,8 @@
                                 <th class="px-6 py-3 font-semibold text-gray-600">发布时间</th>
                                 <th class="px-6 py-3 font-semibold text-gray-600 text-center">视频链接</th>
                                 <th class="px-6 py-3 font-semibold text-gray-600">当日总曝光</th>
-                                <!-- 新增列 -->
-                                <th class="px-6 py-3 font-semibold text-gray-600 text-center">抓取状态</th>
+                                <!-- [V5.0 修改] 列表头修改 -->
+                                <th class="px-6 py-3 font-semibold text-gray-600 text-center">状态</th>
                             </tr>
                         </thead>
                         <tbody id="video-entry-list" class="bg-white divide-y divide-gray-200">
@@ -121,7 +128,12 @@
                 <div id="video-entry-pagination-controls" class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4"></div>
                 
                 <div class="mt-8 flex justify-end items-center gap-4">
-                    <!-- 新增按钮 -->
+                    <!-- [V5.0 新增] “待手动更新日报”按钮 -->
+                    <button id="manual-update-btn" class="px-5 py-2.5 bg-yellow-500 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-yellow-600 flex items-center gap-2 transition-all">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                        待手动更新日报
+                    </button>
+                    
                     <button id="auto-scrape-btn" class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-indigo-700 flex items-center gap-2 transition-all">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.82m5.84-2.56a16.95 16.95 0 00-2.32-.12A16.95 16.95 0 006 12a16.95 16.95 0 00-2.32.12m13.84-2.56a16.95 16.95 0 00-2.32.12M12 6a16.95 16.95 0 00-2.32-.12m-2.32 8.24a16.95 16.95 0 01-2.32.12M12 18a16.95 16.95 0 01-2.32.12m2.32-8.24A16.95 16.95 0 006 6m12 6a16.95 16.95 0 00-2.32.12m2.32-8.24a16.95 16.95 0 00-2.32-.12M12 6a16.95 16.95 0 00-2.32.12M12 18a16.95 16.95 0 01-2.32.12" /></svg>
                         一键自动抓取
@@ -133,8 +145,50 @@
         </div>
     </main>
 
+    <!-- [V5.0 新增] 手动更新弹窗 -->
+    <div id="overdue-tasks-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl flex flex-col" style="max-height: 80vh;">
+            <div class="p-4 border-b flex justify-between items-center flex-shrink-0">
+                <h2 class="text-xl font-bold text-gray-800">待手动更新日报（>14天）</h2>
+                <button id="close-overdue-modal-btn" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
+            <div class="flex-grow overflow-y-auto custom-scrollbar p-6">
+                <p class="text-sm text-gray-600 mb-4">以下合作任务已发布超过14天，无法自动抓取。请复制其任务ID，前往飞书表格手动录入数据后，使用“飞书数据同步”功能进行导入。</p>
+                
+                <div class="overflow-x-auto border rounded-lg">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3">达人昵称</th>
+                                <th scope="col" class="px-6 py-3">星图任务ID</th>
+                                <th scope="col" class="px-6 py-3">发布日期</th>
+                                <th scope="col" class="px-6 py-3">已超期天数</th>
+                            </tr>
+                        </thead>
+                        <tbody id="overdue-tasks-list" class="bg-white divide-y divide-gray-200">
+                            <!-- JS will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="no-overdue-tasks-message" class="hidden text-center py-10 text-gray-500">
+                    <p>当前没有已超期14天的合作任务。</p>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-6 py-4 flex justify-end border-t border-gray-200 flex-shrink-0">
+                <button id="copy-task-ids-btn" class="px-5 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 8.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v8.25A2.25 2.25 0 006 16.5h2.25m8.25-8.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-7.5A2.25 2.25 0 018.25 18v-1.5m8.25-8.25h-6a2.25 2.25 0 00-2.25 2.25v6" /></svg>
+                    一键复制所有TaskID
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- [V5.0 新增] 剪贴板提示弹窗 -->
+    <div id="clipboard-toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-5 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-300 z-[60]">
+        已复制到剪贴板！
+    </div>
+
     <script src="sidebar.js"></script>
     <script src="project_report.js" defer></script>
 </body>
 </html>
-

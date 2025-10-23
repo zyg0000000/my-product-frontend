@@ -1,10 +1,13 @@
 /**
  * @file project_report.js
- * @version 4.4 - Metric Label Update
+ * @version 5.0 - Manual Update UI Support
  * @description “项目执行报告”页面自动化功能升级版
- * --- 更新日志 (v4.4) ---
- * - [指标口径调整] 根据最新业务需求，将“定档达人数量”的标签修改为“定档内容数量”，以准确反映其计算逻辑（统计合作总次数）。
- * - [UX优化] 为“一键自动抓取”按钮增加了加载状态。点击后按钮会变为不可用并显示“创建任务中...”，防止重复提交并提供即时反馈。
+ * --- 更新日志 (v5.0) ---
+ * - [新增功能] 增加了对发布超过14天视频的手动更新流程支持。
+ * - [新增UI] 绑定了“待手动更新日报”按钮(#manual-update-btn)的事件。
+ * - [新增UI] 实现了超期任务弹窗(#overdue-tasks-modal)的显示和数据填充逻辑。
+ * - [新增功能] 实现了“一键复制TaskID”(#copy-task-ids-btn)到剪贴板的功能。
+ * - [UI修改] 在数据录入列表(#video-entry-list)中，为超期视频添加“手动更新”标记，并禁用其输入框。
  * - [依赖] 此版本需要配合 local-agent v3.2 或更高版本使用，以完成数据的持久化。
  */
 document.addEventListener('DOMContentLoaded', function () {
@@ -36,11 +39,22 @@ document.addEventListener('DOMContentLoaded', function () {
     const missingDataAlertContainer = document.getElementById('missing-data-alert-container');
     const autoScrapeBtn = document.getElementById('auto-scrape-btn');
 
+    // [V5.0 新增] 手动更新弹窗相关元素
+    const manualUpdateBtn = document.getElementById('manual-update-btn');
+    const overdueTasksModal = document.getElementById('overdue-tasks-modal');
+    const closeOverdueModalBtn = document.getElementById('close-overdue-modal-btn');
+    const overdueTasksList = document.getElementById('overdue-tasks-list');
+    const noOverdueTasksMessage = document.getElementById('no-overdue-tasks-message');
+    const copyTaskIdsBtn = document.getElementById('copy-task-ids-btn');
+    const clipboardToast = document.getElementById('clipboard-toast');
+
+
     // --- Global State ---
     let currentProjectId = null;
     let projectData = {};
     let currentMode = 'display';
     let allVideosForEntry = [];
+    let overdueVideos = []; // [V5.0 新增] 存储超期视频
     let entryCurrentPage = 1;
     let entryItemsPerPage = 10;
     const ITEMS_PER_PAGE_KEY = 'reportEntryItemsPerPage';
@@ -71,12 +85,74 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!isoString) return 'N/A';
         const date = new Date(isoString);
         if (isNaN(date)) return '无效日期';
-        const localDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
-        const year = localDate.getFullYear();
-        const month = String(localDate.getMonth() + 1).padStart(2, '0');
-        const day = String(localDate.getDate()).padStart(2, '0');
+        // 修复：确保日期解析正确，不因时区偏移一天
+        const [year, month, day] = isoString.split('T')[0].split('-');
         return `${year}-${month}-${day}`;
     }
+
+    /**
+     * [V5.0 新增] 检查视频是否发布超过 N 天
+     * @param {string} publishDate - 视频发布日期 (YYYY-MM-DD)
+     * @param {number} days - 天数阈值 (例如 14)
+     * @param {Date} today - (可选) 用于比较的“今天”的日期对象
+     * @returns {object} { isOverdue: boolean, overdueDays: number }
+     */
+    function getOverdueInfo(publishDate, days = 14, today = new Date()) {
+        if (!publishDate) return { isOverdue: false, overdueDays: 0 };
+        
+        try {
+            const pubDate = new Date(publishDate);
+            // 确保比较的是日期而不是时间
+            const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            
+            const diffTime = todayDateOnly.getTime() - pubDate.getTime();
+            if (diffTime < 0) return { isOverdue: false, overdueDays: 0 }; // 还没发布
+            
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            return {
+                isOverdue: diffDays > days,
+                overdueDays: diffDays
+            };
+        } catch(e) {
+            console.warn(`Invalid date format for publishDate: ${publishDate}`);
+            return { isOverdue: false, overdueDays: 0 };
+        }
+    }
+
+    /**
+     * [V5.0 新增] 复制文本到剪贴板 (兼容 iFrame)
+     * @param {string} text - 要复制的文本
+     */
+    function copyToClipboard(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.top = '-9999px';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showClipboardToast();
+        } catch (err) {
+            alert('复制失败，请手动复制。');
+        }
+        document.body.removeChild(textArea);
+    }
+    
+    /**
+     * [V5.0 新增] 显示“已复制”提示
+     */
+    function showClipboardToast() {
+        if (!clipboardToast) return;
+        clipboardToast.classList.remove('opacity-0');
+        setTimeout(() => {
+            clipboardToast.classList.add('opacity-0');
+        }, 1500);
+    }
+
 
     // --- Initialization ---
     async function initializePage() {
@@ -120,11 +196,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    // --- Automation Functions ---
-    
+    // --- Automation Functions (v4.4) ---
     async function handleAutoScrape() {
         if(!autoScrapeBtn) return;
         
+        // [V4.4 UX优化] 增加加载状态
         autoScrapeBtn.disabled = true;
         const originalContent = autoScrapeBtn.innerHTML;
         autoScrapeBtn.innerHTML = `
@@ -136,9 +212,16 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
 
         const reportDate = entryDatePicker.value;
+        const today = new Date(); // 用于检查是否超期
 
         const targets = allVideosForEntry
-            .filter(video => video.taskId && entryTasksStatus[video.collaborationId]?.status !== 'completed')
+            // [V5.0 修改] 只抓取未超期、未完成的任务
+            .filter(video => {
+                const { isOverdue } = getOverdueInfo(video.publishDate, 14, today);
+                return video.taskId && 
+                       !isOverdue &&
+                       entryTasksStatus[video.collaborationId]?.status !== 'completed';
+            })
             .map(video => ({
                 taskId: video.taskId,
                 collaborationId: video.collaborationId,
@@ -147,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }));
 
         if (targets.length === 0) {
-            alert('没有需要抓取的视频任务。');
+            alert('没有需要自动抓取(<=14天)的视频任务。');
             autoScrapeBtn.disabled = false;
             autoScrapeBtn.innerHTML = originalContent;
             return;
@@ -156,7 +239,8 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             const response = await apiRequest(AUTOMATION_JOBS_CREATE_API, 'POST', {
                 projectId: currentProjectId,
-                workflowId: "68ee679ef3daa8fdc9ea730f",
+                // [工作流ID确认] "68ee679ef3daa8fdc9ea730f" 是 local-agent v3.2 中用于抓取播放量的工作流ID
+                workflowId: "68ee679ef3daa8fdc9ea730f", 
                 targets: targets
             });
             
@@ -221,6 +305,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         try {
+            // [V4.4 修正] 确保使用正确的API端点
             await apiRequest(`${AUTOMATION_TASKS_API}?id=${taskId}`, 'PUT', { action: 'rerun' });
             
             let parentJobId = null;
@@ -259,9 +344,30 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             const response = await apiRequest(`${VIDEOS_FOR_ENTRY_API}?projectId=${currentProjectId}&date=${entryDatePicker.value}`);
             allVideosForEntry = response.data || [];
+            
+            // [V5.0 新增] 过滤超期视频
+            const today = new Date();
+            overdueVideos = allVideosForEntry
+                .map(video => ({
+                    ...video,
+                    overdueInfo: getOverdueInfo(video.publishDate, 14, today)
+                }))
+                .filter(video => video.overdueInfo.isOverdue);
+            
             entryCurrentPage = 1;
             entryTasksStatus = {};
             if(entryTasksPoller) clearInterval(entryTasksPoller);
+            
+            // 自动禁用“一键抓取”按钮（如果全都是超期视频）
+            const uncompletedNonOverdue = allVideosForEntry.filter(v => {
+                const info = getOverdueInfo(v.publishDate, 14, today);
+                return !info.isOverdue && v.taskId;
+            }).length;
+            if (autoScrapeBtn) autoScrapeBtn.disabled = (uncompletedNonOverdue === 0);
+
+            // [V5.0 新增] 禁用“手动更新”按钮（如果没有超期视频）
+            if (manualUpdateBtn) manualUpdateBtn.disabled = (overdueVideos.length === 0);
+
             renderEntryPage();
         } catch (error) {
             videoEntryList.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500">加载失败: ${error.message}</td></tr>`;
@@ -330,6 +436,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         const overview = data.overview || {};
         const kpis = [
+            // [V4.4 修改] 调整指标名称
             { label: '定档内容数量', value: overview.totalTalents || 0, color: 'text-gray-900' },
             { label: '已发布视频数量', value: overview.publishedVideos || 0, color: 'text-gray-900' },
             { label: '总计金额', value: `¥${(overview.totalAmount || 0).toLocaleString()}`, color: 'text-green-600' },
@@ -435,25 +542,40 @@ document.addEventListener('DOMContentLoaded', function () {
         const startIndex = (entryCurrentPage - 1) * entryItemsPerPage;
         const paginatedVideos = allVideosForEntry.slice(startIndex, startIndex + entryItemsPerPage);
         
-        videoEntryList.innerHTML = paginatedVideos.map(video => {
-            const task = entryTasksStatus[video.collaborationId];
-            let statusHtml = '<span class="text-xs text-gray-400">未开始</span>';
-            let isCompleted = false;
+        // [V5.0 新增] 获取“今天”的日期用于比较
+        const today = new Date();
 
-            if (task) {
+        videoEntryList.innerHTML = paginatedVideos.map(video => {
+            const videoToRender = allVideosForEntry.find(v => v.collaborationId === video.collaborationId) || video;
+            const task = entryTasksStatus[videoToRender.collaborationId];
+
+            // [V5.0 核心修改] 检查是否超期
+            const { isOverdue } = getOverdueInfo(videoToRender.publishDate, 14, today);
+            
+            let statusHtml = '<span class="text-xs text-gray-400">未开始</span>';
+            let isInputDisabled = false;
+
+            if (isOverdue) {
+                // 1. 如果超期，状态最优先显示“手动更新”
+                statusHtml = '<span class="text-xs font-semibold text-yellow-600" title="已超14天，请手动更新">手动更新 (>14d)</span>';
+                isInputDisabled = true;
+            } else if (task) {
+                // 2. 如果未超期，再检查自动化任务状态
                 switch (task.status) {
                     case 'pending':
                         statusHtml = '<span class="text-xs font-semibold text-yellow-600">排队中...</span>';
+                        isInputDisabled = true; // 排队中也禁止手动输入
                         break;
                     case 'processing':
                         statusHtml = '<span class="text-xs font-semibold text-blue-600">抓取中...</span>';
+                        isInputDisabled = true; // 抓取中也禁止手动输入
                         break;
                     case 'completed':
                         statusHtml = '<span class="text-xs font-semibold text-green-600">✓ 成功</span>';
-                        isCompleted = true;
+                        isInputDisabled = true; // 成功后禁止手动输入
                         const views = task.result?.data?.['播放量']?.replace(/,/g, '');
                         if (views) {
-                            const videoInMemory = allVideosForEntry.find(v => v.collaborationId === video.collaborationId);
+                            const videoInMemory = allVideosForEntry.find(v => v.collaborationId === videoToRender.collaborationId);
                             if(videoInMemory) videoInMemory.totalViews = views;
                         }
                         break;
@@ -462,11 +584,11 @@ document.addEventListener('DOMContentLoaded', function () {
                                           <span class="text-xs font-semibold text-red-600 cursor-pointer" title="${task.errorMessage || '未知错误'}">✗ 失败</span>
                                           <button data-task-id="${task._id}" class="retry-scrape-btn text-xs text-blue-600 hover:underline">重试</button>
                                       </div>`;
+                        // 失败时允许手动输入，所以 isInputDisabled 保持 false
                         break;
                 }
             }
-            
-            const videoToRender = allVideosForEntry.find(v => v.collaborationId === video.collaborationId) || video;
+            // 3. 如果既未超期也无任务状态，则显示“未开始”，isInputDisabled 保持 false
 
             const videoLink = videoToRender.videoId
                 ? `<a href="https://www.douyin.com/video/${videoToRender.videoId}" target="_blank" class="text-blue-600 hover:underline">点击查看</a>`
@@ -483,7 +605,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                placeholder="请输入总曝光/播放量" 
                                value="${videoToRender.totalViews || ''}" 
                                data-collaboration-id="${videoToRender.collaborationId}"
-                               ${isCompleted ? 'disabled bg-gray-100' : ''}>
+                               ${isInputDisabled ? 'disabled bg-gray-100' : ''}>
                     </td>
                     <td class="px-6 py-4 text-center">${statusHtml}</td>
                 </tr>
@@ -514,6 +636,52 @@ document.addEventListener('DOMContentLoaded', function () {
         paginationContainer.innerHTML = `${perPageSelector}${pageButtonsContainer}`;
     }
 
+    // --- [V5.0 新增] 弹窗处理函数 ---
+    function openOverdueModal() {
+        if (!overdueTasksModal) return;
+        
+        const listHtml = overdueVideos.map(video => `
+            <tr class="bg-white">
+                <td class="px-6 py-4 font-medium text-gray-900">${video.talentName}</td>
+                <td class="px-6 py-4 font-mono text-gray-600">${video.taskId || 'N/A'}</td>
+                <td class="px-6 py-4 text-gray-500">${formatDate(video.publishDate)}</td>
+                <td class="px-6 py-4 text-red-600 font-medium">${video.overdueInfo.overdueDays} 天</td>
+            </tr>
+        `).join('');
+
+        if (overdueVideos.length > 0) {
+            overdueTasksList.innerHTML = listHtml;
+            overdueTasksList.closest('table').classList.remove('hidden');
+            noOverdueTasksMessage.classList.add('hidden');
+            copyTaskIdsBtn.disabled = false;
+        } else {
+            overdueTasksList.innerHTML = '';
+            overdueTasksList.closest('table').classList.add('hidden');
+            noOverdueTasksMessage.classList.remove('hidden');
+            copyTaskIdsBtn.disabled = true;
+        }
+        
+        overdueTasksModal.classList.remove('hidden');
+    }
+
+    function closeOverdueModal() {
+        if (overdueTasksModal) overdueTasksModal.classList.add('hidden');
+    }
+
+    function copyOverdueTaskIds() {
+        const taskIds = overdueVideos
+            .map(v => v.taskId)
+            .filter(Boolean) // 过滤掉null或undefined
+            .join('\n');
+            
+        if (!taskIds) {
+            alert('没有可复制的任务ID。');
+            return;
+        }
+        
+        copyToClipboard(taskIds);
+    }
+
     // --- Event Listeners ---
     function setupEventListeners() {
         toggleModeBtn.addEventListener('click', () => setMode(currentMode === 'display' ? 'entry' : 'display'));
@@ -523,6 +691,23 @@ document.addEventListener('DOMContentLoaded', function () {
         if(autoScrapeBtn) {
             autoScrapeBtn.addEventListener('click', handleAutoScrape);
         }
+
+        // [V5.0 新增] 绑定新按钮和弹窗事件
+        if (manualUpdateBtn) {
+            manualUpdateBtn.addEventListener('click', openOverdueModal);
+        }
+        if (closeOverdueModalBtn) {
+            closeOverdueModalBtn.addEventListener('click', closeOverdueModal);
+        }
+        if (overdueTasksModal) {
+            overdueTasksModal.addEventListener('click', (e) => {
+                if (e.target === overdueTasksModal) closeOverdueModal();
+            });
+        }
+        if (copyTaskIdsBtn) {
+            copyTaskIdsBtn.addEventListener('click', copyOverdueTaskIds);
+        }
+        // [V5.0 结束]
 
         if (reportDatePicker) {
             reportDatePicker.addEventListener('change', loadReportData);
