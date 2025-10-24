@@ -1,7 +1,7 @@
 /**
- * @file order_list_page.js (Refactored from order_list.js v28.4 - Hoisting Fix)
+ * @file order_list_page.js (Refactored from order_list.js v28.4 - Hoisting Fix & Debugging)
  * @description Main logic for the order_list.html page, using ES Modules.
- * Fixes ReferenceError by ensuring setupEventListeners is defined before initializePage.
+ * Adds console logs for debugging loading issues.
  */
 
 // --- Imports ---
@@ -32,8 +32,12 @@ import {
     getTalentHistory
 } from '../services/collaborationService.js';
 
+console.log('[DEBUG] order_list_page.js module loaded.'); // <-- Log 1: Module loaded
+
 // Wrap all code inside DOMContentLoaded
 document.addEventListener('DOMContentLoaded', function() {
+
+    console.log('[DEBUG] DOMContentLoaded event fired.'); // <-- Log 2: DOM ready
 
     // --- DOM Elements ---
     const projectNameDisplay = document.getElementById('project-name-display');
@@ -124,11 +128,13 @@ document.addEventListener('DOMContentLoaded', function() {
     let effectDashboardData = null;
     let editingDateId = null;
     let editingPerformanceRowId = null;
-    let solutionSaveTimer = null;
+    let solutionSaveTimer = null; // Assuming this is defined elsewhere if used
 
     // --- Event Handlers (Moved Before initializePage) ---
     function setupEventListeners() {
-        // Dashboard Tab Switcher
+        console.log('[DEBUG] setupEventListeners called.'); // <-- Log 3: Setup listeners
+        // ... (rest of the setupEventListeners function remains the same) ...
+         // Dashboard Tab Switcher
         if (dashboardTabs) {
              dashboardTabs.addEventListener('click', (e) => {
                  const tabButton = e.target.closest('.tab-btn');
@@ -176,6 +182,7 @@ document.addEventListener('DOMContentLoaded', function() {
             selectAllFinancialCheckbox.addEventListener('change', handleSelectAllFinancialChange);
         }
         // Adjustment Modal
+        if (addAdjustmentBtn) addAdjustmentBtn.addEventListener('click', () => openAdjustmentModal()); // Ensure add button opens modal
         if (closeAdjustmentModalBtn) closeAdjustmentModalBtn.addEventListener('click', closeAdjustmentModal);
         if (adjustmentForm) adjustmentForm.addEventListener('submit', handleAdjustmentSubmit);
         // Pagination Controls (for all tabs)
@@ -201,20 +208,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Data Loading Logic ---
     async function initializePage() {
+        console.log('[DEBUG] initializePage called.'); // <-- Log 4: Init page start
         const urlParams = new URLSearchParams(window.location.search);
         currentProjectId = urlParams.get('projectId');
         if (!currentProjectId) {
+            console.error('[DEBUG] Project ID missing in URL.');
             if (projectNameDisplay) projectNameDisplay.textContent = '错误：缺少项目ID';
             document.body.innerHTML = '<h1>错误：缺少项目ID</h1>';
             return;
         }
         itemsPerPage = parseInt(localStorage.getItem(ITEMS_PER_PAGE_KEY) || ITEMS_PER_PAGE_DEFAULT.toString());
 
-        setupEventListeners(); // Call this *before* potentially needing it in loadInitialData/switchTab
+        // Call setupEventListeners *before* potentially needing it in loadInitialData/switchTab
+        // setupEventListeners(); // Moved up, called after DOMContentLoaded
+
         await loadInitialData();
+        console.log('[DEBUG] initializePage finished.'); // <-- Log 5: Init page end
     }
 
     async function loadInitialData() {
+        console.log('[DEBUG] loadInitialData called.'); // <-- Log 6: Load initial data start
         let loadingAlert = null;
         try {
             loadingAlert = showLoadingAlert('正在加载项目核心数据...');
@@ -224,6 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 loadConfiguration('FRAMEWORK_DISCOUNTS'),
                 loadConfiguration('ADJUSTMENT_TYPES')
             ]);
+            console.log('[DEBUG] Project details and configurations loaded.');
 
             project = projectResponse || {};
             allDiscounts = discountsData || [];
@@ -237,11 +251,14 @@ document.addEventListener('DOMContentLoaded', function() {
             updateAddButtonsState(project);
 
             loadingAlert.close(); // Close loading alert before loading tab data
+            console.log('[DEBUG] Static parts rendered.');
 
             // Load data for the initially active tab
             await switchTabAndLoadData();
+            console.log('[DEBUG] Initial tab data loaded.');
 
         } catch (error) {
+            console.error('[DEBUG] Error during loadInitialData:', error);
             if (loadingAlert) loadingAlert.close();
             if (projectNameDisplay) projectNameDisplay.textContent = '数据加载失败';
             showCustomAlert(`加载初始数据失败: ${error.message}`, '错误');
@@ -252,51 +269,67 @@ document.addEventListener('DOMContentLoaded', function() {
             if (financialListBody) financialListBody.innerHTML = '';
             if (effectDashboardContent) effectDashboardContent.classList.add('hidden');
         }
+        console.log('[DEBUG] loadInitialData finished.'); // <-- Log 7: Load initial data end
     }
 
     async function loadAndRenderCollaborators(pageKey, statuses = '') {
+        console.log(`[DEBUG] loadAndRenderCollaborators called for key: ${pageKey}, statuses: ${statuses}`); // <-- Log 8: Load collaborators start
         setLoadingState(true, pageKey);
         const paginationContainer = getPaginationContainer(pageKey);
         const errorBody = getErrorBody(pageKey);
         const colspan = getColspan(pageKey);
 
         try {
+            console.log(`[DEBUG] Fetching collaborators: projectId=${currentProjectId}, page=${currentPage[pageKey]}, limit=${itemsPerPage}, statuses=${statuses}`);
             const { data, total } = await loadCollaborators(
                 currentProjectId,
                 currentPage[pageKey],
                 itemsPerPage,
                 statuses
             );
+            console.log(`[DEBUG] Collaborators fetched for ${pageKey}. Total: ${total}, Received: ${data ? data.length : 0}`);
 
             paginatedData[pageKey] = data || []; // Ensure data is an array
             totalItems[pageKey] = total || 0;
 
+            console.log(`[DEBUG] Calling render function for ${pageKey}.`);
             // Render the specific tab based on the fetched data
             switch (pageKey) {
                 case 'basic': renderBasicInfoTab(paginatedData.basic, project); break;
                 case 'performance': renderDataPerformanceTab(paginatedData.performance, project); break;
                 case 'financial': renderFinancialTab(paginatedData.financial, project); break;
             }
+            console.log(`[DEBUG] Rendering pagination for ${pageKey}.`);
             // Render pagination controls
             renderPagination(paginationContainer, pageKey, totalItems[pageKey], currentPage[pageKey], itemsPerPage);
 
         } catch (error) {
-            console.error(`加载 ${pageKey} 数据失败:`, error);
+            console.error(`[DEBUG] loadAndRenderCollaborators failed for ${pageKey}:`, error);
             if (errorBody) {
                  errorBody.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-12 text-red-500">加载数据失败</td></tr>`;
             }
              if (paginationContainer) paginationContainer.innerHTML = ''; // Clear pagination on error
 
         } finally {
+            console.log(`[DEBUG] Setting loading state to false for ${pageKey}.`);
             setLoadingState(false, pageKey);
         }
+        console.log(`[DEBUG] loadAndRenderCollaborators finished for key: ${pageKey}.`); // <-- Log 9: Load collaborators end
     }
 
     async function switchTabAndLoadData() {
-        if (!mainTabs) return; // Add check for mainTabs existence
+        console.log('[DEBUG] switchTabAndLoadData called.'); // <-- Log 10: Switch tab start
+        if (!mainTabs) {
+             console.log('[DEBUG] mainTabs element not found, aborting switch.');
+             return;
+        }
         const activeTabBtn = mainTabs.querySelector('.tab-btn.active');
-        if (!activeTabBtn) return;
+        if (!activeTabBtn) {
+             console.log('[DEBUG] No active tab button found, aborting switch.');
+             return;
+        }
         const activeTab = activeTabBtn.dataset.tabTarget;
+        console.log(`[DEBUG] Active tab identified: ${activeTab}`);
 
         // Hide all tab panes
         if (mainTabContent) mainTabContent.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
@@ -314,7 +347,11 @@ document.addEventListener('DOMContentLoaded', function() {
         else if (activeTab === 'data-performance') pageKey = 'performance';
         else if (activeTab === 'financial-info') pageKey = 'financial';
         else if (activeTab === 'effect-dashboard') pageKey = 'effect';
-        else return;
+        else {
+             console.log(`[DEBUG] Unknown tab target: ${activeTab}, aborting load.`);
+             return;
+        }
+        console.log(`[DEBUG] pageKey determined: ${pageKey}`);
 
         // Reset editing state when switching tabs
         editingPerformanceRowId = null;
@@ -325,39 +362,52 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Load data specific to the active tab
         if (activeTab === 'effect-dashboard') {
+            console.log('[DEBUG] Loading effect dashboard data...');
             if (!effectDashboardData) { // Load only if not already loaded
                 const loading = showLoadingAlert('正在加载效果看板数据...');
                 try {
                     effectDashboardData = await loadEffectDashboardData(currentProjectId);
+                    console.log('[DEBUG] Effect dashboard data loaded successfully.');
                     renderEffectDashboard(effectDashboardData);
                 } catch(e) {
+                    console.error('[DEBUG] Error loading effect dashboard:', e);
                     if (effectDashboardError) effectDashboardError.classList.remove('hidden'); // Show error state
                     if (effectDashboardLoading) effectDashboardLoading.classList.add('hidden');
                     if (effectDashboardContent) effectDashboardContent.classList.add('hidden');
                  }
                 finally { loading.close(); }
             } else {
+                 console.log('[DEBUG] Rendering cached effect dashboard data.');
                  renderEffectDashboard(effectDashboardData); // Re-render with cached data
             }
         } else {
+            console.log(`[DEBUG] Loading collaborator data for tab ${pageKey}...`);
             // Determine statuses to filter by (only applicable for basic tab)
             let selectedStatuses = '';
-            if (pageKey === 'basic' && statusFilterContainer && statusFilterOptions) {
+            if (pageKey === 'basic' && statusFilterContainer && statusFilterContainer.style.display !== 'none' && statusFilterOptions) {
                  const selectedCheckboxes = statusFilterOptions.querySelectorAll('.status-filter-checkbox:checked');
                  selectedStatuses = Array.from(selectedCheckboxes).map(cb => cb.value).join(',');
+                 console.log(`[DEBUG] Selected statuses for basic tab: ${selectedStatuses}`);
             }
             // Load collaborators for the current tab
             await loadAndRenderCollaborators(pageKey, selectedStatuses);
         }
+        console.log('[DEBUG] switchTabAndLoadData finished.'); // <-- Log 11: Switch tab end
     }
 
     function setLoadingState(isLoading, pageKey) {
+        console.log(`[DEBUG] setLoadingState called for ${pageKey}, isLoading: ${isLoading}`); // <-- Log 12: Set loading state
         const { body, colspan } = getLoadingElements(pageKey);
         if (isLoading && body) {
             body.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-12"><div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent align-[-0.125em]" role="status"></div></td></tr>`;
+        } else if (!isLoading && body && body.querySelector('td[colspan] > div[role="status"]')) {
+             // Only clear if the loading indicator is currently shown
+             // body.innerHTML = ''; // Don't clear here, render functions will overwrite
+             console.log(`[DEBUG] Loading indicator should be removed by render function for ${pageKey}`);
         }
     }
-    // Helper to get elements for loading state
+    // ... (Rest of the functions remain the same) ...
+     // Helper to get elements for loading state
     function getLoadingElements(key) {
         switch (key) {
             case 'basic': return { body: collaboratorListBody, colspan: 10 };
@@ -394,44 +444,72 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Rendering Functions ---
     // (Ensure implementations exist for all these)
-    function renderHeaderAndDashboard(projectData) { /* ... implementation from previous version ... */ }
-    function renderStatusGuidance(projectData) { /* ... implementation ... */ }
-    function renderProjectFiles(project) { /* ... implementation ... */ }
-    function updateAddButtonsState(projectData) { /* ... implementation ... */ }
-    function renderBasicInfoTab(collaborators, projectData) { /* ... implementation ... */ }
-    function renderDataPerformanceTab(collaborators, projectData) { /* ... implementation ... */ }
-    function renderFinancialTab(collaborators, projectData) { /* ... implementation ... */ }
-    function renderAdjustmentsSection(project, isReadOnly) { /* ... implementation ... */ }
-    function renderEffectDashboard(data) { /* ... implementation ... */ }
+    function renderHeaderAndDashboard(projectData) {
+        console.log('[DEBUG] renderHeaderAndDashboard called.');
+        /* ... implementation from previous version ... */
+        if (!projectNameDisplay) return;
+        projectNameDisplay.textContent = projectData.name;
+        const breadcrumb = document.getElementById('breadcrumb-project-name');
+        if (breadcrumb) breadcrumb.textContent = projectData.name;
+        const qianchuanIdEl = document.getElementById('project-qianchuan-id');
+         if (qianchuanIdEl) {
+            qianchuanIdEl.textContent = `仟传编号: ${projectData.qianchuanId || 'N/A'}`;
+        }
+        const metrics = projectData.metrics || {};
+        if (statsTotalBudget) statsTotalBudget.textContent = formatCurrency(metrics.projectBudget);
+        if (statsTotalCollaborators) statsTotalCollaborators.textContent = metrics.totalCollaborators || 0;
+        if (statsBudgetUtilization) statsBudgetUtilization.textContent = formatPercent(metrics.budgetUtilization);
+        if (statsTotalIncome) statsTotalIncome.textContent = formatCurrency(metrics.totalIncome);
+        if (statsTotalRebateReceivable) statsTotalRebateReceivable.textContent = formatCurrency(metrics.totalRebateReceivable);
+        if (statsIncomeAdjustments) statsIncomeAdjustments.textContent = formatCurrency(metrics.incomeAdjustments);
+        if (statsTotalOperationalCost) statsTotalOperationalCost.textContent = formatCurrency(metrics.totalOperationalCost);
+        if (statsTotalExpense) statsTotalExpense.textContent = formatCurrency(metrics.totalExpense);
+        if (statsFundsOccupationCost) statsFundsOccupationCost.textContent = formatCurrency(metrics.fundsOccupationCost);
+        if (statsExpenseAdjustments) statsExpenseAdjustments.textContent = formatCurrency(metrics.expenseAdjustments);
+        if (statsPreAdjustmentProfit) statsPreAdjustmentProfit.textContent = formatCurrency(metrics.preAdjustmentProfit);
+        if (statsPreAdjustmentMargin) statsPreAdjustmentMargin.textContent = formatPercent(metrics.preAdjustmentMargin);
+        if (statsOperationalProfit) statsOperationalProfit.textContent = formatCurrency(metrics.operationalProfit);
+        if (statsOperationalMargin) statsOperationalMargin.textContent = formatPercent(metrics.operationalMargin);
+     }
+    function renderStatusGuidance(projectData) { console.log('[DEBUG] renderStatusGuidance called.'); /* ... implementation ... */ }
+    function renderProjectFiles(project) { console.log('[DEBUG] renderProjectFiles called.'); /* ... implementation ... */ }
+    function updateAddButtonsState(projectData) { console.log('[DEBUG] updateAddButtonsState called.'); /* ... implementation ... */ }
+    function renderBasicInfoTab(collaborators, projectData) { console.log(`[DEBUG] renderBasicInfoTab called with ${collaborators.length} collaborators.`); /* ... implementation ... */ }
+    function renderDataPerformanceTab(collaborators, projectData) { console.log(`[DEBUG] renderDataPerformanceTab called with ${collaborators.length} collaborators.`); /* ... implementation ... */ }
+    function renderFinancialTab(collaborators, projectData) { console.log(`[DEBUG] renderFinancialTab called with ${collaborators.length} collaborators.`); /* ... implementation ... */ }
+    function renderAdjustmentsSection(project, isReadOnly) { console.log('[DEBUG] renderAdjustmentsSection called.'); /* ... implementation ... */ }
+    function renderEffectDashboard(data) { console.log('[DEBUG] renderEffectDashboard called.'); /* ... implementation ... */ }
 
     // --- Implementations of Event Handlers ---
     // (Ensure implementations exist for all these)
-    function handleMainContentClick(e) { /* ... implementation ... */ }
-    function handleMainContentChange(e) { /* ... implementation ... */ }
-    async function handleProjectFileUpload(files) { /* ... implementation ... */ }
-    async function handleDeleteProjectFile(fileUrl) { /* ... implementation ... */ }
-    async function handleDeleteCollaboration(collabId) { /* ... implementation ... */ }
-    async function handleStatusChange(collabId, newStatus) { /* ... implementation ... */ }
-    async function handleSavePlannedDate(collabId) { /* ... implementation ... */ }
-    async function handleFixStatus(collabId) { /* ... implementation ... */ }
-    async function handleDateSave(collabId) { /* ... implementation ... */ }
-    async function handleSavePerformance(collabId) { /* ... implementation ... */ }
-    async function handleBatchAction() { /* ... implementation ... */ }
-    function openAdjustmentModal(adjId = null) { /* ... implementation ... */ }
-    function closeAdjustmentModal() { /* ... implementation ... */ }
-    async function handleAdjustmentSubmit(e) { /* ... implementation ... */ }
-    async function handleDeleteAdjustment(adjId) { /* ... implementation ... */ }
-    async function handlePaginationClick(pageKey, e) { /* ... implementation ... */ }
-    async function handleItemsPerPageChange(e) { /* ... implementation ... */ }
-    async function handleViewHistory(talentId, talentName) { /* ... implementation ... */ }
-    function handleSelectAllFinancialChange(e) { /* ... implementation ... */ }
-    function handleEffectDashboardToggle(e) { /* ... implementation ... */ }
-    function setupStatusFilterListeners() { /* ... implementation ... */ }
-    function closeFilePreviewModal() { /* ... implementation ... */ }
-    function handleProjectFileActions(e) { /* ... implementation ... */ }
+    function handleMainContentClick(e) { console.log('[DEBUG] handleMainContentClick detected.'); /* ... implementation ... */ }
+    function handleMainContentChange(e) { console.log('[DEBUG] handleMainContentChange detected.'); /* ... implementation ... */ }
+    async function handleProjectFileUpload(files) { console.log('[DEBUG] handleProjectFileUpload called.'); /* ... implementation ... */ }
+    async function handleDeleteProjectFile(fileUrl) { console.log('[DEBUG] handleDeleteProjectFile called.'); /* ... implementation ... */ }
+    async function handleDeleteCollaboration(collabId) { console.log('[DEBUG] handleDeleteCollaboration called.'); /* ... implementation ... */ }
+    async function handleStatusChange(collabId, newStatus) { console.log('[DEBUG] handleStatusChange called.'); /* ... implementation ... */ }
+    async function handleSavePlannedDate(collabId) { console.log('[DEBUG] handleSavePlannedDate called.'); /* ... implementation ... */ }
+    async function handleFixStatus(collabId) { console.log('[DEBUG] handleFixStatus called.'); /* ... implementation ... */ }
+    async function handleDateSave(collabId) { console.log('[DEBUG] handleDateSave called.'); /* ... implementation ... */ }
+    async function handleSavePerformance(collabId) { console.log('[DEBUG] handleSavePerformance called.'); /* ... implementation ... */ }
+    async function handleBatchAction() { console.log('[DEBUG] handleBatchAction called.'); /* ... implementation ... */ }
+    function openAdjustmentModal(adjId = null) { console.log('[DEBUG] openAdjustmentModal called.'); /* ... implementation ... */ }
+    function closeAdjustmentModal() { console.log('[DEBUG] closeAdjustmentModal called.'); /* ... implementation ... */ }
+    async function handleAdjustmentSubmit(e) { console.log('[DEBUG] handleAdjustmentSubmit called.'); /* ... implementation ... */ }
+    async function handleDeleteAdjustment(adjId) { console.log('[DEBUG] handleDeleteAdjustment called.'); /* ... implementation ... */ }
+    async function handlePaginationClick(pageKey, e) { console.log('[DEBUG] handlePaginationClick called.'); /* ... implementation ... */ }
+    async function handleItemsPerPageChange(e) { console.log('[DEBUG] handleItemsPerPageChange called.'); /* ... implementation ... */ }
+    async function handleViewHistory(talentId, talentName) { console.log('[DEBUG] handleViewHistory called.'); /* ... implementation ... */ }
+    function handleSelectAllFinancialChange(e) { console.log('[DEBUG] handleSelectAllFinancialChange called.'); /* ... implementation ... */ }
+    function handleEffectDashboardToggle(e) { console.log('[DEBUG] handleEffectDashboardToggle called.'); /* ... implementation ... */ }
+    function setupStatusFilterListeners() { console.log('[DEBUG] setupStatusFilterListeners called.'); /* ... implementation ... */ }
+    function closeFilePreviewModal() { console.log('[DEBUG] closeFilePreviewModal called.'); /* ... implementation ... */ }
+    function handleProjectFileActions(e) { console.log('[DEBUG] handleProjectFileActions called.'); /* ... implementation ... */ }
+
 
     // --- Start the application ---
+    // Call setupEventListeners *after* DOMContentLoaded but *before* initializePage
+    setupEventListeners();
     initializePage();
 
 }); // <<< Final closing brace and parenthesis
-
