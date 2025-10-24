@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>查看项目进展</title>
+    <!-- 确保 Tailwind CSS 被加载 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* --- [统一] 全局及基础样式 --- */
-        body { 
-            font-family: 'Inter', sans-serif; 
+        body {
+            font-family: 'Inter', sans-serif;
             /* [修改] 背景色与 project_report.html 保持一致 */
-            background-color: #f7f8fc; 
+            background-color: #f7f8fc;
         }
 
         /* --- [新增] 侧边栏样式 (从 project_report.html 复制) --- */
@@ -61,7 +62,7 @@
         <header class="bg-white p-6 rounded-xl shadow-sm mb-8 border border-gray-200">
             <nav class="text-sm mb-4" aria-label="Breadcrumb">
                 <ol class="list-none p-0 inline-flex">
-                    <li class="flex items-center"><a href="index.html" class="text-gray-500 hover:text-indigo-600 transition-colors">项目中心</a><svg class="fill-current w-3 h-3 mx-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373 9.373 24.569 9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z"/></svg></li>
+                    <li class="flex items-center"><a href="index.html" class="text-gray-500 hover:text-indigo-600 transition-colors">项目中心</a><svg class="fill-current w-3 h-3 mx-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569 9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z"/></svg></li>
                     <li class="flex items-center"><span id="breadcrumb-project-name" class="font-semibold text-gray-700">加载中...</span></li>
                 </ol>
             </nav>
@@ -74,7 +75,7 @@
         </header>
 
         <div id="status-alert-banner" class="hidden mb-6 p-4 rounded-lg text-sm"></div>
-        
+
         <section class="bg-white rounded-xl shadow-sm mb-8">
             <div class="px-6 py-4 border-b border-gray-200">
                 <nav id="dashboard-tabs" class="flex items-center space-x-5" aria-label="Tabs">
@@ -156,7 +157,7 @@
                     <a id="add-batch-talent-btn" href="#" class="add-btn px-4 py-1.5 bg-green-100 text-green-700 text-sm font-semibold rounded-lg hover:bg-green-200"> + 批量选择 </a>
                 </div>
             </div>
-            
+
             <div id="tab-content">
                 <div id="basic-info" class="tab-pane">
                     <div class="overflow-x-auto">
@@ -235,11 +236,11 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div id="effect-dashboard" class="tab-pane hidden p-6">
                     <div id="effect-dashboard-loading" class="text-center py-12"><p class="text-gray-500">正在加载效果看板数据...</p></div>
                     <div id="effect-dashboard-error" class="text-center py-12 hidden"><p class="text-red-500">效果看板数据加载失败，请稍后重试。</p></div>
-                    
+
                     <div id="effect-dashboard-content" class="hidden">
                         <div class="mb-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border">
@@ -329,7 +330,7 @@
 
     <div id="file-preview-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden z-50 p-4 sm:p-8"><div class="bg-white rounded-lg shadow-xl w-full h-full max-w-6xl flex flex-col"><div class="p-4 border-b flex justify-between items-center bg-gray-50 rounded-t-lg"><h2 id="preview-modal-title" class="text-lg font-semibold text-gray-800 truncate">文件预览</h2><button type="button" id="close-preview-modal-btn" class="text-gray-400 hover:text-gray-600 text-3xl font-light">&times;</button></div><div class="p-2 sm:p-4 flex-grow bg-gray-200"><iframe id="preview-modal-iframe" class="preview-modal-iframe" title="文件预览"></iframe></div></div></div>
     <div id="adjustment-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50 p-4"><div class="bg-white rounded-lg shadow-xl w-full max-w-lg"><div class="p-6"><div class="flex justify-between items-center mb-4"><h2 id="adjustment-modal-title" class="text-2xl font-bold text-gray-800">添加调整项</h2><button type="button" id="close-adjustment-modal-btn" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button></div><form id="adjustment-form" class="space-y-4"><input type="hidden" id="editing-adjustment-id"><div><label for="adjustment-type" class="block text-sm font-medium text-gray-700">调整类型 <span class="text-red-500">*</span></label><select id="adjustment-type" required class="mt-1 w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg"></select></div><div><label for="adjustment-date" class="block text-sm font-medium text-gray-700">调整日期 <span class="text-red-500">*</span></label><input type="date" id="adjustment-date" required class="mt-1 w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg"></div><div><label for="adjustment-desc" class="block text-sm font-medium text-gray-700">调整事项 <span class="text-red-500">*</span></label><input type="text" id="adjustment-desc" required class="mt-1 w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg" placeholder="例如：客户追加服务费"></div><div><label for="adjustment-amount" class="block text-sm font-medium text-gray-700">调整金额 <span class="text-red-500">*</span></label><input type="number" step="0.01" id="adjustment-amount" required class="mt-1 w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg" placeholder="收入为正数, 支出为负数"></div><div class="flex justify-end pt-4"><button type="submit" id="save-adjustment-btn" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">确认保存</button></div></form></div></div></div>
-    
+
     <script src="sidebar.js"></script>
     <script src="order_list.js" defer></script>
 </body>
