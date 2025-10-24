@@ -1,6 +1,7 @@
 /**
  * @file api.js
  * @description Provides a centralized function for making API requests.
+ * Fixes return value logic to be compatible with collaborationService.
  */
 
 import { showCustomAlert } from '../components/modal.js';
@@ -80,10 +81,11 @@ export async function apiRequest(endpoint, method = 'GET', body = null) {
             throw new Error(data.message || data.error || `HTTP error! status: ${response.status}`);
         }
 
-        // For consistency, some backends might wrap data in { success: true, data: ... }
-        // Return the core data directly if wrapped, otherwise return the whole object
-        // Adjust this based on your backend's common response structure
-        return data.success === true && data.data !== undefined ? data.data : data;
+        // ******** FIX START ********
+        // Always return the full parsed data object, let the calling service extract what it needs.
+        console.log('[EXTRA DEBUG] Parsed data in apiRequest:', data); // Keep debug log for now
+        return data;
+        // ******** FIX END ********
 
     } catch (error) {
         console.error(`API request failed: ${method} ${url.pathname}`, error);
