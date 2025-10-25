@@ -419,6 +419,19 @@ export class FinancialTab {
             selectAllCheckbox.addEventListener('change', () => this.handleSelectAll());
         }
 
+        // 批量操作下拉框改变事件
+        if (batchActionSelect) {
+            batchActionSelect.addEventListener('change', () => {
+                const { batchDateInput, executeBatchBtn } = this.elements;
+                if (batchDateInput) {
+                    batchDateInput.classList.toggle('hidden', !batchActionSelect.value);
+                }
+                if (executeBatchBtn) {
+                    executeBatchBtn.disabled = !batchActionSelect.value;
+                }
+            });
+        }
+
         if (executeBatchBtn) {
             executeBatchBtn.addEventListener('click', this.handleBatchAction);
         }
