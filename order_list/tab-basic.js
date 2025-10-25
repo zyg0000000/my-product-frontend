@@ -576,7 +576,7 @@ export class BasicInfoTab {
                     <div class="grid grid-cols-5 gap-4 text-sm py-2 border-b last:border-b-0">
                         <div class="col-span-2 font-medium text-gray-800" title="${item.projectName}">${item.projectName || 'N/A'}</div>
                         <div class="text-gray-600">${item.projectYear || ''}年${item.projectMonth || ''}月</div>
-                        <div class="text-gray-600">¥${Number(item.amount || 0).toLocaleString()} / ${Number(item.actualRebate || 0)}%</div>
+                        <div class="text-gray-600">¥${Number(item.amount || 0).toLocaleString()} / ${item.rebate ?? 'N/A'}%</div>
                         <div>${this.getStatusCapsuleHtml(item.status)}</div>
                     </div>
                 `).join('');
