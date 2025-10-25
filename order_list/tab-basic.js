@@ -544,7 +544,7 @@ export class BasicInfoTab {
         const historyModal = document.createElement('div');
         historyModal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full z-50 flex items-center justify-center p-4';
         historyModal.innerHTML = `
-            <div class="relative mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+            <div class="relative mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-bold text-gray-900" id="history-modal-title"></h3>
                     <button id="history-modal-close-btn" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
@@ -573,19 +573,19 @@ export class BasicInfoTab {
 
             if (response.success && response.data.length > 0) {
                 const historyHtml = response.data.map(item => `
-                    <div class="grid grid-cols-4 gap-4 text-sm py-2 border-b last:border-b-0">
-                        <div class="font-medium text-gray-800 truncate" title="${item.projectName}">${item.projectName || 'N/A'}</div>
+                    <div class="grid grid-cols-5 gap-4 text-sm py-2 border-b last:border-b-0">
+                        <div class="col-span-2 font-medium text-gray-800" title="${item.projectName}">${item.projectName || 'N/A'}</div>
                         <div class="text-gray-600">${item.projectYear || ''}年${item.projectMonth || ''}月</div>
-                        <div class="text-gray-600">¥ ${Number(item.amount || 0).toLocaleString()}</div>
+                        <div class="text-gray-600">¥${Number(item.amount || 0).toLocaleString()} / ${Number(item.actualRebate || 0)}%</div>
                         <div>${this.getStatusCapsuleHtml(item.status)}</div>
                     </div>
                 `).join('');
 
                 historyModalBody.innerHTML = `
-                    <div class="grid grid-cols-4 gap-4 text-xs font-bold text-gray-500 uppercase px-0 py-2 border-b">
-                        <div>项目名称</div>
+                    <div class="grid grid-cols-5 gap-4 text-xs font-bold text-gray-500 uppercase px-0 py-2 border-b">
+                        <div class="col-span-2">项目名称</div>
                         <div>项目月份</div>
-                        <div>合作金额</div>
+                        <div>金额 / 返点率</div>
                         <div>最终状态</div>
                     </div>
                     ${historyHtml}
