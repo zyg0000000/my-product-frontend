@@ -408,7 +408,7 @@ export class FinancialTab {
      * 绑定事件
      */
     bindEvents() {
-        const { listBody, selectAllCheckbox, executeBatchBtn, addAdjustmentBtn, closeAdjustmentModalBtn, adjustmentForm } = this.elements;
+        const { listBody, selectAllCheckbox, batchActionSelect, batchDateInput, executeBatchBtn, addAdjustmentBtn, closeAdjustmentModalBtn, adjustmentForm } = this.elements;
 
         if (listBody) {
             listBody.addEventListener('click', this.handleClick);
