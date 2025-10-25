@@ -448,6 +448,11 @@ export class OrderListApp {
 
         // 项目文件相关事件
         this.setupFileListeners();
+
+        // 监听来自各个 Tab 的项目刷新事件
+        document.addEventListener('refreshProject', () => {
+            this.refreshProject();
+        });
     }
 
     /**
