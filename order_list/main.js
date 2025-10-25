@@ -124,6 +124,9 @@ export class OrderListApp {
 
         // 触发项目数据加载事件 (供侧边栏使用)
         document.dispatchEvent(new CustomEvent('projectDataLoaded'));
+
+        // 加载默认Tab（基础信息）的数据
+        await this.switchTab();
     }
 
     /**
