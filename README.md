@@ -480,6 +480,7 @@ chore: 构建/工具链相关
 ## 📚 相关文档
 
 - [架构升级指南](./ARCHITECTURE_UPGRADE_GUIDE.md) - 页面模块化重构指南
+- [API 参考文档](./docs/API_REFERENCE.md) - 云函数接口规范（15 个详细 API）
 - [云函数仓库](https://github.com/zyg0000000/my-cloud-functions) - 后端 API 实现
 - [数据库 Schema](https://github.com/zyg0000000/mongodb-schemas) - MongoDB 数据模型
 
