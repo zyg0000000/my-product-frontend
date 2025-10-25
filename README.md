@@ -130,7 +130,6 @@
 ```
 my-product-frontend/
 ├── README.md                          # 项目总览（本文件）
-├── ARCHITECTURE_UPGRADE_GUIDE.md      # 架构升级指南
 │
 ├── common/                            # 通用库（跨页面复用）
 │   └── app-core.js                   # 核心工具类（API、Modal、格式化等）
@@ -146,6 +145,10 @@ my-product-frontend/
 │
 ├── *.html                            # 各个页面的 HTML 文件
 ├── *.js                              # 页面脚本（部分已模块化，部分待升级）
+│
+├── docs/                             # 项目文档
+│   ├── ARCHITECTURE_UPGRADE_GUIDE.md # 架构升级指南
+│   └── API_REFERENCE.md             # API 参考文档
 │
 └── assets/                           # 静态资源
     ├── images/
@@ -399,7 +402,7 @@ automation-workflows (工作流)
 ### 架构升级
 
 如需对现有页面进行模块化重构，请参考：
-- 📖 [架构升级指南](./ARCHITECTURE_UPGRADE_GUIDE.md)
+- 📖 [架构升级指南](./docs/ARCHITECTURE_UPGRADE_GUIDE.md)
 
 该指南包含：
 - 完整的升级步骤
@@ -454,13 +457,13 @@ chore: 构建/工具链相关
 
 1. **明确任务边界**
    ```
-   ✅ 好的指令："请按照 ARCHITECTURE_UPGRADE_GUIDE.md 的步骤升级 talent_pool.js"
+   ✅ 好的指令："请按照 docs/ARCHITECTURE_UPGRADE_GUIDE.md 的步骤升级 talent_pool.js"
    ❌ 模糊指令："帮我优化一下代码"
    ```
 
 2. **引用项目文档**
    ```
-   "请先读取 ARCHITECTURE_UPGRADE_GUIDE.md，然后..."
+   "请先读取 docs/ARCHITECTURE_UPGRADE_GUIDE.md，然后..."
    "参考 order_list/main.js 的结构，创建..."
    ```
 
@@ -479,7 +482,8 @@ chore: 构建/工具链相关
 
 ## 📚 相关文档
 
-- [架构升级指南](./ARCHITECTURE_UPGRADE_GUIDE.md) - 页面模块化重构指南
+- [架构升级指南](./docs/ARCHITECTURE_UPGRADE_GUIDE.md) - 页面模块化重构指南
+- [API 参考文档](./docs/API_REFERENCE.md) - 云函数接口规范（15 个详细 API）
 - [云函数仓库](https://github.com/zyg0000000/my-cloud-functions) - 后端 API 实现
 - [数据库 Schema](https://github.com/zyg0000000/mongodb-schemas) - MongoDB 数据模型
 
