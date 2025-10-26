@@ -208,7 +208,8 @@ class ExecutionBoard {
      * 加载选中月份的项目详细数据
      */
     async loadSelectedMonthProjects() {
-        this.selectedYear = parseInt(this.elements.yearSelector.value);
+        // 修复：数据库存储的年份是字符串，所以这里也用字符串比较
+        this.selectedYear = this.elements.yearSelector.value; // 保持字符串类型
         this.selectedMonth = this.elements.monthSelector.value;
 
         console.log('=== 筛选条件 ===');
