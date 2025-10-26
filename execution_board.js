@@ -105,6 +105,8 @@ class ExecutionBoard {
             quickInputDate: document.getElementById('quick-input-date'),
             quickInputVideoId: document.getElementById('quick-input-videoId'),
             quickInputTaskId: document.getElementById('quick-input-taskId'),
+            openVideoLinkBtn: document.getElementById('open-video-link-btn'),
+            openTaskLinkBtn: document.getElementById('open-task-link-btn'),
             saveQuickInputBtn: document.getElementById('saveQuickInputBtn'),
             cancelModalBtn: document.getElementById('cancelModalBtn'),
             closeModalBtn: document.getElementById('closeModalBtn')
@@ -145,6 +147,14 @@ class ExecutionBoard {
             e.preventDefault();
             this.saveEdit();
         });
+
+        // 监听视频ID和任务ID输入框变化，动态启用/禁用链接按钮
+        this.elements.quickInputVideoId.addEventListener('input', () => this.updateLinkButtons());
+        this.elements.quickInputTaskId.addEventListener('input', () => this.updateLinkButtons());
+
+        // 链接按钮点击事件
+        this.elements.openVideoLinkBtn.addEventListener('click', () => this.openVideoLink());
+        this.elements.openTaskLinkBtn.addEventListener('click', () => this.openTaskLink());
     }
 
     /**
@@ -827,6 +837,9 @@ class ExecutionBoard {
         this.elements.quickInputVideoId.value = collab.videoId || '';
         this.elements.quickInputTaskId.value = collab.taskId || '';
 
+        // 更新链接按钮状态
+        this.updateLinkButtons();
+
         this.elements.quickInputModal.classList.remove('hidden');
         this.elements.quickInputModal.classList.add('flex');
     }
@@ -838,6 +851,50 @@ class ExecutionBoard {
         this.elements.quickInputModal.classList.add('hidden');
         this.elements.quickInputModal.classList.remove('flex');
         this.elements.quickInputForm.reset();
+        // 重置链接按钮状态
+        this.updateLinkButtons();
+    }
+
+    /**
+     * 更新链接按钮的启用/禁用状态
+     */
+    updateLinkButtons() {
+        const videoId = this.elements.quickInputVideoId.value.trim();
+        const taskId = this.elements.quickInputTaskId.value.trim();
+
+        // 视频ID按钮：有视频ID时启用
+        this.elements.openVideoLinkBtn.disabled = !videoId;
+
+        // 任务ID按钮：有任务ID时启用
+        this.elements.openTaskLinkBtn.disabled = !taskId;
+    }
+
+    /**
+     * 打开抖音视频链接
+     */
+    openVideoLink() {
+        const videoId = this.elements.quickInputVideoId.value.trim();
+        if (!videoId) {
+            Modal.showAlert('请先输入视频ID');
+            return;
+        }
+
+        const url = `https://www.douyin.com/video/${videoId}`;
+        window.open(url, '_blank');
+    }
+
+    /**
+     * 打开星图任务链接
+     */
+    openTaskLink() {
+        const taskId = this.elements.quickInputTaskId.value.trim();
+        if (!taskId) {
+            Modal.showAlert('请先输入任务ID');
+            return;
+        }
+
+        const url = `https://www.xingtu.cn/ad/creator/task/detail/${taskId}`;
+        window.open(url, '_blank');
     }
 
     /**
