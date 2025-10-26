@@ -1,7 +1,9 @@
 /**
  * @file getprojects_2.js
- * @version 4.8-talent-lookup-fix
+ * @version 4.8.1-talent-lookup-fix
  * @description 修复了 collaborations 中缺少 talentInfo 的问题
+ * * --- 更新日志 (v4.8.1) ---
+ * - [修复] 使用 $unset 移除 talentsData，避免 MongoDB projection 混合使用 inclusion/exclusion 错误
  * * --- 更新日志 (v4.8) ---
  * - [关键修复] 在聚合管道中添加了 talents 集合的关联查询
  * - [目的] 确保返回的每个 collaboration 对象都包含完整的 talentInfo 字段
@@ -318,6 +320,9 @@ exports.handler = async (event, context) => {
                 }
             }
         },
+        // [v4.8] 先移除临时的 talentsData 字段
+        { $unset: 'talentsData' },
+
         {
           $project: {
              _id: 0, id: 1, name: 1, qianchuanId: 1, type: 1, year: 1, month: 1, financialYear: 1, financialMonth: 1,
@@ -328,9 +333,6 @@ exports.handler = async (event, context) => {
             // [v4.7 核心改造] 将完整的 collaborations 数组包含在响应中
             // [v4.8 修复] 现在每个 collaboration 都包含 talentInfo 字段
             collaborations: 1,
-
-            // [v4.8] 移除临时的 talentsData 字段
-            talentsData: 0,
 
             // [兼容性保留] 保持所有 metrics 指标不变
             "metrics.projectBudget": 1, "metrics.totalCollaborators": 1, "metrics.budgetUtilization": 1, "metrics.totalIncome": 1,
