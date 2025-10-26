@@ -781,6 +781,8 @@ export class PerformanceTab {
         // 自动判断状态：如果录入了 videoId 或 taskId，状态为"视频已发布"，否则为"客户已定档"
         if (payload.videoId || payload.taskId) {
             payload.status = '视频已发布';
+            // [bugfix] 自动设置实际发布日期为用户输入的日期
+            payload.publishDate = quickInputDate.value;
         } else {
             payload.status = '客户已定档';
         }
@@ -792,11 +794,14 @@ export class PerformanceTab {
         try {
             await API.request('/update-collaboration', 'PUT', payload);
 
+            // [bugfix] 先关闭弹窗，立即触发刷新，提升用户体验
             this.closeQuickEditModal();
-            Modal.showAlert('保存成功！', '成功', async () => {
-                // [v2.1.0] 触发 main.js 刷新
-                document.dispatchEvent(new CustomEvent('refreshProject'));
-            });
+
+            // 立即触发刷新，让用户看到数据变化
+            document.dispatchEvent(new CustomEvent('refreshProject'));
+
+            // 简短的成功提示（可选，因为数据变化已经是很好的反馈）
+            Modal.showAlert('保存成功！', '成功');
 
         } catch (error) {
             // API.request 已经处理了错误弹窗
