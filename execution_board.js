@@ -183,6 +183,21 @@ class ExecutionBoard {
             loading.close();
 
             console.log(`加载了 ${this.allProjects.length} 个项目`);
+
+            // 调试：打印前3个项目的详细信息
+            if (this.allProjects.length > 0) {
+                console.log('=== 项目数据样例（前3个）===');
+                this.allProjects.slice(0, 3).forEach((p, i) => {
+                    console.log(`项目${i + 1}:`, {
+                        name: p.name,
+                        financialYear: p.financialYear,
+                        financialMonth: p.financialMonth,
+                        yearType: typeof p.financialYear,
+                        monthType: typeof p.financialMonth,
+                        collaborationsCount: (p.collaborations || []).length
+                    });
+                });
+            }
         } catch (error) {
             console.error('加载项目列表失败:', error);
             Modal.showAlert('加载项目列表失败');
@@ -196,16 +211,35 @@ class ExecutionBoard {
         this.selectedYear = parseInt(this.elements.yearSelector.value);
         this.selectedMonth = this.elements.monthSelector.value;
 
+        console.log('=== 筛选条件 ===');
+        console.log('选择的年份:', this.selectedYear, '类型:', typeof this.selectedYear);
+        console.log('选择的月份:', this.selectedMonth, '类型:', typeof this.selectedMonth);
+
         // 前端筛选该月份的项目（使用 financialYear 和 financialMonth 字段）
-        this.selectedProjects = this.allProjects.filter(p =>
-            p.financialYear === this.selectedYear && p.financialMonth === this.selectedMonth
-        );
+        this.selectedProjects = this.allProjects.filter(p => {
+            const yearMatch = p.financialYear === this.selectedYear;
+            const monthMatch = p.financialMonth === this.selectedMonth;
+
+            // 调试：打印不匹配的项目信息
+            if (!yearMatch || !monthMatch) {
+                console.log('未匹配项目:', p.name, {
+                    项目年份: p.financialYear,
+                    筛选年份: this.selectedYear,
+                    年份匹配: yearMatch,
+                    项目月份: p.financialMonth,
+                    筛选月份: this.selectedMonth,
+                    月份匹配: monthMatch
+                });
+            }
+
+            return yearMatch && monthMatch;
+        });
 
         console.log(`${this.selectedYear}年${this.selectedMonth}月有 ${this.selectedProjects.length} 个项目`);
 
-        // 输出项目信息用于调试
+        // 输出匹配项目信息用于调试
         this.selectedProjects.forEach(p => {
-            console.log(`项目：${p.name}, 年份：${p.financialYear}, 月份：${p.financialMonth}, 合作数：${(p.collaborations || []).length}`);
+            console.log(`✓ 匹配项目：${p.name}, 年份：${p.financialYear}, 月份：${p.financialMonth}, 合作数：${(p.collaborations || []).length}`);
         });
 
         // 如果没有项目，显示提示
