@@ -195,15 +195,29 @@ export class PerformanceTab {
             console.log('[DEBUG] projectStartDate:', Format.date(this.projectStartDate));
             console.log('[DEBUG] projectEndDate:', Format.date(this.projectEndDate));
 
-            // 计算总周数 (向上取整)
-            const diffDays = Utils.daysBetween(this.projectStartDate, this.projectEndDate) + 1;
-            this.totalWeeks = Math.ceil(diffDays / 7);
+            // [bugfix] 正确计算总周数：计算从起始日期所在的周一到结束日期所在的周日，总共有多少周
+            // 先计算起始日期所在周的周一
+            const startDay = new Date(this.projectStartDate);
+            startDay.setHours(0, 0, 0, 0);
+            const startDayOfWeek = startDay.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+            const startMonday = new Date(startDay);
+            startMonday.setDate(startDay.getDate() - (startDayOfWeek === 0 ? 6 : startDayOfWeek - 1));
 
-            console.log('[DEBUG] diffDays:', diffDays);
-            console.log('[DEBUG] totalWeeks (初步计算):', this.totalWeeks);
+            // 再计算结束日期所在周的周日
+            const endDay = new Date(this.projectEndDate);
+            endDay.setHours(0, 0, 0, 0);
+            const endDayOfWeek = endDay.getDay();
+            const endSunday = new Date(endDay);
+            endSunday.setDate(endDay.getDate() + (endDayOfWeek === 0 ? 0 : 7 - endDayOfWeek));
 
-            // 如果总天数小于7，也算1周
-            if (this.totalWeeks === 0 && diffDays > 0) this.totalWeeks = 1;
+            // 计算从第一个周一到最后一个周日的总天数，再除以7
+            const totalDays = Utils.daysBetween(startMonday, endSunday) + 1;
+            this.totalWeeks = Math.ceil(totalDays / 7);
+
+            console.log('[DEBUG] startMonday:', Format.date(startMonday));
+            console.log('[DEBUG] endSunday:', Format.date(endSunday));
+            console.log('[DEBUG] totalDays (周一到周日):', totalDays);
+            console.log('[DEBUG] totalWeeks (修复后):', this.totalWeeks);
 
 
             // 计算今天所在的周数
