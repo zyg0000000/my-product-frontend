@@ -68,7 +68,6 @@ export class PerformanceTab {
             kpiDueWeek: document.getElementById('kpi-due-week'),
             kpiDelayed: document.getElementById('kpi-delayed'),
             kpiRemainingDays: document.getElementById('kpi-remaining-days'),
-            kpiAvgDaily: document.getElementById('kpi-avg-daily'),
             projectCycleDateRange: document.getElementById('project-cycle-date-range'),
             projectCycleDuration: document.getElementById('project-cycle-duration'),
             publishProgressBar: document.getElementById('publish-progress-bar'),
@@ -245,7 +244,6 @@ export class PerformanceTab {
 
         const cycleDays = this.projectStartDate && this.projectEndDate ? Utils.daysBetween(this.projectStartDate, this.projectEndDate) + 1 : 1;
         const remainingDays = this.projectEndDate ? Math.max(0, Utils.daysBetween(today, this.projectEndDate)) : 0;
-        const avgDaily = totalPlan / (cycleDays || 1);
 
         // 更新 DOM
         if (this.elements.kpiTotalPlan) this.elements.kpiTotalPlan.textContent = totalPlan;
@@ -255,7 +253,6 @@ export class PerformanceTab {
         if (this.elements.kpiDueWeek) this.elements.kpiDueWeek.textContent = dueWeekCount;
         if (this.elements.kpiDelayed) this.elements.kpiDelayed.textContent = delayedCount;
         if (this.elements.kpiRemainingDays) this.elements.kpiRemainingDays.textContent = remainingDays;
-        if (this.elements.kpiAvgDaily) this.elements.kpiAvgDaily.textContent = avgDaily.toFixed(1);
 
         // 更新项目周期和进度条
         if (this.elements.projectCycleDateRange) {
