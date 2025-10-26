@@ -1,7 +1,12 @@
 /**
  * @file app-core.js
  * @description 通用核心库 - 所有页面共享的基础功能
- * @version 1.0.0
+ * @version 1.1.0 (Date & Utils Enhancement)
+ *
+ * 变更日志:
+ * - v1.1.0:
+ * - [新增] `Utils` 类中添加 `daysBetween(date1, date2)` 方法，用于计算两个日期之间的天数。
+ * - [增强] `Formatters.date()` 方法重写，支持传入格式字符串 (如 'YYYY-MM-DD', 'MM.DD')，并修复时区问题。
  *
  * 功能模块:
  * - API 请求封装
@@ -281,15 +286,48 @@ export class Formatters {
     }
 
     /**
-     * 格式化日期
-     * @param {string|Date} date - 日期
+     * [增强] 格式化日期，支持自定义格式
+     * @param {string|Date} dateInput - 日期
+     * @param {string} formatStr - 格式 (YYYY-MM-DD, MM.DD, zh-CN)
      * @returns {string} 格式化后的日期字符串
      */
-    static date(date) {
-        if (!date) return 'N/A';
-        const d = new Date(date);
-        return d.toLocaleDateString('zh-CN');
+    static date(dateInput, formatStr = 'YYYY-MM-DD') {
+        if (!dateInput) return 'N/A';
+        
+        let d;
+        if (dateInput instanceof Date) {
+            d = dateInput;
+        } else {
+            // 尝试解析 YYYY-MM-DD 字符串，避免时区问题
+            // 2025-10-26T00:00:00Z 这样的 ISO 字符串会被正确解析为 UTC
+            // 2025-10-26 这样的字符串会被解析为本地时区的 00:00
+            const parts = String(dateInput).split('T')[0].split('-');
+            if (parts.length === 3) {
+                // 创建一个本地时区的日期
+                d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            } else {
+                d = new Date(dateInput); // 回退到标准解析
+            }
+        }
+
+        if (isNaN(d.getTime())) return 'N/A';
+
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+
+        switch (formatStr) {
+            case 'YYYY-MM-DD':
+                return `${year}-${month}-${day}`;
+            case 'MM.DD':
+                return `${month}.${day}`;
+            case 'zh-CN':
+                return d.toLocaleDateString('zh-CN');
+            default:
+                return `${year}-${month}-${day}`;
+        }
     }
+
 
     /**
      * 格式化数字 (千分位)
@@ -388,7 +426,10 @@ export class PaginationComponent {
         // 绑定事件
         container.querySelectorAll('.pagination-btn[data-page]').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const page = parseInt(e.target.dataset.page);
+                // [修复] 确保回调被正确调用
+                const target = e.currentTarget; // 使用 currentTarget 避免点到 svg 等子元素
+                if (target.disabled) return;
+                const page = parseInt(target.dataset.page);
                 if (page >= 1 && page <= totalPages && page !== currentPage) {
                     onPageChange(page);
                 }
@@ -532,6 +573,27 @@ export class Utils {
         });
         window.history.replaceState({}, '', url);
     }
+
+    /**
+     * [新增] 计算两个日期之间的天数（忽略时间）
+     * @param {Date|string} date1 - 开始日期
+     * @param {Date|string} date2 - 结束日期
+     * @returns {number} 两个日期之间的天数
+     */
+    static daysBetween(date1, date2) {
+        if (!date1 || !date2) return 0;
+        
+        const d1 = (date1 instanceof Date) ? date1 : new Date(date1.split('T')[0]); // 修复时区问题
+        const d2 = (date2 instanceof Date) ? date2 : new Date(date2.split('T')[0]); // 修复时区问题
+
+        if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
+
+        // 确保比较的是日期，忽略时间
+        const utc1 = Date.UTC(d1.getFullYear(), d1.getMonth(), d1.getDate());
+        const utc2 = Date.UTC(d2.getFullYear(), d2.getMonth(), d2.getDate());
+
+        return Math.floor((utc2 - utc1) / (1000 * 60 * 60 * 24));
+    }
 }
 
 
@@ -540,7 +602,7 @@ export class Utils {
 // ============================================
 
 export const AppCore = {
-    API,
+    API: new APIService(), // [修改] 导出一个单例
     APIService,
     Modal: ModalManager,
     Format: Formatters,
@@ -550,3 +612,4 @@ export const AppCore = {
 
 // 默认导出
 export default AppCore;
+

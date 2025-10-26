@@ -1,14 +1,22 @@
 /**
  * @file order_list/main.js
  * @description Order List 页面主控制器
- * @version 1.0.0
+ * @version 1.2.1 (Enhanced Error Catching)
+ *
+ * 变更日志:
+ * - v1.2.1:
+ * - [调试] 在 `switchTab` 方法中为 `activeTabInstance.load()` 添加了详细的 try...catch 块，以便在特定 Tab 加载失败时提供明确的控制台错误。
+ * - v1.2.0:
+ * - [性能优化] `loadInitialData` 现在通过 `/projects` 接口一次性获取项目数据及所有 `collaborations` 数据。
+ * - [数据流] `collaborations` 列表被存储在 `this.collaborations` 中。
+ * - [数据流] `initTabs` 在实例化每个 Tab 模块时，将完整的 `collaborations` 列表传递给它们。
  *
  * 职责:
  * - 页面初始化和协调
  * - Tab 切换管理
  * - 顶部统计看板渲染
- * - 项目数据加载
- * - 状态筛选器
+ * - 项目数据加载 (包含 collaborations)
+ * - 状态筛选器 (仅基础信息Tab)
  * - 项目文件管理
  * - 全局事件监听
  */
@@ -28,6 +36,8 @@ export class OrderListApp {
 
         // 项目数据
         this.project = {};
+        // [新增] 存储所有合作数据
+        this.collaborations = []; 
 
         // 配置数据
         this.allDiscounts = [];
@@ -110,11 +120,11 @@ export class OrderListApp {
             return;
         }
 
-        // 加载初始数据
+        // [修改] 加载初始数据 (现在包含 collaborations)
         await this.loadInitialData();
 
-        // 初始化各个 Tab
-        this.initTabs();
+        // [修改] 初始化各个 Tab (现在会传入 collaborations)
+        this.initTabs(); 
 
         // 设置事件监听器
         this.setupEventListeners();
@@ -136,11 +146,13 @@ export class OrderListApp {
         const loading = Modal.showLoading('正在加载项目核心数据...');
 
         try {
-            // 加载项目数据
+            // [核心修改] 调用 /projects 接口 (完整视图)，它现在返回 project 和 collaborations
             const projectResponse = await API.request(`/projects?projectId=${this.projectId}`);
             this.project = projectResponse.data;
+            // [核心修改] 存储完整的合作列表
+            this.collaborations = projectResponse.data.collaborations || []; 
 
-            // 加载配置数据
+            // 加载配置数据 (保持不变)
             const [discountsResponse, adjTypesResponse] = await Promise.all([
                 API.request('/configurations?type=FRAMEWORK_DISCOUNTS'),
                 API.request('/configurations?type=ADJUSTMENT_TYPES')
@@ -171,10 +183,16 @@ export class OrderListApp {
      * 初始化各个 Tab
      */
     initTabs() {
-        this.tabs.basic = new BasicInfoTab(this.projectId, this.project, this.allDiscounts);
-        this.tabs.performance = new PerformanceTab(this.projectId, this.project);
-        this.tabs.financial = new FinancialTab(this.projectId, this.project, this.adjustmentTypes);
-        this.tabs.effect = new EffectTab(this.projectId, this.project);
+        // [核心修改] 将 this.collaborations 传递给每个 Tab 模块的构造函数
+        try {
+            this.tabs.basic = new BasicInfoTab(this.projectId, this.project, this.allDiscounts, this.collaborations);
+            this.tabs.performance = new PerformanceTab(this.projectId, this.project, this.collaborations);
+            this.tabs.financial = new FinancialTab(this.projectId, this.project, this.adjustmentTypes, this.collaborations);
+            this.tabs.effect = new EffectTab(this.projectId, this.project, this.collaborations);
+        } catch (e) {
+            console.error("初始化 Tab 实例时出错:", e);
+            Modal.showAlert(`页面模块加载失败: ${e.message}。请检查 common/app-core.js 是否为最新版本。`);
+        }
     }
 
     /**
@@ -358,11 +376,11 @@ export class OrderListApp {
             statusFilterDropdown.classList.add('hidden');
         }
 
-        // 重新加载当前 Tab 的数据
+        // [修改] 不再发起 API 请求，而是直接调用 Tab 模块的 load 方法
         const activeTabInstance = this.getActiveTabInstance();
         if (activeTabInstance && activeTabInstance.load) {
             const selectedStatuses = this.getSelectedStatuses();
-            activeTabInstance.load(selectedStatuses);
+            activeTabInstance.load(selectedStatuses); // 传递筛选条件
         }
 
         // 更新按钮文本
@@ -510,9 +528,26 @@ export class OrderListApp {
 
         // 加载对应 Tab 的数据
         const activeTabInstance = this.getActiveTabInstance();
+        
+        // [调试] 增加 try...catch 块
         if (activeTabInstance && activeTabInstance.load) {
-            const selectedStatuses = (this.activeTab === 'basic-info') ? this.getSelectedStatuses() : '';
-            await activeTabInstance.load(selectedStatuses);
+            try {
+                // [修改] 只有 basic-info tab 需要传递 statuses
+                // 其他 tab (如 performance) 的 load 方法现在不接受参数，它们使用构造函数中传入的全量数据
+                if (this.activeTab === 'basic-info') {
+                    const selectedStatuses = this.getSelectedStatuses();
+                    await activeTabInstance.load(selectedStatuses);
+                } else {
+                    await activeTabInstance.load();
+                }
+            } catch (error) {
+                console.error(`Error loading tab ${this.activeTab}:`, error);
+                // 尝试向用户显示错误
+                const activePane = document.getElementById(this.activeTab);
+                if (activePane) {
+                    activePane.innerHTML = `<p class="text-center py-10 text-red-500">加载此标签页时出错: ${error.message}。请检查控制台。</p>`;
+                }
+            }
         }
     }
 
@@ -552,24 +587,55 @@ export class OrderListApp {
             Modal.showAlert('仅支持上传 PDF 文件。');
             return;
         }
+        
+        // [修改] 检查文件数量是否超出限制
+        const currentFiles = this.project.projectFiles || [];
+        if (currentFiles.length + pdfFiles.length > 5) {
+             Modal.showAlert(`最多只能上传5个文件。您当前已有 ${currentFiles.length} 个文件。`);
+             return;
+        }
 
         const loading = Modal.showLoading('正在上传文件...');
 
         try {
-            for (const file of pdfFiles) {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('projectId', this.projectId);
-
-                await fetch(`${API.baseUrl}/upload-project-file`, {
-                    method: 'POST',
-                    body: formData
+            // 1. 上传文件到TOS
+            const uploadPromises = pdfFiles.map(file => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        try {
+                            // 调用 /upload-file 云函数
+                            const response = await API.request('/upload-file', 'POST', {
+                                fileName: file.name,
+                                fileData: e.target.result.split(',')[1] // 发送 base64 数据
+                            });
+                            if (response.success) {
+                                resolve({ name: file.name, url: response.data.url });
+                            } else {
+                                reject(new Error(response.message));
+                            }
+                        } catch (err) {
+                            reject(err);
+                        }
+                    };
+                    reader.onerror = (error) => reject(error);
+                    reader.readAsDataURL(file); // 转换为 base64
                 });
-            }
+            });
+            
+            const newFiles = await Promise.all(uploadPromises);
+            
+            // 2. 更新项目元数据
+            const updatedFiles = [...currentFiles, ...newFiles];
+            
+            await API.request('/update-project', 'PUT', {
+                id: this.projectId,
+                projectFiles: updatedFiles
+            });
 
             loading.close();
             Modal.showAlert('文件上传成功！', '成功', async () => {
-                await this.loadInitialData();
+                await this.refreshProject(); // 刷新整个页面数据
             });
         } catch (error) {
             loading.close();
@@ -592,14 +658,24 @@ export class OrderListApp {
             const loading = Modal.showLoading('正在删除文件...');
 
             try {
-                await API.request('/delete-project-file', 'DELETE', {
+                // 1. 调用后端 /delete-file 从TOS删除
+                await API.request('/delete-file', 'POST', { 
                     projectId: this.projectId,
                     fileUrl: fileUrl
                 });
 
+                // 2. 更新项目元数据
+                const currentFiles = this.project.projectFiles || [];
+                const updatedFiles = currentFiles.filter(file => file.url !== fileUrl);
+
+                await API.request('/update-project', 'PUT', {
+                    id: this.projectId,
+                    projectFiles: updatedFiles
+                });
+
                 loading.close();
                 Modal.showAlert('文件删除成功！', '成功', async () => {
-                    await this.loadInitialData();
+                    await this.refreshProject(); // 刷新整个页面数据
                 });
             } catch (error) {
                 loading.close();
@@ -612,15 +688,28 @@ export class OrderListApp {
      * 刷新项目数据
      */
     async refreshProject() {
+        // [核心修改] 重新加载数据，这将自动获取新的 project 和 collaborations
         await this.loadInitialData();
+        
+        // [核心修改] 更新所有 Tab 实例中的数据
+        this.tabs.basic.updateData(this.project, this.collaborations);
+        this.tabs.performance.updateData(this.project, this.collaborations);
+        this.tabs.financial.updateData(this.project, this.collaborations);
+        this.tabs.effect.updateData(this.project, this.collaborations);
 
         // 刷新当前激活的 Tab
         const activeTabInstance = this.getActiveTabInstance();
         if (activeTabInstance && activeTabInstance.load) {
-            await activeTabInstance.load();
+            if (this.activeTab === 'basic-info') {
+                const selectedStatuses = this.getSelectedStatuses();
+                await activeTabInstance.load(selectedStatuses);
+            } else {
+                await activeTabInstance.load();
+            }
         }
     }
 }
 
-// 导出
+// 默认导出
 export default OrderListApp;
+
