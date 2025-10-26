@@ -63,6 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const jobsPaginationContainer = document.getElementById('jobs-pagination-container');
     const toggleViewWorkflowBtn = document.getElementById('toggle-view-workflow');
     const toggleViewProjectBtn = document.getElementById('toggle-view-project');
+    const toggleViewTestBtn = document.getElementById('toggle-view-test');
     const projectFilterContainer = document.getElementById('project-filter-container');
     const projectSearchInput = document.getElementById('project-search-input');
     const projectSearchResults = document.getElementById('project-search-results');
@@ -234,13 +235,43 @@ document.addEventListener('DOMContentLoaded', function () {
         const projectIds = allProjects.map(p => p.id);
         const jobPromises = projectIds.map(id => apiCall(`${API_PATHS.jobs}?projectId=${id}`));
         const independentJobsPromise = apiCall(`${API_PATHS.jobs}?projectId=null`);
-        
+
         try {
             const results = await Promise.all([...jobPromises, independentJobsPromise]);
             allJobsCache = results.flatMap(res => res.data || []);
+
+            // 加载独立测试任务并添加到缓存
+            await loadIndependentTasks();
         } catch (error) {
             console.error("加载所有任务批次失败:", error);
             allJobsCache = [];
+        }
+    }
+
+    async function loadIndependentTasks() {
+        try {
+            // 查询 jobId 为 null 的测试任务
+            const response = await apiCall(`${API_PATHS.tasks}?jobId=null&limit=100`);
+            const tasks = response.data || [];
+
+            // 为每个独立任务创建虚拟 Job，以复用现有展示逻辑
+            const virtualJobs = tasks.map(task => ({
+                _id: `test_${task._id}`,
+                workflowId: task.workflowId,
+                projectId: task.projectId,
+                createdAt: task.createdAt,
+                status: task.status,
+                tasks: [task],
+                isVirtualJob: true,  // 标记为虚拟 Job
+                isTestTask: true     // 标记为测试任务
+            }));
+
+            // 将虚拟 Jobs 添加到缓存
+            allJobsCache = [...allJobsCache, ...virtualJobs];
+
+            console.log(`[Test Tasks] Loaded ${virtualJobs.length} independent test tasks`);
+        } catch (error) {
+            console.error("加载独立测试任务失败:", error);
         }
     }
 
@@ -252,13 +283,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function generateStatistics() {
         const grouped = {};
-        allJobsCache.filter(job => job && job._id && (state.viewMode !== 'workflow' || workflowMap.has(job.workflowId))).forEach(job => {
+
+        // 根据视图模式筛选任务
+        let jobsToProcess = allJobsCache.filter(job => job && job._id);
+
+        // 测试任务视图：只显示测试任务
+        if (state.viewMode === 'test') {
+            jobsToProcess = jobsToProcess.filter(job => job.isTestTask === true);
+        } else {
+            // 工作流/项目视图：排除测试任务
+            jobsToProcess = jobsToProcess.filter(job => !job.isTestTask);
+        }
+
+        // 工作流视图：只显示有效工作流的任务
+        if (state.viewMode === 'workflow') {
+            jobsToProcess = jobsToProcess.filter(job => workflowMap.has(job.workflowId));
+        }
+
+        jobsToProcess.forEach(job => {
             let key, name, color;
-            if (state.viewMode === 'workflow') {
+            if (state.viewMode === 'workflow' || state.viewMode === 'test') {
                 const workflow = workflowMap.get(job.workflowId);
                 key = job.workflowId;
                 name = workflow ? workflow.name : '未知工作流';
-                color = 'indigo';
+                color = state.viewMode === 'test' ? 'amber' : 'indigo';
             } else {
                 const projectName = projectMap.get(job.projectId);
                 key = job.projectId || 'independent';
@@ -270,13 +318,15 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             grouped[key].total++;
             if (new Date(job.createdAt) > grouped[key].lastRun) grouped[key].lastRun = new Date(job.createdAt);
-            
+
             const taskStatuses = (job.tasks || []).map(t => t.status);
             if(taskStatuses.includes('failed')) grouped[key].failed++;
             else if (taskStatuses.includes('processing') || taskStatuses.includes('pending')) grouped[key].processing++;
             else if (job.status === 'completed' || job.status === 'awaiting_review') grouped[key].success++;
         });
-        const allStats = { key: 'all', name: '所有任务', color: 'gray', total: 0, success: 0, failed: 0, processing: 0, lastRun: new Date(0) };
+
+        const allStatsName = state.viewMode === 'test' ? '所有测试' : '所有任务';
+        const allStats = { key: 'all', name: allStatsName, color: 'gray', total: 0, success: 0, failed: 0, processing: 0, lastRun: new Date(0) };
         Object.values(grouped).forEach(stat => {
             allStats.total += stat.total;
             allStats.success += stat.success;
@@ -476,20 +526,35 @@ document.addEventListener('DOMContentLoaded', function () {
             projectSearchInput.value = '';
             toggleViewWorkflowBtn.classList.add('active');
             toggleViewProjectBtn.classList.remove('active');
+            toggleViewTestBtn.classList.remove('active');
             projectFilterContainer.classList.add('hidden');
             renderApp();
         });
 
         toggleViewProjectBtn.addEventListener('click', () => {
             state.viewMode = 'project';
-            state.activeFilter = { type: 'none', value: null }; 
+            state.activeFilter = { type: 'none', value: null };
             state.currentPage = 1;
             toggleViewProjectBtn.classList.add('active');
             toggleViewWorkflowBtn.classList.remove('active');
+            toggleViewTestBtn.classList.remove('active');
             projectFilterContainer.classList.remove('hidden');
             renderApp();
         });
-        
+
+        toggleViewTestBtn.addEventListener('click', () => {
+            state.viewMode = 'test';
+            state.activeFilter = { type: 'all', value: 'all' };
+            state.currentPage = 1;
+            state.projectSearchTerm = '';
+            projectSearchInput.value = '';
+            toggleViewTestBtn.classList.add('active');
+            toggleViewWorkflowBtn.classList.remove('active');
+            toggleViewProjectBtn.classList.remove('active');
+            projectFilterContainer.classList.add('hidden');
+            renderApp();
+        });
+
         projectSearchInput.addEventListener('input', () => {
             const searchTerm = projectSearchInput.value.toLowerCase();
             projectSearchResults.innerHTML = '';
