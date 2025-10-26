@@ -98,6 +98,40 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /**
+     * [V5.1 新增] 解析播放量字符串（支持 "220.58w" 格式）
+     * @param {string} viewString - 播放量字符串（例如 "220.58w" 或 "1,818.39w"）
+     * @returns {number|null} 转换后的整数播放量（例如 2205800），失败返回 null
+     */
+    function parseViewCount(viewString) {
+        if (!viewString || typeof viewString !== 'string') return null;
+
+        try {
+            // 去掉逗号
+            let cleaned = viewString.replace(/,/g, '').trim();
+
+            // 检查是否有 "w" 或 "W" 后缀（表示万）
+            const hasWanSuffix = /w$/i.test(cleaned);
+
+            if (hasWanSuffix) {
+                // 去掉 "w" 后缀
+                cleaned = cleaned.replace(/w$/i, '');
+                // 解析数字并乘以 10000
+                const numValue = parseFloat(cleaned);
+                if (isNaN(numValue)) return null;
+                return Math.round(numValue * 10000);
+            } else {
+                // 没有 "w" 后缀，直接解析数字
+                const numValue = parseFloat(cleaned);
+                if (isNaN(numValue)) return null;
+                return Math.round(numValue);
+            }
+        } catch (e) {
+            console.warn(`Failed to parse view count: ${viewString}`, e);
+            return null;
+        }
+    }
+
+    /**
      * [V5.0 新增] 检查视频是否发布超过 N 天
      * @param {string} publishDate - 视频发布日期 (YYYY-MM-DD)
      * @param {number} days - 天数阈值 (例如 14)
@@ -649,10 +683,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     case 'completed':
                         statusHtml = '<span class="text-xs font-semibold text-green-600">✓ 已完成</span>';
                         isInputDisabled = true; // 成功后禁止手动输入
-                        const views = task.result?.data?.['播放量']?.replace(/,/g, '');
-                        if (views) {
-                            const videoInMemory = allVideosForEntry.find(v => v.collaborationId === videoToRender.collaborationId);
-                            if(videoInMemory) videoInMemory.totalViews = views;
+                        // [V5.1 修复] 使用 parseViewCount 解析播放量（支持 "220.58w" 格式）
+                        const viewsRaw = task.result?.data?.['播放量'];
+                        if (viewsRaw) {
+                            const viewsParsed = parseViewCount(viewsRaw);
+                            if (viewsParsed !== null) {
+                                const videoInMemory = allVideosForEntry.find(v => v.collaborationId === videoToRender.collaborationId);
+                                if(videoInMemory) videoInMemory.totalViews = viewsParsed;
+                            }
                         }
                         break;
                     case 'failed':
