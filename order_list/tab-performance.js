@@ -130,25 +130,9 @@ export class PerformanceTab {
             // 过滤出此 Tab 关心的数据
             const executionStatuses = ['客户已定档', '视频已发布'];
 
-            console.log('========== 执行信息Tab加载 ==========');
-            console.log('[DEBUG] load - 原始合作数据量:', (this.allCollaborations || []).length);
-            console.log('[DEBUG] load - 原始数据状态分布:',
-                (this.allCollaborations || []).reduce((acc, c) => {
-                    acc[c.status] = (acc[c.status] || 0) + 1;
-                    return acc;
-                }, {})
-            );
-
             this.filteredCollaborations = (this.allCollaborations || []).filter(c =>
                 executionStatuses.includes(c.status)
             );
-
-            console.log('[DEBUG] load - 过滤后数据量:', this.filteredCollaborations.length);
-            console.log('[DEBUG] load - 过滤后的日期:', this.filteredCollaborations.map(c => ({
-                nickname: c.talentInfo?.nickname,
-                date: c.plannedReleaseDate,
-                status: c.status
-            })));
 
             // 计算项目周期 (现在使用过滤后的数据)
             this.calculateProjectCycle();
@@ -183,17 +167,10 @@ export class PerformanceTab {
             .filter(Boolean)
             .map(d => new Date(d.split('T')[0])); // 修复时区问题
 
-        // [debug] 打印过滤后的数据量和日期
-        console.log('[DEBUG] calculateProjectCycle - 过滤后的合作数:', this.filteredCollaborations.length);
-        console.log('[DEBUG] calculateProjectCycle - 有效日期数:', dates.length);
-
         if (dates.length > 0) {
             dates.sort((a, b) => a - b);
             this.projectStartDate = dates[0];
             this.projectEndDate = dates[dates.length - 1];
-
-            console.log('[DEBUG] projectStartDate:', Format.date(this.projectStartDate));
-            console.log('[DEBUG] projectEndDate:', Format.date(this.projectEndDate));
 
             // [bugfix] 正确计算总周数：计算从起始日期所在的周一到结束日期所在的周日，总共有多少周
             // 先计算起始日期所在周的周一
@@ -214,11 +191,6 @@ export class PerformanceTab {
             const totalDays = Utils.daysBetween(startMonday, endSunday) + 1;
             this.totalWeeks = Math.ceil(totalDays / 7);
 
-            console.log('[DEBUG] startMonday:', Format.date(startMonday));
-            console.log('[DEBUG] endSunday:', Format.date(endSunday));
-            console.log('[DEBUG] totalDays (周一到周日):', totalDays);
-            console.log('[DEBUG] totalWeeks (修复后):', this.totalWeeks);
-
 
             // 计算今天所在的周数
             const today = new Date();
@@ -237,22 +209,16 @@ export class PerformanceTab {
             if (today < cycleRealStartDate) {
                 // 今天在项目开始之前，显示第1周
                 this.currentCalendarWeek = 1;
-                console.log('[DEBUG] 今天在项目开始之前，显示第1周');
             } else if (today > projectEnd) {
                 // 今天在项目结束之后，显示最后1周
                 this.currentCalendarWeek = this.totalWeeks;
-                console.log('[DEBUG] 今天在项目结束之后，显示最后1周');
             } else {
                 // 今天在项目周期内，计算所在周数
                 const daysFromStart = Utils.daysBetween(cycleRealStartDate, today);
                 this.currentCalendarWeek = Math.floor(daysFromStart / 7) + 1;
-                console.log('[DEBUG] 今天在项目周期内，daysFromStart:', daysFromStart, '初步周数:', this.currentCalendarWeek);
                 // 确保在有效范围内
                 this.currentCalendarWeek = Math.max(1, Math.min(this.currentCalendarWeek, this.totalWeeks));
             }
-
-            console.log('[DEBUG] 最终 currentCalendarWeek:', this.currentCalendarWeek);
-            console.log('[DEBUG] 最终 totalWeeks:', this.totalWeeks);
 
         } else {
             // [v2.1.0] 修复：如果没有有效日期，设置 null，而不是 new Date()
@@ -328,12 +294,8 @@ export class PerformanceTab {
      * 渲染项目全周期概览
      */
     renderOverview() {
-        console.log('[DEBUG] renderOverview - totalWeeks:', this.totalWeeks);
-        console.log('[DEBUG] renderOverview - projectStartDate:', this.projectStartDate);
-
         if (!this.elements.overviewContainer || !this.projectStartDate || this.totalWeeks <= 0) {
              if (this.elements.overviewContainer) this.elements.overviewContainer.innerHTML = '<p class="col-span-7 text-sm text-center text-gray-500">暂无项目周期数据</p>';
-             console.log('[DEBUG] renderOverview - 提前返回（无数据）');
              return;
         }
 
@@ -343,10 +305,7 @@ export class PerformanceTab {
         const dayOfWeek = startOfWeek.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
         startOfWeek.setDate(startOfWeek.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
 
-        console.log('[DEBUG] renderOverview - 开始循环，总共', this.totalWeeks, '周');
-
         for (let i = 0; i < this.totalWeeks; i++) {
-            console.log('[DEBUG] renderOverview - 渲染第', i + 1, '周');
             const weekStartDate = new Date(startOfWeek);
             weekStartDate.setDate(startOfWeek.getDate() + i * 7);
             const weekEndDate = new Date(weekStartDate);
