@@ -70,6 +70,7 @@ class ExecutionBoard {
             kpiAllDelayed: document.getElementById('kpi-all-delayed'),
 
             // KPI - 当周统计
+            currentWeekRange: document.getElementById('current-week-range'),
             kpiTotalPlan: document.getElementById('kpi-total-plan'),
             kpiPublishedCount: document.getElementById('kpi-published-count'),
             kpiPublishedRate: document.getElementById('kpi-published-rate'),
@@ -644,6 +645,12 @@ class ExecutionBoard {
         const periodEnd = new Date(this.currentWeekStart);
         periodEnd.setDate(periodEnd.getDate() + days - 1);
 
+        // 更新当前周时间范围显示
+        if (this.elements.currentWeekRange) {
+            const rangeText = `(${Format.date(this.currentWeekStart, 'YYYY-MM-DD')} ~ ${Format.date(periodEnd, 'YYYY-MM-DD')})`;
+            this.elements.currentWeekRange.textContent = rangeText;
+        }
+
         const periodCollabs = this.allCollaborations.filter(c => {
             const displayDate = this.getCollabDisplayDate(c);
             if (!displayDate) return false;
@@ -807,7 +814,16 @@ class ExecutionBoard {
         this.elements.quickInputProjectId.value = collab.projectId;
         this.elements.quickInputProjectName.value = collab.projectName;
         this.elements.quickInputTalentName.value = collab.talentInfo?.nickname || '未知达人';
-        this.elements.quickInputDate.value = collab.plannedReleaseDate || '';
+
+        // 修复：根据状态显示不同的日期
+        // 已发布：显示实际发布日期
+        // 未发布：显示计划发布日期
+        if (collab.status === '视频已发布' && collab.publishDate) {
+            this.elements.quickInputDate.value = collab.publishDate;
+        } else {
+            this.elements.quickInputDate.value = collab.plannedReleaseDate || '';
+        }
+
         this.elements.quickInputVideoId.value = collab.videoId || '';
         this.elements.quickInputTaskId.value = collab.taskId || '';
 
@@ -829,27 +845,32 @@ class ExecutionBoard {
      */
     async saveEdit() {
         const collabId = this.elements.quickInputCollabId.value;
-        const plannedReleaseDate = this.elements.quickInputDate.value;
+        const dateValue = this.elements.quickInputDate.value;
         const videoId = this.elements.quickInputVideoId.value.trim();
         const taskId = this.elements.quickInputTaskId.value.trim();
 
-        if (!plannedReleaseDate) {
+        if (!dateValue) {
             Modal.showAlert('请选择发布日期');
             return;
         }
 
         const payload = {
             id: collabId,
-            plannedReleaseDate,
             videoId: videoId || null,
             taskId: taskId || null
         };
 
-        // 自动判断状态
+        // 自动判断状态并设置对应的日期字段
         if (videoId || taskId) {
+            // 已发布：设置实际发布日期和状态
             payload.status = '视频已发布';
+            payload.publishDate = dateValue;
+            // 如果之前没有计划日期，也设置一下
+            payload.plannedReleaseDate = dateValue;
         } else {
+            // 未发布：只设置计划发布日期
             payload.status = '客户已定档';
+            payload.plannedReleaseDate = dateValue;
         }
 
         try {
