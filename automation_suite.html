@@ -91,6 +91,7 @@
                     <div class="flex items-center space-x-2">
                         <button id="toggle-view-workflow" class="view-toggle-btn active">按工作流统计</button>
                         <button id="toggle-view-project" class="view-toggle-btn">按项目统计</button>
+                        <button id="toggle-view-test" class="view-toggle-btn">🧪 测试任务</button>
                     </div>
                 </div>
                 
@@ -142,6 +143,21 @@
                     <div>
                         <label for="workflow-description-input" class="block text-sm font-medium text-gray-700">描述</label>
                         <textarea id="workflow-description-input" rows="2" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="简要描述这个工作流的目的和作用"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">输入参数配置</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-gray-50 rounded-md border border-gray-200">
+                            <div>
+                                <label for="required-input-key" class="block text-xs font-medium text-gray-600">参数名称</label>
+                                <input type="text" id="required-input-key" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：xingtuId, taskId, videoId">
+                                <p class="mt-1 text-xs text-gray-500">用于云函数接收参数的字段名</p>
+                            </div>
+                            <div>
+                                <label for="required-input-label" class="block text-xs font-medium text-gray-600">显示标签</label>
+                                <input type="text" id="required-input-label" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="例如：达人星图ID, 任务ID">
+                                <p class="mt-1 text-xs text-gray-500">在输入框中显示的标签文字</p>
+                            </div>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">工作流步骤</label>

@@ -51,6 +51,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const workflowNameInput = document.getElementById('workflow-name-input');
     const workflowTypeSelect = document.getElementById('workflow-type-select');
     const workflowDescriptionInput = document.getElementById('workflow-description-input');
+    const requiredInputKeyInput = document.getElementById('required-input-key');
+    const requiredInputLabelInput = document.getElementById('required-input-label');
     const cancelWorkflowBtn = document.getElementById('cancel-workflow-btn');
     const actionLibrary = document.getElementById('action-library');
     const workflowCanvas = document.getElementById('workflow-canvas');
@@ -61,6 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const jobsPaginationContainer = document.getElementById('jobs-pagination-container');
     const toggleViewWorkflowBtn = document.getElementById('toggle-view-workflow');
     const toggleViewProjectBtn = document.getElementById('toggle-view-project');
+    const toggleViewTestBtn = document.getElementById('toggle-view-test');
     const projectFilterContainer = document.getElementById('project-filter-container');
     const projectSearchInput = document.getElementById('project-search-input');
     const projectSearchResults = document.getElementById('project-search-results');
@@ -232,13 +235,43 @@ document.addEventListener('DOMContentLoaded', function () {
         const projectIds = allProjects.map(p => p.id);
         const jobPromises = projectIds.map(id => apiCall(`${API_PATHS.jobs}?projectId=${id}`));
         const independentJobsPromise = apiCall(`${API_PATHS.jobs}?projectId=null`);
-        
+
         try {
             const results = await Promise.all([...jobPromises, independentJobsPromise]);
             allJobsCache = results.flatMap(res => res.data || []);
+
+            // 加载独立测试任务并添加到缓存
+            await loadIndependentTasks();
         } catch (error) {
             console.error("加载所有任务批次失败:", error);
             allJobsCache = [];
+        }
+    }
+
+    async function loadIndependentTasks() {
+        try {
+            // 查询 jobId 为 null 的测试任务
+            const response = await apiCall(`${API_PATHS.tasks}?jobId=null&limit=100`);
+            const tasks = response.data || [];
+
+            // 为每个独立任务创建虚拟 Job，以复用现有展示逻辑
+            const virtualJobs = tasks.map(task => ({
+                _id: `test_${task._id}`,
+                workflowId: task.workflowId,
+                projectId: task.projectId,
+                createdAt: task.createdAt,
+                status: task.status,
+                tasks: [task],
+                isVirtualJob: true,  // 标记为虚拟 Job
+                isTestTask: true     // 标记为测试任务
+            }));
+
+            // 将虚拟 Jobs 添加到缓存
+            allJobsCache = [...allJobsCache, ...virtualJobs];
+
+            console.log(`[Test Tasks] Loaded ${virtualJobs.length} independent test tasks`);
+        } catch (error) {
+            console.error("加载独立测试任务失败:", error);
         }
     }
 
@@ -250,13 +283,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function generateStatistics() {
         const grouped = {};
-        allJobsCache.filter(job => job && job._id && (state.viewMode !== 'workflow' || workflowMap.has(job.workflowId))).forEach(job => {
+
+        // 根据视图模式筛选任务
+        let jobsToProcess = allJobsCache.filter(job => job && job._id);
+
+        // 测试任务视图：只显示测试任务
+        if (state.viewMode === 'test') {
+            jobsToProcess = jobsToProcess.filter(job => job.isTestTask === true);
+        } else {
+            // 工作流/项目视图：排除测试任务
+            jobsToProcess = jobsToProcess.filter(job => !job.isTestTask);
+        }
+
+        // 工作流视图：只显示有效工作流的任务
+        if (state.viewMode === 'workflow') {
+            jobsToProcess = jobsToProcess.filter(job => workflowMap.has(job.workflowId));
+        }
+
+        jobsToProcess.forEach(job => {
             let key, name, color;
-            if (state.viewMode === 'workflow') {
+            if (state.viewMode === 'workflow' || state.viewMode === 'test') {
                 const workflow = workflowMap.get(job.workflowId);
                 key = job.workflowId;
                 name = workflow ? workflow.name : '未知工作流';
-                color = 'indigo';
+                color = state.viewMode === 'test' ? 'amber' : 'indigo';
             } else {
                 const projectName = projectMap.get(job.projectId);
                 key = job.projectId || 'independent';
@@ -268,13 +318,15 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             grouped[key].total++;
             if (new Date(job.createdAt) > grouped[key].lastRun) grouped[key].lastRun = new Date(job.createdAt);
-            
+
             const taskStatuses = (job.tasks || []).map(t => t.status);
             if(taskStatuses.includes('failed')) grouped[key].failed++;
             else if (taskStatuses.includes('processing') || taskStatuses.includes('pending')) grouped[key].processing++;
             else if (job.status === 'completed' || job.status === 'awaiting_review') grouped[key].success++;
         });
-        const allStats = { key: 'all', name: '所有任务', color: 'gray', total: 0, success: 0, failed: 0, processing: 0, lastRun: new Date(0) };
+
+        const allStatsName = state.viewMode === 'test' ? '所有测试' : '所有任务';
+        const allStats = { key: 'all', name: allStatsName, color: 'gray', total: 0, success: 0, failed: 0, processing: 0, lastRun: new Date(0) };
         Object.values(grouped).forEach(stat => {
             allStats.total += stat.total;
             allStats.success += stat.success;
@@ -328,8 +380,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const jobsToDisplay = allJobsCache
             .filter(job => {
                 if (!job || !job._id) return false;
+
+                // 🆕 根据视图模式筛选
+                if (state.viewMode === 'test') {
+                    // 测试任务视图：只显示测试任务
+                    if (!job.isTestTask) return false;
+                } else {
+                    // 工作流/项目视图：排除测试任务
+                    if (job.isTestTask) return false;
+                }
+
+                // 根据卡片筛选条件
                 if (state.activeFilter.type === 'all' || state.activeFilter.type === 'none') return true;
-                if (state.activeFilter.type === 'workflow') return job.workflowId === state.activeFilter.value;
+                if (state.activeFilter.type === 'workflow' || state.activeFilter.type === 'test') return job.workflowId === state.activeFilter.value;
                 if (state.activeFilter.type === 'project') return (job.projectId || 'independent') === state.activeFilter.value;
                 return true;
             })
@@ -370,8 +433,28 @@ document.addEventListener('DOMContentLoaded', function () {
         const progressPercent = total > 0 ? ((success + failed) / total) * 100 : 0;
         const statusConfig = { processing: { text: '执行中', color: 'blue' }, awaiting_review: { text: '待审查', color: 'yellow' }, completed: { text: '已完成', color: 'green' }, failed: { text: '失败', color: 'red' } };
         const statusInfo = statusConfig[job.status] || { text: job.status, color: 'gray' };
-        
+
         const workflow = workflowMap.get(job.workflowId) || { name: '未知工作流' };
+
+        // [V11.0 新增] 获取参数类型标签
+        const paramKey = workflow?.requiredInput?.key || 'xingtuId';
+        let paramTypeLabel = '';
+        let paramTypeBgColor = '';
+        let paramTypeTextColor = '';
+
+        if (paramKey === 'videoId') {
+            paramTypeLabel = '视频ID';
+            paramTypeBgColor = 'bg-amber-100';
+            paramTypeTextColor = 'text-amber-700';
+        } else if (paramKey === 'taskId') {
+            paramTypeLabel = '任务ID';
+            paramTypeBgColor = 'bg-green-100';
+            paramTypeTextColor = 'text-green-700';
+        } else {
+            paramTypeLabel = '星图ID';
+            paramTypeBgColor = 'bg-indigo-100';
+            paramTypeTextColor = 'text-indigo-700';
+        }
 
         // [v10.1 简化] 调整按钮逻辑
         let topRightControls = `<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-${statusInfo.color}-100 text-${statusInfo.color}-800">${statusInfo.text}</span>`;
@@ -381,12 +464,15 @@ document.addEventListener('DOMContentLoaded', function () {
              // 为 'processing', 'failed' 等状态保留删除按钮
              topRightControls += `<button class="font-medium text-red-600 hover:text-red-800 text-xs bg-red-100 hover:bg-red-200 rounded-full px-3 py-1" data-action="delete-job" data-job-id="${job._id}">删除</button>`;
         }
-        
+
         return `
         <div class="job-header p-3 hover:bg-gray-50 cursor-pointer" data-action="toggle-details" data-job-id="${job._id}">
             <div class="flex justify-between items-center">
                 <div>
-                    <p class="font-semibold text-gray-800 text-sm">${workflow.name}</p>
+                    <div class="flex items-center gap-2">
+                        <p class="font-semibold text-gray-800 text-sm">${workflow.name}</p>
+                        <span class="px-2 py-0.5 rounded text-xs font-medium ${paramTypeBgColor} ${paramTypeTextColor}">使用${paramTypeLabel}</span>
+                    </div>
                     <p class="text-xs text-gray-500">#${job._id.slice(-6)} &bull; ${formatRelativeTime(job.createdAt)}</p>
                 </div>
                 <div class="flex items-center gap-3">
@@ -409,31 +495,65 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!tasksPaginationState[job._id]) {
             tasksPaginationState[job._id] = { loaded: 0 };
         }
-        
+
         const state = tasksPaginationState[job._id];
         const tasks = job.tasks || [];
         const tasksToRender = tasks.slice(0, state.loaded + TASKS_PER_LOAD);
-        
-        container.innerHTML = tasksToRender.map(task => buildTaskRowHTML(task)).join('');
+
+        // [V11.0 优化] 传入 job 对象以获取工作流信息
+        container.innerHTML = tasksToRender.map(task => buildTaskRowHTML(task, job)).join('');
 
         state.loaded = tasksToRender.length;
-        
+
         if (state.loaded < tasks.length) {
             const remaining = tasks.length - state.loaded;
             container.innerHTML += `<button class="load-more-tasks-btn w-full text-center text-xs text-blue-600 hover:underline py-2" data-job-id="${job._id}">加载更多 (${remaining}条)</button>`;
         }
     }
     
-    function buildTaskRowHTML(task) {
-        const statusConfig = { 
-            pending: { text: '等待中', color: 'gray' }, 
-            processing: { text: '处理中', color: 'blue' }, 
-            completed: { text: '成功', color: 'green' }, 
+    function buildTaskRowHTML(task, job) {
+        const statusConfig = {
+            pending: { text: '等待中', color: 'gray' },
+            processing: { text: '处理中', color: 'blue' },
+            completed: { text: '成功', color: 'green' },
             failed: { text: '失败', color: 'red' }
         };
         const statusInfo = statusConfig[task.status] || { text: '未知', color: 'gray' };
-        const targetId = task.targetId || task.xingtuId || 'N/A';
-        
+
+        // [V11.0 新增] 获取参数类型信息
+        const workflow = workflowMap.get(job?.workflowId);
+        const paramKey = workflow?.requiredInput?.key || 'xingtuId';
+        const paramLabel = workflow?.requiredInput?.label || '星图ID';
+
+        // [V11.0 新增] 根据参数类型确定显示值和标签颜色
+        let targetId = 'N/A';
+        let paramTypeLabel = '';
+        let paramTypeBgColor = '';
+        let paramTypeTextColor = '';
+
+        if (paramKey === 'videoId' && task.videoId) {
+            targetId = task.videoId;
+            paramTypeLabel = '视频ID';
+            paramTypeBgColor = 'bg-amber-100';
+            paramTypeTextColor = 'text-amber-700';
+        } else if (paramKey === 'taskId' && task.taskId) {
+            targetId = task.taskId;
+            paramTypeLabel = '任务ID';
+            paramTypeBgColor = 'bg-green-100';
+            paramTypeTextColor = 'text-green-700';
+        } else if (paramKey === 'xingtuId' && (task.xingtuId || task.targetId)) {
+            targetId = task.xingtuId || task.targetId;
+            paramTypeLabel = '星图ID';
+            paramTypeBgColor = 'bg-indigo-100';
+            paramTypeTextColor = 'text-indigo-700';
+        } else {
+            // 兜底：使用原有逻辑
+            targetId = task.targetId || task.xingtuId || task.taskId || task.videoId || 'N/A';
+            paramTypeLabel = paramLabel;
+            paramTypeBgColor = 'bg-gray-100';
+            paramTypeTextColor = 'text-gray-700';
+        }
+
         let resultHtml = '';
         if (task.status === 'completed') {
             const buttons = [];
@@ -446,7 +566,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         return `
         <div class="task-item flex justify-between items-center p-2 bg-gray-100 rounded-md text-xs">
-            <p class="font-mono text-gray-700 truncate" title="目标ID: ${targetId}">${targetId}</p>
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+                <span class="px-2 py-0.5 rounded text-xs font-semibold ${paramTypeBgColor} ${paramTypeTextColor} flex-shrink-0">${paramTypeLabel}</span>
+                <p class="font-mono text-gray-700 truncate" title="${paramTypeLabel}: ${targetId}">${targetId}</p>
+            </div>
             <div class="flex items-center gap-3 flex-shrink-0">
                 <span class="font-semibold text-${statusInfo.color}-600">${statusInfo.text}</span>
                 <div class="space-x-2 w-20 text-center">${resultHtml}</div>
@@ -474,20 +597,35 @@ document.addEventListener('DOMContentLoaded', function () {
             projectSearchInput.value = '';
             toggleViewWorkflowBtn.classList.add('active');
             toggleViewProjectBtn.classList.remove('active');
+            toggleViewTestBtn.classList.remove('active');
             projectFilterContainer.classList.add('hidden');
             renderApp();
         });
 
         toggleViewProjectBtn.addEventListener('click', () => {
             state.viewMode = 'project';
-            state.activeFilter = { type: 'none', value: null }; 
+            state.activeFilter = { type: 'none', value: null };
             state.currentPage = 1;
             toggleViewProjectBtn.classList.add('active');
             toggleViewWorkflowBtn.classList.remove('active');
+            toggleViewTestBtn.classList.remove('active');
             projectFilterContainer.classList.remove('hidden');
             renderApp();
         });
-        
+
+        toggleViewTestBtn.addEventListener('click', () => {
+            state.viewMode = 'test';
+            state.activeFilter = { type: 'all', value: 'all' };
+            state.currentPage = 1;
+            state.projectSearchTerm = '';
+            projectSearchInput.value = '';
+            toggleViewTestBtn.classList.add('active');
+            toggleViewWorkflowBtn.classList.remove('active');
+            toggleViewProjectBtn.classList.remove('active');
+            projectFilterContainer.classList.add('hidden');
+            renderApp();
+        });
+
         projectSearchInput.addEventListener('input', () => {
             const searchTerm = projectSearchInput.value.toLowerCase();
             projectSearchResults.innerHTML = '';
@@ -920,8 +1058,18 @@ document.addEventListener('DOMContentLoaded', function () {
         workflowNameInput.value = workflow.name;
         workflowTypeSelect.value = workflow.type || 'screenshot';
         workflowDescriptionInput.value = workflow.description || '';
+
+        // 加载 requiredInput 配置
+        if (workflow.requiredInput) {
+            requiredInputKeyInput.value = workflow.requiredInput.key || '';
+            requiredInputLabelInput.value = workflow.requiredInput.label || '';
+        } else {
+            requiredInputKeyInput.value = '';
+            requiredInputLabelInput.value = '';
+        }
+
         modalTitle.textContent = `编辑工作流: ${workflow.name}`;
-        
+
         workflowCanvas.innerHTML = '';
         const steps = workflow.steps || [];
         steps.forEach(step => {
@@ -953,6 +1101,16 @@ document.addEventListener('DOMContentLoaded', function () {
             description: workflowDescriptionInput.value,
             steps: steps,
         };
+
+        // 添加 requiredInput 配置（如果填写了）
+        const inputKey = requiredInputKeyInput.value.trim();
+        const inputLabel = requiredInputLabelInput.value.trim();
+        if (inputKey && inputLabel) {
+            workflowData.requiredInput = {
+                key: inputKey,
+                label: inputLabel
+            };
+        }
         try {
             if (id) {
                 await apiCall(`${API_PATHS.workflows}?id=${id}`, 'PUT', { _id: id, ...workflowData });
