@@ -130,7 +130,6 @@
 ```
 my-product-frontend/
 ├── README.md                          # 项目总览（本文件）
-├── ARCHITECTURE_UPGRADE_GUIDE.md      # 架构升级指南
 │
 ├── common/                            # 通用库（跨页面复用）
 │   └── app-core.js                   # 核心工具类（API、Modal、格式化等）
@@ -146,6 +145,10 @@ my-product-frontend/
 │
 ├── *.html                            # 各个页面的 HTML 文件
 ├── *.js                              # 页面脚本（部分已模块化，部分待升级）
+│
+├── docs/                             # 项目文档
+│   ├── ARCHITECTURE_UPGRADE_GUIDE.md # 架构升级指南
+│   └── API_REFERENCE.md             # API 参考文档
 │
 └── assets/                           # 静态资源
     ├── images/
@@ -275,17 +278,127 @@ FEISHU_APP_SECRET=...              # 飞书应用密钥
 
 ### MongoDB Schema
 
-Schema 定义位置：[mongodb-schemas](https://github.com/zyg0000000/mongodb-schemas)
+> 完整 Schema 定义：[mongodb-schemas 仓库](https://github.com/zyg0000000/mongodb-schemas)
 
-**主要集合**：
+**数据库名称**：`kol_data`
 
-| 集合名 | 说明 | 主要字段 |
-|--------|------|----------|
-| `projects` | 项目信息 | id, name, budget, status, financialYear, financialMonth |
-| `collaborations` | 合作订单 | id, projectId, talentId, amount, rebate, status |
-| `talents` | 达人档案 | id, nickname, xingtuId, prices, rebates, performanceData |
-| `tasks` | 自动化任务 | id, type, status, schedule, config |
-| `automation-workflows` | 自动化工作流 | id, name, triggers, actions |
+#### 1. projects（项目信息）
+
+| 字段名 | 类型 | 必需 | 说明 |
+|--------|------|:----:|------|
+| `_id` | ObjectId | ✅ | MongoDB 文档 ID |
+| `id` | String | ✅ | 项目唯一标识 |
+| `name` | String | ✅ | 项目名称 |
+| `budget` | String | ✅ | 项目预算 |
+| `status` | String | ✅ | 项目状态（执行中、已完成等） |
+| `type` | String | ✅ | 项目类型 |
+| `financialYear` | String | ✅ | 财务年份 |
+| `financialMonth` | String | ✅ | 财务月份（格式：M1-M12） |
+| `discount` | String | ✅ | 折扣配置 |
+| `capitalRateId` | String | ✅ | 资金利率 ID |
+| `benchmarkCPM` | Integer | ✅ | 基准 CPM 值 |
+| `adjustments` | Array | ✅ | 调价记录 |
+| `auditLog` | Array | ✅ | 审计日志 |
+| `qianchuanId` | String | - | 千川 ID |
+| `createdAt` | Date | ✅ | 创建时间 |
+| `updatedAt` | Date | ✅ | 更新时间 |
+
+#### 2. collaborations（合作订单）
+
+| 字段名 | 类型 | 必需 | 说明 |
+|--------|------|:----:|------|
+| `_id` | ObjectId | ✅ | MongoDB 文档 ID |
+| `id` | String | ✅ | 订单唯一标识 |
+| `projectId` | String | ✅ | 所属项目 ID |
+| `talentId` | String | ✅ | 达人 ID |
+| `amount` | Integer | ✅ | 合作金额 |
+| `rebate` | Double | ✅ | 返点率（%） |
+| `actualRebate` | Double | ✅ | 实际返点率 |
+| `status` | String | ✅ | 订单状态（待对接、已下单、视频已发布等） |
+| `orderType` | String | ✅ | 订单类型 |
+| `talentSource` | String | ✅ | 达人来源 |
+| `priceInfo` | String | ✅ | 价格信息 |
+| `orderDate` | String | ✅ | 下单日期 |
+| `paymentDate` | String | ✅ | 回款日期 |
+| `recoveryDate` | String | ✅ | 收回日期 |
+| `publishDate` | String | - | 视频发布日期 |
+| `plannedReleaseDate` | String | - | 计划发布日期 |
+| `taskId` | String | - | 关联任务 ID |
+| `videoId` | String | - | 视频 ID |
+| `contentFile` | String | - | 内容文件路径 |
+| `rebateScreenshots` | Array | - | 返点截图 |
+| `discrepancyReason` | String | - | 差异原因 |
+| `createdAt` | Date | ✅ | 创建时间 |
+| `updatedAt` | Date | ✅ | 更新时间 |
+
+#### 3. talents（达人档案）
+
+| 字段名 | 类型 | 必需 | 说明 |
+|--------|------|:----:|------|
+| `_id` | ObjectId | ✅ | MongoDB 文档 ID |
+| `id` | String | ✅ | 达人唯一标识 |
+| `uid` | String | ✅ | 用户 ID |
+| `xingtuId` | String | ✅ | 星图 ID |
+| `nickname` | String | ✅ | 达人昵称 |
+| `talentType` | Array | ✅ | 达人类型分类 |
+| `talentTier` | String | ✅ | 达人等级（头部、腰部、尾部） |
+| `talentSource` | String | ✅ | 达人来源渠道 |
+| `prices` | Array | ✅ | 价格体系（年月、价格、状态） |
+| `rebates` | Array | - | 返点率配置 |
+| `performanceData` | Object | - | 性能数据（受众年龄、性别、CPM、人群标签） |
+| `schedules` | Array | - | 档期安排 |
+| `remarks` | Object | - | 备注信息（按月份） |
+| `createdAt` | Date | ✅ | 创建时间 |
+| `updatedAt` | Date | ✅ | 更新时间 |
+
+**performanceData 结构**：
+- 受众年龄分布（18-23岁、24-30岁、31-40岁、40岁以上）
+- 性别比例（男性、女性观众占比）
+- CPM 费率（60秒广告成本）
+- 社会阶层（白领、中产、新锐白领、资深中产、都市蓝领等）
+
+#### 4. tasks（自动化任务）
+
+| 字段名 | 类型 | 必需 | 说明 |
+|--------|------|:----:|------|
+| `id` | String | ✅ | 任务 ID |
+| `type` | String | ✅ | 任务类型 |
+| `status` | String | ✅ | 任务状态 |
+| `schedule` | String | ✅ | 调度配置 |
+| `config` | Object | ✅ | 任务配置 |
+| `createdAt` | Date | ✅ | 创建时间 |
+
+#### 5. automation-workflows（自动化工作流）
+
+| 字段名 | 类型 | 必需 | 说明 |
+|--------|------|:----:|------|
+| `id` | String | ✅ | 工作流 ID |
+| `name` | String | ✅ | 工作流名称 |
+| `triggers` | Array | ✅ | 触发器配置 |
+| `actions` | Array | ✅ | 动作配置 |
+| `enabled` | Boolean | ✅ | 是否启用 |
+| `createdAt` | Date | ✅ | 创建时间 |
+
+#### 其他集合
+
+- `generated_sheets` - 生成的数据表格
+- `mapping_templates` - 映射模板
+- `project_configurations` - 项目配置
+- `task_run_logs` - 任务运行日志
+- `works` - 作品信息
+
+### 数据关系
+
+```
+projects (项目)
+    ├── collaborations (合作订单) [projectId]
+    │       └── talents (达人) [talentId]
+    └── tasks (任务) [关联项目]
+            └── task_run_logs (执行日志)
+
+automation-workflows (工作流)
+    └── automation-jobs (任务实例)
+```
 
 ---
 
@@ -301,7 +414,7 @@ Schema 定义位置：[mongodb-schemas](https://github.com/zyg0000000/mongodb-sc
 ### 架构升级
 
 如需对现有页面进行模块化重构，请参考：
-- 📖 [架构升级指南](./ARCHITECTURE_UPGRADE_GUIDE.md)
+- 📖 [架构升级指南](./docs/ARCHITECTURE_UPGRADE_GUIDE.md)
 
 该指南包含：
 - 完整的升级步骤
@@ -356,13 +469,13 @@ chore: 构建/工具链相关
 
 1. **明确任务边界**
    ```
-   ✅ 好的指令："请按照 ARCHITECTURE_UPGRADE_GUIDE.md 的步骤升级 talent_pool.js"
+   ✅ 好的指令："请按照 docs/ARCHITECTURE_UPGRADE_GUIDE.md 的步骤升级 talent_pool.js"
    ❌ 模糊指令："帮我优化一下代码"
    ```
 
 2. **引用项目文档**
    ```
-   "请先读取 ARCHITECTURE_UPGRADE_GUIDE.md，然后..."
+   "请先读取 docs/ARCHITECTURE_UPGRADE_GUIDE.md，然后..."
    "参考 order_list/main.js 的结构，创建..."
    ```
 
@@ -382,7 +495,7 @@ chore: 构建/工具链相关
 ## 📚 相关文档
 
 - [架构升级指南](./docs/ARCHITECTURE_UPGRADE_GUIDE.md) - 页面模块化重构指南
-- [API 接口文档](./docs/API_REFERENCE.md) - 云函数 API 规格说明
+- [API 参考文档](./docs/API_REFERENCE.md) - 云函数接口规范（15 个详细 API）
 - [云函数仓库](https://github.com/zyg0000000/my-cloud-functions) - 后端 API 实现
 - [本地爬虫代理](https://github.com/zyg0000000/my-local-agent) - Puppeteer 自动化执行器
 - [数据库 Schema](https://github.com/zyg0000000/mongodb-schemas) - MongoDB 数据模型
