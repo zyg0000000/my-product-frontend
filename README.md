@@ -213,6 +213,18 @@ my-product-frontend/
 
 代码位置：[my-cloud-functions](https://github.com/zyg0000000/my-cloud-functions)
 
+### 本地爬虫代理
+
+代码位置：[my-local-agent](https://github.com/zyg0000000/my-local-agent)
+
+本地部署的 Puppeteer 自动化代理，负责执行工作流中定义的截图和数据抓取任务。
+
+**核心功能**：
+- 执行工作流步骤（导航、点击、等待、截图、提取数据）
+- URL 占位符替换（`{{xingtuId}}`、`{{taskId}}`、`{{videoId}}` 等）
+- 截图上传到 TOS 对象存储
+- 任务状态实时同步
+
 ### 已部署云函数（51+）
 
 **项目相关**
@@ -369,8 +381,10 @@ chore: 构建/工具链相关
 
 ## 📚 相关文档
 
-- [架构升级指南](./ARCHITECTURE_UPGRADE_GUIDE.md) - 页面模块化重构指南
+- [架构升级指南](./docs/ARCHITECTURE_UPGRADE_GUIDE.md) - 页面模块化重构指南
+- [API 接口文档](./docs/API_REFERENCE.md) - 云函数 API 规格说明
 - [云函数仓库](https://github.com/zyg0000000/my-cloud-functions) - 后端 API 实现
+- [本地爬虫代理](https://github.com/zyg0000000/my-local-agent) - Puppeteer 自动化执行器
 - [数据库 Schema](https://github.com/zyg0000000/mongodb-schemas) - MongoDB 数据模型
 
 ---
