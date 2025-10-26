@@ -380,8 +380,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const jobsToDisplay = allJobsCache
             .filter(job => {
                 if (!job || !job._id) return false;
+
+                // 🆕 根据视图模式筛选
+                if (state.viewMode === 'test') {
+                    // 测试任务视图：只显示测试任务
+                    if (!job.isTestTask) return false;
+                } else {
+                    // 工作流/项目视图：排除测试任务
+                    if (job.isTestTask) return false;
+                }
+
+                // 根据卡片筛选条件
                 if (state.activeFilter.type === 'all' || state.activeFilter.type === 'none') return true;
-                if (state.activeFilter.type === 'workflow') return job.workflowId === state.activeFilter.value;
+                if (state.activeFilter.type === 'workflow' || state.activeFilter.type === 'test') return job.workflowId === state.activeFilter.value;
                 if (state.activeFilter.type === 'project') return (job.projectId || 'independent') === state.activeFilter.value;
                 return true;
             })
