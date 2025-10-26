@@ -77,7 +77,6 @@ class ExecutionBoard {
             kpiDueToday: document.getElementById('kpi-due-today'),
             kpiDueWeek: document.getElementById('kpi-due-week'),
             kpiDelayed: document.getElementById('kpi-delayed'),
-            kpiRemainingDays: document.getElementById('kpi-remaining-days'),
 
             // 日历
             calendarContainer: document.getElementById('calendar-container'),
@@ -685,6 +684,17 @@ class ExecutionBoard {
             return collabDate >= this.currentWeekStart && collabDate <= periodEnd;
         });
 
+        // 添加调试日志
+        console.log(`当周统计范围: ${Format.date(this.currentWeekStart, 'YYYY-MM-DD')} ~ ${Format.date(periodEnd, 'YYYY-MM-DD')}`);
+        console.log(`当周统计到 ${periodCollabs.length} 个合作:`,
+            periodCollabs.map(c => ({
+                kol: c.kolName,
+                displayDate: this.getCollabDisplayDate(c),
+                status: c.status,
+                project: c.projectName
+            }))
+        );
+
         const totalPlan = periodCollabs.length;
         const publishedCount = periodCollabs.filter(c => c.status === '视频已发布').length;
         const publishedRate = totalPlan > 0 ? (publishedCount / totalPlan * 100) : 0;
@@ -710,8 +720,6 @@ class ExecutionBoard {
             return plannedDate < today;
         }).length;
 
-        const remainingDays = Math.max(0, Utils.daysBetween(today, periodEnd));
-
         // 更新当周统计DOM
         if (this.elements.kpiTotalPlan) this.elements.kpiTotalPlan.textContent = totalPlan;
         if (this.elements.kpiPublishedCount) this.elements.kpiPublishedCount.textContent = publishedCount;
@@ -719,7 +727,6 @@ class ExecutionBoard {
         if (this.elements.kpiDueToday) this.elements.kpiDueToday.textContent = dueTodayCount;
         if (this.elements.kpiDueWeek) this.elements.kpiDueWeek.textContent = dueWeekCount;
         if (this.elements.kpiDelayed) this.elements.kpiDelayed.textContent = delayedCount;
-        if (this.elements.kpiRemainingDays) this.elements.kpiRemainingDays.textContent = remainingDays;
     }
 
     /**

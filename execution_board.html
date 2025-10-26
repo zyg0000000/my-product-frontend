@@ -229,14 +229,34 @@
 
             <!-- 当周统计 -->
             <div class="p-4">
-                <p class="text-xs text-gray-600 mb-2">当前周统计 <span id="current-week-range" class="text-gray-500">(-)</span></p>
-                <div class="flex flex-wrap gap-x-6 gap-y-2">
-                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">本周计划：</span><span id="kpi-total-plan" class="text-lg font-bold text-gray-900">-</span></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">已发布：</span><span id="kpi-published-count" class="text-lg font-bold text-green-600">-</span><span class="text-xs text-gray-500">(<span id="kpi-published-rate">0%</span>)</span></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">今日到期：</span><span id="kpi-due-today" class="text-lg font-bold text-blue-600">-</span></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">本周到期：</span><span id="kpi-due-week" class="text-lg font-bold text-indigo-600">-</span></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">延期：</span><span id="kpi-delayed" class="text-lg font-bold text-red-600">-</span></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">剩余天数：</span><span id="kpi-remaining-days" class="text-lg font-bold text-purple-600">-</span><span class="text-sm text-gray-400">天</span></div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1">
+                        <span class="text-sm font-medium text-gray-700">当前周统计</span>
+                        <span id="current-week-range" class="text-xs text-gray-500">(-)</span>
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs text-gray-600">本周计划</span>
+                            <span id="kpi-total-plan" class="text-base font-bold text-gray-900">-</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs text-gray-600">已发布</span>
+                            <span id="kpi-published-count" class="text-base font-bold text-green-600">-</span>
+                            <span class="text-xs text-gray-500">(<span id="kpi-published-rate">0%</span>)</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs text-gray-600">今日到期</span>
+                            <span id="kpi-due-today" class="text-base font-bold text-blue-600">-</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs text-gray-600">本周到期</span>
+                            <span id="kpi-due-week" class="text-base font-bold text-indigo-600">-</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs text-gray-600">延期</span>
+                            <span id="kpi-delayed" class="text-base font-bold text-red-600">-</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
