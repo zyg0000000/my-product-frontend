@@ -111,6 +111,32 @@
             border-color: #1677FF;
         }
 
+        /* 全周期概览 */
+        .overview-week {
+            min-width: 120px;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .overview-week:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .overview-week.current {
+            background: linear-gradient(to bottom, #EFF6FF, #DBEAFE) !important;
+            border-color: #3B82F6 !important;
+            border-width: 2px;
+        }
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .dot-published { background-color: #52C41A; }
+        .dot-scheduled { background-color: #FAAD14; }
+        .dot-delayed { background-color: #FF4D4F; }
+
         /* 快速输入弹层 */
         .quick-input-popup { animation: slideUp 0.2s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -201,6 +227,20 @@
             <!-- Loading -->
             <div id="calendar-loading" class="hidden py-12 text-center">
                 <p class="text-gray-500">加载中...</p>
+            </div>
+
+            <!-- 项目全周期概览 -->
+            <div class="mt-0 p-4 bg-gray-50 border-b">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-sm font-medium text-gray-700">项目全周期概览</p>
+                    <p class="text-xs text-gray-500">支持横向滚动查看更多周 · 点击周格子可跳转</p>
+                </div>
+                <div class="overflow-x-auto custom-scrollbar pb-2">
+                    <div id="project-overview-container" class="flex gap-2 min-w-min">
+                        <!-- Weekly overview cards will be loaded here by JS -->
+                        <div class="text-center text-xs text-gray-400 py-4">加载中...</div>
+                    </div>
+                </div>
             </div>
 
             <!-- 周导航 -->

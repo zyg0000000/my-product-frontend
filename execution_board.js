@@ -29,6 +29,12 @@ class ExecutionBoard {
         this.allCollaborations = []; // 所有合作数据（聚合自多个项目）
         this.projectColorMap = new Map(); // 项目ID -> 颜色映射
 
+        // 项目周期数据
+        this.projectStartDate = null; // 项目最早发布日期（倒推到周一）
+        this.projectEndDate = null; // 项目最晚发布日期（延长到周日）
+        this.totalWeeks = 0; // 项目总周数
+        this.currentCalendarWeekIndex = 0; // 当前日历视图显示的周索引（从0开始）
+
         // 视图状态
         this.viewMode = 'week'; // 'week' or 'biweek'
         this.currentWeekStart = this.getMonday(new Date()); // 当前周的周一
@@ -69,6 +75,7 @@ class ExecutionBoard {
             // 日历
             calendarContainer: document.getElementById('calendar-container'),
             calendarLoading: document.getElementById('calendar-loading'),
+            overviewContainer: document.getElementById('project-overview-container'), // 全周期概览
             weekNav: document.getElementById('week-nav'),
             weekDisplay: document.getElementById('week-display'),
             prevWeekBtn: document.getElementById('prev-week-btn'),
@@ -119,6 +126,9 @@ class ExecutionBoard {
 
         // 日历格子点击（事件委托）
         this.elements.calendarGrid.addEventListener('click', (e) => this.handleCalendarClick(e));
+
+        // 全周期概览点击（事件委托）
+        this.elements.overviewContainer.addEventListener('click', (e) => this.handleOverviewClick(e));
 
         // 编辑弹窗
         this.elements.saveQuickInputBtn.addEventListener('click', () => this.saveEdit());
@@ -334,8 +344,128 @@ class ExecutionBoard {
         this.elements.noDataMessage.classList.add('hidden');
         this.elements.calendarContainer.classList.remove('hidden');
 
+        // 计算项目周期
+        this.calculateProjectCycle();
+
+        // 渲染全周期概览
+        this.renderOverview();
+
+        // 渲染日历和KPI
         this.renderCalendar();
         this.renderKPIs();
+    }
+
+    /**
+     * 计算项目周期和总周数
+     */
+    calculateProjectCycle() {
+        // 获取所有合作的发布日期
+        const dates = this.allCollaborations
+            .map(c => c.plannedReleaseDate)
+            .filter(d => d)
+            .map(d => new Date(d));
+
+        if (dates.length > 0) {
+            dates.sort((a, b) => a - b);
+            const earliestDate = dates[0];
+            const latestDate = dates[dates.length - 1];
+
+            // 计算起始日期所在周的周一
+            const startDay = new Date(earliestDate);
+            startDay.setHours(0, 0, 0, 0);
+            const startDayOfWeek = startDay.getDay(); // 0=Sun, 1=Mon
+            const startMonday = new Date(startDay);
+            startMonday.setDate(startDay.getDate() - (startDayOfWeek === 0 ? 6 : startDayOfWeek - 1));
+            this.projectStartDate = startMonday;
+
+            // 计算结束日期所在周的周日
+            const endDay = new Date(latestDate);
+            endDay.setHours(0, 0, 0, 0);
+            const endDayOfWeek = endDay.getDay();
+            const endSunday = new Date(endDay);
+            endSunday.setDate(endDay.getDate() + (endDayOfWeek === 0 ? 0 : 7 - endDayOfWeek));
+            this.projectEndDate = endSunday;
+
+            // 计算总周数
+            const totalDays = Math.ceil((this.projectEndDate - this.projectStartDate) / (1000 * 60 * 60 * 24)) + 1;
+            this.totalWeeks = Math.ceil(totalDays / 7);
+
+            // 计算当前周索引（基于当前 currentWeekStart）
+            const weeksDiff = Math.floor((this.currentWeekStart - this.projectStartDate) / (1000 * 60 * 60 * 24 * 7));
+            this.currentCalendarWeekIndex = Math.max(0, Math.min(weeksDiff, this.totalWeeks - 1));
+
+            console.log(`项目周期：${Format.date(this.projectStartDate)} - ${Format.date(this.projectEndDate)}, 共 ${this.totalWeeks} 周`);
+        } else {
+            this.projectStartDate = null;
+            this.projectEndDate = null;
+            this.totalWeeks = 0;
+            this.currentCalendarWeekIndex = 0;
+        }
+    }
+
+    /**
+     * 渲染全周期概览
+     */
+    renderOverview() {
+        if (!this.elements.overviewContainer || !this.projectStartDate || this.totalWeeks <= 0) {
+            if (this.elements.overviewContainer) {
+                this.elements.overviewContainer.innerHTML = '<p class="col-span-7 text-sm text-center text-gray-500 py-4">暂无项目周期数据</p>';
+            }
+            return;
+        }
+
+        let overviewHtml = '';
+        const startOfWeek = new Date(this.projectStartDate);
+
+        for (let i = 0; i < this.totalWeeks; i++) {
+            const weekStartDate = new Date(startOfWeek);
+            weekStartDate.setDate(startOfWeek.getDate() + i * 7);
+            const weekEndDate = new Date(weekStartDate);
+            weekEndDate.setDate(weekStartDate.getDate() + 6);
+
+            const isCurrentWeek = i === this.currentCalendarWeekIndex;
+            const weekClass = isCurrentWeek ? 'current' : '';
+
+            // 统计本周状态
+            const weekCollabs = this.allCollaborations.filter(c => {
+                if (!c.plannedReleaseDate) return false;
+                const plannedDate = new Date(c.plannedReleaseDate);
+                return plannedDate >= weekStartDate && plannedDate <= weekEndDate;
+            });
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const statusCounts = weekCollabs.reduce((acc, c) => {
+                if (c.status === '视频已发布') {
+                    acc.published++;
+                } else if (c.status === '客户已定档') {
+                    const planned = new Date(c.plannedReleaseDate);
+                    if (planned < today) {
+                        acc.delayed++;
+                    } else {
+                        acc.scheduled++;
+                    }
+                }
+                return acc;
+            }, { published: 0, scheduled: 0, delayed: 0 });
+
+            let dotsHtml = '';
+            if (statusCounts.published > 0) dotsHtml += `<span class="status-dot dot-published" title="已发布"></span>`;
+            if (statusCounts.scheduled > 0) dotsHtml += `<span class="status-dot dot-scheduled" title="待发布"></span>`;
+            if (statusCounts.delayed > 0) dotsHtml += `<span class="status-dot dot-delayed" title="延期"></span>`;
+
+            overviewHtml += `
+                <div class="overview-week text-center border border-gray-200 rounded bg-white p-3 ${weekClass}" data-week-index="${i}">
+                    <p class="text-xs ${isCurrentWeek ? 'text-blue-700 font-semibold' : 'text-gray-500'} mb-0.5">第${i + 1}周${isCurrentWeek ? '(当前)' : ''}</p>
+                    <p class="text-xs font-medium ${isCurrentWeek ? 'text-blue-900' : ''}">${Format.date(weekStartDate, 'MM.DD')}-${Format.date(weekEndDate, 'MM.DD')}</p>
+                    <div class="mt-1 flex justify-center gap-0.5 h-[6px]">${dotsHtml || '&nbsp;'}</div>
+                    <p class="text-xs ${isCurrentWeek ? 'text-blue-700' : 'text-gray-600'} mt-1">${statusCounts.published}/${weekCollabs.length}</p>
+                </div>
+            `;
+        }
+
+        this.elements.overviewContainer.innerHTML = overviewHtml;
     }
 
     /**
@@ -531,7 +661,16 @@ class ExecutionBoard {
     navigateWeek(direction) {
         const daysToMove = 7;
         this.currentWeekStart.setDate(this.currentWeekStart.getDate() + (direction * daysToMove));
-        this.render();
+
+        // 更新当前周索引
+        if (this.projectStartDate) {
+            const weeksDiff = Math.floor((this.currentWeekStart - this.projectStartDate) / (1000 * 60 * 60 * 24 * 7));
+            this.currentCalendarWeekIndex = Math.max(0, Math.min(weeksDiff, this.totalWeeks - 1));
+        }
+
+        // 重新渲染全周期概览和日历
+        this.renderOverview();
+        this.renderCalendar();
     }
 
     /**
@@ -539,7 +678,16 @@ class ExecutionBoard {
      */
     backToToday() {
         this.currentWeekStart = this.getMonday(new Date());
-        this.render();
+
+        // 更新当前周索引
+        if (this.projectStartDate) {
+            const weeksDiff = Math.floor((this.currentWeekStart - this.projectStartDate) / (1000 * 60 * 60 * 24 * 7));
+            this.currentCalendarWeekIndex = Math.max(0, Math.min(weeksDiff, this.totalWeeks - 1));
+        }
+
+        // 重新渲染全周期概览和日历
+        this.renderOverview();
+        this.renderCalendar();
     }
 
     /**
@@ -548,6 +696,29 @@ class ExecutionBoard {
     async refresh() {
         await this.loadAllProjects();
         await this.loadSelectedMonthProjects();
+    }
+
+    /**
+     * 处理全周期概览点击事件
+     */
+    handleOverviewClick(e) {
+        const weekCard = e.target.closest('.overview-week');
+        if (!weekCard) return;
+
+        const weekIndex = parseInt(weekCard.dataset.weekIndex);
+        if (isNaN(weekIndex)) return;
+
+        // 计算该周的周一日期
+        const newWeekStart = new Date(this.projectStartDate);
+        newWeekStart.setDate(this.projectStartDate.getDate() + weekIndex * 7);
+
+        // 更新当前周
+        this.currentWeekStart = newWeekStart;
+        this.currentCalendarWeekIndex = weekIndex;
+
+        // 重新渲染全周期概览和日历
+        this.renderOverview();
+        this.renderCalendar();
     }
 
     /**
