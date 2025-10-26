@@ -223,22 +223,22 @@ export class PerformanceTab {
             // 计算今天所在的周数
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const startDay = new Date(this.projectStartDate);
-            startDay.setHours(0, 0, 0, 0);
-            const endDay = new Date(this.projectEndDate);
-            endDay.setHours(0, 0, 0, 0);
+            const projectStart = new Date(this.projectStartDate);
+            projectStart.setHours(0, 0, 0, 0);
+            const projectEnd = new Date(this.projectEndDate);
+            projectEnd.setHours(0, 0, 0, 0);
 
-            // 确保 startDay 是项目周期的第一天（周一）
-            const dayOfWeek = startDay.getDay(); // 0=Sun, 1=Mon
-            const cycleRealStartDate = new Date(startDay);
-            cycleRealStartDate.setDate(startDay.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+            // 确保 projectStart 是项目周期的第一天（周一）
+            const startWeekDay = projectStart.getDay(); // 0=Sun, 1=Mon
+            const cycleRealStartDate = new Date(projectStart);
+            cycleRealStartDate.setDate(projectStart.getDate() - (startWeekDay === 0 ? 6 : startWeekDay - 1));
 
             // [bugfix] 智能计算当前周
             if (today < cycleRealStartDate) {
                 // 今天在项目开始之前，显示第1周
                 this.currentCalendarWeek = 1;
                 console.log('[DEBUG] 今天在项目开始之前，显示第1周');
-            } else if (today > endDay) {
+            } else if (today > projectEnd) {
                 // 今天在项目结束之后，显示最后1周
                 this.currentCalendarWeek = this.totalWeeks;
                 console.log('[DEBUG] 今天在项目结束之后，显示最后1周');
