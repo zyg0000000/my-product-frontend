@@ -184,17 +184,28 @@ export class PerformanceTab {
             today.setHours(0, 0, 0, 0);
             const startDay = new Date(this.projectStartDate);
             startDay.setHours(0, 0, 0, 0);
-            
+            const endDay = new Date(this.projectEndDate);
+            endDay.setHours(0, 0, 0, 0);
+
             // 确保 startDay 是项目周期的第一天（周一）
             const dayOfWeek = startDay.getDay(); // 0=Sun, 1=Mon
             const cycleRealStartDate = new Date(startDay);
             cycleRealStartDate.setDate(startDay.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
 
-            const daysFromStart = Utils.daysBetween(cycleRealStartDate, today);
-            this.currentCalendarWeek = Math.floor(daysFromStart / 7) + 1;
-            
-            // 确保当前周在有效范围内
-            this.currentCalendarWeek = Math.max(1, Math.min(this.currentCalendarWeek, this.totalWeeks));
+            // [bugfix] 智能计算当前周
+            if (today < cycleRealStartDate) {
+                // 今天在项目开始之前，显示第1周
+                this.currentCalendarWeek = 1;
+            } else if (today > endDay) {
+                // 今天在项目结束之后，显示最后1周
+                this.currentCalendarWeek = this.totalWeeks;
+            } else {
+                // 今天在项目周期内，计算所在周数
+                const daysFromStart = Utils.daysBetween(cycleRealStartDate, today);
+                this.currentCalendarWeek = Math.floor(daysFromStart / 7) + 1;
+                // 确保在有效范围内
+                this.currentCalendarWeek = Math.max(1, Math.min(this.currentCalendarWeek, this.totalWeeks));
+            }
 
         } else {
             // [v2.1.0] 修复：如果没有有效日期，设置 null，而不是 new Date()
@@ -610,12 +621,29 @@ export class PerformanceTab {
 
     bindCalendarEvents() {
         const { calendarGridContent, prevWeekBtn, nextWeekBtn, backToTodayBtn } = this.elements;
+
+        // [bugfix] 移除旧的事件监听器，避免重复绑定
         if (calendarGridContent) {
+            calendarGridContent.removeEventListener('click', this.handleCalendarInteraction);
             calendarGridContent.addEventListener('click', this.handleCalendarInteraction);
         }
-        if (prevWeekBtn) prevWeekBtn.addEventListener('click', () => this.handleWeekNav(-1));
-        if (nextWeekBtn) nextWeekBtn.addEventListener('click', () => this.handleWeekNav(1));
-        if (backToTodayBtn) backToTodayBtn.addEventListener('click', () => this.handleWeekNav(0)); // 0 表示回到今天
+
+        // [bugfix] 使用命名函数，方便移除
+        if (prevWeekBtn) {
+            const prevHandler = () => this.handleWeekNav(-1);
+            prevWeekBtn.removeEventListener('click', prevHandler);
+            prevWeekBtn.onclick = prevHandler; // 使用 onclick 避免重复绑定
+        }
+        if (nextWeekBtn) {
+            const nextHandler = () => this.handleWeekNav(1);
+            nextWeekBtn.removeEventListener('click', nextHandler);
+            nextWeekBtn.onclick = nextHandler;
+        }
+        if (backToTodayBtn) {
+            const todayHandler = () => this.handleWeekNav(0);
+            backToTodayBtn.removeEventListener('click', todayHandler);
+            backToTodayBtn.onclick = todayHandler;
+        }
     }
 
     bindListEvents() {
