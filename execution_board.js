@@ -453,8 +453,11 @@ class ExecutionBoard {
         for (let i = 0; i < this.totalWeeks; i++) {
             const weekStartDate = new Date(startOfWeek);
             weekStartDate.setDate(startOfWeek.getDate() + i * 7);
+            weekStartDate.setHours(0, 0, 0, 0);  // 确保时间部分为0
+
             const weekEndDate = new Date(weekStartDate);
             weekEndDate.setDate(weekStartDate.getDate() + 6);
+            weekEndDate.setHours(23, 59, 59, 999);  // 确保包含整天
 
             const isCurrentWeek = i === this.currentCalendarWeekIndex;
             const weekClass = isCurrentWeek ? 'current' : '';
@@ -464,8 +467,20 @@ class ExecutionBoard {
                 const displayDate = this.getCollabDisplayDate(c);
                 if (!displayDate) return false;
                 const date = new Date(displayDate);
+                date.setHours(0, 0, 0, 0);  // 标准化到00:00:00进行比较
                 return date >= weekStartDate && date <= weekEndDate;
             });
+
+            // 添加调试日志
+            if (weekCollabs.length > 0) {
+                console.log(`第${i + 1}周 (${Format.date(weekStartDate, 'MM.DD')}-${Format.date(weekEndDate, 'MM.DD')}): 统计到 ${weekCollabs.length} 个合作`,
+                    weekCollabs.map(c => ({
+                        kol: c.kolName,
+                        displayDate: this.getCollabDisplayDate(c),
+                        status: c.status
+                    }))
+                );
+            }
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -654,6 +669,7 @@ class ExecutionBoard {
         const days = 7;
         const periodEnd = new Date(this.currentWeekStart);
         periodEnd.setDate(periodEnd.getDate() + days - 1);
+        periodEnd.setHours(23, 59, 59, 999);  // 确保包含整天
 
         // 更新当前周时间范围显示
         if (this.elements.currentWeekRange) {
@@ -665,6 +681,7 @@ class ExecutionBoard {
             const displayDate = this.getCollabDisplayDate(c);
             if (!displayDate) return false;
             const collabDate = new Date(displayDate);
+            collabDate.setHours(0, 0, 0, 0);  // 标准化到00:00:00进行比较
             return collabDate >= this.currentWeekStart && collabDate <= periodEnd;
         });
 
