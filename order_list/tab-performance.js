@@ -129,7 +129,8 @@ export class PerformanceTab {
             // [v2.1.0 核心修复]
             // 过滤出此 Tab 关心的数据
             const executionStatuses = ['客户已定档', '视频已发布'];
-            this.filteredCollaborations = (this.allCollaborations || []).filter(c => 
+
+            this.filteredCollaborations = (this.allCollaborations || []).filter(c =>
                 executionStatuses.includes(c.status)
             );
 
@@ -161,7 +162,7 @@ export class PerformanceTab {
      */
     calculateProjectCycle() {
         // [v2.1.0] 使用过滤后的数据
-        const dates = this.filteredCollaborations 
+        const dates = this.filteredCollaborations
             .map(c => c.plannedReleaseDate)
             .filter(Boolean)
             .map(d => new Date(d.split('T')[0])); // 修复时区问题
@@ -171,30 +172,53 @@ export class PerformanceTab {
             this.projectStartDate = dates[0];
             this.projectEndDate = dates[dates.length - 1];
 
-            // 计算总周数 (向上取整)
-            const diffDays = Utils.daysBetween(this.projectStartDate, this.projectEndDate) + 1;
-            this.totalWeeks = Math.ceil(diffDays / 7);
-            
-            // 如果总天数小于7，也算1周
-            if (this.totalWeeks === 0 && diffDays > 0) this.totalWeeks = 1;
+            // [bugfix] 正确计算总周数：计算从起始日期所在的周一到结束日期所在的周日，总共有多少周
+            // 先计算起始日期所在周的周一
+            const startDay = new Date(this.projectStartDate);
+            startDay.setHours(0, 0, 0, 0);
+            const startDayOfWeek = startDay.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+            const startMonday = new Date(startDay);
+            startMonday.setDate(startDay.getDate() - (startDayOfWeek === 0 ? 6 : startDayOfWeek - 1));
+
+            // 再计算结束日期所在周的周日
+            const endDay = new Date(this.projectEndDate);
+            endDay.setHours(0, 0, 0, 0);
+            const endDayOfWeek = endDay.getDay();
+            const endSunday = new Date(endDay);
+            endSunday.setDate(endDay.getDate() + (endDayOfWeek === 0 ? 0 : 7 - endDayOfWeek));
+
+            // 计算从第一个周一到最后一个周日的总天数，再除以7
+            const totalDays = Utils.daysBetween(startMonday, endSunday) + 1;
+            this.totalWeeks = Math.ceil(totalDays / 7);
 
 
             // 计算今天所在的周数
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const startDay = new Date(this.projectStartDate);
-            startDay.setHours(0, 0, 0, 0);
-            
-            // 确保 startDay 是项目周期的第一天（周一）
-            const dayOfWeek = startDay.getDay(); // 0=Sun, 1=Mon
-            const cycleRealStartDate = new Date(startDay);
-            cycleRealStartDate.setDate(startDay.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+            const projectStart = new Date(this.projectStartDate);
+            projectStart.setHours(0, 0, 0, 0);
+            const projectEnd = new Date(this.projectEndDate);
+            projectEnd.setHours(0, 0, 0, 0);
 
-            const daysFromStart = Utils.daysBetween(cycleRealStartDate, today);
-            this.currentCalendarWeek = Math.floor(daysFromStart / 7) + 1;
-            
-            // 确保当前周在有效范围内
-            this.currentCalendarWeek = Math.max(1, Math.min(this.currentCalendarWeek, this.totalWeeks));
+            // 确保 projectStart 是项目周期的第一天（周一）
+            const startWeekDay = projectStart.getDay(); // 0=Sun, 1=Mon
+            const cycleRealStartDate = new Date(projectStart);
+            cycleRealStartDate.setDate(projectStart.getDate() - (startWeekDay === 0 ? 6 : startWeekDay - 1));
+
+            // [bugfix] 智能计算当前周
+            if (today < cycleRealStartDate) {
+                // 今天在项目开始之前，显示第1周
+                this.currentCalendarWeek = 1;
+            } else if (today > projectEnd) {
+                // 今天在项目结束之后，显示最后1周
+                this.currentCalendarWeek = this.totalWeeks;
+            } else {
+                // 今天在项目周期内，计算所在周数
+                const daysFromStart = Utils.daysBetween(cycleRealStartDate, today);
+                this.currentCalendarWeek = Math.floor(daysFromStart / 7) + 1;
+                // 确保在有效范围内
+                this.currentCalendarWeek = Math.max(1, Math.min(this.currentCalendarWeek, this.totalWeeks));
+            }
 
         } else {
             // [v2.1.0] 修复：如果没有有效日期，设置 null，而不是 new Date()
@@ -610,12 +634,29 @@ export class PerformanceTab {
 
     bindCalendarEvents() {
         const { calendarGridContent, prevWeekBtn, nextWeekBtn, backToTodayBtn } = this.elements;
+
+        // [bugfix] 移除旧的事件监听器，避免重复绑定
         if (calendarGridContent) {
+            calendarGridContent.removeEventListener('click', this.handleCalendarInteraction);
             calendarGridContent.addEventListener('click', this.handleCalendarInteraction);
         }
-        if (prevWeekBtn) prevWeekBtn.addEventListener('click', () => this.handleWeekNav(-1));
-        if (nextWeekBtn) nextWeekBtn.addEventListener('click', () => this.handleWeekNav(1));
-        if (backToTodayBtn) backToTodayBtn.addEventListener('click', () => this.handleWeekNav(0)); // 0 表示回到今天
+
+        // [bugfix] 使用命名函数，方便移除
+        if (prevWeekBtn) {
+            const prevHandler = () => this.handleWeekNav(-1);
+            prevWeekBtn.removeEventListener('click', prevHandler);
+            prevWeekBtn.onclick = prevHandler; // 使用 onclick 避免重复绑定
+        }
+        if (nextWeekBtn) {
+            const nextHandler = () => this.handleWeekNav(1);
+            nextWeekBtn.removeEventListener('click', nextHandler);
+            nextWeekBtn.onclick = nextHandler;
+        }
+        if (backToTodayBtn) {
+            const todayHandler = () => this.handleWeekNav(0);
+            backToTodayBtn.removeEventListener('click', todayHandler);
+            backToTodayBtn.onclick = todayHandler;
+        }
     }
 
     bindListEvents() {
@@ -678,6 +719,9 @@ export class PerformanceTab {
         }
         // 边界检查
         this.currentCalendarWeek = Math.max(1, Math.min(this.currentCalendarWeek, this.totalWeeks));
+
+        // [bugfix] 同时重新渲染全周期概览和日历视图，保持高亮联动
+        this.renderOverview();
         this.renderCalendarView();
     }
 
@@ -781,6 +825,8 @@ export class PerformanceTab {
         // 自动判断状态：如果录入了 videoId 或 taskId，状态为"视频已发布"，否则为"客户已定档"
         if (payload.videoId || payload.taskId) {
             payload.status = '视频已发布';
+            // [bugfix] 自动设置实际发布日期为用户输入的日期
+            payload.publishDate = quickInputDate.value;
         } else {
             payload.status = '客户已定档';
         }
@@ -792,11 +838,14 @@ export class PerformanceTab {
         try {
             await API.request('/update-collaboration', 'PUT', payload);
 
+            // [bugfix] 先关闭弹窗，立即触发刷新，提升用户体验
             this.closeQuickEditModal();
-            Modal.showAlert('保存成功！', '成功', async () => {
-                // [v2.1.0] 触发 main.js 刷新
-                document.dispatchEvent(new CustomEvent('refreshProject'));
-            });
+
+            // 立即触发刷新，让用户看到数据变化
+            document.dispatchEvent(new CustomEvent('refreshProject'));
+
+            // 简短的成功提示（可选，因为数据变化已经是很好的反馈）
+            Modal.showAlert('保存成功！', '成功');
 
         } catch (error) {
             // API.request 已经处理了错误弹窗
