@@ -158,12 +158,22 @@ export class PerformanceTab {
     }
 
     /**
+     * 获取合作的实际显示日期（已发布用publishDate，未发布用plannedReleaseDate）
+     */
+    getCollabDisplayDate(collab) {
+        if (collab.status === '视频已发布' && collab.publishDate) {
+            return collab.publishDate;  // 使用实际发布日期
+        }
+        return collab.plannedReleaseDate;  // 使用计划发布日期
+    }
+
+    /**
      * 计算项目周期和当前周
      */
     calculateProjectCycle() {
-        // [v2.1.0] 使用过滤后的数据
+        // [v2.1.0] 使用过滤后的数据，并使用正确的显示日期
         const dates = this.filteredCollaborations
-            .map(c => c.plannedReleaseDate)
+            .map(c => this.getCollabDisplayDate(c))
             .filter(Boolean)
             .map(d => new Date(d.split('T')[0])); // 修复时区问题
 
@@ -314,11 +324,12 @@ export class PerformanceTab {
             const isCurrentWeek = i + 1 === this.currentCalendarWeek;
             const weekClass = isCurrentWeek ? 'current' : '';
 
-            // 统计本周状态 (使用过滤后的数据)
+            // 统计本周状态 (使用过滤后的数据，并使用正确的显示日期)
             const weekCollabs = this.filteredCollaborations.filter(c => {
-                if (!c.plannedReleaseDate) return false;
-                const plannedDate = new Date(c.plannedReleaseDate.split('T')[0]);
-                return plannedDate >= weekStartDate && plannedDate <= weekEndDate;
+                const displayDate = this.getCollabDisplayDate(c);
+                if (!displayDate) return false;
+                const date = new Date(displayDate.split('T')[0]);
+                return date >= weekStartDate && date <= weekEndDate;
             });
 
             const statusCounts = weekCollabs.reduce((acc, c) => {
@@ -411,8 +422,8 @@ export class PerformanceTab {
 
             // 填充达人卡片
             const dayContentDiv = dayDiv.querySelector('.day-content');
-            // [v2.1.0] 使用过滤后的数据
-            const talentsForDay = this.filteredCollaborations.filter(c => c.plannedReleaseDate === dateStr);
+            // [v2.1.0] 使用过滤后的数据，并使用正确的显示日期
+            const talentsForDay = this.filteredCollaborations.filter(c => this.getCollabDisplayDate(c) === dateStr);
             let talentCount = 0;
 
             talentsForDay.forEach(collab => {
@@ -782,7 +793,14 @@ export class PerformanceTab {
         // 填充表单
         quickInputTalentSelect.innerHTML = `<option value="${collab.talentId}" selected>${collab.talentInfo?.nickname || '(未知达人)'}</option>`;
         quickInputTalentSelect.disabled = true; // 编辑时不允许修改达人
-        quickInputDate.value = collab.plannedReleaseDate || '';
+
+        // 根据状态显示正确的日期
+        if (collab.status === '视频已发布' && collab.publishDate) {
+            quickInputDate.value = collab.publishDate;  // 显示实际发布日期
+        } else {
+            quickInputDate.value = collab.plannedReleaseDate || '';  // 显示计划发布日期
+        }
+
         quickInputVideoId.value = collab.videoId || '';
         quickInputTaskId.value = collab.taskId || '';
 
@@ -810,25 +828,31 @@ export class PerformanceTab {
             return;
         }
 
+        const dateValue = quickInputDate.value;
+        const videoId = quickInputVideoId.value.trim() || null;
+        const taskId = quickInputTaskId.value.trim() || null;
+
+        // 基本校验
+        if (!quickInputTalentSelect.value) { Modal.showAlert('请选择达人'); return; }
+        if (!dateValue) { Modal.showAlert('请选择发布日期'); return; }
+
         const payload = {
             id: collabId,
             talentId: quickInputTalentSelect.value,
-            plannedReleaseDate: quickInputDate.value || null,
-            videoId: quickInputVideoId.value.trim() || null,
-            taskId: quickInputTaskId.value.trim() || null
+            videoId: videoId,
+            taskId: taskId
         };
 
-        // 基本校验
-        if (!payload.talentId) { Modal.showAlert('请选择达人'); return; }
-        if (!payload.plannedReleaseDate) { Modal.showAlert('请选择发布日期'); return; }
-
-        // 自动判断状态：如果录入了 videoId 或 taskId，状态为"视频已发布"，否则为"客户已定档"
-        if (payload.videoId || payload.taskId) {
+        // 自动判断状态并设置正确的日期字段
+        if (videoId || taskId) {
+            // 已发布：设置 publishDate 和 status
             payload.status = '视频已发布';
-            // [bugfix] 自动设置实际发布日期为用户输入的日期
-            payload.publishDate = quickInputDate.value;
+            payload.publishDate = dateValue;
+            payload.plannedReleaseDate = dateValue;  // 也设置计划日期（如果之前没有的话）
         } else {
+            // 未发布：只设置 plannedReleaseDate
             payload.status = '客户已定档';
+            payload.plannedReleaseDate = dateValue;
         }
 
         // 禁用按钮，显示加载状态
