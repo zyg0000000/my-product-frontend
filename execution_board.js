@@ -318,74 +318,171 @@ class ExecutionBoard {
             `${Format.date(this.currentWeekStart, 'YYYY-MM-DD')} - ${Format.date(endDate, 'YYYY-MM-DD')} (${mode})`;
 
         // 渲染星期标题
-        this.renderHeaders(days);
+        this.renderHeaders();
 
         // 渲染日历格子
-        this.renderDays(days);
+        this.renderDays();
     }
 
     /**
      * 渲染星期标题
      */
-    renderHeaders(days) {
+    renderHeaders() {
         const weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-        this.elements.calendarHeaders.className = `grid grid-cols-${days} gap-3 mb-3`;
 
-        let headersHtml = '';
-        for (let i = 0; i < days; i++) {
-            const weekdayIndex = i % 7;
-            const isWeekend = weekdayIndex === 5 || weekdayIndex === 6;
-            headersHtml += `
-                <div class="text-center py-2 text-sm font-medium ${isWeekend ? 'text-gray-500' : 'text-gray-700'}">
-                    ${weekdays[weekdayIndex]}
-                </div>
-            `;
+        if (this.viewMode === 'week') {
+            // 周模式：一行7天
+            this.elements.calendarHeaders.className = `grid grid-cols-7 gap-3 mb-3`;
+            let headersHtml = '';
+            for (let i = 0; i < 7; i++) {
+                const isWeekend = i === 5 || i === 6;
+                headersHtml += `
+                    <div class="text-center py-2 text-sm font-medium ${isWeekend ? 'text-gray-500' : 'text-gray-700'}">
+                        ${weekdays[i]}
+                    </div>
+                `;
+            }
+            this.elements.calendarHeaders.innerHTML = headersHtml;
+        } else {
+            // 双周模式：两行，每行7天
+            this.elements.calendarHeaders.className = `space-y-3 mb-3`;
+            let headersHtml = '<div class="grid grid-cols-7 gap-3">';
+            for (let i = 0; i < 7; i++) {
+                const isWeekend = i === 5 || i === 6;
+                headersHtml += `
+                    <div class="text-center py-2 text-sm font-medium ${isWeekend ? 'text-gray-500' : 'text-gray-700'}">
+                        ${weekdays[i]}
+                    </div>
+                `;
+            }
+            headersHtml += '</div><div class="grid grid-cols-7 gap-3">';
+            for (let i = 0; i < 7; i++) {
+                const isWeekend = i === 5 || i === 6;
+                headersHtml += `
+                    <div class="text-center py-2 text-sm font-medium ${isWeekend ? 'text-gray-500' : 'text-gray-700'}">
+                        ${weekdays[i]}
+                    </div>
+                `;
+            }
+            headersHtml += '</div>';
+            this.elements.calendarHeaders.innerHTML = headersHtml;
         }
-        this.elements.calendarHeaders.innerHTML = headersHtml;
     }
 
     /**
      * 渲染日历格子
      */
-    renderDays(days) {
-        this.elements.calendarGrid.className = `grid grid-cols-${days} gap-3`;
-
+    renderDays() {
+        const days = this.viewMode === 'week' ? 7 : 14;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const todayStr = Format.date(today);
 
-        let gridHtml = '';
+        if (this.viewMode === 'week') {
+            // 周模式：一行7天
+            this.elements.calendarGrid.className = `grid grid-cols-7 gap-3`;
+            let gridHtml = '';
 
-        for (let i = 0; i < days; i++) {
-            const date = new Date(this.currentWeekStart);
-            date.setDate(date.getDate() + i);
-            const dateStr = Format.date(date);
-            const dayOfWeek = date.getDay();
-            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-            const isToday = dateStr === todayStr;
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(this.currentWeekStart);
+                date.setDate(date.getDate() + i);
+                const dateStr = Format.date(date);
+                const dayOfWeek = date.getDay();
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                const isToday = dateStr === todayStr;
 
-            // 获取该日期的合作
-            const dayCollabs = this.allCollaborations.filter(c => c.plannedReleaseDate === dateStr);
+                // 获取该日期的合作
+                const dayCollabs = this.allCollaborations.filter(c => c.plannedReleaseDate === dateStr);
 
-            gridHtml += `
-                <div class="calendar-day border rounded-lg ${isWeekend ? 'weekend-day' : ''} ${isToday ? 'today-indicator' : ''}"
-                     data-date="${dateStr}">
-                    <div class="day-header">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <span class="text-sm font-medium ${isToday ? 'text-blue-900' : 'text-gray-900'}">${date.getDate()}日</span>
+                gridHtml += `
+                    <div class="calendar-day border rounded-lg ${isWeekend ? 'weekend-day' : ''} ${isToday ? 'today-indicator' : ''}"
+                         data-date="${dateStr}">
+                        <div class="day-header">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="text-sm font-medium ${isToday ? 'text-blue-900' : 'text-gray-900'}">${date.getDate()}日</span>
+                                </div>
+                                <span class="text-xs text-gray-500">${dayCollabs.length}个</span>
                             </div>
-                            <span class="text-xs text-gray-500">${dayCollabs.length}个</span>
+                        </div>
+                        <div class="day-content custom-scrollbar">
+                            ${this.renderDayCollabs(dayCollabs, date)}
                         </div>
                     </div>
-                    <div class="day-content custom-scrollbar">
-                        ${this.renderDayCollabs(dayCollabs, date)}
-                    </div>
-                </div>
-            `;
-        }
+                `;
+            }
 
-        this.elements.calendarGrid.innerHTML = gridHtml;
+            this.elements.calendarGrid.innerHTML = gridHtml;
+        } else {
+            // 双周模式：两行，每行7天
+            this.elements.calendarGrid.className = `space-y-3`;
+            let gridHtml = '<div class="grid grid-cols-7 gap-3">';
+
+            // 第一周
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(this.currentWeekStart);
+                date.setDate(date.getDate() + i);
+                const dateStr = Format.date(date);
+                const dayOfWeek = date.getDay();
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                const isToday = dateStr === todayStr;
+
+                // 获取该日期的合作
+                const dayCollabs = this.allCollaborations.filter(c => c.plannedReleaseDate === dateStr);
+
+                gridHtml += `
+                    <div class="calendar-day border rounded-lg ${isWeekend ? 'weekend-day' : ''} ${isToday ? 'today-indicator' : ''}"
+                         data-date="${dateStr}">
+                        <div class="day-header">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="text-sm font-medium ${isToday ? 'text-blue-900' : 'text-gray-900'}">${date.getDate()}日</span>
+                                </div>
+                                <span class="text-xs text-gray-500">${dayCollabs.length}个</span>
+                            </div>
+                        </div>
+                        <div class="day-content custom-scrollbar">
+                            ${this.renderDayCollabs(dayCollabs, date)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            gridHtml += '</div><div class="grid grid-cols-7 gap-3">';
+
+            // 第二周
+            for (let i = 7; i < 14; i++) {
+                const date = new Date(this.currentWeekStart);
+                date.setDate(date.getDate() + i);
+                const dateStr = Format.date(date);
+                const dayOfWeek = date.getDay();
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                const isToday = dateStr === todayStr;
+
+                // 获取该日期的合作
+                const dayCollabs = this.allCollaborations.filter(c => c.plannedReleaseDate === dateStr);
+
+                gridHtml += `
+                    <div class="calendar-day border rounded-lg ${isWeekend ? 'weekend-day' : ''} ${isToday ? 'today-indicator' : ''}"
+                         data-date="${dateStr}">
+                        <div class="day-header">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="text-sm font-medium ${isToday ? 'text-blue-900' : 'text-gray-900'}">${date.getDate()}日</span>
+                                </div>
+                                <span class="text-xs text-gray-500">${dayCollabs.length}个</span>
+                            </div>
+                        </div>
+                        <div class="day-content custom-scrollbar">
+                            ${this.renderDayCollabs(dayCollabs, date)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            gridHtml += '</div>';
+            this.elements.calendarGrid.innerHTML = gridHtml;
+        }
     }
 
     /**

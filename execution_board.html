@@ -5,7 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>执行看板 - KOL营销项目管理系统</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        /* Sidebar Styles */
+        .sidebar { transition: width 0.3s ease-in-out; }
+        .main-content { transition: margin-left 0.3s ease-in-out; }
+        .sidebar-collapsed { width: 5rem; }
+        .sidebar-collapsed .nav-text, .sidebar-collapsed .app-title-text { display: none; }
+        .sidebar-collapsed .nav-link, .sidebar-collapsed .nav-toggle { justify-content: center; }
+        .sidebar-collapsed .submenu { display: none; }
+        .sidebar-collapsed .app-title { justify-content: center; }
+        .nav-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 600; color: #1f2937; border-radius: 0.5rem; }
+        .nav-toggle:hover { background-color: #f3f4f6; }
+        .nav-link { display: flex; align-items: center; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 500; color: #4b5563; border-radius: 0.5rem; position: relative; }
+        .nav-link:hover { background-color: #f3f4f6; }
+        .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; }
+
         /* 自定义滚动条 */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -97,137 +117,128 @@
     </style>
 </head>
 <body class="bg-gray-50">
-    <div class="min-h-screen">
-        <!-- 顶部标题栏 -->
-        <div class="bg-white border-b shadow-sm">
-            <div class="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div id="sidebar-container"></div>
+
+    <main id="main-content" class="main-content p-4 sm:p-6 lg:p-8" style="margin-left: 11rem;">
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">执行看板</h1>
+                <p class="text-sm text-gray-500 mt-1">跨项目发布计划管理</p>
+            </div>
+        </header>
+
+        <!-- 筛选工具栏 -->
+        <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
+            <div class="flex items-center justify-between gap-4 flex-wrap">
                 <div class="flex items-center gap-4">
-                    <h1 class="text-2xl font-bold text-gray-900">📊 执行看板</h1>
-                    <span class="text-sm text-gray-500">跨项目发布计划管理</span>
+                    <!-- 年份选择 -->
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-medium text-gray-700">年份：</label>
+                        <select id="year-selector" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <!-- 动态填充 -->
+                        </select>
+                    </div>
+
+                    <!-- 月份选择 -->
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-medium text-gray-700">月份：</label>
+                        <select id="month-selector" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="M1">M1</option>
+                            <option value="M2">M2</option>
+                            <option value="M3">M3</option>
+                            <option value="M4">M4</option>
+                            <option value="M5">M5</option>
+                            <option value="M6">M6</option>
+                            <option value="M7">M7</option>
+                            <option value="M8">M8</option>
+                            <option value="M9">M9</option>
+                            <option value="M10">M10</option>
+                            <option value="M11">M11</option>
+                            <option value="M12">M12</option>
+                        </select>
+                    </div>
+
+                    <!-- 周/双周切换 -->
+                    <div class="flex items-center gap-2 ml-4">
+                        <label class="text-sm font-medium text-gray-700">视图：</label>
+                        <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden">
+                            <button id="btn-week-mode" class="view-mode-btn active rounded-l-lg">周模式</button>
+                            <button id="btn-biweek-mode" class="view-mode-btn rounded-r-lg">双周模式</button>
+                        </div>
+                    </div>
                 </div>
-                <a href="index.html" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition">
-                    ← 返回首页
-                </a>
+
+                <!-- 刷新按钮 -->
+                <button id="refresh-btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
+                    🔄 刷新
+                </button>
             </div>
         </div>
 
-        <!-- 主容器 -->
-        <div class="max-w-screen-2xl mx-auto px-6 py-6">
-
-            <!-- 筛选工具栏 -->
-            <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
-                <div class="flex items-center justify-between gap-4 flex-wrap">
-                    <div class="flex items-center gap-4">
-                        <!-- 年份选择 -->
-                        <div class="flex items-center gap-2">
-                            <label class="text-sm font-medium text-gray-700">年份：</label>
-                            <select id="year-selector" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <!-- 动态填充 -->
-                            </select>
-                        </div>
-
-                        <!-- 月份选择 -->
-                        <div class="flex items-center gap-2">
-                            <label class="text-sm font-medium text-gray-700">月份：</label>
-                            <select id="month-selector" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="M1">M1</option>
-                                <option value="M2">M2</option>
-                                <option value="M3">M3</option>
-                                <option value="M4">M4</option>
-                                <option value="M5">M5</option>
-                                <option value="M6">M6</option>
-                                <option value="M7">M7</option>
-                                <option value="M8">M8</option>
-                                <option value="M9">M9</option>
-                                <option value="M10">M10</option>
-                                <option value="M11">M11</option>
-                                <option value="M12">M12</option>
-                            </select>
-                        </div>
-
-                        <!-- 周/双周切换 -->
-                        <div class="flex items-center gap-2 ml-4">
-                            <label class="text-sm font-medium text-gray-700">视图：</label>
-                            <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden">
-                                <button id="btn-week-mode" class="view-mode-btn active rounded-l-lg">周模式</button>
-                                <button id="btn-biweek-mode" class="view-mode-btn rounded-r-lg">双周模式</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 刷新按钮 -->
-                    <button id="refresh-btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
-                        🔄 刷新
-                    </button>
+        <!-- KPI 统计 -->
+        <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
+            <div class="flex items-center justify-center">
+                <div class="flex flex-wrap gap-x-8 gap-y-2" id="kpi-container">
+                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">总计划：</span><span id="kpi-total-plan" class="text-lg font-bold text-gray-900">-</span></div>
+                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">已发布：</span><span id="kpi-published-count" class="text-lg font-bold text-green-600">-</span><span class="text-xs text-gray-500">(<span id="kpi-published-rate">0%</span>)</span></div>
+                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">今日到期：</span><span id="kpi-due-today" class="text-lg font-bold text-blue-600">-</span></div>
+                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">本周到期：</span><span id="kpi-due-week" class="text-lg font-bold text-indigo-600">-</span></div>
+                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">延期：</span><span id="kpi-delayed" class="text-lg font-bold text-red-600">-</span></div>
+                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">剩余天数：</span><span id="kpi-remaining-days" class="text-lg font-bold text-purple-600">-</span><span class="text-sm text-gray-400">天</span></div>
                 </div>
             </div>
-
-            <!-- KPI 统计 -->
-            <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
-                <div class="flex items-center justify-center">
-                    <div class="flex flex-wrap gap-x-8 gap-y-2" id="kpi-container">
-                        <div class="flex items-center gap-2"><span class="text-sm text-gray-600">总计划：</span><span id="kpi-total-plan" class="text-lg font-bold text-gray-900">-</span></div>
-                        <div class="flex items-center gap-2"><span class="text-sm text-gray-600">已发布：</span><span id="kpi-published-count" class="text-lg font-bold text-green-600">-</span><span class="text-xs text-gray-500">(<span id="kpi-published-rate">0%</span>)</span></div>
-                        <div class="flex items-center gap-2"><span class="text-sm text-gray-600">今日到期：</span><span id="kpi-due-today" class="text-lg font-bold text-blue-600">-</span></div>
-                        <div class="flex items-center gap-2"><span class="text-sm text-gray-600">本周到期：</span><span id="kpi-due-week" class="text-lg font-bold text-indigo-600">-</span></div>
-                        <div class="flex items-center gap-2"><span class="text-sm text-gray-600">延期：</span><span id="kpi-delayed" class="text-lg font-bold text-red-600">-</span></div>
-                        <div class="flex items-center gap-2"><span class="text-sm text-gray-600">剩余天数：</span><span id="kpi-remaining-days" class="text-lg font-bold text-purple-600">-</span><span class="text-sm text-gray-400">天</span></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 无数据提示 -->
-            <div id="no-data-message" class="hidden bg-white rounded-lg shadow-sm border p-12 text-center">
-                <div class="text-gray-400 text-lg mb-2">📭</div>
-                <p class="text-gray-600">该月份暂无项目</p>
-                <p class="text-sm text-gray-400 mt-2">请选择其他月份或创建新项目</p>
-            </div>
-
-            <!-- 日历容器 -->
-            <div id="calendar-container" class="bg-white rounded-lg shadow-sm border">
-                <!-- Loading -->
-                <div id="calendar-loading" class="hidden py-12 text-center">
-                    <p class="text-gray-500">加载中...</p>
-                </div>
-
-                <!-- 周导航 -->
-                <div id="week-nav" class="px-6 py-3 bg-gray-50 border-b flex items-center justify-center gap-4">
-                    <button id="prev-week-btn" class="p-2 rounded hover:bg-gray-200 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                    </button>
-                    <span id="week-display" class="text-sm font-medium text-gray-700">-</span>
-                    <button id="next-week-btn" class="p-2 rounded hover:bg-gray-200 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </button>
-                    <button id="back-to-today-btn" class="ml-4 px-3 py-1.5 text-sm bg-white border rounded hover:bg-gray-50 transition">
-                        回到今天
-                    </button>
-                </div>
-
-                <!-- 日历主体 -->
-                <div class="p-6">
-                    <!-- 星期标题 -->
-                    <div id="calendar-headers" class="grid gap-3 mb-3">
-                        <!-- 动态填充 -->
-                    </div>
-
-                    <!-- 日历格子 -->
-                    <div id="calendar-grid" class="grid gap-3">
-                        <!-- 动态填充 -->
-                    </div>
-                </div>
-
-                <!-- 图例说明 -->
-                <div class="px-6 pb-4 flex justify-center gap-6 text-xs text-gray-600">
-                    <div class="flex items-center gap-2"><div class="w-3 h-3 border-l-3 border-green-500 bg-green-50"></div><span>已发布</span></div>
-                    <div class="flex items-center gap-2"><div class="w-3 h-3 border-l-3 border-amber-500 bg-amber-50"></div><span>待发布</span></div>
-                    <div class="flex items-center gap-2"><div class="w-3 h-3 border-l-3 border-red-500 bg-red-50"></div><span>延期</span></div>
-                    <div class="flex items-center gap-2"><div class="w-3 h-3 bg-gray-200"></div><span>已结束项目（不可编辑）</span></div>
-                </div>
-            </div>
-
         </div>
-    </div>
+
+        <!-- 无数据提示 -->
+        <div id="no-data-message" class="hidden bg-white rounded-lg shadow-sm border p-12 text-center">
+            <div class="text-gray-400 text-lg mb-2">📭</div>
+            <p class="text-gray-600">该月份暂无项目</p>
+            <p class="text-sm text-gray-400 mt-2">请选择其他月份或创建新项目</p>
+        </div>
+
+        <!-- 日历容器 -->
+        <div id="calendar-container" class="bg-white rounded-lg shadow-sm border">
+            <!-- Loading -->
+            <div id="calendar-loading" class="hidden py-12 text-center">
+                <p class="text-gray-500">加载中...</p>
+            </div>
+
+            <!-- 周导航 -->
+            <div id="week-nav" class="px-6 py-3 bg-gray-50 border-b flex items-center justify-center gap-4">
+                <button id="prev-week-btn" class="p-2 rounded hover:bg-gray-200 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <span id="week-display" class="text-sm font-medium text-gray-700">-</span>
+                <button id="next-week-btn" class="p-2 rounded hover:bg-gray-200 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+                <button id="back-to-today-btn" class="ml-4 px-3 py-1.5 text-sm bg-white border rounded hover:bg-gray-50 transition">
+                    回到今天
+                </button>
+            </div>
+
+            <!-- 日历主体 -->
+            <div class="p-6">
+                <!-- 星期标题 -->
+                <div id="calendar-headers" class="grid gap-3 mb-3">
+                    <!-- 动态填充 -->
+                </div>
+
+                <!-- 日历格子 -->
+                <div id="calendar-grid" class="grid gap-3">
+                    <!-- 动态填充 -->
+                </div>
+            </div>
+
+            <!-- 图例说明 -->
+            <div class="px-6 pb-4 flex justify-center gap-6 text-xs text-gray-600">
+                <div class="flex items-center gap-2"><div class="w-3 h-3 border-l-3 border-green-500 bg-green-50"></div><span>已发布</span></div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 border-l-3 border-amber-500 bg-amber-50"></div><span>待发布</span></div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 border-l-3 border-red-500 bg-red-50"></div><span>延期</span></div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-gray-200"></div><span>已结束项目（不可编辑）</span></div>
+            </div>
+        </div>
+    </main>
 
     <!-- 编辑发布信息弹窗 -->
     <div id="quickInputModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
@@ -272,6 +283,7 @@
         </div>
     </div>
 
+    <script src="sidebar.js" defer></script>
     <script type="module" src="execution_board.js"></script>
 </body>
 </html>
