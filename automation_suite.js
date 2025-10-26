@@ -51,6 +51,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const workflowNameInput = document.getElementById('workflow-name-input');
     const workflowTypeSelect = document.getElementById('workflow-type-select');
     const workflowDescriptionInput = document.getElementById('workflow-description-input');
+    const requiredInputKeyInput = document.getElementById('required-input-key');
+    const requiredInputLabelInput = document.getElementById('required-input-label');
     const cancelWorkflowBtn = document.getElementById('cancel-workflow-btn');
     const actionLibrary = document.getElementById('action-library');
     const workflowCanvas = document.getElementById('workflow-canvas');
@@ -920,8 +922,18 @@ document.addEventListener('DOMContentLoaded', function () {
         workflowNameInput.value = workflow.name;
         workflowTypeSelect.value = workflow.type || 'screenshot';
         workflowDescriptionInput.value = workflow.description || '';
+
+        // 加载 requiredInput 配置
+        if (workflow.requiredInput) {
+            requiredInputKeyInput.value = workflow.requiredInput.key || '';
+            requiredInputLabelInput.value = workflow.requiredInput.label || '';
+        } else {
+            requiredInputKeyInput.value = '';
+            requiredInputLabelInput.value = '';
+        }
+
         modalTitle.textContent = `编辑工作流: ${workflow.name}`;
-        
+
         workflowCanvas.innerHTML = '';
         const steps = workflow.steps || [];
         steps.forEach(step => {
@@ -953,6 +965,16 @@ document.addEventListener('DOMContentLoaded', function () {
             description: workflowDescriptionInput.value,
             steps: steps,
         };
+
+        // 添加 requiredInput 配置（如果填写了）
+        const inputKey = requiredInputKeyInput.value.trim();
+        const inputLabel = requiredInputLabelInput.value.trim();
+        if (inputKey && inputLabel) {
+            workflowData.requiredInput = {
+                key: inputKey,
+                label: inputLabel
+            };
+        }
         try {
             if (id) {
                 await apiCall(`${API_PATHS.workflows}?id=${id}`, 'PUT', { _id: id, ...workflowData });
