@@ -317,24 +317,13 @@ export class PerformanceTab {
             // 待确认状态(pending)不在此处显示，因为它不属于“执行”阶段
 
             overviewHtml += `
-                <div class="overview-week text-center border border-gray-200 rounded bg-white p-2 ${weekClass}">
+                <div class="overview-week text-center border border-gray-200 rounded bg-white p-3 ${weekClass}">
                     <p class="text-xs ${isCurrentWeek ? 'text-blue-700 font-semibold' : 'text-gray-500'} mb-0.5">第${i + 1}周${isCurrentWeek ? '(当前)' : ''}</p>
                     <p class="text-xs font-medium ${isCurrentWeek ? 'text-blue-900' : ''}">${Format.date(weekStartDate, 'MM.DD')}-${Format.date(weekEndDate, 'MM.DD')}</p>
                     <div class="mt-1 flex justify-center gap-0.5 h-[6px]">${dotsHtml || '&nbsp;'}</div>
                     <p class="text-xs ${isCurrentWeek ? 'text-blue-700' : 'text-gray-600'} mt-1">${weekCollabs.length}个达人</p>
                 </div>
             `;
-        }
-        // [v2.1.0] 确保总周数至少为 7，如果不够则用空
-        if (this.totalWeeks < 7) {
-            for (let i = this.totalWeeks; i < 7; i++) {
-                 overviewHtml += `<div class="overview-week text-center border border-gray-200 rounded bg-gray-50 p-2 opacity-50">
-                    <p class="text-xs text-gray-400 mb-0.5">---</p>
-                    <p class="text-xs font-medium text-gray-400">--.--</p>
-                    <div class="mt-1 h-[6px]">&nbsp;</div>
-                    <p class="text-xs text-gray-400 mt-1">0个达人</p>
-                 </div>`;
-            }
         }
 
         this.elements.overviewContainer.innerHTML = overviewHtml;
