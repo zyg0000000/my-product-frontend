@@ -1,13 +1,19 @@
 /**
  * @file project_report.js
- * @version 5.0 - Manual Update UI Support
- * @description “项目执行报告”页面自动化功能升级版
+ * @version 5.1 - Overdue Video Auto-Scraping Support
+ * @description "项目执行报告"页面自动化功能升级版
+ * --- 更新日志 (v5.1) ---
+ * - [新增功能] 增加了对超过14天视频的自动抓取功能，使用 videoId 代替 taskId。
+ * - [新增UI] 添加了"一键抓取 (>14天)"按钮(#auto-scrape-overdue-btn)，使用工作流ID: 68fdae01656eacf1bfacb66c。
+ * - [新增函数] 实现了 handleAutoScrapeOverdue() 函数，用于创建超期视频抓取任务。
+ * - [状态优化] 实现了方案A的状态显示逻辑：优先显示任务状态，超期无任务时显示"待抓取 (>14d)"。
+ * - [UI修改] 视频链接列从"点击查看"改为显示实际 videoId 值（等宽字体）。
+ * - [交互优化] 超期视频的输入框不再禁用，允许手动录入作为备用方案。
  * --- 更新日志 (v5.0) ---
  * - [新增功能] 增加了对发布超过14天视频的手动更新流程支持。
- * - [新增UI] 绑定了“待手动更新日报”按钮(#manual-update-btn)的事件。
+ * - [新增UI] 绑定了"待手动更新日报"按钮(#manual-update-btn)的事件。
  * - [新增UI] 实现了超期任务弹窗(#overdue-tasks-modal)的显示和数据填充逻辑。
- * - [新增功能] 实现了“一键复制TaskID”(#copy-task-ids-btn)到剪贴板的功能。
- * - [UI修改] 在数据录入列表(#video-entry-list)中，为超期视频添加“手动更新”标记，并禁用其输入框。
+ * - [新增功能] 实现了"一键复制TaskID"(#copy-task-ids-btn)到剪贴板的功能。
  * - [依赖] 此版本需要配合 local-agent v3.2 或更高版本使用，以完成数据的持久化。
  */
 document.addEventListener('DOMContentLoaded', function () {
@@ -38,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const reportDatePicker = document.getElementById('report-date-picker');
     const missingDataAlertContainer = document.getElementById('missing-data-alert-container');
     const autoScrapeBtn = document.getElementById('auto-scrape-btn');
+    const autoScrapeOverdueBtn = document.getElementById('auto-scrape-overdue-btn');
 
     // [V5.0 新增] 手动更新弹窗相关元素
     const manualUpdateBtn = document.getElementById('manual-update-btn');
@@ -258,7 +265,72 @@ document.addEventListener('DOMContentLoaded', function () {
             autoScrapeBtn.innerHTML = originalContent;
         }
     }
-    
+
+    /**
+     * [V5.1 新增] 一键抓取超过14天的视频数据（使用 videoId）
+     */
+    async function handleAutoScrapeOverdue() {
+        if(!autoScrapeOverdueBtn) return;
+
+        // [V5.1 UX优化] 增加加载状态
+        autoScrapeOverdueBtn.disabled = true;
+        const originalContent = autoScrapeOverdueBtn.innerHTML;
+        autoScrapeOverdueBtn.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            创建任务中...
+        `;
+
+        const reportDate = entryDatePicker.value;
+        const today = new Date(); // 用于检查是否超期
+
+        const targets = allVideosForEntry
+            // [V5.1] 只抓取超期、有videoId、未完成的任务
+            .filter(video => {
+                const { isOverdue } = getOverdueInfo(video.publishDate, 14, today);
+                return video.videoId &&
+                       isOverdue &&
+                       entryTasksStatus[video.collaborationId]?.status !== 'completed';
+            })
+            .map(video => ({
+                videoId: video.videoId,
+                collaborationId: video.collaborationId,
+                nickname: video.talentName,
+                reportDate: reportDate
+            }));
+
+        if (targets.length === 0) {
+            alert('没有需要自动抓取(>14天)的视频任务。');
+            autoScrapeOverdueBtn.disabled = false;
+            autoScrapeOverdueBtn.innerHTML = originalContent;
+            return;
+        }
+
+        try {
+            const response = await apiRequest(AUTOMATION_JOBS_CREATE_API, 'POST', {
+                projectId: currentProjectId,
+                // [工作流ID确认] "68fdae01656eacf1bfacb66c" 是用于抓取超期视频的工作流ID (使用videoId)
+                workflowId: "68fdae01656eacf1bfacb66c",
+                targets: targets
+            });
+
+            if (response.data && response.data.jobId) {
+                startPollingTasks(response.data.jobId);
+                alert(`${targets.length} 个超期视频的抓取任务已创建！页面将自动刷新状态。`);
+            } else {
+                throw new Error("创建任务失败，未返回 Job ID。");
+            }
+
+        } catch (error) {
+            // Error is handled in apiRequest
+        } finally {
+            autoScrapeOverdueBtn.disabled = false;
+            autoScrapeOverdueBtn.innerHTML = originalContent;
+        }
+    }
+
     function startPollingTasks(jobId) {
         if (entryTasksPoller) clearInterval(entryTasksPoller);
 
@@ -358,14 +430,21 @@ document.addEventListener('DOMContentLoaded', function () {
             entryTasksStatus = {};
             if(entryTasksPoller) clearInterval(entryTasksPoller);
             
-            // 自动禁用“一键抓取”按钮（如果全都是超期视频）
+            // 自动禁用"一键抓取"按钮（如果全都是超期视频）
             const uncompletedNonOverdue = allVideosForEntry.filter(v => {
                 const info = getOverdueInfo(v.publishDate, 14, today);
                 return !info.isOverdue && v.taskId;
             }).length;
             if (autoScrapeBtn) autoScrapeBtn.disabled = (uncompletedNonOverdue === 0);
 
-            // [V5.0 新增] 禁用“手动更新”按钮（如果没有超期视频）
+            // [V5.1 新增] 禁用"一键抓取(>14天)"按钮（如果没有超期视频或没有videoId）
+            const uncompletedOverdue = allVideosForEntry.filter(v => {
+                const info = getOverdueInfo(v.publishDate, 14, today);
+                return info.isOverdue && v.videoId;
+            }).length;
+            if (autoScrapeOverdueBtn) autoScrapeOverdueBtn.disabled = (uncompletedOverdue === 0);
+
+            // [V5.0 新增] 禁用"手动更新"按钮（如果没有超期视频）
             if (manualUpdateBtn) manualUpdateBtn.disabled = (overdueVideos.length === 0);
 
             renderEntryPage();
@@ -549,29 +628,26 @@ document.addEventListener('DOMContentLoaded', function () {
             const videoToRender = allVideosForEntry.find(v => v.collaborationId === video.collaborationId) || video;
             const task = entryTasksStatus[videoToRender.collaborationId];
 
-            // [V5.0 核心修改] 检查是否超期
+            // [V5.1 核心修改] 检查是否超期
             const { isOverdue } = getOverdueInfo(videoToRender.publishDate, 14, today);
-            
+
             let statusHtml = '<span class="text-xs text-gray-400">未开始</span>';
             let isInputDisabled = false;
 
-            if (isOverdue) {
-                // 1. 如果超期，状态最优先显示“手动更新”
-                statusHtml = '<span class="text-xs font-semibold text-yellow-600" title="已超14天，请手动更新">手动更新 (>14d)</span>';
-                isInputDisabled = true;
-            } else if (task) {
-                // 2. 如果未超期，再检查自动化任务状态
+            // [V5.1 方案A] 优先显示任务状态，其次才显示是否超期
+            if (task) {
+                // 1. 如果有自动化任务，优先显示任务状态（无论是否超期）
                 switch (task.status) {
                     case 'pending':
                         statusHtml = '<span class="text-xs font-semibold text-yellow-600">排队中...</span>';
                         isInputDisabled = true; // 排队中也禁止手动输入
                         break;
                     case 'processing':
-                        statusHtml = '<span class="text-xs font-semibold text-blue-600">抓取中...</span>';
+                        statusHtml = '<span class="text-xs font-semibold text-blue-600">自动抓取中...</span>';
                         isInputDisabled = true; // 抓取中也禁止手动输入
                         break;
                     case 'completed':
-                        statusHtml = '<span class="text-xs font-semibold text-green-600">✓ 成功</span>';
+                        statusHtml = '<span class="text-xs font-semibold text-green-600">✓ 已完成</span>';
                         isInputDisabled = true; // 成功后禁止手动输入
                         const views = task.result?.data?.['播放量']?.replace(/,/g, '');
                         if (views) {
@@ -587,11 +663,16 @@ document.addEventListener('DOMContentLoaded', function () {
                         // 失败时允许手动输入，所以 isInputDisabled 保持 false
                         break;
                 }
+            } else if (isOverdue) {
+                // 2. 如果没有任务且超期，显示"待抓取 (>14d)"，允许手动输入作为备用
+                statusHtml = '<span class="text-xs font-semibold text-amber-600" title="视频已超14天，可使用超期抓取功能">待抓取 (>14d)</span>';
+                isInputDisabled = false; // [V5.1 方案A] 不禁用输入框，允许手动录入作为备用
             }
-            // 3. 如果既未超期也无任务状态，则显示“未开始”，isInputDisabled 保持 false
+            // 3. 如果既未超期也无任务状态，则显示"未开始"，isInputDisabled 保持 false
 
+            // [V5.1 修改] 显示实际 videoId 值而不是"点击查看"
             const videoLink = videoToRender.videoId
-                ? `<a href="https://www.douyin.com/video/${videoToRender.videoId}" target="_blank" class="text-blue-600 hover:underline">点击查看</a>`
+                ? `<a href="https://www.douyin.com/video/${videoToRender.videoId}" target="_blank" class="text-blue-600 hover:underline font-mono text-xs">${videoToRender.videoId}</a>`
                 : 'N/A';
             
             return `
@@ -690,6 +771,10 @@ document.addEventListener('DOMContentLoaded', function () {
         entryDatePicker.addEventListener('change', loadVideosForEntry);
         if(autoScrapeBtn) {
             autoScrapeBtn.addEventListener('click', handleAutoScrape);
+        }
+        // [V5.1 新增] 绑定超期视频抓取按钮
+        if(autoScrapeOverdueBtn) {
+            autoScrapeOverdueBtn.addEventListener('click', handleAutoScrapeOverdue);
         }
 
         // [V5.0 新增] 绑定新按钮和弹窗事件
