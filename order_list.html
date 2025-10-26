@@ -450,11 +450,25 @@
                                     </div>
                                     <div>
                                         <label class="text-sm text-gray-600">视频ID</label>
-                                        <input type="text" id="quick-input-videoId" placeholder="输入视频ID" class="w-full mt-1 px-3 py-2 border rounded-lg text-sm">
+                                        <div class="flex gap-2 mt-1">
+                                            <input type="text" id="quick-input-videoId" placeholder="输入视频ID" class="flex-1 px-3 py-2 border rounded-lg text-sm">
+                                            <button type="button" id="open-video-link-btn" class="px-3 py-2 border rounded-lg text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition disabled:opacity-30 disabled:cursor-not-allowed" title="在新标签页打开抖音视频" disabled>
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div>
                                         <label class="text-sm text-gray-600">任务ID</label>
-                                        <input type="text" id="quick-input-taskId" placeholder="输入任务ID" class="w-full mt-1 px-3 py-2 border rounded-lg text-sm">
+                                        <div class="flex gap-2 mt-1">
+                                            <input type="text" id="quick-input-taskId" placeholder="输入任务ID" class="flex-1 px-3 py-2 border rounded-lg text-sm">
+                                            <button type="button" id="open-task-link-btn" class="px-3 py-2 border rounded-lg text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition disabled:opacity-30 disabled:cursor-not-allowed" title="在新标签页打开星图任务" disabled>
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="text-xs text-gray-500 bg-blue-50 p-2 rounded">
                                         💡 提示：录入视频ID或任务ID后，状态将自动变为"视频已发布"

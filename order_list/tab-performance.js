@@ -105,6 +105,8 @@ export class PerformanceTab {
             quickInputDate: document.getElementById('quick-input-date'),
             quickInputVideoId: document.getElementById('quick-input-videoId'),
             quickInputTaskId: document.getElementById('quick-input-taskId'),
+            openVideoLinkBtn: document.getElementById('open-video-link-btn'),
+            openTaskLinkBtn: document.getElementById('open-task-link-btn'),
             saveQuickInputBtn: document.getElementById('saveQuickInputBtn'),
             cancelModalBtn: document.getElementById('cancelModalBtn'),
             closeModalBtn: document.getElementById('closeModalBtn')
@@ -349,7 +351,7 @@ export class PerformanceTab {
             // 待确认状态(pending)不在此处显示，因为它不属于“执行”阶段
 
             overviewHtml += `
-                <div class="overview-week text-center border border-gray-200 rounded bg-white p-3 ${weekClass}">
+                <div class="overview-week text-center border border-gray-200 rounded bg-white p-3 ${weekClass}" data-week-index="${i}" style="cursor: pointer;">
                     <p class="text-xs ${isCurrentWeek ? 'text-blue-700 font-semibold' : 'text-gray-500'} mb-0.5">第${i + 1}周${isCurrentWeek ? '(当前)' : ''}</p>
                     <p class="text-xs font-medium ${isCurrentWeek ? 'text-blue-900' : ''}">${Format.date(weekStartDate, 'MM.DD')}-${Format.date(weekEndDate, 'MM.DD')}</p>
                     <div class="mt-1 flex justify-center gap-0.5 h-[6px]">${dotsHtml || '&nbsp;'}</div>
@@ -359,6 +361,28 @@ export class PerformanceTab {
         }
 
         this.elements.overviewContainer.innerHTML = overviewHtml;
+
+        // 绑定点击事件：点击周卡片跳转到对应周
+        this.elements.overviewContainer.querySelectorAll('.overview-week').forEach(weekCard => {
+            weekCard.addEventListener('click', () => this.handleOverviewClick(weekCard));
+        });
+    }
+
+    /**
+     * 处理全周期概览的点击事件：跳转到对应周
+     */
+    handleOverviewClick(weekCard) {
+        const weekIndex = parseInt(weekCard.dataset.weekIndex);
+        if (isNaN(weekIndex)) return;
+
+        // 更新当前周数（注意：weekIndex 从 0 开始，currentCalendarWeek 从 1 开始）
+        this.currentCalendarWeek = weekIndex + 1;
+
+        // 重新渲染全周期概览和日历视图
+        this.renderOverview();
+        if (this.currentViewMode === 'calendar') {
+            this.renderCalendarView();
+        }
     }
 
     /**
@@ -641,6 +665,22 @@ export class PerformanceTab {
         // 保存弹窗表单
         if (this.elements.quickInputForm) this.elements.quickInputForm.addEventListener('submit', this.saveQuickEdit);
 
+        // 监听视频ID和任务ID输入框变化，动态启用/禁用链接按钮
+        if (this.elements.quickInputVideoId) {
+            this.elements.quickInputVideoId.addEventListener('input', () => this.updateLinkButtons());
+        }
+        if (this.elements.quickInputTaskId) {
+            this.elements.quickInputTaskId.addEventListener('input', () => this.updateLinkButtons());
+        }
+
+        // 链接按钮点击事件
+        if (this.elements.openVideoLinkBtn) {
+            this.elements.openVideoLinkBtn.addEventListener('click', () => this.openVideoLink());
+        }
+        if (this.elements.openTaskLinkBtn) {
+            this.elements.openTaskLinkBtn.addEventListener('click', () => this.openTaskLink());
+        }
+
     }
 
     bindCalendarEvents() {
@@ -804,6 +844,9 @@ export class PerformanceTab {
         quickInputVideoId.value = collab.videoId || '';
         quickInputTaskId.value = collab.taskId || '';
 
+        // 更新链接按钮状态
+        this.updateLinkButtons();
+
         quickInputModal.classList.remove('hidden');
         quickInputModal.classList.add('flex');
     }
@@ -813,6 +856,52 @@ export class PerformanceTab {
             this.elements.quickInputModal.classList.add('hidden');
             this.elements.quickInputModal.classList.remove('flex');
         }
+    }
+
+    /**
+     * 更新链接按钮的启用/禁用状态
+     */
+    updateLinkButtons() {
+        const videoId = this.elements.quickInputVideoId?.value.trim();
+        const taskId = this.elements.quickInputTaskId?.value.trim();
+
+        // 视频ID按钮：有视频ID时启用
+        if (this.elements.openVideoLinkBtn) {
+            this.elements.openVideoLinkBtn.disabled = !videoId;
+        }
+
+        // 任务ID按钮：有任务ID时启用
+        if (this.elements.openTaskLinkBtn) {
+            this.elements.openTaskLinkBtn.disabled = !taskId;
+        }
+    }
+
+    /**
+     * 打开抖音视频链接
+     */
+    openVideoLink() {
+        const videoId = this.elements.quickInputVideoId?.value.trim();
+        if (!videoId) {
+            Modal.showAlert('请先输入视频ID');
+            return;
+        }
+
+        const url = `https://www.douyin.com/video/${videoId}`;
+        window.open(url, '_blank');
+    }
+
+    /**
+     * 打开星图任务链接
+     */
+    openTaskLink() {
+        const taskId = this.elements.quickInputTaskId?.value.trim();
+        if (!taskId) {
+            Modal.showAlert('请先输入任务ID');
+            return;
+        }
+
+        const url = `https://www.xingtu.cn/ad/creator/task/detail/${taskId}`;
+        window.open(url, '_blank');
     }
 
     async saveQuickEdit(e) {
