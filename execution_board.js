@@ -194,9 +194,9 @@ class ExecutionBoard {
         this.selectedYear = parseInt(this.elements.yearSelector.value);
         this.selectedMonth = this.elements.monthSelector.value;
 
-        // 前端筛选该月份的项目
+        // 前端筛选该月份的项目（使用 financialYear 和 financialMonth 字段）
         const monthProjects = this.allProjects.filter(p =>
-            p.year === this.selectedYear && p.month === this.selectedMonth
+            p.financialYear === this.selectedYear && p.financialMonth === this.selectedMonth
         );
 
         console.log(`${this.selectedYear}年${this.selectedMonth}月有 ${monthProjects.length} 个项目`);
@@ -248,8 +248,8 @@ class ExecutionBoard {
                     projectId: project.id,
                     projectName: project.name,
                     projectStatus: project.status,
-                    projectYear: project.year,
-                    projectMonth: project.month
+                    projectYear: project.financialYear,
+                    projectMonth: project.financialMonth
                 });
             });
         });
