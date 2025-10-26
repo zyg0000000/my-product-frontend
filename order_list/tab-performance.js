@@ -106,7 +106,6 @@ export class PerformanceTab {
             quickInputDate: document.getElementById('quick-input-date'),
             quickInputVideoId: document.getElementById('quick-input-videoId'),
             quickInputTaskId: document.getElementById('quick-input-taskId'),
-            quickInputStatusSelect: document.getElementById('quick-input-status-select'),
             saveQuickInputBtn: document.getElementById('saveQuickInputBtn'),
             cancelModalBtn: document.getElementById('cancelModalBtn'),
             closeModalBtn: document.getElementById('closeModalBtn')
@@ -398,10 +397,6 @@ export class PerformanceTab {
                 <div class="day-content space-y-1.5 custom-scrollbar pr-1 px-2 flex-grow">
                     <!-- Talent cards go here -->
                 </div>
-                <!-- Add Talent Button -->
-                <button class="add-talent-btn p-1 bg-blue-100 hover:bg-blue-200 rounded-full" title="添加达人">
-                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                </button>
             `;
 
             // 填充达人卡片
@@ -701,15 +696,10 @@ export class PerformanceTab {
     }
 
     handleCalendarInteraction(e) {
-        const addBtn = e.target.closest('.add-talent-btn');
         const editBtn = e.target.closest('.edit-btn');
         const card = e.target.closest('.talent-card');
-        const dayCell = e.target.closest('.calendar-day');
 
-        if (addBtn && dayCell) {
-            const dateStr = dayCell.dataset.date;
-            this.openQuickEditModal(null, dateStr); // null 表示新增
-        } else if (editBtn && card) {
+        if (editBtn && card) {
             e.stopPropagation(); // 阻止触发卡片点击
             const collabId = card.dataset.collabId;
             this.openQuickEditModal(collabId);
@@ -742,53 +732,29 @@ export class PerformanceTab {
     }
 
     // --- Quick Edit Modal Logic ---
-    openQuickEditModal(collabId, dateStr = null) {
-        const { quickInputModal, quickInputTitle, quickInputForm, quickInputCollabId, quickInputTalentSelect, quickInputDate, quickInputVideoId, quickInputTaskId, quickInputStatusSelect } = this.elements;
+    openQuickEditModal(collabId) {
+        const { quickInputModal, quickInputTitle, quickInputForm, quickInputCollabId, quickInputTalentSelect, quickInputDate, quickInputVideoId, quickInputTaskId } = this.elements;
+
+        // 只支持编辑模式，不支持新增
+        if (!collabId) {
+            console.warn('openQuickEditModal: 仅支持编辑模式');
+            return;
+        }
 
         quickInputForm.reset(); // 清空表单
-        quickInputCollabId.value = collabId || ''; // 存储 ID
+        quickInputCollabId.value = collabId; // 存储 ID
 
-        if (collabId) { // 编辑模式
-            quickInputTitle.textContent = '编辑发布信息';
-            // [v2.1.0] 从过滤后的数据中查找
-            const collab = this.filteredCollaborations.find(c => c.id === collabId);
-            if (!collab) return;
+        quickInputTitle.textContent = '编辑发布信息';
+        // [v2.1.0] 从过滤后的数据中查找
+        const collab = this.filteredCollaborations.find(c => c.id === collabId);
+        if (!collab) return;
 
-            // 填充表单
-            quickInputTalentSelect.innerHTML = `<option value="${collab.talentId}" selected>${collab.talentInfo?.nickname || '(未知达人)'}</option>`;
-            quickInputTalentSelect.disabled = true; // 编辑时不允许修改达人
-            quickInputDate.value = collab.plannedReleaseDate || '';
-            quickInputVideoId.value = collab.videoId || '';
-            quickInputTaskId.value = collab.taskId || '';
-
-            // 填充状态选项
-            const statuses = ['客户已定档', '视频已发布']; // 简化状态
-            quickInputStatusSelect.innerHTML = statuses.map(s => `<option value="${s}" ${collab.status === s ? 'selected' : ''}>${s}</option>`).join('');
-
-        } else { // 新增模式
-            quickInputTitle.textContent = '快速录入发布信息';
-
-            // [v2.1.0] 填充可选达人 (从全量数据中找，排除已在此项目中的)
-            const collabTalentIds = new Set(this.allCollaborations.map(c => c.talentId));
-            // TODO: 这里应该从 /talents 接口获取全量达人，暂时先用 this.allCollaborations 里的达人
-             const availableTalents = this.allCollaborations
-                .map(c => ({ id: c.talentId, name: c.talentInfo?.nickname || c.talentId }))
-                .filter(t => t.name); // 过滤掉没有名字的
-            
-            const uniqueTalents = [...new Map(availableTalents.map(item => [item.id, item])).values()];
-            
-            quickInputTalentSelect.innerHTML = '<option value="">-- 选择达人 --</option>' + 
-                uniqueTalents.map(t => 
-                    `<option value="${t.id}" ${collabTalentIds.has(t.id) ? 'disabled' : ''}>
-                        ${t.name} ${collabTalentIds.has(t.id) ? '(已在项目中)' : ''}
-                    </option>`).join('');
-            quickInputTalentSelect.disabled = false;
-
-            quickInputDate.value = dateStr || ''; // 预填日期
-            quickInputVideoId.value = '';
-            quickInputTaskId.value = '';
-            quickInputStatusSelect.innerHTML = `<option value="客户已定档" selected>客户已定档</option>`; // 新增默认为定档
-        }
+        // 填充表单
+        quickInputTalentSelect.innerHTML = `<option value="${collab.talentId}" selected>${collab.talentInfo?.nickname || '(未知达人)'}</option>`;
+        quickInputTalentSelect.disabled = true; // 编辑时不允许修改达人
+        quickInputDate.value = collab.plannedReleaseDate || '';
+        quickInputVideoId.value = collab.videoId || '';
+        quickInputTaskId.value = collab.taskId || '';
 
         quickInputModal.classList.remove('hidden');
         quickInputModal.classList.add('flex');
@@ -804,83 +770,46 @@ export class PerformanceTab {
     async saveQuickEdit(e) {
         e.preventDefault(); // 阻止表单默认提交
 
-        const { quickInputForm, quickInputCollabId, quickInputTalentSelect, quickInputDate, quickInputVideoId, quickInputTaskId, quickInputStatusSelect, saveQuickInputBtn } = this.elements;
+        const { quickInputCollabId, quickInputTalentSelect, quickInputDate, quickInputVideoId, quickInputTaskId, saveQuickInputBtn } = this.elements;
 
         const collabId = quickInputCollabId.value;
-        const isEditing = !!collabId;
+
+        // 只支持编辑模式
+        if (!collabId) {
+            Modal.showAlert('仅支持编辑现有达人的发布信息');
+            return;
+        }
 
         const payload = {
-            id: collabId, // 如果是编辑，则包含 id
-            projectId: this.projectId, // 始终包含 projectId
+            id: collabId,
             talentId: quickInputTalentSelect.value,
             plannedReleaseDate: quickInputDate.value || null,
             videoId: quickInputVideoId.value.trim() || null,
-            taskId: quickInputTaskId.value.trim() || null,
-            status: quickInputStatusSelect.value
+            taskId: quickInputTaskId.value.trim() || null
         };
 
         // 基本校验
         if (!payload.talentId) { Modal.showAlert('请选择达人'); return; }
         if (!payload.plannedReleaseDate) { Modal.showAlert('请选择发布日期'); return; }
 
-        // 如果录入了 videoId，自动将状态更新为“视频已发布”
-        if (payload.videoId && payload.status !== '视频已发布') {
+        // 自动判断状态：如果录入了 videoId 或 taskId，状态为"视频已发布"，否则为"客户已定档"
+        if (payload.videoId || payload.taskId) {
             payload.status = '视频已发布';
-            // 可以考虑给用户一个提示
-            console.log("录入了 Video ID，状态自动更新为 '视频已发布'");
+        } else {
+            payload.status = '客户已定档';
         }
-         // 如果清空了 videoId 且原状态是“视频已发布”，则回滚到“客户已定档”
-        else if (!payload.videoId && isEditing) {
-             const originalCollab = this.allCollaborations.find(c => c.id === collabId); // [v2.1.0] 从 allCollaborations 查找
-             if (originalCollab && originalCollab.status === '视频已发布' && payload.status === '视频已发布') {
-                 payload.status = '客户已定档';
-                 console.log("清空了 Video ID，状态自动回滚为 '客户已定档'");
-             }
-        }
-
-        // [v2.1.0] 新增合作时，还需要 amount 和 rebate (从达人档案获取)
-        if (!isEditing) {
-            const talentResponse = await API.request('/talents', 'GET', { talentId: payload.talentId });
-            const talent = talentResponse.data;
-            if (!talent) { Modal.showAlert('找不到所选达人的详细信息'); return; }
-
-            // 查找价格
-            const [execYear, execMonth] = payload.plannedReleaseDate.split('-').map(Number);
-            let priceData = (talent.prices || []).find(p => p.year === execYear && p.month === execMonth);
-            if (!priceData) {
-                // 回退到最新的价格
-                priceData = (talent.prices || []).sort((a, b) => (b.year - a.year) || (b.month - a.month))[0];
-            }
-            
-            if (!priceData) { Modal.showAlert('该达人未设置一口价，无法添加'); return; }
-            
-            // 查找返点
-            const rebateData = (talent.rebates || []).sort((a,b) => b.rate - a.rate)[0]; // 取最高返点
-            if (!rebateData) { Modal.showAlert('该达人未设置返点率，无法添加'); return; }
-
-            payload.amount = priceData.price;
-            payload.priceInfo = `${priceData.year}年${priceData.month}月 (${priceData.status})`;
-            payload.rebate = rebateData.rate;
-            // 默认 orderType 和 talentSource
-            payload.orderType = 'modified'; // 默认值
-            payload.talentSource = talent.talentSource || '野生达人';
-        }
-
 
         // 禁用按钮，显示加载状态
         saveQuickInputBtn.disabled = true;
         saveQuickInputBtn.textContent = '保存中...';
 
         try {
-            const endpoint = isEditing ? '/update-collaboration' : '/addCollaborator'; // [v2.1.0] 修正 API 端点
-            const method = isEditing ? 'PUT' : 'POST';
-
-            await API.request(endpoint, method, payload);
+            await API.request('/update-collaboration', 'PUT', payload);
 
             this.closeQuickEditModal();
             Modal.showAlert('保存成功！', '成功', async () => {
                 // [v2.1.0] 触发 main.js 刷新
-                document.dispatchEvent(new CustomEvent('refreshProject')); 
+                document.dispatchEvent(new CustomEvent('refreshProject'));
             });
 
         } catch (error) {
