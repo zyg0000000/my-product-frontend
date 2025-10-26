@@ -760,6 +760,9 @@ export class PerformanceTab {
         }
         // 边界检查
         this.currentCalendarWeek = Math.max(1, Math.min(this.currentCalendarWeek, this.totalWeeks));
+
+        // [bugfix] 同时重新渲染全周期概览和日历视图，保持高亮联动
+        this.renderOverview();
         this.renderCalendarView();
     }
 
