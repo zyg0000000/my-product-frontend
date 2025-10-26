@@ -433,8 +433,28 @@ document.addEventListener('DOMContentLoaded', function () {
         const progressPercent = total > 0 ? ((success + failed) / total) * 100 : 0;
         const statusConfig = { processing: { text: '执行中', color: 'blue' }, awaiting_review: { text: '待审查', color: 'yellow' }, completed: { text: '已完成', color: 'green' }, failed: { text: '失败', color: 'red' } };
         const statusInfo = statusConfig[job.status] || { text: job.status, color: 'gray' };
-        
+
         const workflow = workflowMap.get(job.workflowId) || { name: '未知工作流' };
+
+        // [V11.0 新增] 获取参数类型标签
+        const paramKey = workflow?.requiredInput?.key || 'xingtuId';
+        let paramTypeLabel = '';
+        let paramTypeBgColor = '';
+        let paramTypeTextColor = '';
+
+        if (paramKey === 'videoId') {
+            paramTypeLabel = '视频ID';
+            paramTypeBgColor = 'bg-amber-100';
+            paramTypeTextColor = 'text-amber-700';
+        } else if (paramKey === 'taskId') {
+            paramTypeLabel = '任务ID';
+            paramTypeBgColor = 'bg-green-100';
+            paramTypeTextColor = 'text-green-700';
+        } else {
+            paramTypeLabel = '星图ID';
+            paramTypeBgColor = 'bg-indigo-100';
+            paramTypeTextColor = 'text-indigo-700';
+        }
 
         // [v10.1 简化] 调整按钮逻辑
         let topRightControls = `<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-${statusInfo.color}-100 text-${statusInfo.color}-800">${statusInfo.text}</span>`;
@@ -444,12 +464,15 @@ document.addEventListener('DOMContentLoaded', function () {
              // 为 'processing', 'failed' 等状态保留删除按钮
              topRightControls += `<button class="font-medium text-red-600 hover:text-red-800 text-xs bg-red-100 hover:bg-red-200 rounded-full px-3 py-1" data-action="delete-job" data-job-id="${job._id}">删除</button>`;
         }
-        
+
         return `
         <div class="job-header p-3 hover:bg-gray-50 cursor-pointer" data-action="toggle-details" data-job-id="${job._id}">
             <div class="flex justify-between items-center">
                 <div>
-                    <p class="font-semibold text-gray-800 text-sm">${workflow.name}</p>
+                    <div class="flex items-center gap-2">
+                        <p class="font-semibold text-gray-800 text-sm">${workflow.name}</p>
+                        <span class="px-2 py-0.5 rounded text-xs font-medium ${paramTypeBgColor} ${paramTypeTextColor}">使用${paramTypeLabel}</span>
+                    </div>
                     <p class="text-xs text-gray-500">#${job._id.slice(-6)} &bull; ${formatRelativeTime(job.createdAt)}</p>
                 </div>
                 <div class="flex items-center gap-3">
@@ -472,31 +495,65 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!tasksPaginationState[job._id]) {
             tasksPaginationState[job._id] = { loaded: 0 };
         }
-        
+
         const state = tasksPaginationState[job._id];
         const tasks = job.tasks || [];
         const tasksToRender = tasks.slice(0, state.loaded + TASKS_PER_LOAD);
-        
-        container.innerHTML = tasksToRender.map(task => buildTaskRowHTML(task)).join('');
+
+        // [V11.0 优化] 传入 job 对象以获取工作流信息
+        container.innerHTML = tasksToRender.map(task => buildTaskRowHTML(task, job)).join('');
 
         state.loaded = tasksToRender.length;
-        
+
         if (state.loaded < tasks.length) {
             const remaining = tasks.length - state.loaded;
             container.innerHTML += `<button class="load-more-tasks-btn w-full text-center text-xs text-blue-600 hover:underline py-2" data-job-id="${job._id}">加载更多 (${remaining}条)</button>`;
         }
     }
     
-    function buildTaskRowHTML(task) {
-        const statusConfig = { 
-            pending: { text: '等待中', color: 'gray' }, 
-            processing: { text: '处理中', color: 'blue' }, 
-            completed: { text: '成功', color: 'green' }, 
+    function buildTaskRowHTML(task, job) {
+        const statusConfig = {
+            pending: { text: '等待中', color: 'gray' },
+            processing: { text: '处理中', color: 'blue' },
+            completed: { text: '成功', color: 'green' },
             failed: { text: '失败', color: 'red' }
         };
         const statusInfo = statusConfig[task.status] || { text: '未知', color: 'gray' };
-        const targetId = task.targetId || task.xingtuId || 'N/A';
-        
+
+        // [V11.0 新增] 获取参数类型信息
+        const workflow = workflowMap.get(job?.workflowId);
+        const paramKey = workflow?.requiredInput?.key || 'xingtuId';
+        const paramLabel = workflow?.requiredInput?.label || '星图ID';
+
+        // [V11.0 新增] 根据参数类型确定显示值和标签颜色
+        let targetId = 'N/A';
+        let paramTypeLabel = '';
+        let paramTypeBgColor = '';
+        let paramTypeTextColor = '';
+
+        if (paramKey === 'videoId' && task.videoId) {
+            targetId = task.videoId;
+            paramTypeLabel = '视频ID';
+            paramTypeBgColor = 'bg-amber-100';
+            paramTypeTextColor = 'text-amber-700';
+        } else if (paramKey === 'taskId' && task.taskId) {
+            targetId = task.taskId;
+            paramTypeLabel = '任务ID';
+            paramTypeBgColor = 'bg-green-100';
+            paramTypeTextColor = 'text-green-700';
+        } else if (paramKey === 'xingtuId' && (task.xingtuId || task.targetId)) {
+            targetId = task.xingtuId || task.targetId;
+            paramTypeLabel = '星图ID';
+            paramTypeBgColor = 'bg-indigo-100';
+            paramTypeTextColor = 'text-indigo-700';
+        } else {
+            // 兜底：使用原有逻辑
+            targetId = task.targetId || task.xingtuId || task.taskId || task.videoId || 'N/A';
+            paramTypeLabel = paramLabel;
+            paramTypeBgColor = 'bg-gray-100';
+            paramTypeTextColor = 'text-gray-700';
+        }
+
         let resultHtml = '';
         if (task.status === 'completed') {
             const buttons = [];
@@ -509,7 +566,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         return `
         <div class="task-item flex justify-between items-center p-2 bg-gray-100 rounded-md text-xs">
-            <p class="font-mono text-gray-700 truncate" title="目标ID: ${targetId}">${targetId}</p>
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+                <span class="px-2 py-0.5 rounded text-xs font-semibold ${paramTypeBgColor} ${paramTypeTextColor} flex-shrink-0">${paramTypeLabel}</span>
+                <p class="font-mono text-gray-700 truncate" title="${paramTypeLabel}: ${targetId}">${targetId}</p>
+            </div>
             <div class="flex items-center gap-3 flex-shrink-0">
                 <span class="font-semibold text-${statusInfo.color}-600">${statusInfo.text}</span>
                 <div class="space-x-2 w-20 text-center">${resultHtml}</div>
