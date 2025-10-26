@@ -63,7 +63,13 @@ class ExecutionBoard {
             btnBiweekMode: document.getElementById('btn-biweek-mode'),
             refreshBtn: document.getElementById('refresh-btn'),
 
-            // KPI
+            // KPI - 全周期统计
+            kpiAllTotalPlan: document.getElementById('kpi-all-total-plan'),
+            kpiAllPublishedCount: document.getElementById('kpi-all-published-count'),
+            kpiAllPublishedRate: document.getElementById('kpi-all-published-rate'),
+            kpiAllDelayed: document.getElementById('kpi-all-delayed'),
+
+            // KPI - 当周统计
             kpiTotalPlan: document.getElementById('kpi-total-plan'),
             kpiPublishedCount: document.getElementById('kpi-published-count'),
             kpiPublishedRate: document.getElementById('kpi-published-rate'),
@@ -179,6 +185,16 @@ class ExecutionBoard {
         const day = d.getDay();
         const diff = d.getDate() - day + (day === 0 ? -6 : 1);
         return new Date(d.setDate(diff));
+    }
+
+    /**
+     * 获取合作的实际显示日期（已发布用publishDate，未发布用plannedReleaseDate）
+     */
+    getCollabDisplayDate(collab) {
+        if (collab.status === '视频已发布' && collab.publishDate) {
+            return collab.publishDate;
+        }
+        return collab.plannedReleaseDate;
     }
 
     /**
@@ -359,9 +375,15 @@ class ExecutionBoard {
      * 计算项目周期和总周数
      */
     calculateProjectCycle() {
-        // 获取所有合作的发布日期
+        // 获取所有合作的发布日期（优先使用实际发布日期）
         const dates = this.allCollaborations
-            .map(c => c.plannedReleaseDate)
+            .map(c => {
+                // 已发布的使用实际发布日期，未发布的使用计划发布日期
+                if (c.status === '视频已发布' && c.publishDate) {
+                    return c.publishDate;
+                }
+                return c.plannedReleaseDate;
+            })
             .filter(d => d)
             .map(d => new Date(d));
 
@@ -426,11 +448,12 @@ class ExecutionBoard {
             const isCurrentWeek = i === this.currentCalendarWeekIndex;
             const weekClass = isCurrentWeek ? 'current' : '';
 
-            // 统计本周状态
+            // 统计本周状态（使用实际显示日期）
             const weekCollabs = this.allCollaborations.filter(c => {
-                if (!c.plannedReleaseDate) return false;
-                const plannedDate = new Date(c.plannedReleaseDate);
-                return plannedDate >= weekStartDate && plannedDate <= weekEndDate;
+                const displayDate = this.getCollabDisplayDate(c);
+                if (!displayDate) return false;
+                const date = new Date(displayDate);
+                return date >= weekStartDate && date <= weekEndDate;
             });
 
             const today = new Date();
@@ -440,9 +463,14 @@ class ExecutionBoard {
                 if (c.status === '视频已发布') {
                     acc.published++;
                 } else if (c.status === '客户已定档') {
-                    const planned = new Date(c.plannedReleaseDate);
-                    if (planned < today) {
-                        acc.delayed++;
+                    // 延期判断：计划发布日期 < 今天，但还没发布
+                    if (c.plannedReleaseDate) {
+                        const planned = new Date(c.plannedReleaseDate);
+                        if (planned < today) {
+                            acc.delayed++;
+                        } else {
+                            acc.scheduled++;
+                        }
                     } else {
                         acc.scheduled++;
                     }
@@ -507,8 +535,11 @@ class ExecutionBoard {
             const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
             const isToday = dateStr === todayStr;
 
-            // 获取该日期的合作
-            const dayCollabs = this.allCollaborations.filter(c => c.plannedReleaseDate === dateStr);
+            // 获取该日期的合作（使用实际显示日期）
+            const dayCollabs = this.allCollaborations.filter(c => {
+                const displayDate = this.getCollabDisplayDate(c);
+                return displayDate && Format.date(new Date(displayDate)) === dateStr;
+            });
 
             gridHtml += `
                 <div class="calendar-day border rounded-lg ${isWeekend ? 'weekend-day' : ''} ${isToday ? 'today-indicator' : ''}"
@@ -541,8 +572,6 @@ class ExecutionBoard {
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const plannedDate = new Date(date);
-        plannedDate.setHours(0, 0, 0, 0);
 
         return collabs.map(collab => {
             const project = this.selectedProjects.find(p => p.id === collab.projectId);
@@ -555,9 +584,13 @@ class ExecutionBoard {
             if (collab.status === '视频已发布') {
                 statusClass = 'status-published';
                 statusText = '已发布';
-            } else if (plannedDate < today) {
-                statusClass = 'status-delayed';
-                statusText = '延期';
+            } else if (collab.status === '客户已定档' && collab.plannedReleaseDate) {
+                // 延期判断：计划发布日期 < 今天，但还没发布
+                const plannedDate = new Date(collab.plannedReleaseDate);
+                if (plannedDate < today) {
+                    statusClass = 'status-delayed';
+                    statusText = '延期';
+                }
             }
 
             // 判断是否可编辑（基于项目状态）
@@ -580,16 +613,41 @@ class ExecutionBoard {
     }
 
     /**
-     * 渲染KPI (简化为仅支持周模式)
+     * 渲染KPI (区分全周期统计和当周统计)
      */
     renderKPIs() {
-        // 获取当前显示周期的合作数据 (固定为7天)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayStr = Format.date(today);
+
+        // ===== 全周期统计 =====
+        const allTotalPlan = this.allCollaborations.length;
+        const allPublishedCount = this.allCollaborations.filter(c => c.status === '视频已发布').length;
+        const allPublishedRate = allTotalPlan > 0 ? (allPublishedCount / allTotalPlan * 100) : 0;
+
+        // 全周期延期：计划发布日期 < 今天且未发布
+        const allDelayedCount = this.allCollaborations.filter(c => {
+            if (!c.plannedReleaseDate || c.status === '视频已发布') return false;
+            const plannedDate = new Date(c.plannedReleaseDate);
+            return plannedDate < today;
+        }).length;
+
+        // 更新全周期统计DOM
+        if (this.elements.kpiAllTotalPlan) this.elements.kpiAllTotalPlan.textContent = allTotalPlan;
+        if (this.elements.kpiAllPublishedCount) this.elements.kpiAllPublishedCount.textContent = allPublishedCount;
+        if (this.elements.kpiAllPublishedRate) this.elements.kpiAllPublishedRate.textContent = Format.percent(allPublishedRate, 1);
+        if (this.elements.kpiAllDelayed) this.elements.kpiAllDelayed.textContent = allDelayedCount;
+
+        // ===== 当周统计 =====
+        // 获取当前显示周期的合作数据 (固定为7天)，使用实际显示日期
         const days = 7;
         const periodEnd = new Date(this.currentWeekStart);
         periodEnd.setDate(periodEnd.getDate() + days - 1);
 
         const periodCollabs = this.allCollaborations.filter(c => {
-            const collabDate = new Date(c.plannedReleaseDate);
+            const displayDate = this.getCollabDisplayDate(c);
+            if (!displayDate) return false;
+            const collabDate = new Date(displayDate);
             return collabDate >= this.currentWeekStart && collabDate <= periodEnd;
         });
 
@@ -597,30 +655,30 @@ class ExecutionBoard {
         const publishedCount = periodCollabs.filter(c => c.status === '视频已发布').length;
         const publishedRate = totalPlan > 0 ? (publishedCount / totalPlan * 100) : 0;
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const todayStr = Format.date(today);
-
+        // 今日到期：计划发布日期是今天且未发布
         const dueTodayCount = periodCollabs.filter(c =>
-            c.plannedReleaseDate === todayStr && c.status !== '视频已发布'
+            c.plannedReleaseDate && Format.date(new Date(c.plannedReleaseDate)) === todayStr && c.status !== '视频已发布'
         ).length;
 
-        // 本周到期（今天到本周日）
+        // 本周到期（今天到本周日）：计划发布日期在今天到本周日之间且未发布
         const sunday = new Date(today);
         sunday.setDate(today.getDate() + (7 - today.getDay()));
         const dueWeekCount = periodCollabs.filter(c => {
-            const collabDate = new Date(c.plannedReleaseDate);
-            return collabDate >= today && collabDate <= sunday && c.status !== '视频已发布';
+            if (!c.plannedReleaseDate || c.status === '视频已发布') return false;
+            const plannedDate = new Date(c.plannedReleaseDate);
+            return plannedDate >= today && plannedDate <= sunday;
         }).length;
 
+        // 延期：计划发布日期 < 今天且未发布
         const delayedCount = periodCollabs.filter(c => {
-            const collabDate = new Date(c.plannedReleaseDate);
-            return collabDate < today && c.status !== '视频已发布';
+            if (!c.plannedReleaseDate || c.status === '视频已发布') return false;
+            const plannedDate = new Date(c.plannedReleaseDate);
+            return plannedDate < today;
         }).length;
 
         const remainingDays = Math.max(0, Utils.daysBetween(today, periodEnd));
 
-        // 更新DOM
+        // 更新当周统计DOM
         if (this.elements.kpiTotalPlan) this.elements.kpiTotalPlan.textContent = totalPlan;
         if (this.elements.kpiPublishedCount) this.elements.kpiPublishedCount.textContent = publishedCount;
         if (this.elements.kpiPublishedRate) this.elements.kpiPublishedRate.textContent = Format.percent(publishedRate, 1);

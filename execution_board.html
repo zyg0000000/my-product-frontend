@@ -201,11 +201,37 @@
             </div>
         </div>
 
-        <!-- KPI 统计 -->
-        <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
-            <div class="flex items-center justify-center">
-                <div class="flex flex-wrap gap-x-8 gap-y-2" id="kpi-container">
-                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">总计划：</span><span id="kpi-total-plan" class="text-lg font-bold text-gray-900">-</span></div>
+        <!-- KPI 统计 & 全周期概览 -->
+        <div class="bg-white rounded-lg shadow-sm border mb-6">
+            <!-- 全周期统计 -->
+            <div class="p-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+                <p class="text-xs text-gray-600 mb-2">全周期统计</p>
+                <div class="flex flex-wrap gap-x-6 gap-y-2">
+                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">总计划：</span><span id="kpi-all-total-plan" class="text-lg font-bold text-gray-900">-</span></div>
+                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">已发布：</span><span id="kpi-all-published-count" class="text-lg font-bold text-green-600">-</span><span class="text-xs text-gray-500">(<span id="kpi-all-published-rate">0%</span>)</span></div>
+                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">延期：</span><span id="kpi-all-delayed" class="text-lg font-bold text-red-600">-</span></div>
+                </div>
+            </div>
+
+            <!-- 全周期概览 -->
+            <div class="p-4 bg-gray-50 border-b">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-sm font-medium text-gray-700">项目全周期概览</p>
+                    <p class="text-xs text-gray-500">支持横向滚动查看更多周 · 点击周格子可跳转</p>
+                </div>
+                <div class="overflow-x-auto custom-scrollbar pb-2">
+                    <div id="project-overview-container" class="flex gap-2 min-w-min">
+                        <!-- Weekly overview cards will be loaded here by JS -->
+                        <div class="text-center text-xs text-gray-400 py-4">加载中...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 当周统计 -->
+            <div class="p-4">
+                <p class="text-xs text-gray-600 mb-2">当前周统计</p>
+                <div class="flex flex-wrap gap-x-6 gap-y-2">
+                    <div class="flex items-center gap-2"><span class="text-sm text-gray-600">本周计划：</span><span id="kpi-total-plan" class="text-lg font-bold text-gray-900">-</span></div>
                     <div class="flex items-center gap-2"><span class="text-sm text-gray-600">已发布：</span><span id="kpi-published-count" class="text-lg font-bold text-green-600">-</span><span class="text-xs text-gray-500">(<span id="kpi-published-rate">0%</span>)</span></div>
                     <div class="flex items-center gap-2"><span class="text-sm text-gray-600">今日到期：</span><span id="kpi-due-today" class="text-lg font-bold text-blue-600">-</span></div>
                     <div class="flex items-center gap-2"><span class="text-sm text-gray-600">本周到期：</span><span id="kpi-due-week" class="text-lg font-bold text-indigo-600">-</span></div>
@@ -227,20 +253,6 @@
             <!-- Loading -->
             <div id="calendar-loading" class="hidden py-12 text-center">
                 <p class="text-gray-500">加载中...</p>
-            </div>
-
-            <!-- 项目全周期概览 -->
-            <div class="mt-0 p-4 bg-gray-50 border-b">
-                <div class="flex items-center justify-between mb-3">
-                    <p class="text-sm font-medium text-gray-700">项目全周期概览</p>
-                    <p class="text-xs text-gray-500">支持横向滚动查看更多周 · 点击周格子可跳转</p>
-                </div>
-                <div class="overflow-x-auto custom-scrollbar pb-2">
-                    <div id="project-overview-container" class="flex gap-2 min-w-min">
-                        <!-- Weekly overview cards will be loaded here by JS -->
-                        <div class="text-center text-xs text-gray-400 py-4">加载中...</div>
-                    </div>
-                </div>
             </div>
 
             <!-- 周导航 -->
