@@ -770,9 +770,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const task = entryTasksStatus[videoToRender.collaborationId];
 
             // [V5.1 核心修改] 检查是否超期
-            const { isOverdue } = getOverdueInfo(videoToRender.publishDate, 14, today);
+            const { isOverdue, overdueDays } = getOverdueInfo(videoToRender.publishDate, 14, today);
 
-            let statusHtml = '<span class="text-xs text-gray-400">未开始</span>';
+            let statusHtml = '';
             let isInputDisabled = false;
 
             // [V5.1 方案A] 优先显示任务状态，其次才显示是否超期
@@ -812,8 +812,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 // 2. 如果没有任务且超期，显示"超14天待抓取"，允许手动输入作为备用
                 statusHtml = '<span class="text-xs font-semibold text-amber-600" title="视频已超14天，可使用超期抓取功能">超14天待抓取</span>';
                 isInputDisabled = false; // [V5.1 方案A] 不禁用输入框，允许手动录入作为备用
+            } else {
+                // 3. 如果既未超期也无任务状态，显示"已发布X天"
+                statusHtml = `<span class="text-xs text-gray-500">已发布${overdueDays}天</span>`;
+                isInputDisabled = false;
             }
-            // 3. 如果既未超期也无任务状态，则显示"未开始"，isInputDisabled 保持 false
 
             // [V5.1 修改] 显示实际 videoId 值而不是"点击查看"
             const videoLink = videoToRender.videoId
@@ -828,7 +831,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="px-6 py-4 text-center">${videoLink}</td>
                     <td class="px-6 py-4">
                         <input type="number" class="view-input w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                               placeholder="请输入总曝光/播放量"
+                               placeholder="请输入当日累计总播放"
                                value="${videoToRender.totalViews || ''}"
                                data-collaboration-id="${videoToRender.collaborationId}"
                                ${isInputDisabled ? 'disabled bg-gray-100' : ''}>
