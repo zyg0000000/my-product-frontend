@@ -812,9 +812,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 // 2. 如果没有任务且超期，显示"超14天待抓取"，允许手动输入作为备用
                 statusHtml = '<span class="text-xs font-semibold text-amber-600" title="视频已超14天，可使用超期抓取功能">超14天待抓取</span>';
                 isInputDisabled = false; // [V5.1 方案A] 不禁用输入框，允许手动录入作为备用
-            } else {
-                // 3. 如果既未超期也无任务状态，显示"已发布X天"
+            } else if (videoToRender.publishDate) {
+                // 3. 有发布日期且未超期，显示"已发布X天"
                 statusHtml = `<span class="text-xs text-gray-500">已发布${overdueDays}天</span>`;
+                isInputDisabled = false;
+            } else {
+                // 4. 没有发布日期，显示空白或待发布状态
+                statusHtml = '<span class="text-xs text-gray-400">-</span>';
                 isInputDisabled = false;
             }
 
