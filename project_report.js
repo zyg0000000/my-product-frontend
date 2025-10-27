@@ -838,10 +838,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (tabName === 'daily-report' && dailyReportTab) {
             dailyReportTab.classList.remove('hidden');
-            // 日报Tab加载逻辑已在setMode中处理
+            // 日报数据在初始化时已加载
         } else if (tabName === 'data-entry' && dataEntryTab) {
             dataEntryTab.classList.remove('hidden');
-            // 数据录入Tab加载逻辑已在setMode中处理
+            // [V6.0 修复] 切换到数据录入Tab时加载合作达人数据
+            loadVideosForEntry();
         } else if (tabName === 'effect-monitor' && effectMonitorTab) {
             effectMonitorTab.classList.remove('hidden');
             // 效果监测Tab暂无逻辑
