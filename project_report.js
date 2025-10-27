@@ -30,10 +30,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const AUTOMATION_TASKS_API = `${API_BASE_URL}/automation-tasks`;
 
     // --- DOM Elements ---
-    const body = document.body;
     const breadcrumbProjectName = document.getElementById('breadcrumb-project-name');
     const projectMainTitle = document.getElementById('project-main-title');
-    const toggleModeBtn = document.getElementById('toggle-mode-btn'); // 保留但不再使用
     const entryDatePicker = document.getElementById('entry-date-picker');
     const videoEntryList = document.getElementById('video-entry-list');
     const saveEntryBtn = document.getElementById('save-entry-btn');
@@ -66,8 +64,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Global State ---
     let currentProjectId = null;
     let projectData = {};
-    let currentMode = 'display'; // 保留但不再使用
     let currentTab = 'daily-report'; // [V6.0 新增] 当前激活的Tab
+    let dataEntryTabInitialized = false; // [V6.0 新增] 数据录入Tab是否已初始化
     let allVideosForEntry = [];
     let overdueVideos = []; // [V5.0 新增] 存储超期视频
     let entryCurrentPage = 1;
@@ -297,21 +295,6 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
     }
 
-    // --- Mode Switching ---
-    function setMode(mode) {
-        currentMode = mode;
-        if (mode === 'entry') {
-            body.classList.remove('display-mode');
-            body.classList.add('entry-mode');
-            loadVideosForEntry();
-        } else {
-            body.classList.remove('entry-mode');
-            body.classList.add('display-mode');
-            if (entryTasksPoller) clearInterval(entryTasksPoller); // 切换模式时停止轮询
-            loadReportData();
-        }
-    }
-    
     // --- Automation Functions (v4.4) ---
     async function handleAutoScrape() {
         if(!autoScrapeBtn) return;
@@ -580,7 +563,10 @@ document.addEventListener('DOMContentLoaded', function () {
             await apiRequest(DAILY_STATS_API, 'POST', payload);
             alert('数据保存成功！');
             reportDatePicker.value = entryDatePicker.value;
-            setMode('display');
+            // [V6.0 优化] 保存后重置初始化标志，下次切换时会重新加载
+            dataEntryTabInitialized = false;
+            // [V6.0 修改] 保存后切换到日报Tab
+            switchTab('daily-report');
         } catch (error) {
             // Error is handled in apiRequest
         } finally {
@@ -661,7 +647,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 </div>
             `;
-            document.getElementById('go-to-entry-btn').addEventListener('click', () => setMode('entry'));
+            // [V6.0 修改] 点击"立即录入"切换到数据录入Tab
+            document.getElementById('go-to-entry-btn').addEventListener('click', () => {
+                // [V6.0 优化] 强制重新加载最新数据
+                dataEntryTabInitialized = false;
+                switchTab('data-entry');
+            });
         } else {
             missingDataAlertContainer.innerHTML = '';
         }
@@ -901,8 +892,11 @@ document.addEventListener('DOMContentLoaded', function () {
             // 日报数据在初始化时已加载
         } else if (tabName === 'data-entry' && dataEntryTab) {
             dataEntryTab.classList.remove('hidden');
-            // [V6.0 修复] 切换到数据录入Tab时加载合作达人数据
-            loadVideosForEntry();
+            // [V6.0 优化] 只在首次切换时加载数据，避免重复请求
+            if (!dataEntryTabInitialized) {
+                loadVideosForEntry();
+                dataEntryTabInitialized = true;
+            }
         } else if (tabName === 'effect-monitor' && effectMonitorTab) {
             effectMonitorTab.classList.remove('hidden');
             // 效果监测Tab暂无逻辑
@@ -940,12 +934,9 @@ document.addEventListener('DOMContentLoaded', function () {
             globalDatePicker.addEventListener('change', onGlobalDateChange);
         }
 
-        // 保留原有事件监听（部分已弃用但保留兼容）
-        if (toggleModeBtn) {
-            toggleModeBtn.addEventListener('click', () => setMode(currentMode === 'display' ? 'entry' : 'display'));
-        }
+        // [V6.0 修改] 数据录入相关事件
         if (cancelEntryBtn) {
-            cancelEntryBtn.addEventListener('click', () => setMode('display'));
+            cancelEntryBtn.addEventListener('click', () => switchTab('daily-report'));
         }
         saveEntryBtn.addEventListener('click', saveDailyData);
         entryDatePicker.addEventListener('change', loadVideosForEntry);
