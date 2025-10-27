@@ -283,7 +283,17 @@ my-product-frontend/
 
 ### 云函数仓库
 
-代码位置：[my-cloud-functions](https://github.com/zyg0000000/my-cloud-functions)
+**代码位置**：[my-cloud-functions](https://github.com/zyg0000000/my-cloud-functions)
+
+**查看云函数代码**：
+- 所有云函数位于仓库根目录，按功能命名（如 `handleProjectReport`、`getCollaborators` 等）
+- 每个文件夹包含 `index.js`（主要代码）和 `package.json`（依赖配置）
+- 例如：项目日报API → [handleProjectReport/index.js](https://github.com/zyg0000000/my-cloud-functions/blob/main/handleProjectReport/index.js)
+
+**常用云函数路径**：
+- 项目日报：`handleProjectReport` - 提供项目总进展、详细分类、数据录入提醒
+- 数据录入：`handleProjectReport` 中的 `getVideosForEntry` 和 `saveDailyStats` 接口
+- 合作管理：`getCollaborators`、`addCollaborator`、`updateCollaborator`、`deleteCollaborator`
 
 ### 本地爬虫代理
 
