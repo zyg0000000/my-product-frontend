@@ -292,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <div class="flex items-center gap-2 mt-1">
                                 <a href="order_list.html?projectId=${project.id}" class="px-3 py-1 text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200">进展</a>
                                 <a href="project_automation.html?id=${project.id}" class="px-3 py-1 text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200">自动化</a>
-                                ${project.trackingEnabled !== false
+                                ${project.trackingEnabled === true
                                     ? `<a href="project_report.html?projectId=${project.id}" class="px-3 py-1 text-xs font-medium rounded-md text-amber-700 bg-amber-100 hover:bg-amber-200">追踪</a>`
                                     : ''
                                 }
@@ -405,10 +405,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!projectToEdit.financialMonth) financialMonthWarning.classList.remove('hidden');
 
                 // [Phase 2] 处理效果追踪开关
-                // 设置开关值（默认为true，兼容老数据）
-                enableTrackingCheckbox.checked = projectToEdit.trackingEnabled !== false;
+                // 设置开关值（只有明确为true才启用）
+                enableTrackingCheckbox.checked = projectToEdit.trackingEnabled === true;
                 // 显示/隐藏状态文本
-                if (projectToEdit.trackingEnabled !== false) {
+                if (projectToEdit.trackingEnabled === true) {
                     trackingEnabledStatus.classList.remove('hidden');
                 } else {
                     trackingEnabledStatus.classList.add('hidden');
@@ -426,9 +426,9 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             modalTitle.textContent = '创建新项目';
             modalSubmitBtn.textContent = '确认创建';
-            // [Phase 2] 新建项目默认开启追踪，且可编辑
-            enableTrackingCheckbox.checked = true;
-            trackingEnabledStatus.classList.remove('hidden');
+            // [Phase 2] 新建项目默认关闭追踪，但可编辑
+            enableTrackingCheckbox.checked = false;
+            trackingEnabledStatus.classList.add('hidden');
             enableTrackingCheckbox.disabled = false;
             const trackingContainer = enableTrackingCheckbox.closest('.p-4');
             trackingContainer.classList.remove('opacity-50', 'cursor-not-allowed');

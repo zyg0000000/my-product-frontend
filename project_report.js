@@ -238,8 +238,8 @@ document.addEventListener('DOMContentLoaded', function () {
         document.title = `${projectData.name} - 项目执行报告`;
         breadcrumbProjectName.textContent = projectData.name;
 
-        // [Phase 2] 检查效果追踪权限
-        if (projectData.trackingEnabled === false) {
+        // [Phase 2] 检查效果追踪权限（只有明确为true才允许访问）
+        if (projectData.trackingEnabled !== true) {
             showTrackingDisabledMessage();
             return false; // 阻止后续加载
         }
