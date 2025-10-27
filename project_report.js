@@ -17,7 +17,19 @@
  * - [依赖] 此版本需要配合 local-agent v3.2 或更高版本使用，以完成数据的持久化。
  */
 document.addEventListener('DOMContentLoaded', function () {
-    
+
+    // --- Helper Functions ---
+    /**
+     * 获取本地日期（YYYY-MM-DD格式）
+     * 修复时区问题：使用本地时间而不是UTC时间
+     */
+    function getLocalDateString(date = new Date()) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     // --- API Configuration ---
     const API_BASE_URL = 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com';
     const PROJECTS_API = `${API_BASE_URL}/projects`;
@@ -224,8 +236,8 @@ document.addEventListener('DOMContentLoaded', function () {
         entryItemsPerPage = parseInt(localStorage.getItem(ITEMS_PER_PAGE_KEY) || '10');
         setupEventListeners();
 
-        // [V6.0 新增] 初始化日期选择器
-        const today = new Date().toISOString().split('T')[0];
+        // [V6.0 新增] 初始化日期选择器（修复时区问题）
+        const today = getLocalDateString();
         if (globalDatePicker) globalDatePicker.value = today;
         if (entryDatePicker) entryDatePicker.value = today;
         if (reportDatePicker) reportDatePicker.value = today;
@@ -1053,10 +1065,10 @@ document.addEventListener('DOMContentLoaded', function () {
             autoScrapeOverdueBtn.addEventListener('click', handleAutoScrapeOverdue);
         }
 
-        // [Phase 1 新增] 绑定日期快捷按钮
+        // [Phase 1 新增] 绑定日期快捷按钮（修复时区问题）
         if (entryDateToday) {
             entryDateToday.addEventListener('click', () => {
-                const today = new Date().toISOString().split('T')[0];
+                const today = getLocalDateString();
                 entryDatePicker.value = today;
                 loadVideosForEntry();
             });
@@ -1065,7 +1077,7 @@ document.addEventListener('DOMContentLoaded', function () {
             entryDateYesterday.addEventListener('click', () => {
                 const yesterday = new Date();
                 yesterday.setDate(yesterday.getDate() - 1);
-                entryDatePicker.value = yesterday.toISOString().split('T')[0];
+                entryDatePicker.value = getLocalDateString(yesterday);
                 loadVideosForEntry();
             });
         }
@@ -1073,7 +1085,7 @@ document.addEventListener('DOMContentLoaded', function () {
             entryDateBeforeYesterday.addEventListener('click', () => {
                 const beforeYesterday = new Date();
                 beforeYesterday.setDate(beforeYesterday.getDate() - 2);
-                entryDatePicker.value = beforeYesterday.toISOString().split('T')[0];
+                entryDatePicker.value = getLocalDateString(beforeYesterday);
                 loadVideosForEntry();
             });
         }
@@ -1096,10 +1108,10 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
-        // 绑定项目日报日期快捷按钮
+        // 绑定项目日报日期快捷按钮（修复时区问题）
         if (reportDateToday) {
             reportDateToday.addEventListener('click', () => {
-                const today = new Date().toISOString().split('T')[0];
+                const today = getLocalDateString();
                 reportDatePicker.value = today;
                 globalDatePicker.value = today;
                 updateReportDateButtonHighlight(reportDateToday);
@@ -1110,8 +1122,9 @@ document.addEventListener('DOMContentLoaded', function () {
             reportDateYesterday.addEventListener('click', () => {
                 const yesterday = new Date();
                 yesterday.setDate(yesterday.getDate() - 1);
-                reportDatePicker.value = yesterday.toISOString().split('T')[0];
-                globalDatePicker.value = yesterday.toISOString().split('T')[0];
+                const yesterdayStr = getLocalDateString(yesterday);
+                reportDatePicker.value = yesterdayStr;
+                globalDatePicker.value = yesterdayStr;
                 updateReportDateButtonHighlight(reportDateYesterday);
                 loadReportData();
             });
@@ -1120,8 +1133,9 @@ document.addEventListener('DOMContentLoaded', function () {
             reportDateBeforeYesterday.addEventListener('click', () => {
                 const beforeYesterday = new Date();
                 beforeYesterday.setDate(beforeYesterday.getDate() - 2);
-                reportDatePicker.value = beforeYesterday.toISOString().split('T')[0];
-                globalDatePicker.value = beforeYesterday.toISOString().split('T')[0];
+                const beforeYesterdayStr = getLocalDateString(beforeYesterday);
+                reportDatePicker.value = beforeYesterdayStr;
+                globalDatePicker.value = beforeYesterdayStr;
                 updateReportDateButtonHighlight(reportDateBeforeYesterday);
                 loadReportData();
             });
