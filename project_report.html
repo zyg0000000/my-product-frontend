@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>项目执行报告</title>
+    <title>效果追踪</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -40,6 +40,58 @@
         .display-mode .entry-mode-item { display: none; }
         .entry-mode .display-mode-item { display: none; }
 
+        /* Tab 按钮样式 */
+        .tracking-tab-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6b7280;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+
+        .tracking-tab-btn:hover {
+            color: #4f46e5;
+            background-color: #eef2ff;
+        }
+
+        .tracking-tab-btn.active {
+            color: #4f46e5;
+            background-color: #eef2ff;
+            font-weight: 700;
+        }
+
+        .tracking-tab-btn svg {
+            transition: transform 0.2s ease;
+        }
+
+        .tracking-tab-btn:hover svg {
+            transform: translateY(-2px);
+        }
+
+        /* Tab 分隔线 */
+        .tracking-tab-divider {
+            height: 1.5rem;
+            width: 1px;
+            background-color: #e5e7eb;
+            margin: 0 0.5rem;
+        }
+
+        /* Tab 内容面板 */
+        .tracking-tab-pane {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* 自定义滚动条 (用于弹窗) */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
@@ -62,29 +114,62 @@
                     <li class="flex items-center"><span id="breadcrumb-project-name" class="font-semibold text-gray-700">加载中...</span></li>
                 </ol>
             </nav>
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 id="project-main-title" class="text-3xl font-bold text-gray-900">项目执行报告</h1>
-                </div>
-                <button id="toggle-mode-btn" class="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-blue-600 hover:to-indigo-700 flex items-center gap-2 transition-all transform hover:scale-105">
-                    <span class="display-mode-item">录入数据</span>
-                    <span class="entry-mode-item">返回报告视图</span>
-                </button>
+            <div>
+                <h1 id="project-main-title" class="text-3xl font-bold text-gray-900">效果追踪</h1>
+                <p class="text-sm text-gray-500 mt-2">项目效果追踪与数据监测</p>
             </div>
         </header>
 
         <!-- 主内容区域 -->
-        <div class="space-y-8">
+        <div class="space-y-6">
 
-            <!-- 报告展示视图 -->
-            <div id="report-display-view" class="display-mode-item space-y-8">
-                <div class="flex justify-between items-center border-b border-gray-200 pb-4">
-                    <h2 class="text-xl font-bold text-gray-700">日报</h2>
-                    <div id="daily-report-datepicker-container" class="flex items-center gap-2">
-                        <label for="report-date-picker" class="text-sm font-medium text-gray-700">选择报告日期:</label>
-                        <input type="date" id="report-date-picker" class="border-gray-300 rounded-md shadow-sm text-sm focus:ring-indigo-500 focus:border-indigo-500">
+            <!-- Tab 导航 + 日期选择器 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 flex justify-between items-center border-b border-gray-200">
+                    <!-- Tab 导航 -->
+                    <nav class="flex items-center" aria-label="Tracking Tabs">
+                        <button class="tracking-tab-btn active" data-tab="daily-report">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            日报
+                        </button>
+                        <div class="tracking-tab-divider"></div>
+                        <button class="tracking-tab-btn" data-tab="data-entry">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            数据录入
+                        </button>
+                        <div class="tracking-tab-divider"></div>
+                        <button class="tracking-tab-btn" data-tab="effect-monitor">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            效果监测
+                        </button>
+                    </nav>
+
+                    <!-- 全局日期选择器 -->
+                    <div class="flex items-center gap-2">
+                        <label for="global-date-picker" class="text-sm font-medium text-gray-700">日期:</label>
+                        <input type="date" id="global-date-picker"
+                               class="border-gray-300 rounded-md shadow-sm text-sm focus:ring-indigo-500 focus:border-indigo-500 px-3 py-2">
                     </div>
                 </div>
+            </div>
+
+            <!-- Tab 内容区 -->
+            <div id="tracking-tab-content">
+
+                <!-- Tab 1: 日报 -->
+                <div id="daily-report-tab" class="tracking-tab-pane">
+                    <!-- 原有的报告展示视图内容将放在这里 -->
+
+            <!-- 报告展示视图 -->
+            <div id="report-display-view" class="display-mode-item space-y-6">
+                <!-- 保留这个隐藏的日期选择器，用于兼容现有JS -->
+                <input type="date" id="report-date-picker" class="hidden">
 
                 <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
                      <h3 class="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-3">
@@ -98,16 +183,16 @@
 
                 <div id="details-container"></div>
             </div>
+                </div>
+                <!-- End of Tab 1: 日报 -->
+
+                <!-- Tab 2: 数据录入 -->
+                <div id="data-entry-tab" class="tracking-tab-pane hidden">
 
             <!-- 数据录入视图 -->
             <div id="data-entry-view" class="entry-mode-item bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-semibold text-gray-800">每日数据录入</h2>
-                    <div class="flex items-center gap-2">
-                        <label for="entry-date-picker" class="text-sm font-medium text-gray-700">选择录入日期:</label>
-                        <input type="date" id="entry-date-picker" class="border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                </div>
+                <!-- 保留这个隐藏的日期选择器，用于兼容现有JS -->
+                <input type="date" id="entry-date-picker" class="hidden">
                 <div class="border rounded-lg overflow-hidden shadow-md">
                     <table class="w-full text-sm">
                         <thead class="bg-gray-100 text-left">
@@ -149,6 +234,24 @@
                     <button id="save-entry-btn" class="px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all transform hover:scale-105">保存当日数据</button>
                 </div>
             </div>
+                </div>
+                <!-- End of Tab 2: 数据录入 -->
+
+                <!-- Tab 3: 效果监测 -->
+                <div id="effect-monitor-tab" class="tracking-tab-pane hidden">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+                        <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                        <h3 class="mt-4 text-lg font-semibold text-gray-900">效果监测功能</h3>
+                        <p class="mt-2 text-sm text-gray-500">该功能正在开发中，敬请期待</p>
+                        <p class="mt-1 text-xs text-gray-400">将支持视频效果数据追踪、趋势分析、数据导出等功能</p>
+                    </div>
+                </div>
+                <!-- End of Tab 3: 效果监测 -->
+
+            </div>
+            <!-- End of tracking-tab-content -->
         </div>
     </main>
 

@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const body = document.body;
     const breadcrumbProjectName = document.getElementById('breadcrumb-project-name');
     const projectMainTitle = document.getElementById('project-main-title');
-    const toggleModeBtn = document.getElementById('toggle-mode-btn');
+    const toggleModeBtn = document.getElementById('toggle-mode-btn'); // 保留但不再使用
     const entryDatePicker = document.getElementById('entry-date-picker');
     const videoEntryList = document.getElementById('video-entry-list');
     const saveEntryBtn = document.getElementById('save-entry-btn');
@@ -45,6 +45,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const missingDataAlertContainer = document.getElementById('missing-data-alert-container');
     const autoScrapeBtn = document.getElementById('auto-scrape-btn');
     const autoScrapeOverdueBtn = document.getElementById('auto-scrape-overdue-btn');
+
+    // [V6.0 新增] Tab 相关元素
+    const globalDatePicker = document.getElementById('global-date-picker');
+    const trackingTabBtns = document.querySelectorAll('.tracking-tab-btn');
+    const dailyReportTab = document.getElementById('daily-report-tab');
+    const dataEntryTab = document.getElementById('data-entry-tab');
+    const effectMonitorTab = document.getElementById('effect-monitor-tab');
 
     // [V5.0 新增] 手动更新弹窗相关元素
     const manualUpdateBtn = document.getElementById('manual-update-btn');
@@ -59,7 +66,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Global State ---
     let currentProjectId = null;
     let projectData = {};
-    let currentMode = 'display';
+    let currentMode = 'display'; // 保留但不再使用
+    let currentTab = 'daily-report'; // [V6.0 新增] 当前激活的Tab
     let allVideosForEntry = [];
     let overdueVideos = []; // [V5.0 新增] 存储超期视频
     let entryCurrentPage = 1;
@@ -204,9 +212,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         entryItemsPerPage = parseInt(localStorage.getItem(ITEMS_PER_PAGE_KEY) || '10');
         setupEventListeners();
+
+        // [V6.0 新增] 初始化日期选择器
         const today = new Date().toISOString().split('T')[0];
-        entryDatePicker.value = today;
-        reportDatePicker.value = today;
+        if (globalDatePicker) globalDatePicker.value = today;
+        if (entryDatePicker) entryDatePicker.value = today;
+        if (reportDatePicker) reportDatePicker.value = today;
+
+        // [V6.0 新增] 初始化默认显示日报Tab
+        switchTab('daily-report');
+
         try {
             await loadProjectDetails();
             await loadReportData();
@@ -801,10 +816,81 @@ document.addEventListener('DOMContentLoaded', function () {
         copyToClipboard(taskIds);
     }
 
+    // --- [V6.0 新增] Tab 切换函数 ---
+    /**
+     * 切换Tab
+     * @param {string} tabName - Tab名称 ('daily-report', 'data-entry', 'effect-monitor')
+     */
+    function switchTab(tabName) {
+        console.log(`[Tab切换] 切换到: ${tabName}`);
+
+        // 隐藏所有Tab面板
+        if (dailyReportTab) dailyReportTab.classList.add('hidden');
+        if (dataEntryTab) dataEntryTab.classList.add('hidden');
+        if (effectMonitorTab) effectMonitorTab.classList.add('hidden');
+
+        // 移除所有Tab按钮的active状态
+        trackingTabBtns.forEach(btn => btn.classList.remove('active'));
+
+        // 显示目标Tab并激活按钮
+        const targetBtn = document.querySelector(`[data-tab="${tabName}"]`);
+        if (targetBtn) targetBtn.classList.add('active');
+
+        if (tabName === 'daily-report' && dailyReportTab) {
+            dailyReportTab.classList.remove('hidden');
+            // 日报Tab加载逻辑已在setMode中处理
+        } else if (tabName === 'data-entry' && dataEntryTab) {
+            dataEntryTab.classList.remove('hidden');
+            // 数据录入Tab加载逻辑已在setMode中处理
+        } else if (tabName === 'effect-monitor' && effectMonitorTab) {
+            effectMonitorTab.classList.remove('hidden');
+            // 效果监测Tab暂无逻辑
+        }
+
+        currentTab = tabName;
+    }
+
+    /**
+     * 全局日期选择器变化处理
+     */
+    function onGlobalDateChange() {
+        const selectedDate = globalDatePicker.value;
+        console.log(`[日期变化] 全局日期: ${selectedDate}`);
+
+        // 同步到两个隐藏的日期选择器
+        if (reportDatePicker) reportDatePicker.value = selectedDate;
+        if (entryDatePicker) entryDatePicker.value = selectedDate;
+
+        // 根据当前Tab重新加载数据
+        if (currentTab === 'daily-report') {
+            loadReportData();
+        } else if (currentTab === 'data-entry') {
+            loadVideosForEntry();
+        }
+    }
+
     // --- Event Listeners ---
     function setupEventListeners() {
-        toggleModeBtn.addEventListener('click', () => setMode(currentMode === 'display' ? 'entry' : 'display'));
-        cancelEntryBtn.addEventListener('click', () => setMode('display'));
+        // [V6.0 新增] Tab切换事件
+        trackingTabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.dataset.tab;
+                switchTab(tabName);
+            });
+        });
+
+        // [V6.0 新增] 全局日期选择器事件
+        if (globalDatePicker) {
+            globalDatePicker.addEventListener('change', onGlobalDateChange);
+        }
+
+        // 保留原有事件监听（部分已弃用但保留兼容）
+        if (toggleModeBtn) {
+            toggleModeBtn.addEventListener('click', () => setMode(currentMode === 'display' ? 'entry' : 'display'));
+        }
+        if (cancelEntryBtn) {
+            cancelEntryBtn.addEventListener('click', () => setMode('display'));
+        }
         saveEntryBtn.addEventListener('click', saveDailyData);
         entryDatePicker.addEventListener('change', loadVideosForEntry);
         if(autoScrapeBtn) {
