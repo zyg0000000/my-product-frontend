@@ -39,11 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </button>
                     <div id="project-menu" class="mt-1 space-y-1 flex flex-col submenu">
-                        <a href="project_analysis.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">分析看板</span></a>
                         <a href="index.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">项目列表</span></a>
-                        <a href="task_center.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">任务中心</span></a>
-                        <a href="execution_board.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">执行看板</span></a>
                         <a href="talent_selection.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">达人挑选</span></a>
+                        <a href="project_analysis.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">分析看板</span></a>
+                        <a href="execution_board.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">执行看板</span></a>
+                        <a href="task_center.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">任务看板</span></a>
                     </div>
                 </div>
 
