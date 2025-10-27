@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>项目执行报告</title>
+    <title>效果追踪</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -35,10 +35,58 @@
         
         .kpi-card { transition: all 0.2s ease-in-out; }
         .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
-        
-        /* 模式切换 */
-        .display-mode .entry-mode-item { display: none; }
-        .entry-mode .display-mode-item { display: none; }
+
+        /* Tab 按钮样式 */
+        .tracking-tab-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6b7280;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+
+        .tracking-tab-btn:hover {
+            color: #4f46e5;
+            background-color: #eef2ff;
+        }
+
+        .tracking-tab-btn.active {
+            color: #4f46e5;
+            background-color: #eef2ff;
+            font-weight: 700;
+        }
+
+        .tracking-tab-btn svg {
+            transition: transform 0.2s ease;
+        }
+
+        .tracking-tab-btn:hover svg {
+            transform: translateY(-2px);
+        }
+
+        /* Tab 分隔线 */
+        .tracking-tab-divider {
+            height: 1.5rem;
+            width: 1px;
+            background-color: #e5e7eb;
+            margin: 0 0.5rem;
+        }
+
+        /* Tab 内容面板 */
+        .tracking-tab-pane {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         /* 自定义滚动条 (用于弹窗) */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
@@ -49,7 +97,7 @@
     </style>
 </head>
 
-<body class="display-mode">
+<body>
     <div id="sidebar-container"></div>
 
     <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 main-content" style="margin-left: 10rem;">
@@ -62,63 +110,151 @@
                     <li class="flex items-center"><span id="breadcrumb-project-name" class="font-semibold text-gray-700">加载中...</span></li>
                 </ol>
             </nav>
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 id="project-main-title" class="text-3xl font-bold text-gray-900">项目执行报告</h1>
-                </div>
-                <button id="toggle-mode-btn" class="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-blue-600 hover:to-indigo-700 flex items-center gap-2 transition-all transform hover:scale-105">
-                    <span class="display-mode-item">录入数据</span>
-                    <span class="entry-mode-item">返回报告视图</span>
-                </button>
+            <div>
+                <h1 id="project-main-title" class="text-3xl font-bold text-gray-900">效果追踪</h1>
+                <p class="text-sm text-gray-500 mt-2">项目效果追踪与数据监测</p>
             </div>
         </header>
 
         <!-- 主内容区域 -->
-        <div class="space-y-8">
+        <div class="space-y-6">
 
-            <!-- 报告展示视图 -->
-            <div id="report-display-view" class="display-mode-item space-y-8">
-                <div class="flex justify-between items-center border-b border-gray-200 pb-4">
-                    <h2 class="text-xl font-bold text-gray-700">日报</h2>
-                    <div id="daily-report-datepicker-container" class="flex items-center gap-2">
-                        <label for="report-date-picker" class="text-sm font-medium text-gray-700">选择报告日期:</label>
-                        <input type="date" id="report-date-picker" class="border-gray-300 rounded-md shadow-sm text-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
+            <!-- Tab 导航 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <nav class="flex items-center" aria-label="Tracking Tabs">
+                        <button class="tracking-tab-btn active" data-tab="daily-report">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            项目日报
+                        </button>
+                        <div class="tracking-tab-divider"></div>
+                        <button class="tracking-tab-btn" data-tab="effect-monitor">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            效果监测
+                        </button>
+                        <div class="tracking-tab-divider"></div>
+                        <button class="tracking-tab-btn" data-tab="data-entry">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            数据录入
+                        </button>
+                    </nav>
                 </div>
+            </div>
 
-                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                     <h3 class="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-3">
-                        <svg class="w-6 h-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h12M3.75 3h16.5M3.75 3A2.25 2.25 0 016 5.25h12A2.25 2.25 0 0120.25 3M3.75 21v-7.5A2.25 2.25 0 016 11.25h12a2.25 2.25 0 012.25 2.25V21M3 3h18M3 21h18" /></svg>
-                        已发布视频总进展
-                    </h3>
-                    <dl id="overview-kpis" class="grid grid-cols-2 md:grid-cols-5 gap-6"></dl>
-                </div>
+            <!-- Tab 内容区 -->
+            <div id="tracking-tab-content">
+
+                <!-- Tab 1: 日报 -->
+                <div id="daily-report-tab" class="tracking-tab-pane">
+                    <!-- 报告展示视图 -->
+                    <div id="report-display-view" class="space-y-6">
+                        <!-- 保留这个隐藏的日期选择器，用于兼容现有JS -->
+                        <input type="date" id="report-date-picker" class="hidden">
+
+                        <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                            <div class="flex justify-between items-start mb-6">
+                                <div>
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <svg class="w-6 h-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h12M3.75 3h16.5M3.75 3A2.25 2.25 0 016 5.25h12A2.25 2.25 0 0120.25 3M3.75 21v-7.5A2.25 2.25 0 016 11.25h12a2.25 2.25 0 012.25 2.25V21M3 3h18M3 21h18" />
+                        </svg>
+                                        <h3 class="text-2xl font-bold text-gray-900">已发布视频总进展</h3>
+                                    </div>
+                                    <p class="text-sm text-gray-500 ml-9">实时查看项目视频播放数据与效果分析</p>
+                                </div>
+                                <!-- 日期选择器 -->
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border-2 border-gray-300 hover:border-indigo-500 transition-colors shadow-sm">
+                                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                        <input type="date" id="global-date-picker"
+                                               class="border-0 bg-transparent text-sm focus:ring-0 focus:outline-none p-0 text-gray-700 font-semibold cursor-pointer">
+                                    </div>
+                                    <!-- 快捷按钮 -->
+                                    <div class="flex gap-2">
+                                        <button id="report-date-today" class="px-3 py-1.5 text-xs font-medium rounded-md bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors">今天</button>
+                                        <button id="report-date-yesterday" class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">昨天</button>
+                                        <button id="report-date-before-yesterday" class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">前天</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <dl id="overview-kpis" class="grid grid-cols-2 md:grid-cols-5 gap-6"></dl>
+                        </div>
                 
                 <div id="missing-data-alert-container"></div>
 
                 <div id="details-container"></div>
             </div>
+                </div>
+                <!-- End of Tab 1: 日报 -->
 
-            <!-- 数据录入视图 -->
-            <div id="data-entry-view" class="entry-mode-item bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-semibold text-gray-800">每日数据录入</h2>
-                    <div class="flex items-center gap-2">
-                        <label for="entry-date-picker" class="text-sm font-medium text-gray-700">选择录入日期:</label>
-                        <input type="date" id="entry-date-picker" class="border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                <!-- Tab 2: 数据录入 -->
+                <div id="data-entry-tab" class="tracking-tab-pane hidden">
+                    <!-- 数据录入视图 -->
+                    <div id="data-entry-view" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+
+                <!-- 日期选择器和统计信息 -->
+                <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-200">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <label class="text-sm font-semibold text-gray-700">数据录入日期:</label>
+                        <input type="date" id="entry-date-picker"
+                               class="border-2 border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all cursor-pointer">
+                        <div class="flex gap-2">
+                            <button id="entry-date-today" class="px-3 py-1 text-xs font-medium rounded-md bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors">今天</button>
+                            <button id="entry-date-yesterday" class="px-3 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">昨天</button>
+                            <button id="entry-date-before-yesterday" class="px-3 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">前天</button>
+                        </div>
+                    </div>
+
+                    <!-- 统计信息 -->
+                    <div id="entry-stats" class="flex items-center gap-4 text-sm bg-gray-50 px-4 py-2 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                            <span class="text-gray-600">共</span>
+                            <span id="entry-total-count" class="font-bold text-lg text-gray-900">0</span>
+                            <span class="text-gray-600">条视频</span>
+                        </div>
+                        <div class="h-4 w-px bg-gray-300"></div>
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="text-gray-600">已发布</span>
+                            <span id="entry-completed-count" class="font-bold text-lg text-green-600">0</span>
+                        </div>
+                        <div class="h-4 w-px bg-gray-300"></div>
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="text-gray-600">待发布</span>
+                            <span id="entry-pending-count" class="font-bold text-lg text-amber-600">0</span>
+                        </div>
                     </div>
                 </div>
+
                 <div class="border rounded-lg overflow-hidden shadow-md">
                     <table class="w-full text-sm">
                         <thead class="bg-gray-100 text-left">
                             <tr>
-                                <th class="px-6 py-3 font-semibold text-gray-600">达人名称</th>
-                                <th class="px-6 py-3 font-semibold text-gray-600">任务 ID</th>
-                                <th class="px-6 py-3 font-semibold text-gray-600">发布时间</th>
-                                <th class="px-6 py-3 font-semibold text-gray-600 text-center">视频链接</th>
-                                <th class="px-6 py-3 font-semibold text-gray-600">当日总曝光</th>
-                                <!-- [V5.0 修改] 列表头修改 -->
-                                <th class="px-6 py-3 font-semibold text-gray-600 text-center">状态</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600 text-sm" style="width: 15%">达人名称</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600 text-sm" style="width: 15%">任务 ID</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600 text-sm" style="width: 12%">发布时间</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600 text-sm text-center" style="width: 20%">视频链接</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600 text-sm" style="width: 25%">当日累计总播放</th>
+                                <th class="px-4 py-3 font-semibold text-gray-600 text-sm text-center" style="width: 13%">状态</th>
                             </tr>
                         </thead>
                         <tbody id="video-entry-list" class="bg-white divide-y divide-gray-200">
@@ -127,28 +263,55 @@
                 </div>
                 <div id="video-entry-pagination-controls" class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4"></div>
                 
-                <div class="mt-8 flex justify-end items-center gap-4">
-                    <button id="auto-scrape-btn" class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-indigo-700 flex items-center gap-2 transition-all">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.82m5.84-2.56a16.95 16.95 0 00-2.32-.12A16.95 16.95 0 006 12a16.95 16.95 0 00-2.32.12m13.84-2.56a16.95 16.95 0 00-2.32.12M12 6a16.95 16.95 0 00-2.32-.12m-2.32 8.24a16.95 16.95 0 01-2.32.12M12 18a16.95 16.95 0 01-2.32.12m2.32-8.24A16.95 16.95 0 006 6m12 6a16.95 16.95 0 00-2.32.12m2.32-8.24a16.95 16.95 0 00-2.32-.12M12 6a16.95 16.95 0 00-2.32.12M12 18a16.95 16.95 0 01-2.32.12" /></svg>
-                        一键抓取 (≤14天)
-                    </button>
+                <div class="mt-8 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
+                    <!-- 功能操作组：自动抓取按钮 -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button id="auto-scrape-btn" class="px-4 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-indigo-700 flex items-center gap-2 transition-all">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+                            一键抓取 (≤14天)
+                        </button>
 
-                    <!-- 🆕 新增：超期视频自动抓取按钮 -->
-                    <button id="auto-scrape-overdue-btn" class="px-5 py-2.5 bg-amber-500 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-amber-600 flex items-center gap-2 transition-all">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-1.5A1.125 1.125 0 0118 18.375M20.625 4.5H3.375m17.25 0c.621 0 1.125.504 1.125 1.125M20.625 4.5h-1.5C18.504 4.5 18 5.004 18 5.625m3.75 0v1.5c0 .621-.504 1.125-1.125 1.125M3.375 4.5c-.621 0-1.125.504-1.125 1.125M3.375 4.5h1.5C5.496 4.5 6 5.004 6 5.625m-3.75 0v1.5c0 .621.504 1.125 1.125 1.125m0 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m1.5-3.75C5.496 8.25 6 7.746 6 7.125v-1.5M4.875 8.25C5.496 8.25 6 8.754 6 9.375v1.5m0-5.25v5.25m0-5.25C6 5.004 6.504 4.5 7.125 4.5h9.75c.621 0 1.125.504 1.125 1.125m1.125 2.625h1.5m-1.5 0A1.125 1.125 0 0118 7.125v-1.5m1.125 2.625c-.621 0-1.125.504-1.125 1.125v1.5m2.625-2.625c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125M18 5.625v5.25M7.125 12h9.75m-9.75 0A1.125 1.125 0 016 10.875M7.125 12C6.504 12 6 12.504 6 13.125m0-2.25C6 11.496 6.504 12 7.125 12m9.75 0c.621 0 1.125-.504 1.125-1.125M16.875 12c.621 0 1.125.504 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h1.5m0 0h1.5m-1.5 0v1.5m0 0v1.5" /></svg>
-                        一键抓取 (>14天)
-                    </button>
+                        <button id="auto-scrape-overdue-btn" class="px-4 py-2.5 bg-amber-500 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-amber-600 flex items-center gap-2 transition-all">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            一键抓取 (>14天)
+                        </button>
 
-                    <!-- [V5.0 新增] "待手动更新日报"按钮 -->
-                    <button id="manual-update-btn" class="px-5 py-2.5 bg-gray-400 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-gray-500 flex items-center gap-2 transition-all">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
-                        待手动更新 (备用)
-                    </button>
+                        <button id="manual-update-btn" class="px-4 py-2.5 bg-gray-400 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-gray-500 flex items-center gap-2 transition-all">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                            待手动更新
+                        </button>
+                    </div>
 
-                    <button id="cancel-entry-btn" class="px-5 py-2.5 bg-gray-200 text-gray-800 text-sm font-semibold rounded-lg hover:bg-gray-300 transition-colors">取消</button>
-                    <button id="save-entry-btn" class="px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all transform hover:scale-105">保存当日数据</button>
+                    <!-- 数据操作组：保存和取消 -->
+                    <div class="flex items-center gap-3">
+                        <button id="cancel-entry-btn" class="px-5 py-2.5 bg-gray-200 text-gray-800 text-sm font-semibold rounded-lg hover:bg-gray-300 transition-colors">取消</button>
+                        <button id="save-entry-btn" class="px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-green-600 hover:to-emerald-700 transition-all transform hover:scale-105">
+                            <span class="flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                保存当日数据
+                            </span>
+                        </button>
+                    </div>
                 </div>
             </div>
+                </div>
+                <!-- End of Tab 2: 数据录入 -->
+
+                <!-- Tab 3: 效果监测 -->
+                <div id="effect-monitor-tab" class="tracking-tab-pane hidden">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+                        <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                        <h3 class="mt-4 text-lg font-semibold text-gray-900">效果监测功能</h3>
+                        <p class="mt-2 text-sm text-gray-500">该功能正在开发中，敬请期待</p>
+                        <p class="mt-1 text-xs text-gray-400">将支持视频效果数据追踪、趋势分析、数据导出等功能</p>
+                    </div>
+                </div>
+                <!-- End of Tab 3: 效果监测 -->
+
+            </div>
+            <!-- End of tracking-tab-content -->
         </div>
     </main>
 

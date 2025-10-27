@@ -17,7 +17,19 @@
  * - [依赖] 此版本需要配合 local-agent v3.2 或更高版本使用，以完成数据的持久化。
  */
 document.addEventListener('DOMContentLoaded', function () {
-    
+
+    // --- Helper Functions ---
+    /**
+     * 获取本地日期（YYYY-MM-DD格式）
+     * 修复时区问题：使用本地时间而不是UTC时间
+     */
+    function getLocalDateString(date = new Date()) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     // --- API Configuration ---
     const API_BASE_URL = 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com';
     const PROJECTS_API = `${API_BASE_URL}/projects`;
@@ -30,10 +42,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const AUTOMATION_TASKS_API = `${API_BASE_URL}/automation-tasks`;
 
     // --- DOM Elements ---
-    const body = document.body;
     const breadcrumbProjectName = document.getElementById('breadcrumb-project-name');
     const projectMainTitle = document.getElementById('project-main-title');
-    const toggleModeBtn = document.getElementById('toggle-mode-btn');
     const entryDatePicker = document.getElementById('entry-date-picker');
     const videoEntryList = document.getElementById('video-entry-list');
     const saveEntryBtn = document.getElementById('save-entry-btn');
@@ -46,6 +56,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const autoScrapeBtn = document.getElementById('auto-scrape-btn');
     const autoScrapeOverdueBtn = document.getElementById('auto-scrape-overdue-btn');
 
+    // [V6.0 新增] Tab 相关元素
+    const globalDatePicker = document.getElementById('global-date-picker');
+    const trackingTabBtns = document.querySelectorAll('.tracking-tab-btn');
+    const dailyReportTab = document.getElementById('daily-report-tab');
+    const dataEntryTab = document.getElementById('data-entry-tab');
+    const effectMonitorTab = document.getElementById('effect-monitor-tab');
+
     // [V5.0 新增] 手动更新弹窗相关元素
     const manualUpdateBtn = document.getElementById('manual-update-btn');
     const overdueTasksModal = document.getElementById('overdue-tasks-modal');
@@ -55,11 +72,25 @@ document.addEventListener('DOMContentLoaded', function () {
     const copyTaskIdsBtn = document.getElementById('copy-task-ids-btn');
     const clipboardToast = document.getElementById('clipboard-toast');
 
+    // [Phase 1 新增] 数据录入日期快捷按钮和统计元素
+    const entryDateToday = document.getElementById('entry-date-today');
+    const entryDateYesterday = document.getElementById('entry-date-yesterday');
+    const entryDateBeforeYesterday = document.getElementById('entry-date-before-yesterday');
+    const entryTotalCount = document.getElementById('entry-total-count');
+    const entryCompletedCount = document.getElementById('entry-completed-count');
+    const entryPendingCount = document.getElementById('entry-pending-count');
+
+    // 项目日报日期快捷按钮
+    const reportDateToday = document.getElementById('report-date-today');
+    const reportDateYesterday = document.getElementById('report-date-yesterday');
+    const reportDateBeforeYesterday = document.getElementById('report-date-before-yesterday');
+
 
     // --- Global State ---
     let currentProjectId = null;
     let projectData = {};
-    let currentMode = 'display';
+    let currentTab = 'daily-report'; // [V6.0 新增] 当前激活的Tab
+    let dataEntryTabInitialized = false; // [V6.0 新增] 数据录入Tab是否已初始化
     let allVideosForEntry = [];
     let overdueVideos = []; // [V5.0 新增] 存储超期视频
     let entryCurrentPage = 1;
@@ -204,11 +235,22 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         entryItemsPerPage = parseInt(localStorage.getItem(ITEMS_PER_PAGE_KEY) || '10');
         setupEventListeners();
-        const today = new Date().toISOString().split('T')[0];
-        entryDatePicker.value = today;
-        reportDatePicker.value = today;
+
+        // [V6.0 新增] 初始化日期选择器（修复时区问题）
+        const today = getLocalDateString();
+        if (globalDatePicker) globalDatePicker.value = today;
+        if (entryDatePicker) entryDatePicker.value = today;
+        if (reportDatePicker) reportDatePicker.value = today;
+
+        // [V6.0 新增] 初始化默认显示日报Tab
+        switchTab('daily-report');
+
         try {
-            await loadProjectDetails();
+            const canProceed = await loadProjectDetails();
+            // [Phase 2] 如果未启用追踪，不继续加载
+            if (!canProceed) {
+                return;
+            }
             await loadReportData();
         } catch (error) {
             document.body.innerHTML = `<div class="p-8 text-center text-red-500">无法加载页面数据: ${error.message}</div>`;
@@ -220,23 +262,64 @@ document.addEventListener('DOMContentLoaded', function () {
         projectData = response.data;
         document.title = `${projectData.name} - 项目执行报告`;
         breadcrumbProjectName.textContent = projectData.name;
+
+        // [Phase 2] 检查效果追踪权限（只有明确为true才允许访问）
+        if (projectData.trackingEnabled !== true) {
+            showTrackingDisabledMessage();
+            return false; // 阻止后续加载
+        }
+        return true; // 允许继续加载
     }
 
-    // --- Mode Switching ---
-    function setMode(mode) {
-        currentMode = mode;
-        if (mode === 'entry') {
-            body.classList.remove('display-mode');
-            body.classList.add('entry-mode');
-            loadVideosForEntry();
-        } else {
-            body.classList.remove('entry-mode');
-            body.classList.add('display-mode');
-            if (entryTasksPoller) clearInterval(entryTasksPoller); // 切换模式时停止轮询
-            loadReportData();
-        }
+    /**
+     * [Phase 2] 显示追踪未启用的提示页面
+     */
+    function showTrackingDisabledMessage() {
+        const mainContent = document.getElementById('main-content') || document.querySelector('main');
+        if (!mainContent) return;
+
+        mainContent.innerHTML = `
+            <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+                <div class="max-w-md w-full">
+                    <div class="bg-white rounded-2xl shadow-xl p-8 text-center">
+                        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 mb-6">
+                            <svg class="h-10 w-10 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-3">效果追踪未启用</h2>
+                        <p class="text-gray-600 mb-6">该项目尚未启用效果追踪功能，无法查看项目日报和数据录入页面。</p>
+
+                        <div class="bg-blue-50 rounded-lg p-4 mb-6 text-left">
+                            <p class="text-sm text-blue-900 font-medium mb-2">如需启用追踪功能：</p>
+                            <ol class="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+                                <li>返回项目列表页面</li>
+                                <li>编辑该项目的基础信息</li>
+                                <li>勾选"启用效果追踪"选项</li>
+                                <li>保存更改后即可访问</li>
+                            </ol>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <a href="index.html" class="flex-1 inline-flex justify-center items-center px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                                </svg>
+                                返回项目列表
+                            </a>
+                            <a href="order_list.html?projectId=${currentProjectId}" class="flex-1 inline-flex justify-center items-center px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+                                查看项目进展
+                                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     }
-    
+
     // --- Automation Functions (v4.4) ---
     async function handleAutoScrape() {
         if(!autoScrapeBtn) return;
@@ -488,24 +571,36 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     async function saveDailyData() {
+        // 过滤出有总曝光数据的视频
         const dataToSave = allVideosForEntry
             .filter(video => video.totalViews !== null && video.totalViews !== undefined && String(video.totalViews).trim() !== '')
             .map(video => ({
                 collaborationId: video.collaborationId,
                 totalViews: parseInt(String(video.totalViews).replace(/,/g, ''), 10)
             }));
+
         if (dataToSave.length === 0) {
             alert('您没有输入任何数据。');
             return;
         }
+
+        // 确认保存
+        const confirmMsg = `即将保存 ${dataToSave.length} 条记录，确认提交吗？`;
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+
         saveEntryBtn.disabled = true;
         saveEntryBtn.textContent = '保存中...';
         try {
             const payload = { projectId: currentProjectId, date: entryDatePicker.value, data: dataToSave };
             await apiRequest(DAILY_STATS_API, 'POST', payload);
-            alert('数据保存成功！');
+            alert(`✅ 保存成功！\n已更新 ${dataToSave.length} 条记录\n日期: ${entryDatePicker.value}`);
             reportDatePicker.value = entryDatePicker.value;
-            setMode('display');
+            // [V6.0 优化] 保存后重置初始化标志，下次切换时会重新加载
+            dataEntryTabInitialized = false;
+            // [V6.0 修改] 保存后切换到日报Tab
+            switchTab('daily-report');
         } catch (error) {
             // Error is handled in apiRequest
         } finally {
@@ -547,46 +642,94 @@ document.addEventListener('DOMContentLoaded', function () {
             detailsContainer.innerHTML = '<div class="text-center py-16 text-gray-500">暂无报告详情</div>';
             return;
         }
+
+        // === 调试功能：输出后端返回的原始数据 ===
+        console.group('📊 项目日报数据调试');
+        console.log('🗓️  选择的日期:', reportDatePicker.value);
+        console.log('📦 后端返回的完整数据:', data);
+        console.log('─────────────────────────────────────');
+        console.log('📈 已发布视频总进展 (overview):');
+        console.log('   - 定档内容数量:', data.overview?.totalTalents);
+        console.log('   - 已发布视频数量:', data.overview?.publishedVideos);
+        console.log('   - 总计金额:', data.overview?.totalAmount);
+        console.log('   - 视频总曝光:', data.overview?.totalViews);
+        console.log('   - 当前CPM:', data.overview?.averageCPM);
+        console.log('─────────────────────────────────────');
+        console.log('⚠️  数据录入提醒 (missingDataVideos):');
+        console.log('   - 缺少数据的视频数量:', data.missingDataVideos?.length || 0);
+        console.log('   - 缺少数据的视频列表:', data.missingDataVideos);
+        if (data.missingDataVideos && data.missingDataVideos.length > 0) {
+            console.log('   - 视频详情:');
+            data.missingDataVideos.forEach((video, index) => {
+                console.log(`     ${index + 1}. ${video.talentName} - 发布日期: ${video.publishDate || '未发布'}`);
+            });
+        }
+        console.log('─────────────────────────────────────');
+        console.log('📋 详细分类 (details):', data.details);
+        console.groupEnd();
+
         const overview = data.overview || {};
         const kpis = [
             // [V4.4 修改] 调整指标名称
-            { label: '定档内容数量', value: overview.totalTalents || 0, color: 'text-gray-900' },
-            { label: '已发布视频数量', value: overview.publishedVideos || 0, color: 'text-gray-900' },
-            { label: '总计金额', value: `¥${(overview.totalAmount || 0).toLocaleString()}`, color: 'text-green-600' },
-            { label: '视频总曝光', value: (overview.totalViews || 0).toLocaleString(), color: 'text-blue-600' },
-            { label: '当前CPM', value: (overview.averageCPM || 0).toFixed(1), color: 'text-purple-600' }
+            { label: '定档内容数量', value: overview.totalTalents || 0, color: 'text-gray-900', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>' },
+            { label: '已发布视频数量', value: overview.publishedVideos || 0, color: 'text-gray-900', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' },
+            { label: '总计金额', value: `¥${(overview.totalAmount || 0).toLocaleString()}`, color: 'text-green-600', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' },
+            { label: '视频总曝光', value: (overview.totalViews || 0).toLocaleString(), color: 'text-blue-600', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>' },
+            { label: '当前CPM', value: (overview.averageCPM || 0).toFixed(1), color: 'text-purple-600', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>' }
         ];
         overviewKPIs.innerHTML = kpis.map(kpi => `
-            <div class="bg-gray-50 p-5 rounded-lg text-center kpi-card border border-gray-200">
-                <dt class="text-sm font-medium text-gray-500">${kpi.label}</dt>
+            <div class="bg-gradient-to-br from-gray-50 to-white p-5 rounded-xl text-center border border-gray-200 hover:shadow-lg hover:scale-105 transition-all duration-200 cursor-default">
+                <div class="flex justify-center mb-2 ${kpi.color}">
+                    ${kpi.icon}
+                </div>
+                <dt class="text-sm font-medium text-gray-600">${kpi.label}</dt>
                 <dd class="mt-2 text-3xl font-bold ${kpi.color}">${kpi.value}</dd>
             </div>
         `).join('');
 
         if (data.missingDataVideos && data.missingDataVideos.length > 0) {
-            const missingVideosList = data.missingDataVideos.map(v => `<span class="font-semibold">${v.talentName}</span>`).join('、');
-            missingDataAlertContainer.innerHTML = `
-                <div class="bg-orange-50 border-l-4 border-orange-400 p-4 rounded-r-lg mb-8 shadow">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <svg class="h-6 w-6 text-orange-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M8.257 3.099c.636-1.026 2.252-1.026 2.888 0l6.252 10.086c.636 1.026-.174 2.315-1.444 2.315H3.449c-1.27 0-2.08-1.289-1.444-2.315L8.257 3.099zM10 6a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div class="ml-3 flex-1 md:flex md:justify-between">
-                            <p class="text-sm text-orange-700">
-                                <strong>数据录入提醒：</strong> 共 ${data.missingDataVideos.length} 条已发布视频缺少当日数据 (${missingVideosList})。
-                            </p>
-                            <p class="mt-3 text-sm md:mt-0 md:ml-6">
-                                <button id="go-to-entry-btn" class="whitespace-nowrap font-medium text-orange-700 hover:text-orange-600 bg-orange-200 hover:bg-orange-300 px-3 py-1.5 rounded-md transition-colors">
-                                    立即录入 &rarr;
-                                </button>
-                            </p>
+            // 过滤掉当日发布的视频（当日发布的视频次日才能录入数据）
+            const selectedDate = reportDatePicker.value; // 当前查看的日期
+            const filteredMissingVideos = data.missingDataVideos.filter(video => {
+                // 如果视频的发布日期 === 当前查看的日期，则不应该提醒（因为当日发布的视频次日才能录入）
+                if (video.publishDate && video.publishDate === selectedDate) {
+                    return false; // 过滤掉
+                }
+                return true; // 保留
+            });
+
+            if (filteredMissingVideos.length > 0) {
+                const missingVideosList = filteredMissingVideos.map(v => `<span class="font-semibold">${v.talentName}</span>`).join('、');
+                missingDataAlertContainer.innerHTML = `
+                    <div class="bg-orange-50 border-l-4 border-orange-400 p-4 rounded-r-lg mb-8 shadow">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <svg class="h-6 w-6 text-orange-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.636-1.026 2.252-1.026 2.888 0l6.252 10.086c.636 1.026-.174 2.315-1.444 2.315H3.449c-1.27 0-2.08-1.289-1.444-2.315L8.257 3.099zM10 6a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3 flex-1 md:flex md:justify-between">
+                                <p class="text-sm text-orange-700">
+                                    <strong>数据录入提醒：</strong> 共 ${filteredMissingVideos.length} 条已发布视频缺少当日数据 (${missingVideosList})。
+                                </p>
+                                <p class="mt-3 text-sm md:mt-0 md:ml-6">
+                                    <button id="go-to-entry-btn" class="whitespace-nowrap font-semibold text-white bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-lg transition-all shadow hover:shadow-lg transform hover:scale-105">
+                                        立即录入 →
+                                    </button>
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
-            document.getElementById('go-to-entry-btn').addEventListener('click', () => setMode('entry'));
+                `;
+                // [V6.0 修改] 点击"立即录入"切换到数据录入Tab
+                document.getElementById('go-to-entry-btn').addEventListener('click', () => {
+                    // [V6.0 优化] 强制重新加载最新数据
+                    dataEntryTabInitialized = false;
+                    switchTab('data-entry');
+                });
+            } else {
+                missingDataAlertContainer.innerHTML = '';
+            }
         } else {
             missingDataAlertContainer.innerHTML = '';
         }
@@ -604,7 +747,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .map(key => {
             const videos = details[key];
             const sectionInfo = sectionConfig[key];
-            const hasSolutionColumn = ['normalVideos', 'badVideos', 'worstVideos'].includes(key);
+            const hasSolutionColumn = true; // 所有表格统一显示"后续解决方案"列
             const cpmChangeHtml = (change) => {
                 if (change === null) return 'N/A';
                 const color = change < 0 ? 'text-green-600' : 'text-red-600';
@@ -647,9 +790,33 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
+    /**
+     * [Phase 1 新增] 更新数据录入统计信息
+     */
+    function updateEntryStats() {
+        if (!allVideosForEntry || allVideosForEntry.length === 0) {
+            if (entryTotalCount) entryTotalCount.textContent = '0';
+            if (entryCompletedCount) entryCompletedCount.textContent = '0';
+            if (entryPendingCount) entryPendingCount.textContent = '0';
+            return;
+        }
+
+        const total = allVideosForEntry.length;
+        const completed = allVideosForEntry.filter(video => {
+            // 已录入的判断：有totalViews数据
+            return video.totalViews !== null && video.totalViews !== undefined && String(video.totalViews).trim() !== '';
+        }).length;
+        const pending = total - completed;
+
+        if (entryTotalCount) entryTotalCount.textContent = total;
+        if (entryCompletedCount) entryCompletedCount.textContent = completed;
+        if (entryPendingCount) entryPendingCount.textContent = pending;
+    }
+
     function renderVideoEntryList() {
         if (!allVideosForEntry || allVideosForEntry.length === 0) {
             videoEntryList.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500">此项目暂无可录入数据的视频。</td></tr>`;
+            updateEntryStats(); // [Phase 1] 更新统计
             return;
         }
         const startIndex = (entryCurrentPage - 1) * entryItemsPerPage;
@@ -663,9 +830,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const task = entryTasksStatus[videoToRender.collaborationId];
 
             // [V5.1 核心修改] 检查是否超期
-            const { isOverdue } = getOverdueInfo(videoToRender.publishDate, 14, today);
+            const { isOverdue, overdueDays } = getOverdueInfo(videoToRender.publishDate, 14, today);
 
-            let statusHtml = '<span class="text-xs text-gray-400">未开始</span>';
+            let statusHtml = '';
             let isInputDisabled = false;
 
             // [V5.1 方案A] 优先显示任务状态，其次才显示是否超期
@@ -702,41 +869,57 @@ document.addEventListener('DOMContentLoaded', function () {
                         break;
                 }
             } else if (isOverdue) {
-                // 2. 如果没有任务且超期，显示"待抓取 (>14d)"，允许手动输入作为备用
-                statusHtml = '<span class="text-xs font-semibold text-amber-600" title="视频已超14天，可使用超期抓取功能">待抓取 (>14d)</span>';
+                // 2. 如果没有任务且超期，显示"超14天"，允许手动输入作为备用
+                statusHtml = '<span class="text-xs font-semibold text-amber-600" title="视频已超14天，可使用超期抓取功能">超14天</span>';
                 isInputDisabled = false; // [V5.1 方案A] 不禁用输入框，允许手动录入作为备用
+            } else if (videoToRender.publishDate) {
+                // 3. 有发布日期且未超期，显示"已发布X天"
+                statusHtml = `<span class="text-xs text-gray-600">已发布${overdueDays}天</span>`;
+                isInputDisabled = false;
+            } else {
+                // 4. 没有发布日期，显示空白或待发布状态
+                statusHtml = '<span class="text-xs text-gray-400">-</span>';
+                isInputDisabled = true; // 未发布的视频不允许录入数据
             }
-            // 3. 如果既未超期也无任务状态，则显示"未开始"，isInputDisabled 保持 false
 
             // [V5.1 修改] 显示实际 videoId 值而不是"点击查看"
             const videoLink = videoToRender.videoId
-                ? `<a href="https://www.douyin.com/video/${videoToRender.videoId}" target="_blank" class="text-blue-600 hover:underline font-mono text-xs">${videoToRender.videoId}</a>`
-                : 'N/A';
-            
+                ? `<a href="https://www.douyin.com/video/${videoToRender.videoId}" target="_blank" class="text-blue-600 hover:underline font-mono text-sm">${videoToRender.videoId}</a>`
+                : '<span class="text-gray-400 text-sm">N/A</span>';
+
             return `
                 <tr class="hover:bg-indigo-50 transition-colors">
-                    <td class="px-6 py-4 font-medium text-gray-900">${videoToRender.talentName}</td>
-                    <td class="px-6 py-4 font-mono text-xs text-gray-600">${videoToRender.taskId || 'N/A'}</td>
-                    <td class="px-6 py-4 text-gray-500">${formatDate(videoToRender.publishDate)}</td>
-                    <td class="px-6 py-4 text-center">${videoLink}</td>
-                    <td class="px-6 py-4">
-                        <input type="number" class="view-input w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
-                               placeholder="请输入总曝光/播放量" 
-                               value="${videoToRender.totalViews || ''}" 
+                    <td class="px-4 py-3 font-medium text-gray-900 text-sm" style="width: 15%">${videoToRender.talentName}</td>
+                    <td class="px-4 py-3 font-mono text-sm text-gray-600" style="width: 15%">${videoToRender.taskId || '<span class="text-gray-400">N/A</span>'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600" style="width: 12%">${formatDate(videoToRender.publishDate)}</td>
+                    <td class="px-4 py-3 text-center" style="width: 20%">${videoLink}</td>
+                    <td class="px-4 py-3" style="width: 25%">
+                        <input type="number"
+                               class="${isInputDisabled ? 'view-input w-full border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-400 cursor-not-allowed text-sm' : 'view-input w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm'}"
+                               placeholder="${videoToRender.publishDate ? '请输入当日累计总播放' : '未发布，不可录入'}"
+                               value="${videoToRender.totalViews || ''}"
                                data-collaboration-id="${videoToRender.collaborationId}"
-                               ${isInputDisabled ? 'disabled bg-gray-100' : ''}>
+                               ${isInputDisabled ? 'disabled' : ''}>
                     </td>
-                    <td class="px-6 py-4 text-center">${statusHtml}</td>
+                    <td class="px-4 py-3 text-center" style="width: 13%">${statusHtml}</td>
                 </tr>
             `;
         }).join('');
 
+        // 处理播放量输入框的input事件
         videoEntryList.querySelectorAll('input.view-input').forEach(input => {
             input.addEventListener('input', e => {
                 const videoToUpdate = allVideosForEntry.find(v => v.collaborationId === e.target.dataset.collaborationId);
-                if (videoToUpdate) videoToUpdate.totalViews = e.target.value;
+                if (videoToUpdate) {
+                    videoToUpdate.totalViews = e.target.value;
+                    // [Phase 1] 输入变化时更新统计信息
+                    updateEntryStats();
+                }
             });
         });
+
+        // [Phase 1] 渲染完成后更新统计信息
+        updateEntryStats();
     }
 
     function renderEntryPagination() {
@@ -801,10 +984,77 @@ document.addEventListener('DOMContentLoaded', function () {
         copyToClipboard(taskIds);
     }
 
+    // --- [V6.0 新增] Tab 切换函数 ---
+    /**
+     * 切换Tab
+     * @param {string} tabName - Tab名称 ('daily-report', 'data-entry', 'effect-monitor')
+     */
+    function switchTab(tabName) {
+        console.log(`[Tab切换] 切换到: ${tabName}`);
+
+        // 隐藏所有Tab面板
+        if (dailyReportTab) dailyReportTab.classList.add('hidden');
+        if (dataEntryTab) dataEntryTab.classList.add('hidden');
+        if (effectMonitorTab) effectMonitorTab.classList.add('hidden');
+
+        // 移除所有Tab按钮的active状态
+        trackingTabBtns.forEach(btn => btn.classList.remove('active'));
+
+        // 显示目标Tab并激活按钮
+        const targetBtn = document.querySelector(`[data-tab="${tabName}"]`);
+        if (targetBtn) targetBtn.classList.add('active');
+
+        if (tabName === 'daily-report' && dailyReportTab) {
+            dailyReportTab.classList.remove('hidden');
+            // 日报数据在初始化时已加载
+        } else if (tabName === 'data-entry' && dataEntryTab) {
+            dataEntryTab.classList.remove('hidden');
+            // [V6.0 优化] 只在首次切换时加载数据，避免重复请求
+            if (!dataEntryTabInitialized) {
+                loadVideosForEntry();
+                dataEntryTabInitialized = true;
+            }
+        } else if (tabName === 'effect-monitor' && effectMonitorTab) {
+            effectMonitorTab.classList.remove('hidden');
+            // 效果监测Tab暂无逻辑
+        }
+
+        currentTab = tabName;
+    }
+
+    /**
+     * [V6.0 修改] 日报日期选择器变化处理（仅用于日报Tab）
+     */
+    function onGlobalDateChange() {
+        const selectedDate = globalDatePicker.value;
+        console.log(`[日期变化] 日报日期: ${selectedDate}`);
+
+        // 同步到隐藏的reportDatePicker（兼容现有逻辑）
+        if (reportDatePicker) reportDatePicker.value = selectedDate;
+
+        // 重新加载日报数据
+        loadReportData();
+    }
+
     // --- Event Listeners ---
     function setupEventListeners() {
-        toggleModeBtn.addEventListener('click', () => setMode(currentMode === 'display' ? 'entry' : 'display'));
-        cancelEntryBtn.addEventListener('click', () => setMode('display'));
+        // [V6.0 新增] Tab切换事件
+        trackingTabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.dataset.tab;
+                switchTab(tabName);
+            });
+        });
+
+        // [V6.0 新增] 全局日期选择器事件
+        if (globalDatePicker) {
+            globalDatePicker.addEventListener('change', onGlobalDateChange);
+        }
+
+        // [V6.0 修改] 数据录入相关事件
+        if (cancelEntryBtn) {
+            cancelEntryBtn.addEventListener('click', () => switchTab('daily-report'));
+        }
         saveEntryBtn.addEventListener('click', saveDailyData);
         entryDatePicker.addEventListener('change', loadVideosForEntry);
         if(autoScrapeBtn) {
@@ -813,6 +1063,82 @@ document.addEventListener('DOMContentLoaded', function () {
         // [V5.1 新增] 绑定超期视频抓取按钮
         if(autoScrapeOverdueBtn) {
             autoScrapeOverdueBtn.addEventListener('click', handleAutoScrapeOverdue);
+        }
+
+        // [Phase 1 新增] 绑定日期快捷按钮（修复时区问题）
+        if (entryDateToday) {
+            entryDateToday.addEventListener('click', () => {
+                const today = getLocalDateString();
+                entryDatePicker.value = today;
+                loadVideosForEntry();
+            });
+        }
+        if (entryDateYesterday) {
+            entryDateYesterday.addEventListener('click', () => {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                entryDatePicker.value = getLocalDateString(yesterday);
+                loadVideosForEntry();
+            });
+        }
+        if (entryDateBeforeYesterday) {
+            entryDateBeforeYesterday.addEventListener('click', () => {
+                const beforeYesterday = new Date();
+                beforeYesterday.setDate(beforeYesterday.getDate() - 2);
+                entryDatePicker.value = getLocalDateString(beforeYesterday);
+                loadVideosForEntry();
+            });
+        }
+
+        // 辅助函数：更新项目日报快捷按钮的高亮状态
+        function updateReportDateButtonHighlight(activeButton) {
+            const buttons = [reportDateToday, reportDateYesterday, reportDateBeforeYesterday];
+            buttons.forEach(btn => {
+                if (btn) {
+                    if (btn === activeButton) {
+                        // 高亮激活的按钮
+                        btn.classList.remove('bg-gray-100', 'text-gray-700');
+                        btn.classList.add('bg-indigo-100', 'text-indigo-700');
+                    } else {
+                        // 取消其他按钮的高亮
+                        btn.classList.remove('bg-indigo-100', 'text-indigo-700');
+                        btn.classList.add('bg-gray-100', 'text-gray-700');
+                    }
+                }
+            });
+        }
+
+        // 绑定项目日报日期快捷按钮（修复时区问题）
+        if (reportDateToday) {
+            reportDateToday.addEventListener('click', () => {
+                const today = getLocalDateString();
+                reportDatePicker.value = today;
+                globalDatePicker.value = today;
+                updateReportDateButtonHighlight(reportDateToday);
+                loadReportData();
+            });
+        }
+        if (reportDateYesterday) {
+            reportDateYesterday.addEventListener('click', () => {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = getLocalDateString(yesterday);
+                reportDatePicker.value = yesterdayStr;
+                globalDatePicker.value = yesterdayStr;
+                updateReportDateButtonHighlight(reportDateYesterday);
+                loadReportData();
+            });
+        }
+        if (reportDateBeforeYesterday) {
+            reportDateBeforeYesterday.addEventListener('click', () => {
+                const beforeYesterday = new Date();
+                beforeYesterday.setDate(beforeYesterday.getDate() - 2);
+                const beforeYesterdayStr = getLocalDateString(beforeYesterday);
+                reportDatePicker.value = beforeYesterdayStr;
+                globalDatePicker.value = beforeYesterdayStr;
+                updateReportDateButtonHighlight(reportDateBeforeYesterday);
+                loadReportData();
+            });
         }
 
         // [V5.0 新增] 绑定新按钮和弹窗事件
