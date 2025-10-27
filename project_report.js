@@ -630,6 +630,32 @@ document.addEventListener('DOMContentLoaded', function () {
             detailsContainer.innerHTML = '<div class="text-center py-16 text-gray-500">暂无报告详情</div>';
             return;
         }
+
+        // === 调试功能：输出后端返回的原始数据 ===
+        console.group('📊 项目日报数据调试');
+        console.log('🗓️  选择的日期:', reportDatePicker.value);
+        console.log('📦 后端返回的完整数据:', data);
+        console.log('─────────────────────────────────────');
+        console.log('📈 已发布视频总进展 (overview):');
+        console.log('   - 定档内容数量:', data.overview?.totalTalents);
+        console.log('   - 已发布视频数量:', data.overview?.publishedVideos);
+        console.log('   - 总计金额:', data.overview?.totalAmount);
+        console.log('   - 视频总曝光:', data.overview?.totalViews);
+        console.log('   - 当前CPM:', data.overview?.averageCPM);
+        console.log('─────────────────────────────────────');
+        console.log('⚠️  数据录入提醒 (missingDataVideos):');
+        console.log('   - 缺少数据的视频数量:', data.missingDataVideos?.length || 0);
+        console.log('   - 缺少数据的视频列表:', data.missingDataVideos);
+        if (data.missingDataVideos && data.missingDataVideos.length > 0) {
+            console.log('   - 视频详情:');
+            data.missingDataVideos.forEach((video, index) => {
+                console.log(`     ${index + 1}. ${video.talentName} - 发布日期: ${video.publishDate || '未发布'}`);
+            });
+        }
+        console.log('─────────────────────────────────────');
+        console.log('📋 详细分类 (details):', data.details);
+        console.groupEnd();
+
         const overview = data.overview || {};
         const kpis = [
             // [V4.4 修改] 调整指标名称
