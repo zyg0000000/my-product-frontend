@@ -109,7 +109,20 @@ export class PerformanceTab {
             openTaskLinkBtn: document.getElementById('open-task-link-btn'),
             saveQuickInputBtn: document.getElementById('saveQuickInputBtn'),
             cancelModalBtn: document.getElementById('cancelModalBtn'),
-            closeModalBtn: document.getElementById('closeModalBtn')
+            closeModalBtn: document.getElementById('closeModalBtn'),
+
+            // 查看详情弹窗（只读模式）
+            viewDetailModal: document.getElementById('viewDetailModal'),
+            viewTalentName: document.getElementById('view-talent-name'),
+            viewDate: document.getElementById('view-date'),
+            viewVideoId: document.getElementById('view-videoId'),
+            viewTaskId: document.getElementById('view-taskId'),
+            copyVideoIdBtn: document.getElementById('copy-video-id-btn'),
+            copyTaskIdBtn: document.getElementById('copy-task-id-btn'),
+            viewOpenVideoLinkBtn: document.getElementById('view-open-video-link-btn'),
+            viewOpenTaskLinkBtn: document.getElementById('view-open-task-link-btn'),
+            closeViewModalBtn: document.getElementById('closeViewModalBtn'),
+            closeViewModalBtn2: document.getElementById('closeViewModalBtn2')
         };
     }
 
@@ -477,6 +490,9 @@ export class PerformanceTab {
         const today = new Date(); today.setHours(0,0,0,0);
         const plannedDate = new Date(collab.plannedReleaseDate.split('T')[0]); plannedDate.setHours(0,0,0,0);
 
+        // 检查项目是否可编辑（项目状态为'执行中'）
+        const isReadOnly = this.project.status !== '执行中';
+
         let statusClass = 'status-pending'; // 默认待确认 (理论上不会出现)
         let statusText = '待确认';
         if (collab.status === '视频已发布') {
@@ -492,16 +508,24 @@ export class PerformanceTab {
             }
         }
 
-        card.className = `talent-card ${statusClass} rounded px-2 py-1.5 group`;
+        // 如果项目已结束，添加disabled样式
+        const disabledClass = isReadOnly ? 'disabled' : '';
+        card.className = `talent-card ${statusClass} ${disabledClass} rounded px-2 py-1.5 group`;
         card.dataset.collabId = collab.id;
+        card.dataset.editable = (!isReadOnly).toString();
+
+        // 如果项目已结束，显示"已结束"标识，否则显示编辑按钮
+        const actionButton = isReadOnly
+            ? `<p class="text-xs text-gray-400">已结束</p>`
+            : `<button class="edit-btn p-0.5 hover:bg-gray-200 rounded text-gray-500" title="编辑">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
+            </button>`;
 
         card.innerHTML = `
             <p class="font-medium text-gray-800 truncate" title="${talentName}">${talentName}</p>
             <p class="text-gray-500">${statusText}</p>
             ${statusClass === 'status-delayed' ? `<p class="text-xs text-red-500">原: ${Format.date(collab.plannedReleaseDate)}</p>` : ''}
-            <button class="edit-btn p-0.5 hover:bg-gray-200 rounded text-gray-500" title="编辑">
-                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
-            </button>
+            ${actionButton}
         `;
         return card;
     }
@@ -681,6 +705,26 @@ export class PerformanceTab {
             this.elements.openTaskLinkBtn.addEventListener('click', () => this.openTaskLink());
         }
 
+        // 查看详情弹窗
+        if (this.elements.closeViewModalBtn) {
+            this.elements.closeViewModalBtn.addEventListener('click', () => this.closeViewModal());
+        }
+        if (this.elements.closeViewModalBtn2) {
+            this.elements.closeViewModalBtn2.addEventListener('click', () => this.closeViewModal());
+        }
+        if (this.elements.copyVideoIdBtn) {
+            this.elements.copyVideoIdBtn.addEventListener('click', () => this.copyToClipboard(this.elements.viewVideoId.value, '视频ID'));
+        }
+        if (this.elements.copyTaskIdBtn) {
+            this.elements.copyTaskIdBtn.addEventListener('click', () => this.copyToClipboard(this.elements.viewTaskId.value, '任务ID'));
+        }
+        if (this.elements.viewOpenVideoLinkBtn) {
+            this.elements.viewOpenVideoLinkBtn.addEventListener('click', () => this.openViewVideoLink());
+        }
+        if (this.elements.viewOpenTaskLinkBtn) {
+            this.elements.viewOpenTaskLinkBtn.addEventListener('click', () => this.openViewTaskLink());
+        }
+
     }
 
     bindCalendarEvents() {
@@ -780,13 +824,20 @@ export class PerformanceTab {
         const editBtn = e.target.closest('.edit-btn');
         const card = e.target.closest('.talent-card');
 
-        if (editBtn && card) {
-            e.stopPropagation(); // 阻止触发卡片点击
+        if (card) {
             const collabId = card.dataset.collabId;
-            this.openQuickEditModal(collabId);
-        } else if (card) {
-            const collabId = card.dataset.collabId;
-            this.openQuickEditModal(collabId);
+            const isReadOnly = this.project.status !== '执行中';
+
+            if (isReadOnly) {
+                // 项目已结束，打开查看详情弹窗
+                this.openViewModal(collabId);
+            } else {
+                // 项目执行中，打开编辑弹窗
+                if (editBtn) {
+                    e.stopPropagation(); // 阻止触发卡片点击
+                }
+                this.openQuickEditModal(collabId);
+            }
         }
     }
 
@@ -1022,6 +1073,110 @@ export class PerformanceTab {
                 loading.close();
             }
         });
+    }
+
+    /**
+     * 打开查看详情弹窗（只读模式 - 用于已结束的项目）
+     */
+    openViewModal(collabId) {
+        const collab = this.filteredCollaborations.find(c => c.id === collabId);
+        if (!collab) return;
+
+        const talentName = collab.talentInfo?.nickname || '(未知达人)';
+
+        // 填充数据
+        this.elements.viewTalentName.value = talentName;
+
+        // 显示正确的日期
+        if (collab.status === '视频已发布' && collab.publishDate) {
+            this.elements.viewDate.value = collab.publishDate;
+        } else {
+            this.elements.viewDate.value = collab.plannedReleaseDate || '';
+        }
+
+        this.elements.viewVideoId.value = collab.videoId || '';
+        this.elements.viewTaskId.value = collab.taskId || '';
+
+        // 根据内容启用/禁用按钮
+        const hasVideoId = !!collab.videoId;
+        const hasTaskId = !!collab.taskId;
+
+        this.elements.copyVideoIdBtn.disabled = !hasVideoId;
+        this.elements.viewOpenVideoLinkBtn.disabled = !hasVideoId;
+        this.elements.copyTaskIdBtn.disabled = !hasTaskId;
+        this.elements.viewOpenTaskLinkBtn.disabled = !hasTaskId;
+
+        // 显示弹窗
+        this.elements.viewDetailModal.classList.remove('hidden');
+        this.elements.viewDetailModal.classList.add('flex');
+    }
+
+    /**
+     * 关闭查看详情弹窗
+     */
+    closeViewModal() {
+        this.elements.viewDetailModal.classList.remove('flex');
+        this.elements.viewDetailModal.classList.add('hidden');
+    }
+
+    /**
+     * 复制内容到剪贴板
+     */
+    async copyToClipboard(text, label) {
+        if (!text) {
+            Modal.showAlert(`${label}为空，无法复制`);
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(text);
+            Modal.showAlert(`${label}已复制：${text}`);
+        } catch (err) {
+            // 降级方案：使用 textarea
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+
+            try {
+                document.execCommand('copy');
+                Modal.showAlert(`${label}已复制：${text}`);
+            } catch (e) {
+                Modal.showAlert('复制失败，请手动复制');
+            }
+
+            document.body.removeChild(textarea);
+        }
+    }
+
+    /**
+     * 打开查看模式下的抖音视频链接
+     */
+    openViewVideoLink() {
+        const videoId = this.elements.viewVideoId?.value.trim();
+        if (!videoId) {
+            Modal.showAlert('视频ID为空');
+            return;
+        }
+
+        const url = `https://www.douyin.com/video/${videoId}`;
+        window.open(url, '_blank');
+    }
+
+    /**
+     * 打开查看模式下的星图任务链接
+     */
+    openViewTaskLink() {
+        const taskId = this.elements.viewTaskId?.value.trim();
+        if (!taskId) {
+            Modal.showAlert('任务ID为空');
+            return;
+        }
+
+        const url = `https://www.xingtu.cn/ad/creator/task/detail/${taskId}`;
+        window.open(url, '_blank');
     }
 
 }
