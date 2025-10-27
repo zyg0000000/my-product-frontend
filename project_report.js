@@ -68,6 +68,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const entryCompletedCount = document.getElementById('entry-completed-count');
     const entryPendingCount = document.getElementById('entry-pending-count');
 
+    // 项目日报日期快捷按钮
+    const reportDateToday = document.getElementById('report-date-today');
+    const reportDateYesterday = document.getElementById('report-date-yesterday');
+    const reportDateBeforeYesterday = document.getElementById('report-date-before-yesterday');
+
 
     // --- Global State ---
     let currentProjectId = null;
@@ -628,15 +633,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const overview = data.overview || {};
         const kpis = [
             // [V4.4 修改] 调整指标名称
-            { label: '定档内容数量', value: overview.totalTalents || 0, color: 'text-gray-900' },
-            { label: '已发布视频数量', value: overview.publishedVideos || 0, color: 'text-gray-900' },
-            { label: '总计金额', value: `¥${(overview.totalAmount || 0).toLocaleString()}`, color: 'text-green-600' },
-            { label: '视频总曝光', value: (overview.totalViews || 0).toLocaleString(), color: 'text-blue-600' },
-            { label: '当前CPM', value: (overview.averageCPM || 0).toFixed(1), color: 'text-purple-600' }
+            { label: '定档内容数量', value: overview.totalTalents || 0, color: 'text-gray-900', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>' },
+            { label: '已发布视频数量', value: overview.publishedVideos || 0, color: 'text-gray-900', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' },
+            { label: '总计金额', value: `¥${(overview.totalAmount || 0).toLocaleString()}`, color: 'text-green-600', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' },
+            { label: '视频总曝光', value: (overview.totalViews || 0).toLocaleString(), color: 'text-blue-600', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>' },
+            { label: '当前CPM', value: (overview.averageCPM || 0).toFixed(1), color: 'text-purple-600', icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>' }
         ];
         overviewKPIs.innerHTML = kpis.map(kpi => `
-            <div class="bg-gray-50 p-5 rounded-lg text-center kpi-card border border-gray-200">
-                <dt class="text-sm font-medium text-gray-500">${kpi.label}</dt>
+            <div class="bg-gradient-to-br from-gray-50 to-white p-5 rounded-xl text-center border border-gray-200 hover:shadow-lg hover:scale-105 transition-all duration-200 cursor-default">
+                <div class="flex justify-center mb-2 ${kpi.color}">
+                    ${kpi.icon}
+                </div>
+                <dt class="text-sm font-medium text-gray-600">${kpi.label}</dt>
                 <dd class="mt-2 text-3xl font-bold ${kpi.color}">${kpi.value}</dd>
             </div>
         `).join('');
@@ -656,8 +664,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <strong>数据录入提醒：</strong> 共 ${data.missingDataVideos.length} 条已发布视频缺少当日数据 (${missingVideosList})。
                             </p>
                             <p class="mt-3 text-sm md:mt-0 md:ml-6">
-                                <button id="go-to-entry-btn" class="whitespace-nowrap font-medium text-orange-700 hover:text-orange-600 bg-orange-200 hover:bg-orange-300 px-3 py-1.5 rounded-md transition-colors">
-                                    立即录入 &rarr;
+                                <button id="go-to-entry-btn" class="whitespace-nowrap font-semibold text-white bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-lg transition-all shadow hover:shadow-lg transform hover:scale-105">
+                                    立即录入 →
                                 </button>
                             </p>
                         </div>
@@ -1027,6 +1035,34 @@ document.addEventListener('DOMContentLoaded', function () {
                 beforeYesterday.setDate(beforeYesterday.getDate() - 2);
                 entryDatePicker.value = beforeYesterday.toISOString().split('T')[0];
                 loadVideosForEntry();
+            });
+        }
+
+        // 绑定项目日报日期快捷按钮
+        if (reportDateToday) {
+            reportDateToday.addEventListener('click', () => {
+                const today = new Date().toISOString().split('T')[0];
+                reportDatePicker.value = today;
+                globalDatePicker.value = today;
+                loadReportData();
+            });
+        }
+        if (reportDateYesterday) {
+            reportDateYesterday.addEventListener('click', () => {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                reportDatePicker.value = yesterday.toISOString().split('T')[0];
+                globalDatePicker.value = yesterday.toISOString().split('T')[0];
+                loadReportData();
+            });
+        }
+        if (reportDateBeforeYesterday) {
+            reportDateBeforeYesterday.addEventListener('click', () => {
+                const beforeYesterday = new Date();
+                beforeYesterday.setDate(beforeYesterday.getDate() - 2);
+                reportDatePicker.value = beforeYesterday.toISOString().split('T')[0];
+                globalDatePicker.value = beforeYesterday.toISOString().split('T')[0];
+                loadReportData();
             });
         }
 

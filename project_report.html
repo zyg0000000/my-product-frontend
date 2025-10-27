@@ -159,19 +159,30 @@
 
                         <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
                             <div class="flex justify-between items-start mb-6">
-                                <div class="flex items-center gap-3">
-                                    <svg class="w-6 h-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h12M3.75 3h16.5M3.75 3A2.25 2.25 0 016 5.25h12A2.25 2.25 0 0120.25 3M3.75 21v-7.5A2.25 2.25 0 016 11.25h12a2.25 2.25 0 012.25 2.25V21M3 3h18M3 21h18" />
-                    </svg>
-                                    <h3 class="text-xl font-semibold text-gray-800">已发布视频总进展</h3>
+                                <div>
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <svg class="w-6 h-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h12M3.75 3h16.5M3.75 3A2.25 2.25 0 016 5.25h12A2.25 2.25 0 0120.25 3M3.75 21v-7.5A2.25 2.25 0 016 11.25h12a2.25 2.25 0 012.25 2.25V21M3 3h18M3 21h18" />
+                        </svg>
+                                        <h3 class="text-2xl font-bold text-gray-900">已发布视频总进展</h3>
+                                    </div>
+                                    <p class="text-sm text-gray-500 ml-9">实时查看项目视频播放数据与效果分析</p>
                                 </div>
                                 <!-- 日期选择器 -->
-                                <div class="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
-                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                    </svg>
-                                    <input type="date" id="global-date-picker"
-                                           class="border-0 bg-transparent text-sm focus:ring-0 focus:outline-none p-0 text-gray-700 font-medium cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border-2 border-gray-300 hover:border-indigo-500 transition-colors shadow-sm">
+                                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                        <input type="date" id="global-date-picker"
+                                               class="border-0 bg-transparent text-sm focus:ring-0 focus:outline-none p-0 text-gray-700 font-semibold cursor-pointer">
+                                    </div>
+                                    <!-- 快捷按钮 -->
+                                    <div class="flex gap-2">
+                                        <button id="report-date-today" class="px-3 py-1.5 text-xs font-medium rounded-md bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors">今天</button>
+                                        <button id="report-date-yesterday" class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">昨天</button>
+                                        <button id="report-date-before-yesterday" class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">前天</button>
+                                    </div>
                                 </div>
                             </div>
                             <dl id="overview-kpis" class="grid grid-cols-2 md:grid-cols-5 gap-6"></dl>
