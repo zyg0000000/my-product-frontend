@@ -650,34 +650,48 @@ document.addEventListener('DOMContentLoaded', function () {
         `).join('');
 
         if (data.missingDataVideos && data.missingDataVideos.length > 0) {
-            const missingVideosList = data.missingDataVideos.map(v => `<span class="font-semibold">${v.talentName}</span>`).join('、');
-            missingDataAlertContainer.innerHTML = `
-                <div class="bg-orange-50 border-l-4 border-orange-400 p-4 rounded-r-lg mb-8 shadow">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <svg class="h-6 w-6 text-orange-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M8.257 3.099c.636-1.026 2.252-1.026 2.888 0l6.252 10.086c.636 1.026-.174 2.315-1.444 2.315H3.449c-1.27 0-2.08-1.289-1.444-2.315L8.257 3.099zM10 6a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div class="ml-3 flex-1 md:flex md:justify-between">
-                            <p class="text-sm text-orange-700">
-                                <strong>数据录入提醒：</strong> 共 ${data.missingDataVideos.length} 条已发布视频缺少当日数据 (${missingVideosList})。
-                            </p>
-                            <p class="mt-3 text-sm md:mt-0 md:ml-6">
-                                <button id="go-to-entry-btn" class="whitespace-nowrap font-semibold text-white bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-lg transition-all shadow hover:shadow-lg transform hover:scale-105">
-                                    立即录入 →
-                                </button>
-                            </p>
+            // 过滤掉当日发布的视频（当日发布的视频次日才能录入数据）
+            const selectedDate = reportDatePicker.value; // 当前查看的日期
+            const filteredMissingVideos = data.missingDataVideos.filter(video => {
+                // 如果视频的发布日期 === 当前查看的日期，则不应该提醒（因为当日发布的视频次日才能录入）
+                if (video.publishDate && video.publishDate === selectedDate) {
+                    return false; // 过滤掉
+                }
+                return true; // 保留
+            });
+
+            if (filteredMissingVideos.length > 0) {
+                const missingVideosList = filteredMissingVideos.map(v => `<span class="font-semibold">${v.talentName}</span>`).join('、');
+                missingDataAlertContainer.innerHTML = `
+                    <div class="bg-orange-50 border-l-4 border-orange-400 p-4 rounded-r-lg mb-8 shadow">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <svg class="h-6 w-6 text-orange-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.636-1.026 2.252-1.026 2.888 0l6.252 10.086c.636 1.026-.174 2.315-1.444 2.315H3.449c-1.27 0-2.08-1.289-1.444-2.315L8.257 3.099zM10 6a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3 flex-1 md:flex md:justify-between">
+                                <p class="text-sm text-orange-700">
+                                    <strong>数据录入提醒：</strong> 共 ${filteredMissingVideos.length} 条已发布视频缺少当日数据 (${missingVideosList})。
+                                </p>
+                                <p class="mt-3 text-sm md:mt-0 md:ml-6">
+                                    <button id="go-to-entry-btn" class="whitespace-nowrap font-semibold text-white bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-lg transition-all shadow hover:shadow-lg transform hover:scale-105">
+                                        立即录入 →
+                                    </button>
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
-            // [V6.0 修改] 点击"立即录入"切换到数据录入Tab
-            document.getElementById('go-to-entry-btn').addEventListener('click', () => {
-                // [V6.0 优化] 强制重新加载最新数据
-                dataEntryTabInitialized = false;
-                switchTab('data-entry');
-            });
+                `;
+                // [V6.0 修改] 点击"立即录入"切换到数据录入Tab
+                document.getElementById('go-to-entry-btn').addEventListener('click', () => {
+                    // [V6.0 优化] 强制重新加载最新数据
+                    dataEntryTabInitialized = false;
+                    switchTab('data-entry');
+                });
+            } else {
+                missingDataAlertContainer.innerHTML = '';
+            }
         } else {
             missingDataAlertContainer.innerHTML = '';
         }
@@ -1038,12 +1052,31 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
+        // 辅助函数：更新项目日报快捷按钮的高亮状态
+        function updateReportDateButtonHighlight(activeButton) {
+            const buttons = [reportDateToday, reportDateYesterday, reportDateBeforeYesterday];
+            buttons.forEach(btn => {
+                if (btn) {
+                    if (btn === activeButton) {
+                        // 高亮激活的按钮
+                        btn.classList.remove('bg-gray-100', 'text-gray-700');
+                        btn.classList.add('bg-indigo-100', 'text-indigo-700');
+                    } else {
+                        // 取消其他按钮的高亮
+                        btn.classList.remove('bg-indigo-100', 'text-indigo-700');
+                        btn.classList.add('bg-gray-100', 'text-gray-700');
+                    }
+                }
+            });
+        }
+
         // 绑定项目日报日期快捷按钮
         if (reportDateToday) {
             reportDateToday.addEventListener('click', () => {
                 const today = new Date().toISOString().split('T')[0];
                 reportDatePicker.value = today;
                 globalDatePicker.value = today;
+                updateReportDateButtonHighlight(reportDateToday);
                 loadReportData();
             });
         }
@@ -1053,6 +1086,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 yesterday.setDate(yesterday.getDate() - 1);
                 reportDatePicker.value = yesterday.toISOString().split('T')[0];
                 globalDatePicker.value = yesterday.toISOString().split('T')[0];
+                updateReportDateButtonHighlight(reportDateYesterday);
                 loadReportData();
             });
         }
@@ -1062,6 +1096,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 beforeYesterday.setDate(beforeYesterday.getDate() - 2);
                 reportDatePicker.value = beforeYesterday.toISOString().split('T')[0];
                 globalDatePicker.value = beforeYesterday.toISOString().split('T')[0];
+                updateReportDateButtonHighlight(reportDateBeforeYesterday);
                 loadReportData();
             });
         }
