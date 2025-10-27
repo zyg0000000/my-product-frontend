@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function () {
         breadcrumbProjectName.textContent = projectData.name;
 
         // [Phase 2] 检查效果追踪权限
-        if (projectData.enableTracking === false) {
+        if (projectData.trackingEnabled === false) {
             showTrackingDisabledMessage();
             return false; // 阻止后续加载
         }

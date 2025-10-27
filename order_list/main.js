@@ -218,8 +218,8 @@ export class OrderListApp {
         if (trackingLink) {
             // 设置跳转链接
             trackingLink.href = `project_report.html?projectId=${this.projectId}`;
-            // 根据enableTracking字段控制显示（默认为true，兼容老数据）
-            if (this.project.enableTracking === false) {
+            // 根据trackingEnabled字段控制显示（默认为true，兼容老数据）
+            if (this.project.trackingEnabled === false) {
                 trackingLink.style.display = 'none';
             } else {
                 trackingLink.style.display = 'inline-flex';
