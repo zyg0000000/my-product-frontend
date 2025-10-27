@@ -809,8 +809,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         break;
                 }
             } else if (isOverdue) {
-                // 2. 如果没有任务且超期，显示"超14天待抓取"，允许手动输入作为备用
-                statusHtml = '<span class="text-xs font-semibold text-amber-600" title="视频已超14天，可使用超期抓取功能">超14天待抓取</span>';
+                // 2. 如果没有任务且超期，显示"超14天"，允许手动输入作为备用
+                statusHtml = '<span class="text-xs font-semibold text-amber-600" title="视频已超14天，可使用超期抓取功能">超14天</span>';
                 isInputDisabled = false; // [V5.1 方案A] 不禁用输入框，允许手动录入作为备用
             } else if (videoToRender.publishDate) {
                 // 3. 有发布日期且未超期，显示"已发布X天"
