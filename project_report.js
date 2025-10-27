@@ -512,7 +512,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function loadVideosForEntry() {
-        videoEntryList.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500">正在加载视频列表...</td></tr>`;
+        videoEntryList.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-500">正在加载视频列表...</td></tr>`;
         try {
             const response = await apiRequest(`${VIDEOS_FOR_ENTRY_API}?projectId=${currentProjectId}&date=${entryDatePicker.value}`);
             allVideosForEntry = response.data || [];
@@ -549,27 +549,56 @@ document.addEventListener('DOMContentLoaded', function () {
 
             renderEntryPage();
         } catch (error) {
-            videoEntryList.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500">加载失败: ${error.message}</td></tr>`;
+            videoEntryList.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-red-500">加载失败: ${error.message}</td></tr>`;
         }
     }
     
     async function saveDailyData() {
+        // [Phase 2] 修改过滤逻辑：只要有任一字段有数据就收集
         const dataToSave = allVideosForEntry
-            .filter(video => video.totalViews !== null && video.totalViews !== undefined && String(video.totalViews).trim() !== '')
-            .map(video => ({
-                collaborationId: video.collaborationId,
-                totalViews: parseInt(String(video.totalViews).replace(/,/g, ''), 10)
-            }));
+            .filter(video => {
+                const hasTotalViews = video.totalViews !== null && video.totalViews !== undefined && String(video.totalViews).trim() !== '';
+                const hasPaidAmount = video.paidAmount !== null && video.paidAmount !== undefined && String(video.paidAmount).trim() !== '';
+                const hasPaidViews = video.paidViews !== null && video.paidViews !== undefined && String(video.paidViews).trim() !== '';
+                return hasTotalViews || hasPaidAmount || hasPaidViews;
+            })
+            .map(video => {
+                // [Phase 2] 构建数据对象，包含投流字段
+                const data = {
+                    collaborationId: video.collaborationId
+                };
+
+                // 只添加有值的字段
+                if (video.totalViews !== null && video.totalViews !== undefined && String(video.totalViews).trim() !== '') {
+                    data.totalViews = parseInt(String(video.totalViews).replace(/,/g, ''), 10);
+                }
+                if (video.paidAmount !== null && video.paidAmount !== undefined && String(video.paidAmount).trim() !== '') {
+                    data.paidAmount = parseFloat(String(video.paidAmount));
+                }
+                if (video.paidViews !== null && video.paidViews !== undefined && String(video.paidViews).trim() !== '') {
+                    data.paidViews = parseInt(String(video.paidViews).replace(/,/g, ''), 10);
+                }
+
+                return data;
+            });
+
         if (dataToSave.length === 0) {
             alert('您没有输入任何数据。');
             return;
         }
+
+        // [Phase 2] 显示即将保存的记录数
+        const confirmMsg = `即将保存 ${dataToSave.length} 条记录，确认提交吗？`;
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+
         saveEntryBtn.disabled = true;
         saveEntryBtn.textContent = '保存中...';
         try {
             const payload = { projectId: currentProjectId, date: entryDatePicker.value, data: dataToSave };
             await apiRequest(DAILY_STATS_API, 'POST', payload);
-            alert('数据保存成功！');
+            alert(`✅ 保存成功！\n已更新 ${dataToSave.length} 条记录\n日期: ${entryDatePicker.value}`);
             reportDatePicker.value = entryDatePicker.value;
             // [V6.0 优化] 保存后重置初始化标志，下次切换时会重新加载
             dataEntryTabInitialized = false;
@@ -746,7 +775,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderVideoEntryList() {
         if (!allVideosForEntry || allVideosForEntry.length === 0) {
-            videoEntryList.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500">此项目暂无可录入数据的视频。</td></tr>`;
+            videoEntryList.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-500">此项目暂无可录入数据的视频。</td></tr>`;
             updateEntryStats(); // [Phase 1] 更新统计
             return;
         }
@@ -818,22 +847,50 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="px-6 py-4 text-gray-500">${formatDate(videoToRender.publishDate)}</td>
                     <td class="px-6 py-4 text-center">${videoLink}</td>
                     <td class="px-6 py-4">
-                        <input type="number" class="view-input w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" 
-                               placeholder="请输入总曝光/播放量" 
-                               value="${videoToRender.totalViews || ''}" 
+                        <input type="number" class="view-input w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                               placeholder="请输入总曝光/播放量"
+                               value="${videoToRender.totalViews || ''}"
                                data-collaboration-id="${videoToRender.collaborationId}"
+                               data-field="totalViews"
                                ${isInputDisabled ? 'disabled bg-gray-100' : ''}>
+                    </td>
+                    <td class="px-6 py-4">
+                        <input type="number" class="paid-amount-input w-full border-gray-300 rounded-md shadow-sm focus:border-amber-500 focus:ring-amber-500"
+                               placeholder="投流金额"
+                               value="${videoToRender.paidAmount || ''}"
+                               data-collaboration-id="${videoToRender.collaborationId}"
+                               data-field="paidAmount"
+                               min="0"
+                               step="0.01">
+                    </td>
+                    <td class="px-6 py-4">
+                        <input type="number" class="paid-views-input w-full border-gray-300 rounded-md shadow-sm focus:border-amber-500 focus:ring-amber-500"
+                               placeholder="投流播放量"
+                               value="${videoToRender.paidViews || ''}"
+                               data-collaboration-id="${videoToRender.collaborationId}"
+                               data-field="paidViews"
+                               min="0"
+                               step="1">
                     </td>
                     <td class="px-6 py-4 text-center">${statusHtml}</td>
                 </tr>
             `;
         }).join('');
 
-        videoEntryList.querySelectorAll('input.view-input').forEach(input => {
+        // [Phase 2] 统一处理所有输入框的input事件
+        videoEntryList.querySelectorAll('input[data-field]').forEach(input => {
             input.addEventListener('input', e => {
                 const videoToUpdate = allVideosForEntry.find(v => v.collaborationId === e.target.dataset.collaborationId);
-                if (videoToUpdate) {
-                    videoToUpdate.totalViews = e.target.value;
+                const field = e.target.dataset.field;
+                if (videoToUpdate && field) {
+                    // 根据字段类型进行数据处理
+                    if (field === 'paidAmount') {
+                        // 投流金额：支持小数
+                        videoToUpdate[field] = e.target.value ? parseFloat(e.target.value) : null;
+                    } else {
+                        // 播放量字段：整数
+                        videoToUpdate[field] = e.target.value ? parseInt(e.target.value, 10) : null;
+                    }
                     // [Phase 1] 输入变化时更新统计信息
                     updateEntryStats();
                 }
