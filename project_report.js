@@ -747,7 +747,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .map(key => {
             const videos = details[key];
             const sectionInfo = sectionConfig[key];
-            const hasSolutionColumn = ['normalVideos', 'badVideos', 'worstVideos'].includes(key);
+            const hasSolutionColumn = true; // 所有表格统一显示"后续解决方案"列
             const cpmChangeHtml = (change) => {
                 if (change === null) return 'N/A';
                 const color = change < 0 ? 'text-green-600' : 'text-red-600';
