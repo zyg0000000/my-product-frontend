@@ -50,6 +50,7 @@ export class OrderListApp {
             breadcrumbProjectName: document.getElementById('breadcrumb-project-name'),
             projectQianchuanId: document.getElementById('project-qianchuan-id'),
             statusAlertBanner: document.getElementById('status-alert-banner'),
+            trackingLink: document.getElementById('tracking-link'), // [Phase 2] 效果追踪按钮
 
             // 按钮
             addSingleTalentBtn: document.getElementById('add-single-talent-btn'),
@@ -199,7 +200,7 @@ export class OrderListApp {
      * 渲染页面头部信息
      */
     renderHeader() {
-        const { projectNameDisplay, breadcrumbProjectName, projectQianchuanId, stats } = this.elements;
+        const { projectNameDisplay, breadcrumbProjectName, projectQianchuanId, trackingLink, stats } = this.elements;
 
         if (projectNameDisplay) {
             projectNameDisplay.textContent = this.project.name;
@@ -211,6 +212,18 @@ export class OrderListApp {
 
         if (projectQianchuanId) {
             projectQianchuanId.textContent = `仟传编号: ${this.project.qianchuanId || 'N/A'}`;
+        }
+
+        // [Phase 2] 设置效果追踪按钮
+        if (trackingLink) {
+            // 设置跳转链接
+            trackingLink.href = `project_report.html?projectId=${this.projectId}`;
+            // 根据enableTracking字段控制显示（默认为true，兼容老数据）
+            if (this.project.enableTracking === false) {
+                trackingLink.style.display = 'none';
+            } else {
+                trackingLink.style.display = 'inline-flex';
+            }
         }
 
         // 渲染统计数据

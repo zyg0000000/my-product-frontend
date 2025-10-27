@@ -134,80 +134,145 @@
     <!-- 创建/编辑项目 Modal (保持不变) -->
     <div id="project-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden modal z-50">
         <div id="project-modal-content" class="relative top-10 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white opacity-0 scale-95 modal-content">
-            <div class="flex justify-between items-center pb-3 border-b">
-                <h3 id="modal-title" class="text-lg font-medium text-gray-900">创建新项目</h3>
-                <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            <div class="flex justify-between items-center pb-4 border-b border-gray-200">
+                <div>
+                    <h3 id="modal-title" class="text-xl font-semibold text-gray-900">创建新项目</h3>
+                    <p class="text-sm text-gray-500 mt-1">填写项目基本信息和配置</p>
+                </div>
+                <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
             </div>
-            <div class="mt-4">
-                <form id="project-form" class="space-y-4">
+            <div class="mt-6">
+                <form id="project-form" class="space-y-6">
                     <input type="hidden" id="editing-project-id">
-                    <div>
-                        <label for="project-name" class="block text-sm font-medium text-gray-700">项目名称 <span class="text-red-500">*</span></label>
-                        <input type="text" id="project-name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
+
+                    <!-- 基本信息区域 -->
+                    <div class="space-y-4">
+                        <h4 class="text-sm font-semibold text-gray-900 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            基本信息
+                        </h4>
                         <div>
-                            <label for="project-type" class="block text-sm font-medium text-gray-700">项目类型 <span class="text-red-500">*</span></label>
-                            <select id="project-type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></select>
+                            <label for="project-name" class="block text-sm font-medium text-gray-700">项目名称 <span class="text-red-500">*</span></label>
+                            <input type="text" id="project-name" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                         </div>
-                        <div id="new-type-container" class="hidden">
-                            <label for="new-project-type" class="block text-sm font-medium text-gray-700">新类型名称 <span class="text-red-500">*</span></label>
-                            <input type="text" id="new-project-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-                    </div>
-                    <div>
-                        <label for="project-qianchuan-id" class="block text-sm font-medium text-gray-700">仟传项目编号</label>
-                        <input type="text" id="project-qianchuan-id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="project-budget" class="block text-sm font-medium text-gray-700">客户项目预算 (¥)</label>
-                            <input type="number" step="0.01" id="project-budget" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-                         <div>
-                            <label for="project-benchmark-cpm" class="block text-sm font-medium text-gray-700">目标CPM (¥)</label>
-                            <input type="number" step="0.01" id="project-benchmark-cpm" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-                    </div>
-                    <div class="p-3 bg-gray-50 rounded-md space-y-3">
-                        <p class="text-sm font-semibold text-gray-800">客户归属月份</p>
-                         <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label for="project-year" class="block text-xs font-medium text-gray-500">年份</label>
-                                <select id="project-year" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                                <label for="project-type" class="block text-sm font-medium text-gray-700">项目类型 <span class="text-red-500">*</span></label>
+                                <select id="project-type" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"></select>
                             </div>
-                            <div>
-                                <label for="project-month" class="block text-xs font-medium text-gray-500">月份</label>
-                                <select id="project-month" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                            <div id="new-type-container" class="hidden">
+                                <label for="new-project-type" class="block text-sm font-medium text-gray-700">新类型名称 <span class="text-red-500">*</span></label>
+                                <input type="text" id="new-project-type" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                            </div>
+                            <div id="qianchuan-id-container">
+                                <label for="project-qianchuan-id" class="block text-sm font-medium text-gray-700">仟传项目编号</label>
+                                <input type="text" id="project-qianchuan-id" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                             </div>
                         </div>
                     </div>
-                     <div class="p-3 bg-blue-50 rounded-md space-y-3">
-                        <p class="text-sm font-semibold text-gray-800">财务归属月份 <span class="text-red-500">*</span></p>
-                        <p id="financial-month-warning" class="hidden text-xs text-red-600">注意：此项目缺少财务月份，请尽快补全。</p>
-                         <div class="grid grid-cols-2 gap-4">
+
+                    <!-- 预算与指标 -->
+                    <div class="space-y-4">
+                        <h4 class="text-sm font-semibold text-gray-900 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            预算与指标
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label for="project-financial-year" class="block text-xs font-medium text-gray-500">年份</label>
-                                <select id="project-financial-year" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                                <label for="project-budget" class="block text-sm font-medium text-gray-700">客户项目预算 (¥)</label>
+                                <input type="number" step="0.01" id="project-budget" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                             </div>
                             <div>
-                                <label for="project-financial-month" class="block text-xs font-medium text-gray-500">月份</label>
-                                <select id="project-financial-month" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                                <label for="project-benchmark-cpm" class="block text-sm font-medium text-gray-700">目标CPM (¥)</label>
+                                <input type="number" step="0.01" id="project-benchmark-cpm" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                             </div>
                         </div>
                     </div>
-                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="project-discount" class="block text-sm font-medium text-gray-700">框架折扣</label>
-                            <select id="project-discount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="project-capital-rate" class="block text-sm font-medium text-gray-700">资金占用费率</label>
-                            <select id="project-capital-rate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+
+                    <!-- 归属月份 -->
+                    <div class="space-y-4">
+                        <h4 class="text-sm font-semibold text-gray-900 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            归属月份
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <p class="text-xs font-medium text-gray-600 mb-3">客户归属月份</p>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label for="project-year" class="block text-xs font-medium text-gray-500">年份</label>
+                                        <select id="project-year" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm"></select>
+                                    </div>
+                                    <div>
+                                        <label for="project-month" class="block text-xs font-medium text-gray-500">月份</label>
+                                        <select id="project-month" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                <div class="flex items-center justify-between mb-3">
+                                    <p class="text-xs font-medium text-gray-900">财务归属月份</p>
+                                    <span class="text-red-500 text-xs">*</span>
+                                </div>
+                                <p id="financial-month-warning" class="hidden text-xs text-red-600 mb-2">注意：此项目缺少财务月份，请尽快补全。</p>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label for="project-financial-year" class="block text-xs font-medium text-gray-500">年份</label>
+                                        <select id="project-financial-year" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm"></select>
+                                    </div>
+                                    <div>
+                                        <label for="project-financial-month" class="block text-xs font-medium text-gray-500">月份</label>
+                                        <select id="project-financial-month" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm"></select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="mt-6 flex justify-end">
-                        <button type="submit" id="modal-submit-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">确认创建</button>
+
+                    <!-- 费率配置 -->
+                    <div class="space-y-4">
+                        <h4 class="text-sm font-semibold text-gray-900 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                            费率配置
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="project-discount" class="block text-sm font-medium text-gray-700">框架折扣</label>
+                                <select id="project-discount" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"></select>
+                            </div>
+                            <div>
+                                <label for="project-capital-rate" class="block text-sm font-medium text-gray-700">资金占用费率</label>
+                                <select id="project-capital-rate" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- [Phase 2 新增] 效果追踪开关 -->
+                    <div class="border-t border-gray-200 pt-4">
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input id="enable-tracking" type="checkbox" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            </div>
+                            <div class="ml-3">
+                                <label for="enable-tracking" class="text-sm font-medium text-gray-700 cursor-pointer">启用效果追踪</label>
+                                <p class="text-xs text-gray-500 mt-1">开启后可使用项目日报、数据录入等追踪功能。仅"执行中"项目可修改此设置。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 提交按钮 -->
+                    <div class="flex justify-end pt-4 border-t border-gray-200">
+                        <button type="submit" id="modal-submit-btn" class="px-6 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                            确认创建
+                        </button>
                     </div>
                 </form>
             </div>

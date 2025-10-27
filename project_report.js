@@ -223,7 +223,11 @@ document.addEventListener('DOMContentLoaded', function () {
         switchTab('daily-report');
 
         try {
-            await loadProjectDetails();
+            const canProceed = await loadProjectDetails();
+            // [Phase 2] 如果未启用追踪，不继续加载
+            if (!canProceed) {
+                return;
+            }
             await loadReportData();
         } catch (error) {
             document.body.innerHTML = `<div class="p-8 text-center text-red-500">无法加载页面数据: ${error.message}</div>`;
@@ -235,6 +239,62 @@ document.addEventListener('DOMContentLoaded', function () {
         projectData = response.data;
         document.title = `${projectData.name} - 项目执行报告`;
         breadcrumbProjectName.textContent = projectData.name;
+
+        // [Phase 2] 检查效果追踪权限
+        if (projectData.enableTracking === false) {
+            showTrackingDisabledMessage();
+            return false; // 阻止后续加载
+        }
+        return true; // 允许继续加载
+    }
+
+    /**
+     * [Phase 2] 显示追踪未启用的提示页面
+     */
+    function showTrackingDisabledMessage() {
+        const mainContent = document.getElementById('main-content') || document.querySelector('main');
+        if (!mainContent) return;
+
+        mainContent.innerHTML = `
+            <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+                <div class="max-w-md w-full">
+                    <div class="bg-white rounded-2xl shadow-xl p-8 text-center">
+                        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 mb-6">
+                            <svg class="h-10 w-10 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-3">效果追踪未启用</h2>
+                        <p class="text-gray-600 mb-6">该项目尚未启用效果追踪功能，无法查看项目日报和数据录入页面。</p>
+
+                        <div class="bg-blue-50 rounded-lg p-4 mb-6 text-left">
+                            <p class="text-sm text-blue-900 font-medium mb-2">如需启用追踪功能：</p>
+                            <ol class="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+                                <li>返回项目列表页面</li>
+                                <li>编辑该项目的基础信息</li>
+                                <li>勾选"启用效果追踪"选项</li>
+                                <li>保存更改后即可访问</li>
+                            </ol>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <a href="index.html" class="flex-1 inline-flex justify-center items-center px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                                </svg>
+                                返回项目列表
+                            </a>
+                            <a href="order_list.html?projectId=${currentProjectId}" class="flex-1 inline-flex justify-center items-center px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+                                查看项目进展
+                                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     // --- Mode Switching ---
