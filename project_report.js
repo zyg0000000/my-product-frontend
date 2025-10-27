@@ -851,22 +851,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /**
-     * 全局日期选择器变化处理
+     * [V6.0 修改] 日报日期选择器变化处理（仅用于日报Tab）
      */
     function onGlobalDateChange() {
         const selectedDate = globalDatePicker.value;
-        console.log(`[日期变化] 全局日期: ${selectedDate}`);
+        console.log(`[日期变化] 日报日期: ${selectedDate}`);
 
-        // 同步到两个隐藏的日期选择器
+        // 同步到隐藏的reportDatePicker（兼容现有逻辑）
         if (reportDatePicker) reportDatePicker.value = selectedDate;
-        if (entryDatePicker) entryDatePicker.value = selectedDate;
 
-        // 根据当前Tab重新加载数据
-        if (currentTab === 'daily-report') {
-            loadReportData();
-        } else if (currentTab === 'data-entry') {
-            loadVideosForEntry();
-        }
+        // 重新加载日报数据
+        loadReportData();
     }
 
     // --- Event Listeners ---

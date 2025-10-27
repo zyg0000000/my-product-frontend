@@ -123,16 +123,15 @@
         <!-- 主内容区域 -->
         <div class="space-y-6">
 
-            <!-- Tab 导航 + 日期选择器 -->
+            <!-- Tab 导航 -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="px-6 py-4 flex justify-between items-center border-b border-gray-200">
-                    <!-- Tab 导航 -->
+                <div class="px-6 py-4 border-b border-gray-200">
                     <nav class="flex items-center" aria-label="Tracking Tabs">
                         <button class="tracking-tab-btn active" data-tab="daily-report">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
-                            日报
+                            项目日报
                         </button>
                         <div class="tracking-tab-divider"></div>
                         <button class="tracking-tab-btn" data-tab="data-entry">
@@ -149,13 +148,6 @@
                             效果监测
                         </button>
                     </nav>
-
-                    <!-- 全局日期选择器 -->
-                    <div class="flex items-center gap-2">
-                        <label for="global-date-picker" class="text-sm font-medium text-gray-700">日期:</label>
-                        <input type="date" id="global-date-picker"
-                               class="border-gray-300 rounded-md shadow-sm text-sm focus:ring-indigo-500 focus:border-indigo-500 px-3 py-2">
-                    </div>
                 </div>
             </div>
 
@@ -164,20 +156,30 @@
 
                 <!-- Tab 1: 日报 -->
                 <div id="daily-report-tab" class="tracking-tab-pane">
-                    <!-- 原有的报告展示视图内容将放在这里 -->
+                    <!-- 报告展示视图 -->
+                    <div id="report-display-view" class="space-y-6">
+                        <!-- 保留这个隐藏的日期选择器，用于兼容现有JS -->
+                        <input type="date" id="report-date-picker" class="hidden">
 
-            <!-- 报告展示视图 -->
-            <div id="report-display-view" class="display-mode-item space-y-6">
-                <!-- 保留这个隐藏的日期选择器，用于兼容现有JS -->
-                <input type="date" id="report-date-picker" class="hidden">
-
-                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                     <h3 class="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-3">
-                        <svg class="w-6 h-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h12M3.75 3h16.5M3.75 3A2.25 2.25 0 016 5.25h12A2.25 2.25 0 0120.25 3M3.75 21v-7.5A2.25 2.25 0 016 11.25h12a2.25 2.25 0 012.25 2.25V21M3 3h18M3 21h18" /></svg>
-                        已发布视频总进展
-                    </h3>
-                    <dl id="overview-kpis" class="grid grid-cols-2 md:grid-cols-5 gap-6"></dl>
-                </div>
+                        <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                            <div class="flex justify-between items-start mb-6">
+                                <div class="flex items-center gap-3">
+                                    <svg class="w-6 h-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h12M3.75 3h16.5M3.75 3A2.25 2.25 0 016 5.25h12A2.25 2.25 0 0120.25 3M3.75 21v-7.5A2.25 2.25 0 016 11.25h12a2.25 2.25 0 012.25 2.25V21M3 3h18M3 21h18" />
+                    </svg>
+                                    <h3 class="text-xl font-semibold text-gray-800">已发布视频总进展</h3>
+                                </div>
+                                <!-- 日期选择器 -->
+                                <div class="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <input type="date" id="global-date-picker"
+                                           class="border-0 bg-transparent text-sm focus:ring-0 focus:outline-none p-0 text-gray-700 font-medium cursor-pointer">
+                                </div>
+                            </div>
+                            <dl id="overview-kpis" class="grid grid-cols-2 md:grid-cols-5 gap-6"></dl>
+                        </div>
                 
                 <div id="missing-data-alert-container"></div>
 
@@ -188,9 +190,8 @@
 
                 <!-- Tab 2: 数据录入 -->
                 <div id="data-entry-tab" class="tracking-tab-pane hidden">
-
-            <!-- 数据录入视图 -->
-            <div id="data-entry-view" class="entry-mode-item bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                    <!-- 数据录入视图 -->
+                    <div id="data-entry-view" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
                 <!-- 保留这个隐藏的日期选择器，用于兼容现有JS -->
                 <input type="date" id="entry-date-picker" class="hidden">
                 <div class="border rounded-lg overflow-hidden shadow-md">
