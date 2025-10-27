@@ -1,9 +1,10 @@
 /**
  * @file sidebar.js
- * @version 2.3 - Relocate Data Export Center
+ * @version 2.4 - Add Execution Board
  * @description 一个独立的、可重用的侧边栏组件。
  *
  * @changelog
+ * - v2.4 (2025-10-26): 在 "项目管理" 菜单下增加了 "执行看板" 的导航入口。
  * - v2.3 (2025-10-22): 根据要求，将 "数据导出中心" 的导航入口从 "达人管理" 移动到 "自动套件" 菜单下。
  * - v2.2 (2025-10-22): 在 "达人管理" 菜单下增加了 "数据导出中心" 的导航入口。
  * - v2.1.1 (2025-10-19): 修正了 'project_analysis.html' 的文件命名并更新了变更日志。
@@ -38,10 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </button>
                     <div id="project-menu" class="mt-1 space-y-1 flex flex-col submenu">
-                        <a href="project_analysis.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">分析看板</span></a>
                         <a href="index.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">项目列表</span></a>
-                        <a href="task_center.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">任务中心</span></a>
                         <a href="talent_selection.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">达人挑选</span></a>
+                        <a href="project_analysis.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">分析看板</span></a>
+                        <a href="execution_board.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">执行看板</span></a>
+                        <a href="task_center.html" class="nav-link pl-7"><span class="w-5 mr-3 flex-shrink-0 text-center nav-text">·</span><span class="nav-text">任务看板</span></a>
                     </div>
                 </div>
 
