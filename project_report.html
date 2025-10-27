@@ -188,8 +188,43 @@
                 <div id="data-entry-tab" class="tracking-tab-pane hidden">
                     <!-- 数据录入视图 -->
                     <div id="data-entry-view" class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                <!-- 保留这个隐藏的日期选择器，用于兼容现有JS -->
-                <input type="date" id="entry-date-picker" class="hidden">
+
+                <!-- 日期选择器和统计信息 -->
+                <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-200">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <label class="text-sm font-semibold text-gray-700">数据录入日期:</label>
+                        <input type="date" id="entry-date-picker"
+                               class="border-2 border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all cursor-pointer">
+                        <div class="flex gap-2">
+                            <button id="entry-date-today" class="px-3 py-1 text-xs font-medium rounded-md bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors">今天</button>
+                            <button id="entry-date-yesterday" class="px-3 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">昨天</button>
+                            <button id="entry-date-before-yesterday" class="px-3 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">前天</button>
+                        </div>
+                    </div>
+
+                    <!-- 统计信息 -->
+                    <div id="entry-stats" class="flex items-center gap-4 text-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-600">共</span>
+                            <span id="entry-total-count" class="font-bold text-gray-900">0</span>
+                            <span class="text-gray-600">条视频</span>
+                        </div>
+                        <div class="h-4 w-px bg-gray-300"></div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-600">已录入</span>
+                            <span id="entry-completed-count" class="font-bold text-green-600">0</span>
+                        </div>
+                        <div class="h-4 w-px bg-gray-300"></div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-600">待录入</span>
+                            <span id="entry-pending-count" class="font-bold text-amber-600">0</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="border rounded-lg overflow-hidden shadow-md">
                     <table class="w-full text-sm">
                         <thead class="bg-gray-100 text-left">

@@ -60,6 +60,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const copyTaskIdsBtn = document.getElementById('copy-task-ids-btn');
     const clipboardToast = document.getElementById('clipboard-toast');
 
+    // [Phase 1 新增] 数据录入日期快捷按钮和统计元素
+    const entryDateToday = document.getElementById('entry-date-today');
+    const entryDateYesterday = document.getElementById('entry-date-yesterday');
+    const entryDateBeforeYesterday = document.getElementById('entry-date-before-yesterday');
+    const entryTotalCount = document.getElementById('entry-total-count');
+    const entryCompletedCount = document.getElementById('entry-completed-count');
+    const entryPendingCount = document.getElementById('entry-pending-count');
+
 
     // --- Global State ---
     let currentProjectId = null;
@@ -713,9 +721,33 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
+    /**
+     * [Phase 1 新增] 更新数据录入统计信息
+     */
+    function updateEntryStats() {
+        if (!allVideosForEntry || allVideosForEntry.length === 0) {
+            if (entryTotalCount) entryTotalCount.textContent = '0';
+            if (entryCompletedCount) entryCompletedCount.textContent = '0';
+            if (entryPendingCount) entryPendingCount.textContent = '0';
+            return;
+        }
+
+        const total = allVideosForEntry.length;
+        const completed = allVideosForEntry.filter(video => {
+            // 已录入的判断：有totalViews数据
+            return video.totalViews !== null && video.totalViews !== undefined && String(video.totalViews).trim() !== '';
+        }).length;
+        const pending = total - completed;
+
+        if (entryTotalCount) entryTotalCount.textContent = total;
+        if (entryCompletedCount) entryCompletedCount.textContent = completed;
+        if (entryPendingCount) entryPendingCount.textContent = pending;
+    }
+
     function renderVideoEntryList() {
         if (!allVideosForEntry || allVideosForEntry.length === 0) {
             videoEntryList.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500">此项目暂无可录入数据的视频。</td></tr>`;
+            updateEntryStats(); // [Phase 1] 更新统计
             return;
         }
         const startIndex = (entryCurrentPage - 1) * entryItemsPerPage;
@@ -768,8 +800,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         break;
                 }
             } else if (isOverdue) {
-                // 2. 如果没有任务且超期，显示"待抓取 (>14d)"，允许手动输入作为备用
-                statusHtml = '<span class="text-xs font-semibold text-amber-600" title="视频已超14天，可使用超期抓取功能">待抓取 (>14d)</span>';
+                // 2. 如果没有任务且超期，显示"超14天待抓取"，允许手动输入作为备用
+                statusHtml = '<span class="text-xs font-semibold text-amber-600" title="视频已超14天，可使用超期抓取功能">超14天待抓取</span>';
                 isInputDisabled = false; // [V5.1 方案A] 不禁用输入框，允许手动录入作为备用
             }
             // 3. 如果既未超期也无任务状态，则显示"未开始"，isInputDisabled 保持 false
@@ -800,9 +832,16 @@ document.addEventListener('DOMContentLoaded', function () {
         videoEntryList.querySelectorAll('input.view-input').forEach(input => {
             input.addEventListener('input', e => {
                 const videoToUpdate = allVideosForEntry.find(v => v.collaborationId === e.target.dataset.collaborationId);
-                if (videoToUpdate) videoToUpdate.totalViews = e.target.value;
+                if (videoToUpdate) {
+                    videoToUpdate.totalViews = e.target.value;
+                    // [Phase 1] 输入变化时更新统计信息
+                    updateEntryStats();
+                }
             });
         });
+
+        // [Phase 1] 渲染完成后更新统计信息
+        updateEntryStats();
     }
 
     function renderEntryPagination() {
@@ -946,6 +985,31 @@ document.addEventListener('DOMContentLoaded', function () {
         // [V5.1 新增] 绑定超期视频抓取按钮
         if(autoScrapeOverdueBtn) {
             autoScrapeOverdueBtn.addEventListener('click', handleAutoScrapeOverdue);
+        }
+
+        // [Phase 1 新增] 绑定日期快捷按钮
+        if (entryDateToday) {
+            entryDateToday.addEventListener('click', () => {
+                const today = new Date().toISOString().split('T')[0];
+                entryDatePicker.value = today;
+                loadVideosForEntry();
+            });
+        }
+        if (entryDateYesterday) {
+            entryDateYesterday.addEventListener('click', () => {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                entryDatePicker.value = yesterday.toISOString().split('T')[0];
+                loadVideosForEntry();
+            });
+        }
+        if (entryDateBeforeYesterday) {
+            entryDateBeforeYesterday.addEventListener('click', () => {
+                const beforeYesterday = new Date();
+                beforeYesterday.setDate(beforeYesterday.getDate() - 2);
+                entryDatePicker.value = beforeYesterday.toISOString().split('T')[0];
+                loadVideosForEntry();
+            });
         }
 
         // [V5.0 新增] 绑定新按钮和弹窗事件
