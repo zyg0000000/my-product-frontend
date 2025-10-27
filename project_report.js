@@ -814,33 +814,34 @@ document.addEventListener('DOMContentLoaded', function () {
                 isInputDisabled = false; // [V5.1 方案A] 不禁用输入框，允许手动录入作为备用
             } else if (videoToRender.publishDate) {
                 // 3. 有发布日期且未超期，显示"已发布X天"
-                statusHtml = `<span class="text-xs text-gray-500">已发布${overdueDays}天</span>`;
+                statusHtml = `<span class="text-xs text-gray-600">已发布${overdueDays}天</span>`;
                 isInputDisabled = false;
             } else {
                 // 4. 没有发布日期，显示空白或待发布状态
                 statusHtml = '<span class="text-xs text-gray-400">-</span>';
-                isInputDisabled = false;
+                isInputDisabled = true; // 未发布的视频不允许录入数据
             }
 
             // [V5.1 修改] 显示实际 videoId 值而不是"点击查看"
             const videoLink = videoToRender.videoId
-                ? `<a href="https://www.douyin.com/video/${videoToRender.videoId}" target="_blank" class="text-blue-600 hover:underline font-mono text-xs">${videoToRender.videoId}</a>`
-                : 'N/A';
-            
+                ? `<a href="https://www.douyin.com/video/${videoToRender.videoId}" target="_blank" class="text-blue-600 hover:underline font-mono text-sm">${videoToRender.videoId}</a>`
+                : '<span class="text-gray-400 text-sm">N/A</span>';
+
             return `
                 <tr class="hover:bg-indigo-50 transition-colors">
-                    <td class="px-6 py-4 font-medium text-gray-900">${videoToRender.talentName}</td>
-                    <td class="px-6 py-4 font-mono text-xs text-gray-600">${videoToRender.taskId || 'N/A'}</td>
-                    <td class="px-6 py-4 text-gray-500">${formatDate(videoToRender.publishDate)}</td>
-                    <td class="px-6 py-4 text-center">${videoLink}</td>
-                    <td class="px-6 py-4">
-                        <input type="number" class="view-input w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                               placeholder="请输入当日累计总播放"
+                    <td class="px-4 py-3 font-medium text-gray-900 text-sm" style="width: 15%">${videoToRender.talentName}</td>
+                    <td class="px-4 py-3 font-mono text-sm text-gray-600" style="width: 15%">${videoToRender.taskId || '<span class="text-gray-400">N/A</span>'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600" style="width: 12%">${formatDate(videoToRender.publishDate)}</td>
+                    <td class="px-4 py-3 text-center" style="width: 20%">${videoLink}</td>
+                    <td class="px-4 py-3" style="width: 25%">
+                        <input type="number"
+                               class="${isInputDisabled ? 'view-input w-full border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-400 cursor-not-allowed text-sm' : 'view-input w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm'}"
+                               placeholder="${videoToRender.publishDate ? '请输入当日累计总播放' : '未发布，不可录入'}"
                                value="${videoToRender.totalViews || ''}"
                                data-collaboration-id="${videoToRender.collaborationId}"
-                               ${isInputDisabled ? 'disabled bg-gray-100' : ''}>
+                               ${isInputDisabled ? 'disabled' : ''}>
                     </td>
-                    <td class="px-6 py-4 text-center">${statusHtml}</td>
+                    <td class="px-4 py-3 text-center" style="width: 13%">${statusHtml}</td>
                 </tr>
             `;
         }).join('');
