@@ -374,6 +374,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // 从URL中提取spreadsheetToken (修复bug: 后端期望spreadsheetToken而不是完整URL)
         const spreadsheetToken = (url.match(/\/(?:sheets|spreadsheet)\/([a-zA-Z0-9]+)/) || [])[1];
+        console.log('[DEBUG] 输入的URL:', url);
+        console.log('[DEBUG] 提取的spreadsheetToken:', spreadsheetToken);
+
         if (!spreadsheetToken) {
             resultDiv.innerHTML = `<p class="text-red-600">无法解析飞书表格链接，请检查链接格式。</p>`;
             return;
@@ -382,7 +385,14 @@ document.addEventListener('DOMContentLoaded', function () {
         syncBtn.disabled = true; syncBtn.querySelector('span').classList.add('hidden'); syncBtn.querySelector('.loader').classList.remove('hidden');
         resultDiv.innerHTML = `<p class="text-gray-600">正在从飞书读取并处理数据，请稍候...</p>`;
         try {
-            const payload = { spreadsheetToken: spreadsheetToken, dataType: 'talentPerformance' };
+            // 使用嵌套结构，符合后端 utils.js V11.0+ 的期望格式
+            const payload = {
+                dataType: 'talentPerformance',
+                payload: {
+                    spreadsheetToken: spreadsheetToken
+                }
+            };
+            console.log('[DEBUG] 发送的payload:', JSON.stringify(payload));
             const result = await apiRequest(SYNC_FROM_FEISHU_ENDPOINT, 'POST', payload);
             resultDiv.innerHTML = `<p class="text-green-600">同步完成！成功更新 ${result.data?.updated || 0} 条，失败 ${result.data?.failed || 0} 条。</p>`;
             showToast('同步成功，状态将在2秒后刷新。');
