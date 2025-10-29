@@ -612,7 +612,10 @@ document.addEventListener('DOMContentLoaded', function() {
         customizeColsBtn.addEventListener('click', openColumnsModal);
         closeColumnsModalBtn.addEventListener('click', () => columnsModal.classList.add('hidden'));
         saveColumnsBtn.addEventListener('click', handleSaveColumns);
-        
+
+        // [V2.9 新增] 批量录入弹窗的事件委托
+        batchImportTableBody.addEventListener('change', handleBatchModalChange);
+
         columnsModal.addEventListener('click', (e) => {
             const target = e.target;
             if (target.classList.contains('add-dim-btn')) {
@@ -823,9 +826,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // 初始化价格显示
             updatePriceDisplay(row);
         });
-
-        // 添加事件监听器
-        batchImportTableBody.addEventListener('change', handleBatchModalChange);
 
         batchImportModal.classList.remove('hidden');
     }
