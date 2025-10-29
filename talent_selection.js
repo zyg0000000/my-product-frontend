@@ -1,8 +1,13 @@
 /**
  * @file talent_selection.js
- * @version 2.7-i18n-fix
+ * @version 2.9-price-type-ui-enhancement
  * @description
- * - [核心修复] 修正了`generateConfigurationsFromData`函数，为所有自定义数据维度（特别是新的粉丝画像比例）提供了正确的中文名称映射，解决了在“自定义显示列”弹窗中显示为英文ID的问题。
+ * - [V2.9 新增] 在表格上方添加了"价格类型筛选器"，默认显示60s+档位价格，支持切换到20-60s和1-20s档位。
+ * - [V2.9 重构] 严格按照选定类型显示价格，当该档位不存在时显示"没有"，不再fallback到其他类型。
+ * - [V2.9 重构] 批量录入弹窗UI重新设计：将长下拉菜单改为"视频类型"+"价格时间"两步选择器，选择后自动显示对应价格。
+ * - [V2.9 增强] 批量录入时如果所选类型+时间没有价格，会清晰地显示"没有此档位价格"（红色提示），防止误操作。
+ * --- v2.7 ---
+ * - [核心修复] 修正了`generateConfigurationsFromData`函数，为所有自定义数据维度（特别是新的粉丝画像比例）提供了正确的中文名称映射，解决了在"自定义显示列"弹窗中显示为英文ID的问题。
  * - [代码健壮性] 统一了与`performance.js`页面处理自定义列的逻辑，增强了代码的一致性和可维护性。
  */
 document.addEventListener('DOMContentLoaded', function() {
@@ -48,6 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const snapshotUsedBudget = document.getElementById('snapshot-used-budget');
     const snapshotBudgetRate = document.getElementById('snapshot-budget-rate');
     const snapshotTalentCount = document.getElementById('snapshot-talent-count');
+    const tablePriceTypeFilter = document.getElementById('table-price-type-filter');
 
     // --- State ---
     const ITEMS_PER_PAGE_KEY = 'talentSelectionItemsPerPage';
@@ -56,14 +62,15 @@ document.addEventListener('DOMContentLoaded', function() {
     let allProjects = [];
     let allTalents = [];
     let allConfigurations = { talentTypes: [], talentTiers: [], dimensions: [] };
-    let richTalentData = []; 
+    let richTalentData = [];
     let displayedTalents = [];
-    let selectedCollaborations = []; 
+    let selectedCollaborations = [];
     let currentPage = 1;
     let itemsPerPage = 15;
     let sortConfig = { key: 'cpm60s', direction: 'desc' };
     let dataFilters = [];
     let sortableInstance = null;
+    let selectedPriceType = '60s_plus'; // [V2.9] 表格一口价显示档位
 
     // --- API Request & Utility Functions ---
     async function apiRequest(endpoint, method = 'GET', body = null) {
@@ -102,54 +109,38 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.classList.remove('hidden');
     };
     
-    function getBestPrice(talent, preferredType = '60s_plus') {
+    // [V2.9 重构] 严格按照指定类型显示价格，不fallback到其他类型
+    function getBestPrice(talent, requiredType = '60s_plus') {
         if (!talent.prices || talent.prices.length === 0 || !executionMonthInput.value) {
-            return { value: '未设置', isFallback: false };
+            return { value: '没有', isFallback: false, sortValue: -1 };
         }
         const [execYear, execMonth] = executionMonthInput.value.split('-').map(Number);
 
-        // [V2.8 修改] 优先查找指定类型的当前月份价格
-        let matchingPrices = talent.prices.filter(p => p.year === execYear && p.month === execMonth && p.type === preferredType);
+        // 严格筛选：仅查找指定类型的价格
+        const typedPrices = talent.prices.filter(p => p.type === requiredType);
 
-        if (matchingPrices.length > 0) {
-            const confirmedPrice = matchingPrices.find(p => p.status !== 'provisional');
-            return { value: (confirmedPrice || matchingPrices[0]).price, isFallback: false };
+        if (typedPrices.length === 0) {
+            return { value: '没有', isFallback: false, sortValue: -1 };
         }
 
-        // [V2.8 修改] 如果没有指定类型，查找当前月份的任意类型
-        matchingPrices = talent.prices.filter(p => p.year === execYear && p.month === execMonth);
-        if (matchingPrices.length > 0) {
-            const confirmedPrice = matchingPrices.find(p => p.status !== 'provisional');
-            return { value: (confirmedPrice || matchingPrices[0]).price, isFallback: false };
+        // 优先1: 当前月份 + 指定类型
+        const currentMonthPrices = typedPrices.filter(p => p.year === execYear && p.month === execMonth);
+        if (currentMonthPrices.length > 0) {
+            const confirmedPrice = currentMonthPrices.find(p => p.status !== 'provisional');
+            const selectedPrice = confirmedPrice || currentMonthPrices[0];
+            return { value: selectedPrice.price, isFallback: false, sortValue: selectedPrice.price };
         }
 
-        // Fallback: 查找最近的指定类型价格
-        const sortedPrices = [...talent.prices]
-            .filter(p => p.type === preferredType)
-            .sort((a, b) => (b.year - a.year) || (b.month - a.month));
-
-        if (sortedPrices.length > 0) {
-            const latestPrice = sortedPrices[0];
-            const priceText = `¥ ${latestPrice.price.toLocaleString()} (${latestPrice.month}月)`;
-            return { value: priceText, isFallback: true, sortValue: latestPrice.price };
-        }
-
-        // 如果指定类型没有，返回任意类型的最新价格
-        const anyTypePrices = [...talent.prices].sort((a, b) => (b.year - a.year) || (b.month - a.month));
-        if (anyTypePrices.length > 0) {
-            const latestPrice = anyTypePrices[0];
-            const priceText = `¥ ${latestPrice.price.toLocaleString()} (${latestPrice.month}月)`;
-            return { value: priceText, isFallback: true, sortValue: latestPrice.price };
-        }
-
-        return { value: '未设置', isFallback: false };
+        // 优先2: 最近月份 + 指定类型
+        const sortedTypedPrices = typedPrices.sort((a, b) => (b.year - a.year) || (b.month - a.month));
+        const latestPrice = sortedTypedPrices[0];
+        const priceText = `¥ ${latestPrice.price.toLocaleString()} (${latestPrice.month}月)`;
+        return { value: priceText, isFallback: true, sortValue: latestPrice.price };
     }
 
     function getBestPriceForSort(talent) {
-        const priceInfo = getBestPrice(talent);
-        if (priceInfo.isFallback) return priceInfo.sortValue;
-        const price = priceInfo.value;
-        return typeof price === 'number' ? price : -1;
+        const priceInfo = getBestPrice(talent, selectedPriceType);
+        return priceInfo.sortValue;
     }
     
     function populateProjectSelect() {
@@ -451,8 +442,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         cell.innerHTML = `<input type="checkbox" class="talent-checkbox rounded" data-talent-id="${talent.id}" ${isSelected ? 'checked' : ''}>`;
                         break;
                     case 'price':
-                        const priceInfo = getBestPrice(talent);
-                        if (priceInfo.isFallback) {
+                        const priceInfo = getBestPrice(talent, selectedPriceType);
+                        if (priceInfo.value === '没有') {
+                            cell.textContent = '没有';
+                            cell.classList.add('text-gray-400', 'italic');
+                        } else if (priceInfo.isFallback) {
                             cell.textContent = priceInfo.value;
                             cell.classList.add('text-gray-500', 'italic');
                         } else {
@@ -591,9 +585,13 @@ document.addEventListener('DOMContentLoaded', function() {
         dataFiltersContainer.addEventListener('change', handleDataFilterChange);
         targetProjectSelect.addEventListener('change', () => {
             renderProjectSnapshot(targetProjectSelect.value);
-            applyFiltersAndRender(); 
+            applyFiltersAndRender();
         });
         executionMonthInput.addEventListener('change', applyFiltersAndRender);
+        tablePriceTypeFilter.addEventListener('change', () => {
+            selectedPriceType = tablePriceTypeFilter.value;
+            renderTable();
+        });
         enableScheduleFilter.addEventListener('change', () => {
             const enabled = enableScheduleFilter.checked;
             scheduleFilterInputs.classList.toggle('opacity-50', !enabled);
@@ -635,32 +633,46 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // [V2.9 修改] 更新handleConfirmImport以适配新的批量录入UI
     async function handleConfirmImport() {
         const projectId = targetProjectSelect.value;
         const rows = batchImportTableBody.querySelectorAll('tr');
         const orderType = document.querySelector('input[name="batch-order-type"]:checked').value;
-        
+
         let payloads = [];
         let allValid = true;
+        let errorMessages = [];
+
         for (const row of rows) {
             const tempId = row.dataset.tempId;
             const collab = selectedCollaborations.find(c => c._tempId === tempId);
             if (!collab) continue;
 
-            const priceSelect = row.querySelector('.price-select');
+            const priceData = row.querySelector('.price-data');
             const rebateSelect = row.querySelector('.rebate-select');
             const dateInput = row.querySelector('.planned-release-date-input');
 
-            if (!priceSelect.value || !rebateSelect.value) {
+            if (!priceData.value || !rebateSelect.value) {
                 allValid = false;
-                break;
+                errorMessages.push(`${collab.talent.nickname}: 请选择有效的价格和返点率`);
+                continue;
             }
-            const priceData = JSON.parse(priceSelect.value);
+
+            const priceObj = JSON.parse(priceData.value);
+
+            // [V2.9 新增] 价格类型标签映射
+            const priceTypeLabels = {
+                '60s_plus': '60s+视频',
+                '20_to_60s': '20-60s视频',
+                '1_to_20s': '1-20s视频'
+            };
+            const typeLabel = priceTypeLabels[priceObj.type] || priceObj.type || '未知类型';
+
             payloads.push({
                 projectId,
                 talentId: collab.talent.id,
-                amount: priceData.price,
-                priceInfo: `${priceData.year}年${priceData.month}月 (${priceData.status === 'provisional' ? '暂定价' : '已确认'})`,
+                amount: priceObj.price,
+                priceInfo: `${priceObj.year}年${priceObj.month}月 - ${typeLabel}`,
                 rebate: rebateSelect.value,
                 plannedReleaseDate: dateInput.value || null,
                 status: '待提报工作台',
@@ -669,7 +681,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (!allValid) {
-            showCustomAlert('请为所有合作选择一口价和返点率。');
+            showCustomAlert(errorMessages.join('<br>') || '请为所有合作选择有效的价格和返点率。');
             return;
         }
 
@@ -677,7 +689,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const promises = payloads.map(payload => apiRequest('/collaborations', 'POST', payload));
                 await Promise.all(promises);
-                
+
                 batchImportModal.classList.add('hidden');
                 successModalTitle.textContent = "添加成功";
                 successModalMessage.textContent = `已成功将 ${payloads.length} 次合作添加至项目。`;
@@ -685,7 +697,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 goToProjectBtn.href = `order_list.html?projectId=${projectId}`;
                 selectedCollaborations = [];
                 renderSelectionList();
-                await renderProjectSnapshot(projectId); 
+                await renderProjectSnapshot(projectId);
                 renderTable();
             } catch (error) {
                 console.error("Failed to add collaborators:", error);
@@ -758,6 +770,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // [V2.9 重构] 批量录入弹窗 - 使用类型+时间选择器代替长dropdown
     function openBatchImportModal() {
         const projectId = targetProjectSelect.value;
         const execMonth = executionMonthInput.value;
@@ -766,23 +779,123 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        const [defaultYear, defaultMonth] = execMonth.split('-').map(Number);
+
         batchImportTableBody.innerHTML = '';
         selectedCollaborations.forEach((collab, index) => {
             const row = document.createElement('tr');
             row.dataset.tempId = collab._tempId;
-            
-            const priceOptions = generatePriceOptions(collab.talent);
-            const rebateOptions = generateRebateOptions(collab.talent); 
+            row.dataset.talentId = collab.talent.id;
+
+            const rebateOptions = generateRebateOptions(collab.talent);
+
+            // 生成年月选项
+            const availableTimes = getAvailablePriceTimes(collab.talent);
+            const timeOptions = availableTimes.length > 0
+                ? availableTimes.map(t => `<option value="${t.year}-${t.month}" ${t.year === defaultYear && t.month === defaultMonth ? 'selected' : ''}>${t.year}年${t.month}月</option>`).join('')
+                : '<option value="">无可用时间</option>';
 
             row.innerHTML = `
                 <td class="p-2">${collab.talent.nickname} (合作 ${index + 1})</td>
                 <td class="p-2"><input type="date" class="block w-full text-sm rounded-md border-gray-300 shadow-sm planned-release-date-input"></td>
-                <td class="p-2"><select class="block w-full text-sm rounded-md border-gray-300 shadow-sm price-select">${priceOptions}</select></td>
+                <td class="p-2">
+                    <select class="block w-full text-sm rounded-md border-gray-300 shadow-sm price-type-select">
+                        <option value="60s_plus">60s+视频</option>
+                        <option value="20_to_60s">20-60s视频</option>
+                        <option value="1_to_20s">1-20s视频</option>
+                    </select>
+                </td>
+                <td class="p-2">
+                    <select class="block w-full text-sm rounded-md border-gray-300 shadow-sm price-time-select">
+                        ${timeOptions}
+                    </select>
+                </td>
+                <td class="p-2">
+                    <div class="price-display-container">
+                        <input type="text" class="block w-full text-sm rounded-md border-gray-300 shadow-sm bg-gray-50 price-display" readonly value="请选择类型和时间">
+                        <input type="hidden" class="price-data" value="">
+                    </div>
+                </td>
                 <td class="p-2"><select class="block w-full text-sm rounded-md border-gray-300 shadow-sm rebate-select">${rebateOptions}</select></td>
             `;
             batchImportTableBody.appendChild(row);
+
+            // 初始化价格显示
+            updatePriceDisplay(row);
         });
+
+        // 添加事件监听器
+        batchImportTableBody.addEventListener('change', handleBatchModalChange);
+
         batchImportModal.classList.remove('hidden');
+    }
+
+    // [V2.9 新增] 获取达人的所有可用价格时间（去重）
+    function getAvailablePriceTimes(talent) {
+        if (!talent.prices || talent.prices.length === 0) return [];
+
+        const timesSet = new Set();
+        talent.prices.forEach(p => {
+            timesSet.add(`${p.year}-${p.month}`);
+        });
+
+        return Array.from(timesSet)
+            .map(timeStr => {
+                const [year, month] = timeStr.split('-').map(Number);
+                return { year, month };
+            })
+            .sort((a, b) => (b.year - a.year) || (b.month - a.month));
+    }
+
+    // [V2.9 新增] 处理批量录入弹窗中的选择变化
+    function handleBatchModalChange(e) {
+        if (e.target.classList.contains('price-type-select') || e.target.classList.contains('price-time-select')) {
+            const row = e.target.closest('tr');
+            updatePriceDisplay(row);
+        }
+    }
+
+    // [V2.9 新增] 根据类型+时间选择更新价格显示
+    function updatePriceDisplay(row) {
+        const talentId = row.dataset.talentId;
+        const talent = richTalentData.find(t => t.id === talentId);
+        if (!talent) return;
+
+        const typeSelect = row.querySelector('.price-type-select');
+        const timeSelect = row.querySelector('.price-time-select');
+        const priceDisplay = row.querySelector('.price-display');
+        const priceData = row.querySelector('.price-data');
+
+        const selectedType = typeSelect.value;
+        const selectedTime = timeSelect.value;
+
+        if (!selectedTime) {
+            priceDisplay.value = '无可用价格';
+            priceDisplay.className = 'block w-full text-sm rounded-md border-gray-300 shadow-sm bg-gray-50 text-gray-400';
+            priceData.value = '';
+            return;
+        }
+
+        const [year, month] = selectedTime.split('-').map(Number);
+
+        // 查找匹配的价格
+        const matchingPrices = talent.prices.filter(p =>
+            p.year === year && p.month === month && p.type === selectedType
+        );
+
+        if (matchingPrices.length === 0) {
+            priceDisplay.value = '没有此档位价格';
+            priceDisplay.className = 'block w-full text-sm rounded-md border-red-300 shadow-sm bg-red-50 text-red-600';
+            priceData.value = '';
+        } else {
+            const confirmedPrice = matchingPrices.find(p => p.status !== 'provisional');
+            const selectedPrice = confirmedPrice || matchingPrices[0];
+            const statusLabel = selectedPrice.status === 'provisional' ? '(暂定价)' : '(已确认)';
+
+            priceDisplay.value = `¥ ${selectedPrice.price.toLocaleString()} ${statusLabel}`;
+            priceDisplay.className = 'block w-full text-sm rounded-md border-gray-300 shadow-sm bg-gray-50 text-gray-800 font-medium';
+            priceData.value = JSON.stringify(selectedPrice);
+        }
     }
 
     function handleSort(e) {
