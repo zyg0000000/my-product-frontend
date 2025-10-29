@@ -882,6 +882,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const priceDisplay = row.querySelector('.price-display');
         const priceData = row.querySelector('.price-data');
 
+        console.log('[更新价格显示] DOM元素查询结果:', {
+            typeSelect,
+            timeSelect,
+            priceDisplay,
+            priceData,
+            rowHTML: row.innerHTML
+        });
+
+        if (!priceDisplay) {
+            console.error('[更新价格显示] priceDisplay元素未找到！检查DOM结构');
+            return;
+        }
+
         const selectedType = typeSelect.value;
         const selectedTime = timeSelect.value;
 
