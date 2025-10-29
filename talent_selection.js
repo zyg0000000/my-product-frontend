@@ -1,11 +1,12 @@
 /**
  * @file talent_selection.js
- * @version 2.9-price-type-ui-enhancement
+ * @version 2.9.4-price-type-ui-enhancement
  * @description
  * - [V2.9 新增] 在表格上方添加了"价格类型筛选器"，默认显示60s+档位价格，支持切换到20-60s和1-20s档位。
  * - [V2.9 重构] 严格按照选定类型显示价格，当该档位不存在时显示"没有"，不再fallback到其他类型。
  * - [V2.9 重构] 批量录入弹窗UI重新设计：将长下拉菜单改为"视频类型"+"价格时间"两步选择器，选择后自动显示对应价格。
  * - [V2.9 增强] 批量录入时如果所选类型+时间没有价格，会清晰地显示"没有此档位价格"（红色提示），防止误操作。
+ * - [V2.9.4 修复] 修复批量录入联动失效问题：更新价格显示时保留price-display类名，确保后续querySelector能正确找到元素。
  * --- v2.7 ---
  * - [核心修复] 修正了`generateConfigurationsFromData`函数，为所有自定义数据维度（特别是新的粉丝画像比例）提供了正确的中文名称映射，解决了在"自定义显示列"弹窗中显示为英文ID的问题。
  * - [代码健壮性] 统一了与`performance.js`页面处理自定义列的逻辑，增强了代码的一致性和可维护性。
@@ -849,62 +850,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // [V2.9 新增] 处理批量录入弹窗中的选择变化
     function handleBatchModalChange(e) {
-        console.log('[批量录入联动] 事件触发', {
-            target: e.target,
-            classList: e.target.classList,
-            hasTypeClass: e.target.classList.contains('price-type-select'),
-            hasTimeClass: e.target.classList.contains('price-time-select')
-        });
-
         if (e.target.classList.contains('price-type-select') || e.target.classList.contains('price-time-select')) {
             const row = e.target.closest('tr');
-            console.log('[批量录入联动] 找到行', row);
             updatePriceDisplay(row);
         }
     }
 
     // [V2.9 新增] 根据类型+时间选择更新价格显示
     function updatePriceDisplay(row) {
-        console.log('[更新价格显示] 开始执行', row);
-
         const talentId = row.dataset.talentId;
         const talent = richTalentData.find(t => t.id === talentId);
 
-        console.log('[更新价格显示] talentId:', talentId, 'talent:', talent);
-
-        if (!talent) {
-            console.error('[更新价格显示] 未找到达人数据');
-            return;
-        }
+        if (!talent) return;
 
         const typeSelect = row.querySelector('.price-type-select');
         const timeSelect = row.querySelector('.price-time-select');
         const priceDisplay = row.querySelector('.price-display');
         const priceData = row.querySelector('.price-data');
 
-        console.log('[更新价格显示] DOM元素查询结果:', {
-            typeSelect,
-            timeSelect,
-            priceDisplay,
-            priceData,
-            rowHTML: row.innerHTML
-        });
-
-        if (!priceDisplay) {
-            console.error('[更新价格显示] priceDisplay元素未找到！检查DOM结构');
-            return;
-        }
+        if (!priceDisplay) return;
 
         const selectedType = typeSelect.value;
         const selectedTime = timeSelect.value;
 
-        console.log('[更新价格显示] 选择:', { selectedType, selectedTime });
-
         if (!selectedTime) {
             priceDisplay.value = '无可用价格';
-            priceDisplay.className = 'block w-full text-sm rounded-md border-gray-300 shadow-sm bg-gray-50 text-gray-400';
+            priceDisplay.className = 'price-display block w-full text-sm rounded-md border-gray-300 shadow-sm bg-gray-50 text-gray-400';
             priceData.value = '';
-            console.log('[更新价格显示] 无可用时间');
             return;
         }
 
@@ -915,22 +887,18 @@ document.addEventListener('DOMContentLoaded', function() {
             p.year === year && p.month === month && p.type === selectedType
         );
 
-        console.log('[更新价格显示] 匹配的价格:', matchingPrices);
-
         if (matchingPrices.length === 0) {
             priceDisplay.value = '没有此档位价格';
-            priceDisplay.className = 'block w-full text-sm rounded-md border-red-300 shadow-sm bg-red-50 text-red-600';
+            priceDisplay.className = 'price-display block w-full text-sm rounded-md border-red-300 shadow-sm bg-red-50 text-red-600';
             priceData.value = '';
-            console.log('[更新价格显示] 没有匹配价格');
         } else {
             const confirmedPrice = matchingPrices.find(p => p.status !== 'provisional');
             const selectedPrice = confirmedPrice || matchingPrices[0];
             const statusLabel = selectedPrice.status === 'provisional' ? '(暂定价)' : '(已确认)';
 
             priceDisplay.value = `¥ ${selectedPrice.price.toLocaleString()} ${statusLabel}`;
-            priceDisplay.className = 'block w-full text-sm rounded-md border-gray-300 shadow-sm bg-gray-50 text-gray-800 font-medium';
+            priceDisplay.className = 'price-display block w-full text-sm rounded-md border-gray-300 shadow-sm bg-gray-50 text-gray-800 font-medium';
             priceData.value = JSON.stringify(selectedPrice);
-            console.log('[更新价格显示] 成功更新价格:', selectedPrice);
         }
     }
 
