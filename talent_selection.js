@@ -849,17 +849,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // [V2.9 新增] 处理批量录入弹窗中的选择变化
     function handleBatchModalChange(e) {
+        console.log('[批量录入联动] 事件触发', {
+            target: e.target,
+            classList: e.target.classList,
+            hasTypeClass: e.target.classList.contains('price-type-select'),
+            hasTimeClass: e.target.classList.contains('price-time-select')
+        });
+
         if (e.target.classList.contains('price-type-select') || e.target.classList.contains('price-time-select')) {
             const row = e.target.closest('tr');
+            console.log('[批量录入联动] 找到行', row);
             updatePriceDisplay(row);
         }
     }
 
     // [V2.9 新增] 根据类型+时间选择更新价格显示
     function updatePriceDisplay(row) {
+        console.log('[更新价格显示] 开始执行', row);
+
         const talentId = row.dataset.talentId;
         const talent = richTalentData.find(t => t.id === talentId);
-        if (!talent) return;
+
+        console.log('[更新价格显示] talentId:', talentId, 'talent:', talent);
+
+        if (!talent) {
+            console.error('[更新价格显示] 未找到达人数据');
+            return;
+        }
 
         const typeSelect = row.querySelector('.price-type-select');
         const timeSelect = row.querySelector('.price-time-select');
@@ -869,10 +885,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedType = typeSelect.value;
         const selectedTime = timeSelect.value;
 
+        console.log('[更新价格显示] 选择:', { selectedType, selectedTime });
+
         if (!selectedTime) {
             priceDisplay.value = '无可用价格';
             priceDisplay.className = 'block w-full text-sm rounded-md border-gray-300 shadow-sm bg-gray-50 text-gray-400';
             priceData.value = '';
+            console.log('[更新价格显示] 无可用时间');
             return;
         }
 
@@ -883,10 +902,13 @@ document.addEventListener('DOMContentLoaded', function() {
             p.year === year && p.month === month && p.type === selectedType
         );
 
+        console.log('[更新价格显示] 匹配的价格:', matchingPrices);
+
         if (matchingPrices.length === 0) {
             priceDisplay.value = '没有此档位价格';
             priceDisplay.className = 'block w-full text-sm rounded-md border-red-300 shadow-sm bg-red-50 text-red-600';
             priceData.value = '';
+            console.log('[更新价格显示] 没有匹配价格');
         } else {
             const confirmedPrice = matchingPrices.find(p => p.status !== 'provisional');
             const selectedPrice = confirmedPrice || matchingPrices[0];
@@ -895,6 +917,7 @@ document.addEventListener('DOMContentLoaded', function() {
             priceDisplay.value = `¥ ${selectedPrice.price.toLocaleString()} ${statusLabel}`;
             priceDisplay.className = 'block w-full text-sm rounded-md border-gray-300 shadow-sm bg-gray-50 text-gray-800 font-medium';
             priceData.value = JSON.stringify(selectedPrice);
+            console.log('[更新价格显示] 成功更新价格:', selectedPrice);
         }
     }
 
