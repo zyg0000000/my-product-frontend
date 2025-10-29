@@ -159,8 +159,25 @@ document.addEventListener('DOMContentLoaded', function () {
         selectedTalentDisplay.classList.remove('hidden');
 
         priceSelect.innerHTML = '<option value="">-- 请选择 --</option>';
-        (selectedTalent.prices || []).forEach(p => {
-            const priceDescription = `${p.year}年${p.month}月`;
+
+        // [V2.1 新增] 价格类型标签映射
+        const priceTypeLabels = {
+            '60s_plus': '60s+视频',
+            '20_to_60s': '20-60s视频',
+            '1_to_20s': '1-20s视频'
+        };
+
+        // [V2.1 修改] 按年月倒序，同年月按type排序
+        const sortedPrices = [...(selectedTalent.prices || [])].sort((a, b) => {
+            if (b.year !== a.year) return b.year - a.year;
+            if (b.month !== a.month) return b.month - a.month;
+            const typeOrder = { '60s_plus': 0, '20_to_60s': 1, '1_to_20s': 2 };
+            return (typeOrder[a.type] ?? 99) - (typeOrder[b.type] ?? 99);
+        });
+
+        sortedPrices.forEach(p => {
+            const typeLabel = priceTypeLabels[p.type] || p.type || '未知类型';
+            const priceDescription = `${p.year}年${p.month}月 - ${typeLabel}`;
             const option = document.createElement('option');
             option.value = priceDescription;
             option.textContent = `¥ ${Number(p.price).toLocaleString()} (${priceDescription})`;

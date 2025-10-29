@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const priceForm = document.getElementById('price-form');
     const priceYearSelect = document.getElementById('price-year');
     const priceMonthSelect = document.getElementById('price-month');
+    const priceTypeSelect = document.getElementById('price-type'); // [V6.1 新增]
     const newPriceAmountInput = document.getElementById('new-price-amount');
     const priceStatusSelect = document.getElementById('price-status');
     const toast = document.getElementById('toast-notification');
@@ -402,13 +403,28 @@ document.addEventListener('DOMContentLoaded', function() {
         priceList.innerHTML = '';
         const talent = currentTalentData.find(t => t.id === currentTalentIdForPrice);
         if (talent && talent.prices && talent.prices.length > 0) {
-            const sortedPrices = [...talent.prices].sort((a,b) => b.year - a.year || b.month - a.month);
+            // [V6.1 修改] 支持价格type显示，按year>month>type排序
+            const sortedPrices = [...talent.prices].sort((a,b) => {
+                if (b.year !== a.year) return b.year - a.year;
+                if (b.month !== a.month) return b.month - a.month;
+                // type排序：60s_plus > 20_to_60s > 1_to_20s
+                const typeOrder = { '60s_plus': 0, '20_to_60s': 1, '1_to_20s': 2 };
+                return (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
+            });
+
+            const priceTypeLabels = {
+                '60s_plus': '60s+视频',
+                '20_to_60s': '20-60s视频',
+                '1_to_20s': '1-20s视频'
+            };
+
             sortedPrices.forEach(price => {
                 const statusLabel = price.status === 'provisional' ? '(暂定价)' : '(已确认)';
                 const statusColor = price.status === 'provisional' ? 'text-yellow-600' : 'text-green-600';
+                const typeLabel = priceTypeLabels[price.type] || price.type || '未知类型';
                 const li = document.createElement('li');
                 li.className = 'flex justify-between items-center p-2 bg-gray-100 rounded-md text-sm';
-                li.innerHTML = `<div><span>${price.year}年 ${price.month}月: <span class="font-medium">¥ ${price.price.toLocaleString()}</span></span><span class="text-xs ml-2 ${statusColor}">${statusLabel}</span></div><button data-year="${price.year}" data-month="${price.month}" class="delete-price-btn text-red-500 hover:text-red-700 text-xs">删除</button>`;
+                li.innerHTML = `<div><span>${price.year}年 ${price.month}月 - <span class="text-blue-600 font-semibold">${typeLabel}</span>: <span class="font-medium">¥ ${price.price.toLocaleString()}</span></span><span class="text-xs ml-2 ${statusColor}">${statusLabel}</span></div><button data-year="${price.year}" data-month="${price.month}" data-type="${price.type}" class="delete-price-btn text-red-500 hover:text-red-700 text-xs">删除</button>`;
                 priceList.appendChild(li);
             });
         } else {
@@ -569,16 +585,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 const isSelected = selectedTalents.has(talent.id);
                 const currentMonth = new Date().getMonth() + 1;
                 const currentYear = new Date().getFullYear();
-                
-                let currentPriceConfirmed = (talent.prices || []).find(p => p.year === currentYear && p.month === currentMonth && p.status === 'confirmed');
+
+                // [V6.1 新增] 支持多价格类型显示
+                const priceTypes = [
+                    { key: '60s_plus', label: '60s+' },
+                    { key: '20_to_60s', label: '20-60s' },
+                    { key: '1_to_20s', label: '1-20s' }
+                ];
+
                 let priceDisplay = 'N/A';
-                if (currentPriceConfirmed) {
-                    priceDisplay = `¥ ${currentPriceConfirmed.price.toLocaleString()}`;
-                } else {
-                    let currentPriceProvisional = (talent.prices || []).find(p => p.year === currentYear && p.month === currentMonth && p.status === 'provisional');
-                    if (currentPriceProvisional) {
-                        priceDisplay = `<span class="text-yellow-600">¥ ${currentPriceProvisional.price.toLocaleString()} (暂定价)</span>`;
-                    }
+                const currentPrices = (talent.prices || []).filter(p => p.year === currentYear && p.month === currentMonth);
+
+                if (currentPrices.length > 0) {
+                    const priceTexts = priceTypes.map(type => {
+                        const price = currentPrices.find(p => p.type === type.key);
+                        if (!price) return `${type.label}: N/A`;
+
+                        const priceText = `¥ ${price.price.toLocaleString()}`;
+                        if (price.status === 'provisional') {
+                            return `${type.label}: <span class="text-yellow-600">${priceText}*</span>`;
+                        }
+                        return `${type.label}: ${priceText}`;
+                    });
+                    priceDisplay = priceTexts.join(' | ');
                 }
 
                 let rebatesHtml = 'N/A';
@@ -1310,21 +1339,32 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const year = parseInt(priceYearSelect.value);
         const month = parseInt(priceMonthSelect.value);
+        const type = priceTypeSelect.value; // [V6.1 新增]
         const amount = parseFloat(newPriceAmountInput.value);
         const status = priceStatusSelect.value;
+
         if (isNaN(amount) || amount < 0) {
             showToast('请输入有效的金额。', true);
             return;
         }
+        if (!type) {
+            showToast('请选择视频类型。', true);
+            return;
+        }
+
         const talent = currentTalentData.find(t => t.id === currentTalentIdForPrice);
         if (!talent) return;
-        const newPrices = (talent.prices || []).filter(p => !(p.year === year && p.month === month));
+
+        // [V6.1 修改] 过滤时使用 year + month + type 作为唯一键
+        const newPrices = (talent.prices || []).filter(p => !(p.year === year && p.month === month && p.type === type));
         newPrices.push({
             year,
             month,
+            type,     // [V6.1 新增]
             price: amount,
             status
         });
+
         try {
             await apiRequest(API_PATHS.updateSingle, 'PUT', {
                 id: talent.id,
@@ -1346,9 +1386,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!e.target.classList.contains('delete-price-btn')) return;
         const year = parseInt(e.target.dataset.year);
         const month = parseInt(e.target.dataset.month);
+        const type = e.target.dataset.type; // [V6.1 新增]
+
         const talent = currentTalentData.find(t => t.id === currentTalentIdForPrice);
         if (!talent) return;
-        const newPrices = talent.prices.filter(p => !(p.year === year && p.month === month));
+
+        // [V6.1 修改] 删除时使用 year + month + type 作为唯一键
+        const newPrices = talent.prices.filter(p => !(p.year === year && p.month === month && p.type === type));
+
         try {
             await apiRequest(API_PATHS.updateSingle, 'PUT', {
                 id: talent.id,

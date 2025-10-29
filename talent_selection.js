@@ -102,22 +102,46 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.classList.remove('hidden');
     };
     
-    function getBestPrice(talent) {
+    function getBestPrice(talent, preferredType = '60s_plus') {
         if (!talent.prices || talent.prices.length === 0 || !executionMonthInput.value) {
             return { value: '未设置', isFallback: false };
         }
         const [execYear, execMonth] = executionMonthInput.value.split('-').map(Number);
-        const matchingPrices = talent.prices.filter(p => p.year === execYear && p.month === execMonth);
+
+        // [V2.8 修改] 优先查找指定类型的当前月份价格
+        let matchingPrices = talent.prices.filter(p => p.year === execYear && p.month === execMonth && p.type === preferredType);
+
         if (matchingPrices.length > 0) {
             const confirmedPrice = matchingPrices.find(p => p.status !== 'provisional');
             return { value: (confirmedPrice || matchingPrices[0]).price, isFallback: false };
         }
-        const sortedPrices = [...talent.prices].sort((a, b) => (b.year - a.year) || (b.month - a.month));
+
+        // [V2.8 修改] 如果没有指定类型，查找当前月份的任意类型
+        matchingPrices = talent.prices.filter(p => p.year === execYear && p.month === execMonth);
+        if (matchingPrices.length > 0) {
+            const confirmedPrice = matchingPrices.find(p => p.status !== 'provisional');
+            return { value: (confirmedPrice || matchingPrices[0]).price, isFallback: false };
+        }
+
+        // Fallback: 查找最近的指定类型价格
+        const sortedPrices = [...talent.prices]
+            .filter(p => p.type === preferredType)
+            .sort((a, b) => (b.year - a.year) || (b.month - a.month));
+
         if (sortedPrices.length > 0) {
             const latestPrice = sortedPrices[0];
             const priceText = `¥ ${latestPrice.price.toLocaleString()} (${latestPrice.month}月)`;
             return { value: priceText, isFallback: true, sortValue: latestPrice.price };
         }
+
+        // 如果指定类型没有，返回任意类型的最新价格
+        const anyTypePrices = [...talent.prices].sort((a, b) => (b.year - a.year) || (b.month - a.month));
+        if (anyTypePrices.length > 0) {
+            const latestPrice = anyTypePrices[0];
+            const priceText = `¥ ${latestPrice.price.toLocaleString()} (${latestPrice.month}月)`;
+            return { value: priceText, isFallback: true, sortValue: latestPrice.price };
+        }
+
         return { value: '未设置', isFallback: false };
     }
 
@@ -968,19 +992,40 @@ document.addEventListener('DOMContentLoaded', function() {
     function generatePriceOptions(talent) {
         let options = '<option value="">-- 请选择 --</option>';
         if (!talent.prices || talent.prices.length === 0) return options;
+
         const [execYear, execMonth] = executionMonthInput.value.split('-').map(Number);
+
+        // [V2.8 新增] 价格类型标签映射
+        const priceTypeLabels = {
+            '60s_plus': '60s+视频',
+            '20_to_60s': '20-60s视频',
+            '1_to_20s': '1-20s视频'
+        };
+
+        // [V2.8 修改] 排序时考虑type字段
         const sortedPrices = [...talent.prices].sort((a, b) => {
             const aIsMatch = a.year === execYear && a.month === execMonth;
             const bIsMatch = b.year === execYear && b.month === execMonth;
             if (aIsMatch !== bIsMatch) return aIsMatch ? -1 : 1;
+
+            // type排序：60s_plus > 20_to_60s > 1_to_20s
+            if (aIsMatch && bIsMatch) {
+                const typeOrder = { '60s_plus': 0, '20_to_60s': 1, '1_to_20s': 2 };
+                const aTypeOrder = typeOrder[a.type] ?? 99;
+                const bTypeOrder = typeOrder[b.type] ?? 99;
+                if (aTypeOrder !== bTypeOrder) return aTypeOrder - bTypeOrder;
+            }
+
             if (a.status !== b.status) return a.status === 'provisional' ? 1 : -1;
             return (b.year - a.year) || (b.month - a.month);
         });
+
         return options + sortedPrices.map(p => {
             const isExecMonthMatch = p.year === execYear && p.month === execMonth;
             const prefix = isExecMonthMatch ? '⭐️ ' : '';
             const statusLabel = p.status === 'provisional' ? '(暂定价)' : '(已确认)';
-            const optionText = `${prefix}${p.year}年${p.month}月: ¥ ${p.price.toLocaleString()} ${statusLabel}`;
+            const typeLabel = priceTypeLabels[p.type] || p.type || '未知类型';
+            const optionText = `${prefix}${p.year}年${p.month}月 - ${typeLabel}: ¥ ${p.price.toLocaleString()} ${statusLabel}`;
             const optionValue = JSON.stringify(p);
             return `<option value='${optionValue}'>${optionText}</option>`;
         }).join('');
