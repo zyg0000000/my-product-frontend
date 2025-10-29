@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const rebateList = document.getElementById('rebate-list');
     const rebateForm = document.getElementById('rebate-form');
     const newRebateRateInput = document.getElementById('new-rebate-rate');
+    const rebateTrendChartCanvas = document.getElementById('rebate-trend-chart'); // [V6.2.1 新增]
     const priceModal = document.getElementById('price-modal');
     const closePriceModalBtn = document.getElementById('close-price-modal-btn');
     const priceTalentName = document.getElementById('price-talent-name');
@@ -138,6 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const DEFAULT_TIERS = ['头部达人', '重点达人', '常规达人-机构', '常规达人-野生'];
     let totalFilteredItems = 0;
     let priceTrendChart = null; // [V6.2 新增] 价格趋势图表实例
+    let rebateTrendChart = null; // [V6.2.1 新增] 返点率趋势图表实例
 
     let queryState = {
         page: 1,
@@ -361,6 +363,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (talent && rebateTalentName) {
             rebateTalentName.textContent = talent.nickname;
             renderRebateList();
+            renderRebateTrendChart(talent); // [V6.2.1 新增]
             if (rebateModal) rebateModal.classList.remove('hidden');
         }
     }
@@ -372,13 +375,94 @@ document.addEventListener('DOMContentLoaded', function() {
         if (talent && talent.rebates && talent.rebates.length > 0) {
             talent.rebates.forEach(rebate => {
                 const li = document.createElement('li');
-                li.className = 'flex justify-between items-center p-2 bg-gray-100 rounded-md text-sm';
-                li.innerHTML = `<span>${rebate.rate}%</span><button data-rate="${rebate.rate}" class="delete-rebate-btn text-red-500 hover:text-red-700 text-xs">删除</button>`;
+                li.className = 'flex justify-between items-center p-2 bg-white border rounded-md text-sm hover:shadow-sm transition-shadow';
+                li.innerHTML = `<span class="font-semibold text-gray-900">${rebate.rate}%</span><button data-rate="${rebate.rate}" class="delete-rebate-btn text-red-500 hover:text-red-700 text-xs font-medium">删除</button>`;
                 rebateList.appendChild(li);
             });
         } else {
-            rebateList.innerHTML = '<li class="text-sm text-gray-500 text-center">暂无返点率</li>';
+            rebateList.innerHTML = '<li class="text-sm text-gray-500 text-center py-4">暂无返点率</li>';
         }
+    }
+
+    // [V6.2.1 新增] 渲染返点率趋势图
+    function renderRebateTrendChart(talent) {
+        if (!talent || !rebateTrendChartCanvas) return;
+
+        // 返点率没有时间维度，按照添加顺序展示
+        const rebates = talent.rebates || [];
+
+        // 如果没有返点率数据，显示空图表
+        if (rebates.length === 0) {
+            if (rebateTrendChart) {
+                rebateTrendChart.destroy();
+                rebateTrendChart = null;
+            }
+            const ctx = rebateTrendChartCanvas.getContext('2d');
+            ctx.clearRect(0, 0, rebateTrendChartCanvas.width, rebateTrendChartCanvas.height);
+            ctx.font = '14px Inter';
+            ctx.fillStyle = '#9ca3af';
+            ctx.textAlign = 'center';
+            ctx.fillText('暂无返点率数据', rebateTrendChartCanvas.width / 2, rebateTrendChartCanvas.height / 2);
+            return;
+        }
+
+        // 销毁旧图表
+        if (rebateTrendChart) {
+            rebateTrendChart.destroy();
+        }
+
+        // 创建新图表
+        const ctx = rebateTrendChartCanvas.getContext('2d');
+        const labels = rebates.map((_, index) => `返点${index + 1}`);
+        const data = rebates.map(r => r.rate);
+
+        rebateTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '返点率 (%)',
+                    data: data,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `返点率: ${context.parsed.y}%`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
 
     function openPriceModal(talentId) {
@@ -445,13 +529,20 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // [V6.2.1 优化] 判断是否需要显示年月信息
+        const showYearMonth = !yearFilter || !monthFilter;
+
         sortedPrices.forEach(price => {
             const statusLabel = price.status === 'provisional' ? '(暂定价)' : '(已确认)';
             const statusColor = price.status === 'provisional' ? 'text-yellow-600' : 'text-green-600';
             const typeLabel = priceTypeLabels[price.type] || price.type || '未知类型';
+
+            // 根据筛选状态决定是否显示年月
+            const dateDisplay = showYearMonth ? `<span class="text-gray-700">${price.year}年 ${price.month}月</span> - ` : '';
+
             const li = document.createElement('li');
             li.className = 'flex justify-between items-center p-2 bg-white border rounded-md text-sm hover:shadow-sm transition-shadow';
-            li.innerHTML = `<div><span class="text-gray-700">${price.year}年 ${price.month}月</span> - <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">${typeLabel}</span>: <span class="font-semibold text-gray-900">¥ ${price.price.toLocaleString()}</span><span class="text-xs ml-2 ${statusColor}">${statusLabel}</span></div><button data-year="${price.year}" data-month="${price.month}" data-type="${price.type}" class="delete-price-btn text-red-500 hover:text-red-700 text-xs font-medium">删除</button>`;
+            li.innerHTML = `<div>${dateDisplay}<span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">${typeLabel}</span>: <span class="font-semibold text-gray-900">¥ ${price.price.toLocaleString()}</span><span class="text-xs ml-2 ${statusColor}">${statusLabel}</span></div><button data-year="${price.year}" data-month="${price.month}" data-type="${price.type}" class="delete-price-btn text-red-500 hover:text-red-700 text-xs font-medium">删除</button>`;
             priceList.appendChild(li);
         });
     }
@@ -467,6 +558,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // 填充年份筛选器
         priceListYearFilter.innerHTML = '<option value="">全部年份</option>' + years.map(y => `<option value="${y}">${y}年</option>`).join('');
         priceListMonthFilter.innerHTML = '<option value="">全部月份</option>' + months.map(m => `<option value="${m}">${m}月</option>`).join('');
+
+        // [V6.2.1 优化] 默认选中当前年月
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth() + 1;
+        if (years.includes(currentYear)) {
+            priceListYearFilter.value = currentYear;
+        }
+        if (months.includes(currentMonth)) {
+            priceListMonthFilter.value = currentMonth;
+        }
 
         // 填充图表年份筛选器
         priceChartYearFilter.innerHTML = years.map(y => `<option value="${y}">${y}年</option>`).join('');
@@ -701,26 +802,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // [V6.1 新增] 支持多价格类型显示
                 const priceTypes = [
-                    { key: '60s_plus', label: '60s+' },
-                    { key: '20_to_60s', label: '20-60s' },
-                    { key: '1_to_20s', label: '1-20s' }
+                    { key: '60s_plus', label: '60s+', bgColor: '#dbeafe', textColor: '#1e40af' },      // 蓝色系
+                    { key: '20_to_60s', label: '20-60s', bgColor: '#d1fae5', textColor: '#065f46' },   // 绿色系
+                    { key: '1_to_20s', label: '1-20s', bgColor: '#e9d5ff', textColor: '#6b21a8' }      // 紫色系
                 ];
 
                 let priceDisplay = '<div class="text-gray-400 text-sm">暂无价格</div>';
                 const currentPrices = (talent.prices || []).filter(p => p.year === currentYear && p.month === currentMonth);
 
                 if (currentPrices.length > 0 || true) {
-                    // [V6.2 优化] 使用胶囊标签，每个价格一行
+                    // [V6.2 优化] 使用类似talentType的标签样式，固定配色
                     const priceElements = priceTypes.map(type => {
                         const price = currentPrices.find(p => p.type === type.key);
                         if (!price) {
-                            return `<div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-gray-200 text-gray-600 rounded-full text-xs font-medium whitespace-nowrap">${type.label}</span><span class="text-gray-400 text-sm">N/A</span></div>`;
+                            return `<div class="flex items-center gap-2"><span class="talent-type-tag" style="background-color:#e5e7eb; color:#6b7280;">${type.label}</span><span class="text-gray-400 text-sm">N/A</span></div>`;
                         }
                         const priceText = `¥ ${price.price.toLocaleString()}`;
-                        const bgColor = price.status === 'provisional' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700';
-                        const textColor = price.status === 'provisional' ? 'text-yellow-600' : 'text-gray-900';
+                        // 暂定价使用黄色系
+                        const bgColor = price.status === 'provisional' ? '#fef3c7' : type.bgColor;
+                        const textColor = price.status === 'provisional' ? '#92400e' : type.textColor;
                         const statusMark = price.status === 'provisional' ? ' *' : '';
-                        return `<div class="flex items-center gap-2"><span class="px-2 py-0.5 ${bgColor} rounded-full text-xs font-medium whitespace-nowrap">${type.label}</span><span class="${textColor} text-sm font-medium">${priceText}${statusMark}</span></div>`;
+                        return `<div class="flex items-center gap-2"><span class="talent-type-tag" style="background-color:${bgColor}; color:${textColor};">${type.label}</span><span class="text-gray-900 text-sm font-medium">${priceText}${statusMark}</span></div>`;
                     });
                     priceDisplay = priceElements.join('');
                 }
@@ -1090,7 +1192,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (typeof confirmCallback === 'function') confirmCallback();
         });
 
-        if (closeRebateModalBtn) closeRebateModalBtn.addEventListener('click', () => rebateModal.classList.add('hidden'));
+        if (closeRebateModalBtn) closeRebateModalBtn.addEventListener('click', () => {
+            rebateModal.classList.add('hidden');
+            if (rebateTrendChart) rebateTrendChart.destroy(); // [V6.2.1 新增] 清理图表
+        });
         if (rebateForm) rebateForm.addEventListener('submit', handleRebateSubmit);
         if (rebateList) rebateList.addEventListener('click', handleDeleteRebate);
 
