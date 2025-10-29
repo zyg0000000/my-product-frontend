@@ -388,7 +388,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderRebateTrendChart(talent) {
         if (!talent || !rebateTrendChartCanvas) return;
 
-        // 返点率没有时间维度，按照添加顺序展示
+        // 返点率按值从低到高排序展示
         const rebates = talent.rebates || [];
 
         // 如果没有返点率数据，显示空图表
@@ -411,10 +411,13 @@ document.addEventListener('DOMContentLoaded', function() {
             rebateTrendChart.destroy();
         }
 
+        // [V6.2.1 修改] 按返点率值从低到高排序
+        const sortedRebates = [...rebates].sort((a, b) => a.rate - b.rate);
+
         // 创建新图表
         const ctx = rebateTrendChartCanvas.getContext('2d');
-        const labels = rebates.map((_, index) => `返点${index + 1}`);
-        const data = rebates.map(r => r.rate);
+        const labels = sortedRebates.map((_, index) => `${index + 1}`);
+        const data = sortedRebates.map(r => r.rate);
 
         rebateTrendChart = new Chart(ctx, {
             type: 'line',
