@@ -182,14 +182,14 @@ async function handleTalentImport(db, spreadsheetToken) {
             '50岁以上': 'ratio_50_plus',
 
             // 人群包粉丝比例
-            '小镇中老年': 'ratio_town_middle_aged',
-            '资深中产': 'ratio_senior_middle_class',
-            'Z世代': 'ratio_z_era',
-            '都市银发': 'ratio_urban_silver',
-            '小镇青年': 'ratio_town_youth',
-            '精致妈妈': 'ratio_exquisite_mom',
-            '新锐白领': 'ratio_new_white_collar',
-            '都市蓝领': 'ratio_urban_blue_collar',
+            '小镇中老年粉丝比例': 'ratio_town_middle_aged',
+            '资深中产粉丝比例': 'ratio_senior_middle_class',
+            'Z时代粉丝比例': 'ratio_z_era',
+            '都市银发粉丝比例': 'ratio_urban_silver',
+            '小镇青年粉丝比例': 'ratio_town_youth',
+            '精致妈妈粉丝比例': 'ratio_exquisite_mom',
+            '新锐白领粉丝比例': 'ratio_new_white_collar',
+            '都市蓝领粉丝比例': 'ratio_urban_blue_collar',
 
             // 近期表现数据
             '近7日新增粉丝数': 'recentFollowerGrowth',
@@ -222,14 +222,14 @@ async function handleTalentImport(db, spreadsheetToken) {
             '50岁以上',
 
             // 人群包粉丝比例
-            '小镇中老年',
-            '资深中产',
-            'Z世代',
-            '都市银发',
-            '小镇青年',
-            '精致妈妈',
-            '新锐白领',
-            '都市蓝领',
+            '小镇中老年粉丝比例',
+            '资深中产粉丝比例',
+            'Z时代粉丝比例',
+            '都市银发粉丝比例',
+            '小镇青年粉丝比例',
+            '精致妈妈粉丝比例',
+            '新锐白领粉丝比例',
+            '都市蓝领粉丝比例',
 
             // 近期互动率
             '近7日互动率',
