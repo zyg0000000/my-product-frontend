@@ -235,6 +235,398 @@ my-product-frontend/
 
 ---
 
+## 🎯 多价格类型系统 (v2.9系列)
+
+> **功能分支**: `claude/optimize-influencer-sync-011CUb4bk9SzP5Pwosz5ozuf`
+> **实现时间**: 2025-10
+> **状态**: Board 1-3 已完成 ✅ | Board 4 待开始 🔜
+
+### 📋 背景
+
+原系统仅支持单一价格类型（60s+视频），无法满足业务需求。为支持多种视频时长的差异化定价，实施了**多价格类型系统**改造。
+
+### 🎯 业务目标
+
+支持达人提供3种视频时长的独立报价：
+- **60s+视频** (`60s_plus`) - 长视频，价格最高
+- **20-60s视频** (`20_to_60s`) - 中等视频
+- **1-20s视频** (`1_to_20s`) - 短视频，价格最低
+
+### 📊 实施路线图
+
+| Board | 阶段 | 内容 | 状态 | 负责模块 |
+|-------|------|------|------|----------|
+| **Board 1** | 数据库设计 | MongoDB Schema 扩展 | ✅ 完成 | 后端数据层 |
+| **Board 2** | 飞书同步 | 飞书多维表格同步逻辑 | ✅ 完成 | 云函数 utils.js |
+| **Board 3** | 前端优化 | 3个核心页面UI/UX改造 | ✅ 完成 | 前端页面 |
+| **Board 4** | 云函数适配 | API接口兼容性适配 | 🔜 待开始 | 云函数接口 |
+
+---
+
+### ✅ Board 1: 数据库结构设计（已完成）
+
+#### MongoDB Schema 扩展
+
+**talents.prices 数组结构**：
+```javascript
+{
+  year: 2025,           // 价格年份
+  month: 11,            // 价格月份
+  type: "60s_plus",     // 新增：价格类型
+  price: 110000,        // 价格金额
+  status: "confirmed"   // 价格状态: confirmed | provisional
+}
+```
+
+**关键字段**：
+- `type`: 价格类型标识符
+  - `60s_plus` - 60s+视频
+  - `20_to_60s` - 20-60s视频
+  - `1_to_20s` - 1-20s视频
+
+**数据迁移**：
+- ✅ 为所有现有价格记录添加 `type: "60s_plus"` 默认值
+- ✅ 去重处理：相同 year + month + type 的记录
+
+---
+
+### ✅ Board 2: 飞书同步适配（已完成）
+
+#### 云函数修改
+
+**文件**: `my-cloud-functions/utils.js`
+**版本**: v11.4.2
+
+**核心改造**：
+```javascript
+// 解析3种价格类型
+const priceTypes = [
+  { fieldPrefix: '抖音60+s短视频报价', type: '60s_plus' },
+  { fieldPrefix: '抖音20-60s短视频报价', type: '20_to_60s' },
+  { fieldPrefix: '抖音1-20s短视频报价', type: '1_to_20s' }
+];
+
+priceTypes.forEach(({ fieldPrefix, type }) => {
+  for (let month = 1; month <= 12; month++) {
+    const fieldName = `${fieldPrefix}-M${month}`;
+    const priceValue = feishuRecord[fieldName];
+    if (priceValue) {
+      prices.push({
+        year: financialYear,
+        month: month,
+        type: type,  // 新增类型标识
+        price: parseInt(priceValue),
+        status: 'confirmed'
+      });
+    }
+  }
+});
+```
+
+**飞书字段映射**：
+- `抖音60+s短视频报价-M1` → `{type: "60s_plus", month: 1}`
+- `抖音20-60s短视频报价-M1` → `{type: "20_to_60s", month: 1}`
+- `抖音1-20s短视频报价-M1` → `{type: "1_to_20s", month: 1}`
+
+---
+
+### ✅ Board 3: 前端页面优化（已完成）
+
+#### 优化的页面清单
+
+| # | 页面 | 文件 | 版本 | 优化内容 |
+|---|------|------|------|----------|
+| 1 | **达人池** | `talent_pool.js/html` | v2.9 | 价格趋势图、胶囊标签、类型筛选 |
+| 2 | **选人页面** | `talent_selection.js/html` | v2.9.4 | 表格类型筛选、批量录入联动 |
+| 3 | **录入表单** | `order_form.js/html` | v2.2 | 三步式价格选择器 |
+
+---
+
+#### 页面 1: talent_pool（达人池）
+
+**提交历史**：
+- `2869268` - 基础多价格类型支持
+- `1805f80` - 价格趋势图 + 筛选器
+- `ad2b636` - UI/UX深度优化（颜色、默认值）
+- `0a1923b` - 返点图排序修复
+
+**核心功能**：
+
+1. **表格价格显示** (talent_pool.js:703-760)
+```javascript
+// 3行胶囊标签，每种类型一行
+60s+:     ¥ 110,000  [蓝色胶囊]
+20-60s:   ¥ 100,000  [绿色胶囊]
+1-20s:    ¥ 90,000   [紫色胶囊]
+```
+
+2. **价格弹窗** (talent_pool.html:228-279)
+- 左侧：价格列表 + 年月筛选
+- 右侧：价格趋势图（Chart.js）
+- 支持按类型切换趋势图
+
+3. **高级筛选** (talent_pool.html:124-129)
+- 新增"价格类型"下拉框
+- 筛选指定类型的价格区间
+
+4. **颜色方案**
+```javascript
+60s_plus:   蓝色  #dbeafe / #1e40af
+20_to_60s:  绿色  #d1fae5 / #065f46
+1_to_20s:   紫色  #e9d5ff / #6b21a8
+```
+
+---
+
+#### 页面 2: talent_selection（选人页面）
+
+**提交历史**：
+- `2919f03` - v2.9 基础优化
+- `8d02a10` - 事件委托修复
+- `5ca5c74` → `e35bf74` - 调试版本
+- `72464ba` - v2.9.4 联动修复（最终版）
+
+**核心功能**：
+
+1. **表格价格类型筛选** (talent_selection.html:202-211)
+```html
+<div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+  <label>表格一口价显示档位:</label>
+  <select id="table-price-type-filter">
+    <option value="60s_plus">60s+视频</option>
+    <option value="20_to_60s">20-60s视频</option>
+    <option value="1_to_20s">1-20s视频</option>
+  </select>
+</div>
+```
+
+2. **严格类型匹配** (talent_selection.js:108-134)
+```javascript
+function getBestPrice(talent, requiredType = '60s_plus') {
+  // 严格筛选：仅查找指定类型的价格
+  const typedPrices = talent.prices.filter(p => p.type === requiredType);
+
+  if (typedPrices.length === 0) {
+    return { value: '没有', isFallback: false, sortValue: -1 };
+  }
+  // 不会fallback到其他类型！
+}
+```
+
+3. **批量录入弹窗** (talent_selection.html:246-252)
+```html
+<th>视频类型</th>   <!-- 下拉：60s+/20-60s/1-20s -->
+<th>价格时间</th>   <!-- 下拉：年-月 -->
+<th>一口价</th>     <!-- 只读输入框，自动联动 -->
+```
+
+4. **实时价格联动** (talent_selection.js:859-902)
+```javascript
+function updatePriceDisplay(row) {
+  const selectedType = typeSelect.value;
+  const selectedTime = timeSelect.value;
+
+  // 查找匹配价格
+  const matchingPrices = talent.prices.filter(p =>
+    p.year === year && p.month === month && p.type === selectedType
+  );
+
+  if (matchingPrices.length === 0) {
+    // 红色提示："没有此档位价格"
+    priceDisplay.className = 'price-display ... bg-red-50 text-red-600';
+  } else {
+    // 显示价格："¥ XX,XXX (已确认)"
+  }
+}
+```
+
+**关键修复**：
+- 问题：切换类型/时间时价格不更新
+- 原因：`className` 赋值丢失了 `price-display` 类名
+- 解决：在所有 `className` 赋值时保留 `price-display` 类
+
+---
+
+#### 页面 3: order_form（录入合作达人）
+
+**提交**: `365ea49` - v2.2
+
+**核心功能**：
+
+1. **三步式选择器** (order_form.html:67-90)
+```html
+<div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+  <select id="price-time-select">价格时间</select>
+  <select id="price-type-select">视频类型</select>
+  <input id="price-display" readonly>一口价</input>
+</div>
+```
+
+2. **智能默认值** (order_form.js:201-215)
+```javascript
+// 默认选择当月（如果存在）
+const defaultTime = availableTimes.find(t =>
+  t.year === currentYear && t.month === currentMonth
+);
+
+// 默认选择60s+
+priceTypeSelect.value = '60s_plus';
+
+// 自动初始化价格显示
+updatePriceDisplay();
+```
+
+3. **无价格提示**
+```javascript
+if (matchingPrices.length === 0) {
+  priceDisplay.value = '没有此档位价格';
+  priceDisplay.className = '... border-red-300 text-red-600';
+}
+```
+
+---
+
+### 📦 修改文件清单
+
+**前端文件（6个）**：
+```
+✅ talent_pool.js         (v2.9)
+✅ talent_pool.html       (v2.9)
+✅ talent_selection.js    (v2.9.4)
+✅ talent_selection.html  (v2.9.4)
+✅ order_form.js          (v2.2)
+✅ order_form.html        (v2.2)
+```
+
+**后端文件（1个）**：
+```
+✅ my-cloud-functions/utils.js  (v11.4.2)
+```
+
+**总计**: 7个文件修改
+
+---
+
+### 🔜 Board 4: 云函数适配（待开始）
+
+**范围**: 需要适配所有访问 `talents.prices` 字段的云函数
+
+**待检查的云函数**：
+- `getTalents` / `getTalentsSearch` - 达人查询
+- `getTalentsByIds` - 批量查询
+- `updateTalent` - 达人更新
+- `bulkUpdateTalents` / `batchUpdateTalents` - 批量更新
+- `exportAll` - 数据导出
+- 其他可能访问 prices 字段的函数
+
+**适配原则**：
+1. 读取操作：确保能正确处理带 `type` 字段的价格数据
+2. 写入操作：确保不会覆盖或丢失 `type` 字段
+3. 查询操作：支持按 `type` 筛选价格
+4. 兼容性：确保旧数据（无type字段）也能正常处理
+
+**预计工作量**：
+- 代码审查：2-3小时
+- 适配修改：4-6小时
+- 测试验证：2-3小时
+
+---
+
+### 🎓 技术要点
+
+#### 1. 数据一致性
+
+**价格数据流**：
+```
+飞书多维表格
+  ↓ (Board 2: utils.js)
+talents.prices (MongoDB)
+  ↓ (Board 3: 前端页面)
+用户选择价格
+  ↓ (talent_selection / order_form)
+collaborations 集合
+  ├─ amount: 价格金额
+  └─ priceInfo: "2025年11月 - 60s+视频"
+```
+
+**关键点**：
+- `talents.prices` 存储完整价格对象（含type）
+- `collaborations` 存储快照（amount + priceInfo文本）
+- order_list 页面仅显示快照，无需修改
+
+#### 2. UI/UX 设计原则
+
+**颜色编码**：
+- 固定颜色方案，便于快速识别
+- 统一使用 `talent-type-tag` 样式类
+
+**默认行为**：
+- 优先当前月份，无则选最新
+- 优先60s+类型（最常用）
+- 自动初始化显示
+
+**错误提示**：
+- 无价格时明确提示"没有此档位价格"
+- 红色边框 + 红色文字，视觉清晰
+- 防止误操作
+
+#### 3. 性能优化
+
+**避免重复查询**：
+- `getAvailablePriceTimes`: 提取时间去重
+- 一次性生成选项，避免循环调用
+
+**DOM操作优化**：
+- 保留关键类名（如 `price-display`）
+- 使用事件委托，减少监听器数量
+
+---
+
+### ⚠️ 重要注意事项
+
+1. **不要擅自猜测字段名称**
+   - 严格使用 `60s_plus` / `20_to_60s` / `1_to_20s`
+   - 避免使用其他变体
+
+2. **类名不要丢失**
+   - 设置 `className` 时必须包含原有选择器类名
+   - 示例：`className = 'price-display ...'`（不能漏掉price-display）
+
+3. **数据验证**
+   - 提交前验证 priceData 是否有值
+   - 检查 type 字段是否存在
+
+4. **Git分支管理**
+   - 功能分支：`claude/optimize-influencer-sync-011CUb4bk9SzP5Pwosz5ozuf`
+   - Board 4 继续在此分支开发
+   - 完成后合并到 main
+
+---
+
+### 📝 对话恢复指南
+
+如果对话中断，新对话应：
+
+1. **读取本章节**，了解已完成的工作
+2. **检查分支**：`claude/optimize-influencer-sync-011CUb4bk9SzP5Pwosz5ozuf`
+3. **查看提交历史**：确认最新进度
+4. **继续 Board 4**：从云函数适配开始
+
+**快速恢复命令**：
+```bash
+git checkout claude/optimize-influencer-sync-011CUb4bk9SzP5Pwosz5ozuf
+git log --oneline -10  # 查看最近10次提交
+```
+
+**当前状态验证**：
+```bash
+# 检查是否有Board 3的所有提交
+git log --grep="v2.9" --oneline
+git log --grep="order_form" --oneline
+```
+
+---
+
 ## 🚀 快速开始
 
 ### 前置要求
@@ -590,14 +982,19 @@ chore: 构建/工具链相关
 - [x] 完善合作历史功能
 - [x] 建立架构升级指南文档
 
-### Phase 2: 功能扩展 🚧 (进行中)
+### Phase 2: 功能扩展 ✅ (已完成)
 
-- [x] **项目日报与数据录入功能** ✅ (已完成)
+- [x] **项目日报与数据录入功能** ✅
   - 项目日报 Tab 实现
   - 数据录入 Tab 实现与优化
   - 自动化数据抓取集成
   - 智能表单控制与验证
   - 视频发布状态追踪
+- [x] **多价格类型系统** ✅ (v2.9系列)
+  - Board 1: 数据库结构设计 ✅
+  - Board 2: 飞书同步适配 ✅
+  - Board 3: 前端页面优化 ✅
+  - Board 4: 云函数适配 🔜
 - [ ] talent_pool 页面模块化重构
 - [ ] 达人筛选和推荐功能增强
 - [ ] 批量操作能力提升
@@ -654,6 +1051,7 @@ chore: 构建/工具链相关
 
 ---
 
-**最后更新**：2025-10-27
-**当前版本**：v2.0 (模块化架构)
+**最后更新**：2025-10-29
+**当前版本**：v2.9 (多价格类型系统 - Board 3完成)
 **维护者**：产品经理 + Claude Code
+**当前分支**：`claude/optimize-influencer-sync-011CUb4bk9SzP5Pwosz5ozuf`
