@@ -6,6 +6,7 @@
     <title>达人库管理</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { 
@@ -120,6 +121,12 @@
                             <label class="block text-sm font-medium text-gray-700">一口价区间 (¥)</label>
                             <div class="flex flex-col gap-2 mt-2">
                                 <select id="filter-price-month" class="w-full p-2 border border-gray-300 rounded-md"></select>
+                                <select id="filter-price-type" class="w-full p-2 border border-gray-300 rounded-md">
+                                    <option value="">所有类型</option>
+                                    <option value="60s_plus">60s+视频</option>
+                                    <option value="20_to_60s">20-60s视频</option>
+                                    <option value="1_to_20s">1-20s视频</option>
+                                </select>
                                 <div class="flex items-center gap-2">
                                     <input type="number" id="filter-price-min" placeholder="最低" class="w-full p-2 border border-gray-300 rounded-md">
                                     <span>-</span>
@@ -218,22 +225,61 @@
         </div>
     </div>
 
-    <div id="price-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden modal">
-        <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
-             <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-medium">管理一口价: <span id="price-talent-name" class="font-bold"></span></h3><button id="close-price-modal-btn" class="text-gray-400 hover:text-gray-600">&times;</button></div>
-            <div class="space-y-4">
-                 <div><h4 class="text-sm font-medium text-gray-700 mb-2">当前价格记录</h4><ul id="price-list" class="space-y-2 max-h-40 overflow-y-auto"></ul></div>
-                <form id="price-form" class="space-y-4 p-4 border rounded-md bg-gray-50">
-                    <h4 class="font-medium text-gray-800">新增/更新价格</h4>
-                    <div class="grid grid-cols-2 gap-4">
-                         <div><label for="price-year" class="block text-sm font-medium text-gray-700">年份</label><select id="price-year" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select></div>
-                        <div><label for="price-month" class="block text-sm font-medium text-gray-700">月份</label><select id="price-month" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select></div>
+    <!-- [V6.2 重构] Price Modal -->
+    <div id="price-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden modal z-50">
+        <div class="relative top-10 mx-auto p-6 border w-full max-w-6xl shadow-lg rounded-md bg-white" style="max-height: 90vh; overflow-y: auto;">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold text-gray-800">价格管理: <span id="price-talent-name" class="text-blue-600"></span></h3>
+                <button id="close-price-modal-btn" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- 左侧：价格列表 -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-semibold text-gray-700">历史价格记录</h4>
+                        <div class="flex gap-2">
+                            <select id="price-list-year-filter" class="text-sm rounded-md border-gray-300 shadow-sm px-2 py-1">
+                                <option value="">全部年份</option>
+                            </select>
+                            <select id="price-list-month-filter" class="text-sm rounded-md border-gray-300 shadow-sm px-2 py-1">
+                                <option value="">全部月份</option>
+                            </select>
+                        </div>
                     </div>
-                    <div><label for="price-type" class="block text-sm font-medium text-gray-700">视频类型</label><select id="price-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required><option value="60s_plus">60s+视频</option><option value="20_to_60s">20-60s视频</option><option value="1_to_20s">1-20s视频</option></select></div>
-                    <div><label for="new-price-amount" class="block text-sm font-medium text-gray-700">金额 (¥)</label><input type="number" id="new-price-amount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required></div>
-                    <div><label for="price-status" class="block text-sm font-medium text-gray-700">状态</label><select id="price-status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"><option value="confirmed">已确认</option><option value="provisional">暂定价</option></select></div>
-                    <div class="text-right"><button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">保存价格</button></div>
-                </form>
+                    <ul id="price-list" class="space-y-2 max-h-80 overflow-y-auto border rounded-md p-3 bg-gray-50"></ul>
+
+                    <!-- 新增价格表单 -->
+                    <form id="price-form" class="space-y-3 p-4 border rounded-md bg-white shadow-sm">
+                        <h4 class="font-semibold text-gray-800 text-sm">新增/更新价格</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label for="price-year" class="block text-xs font-medium text-gray-700 mb-1">年份</label><select id="price-year" class="block w-full text-sm rounded-md border-gray-300 shadow-sm"></select></div>
+                            <div><label for="price-month" class="block text-xs font-medium text-gray-700 mb-1">月份</label><select id="price-month" class="block w-full text-sm rounded-md border-gray-300 shadow-sm"></select></div>
+                        </div>
+                        <div><label for="price-type" class="block text-xs font-medium text-gray-700 mb-1">视频类型</label><select id="price-type" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" required><option value="60s_plus">60s+视频</option><option value="20_to_60s">20-60s视频</option><option value="1_to_20s">1-20s视频</option></select></div>
+                        <div><label for="new-price-amount" class="block text-xs font-medium text-gray-700 mb-1">金额 (¥)</label><input type="number" id="new-price-amount" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" required></div>
+                        <div><label for="price-status" class="block text-xs font-medium text-gray-700 mb-1">状态</label><select id="price-status" class="block w-full text-sm rounded-md border-gray-300 shadow-sm"><option value="confirmed">已确认</option><option value="provisional">暂定价</option></select></div>
+                        <div class="text-right"><button type="submit" class="px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 font-medium">保存价格</button></div>
+                    </form>
+                </div>
+
+                <!-- 右侧：价格趋势图 -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-semibold text-gray-700">价格趋势分析</h4>
+                        <div class="flex gap-2">
+                            <select id="price-chart-type-filter" class="text-sm rounded-md border-gray-300 shadow-sm px-2 py-1">
+                                <option value="60s_plus">60s+视频</option>
+                                <option value="20_to_60s">20-60s视频</option>
+                                <option value="1_to_20s">1-20s视频</option>
+                            </select>
+                            <select id="price-chart-year-filter" class="text-sm rounded-md border-gray-300 shadow-sm px-2 py-1"></select>
+                        </div>
+                    </div>
+                    <div class="border rounded-md p-4 bg-white shadow-sm">
+                        <canvas id="price-trend-chart" style="max-height: 400px;"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -75,6 +75,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const priceTypeSelect = document.getElementById('price-type'); // [V6.1 新增]
     const newPriceAmountInput = document.getElementById('new-price-amount');
     const priceStatusSelect = document.getElementById('price-status');
+    // [V6.2 新增] 价格筛选器和图表
+    const priceListYearFilter = document.getElementById('price-list-year-filter');
+    const priceListMonthFilter = document.getElementById('price-list-month-filter');
+    const priceChartTypeFilter = document.getElementById('price-chart-type-filter');
+    const priceChartYearFilter = document.getElementById('price-chart-year-filter');
+    const priceTrendChartCanvas = document.getElementById('price-trend-chart');
     const toast = document.getElementById('toast-notification');
     const confirmModal = document.getElementById('confirm-modal');
     const confirmModalCancelBtn = document.getElementById('confirm-modal-cancel');
@@ -98,6 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterRebateMin = document.getElementById('filter-rebate-min');
     const filterRebateMax = document.getElementById('filter-rebate-max');
     const filterPriceMonth = document.getElementById('filter-price-month');
+    const filterPriceType = document.getElementById('filter-price-type'); // [V6.2 新增]
     const filterPriceMin = document.getElementById('filter-price-min');
     const filterPriceMax = document.getElementById('filter-price-max');
     const applyFiltersBtn = document.getElementById('apply-filters-btn');
@@ -130,6 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let confirmCallback = null;
     const DEFAULT_TIERS = ['头部达人', '重点达人', '常规达人-机构', '常规达人-野生'];
     let totalFilteredItems = 0;
+    let priceTrendChart = null; // [V6.2 新增] 价格趋势图表实例
 
     let queryState = {
         page: 1,
@@ -141,6 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
         rebateMax: null,
         priceYear: null,
         priceMonth: null,
+        priceType: null,      // [V6.2 新增]
         priceMin: null,
         priceMax: null,
         sortBy: 'createdAt',
@@ -378,7 +387,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (talent && priceTalentName) {
             priceTalentName.textContent = talent.nickname;
             populatePriceDateSelects();
+            initializePriceFilters(talent); // [V6.2 新增]
             renderPriceList();
+            renderPriceTrendChart(talent); // [V6.2 新增]
             if (priceModal) priceModal.classList.remove('hidden');
         }
     }
@@ -402,34 +413,136 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!priceList) return;
         priceList.innerHTML = '';
         const talent = currentTalentData.find(t => t.id === currentTalentIdForPrice);
-        if (talent && talent.prices && talent.prices.length > 0) {
-            // [V6.1 修改] 支持价格type显示，按year>month>type排序
-            const sortedPrices = [...talent.prices].sort((a,b) => {
-                if (b.year !== a.year) return b.year - a.year;
-                if (b.month !== a.month) return b.month - a.month;
-                // type排序：60s_plus > 20_to_60s > 1_to_20s
-                const typeOrder = { '60s_plus': 0, '20_to_60s': 1, '1_to_20s': 2 };
-                return (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
-            });
-
-            const priceTypeLabels = {
-                '60s_plus': '60s+视频',
-                '20_to_60s': '20-60s视频',
-                '1_to_20s': '1-20s视频'
-            };
-
-            sortedPrices.forEach(price => {
-                const statusLabel = price.status === 'provisional' ? '(暂定价)' : '(已确认)';
-                const statusColor = price.status === 'provisional' ? 'text-yellow-600' : 'text-green-600';
-                const typeLabel = priceTypeLabels[price.type] || price.type || '未知类型';
-                const li = document.createElement('li');
-                li.className = 'flex justify-between items-center p-2 bg-gray-100 rounded-md text-sm';
-                li.innerHTML = `<div><span>${price.year}年 ${price.month}月 - <span class="text-blue-600 font-semibold">${typeLabel}</span>: <span class="font-medium">¥ ${price.price.toLocaleString()}</span></span><span class="text-xs ml-2 ${statusColor}">${statusLabel}</span></div><button data-year="${price.year}" data-month="${price.month}" data-type="${price.type}" class="delete-price-btn text-red-500 hover:text-red-700 text-xs">删除</button>`;
-                priceList.appendChild(li);
-            });
-        } else {
-            priceList.innerHTML = '<li class="text-sm text-gray-500 text-center">暂无一口价记录</li>';
+        if (!talent || !talent.prices || talent.prices.length === 0) {
+            priceList.innerHTML = '<li class="text-sm text-gray-500 text-center py-4">暂无一口价记录</li>';
+            return;
         }
+
+        // [V6.2 新增] 支持年月筛选
+        const yearFilter = priceListYearFilter?.value;
+        const monthFilter = priceListMonthFilter?.value;
+
+        let filteredPrices = [...talent.prices];
+        if (yearFilter) filteredPrices = filteredPrices.filter(p => p.year === parseInt(yearFilter));
+        if (monthFilter) filteredPrices = filteredPrices.filter(p => p.month === parseInt(monthFilter));
+
+        // 排序：year>month>type
+        const sortedPrices = filteredPrices.sort((a,b) => {
+            if (b.year !== a.year) return b.year - a.year;
+            if (b.month !== a.month) return b.month - a.month;
+            const typeOrder = { '60s_plus': 0, '20_to_60s': 1, '1_to_20s': 2 };
+            return (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99);
+        });
+
+        const priceTypeLabels = {
+            '60s_plus': '60s+视频',
+            '20_to_60s': '20-60s视频',
+            '1_to_20s': '1-20s视频'
+        };
+
+        if (sortedPrices.length === 0) {
+            priceList.innerHTML = '<li class="text-sm text-gray-500 text-center py-4">暂无符合条件的价格记录</li>';
+            return;
+        }
+
+        sortedPrices.forEach(price => {
+            const statusLabel = price.status === 'provisional' ? '(暂定价)' : '(已确认)';
+            const statusColor = price.status === 'provisional' ? 'text-yellow-600' : 'text-green-600';
+            const typeLabel = priceTypeLabels[price.type] || price.type || '未知类型';
+            const li = document.createElement('li');
+            li.className = 'flex justify-between items-center p-2 bg-white border rounded-md text-sm hover:shadow-sm transition-shadow';
+            li.innerHTML = `<div><span class="text-gray-700">${price.year}年 ${price.month}月</span> - <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">${typeLabel}</span>: <span class="font-semibold text-gray-900">¥ ${price.price.toLocaleString()}</span><span class="text-xs ml-2 ${statusColor}">${statusLabel}</span></div><button data-year="${price.year}" data-month="${price.month}" data-type="${price.type}" class="delete-price-btn text-red-500 hover:text-red-700 text-xs font-medium">删除</button>`;
+            priceList.appendChild(li);
+        });
+    }
+
+    // [V6.2 新增] 初始化价格筛选器
+    function initializePriceFilters(talent) {
+        if (!talent || !talent.prices || !priceListYearFilter || !priceListMonthFilter || !priceChartYearFilter) return;
+
+        // 获取所有年份和月份
+        const years = [...new Set(talent.prices.map(p => p.year))].sort((a,b) => b-a);
+        const months = [...new Set(talent.prices.map(p => p.month))].sort((a,b) => a-b);
+
+        // 填充年份筛选器
+        priceListYearFilter.innerHTML = '<option value="">全部年份</option>' + years.map(y => `<option value="${y}">${y}年</option>`).join('');
+        priceListMonthFilter.innerHTML = '<option value="">全部月份</option>' + months.map(m => `<option value="${m}">${m}月</option>`).join('');
+
+        // 填充图表年份筛选器
+        priceChartYearFilter.innerHTML = years.map(y => `<option value="${y}">${y}年</option>`).join('');
+        if (years.length > 0) priceChartYearFilter.value = years[0];
+    }
+
+    // [V6.2 新增] 渲染价格趋势图
+    function renderPriceTrendChart(talent) {
+        if (!talent || !priceTrendChartCanvas) return;
+
+        const selectedType = priceChartTypeFilter?.value || '60s_plus';
+        const selectedYear = priceChartYearFilter?.value ? parseInt(priceChartYearFilter.value) : new Date().getFullYear();
+
+        // 获取该年份该类型的所有价格数据（按月）
+        const priceData = new Array(12).fill(null);
+        (talent.prices || []).forEach(p => {
+            if (p.year === selectedYear && p.type === selectedType) {
+                priceData[p.month - 1] = p.price;
+            }
+        });
+
+        // 销毁旧图表
+        if (priceTrendChart) {
+            priceTrendChart.destroy();
+        }
+
+        // 创建新图表
+        const ctx = priceTrendChartCanvas.getContext('2d');
+        priceTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+                datasets: [{
+                    label: `${selectedYear}年价格趋势`,
+                    data: priceData,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#3b82f6',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.parsed.y;
+                                return value !== null ? `¥ ${value.toLocaleString()}` : '无数据';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            callback: function(value) {
+                                return '¥ ' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
     
     async function openHistoryModal(talentId) {
@@ -593,21 +706,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     { key: '1_to_20s', label: '1-20s' }
                 ];
 
-                let priceDisplay = 'N/A';
+                let priceDisplay = '<div class="text-gray-400 text-sm">暂无价格</div>';
                 const currentPrices = (talent.prices || []).filter(p => p.year === currentYear && p.month === currentMonth);
 
-                if (currentPrices.length > 0) {
-                    const priceTexts = priceTypes.map(type => {
+                if (currentPrices.length > 0 || true) {
+                    // [V6.2 优化] 使用胶囊标签，每个价格一行
+                    const priceElements = priceTypes.map(type => {
                         const price = currentPrices.find(p => p.type === type.key);
-                        if (!price) return `${type.label}: N/A`;
-
-                        const priceText = `¥ ${price.price.toLocaleString()}`;
-                        if (price.status === 'provisional') {
-                            return `${type.label}: <span class="text-yellow-600">${priceText}*</span>`;
+                        if (!price) {
+                            return `<div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-gray-200 text-gray-600 rounded-full text-xs font-medium whitespace-nowrap">${type.label}</span><span class="text-gray-400 text-sm">N/A</span></div>`;
                         }
-                        return `${type.label}: ${priceText}`;
+                        const priceText = `¥ ${price.price.toLocaleString()}`;
+                        const bgColor = price.status === 'provisional' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700';
+                        const textColor = price.status === 'provisional' ? 'text-yellow-600' : 'text-gray-900';
+                        const statusMark = price.status === 'provisional' ? ' *' : '';
+                        return `<div class="flex items-center gap-2"><span class="px-2 py-0.5 ${bgColor} rounded-full text-xs font-medium whitespace-nowrap">${type.label}</span><span class="${textColor} text-sm font-medium">${priceText}${statusMark}</span></div>`;
                     });
-                    priceDisplay = priceTexts.join(' | ');
+                    priceDisplay = priceElements.join('');
                 }
 
                 let rebatesHtml = 'N/A';
@@ -648,7 +763,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${talent.nickname}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 hover:underline"><a href="https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/${talent.xingtuId}" target="_blank" rel="noopener noreferrer">${talent.xingtuId}</a></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${talent.uid || 'N/A'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${priceDisplay}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500"><div class="flex flex-col gap-1">${priceDisplay}</div></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${rebatesHtml}</td>
                     <td class="px-6 py-4 text-sm text-gray-500"><div class="flex flex-wrap gap-1 items-center">${typesCellContent}</div></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${talent.talentTier || 'N/A'}</td>
@@ -879,6 +994,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 queryState.priceYear = null;
                 queryState.priceMonth = null;
             }
+            // [V6.2 新增] 价格类型筛选
+            if (filterPriceType) queryState.priceType = filterPriceType.value || null;
             if (filterPriceMin) queryState.priceMin = filterPriceMin.value ? parseFloat(filterPriceMin.value) : null;
             if (filterPriceMax) queryState.priceMax = filterPriceMax.value ? parseFloat(filterPriceMax.value) : null;
             fetchAndRenderTalents();
@@ -887,12 +1004,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (resetFiltersBtn) resetFiltersBtn.addEventListener('click', () => {
             if(searchInput) searchInput.value = '';
             document.querySelectorAll('#filter-tier-checkboxes input:checked, #filter-type-checkboxes input:checked').forEach(cb => cb.checked = false);
-            if(filterRebateMin) filterRebateMin.value = ''; 
+            if(filterRebateMin) filterRebateMin.value = '';
             if(filterRebateMax) filterRebateMax.value = '';
             if(filterPriceMonth) filterPriceMonth.selectedIndex = 0;
-            if(filterPriceMin) filterPriceMin.value = ''; 
+            if(filterPriceType) filterPriceType.selectedIndex = 0; // [V6.2 新增]
+            if(filterPriceMin) filterPriceMin.value = '';
             if(filterPriceMax) filterPriceMax.value = '';
-            Object.assign(queryState, { page: 1, search: '', tiers: [], types: [], rebateMin: null, rebateMax: null, priceYear: null, priceMonth: null, priceMin: null, priceMax: null });
+            Object.assign(queryState, { page: 1, search: '', tiers: [], types: [], rebateMin: null, rebateMax: null, priceYear: null, priceMonth: null, priceType: null, priceMin: null, priceMax: null });
             queryState.sortBy = 'createdAt';
             queryState.sortOrder = 'desc';
             if (advancedFilterDetails) advancedFilterDetails.open = false;
@@ -976,9 +1094,24 @@ document.addEventListener('DOMContentLoaded', function() {
         if (rebateForm) rebateForm.addEventListener('submit', handleRebateSubmit);
         if (rebateList) rebateList.addEventListener('click', handleDeleteRebate);
 
-        if (closePriceModalBtn) closePriceModalBtn.addEventListener('click', () => priceModal.classList.add('hidden'));
+        if (closePriceModalBtn) closePriceModalBtn.addEventListener('click', () => {
+            priceModal.classList.add('hidden');
+            if (priceTrendChart) priceTrendChart.destroy(); // [V6.2 新增] 清理图表
+        });
         if (priceForm) priceForm.addEventListener('submit', handlePriceSubmit);
         if (priceList) priceList.addEventListener('click', handleDeletePrice);
+
+        // [V6.2 新增] 价格筛选器事件监听
+        if (priceListYearFilter) priceListYearFilter.addEventListener('change', renderPriceList);
+        if (priceListMonthFilter) priceListMonthFilter.addEventListener('change', renderPriceList);
+        if (priceChartTypeFilter) priceChartTypeFilter.addEventListener('change', () => {
+            const talent = currentTalentData.find(t => t.id === currentTalentIdForPrice);
+            if (talent) renderPriceTrendChart(talent);
+        });
+        if (priceChartYearFilter) priceChartYearFilter.addEventListener('change', () => {
+            const talent = currentTalentData.find(t => t.id === currentTalentIdForPrice);
+            if (talent) renderPriceTrendChart(talent);
+        });
 
         if (closeHistoryModalBtn) closeHistoryModalBtn.addEventListener('click', () => historyModal.classList.add('hidden'));
         
