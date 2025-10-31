@@ -99,13 +99,29 @@ export class HistoryModal {
 
         this.allHistoryData = (this.app.allCollaborations.get(talentId) || []).map(collab => {
             const project = this.app.allProjects.find(p => p.id === collab.projectId);
-            const date = new Date(collab.createdAt);
+
+            // 优先级：publishDate > orderDate > createdAt
+            let dateValue;
+            let dateType;
+            if (collab.publishDate) {
+                dateValue = collab.publishDate;
+                dateType = '发布';
+            } else if (collab.orderDate) {
+                dateValue = collab.orderDate;
+                dateType = '下单';
+            } else {
+                dateValue = collab.createdAt;
+                dateType = '创建';
+            }
+
+            const date = new Date(dateValue);
             return {
                 ...collab,
                 projectName: project ? project.name : '未知项目',
                 year: date.getFullYear(),
                 month: date.getMonth() + 1,
-                dateObj: date
+                dateObj: date,
+                dateType: dateType  // 新增：日期类型标识
             };
         }).sort((a, b) => b.dateObj - a.dateObj);
 
@@ -220,6 +236,14 @@ export class HistoryModal {
 
             const dateStr = `${item.year}-${String(item.month).padStart(2, '0')}-${String(item.dateObj.getDate()).padStart(2, '0')}`;
 
+            // 日期类型徽章颜色
+            const dateTypeBadgeColors = {
+                '发布': 'bg-green-100 text-green-700',
+                '下单': 'bg-blue-100 text-blue-700',
+                '创建': 'bg-gray-100 text-gray-600'
+            };
+            const dateTypeBadgeClass = dateTypeBadgeColors[item.dateType] || 'bg-gray-100 text-gray-600';
+
             // 状态颜色映射
             const statusColors = {
                 '已完成': 'bg-green-100 text-green-800 border-green-200',
@@ -235,12 +259,15 @@ export class HistoryModal {
                     <div class="absolute -left-7 top-5 w-3 h-3 bg-orange-500 rounded-full border-2 border-white shadow"></div>
                     ${index < this.filteredHistoryData.length - 1 ? '<div class="absolute -left-6 top-8 w-0.5 h-full bg-gray-300"></div>' : ''}
 
-                    <!-- Date badge -->
-                    <div class="text-xs text-gray-500 mb-2 font-medium">
-                        <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        ${dateStr}
+                    <!-- Date badge with type -->
+                    <div class="text-xs mb-2 font-medium flex items-center gap-2">
+                        <span class="text-gray-500 flex items-center">
+                            <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            ${dateStr}
+                        </span>
+                        <span class="px-2 py-0.5 rounded-full text-xs font-medium ${dateTypeBadgeClass}">${item.dateType}</span>
                     </div>
 
                     <!-- Project name -->
