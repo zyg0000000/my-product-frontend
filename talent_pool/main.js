@@ -9,6 +9,7 @@ import { CrudModal } from './modal-crud.js';
 import { PriceModal } from './modal-price.js';
 import { RebateModal } from './modal-rebate.js';
 import { HistoryModal } from './modal-history.js';
+import { BatchModal } from './modal-batch.js';
 
 export class TalentPoolApp {
     constructor() {
@@ -83,7 +84,13 @@ export class TalentPoolApp {
             typeList: null,
             addTalentBtn: null,
             moreActionsBtn: null,
-            moreActionsMenu: null
+            moreActionsMenu: null,
+            batchUpdateBtn: null,
+            bulkImportBtn: null,
+            importForUpdateBtn: null,
+            exportAllBtn: null,
+            exportForUpdateBtn: null,
+            downloadTemplateBtn: null
         };
 
         // 子模块
@@ -92,6 +99,7 @@ export class TalentPoolApp {
         this.priceModal = null;
         this.rebateModal = null;
         this.historyModal = null;
+        this.batchModal = null;
     }
 
     async init() {
@@ -123,6 +131,12 @@ export class TalentPoolApp {
         this.elements.addTalentBtn = document.getElementById('add-talent-btn');
         this.elements.moreActionsBtn = document.getElementById('more-actions-btn');
         this.elements.moreActionsMenu = document.getElementById('more-actions-menu');
+        this.elements.batchUpdateBtn = document.getElementById('batch-update-btn');
+        this.elements.bulkImportBtn = document.getElementById('bulk-import-btn');
+        this.elements.importForUpdateBtn = document.getElementById('import-for-update-btn');
+        this.elements.exportAllBtn = document.getElementById('export-all-btn');
+        this.elements.exportForUpdateBtn = document.getElementById('export-for-update-btn');
+        this.elements.downloadTemplateBtn = document.getElementById('download-template-btn');
     }
 
     bindEvents() {
@@ -169,6 +183,26 @@ export class TalentPoolApp {
         this.elements.addTalentBtn?.addEventListener('click', () => {
             this.crudModal?.open();
         });
+
+        // 批量操作按钮
+        this.elements.batchUpdateBtn?.addEventListener('click', () => {
+            this.batchModal?.openBatchUpdate();
+        });
+        this.elements.bulkImportBtn?.addEventListener('click', () => {
+            this.batchModal?.openBulkImport();
+        });
+        this.elements.importForUpdateBtn?.addEventListener('click', () => {
+            this.batchModal?.openImportForUpdate();
+        });
+        this.elements.exportAllBtn?.addEventListener('click', (e) => {
+            this.batchModal?.handleExportAll(e);
+        });
+        this.elements.exportForUpdateBtn?.addEventListener('click', () => {
+            this.batchModal?.handleExportForUpdate();
+        });
+        this.elements.downloadTemplateBtn?.addEventListener('click', () => {
+            this.batchModal?.handleDownloadTemplate();
+        });
     }
 
     initModules() {
@@ -186,6 +220,9 @@ export class TalentPoolApp {
 
         this.historyModal = new HistoryModal(this);
         this.historyModal.init();
+
+        this.batchModal = new BatchModal(this);
+        this.batchModal.init();
     }
 
     async loadConfigurations() {
