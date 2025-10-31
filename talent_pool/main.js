@@ -17,6 +17,7 @@
  */
 
 import { AppCore } from '../common/app-core.js';
+import { TableManager } from './table-manager.js';
 
 const { API, Modal, Format, Utils } = AppCore;
 
@@ -139,8 +140,8 @@ export class TalentPoolApp {
         // 4. 加载配置数据
         await this.loadConfigurations();
 
-        // 5. 初始化子模块（暂时注释，后续逐步添加）
-        // this.initModules();
+        // 5. 初始化子模块
+        this.initModules();
 
         // 6. 首次加载数据
         await this.fetchTalents();
@@ -229,15 +230,20 @@ export class TalentPoolApp {
         });
     }
 
-    // ========== 初始化子模块（待实现） ==========
+    // ========== 初始化子模块 ==========
     initModules() {
-        // 将在后续步骤中实现
-        // this.tableManager = new TableManager(this, ...);
-        // this.crudModal = new CrudModal(this, ...);
-        // this.priceModal = new PriceModal(this, ...);
-        // this.rebateModal = new RebateModal(this, ...);
-        // this.historyModal = new HistoryModal(this, ...);
-        // this.batchOperations = new BatchOperations(this, ...);
+        console.log('[TalentPoolApp] 初始化子模块...');
+
+        // 初始化表格管理器
+        this.tableManager = new TableManager(this);
+        this.tableManager.init();
+
+        // 其他模块（待后续添加）
+        // this.crudModal = new CrudModal(this);
+        // this.priceModal = new PriceModal(this);
+        // this.rebateModal = new RebateModal(this);
+        // this.historyModal = new HistoryModal(this);
+        // this.batchOperations = new BatchOperations(this);
     }
 
     // ========== 数据加载 ==========
@@ -314,8 +320,10 @@ export class TalentPoolApp {
     async fetchTalents() {
         console.log('[TalentPoolApp] 开始获取达人数据...', this.queryState);
 
-        // 显示加载状态（后续由 tableManager 处理）
-        // this.setLoadingState(true);
+        // 显示加载状态
+        if (this.tableManager) {
+            this.tableManager.setLoadingState(true);
+        }
 
         const payload = this.buildSearchPayload();
 
@@ -333,11 +341,10 @@ export class TalentPoolApp {
                     page: pagination.currentPage
                 });
 
-                // 渲染表格（后续由 tableManager 处理）
-                // this.tableManager.render(talents, pagination);
-
-                // 临时：直接在控制台输出
-                console.log('[TalentPoolApp] 达人数据:', talents);
+                // 使用 tableManager 渲染表格
+                if (this.tableManager) {
+                    this.tableManager.render(talents, pagination);
+                }
 
             } else {
                 throw new Error(response.message || '返回数据格式不正确');
