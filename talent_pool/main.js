@@ -26,7 +26,7 @@ export class TalentPoolApp {
             batchUpdate: '/talents/batch-update',
             exportAll: '/talents/export-all',
             getProjects: '/projects?view=simple',
-            getCollaborations: '/collaborations?allowGlobal=true',
+            getCollaborations: '/collaborations?allowGlobal=true&statuses=' + encodeURIComponent('客户已定档,视频已发布'),
             getFilterOptions: '/talents/filter-options'
         };
 
