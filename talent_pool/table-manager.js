@@ -172,10 +172,10 @@ export class TableManager {
                     }
                 );
             }
-            // 价格按钮（后续由 priceModal 处理）
+            // 价格按钮
             else if (target.classList.contains('price-btn')) {
                 console.log('[TableManager] 价格按钮点击:', talentId);
-                // TODO: this.app.priceModal.open(talentId);
+                this.app.priceModal?.open(talentId);
             }
             // 返点按钮（后续由 rebateModal 处理）
             else if (target.classList.contains('rebate-btn')) {

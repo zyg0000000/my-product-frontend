@@ -19,6 +19,7 @@
 import { AppCore } from '../common/app-core.js';
 import { TableManager } from './table-manager.js';
 import { CrudModal } from './modal-crud.js';
+import { PriceModal } from './modal-price.js';
 
 const { API, Modal, Format, Utils } = AppCore;
 
@@ -243,8 +244,11 @@ export class TalentPoolApp {
         this.crudModal = new CrudModal(this);
         this.crudModal.init();
 
+        // 初始化 Price Modal
+        this.priceModal = new PriceModal(this);
+        this.priceModal.init();
+
         // 其他模块（待后续添加）
-        // this.priceModal = new PriceModal(this);
         // this.rebateModal = new RebateModal(this);
         // this.historyModal = new HistoryModal(this);
         // this.batchOperations = new BatchOperations(this);
