@@ -177,10 +177,10 @@ export class TableManager {
                 console.log('[TableManager] 价格按钮点击:', talentId);
                 this.app.priceModal?.open(talentId);
             }
-            // 返点按钮（后续由 rebateModal 处理）
+            // 返点按钮
             else if (target.classList.contains('rebate-btn')) {
                 console.log('[TableManager] 返点按钮点击:', talentId);
-                // TODO: this.app.rebateModal.open(talentId);
+                this.app.rebateModal?.open(talentId);
             }
             // 历史按钮（后续由 historyModal 处理）
             else if (target.classList.contains('history-btn')) {
