@@ -152,10 +152,10 @@ export class TableManager {
                 this.updateSelectionCounter();
                 this.updateSelectAllOnPageCheckboxState();
             }
-            // 编辑按钮（后续由 crudModal 处理）
+            // 编辑按钮
             else if (target.classList.contains('edit-btn')) {
                 console.log('[TableManager] 编辑按钮点击:', talentId);
-                // TODO: this.app.crudModal.open(talentId);
+                this.app.crudModal?.open(talentId);
             }
             // 删除按钮
             else if (target.classList.contains('delete-btn')) {

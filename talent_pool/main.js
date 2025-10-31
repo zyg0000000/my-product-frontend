@@ -18,6 +18,7 @@
 
 import { AppCore } from '../common/app-core.js';
 import { TableManager } from './table-manager.js';
+import { CrudModal } from './modal-crud.js';
 
 const { API, Modal, Format, Utils } = AppCore;
 
@@ -223,10 +224,10 @@ export class TalentPoolApp {
             }
         });
 
-        // 新增达人按钮（后续由 crudModal 处理）
+        // 新增达人按钮
         this.elements.addTalentBtn?.addEventListener('click', () => {
-            console.log('[TalentPoolApp] 新增达人按钮点击（待实现）');
-            // TODO: this.crudModal.open();
+            console.log('[TalentPoolApp] 新增达人按钮点击');
+            this.crudModal?.open();
         });
     }
 
@@ -238,8 +239,11 @@ export class TalentPoolApp {
         this.tableManager = new TableManager(this);
         this.tableManager.init();
 
+        // 初始化 CRUD Modal
+        this.crudModal = new CrudModal(this);
+        this.crudModal.init();
+
         // 其他模块（待后续添加）
-        // this.crudModal = new CrudModal(this);
         // this.priceModal = new PriceModal(this);
         // this.rebateModal = new RebateModal(this);
         // this.historyModal = new HistoryModal(this);
