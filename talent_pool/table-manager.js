@@ -13,6 +13,8 @@
  * - 行级操作按钮事件绑定
  */
 
+import { stringToColor, getTextColor } from './utils.js';
+
 export class TableManager {
     constructor(app) {
         this.app = app;  // 引用主控制器
@@ -355,8 +357,8 @@ export class TableManager {
         }
 
         return talent.talentType.map(type => {
-            const color = this.stringToColor(type);
-            const textColor = this.getTextColor(color);
+            const color = stringToColor(type);
+            const textColor = getTextColor(color);
             return `<span class="talent-type-tag" style="background-color:${color}; color:${textColor};">${type}</span>`;
         }).join(' ');
     }
@@ -657,35 +659,6 @@ export class TableManager {
             this.elements.selectAllOnPageCheckbox.checked = false;
             this.elements.selectAllOnPageCheckbox.indeterminate = true;
         }
-    }
-
-    // ========== 工具方法 ==========
-    stringToColor(str) {
-        let hash = 0;
-        if (!str) return '#e5e7eb';
-
-        for (let i = 0; i < str.length; i++) {
-            hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        }
-
-        let color = '#';
-        for (let i = 0; i < 3; i++) {
-            const value = (hash >> (i * 8)) & 0xFF;
-            color += ('00' + value.toString(16)).substr(-2);
-        }
-
-        return color;
-    }
-
-    getTextColor(hexColor) {
-        if (!hexColor) return '#000000';
-
-        const r = parseInt(hexColor.substr(1, 2), 16);
-        const g = parseInt(hexColor.substr(3, 2), 16);
-        const b = parseInt(hexColor.substr(5, 2), 16);
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-
-        return luminance > 0.5 ? '#000000' : '#FFFFFF';
     }
 
     setLoadingState(isLoading) {
