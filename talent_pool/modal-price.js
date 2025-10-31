@@ -104,25 +104,34 @@ export class PriceModal {
         this.elements.monthSelect.value = new Date().getMonth() + 1;
     }
 
-    // [V6.2 新增] 初始化筛选器
+    // [V6.2 优化] 初始化筛选器 - 默认显示当前月
     initializeFilters(talent) {
         if (!talent || !talent.prices || !this.elements.listYearFilter || !this.elements.listMonthFilter || !this.elements.chartYearFilter) return;
 
         const years = [...new Set(talent.prices.map(p => p.year))].sort((a,b) => b-a);
         const months = [...new Set(talent.prices.map(p => p.month))].sort((a,b) => a-b);
 
-        this.elements.listYearFilter.innerHTML = '<option value="">全部年份</option>' + years.map(y => '<option value="' + y + '">' + y + '年</option>').join('');
-        this.elements.listMonthFilter.innerHTML = '<option value="">全部月份</option>' + months.map(m => '<option value="' + m + '">' + m + '月</option>').join('');
+        // 移除"全部年份/月份"选项，只显示具体选项
+        this.elements.listYearFilter.innerHTML = years.map(y => '<option value="' + y + '">' + y + '年</option>').join('');
+        this.elements.listMonthFilter.innerHTML = months.map(m => '<option value="' + m + '">' + m + '月</option>').join('');
 
+        // 默认设置为当前年月（如果存在），否则最新的年月
         const currentYear = new Date().getFullYear();
         const currentMonth = new Date().getMonth() + 1;
+
         if (years.includes(currentYear)) {
             this.elements.listYearFilter.value = currentYear;
-        }
-        if (months.includes(currentMonth)) {
-            this.elements.listMonthFilter.value = currentMonth;
+        } else if (years.length > 0) {
+            this.elements.listYearFilter.value = years[0]; // 最新年份
         }
 
+        if (months.includes(currentMonth)) {
+            this.elements.listMonthFilter.value = currentMonth;
+        } else if (months.length > 0) {
+            this.elements.listMonthFilter.value = months[months.length - 1]; // 最大月份
+        }
+
+        // 图表年份筛选器
         this.elements.chartYearFilter.innerHTML = years.map(y => '<option value="' + y + '">' + y + '年</option>').join('');
         if (years.length > 0) this.elements.chartYearFilter.value = years[0];
     }
