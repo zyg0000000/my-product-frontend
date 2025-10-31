@@ -90,6 +90,10 @@ export class HistoryModal {
         }
 
         // 获取该达人的合作历史
+        console.log('[HistoryModal Debug] 当前 talentId:', talentId);
+        console.log('[HistoryModal Debug] talentId 类型:', typeof talentId);
+        console.log('[HistoryModal Debug] Map 中所有 keys:', Array.from(this.app.allCollaborations.keys()));
+        console.log('[HistoryModal Debug] 第一个 key 的类型:', typeof Array.from(this.app.allCollaborations.keys())[0]);
         console.log('[HistoryModal Debug] allCollaborations.has(talentId):', this.app.allCollaborations.has(talentId));
         console.log('[HistoryModal Debug] 原始合作数据:', this.app.allCollaborations.get(talentId));
 
