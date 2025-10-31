@@ -81,6 +81,8 @@ export class TableManager {
         const talentId = target.dataset.id;
         if (!talentId) return;
 
+        console.log('[TableManager Debug] 点击按钮:', target.className, ', talentId:', talentId);
+
         if (target.classList.contains('talent-checkbox')) {
             if (target.checked) {
                 this.app.selectedTalents.add(talentId);

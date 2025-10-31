@@ -63,8 +63,15 @@ export class HistoryModal {
     }
 
     async open(talentId) {
+        console.log('[HistoryModal Debug] 打开历史弹窗, talentId:', talentId);
+
         const talent = this.app.currentTalentData.find(t => t.id === talentId);
-        if (!talent || !this.elements.talentName) return;
+        console.log('[HistoryModal Debug] 找到的达人信息:', talent);
+
+        if (!talent || !this.elements.talentName) {
+            console.warn('[HistoryModal Debug] 未找到达人或元素不存在');
+            return;
+        }
 
         this.currentTalentId = talentId;
         this.elements.talentName.textContent = talent.nickname;
@@ -83,6 +90,9 @@ export class HistoryModal {
         }
 
         // 获取该达人的合作历史
+        console.log('[HistoryModal Debug] allCollaborations.has(talentId):', this.app.allCollaborations.has(talentId));
+        console.log('[HistoryModal Debug] 原始合作数据:', this.app.allCollaborations.get(talentId));
+
         this.allHistoryData = (this.app.allCollaborations.get(talentId) || []).map(collab => {
             const project = this.app.allProjects.find(p => p.id === collab.projectId);
             const date = new Date(collab.createdAt);
@@ -94,6 +104,9 @@ export class HistoryModal {
                 dateObj: date
             };
         }).sort((a, b) => b.dateObj - a.dateObj);
+
+        console.log('[HistoryModal Debug] 处理后的历史数据数量:', this.allHistoryData.length);
+        console.log('[HistoryModal Debug] 第一条历史数据:', this.allHistoryData[0]);
 
         // 初始化筛选器和数据
         this.initializeFilters();

@@ -245,12 +245,19 @@ export class TalentPoolApp {
             this.allProjects = projectsResponse.data || [];
             const collaborations = collabsResponse.data || [];
             this.allCollaborations.clear();
+
+            console.log('[TalentPool Debug] API 返回的合作记录总数:', collaborations.length);
+            console.log('[TalentPool Debug] API 返回的第一条合作记录:', collaborations[0]);
+
             collaborations.forEach(c => {
                 if (!this.allCollaborations.has(c.talentId)) {
                     this.allCollaborations.set(c.talentId, []);
                 }
                 this.allCollaborations.get(c.talentId).push(c);
             });
+
+            console.log('[TalentPool Debug] allCollaborations Map 大小:', this.allCollaborations.size);
+            console.log('[TalentPool Debug] allCollaborations 前3个达人:', Array.from(this.allCollaborations.keys()).slice(0, 3));
 
         } catch (error) {
             console.error('加载配置数据失败', error);
