@@ -246,14 +246,7 @@ export class TalentPoolApp {
             const collaborations = collabsResponse.data || [];
             this.allCollaborations.clear();
 
-            console.log('[TalentPool Debug] API 返回的合作记录总数:', collaborations.length);
-            console.log('[TalentPool Debug] API 返回的第一条合作记录:', collaborations[0]);
-            if (collaborations[0]) {
-                console.log('[TalentPool Debug] 第一条记录的所有字段:', Object.keys(collaborations[0]));
-            }
-
             collaborations.forEach(c => {
-                // 尝试多种可能的字段名
                 const talentIdValue = c.talentId || c.talent_id || c.talentID;
 
                 if (!this.allCollaborations.has(talentIdValue)) {
@@ -261,9 +254,6 @@ export class TalentPoolApp {
                 }
                 this.allCollaborations.get(talentIdValue).push(c);
             });
-
-            console.log('[TalentPool Debug] allCollaborations Map 大小:', this.allCollaborations.size);
-            console.log('[TalentPool Debug] allCollaborations 所有 keys:', Array.from(this.allCollaborations.keys()));
 
         } catch (error) {
             console.error('加载配置数据失败', error);
