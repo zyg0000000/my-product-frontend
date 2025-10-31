@@ -182,10 +182,10 @@ export class TableManager {
                 console.log('[TableManager] 返点按钮点击:', talentId);
                 this.app.rebateModal?.open(talentId);
             }
-            // 历史按钮（后续由 historyModal 处理）
+            // 历史按钮
             else if (target.classList.contains('history-btn')) {
                 console.log('[TableManager] 历史按钮点击:', talentId);
-                // TODO: this.app.historyModal.open(talentId);
+                this.app.historyModal?.open(talentId);
             }
         });
 

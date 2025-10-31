@@ -21,6 +21,7 @@ import { TableManager } from './table-manager.js';
 import { CrudModal } from './modal-crud.js';
 import { PriceModal } from './modal-price.js';
 import { RebateModal } from './modal-rebate.js';
+import { HistoryModal } from './modal-history.js';
 
 const { API, Modal, Format, Utils } = AppCore;
 
@@ -253,8 +254,11 @@ export class TalentPoolApp {
         this.rebateModal = new RebateModal(this);
         this.rebateModal.init();
 
+        // 初始化 History Modal（独立可扩展）
+        this.historyModal = new HistoryModal(this);
+        this.historyModal.init();
+
         // 其他模块（待后续添加）
-        // this.historyModal = new HistoryModal(this);
         // this.batchOperations = new BatchOperations(this);
     }
 
