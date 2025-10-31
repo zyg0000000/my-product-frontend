@@ -22,6 +22,7 @@ export class CrudModal {
             modalTitle: document.getElementById('modal-title'),
             form: document.getElementById('talent-form'),
             closeBtn: document.getElementById('close-modal-btn'),
+            closeBtnFooter: document.getElementById('close-modal-btn-footer'),
             submitBtn: document.getElementById('modal-submit-btn'),
             nicknameInput: document.getElementById('talent-nickname'),
             xingtuIdInput: document.getElementById('talent-xingtu-id'),
@@ -35,6 +36,7 @@ export class CrudModal {
 
     bindEvents() {
         this.elements.closeBtn?.addEventListener('click', () => this.close());
+        this.elements.closeBtnFooter?.addEventListener('click', () => this.close());
         this.elements.modal?.addEventListener('click', (e) => {
             if (e.target === this.elements.modal) this.close();
         });
