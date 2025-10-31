@@ -191,96 +191,198 @@
     </main>
 
     <!-- Modals -->
-    <div id="talent-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden modal">
-        <div id="talent-modal-content" class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white opacity-0 scale-95 modal-content">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="modal-title" class="text-lg font-medium text-gray-900">新增达人</h3>
-                <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600">&times;</button>
-            </div>
-            <form id="talent-form">
-                <input type="hidden" id="editing-talent-id">
-                <div class="space-y-4">
-                    <div><label for="talent-nickname" class="block text-sm font-medium text-gray-700">达人昵称 <span class="text-red-500">*</span></label><input type="text" id="talent-nickname" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
-                    <div><label for="talent-xingtu-id" class="block text-sm font-medium text-gray-700">星图ID <span class="text-red-500">*</span></label><input type="text" id="talent-xingtu-id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
-                    <div><label for="talent-uid" class="block text-sm font-medium text-gray-700">UID</label><input type="text" id="talent-uid" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
-                    <div><label for="talent-type" class="block text-sm font-medium text-gray-700">内容标签 (多个用逗号隔开)</label><input type="text" id="talent-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
-                    <div><label for="talent-source" class="block text-sm font-medium text-gray-700">达人来源</label><select id="talent-source" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"><option value="野生达人">野生达人</option><option value="机构达人">机构达人</option></select></div>
-                    <div><label for="talent-tier" class="block text-sm font-medium text-gray-700">达人层级</label><select id="talent-tier" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select></div>
+    <div id="talent-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden modal z-50">
+        <div id="talent-modal-content" class="relative top-10 mx-auto p-0 border-0 w-full max-w-2xl shadow-2xl rounded-xl bg-white opacity-0 scale-95 modal-content overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 id="modal-title" class="text-2xl font-bold text-white">新增达人</h3>
+                        <p class="text-blue-100 text-sm mt-1">填写达人基本信息</p>
+                    </div>
+                    <button id="close-modal-btn" class="text-white hover:text-blue-100 text-3xl leading-none transition-colors">&times;</button>
                 </div>
-                <div class="mt-6 flex justify-end"><button type="submit" id="modal-submit-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">确认创建</button></div>
+            </div>
+
+            <!-- Form Content -->
+            <form id="talent-form" class="p-6">
+                <input type="hidden" id="editing-talent-id">
+
+                <!-- 基本信息区 -->
+                <div class="mb-6">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-4 pb-2 border-b-2 border-blue-200 flex items-center">
+                        <span class="bg-blue-100 text-blue-700 rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">1</span>
+                        基本信息
+                    </h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="talent-nickname" class="block text-sm font-medium text-gray-700 mb-1">
+                                达人昵称 <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="talent-nickname" required
+                                class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                placeholder="请输入达人昵称">
+                        </div>
+                        <div>
+                            <label for="talent-xingtu-id" class="block text-sm font-medium text-gray-700 mb-1">
+                                星图ID <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="talent-xingtu-id" required
+                                class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                placeholder="请输入星图ID">
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="talent-uid" class="block text-sm font-medium text-gray-700 mb-1">
+                            UID <span class="text-gray-400 text-xs">(选填)</span>
+                        </label>
+                        <input type="text" id="talent-uid"
+                            class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                            placeholder="请输入UID">
+                    </div>
+                </div>
+
+                <!-- 分类信息区 -->
+                <div class="mb-6">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-4 pb-2 border-b-2 border-green-200 flex items-center">
+                        <span class="bg-green-100 text-green-700 rounded-full w-6 h-6 flex items-center justify-center text-xs mr-2">2</span>
+                        分类信息
+                    </h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="talent-type" class="block text-sm font-medium text-gray-700 mb-1">
+                                内容标签 <span class="text-gray-400 text-xs">(多个标签用逗号隔开)</span>
+                            </label>
+                            <input type="text" id="talent-type"
+                                class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                                placeholder="例如: 美妆, 剧情, 搞笑">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="talent-source" class="block text-sm font-medium text-gray-700 mb-1">
+                                    达人来源
+                                </label>
+                                <select id="talent-source"
+                                    class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white">
+                                    <option value="野生达人">野生达人</option>
+                                    <option value="机构达人">机构达人</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="talent-tier" class="block text-sm font-medium text-gray-700 mb-1">
+                                    达人层级
+                                </label>
+                                <select id="talent-tier"
+                                    class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <button type="button" id="close-modal-btn-footer" class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors">
+                        取消
+                    </button>
+                    <button type="submit" id="modal-submit-btn" class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 font-medium shadow-lg transition-all">
+                        确认创建
+                    </button>
+                </div>
             </form>
         </div>
     </div>
     
     <!-- [V6.2.1 重构] Rebate Modal -->
+>>>>>>> 29d3887 (feat(talent_pool): 更新 HTML 添加 Chart.js 和完整 Modal 结构)
     <div id="rebate-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden modal z-50">
-        <div class="relative top-10 mx-auto p-6 border w-full max-w-5xl shadow-lg rounded-md bg-white" style="max-height: 90vh; overflow-y: auto;">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-semibold text-gray-800">返点率管理: <span id="rebate-talent-name" class="text-blue-600"></span></h3>
-                <button id="close-rebate-modal-btn" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+        <div class="relative top-10 mx-auto p-0 border-0 w-full max-w-5xl shadow-2xl rounded-xl bg-white overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-5">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-2xl font-bold text-white">返点率管理: <span id="rebate-talent-name" class="text-green-100"></span></h3>
+                        <p class="text-green-100 text-sm mt-1">管理返点率和趋势分析</p>
+                    </div>
+                    <button id="close-rebate-modal-btn" class="text-white hover:text-green-100 text-3xl leading-none transition-colors">&times;</button>
+                </div>
             </div>
 
+            <!-- Content -->
+            <div class="p-6">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- 左侧：返点率列表 -->
-                <div class="space-y-4">
-                    <div>
-                        <h4 class="text-sm font-semibold text-gray-700 mb-2">当前返点率</h4>
-                        <ul id="rebate-list" class="space-y-2 max-h-80 overflow-y-auto border rounded-md p-3 bg-gray-50"></ul>
+                <!-- 左侧：当前返点率 + 新增返点率 -->
+                <div class="flex flex-col border rounded-md bg-gray-50 p-4 shadow-sm" style="height: 500px;">
+                    <!-- 上部：当前返点率 -->
+                    <div class="flex-1 flex flex-col mb-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3">当前返点率</h4>
+                        <ul id="rebate-list" class="space-y-2 flex-1 overflow-y-auto border rounded-md p-3 bg-white"></ul>
                     </div>
 
-                    <!-- 新增返点率表单 -->
-                    <form id="rebate-form" class="p-4 border rounded-md bg-white shadow-sm">
-                        <h4 class="font-semibold text-gray-800 text-sm mb-3">新增返点率</h4>
-                        <div class="flex items-end gap-2">
-                            <div class="flex-grow">
-                                <label for="new-rebate-rate" class="block text-xs font-medium text-gray-700 mb-1">返点率 (%)</label>
-                                <input type="number" id="new-rebate-rate" step="0.01" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" required>
+                    <!-- 下部：新增返点率表单 -->
+                    <div class="border-t pt-4">
+                        <form id="rebate-form" class="space-y-3">
+                            <h4 class="font-semibold text-gray-800 text-sm">新增返点率</h4>
+                            <div class="flex items-end gap-2">
+                                <div class="flex-grow">
+                                    <label for="new-rebate-rate" class="block text-xs font-medium text-gray-700 mb-1">返点率 (%)</label>
+                                    <input type="number" id="new-rebate-rate" step="0.01" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" required>
+                                </div>
+                                <button type="submit" class="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 font-medium">添加</button>
                             </div>
-                            <button type="submit" class="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 font-medium">添加</button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
 
-                <!-- 右侧：返点率趋势图 -->
-                <div class="space-y-4">
-                    <div>
-                        <h4 class="text-sm font-semibold text-gray-700">返点率变化趋势</h4>
-                    </div>
-                    <div class="border rounded-md p-4 bg-white shadow-sm">
-                        <canvas id="rebate-trend-chart" style="max-height: 400px;"></canvas>
+                <!-- 右侧：返点率变化趋势 -->
+                <div class="flex flex-col border rounded-md bg-white p-4 shadow-sm" style="height: 500px;">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">返点率变化趋势</h4>
+                    <div class="flex-1" style="min-height: 0;">
+                        <canvas id="rebate-trend-chart"></canvas>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     </div>
 
     <!-- [V6.2 重构] Price Modal -->
+>>>>>>> 29d3887 (feat(talent_pool): 更新 HTML 添加 Chart.js 和完整 Modal 结构)
     <div id="price-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden modal z-50">
-        <div class="relative top-10 mx-auto p-6 border w-full max-w-6xl shadow-lg rounded-md bg-white" style="max-height: 90vh; overflow-y: auto;">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-semibold text-gray-800">价格管理: <span id="price-talent-name" class="text-blue-600"></span></h3>
-                <button id="close-price-modal-btn" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+        <div class="relative top-10 mx-auto p-0 border-0 w-full max-w-6xl shadow-2xl rounded-xl bg-white overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-5">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-2xl font-bold text-white">价格管理: <span id="price-talent-name" class="text-purple-100"></span></h3>
+                        <p class="text-purple-100 text-sm mt-1">管理3档价格类型和趋势分析</p>
+                    </div>
+                    <button id="close-price-modal-btn" class="text-white hover:text-purple-100 text-3xl leading-none transition-colors">&times;</button>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- 左侧：价格列表 -->
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between">
+            <!-- Content -->
+            <div class="p-6">
+            <!-- 上部：左右两栏布局 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- 左上：历史价格记录 -->
+                <div class="flex flex-col border rounded-md bg-gray-50 p-4 shadow-sm" style="height: 350px;">
+                    <div class="flex items-center justify-between mb-3">
                         <h4 class="text-sm font-semibold text-gray-700">历史价格记录</h4>
                         <div class="flex gap-2">
-                            <select id="price-list-year-filter" class="text-sm rounded-md border-gray-300 shadow-sm px-2 py-1">
-                                <option value="">全部年份</option>
+                            <select id="price-list-year-filter" class="text-xs rounded-md border-gray-300 shadow-sm px-2 py-1">
                             </select>
-                            <select id="price-list-month-filter" class="text-sm rounded-md border-gray-300 shadow-sm px-2 py-1">
-                                <option value="">全部月份</option>
+                            <select id="price-list-month-filter" class="text-xs rounded-md border-gray-300 shadow-sm px-2 py-1">
                             </select>
                         </div>
                     </div>
-                    <ul id="price-list" class="space-y-2 max-h-80 overflow-y-auto border rounded-md p-3 bg-gray-50"></ul>
+                    <ul id="price-list" class="space-y-2 flex-1 overflow-y-auto"></ul>
+                </div>
 
-                    <!-- 新增价格表单 -->
-                    <form id="price-form" class="space-y-3 p-4 border rounded-md bg-white shadow-sm">
-                        <h4 class="font-semibold text-gray-800 text-sm">新增/更新价格</h4>
+                <!-- 右上：新增/更新价格 -->
+                <div class="flex flex-col border rounded-md bg-white p-4 shadow-sm" style="height: 350px;">
+                    <h4 class="font-semibold text-gray-800 text-sm mb-3">新增/更新价格</h4>
+                    <form id="price-form" class="space-y-3 flex-1 overflow-y-auto">
                         <div class="grid grid-cols-2 gap-3">
                             <div><label for="price-year" class="block text-xs font-medium text-gray-700 mb-1">年份</label><select id="price-year" class="block w-full text-sm rounded-md border-gray-300 shadow-sm"></select></div>
                             <div><label for="price-month" class="block text-xs font-medium text-gray-700 mb-1">月份</label><select id="price-month" class="block w-full text-sm rounded-md border-gray-300 shadow-sm"></select></div>
@@ -291,33 +393,122 @@
                         <div class="text-right"><button type="submit" class="px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 font-medium">保存价格</button></div>
                     </form>
                 </div>
+            </div>
 
-                <!-- 右侧：价格趋势图 -->
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h4 class="text-sm font-semibold text-gray-700">价格趋势分析</h4>
-                        <div class="flex gap-2">
-                            <select id="price-chart-type-filter" class="text-sm rounded-md border-gray-300 shadow-sm px-2 py-1">
-                                <option value="60s_plus">60s+视频</option>
-                                <option value="20_to_60s">20-60s视频</option>
-                                <option value="1_to_20s">1-20s视频</option>
-                            </select>
-                            <select id="price-chart-year-filter" class="text-sm rounded-md border-gray-300 shadow-sm px-2 py-1"></select>
+            <!-- 下部：价格趋势分析（横躺） -->
+            <div class="border rounded-md bg-white p-4 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-sm font-semibold text-gray-700">价格趋势分析</h4>
+                    <div class="flex gap-2">
+                        <select id="price-chart-type-filter" class="text-sm rounded-md border-gray-300 shadow-sm px-2 py-1">
+                            <option value="60s_plus">60s+视频</option>
+                            <option value="20_to_60s">20-60s视频</option>
+                            <option value="1_to_20s">1-20s视频</option>
+                        </select>
+                        <select id="price-chart-year-filter" class="text-sm rounded-md border-gray-300 shadow-sm px-2 py-1"></select>
+                    </div>
+                </div>
+                <div style="height: 300px;">
+                    <canvas id="price-trend-chart"></canvas>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 合作历史 Modal -->
+    <div id="history-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden modal z-50">
+        <div class="relative top-10 mx-auto p-0 border-0 w-full max-w-6xl shadow-2xl rounded-xl bg-white overflow-hidden opacity-0 scale-95 modal-content">
+            <!-- Header: Orange Gradient -->
+            <div class="bg-gradient-to-r from-orange-600 to-orange-700 px-6 py-5">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-2xl font-bold text-white">合作历史: <span id="history-talent-name" class="text-orange-100"></span></h3>
+                        <p class="text-orange-100 text-sm mt-1">查看历史合作记录、统计数据与趋势分析</p>
+                    </div>
+                    <button id="close-history-modal-btn" class="text-white hover:text-orange-100 text-3xl leading-none transition-colors">&times;</button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-6">
+                <!-- Statistics Panel -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                        <div class="text-sm text-blue-600 font-medium mb-1">总合作次数</div>
+                        <div id="history-stat-total" class="text-2xl font-bold text-blue-900">0</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                        <div class="text-sm text-green-600 font-medium mb-1">总合作金额</div>
+                        <div id="history-stat-amount" class="text-2xl font-bold text-green-900">¥0</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                        <div class="text-sm text-purple-600 font-medium mb-1">平均返点率</div>
+                        <div id="history-stat-avg-rebate" class="text-2xl font-bold text-purple-900">0%</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
+                        <div class="text-sm text-orange-600 font-medium mb-1">筛选结果</div>
+                        <div id="history-stat-filtered" class="text-2xl font-bold text-orange-900">0</div>
+                    </div>
+                </div>
+
+                <!-- Time Filters -->
+                <div class="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg border">
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-medium text-gray-700">筛选时间:</label>
+                        <select id="history-year-filter" class="text-sm rounded-md border-gray-300 shadow-sm px-3 py-1.5 bg-white">
+                            <option value="">全部年份</option>
+                        </select>
+                        <select id="history-month-filter" class="text-sm rounded-md border-gray-300 shadow-sm px-3 py-1.5 bg-white">
+                            <option value="">全部月份</option>
+                        </select>
+                    </div>
+                    <button id="history-reset-filter-btn" class="ml-auto text-sm text-blue-600 hover:text-blue-800 font-medium">重置筛选</button>
+                </div>
+
+                <!-- Main Content: Timeline + Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Left: Collaboration Timeline -->
+                    <div class="flex flex-col border rounded-lg bg-gray-50 p-4 shadow-sm" style="height: 500px;">
+                        <h4 class="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            合作记录时间轴
+                        </h4>
+                        <div id="history-timeline-container" class="flex-1 overflow-y-auto space-y-3">
+                            <p class="text-center text-gray-500 py-8">正在加载...</p>
                         </div>
                     </div>
-                    <div class="border rounded-md p-4 bg-white shadow-sm">
-                        <canvas id="price-trend-chart" style="max-height: 400px;"></canvas>
+
+                    <!-- Right: Dual Charts -->
+                    <div class="flex flex-col border rounded-lg bg-white p-4 shadow-sm" style="height: 500px;">
+                        <h4 class="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            数据趋势分析
+                        </h4>
+                        <div class="flex-1 flex flex-col gap-4">
+                            <!-- Rebate Trend Chart -->
+                            <div class="flex-1 border rounded-md bg-gray-50 p-3" style="min-height: 0;">
+                                <p class="text-xs font-medium text-gray-600 mb-2">返点率变化趋势</p>
+                                <div style="height: calc(100% - 24px);">
+                                    <canvas id="history-rebate-chart"></canvas>
+                                </div>
+                            </div>
+                            <!-- Monthly Count Chart -->
+                            <div class="flex-1 border rounded-md bg-gray-50 p-3" style="min-height: 0;">
+                                <p class="text-xs font-medium text-gray-600 mb-2">每月合作次数</p>
+                                <div style="height: calc(100% - 24px);">
+                                    <canvas id="history-monthly-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <div id="history-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden modal">
-         <div class="relative top-20 mx-auto p-5 border w-full max-w-3xl shadow-lg rounded-md bg-white">
-             <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-medium">合作历史: <span id="history-talent-name" class="font-bold"></span></h3><button id="close-history-modal-btn" class="text-gray-400 hover:text-gray-600">&times;</button></div>
-            <div id="history-table-container" class="max-h-96 overflow-y-auto"></div>
-         </div>
     </div>
 
     <div id="settings-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden modal">
@@ -389,7 +580,9 @@
     <div id="toast-notification" class="fixed bottom-5 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg text-white font-semibold shadow-lg transition-all duration-300 opacity-0 invisible"></div>
     
     <script src="sidebar.js" defer></script>
-    <script src="talent_pool.js"></script>
+    <script type="module" src="talent_pool/main.js"></script>
 </body>
 </html>
+
+
 
