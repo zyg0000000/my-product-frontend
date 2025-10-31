@@ -416,11 +416,99 @@
         </div>
     </div>
 
-    <div id="history-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden modal">
-         <div class="relative top-20 mx-auto p-5 border w-full max-w-3xl shadow-lg rounded-md bg-white">
-             <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-medium">合作历史: <span id="history-talent-name" class="font-bold"></span></h3><button id="close-history-modal-btn" class="text-gray-400 hover:text-gray-600">&times;</button></div>
-            <div id="history-table-container" class="max-h-96 overflow-y-auto"></div>
-         </div>
+    <!-- 合作历史 Modal -->
+    <div id="history-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden modal z-50">
+        <div class="relative top-10 mx-auto p-0 border-0 w-full max-w-6xl shadow-2xl rounded-xl bg-white overflow-hidden opacity-0 scale-95 modal-content">
+            <!-- Header: Orange Gradient -->
+            <div class="bg-gradient-to-r from-orange-600 to-orange-700 px-6 py-5">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-2xl font-bold text-white">合作历史: <span id="history-talent-name" class="text-orange-100"></span></h3>
+                        <p class="text-orange-100 text-sm mt-1">查看历史合作记录、统计数据与趋势分析</p>
+                    </div>
+                    <button id="close-history-modal-btn" class="text-white hover:text-orange-100 text-3xl leading-none transition-colors">&times;</button>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-6">
+                <!-- Statistics Panel -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                        <div class="text-sm text-blue-600 font-medium mb-1">总合作次数</div>
+                        <div id="history-stat-total" class="text-2xl font-bold text-blue-900">0</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                        <div class="text-sm text-green-600 font-medium mb-1">总合作金额</div>
+                        <div id="history-stat-amount" class="text-2xl font-bold text-green-900">¥0</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                        <div class="text-sm text-purple-600 font-medium mb-1">平均返点率</div>
+                        <div id="history-stat-avg-rebate" class="text-2xl font-bold text-purple-900">0%</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
+                        <div class="text-sm text-orange-600 font-medium mb-1">筛选结果</div>
+                        <div id="history-stat-filtered" class="text-2xl font-bold text-orange-900">0</div>
+                    </div>
+                </div>
+
+                <!-- Time Filters -->
+                <div class="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg border">
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-medium text-gray-700">筛选时间:</label>
+                        <select id="history-year-filter" class="text-sm rounded-md border-gray-300 shadow-sm px-3 py-1.5 bg-white">
+                            <option value="">全部年份</option>
+                        </select>
+                        <select id="history-month-filter" class="text-sm rounded-md border-gray-300 shadow-sm px-3 py-1.5 bg-white">
+                            <option value="">全部月份</option>
+                        </select>
+                    </div>
+                    <button id="history-reset-filter-btn" class="ml-auto text-sm text-blue-600 hover:text-blue-800 font-medium">重置筛选</button>
+                </div>
+
+                <!-- Main Content: Timeline + Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Left: Collaboration Timeline -->
+                    <div class="flex flex-col border rounded-lg bg-gray-50 p-4 shadow-sm" style="height: 500px;">
+                        <h4 class="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            合作记录时间轴
+                        </h4>
+                        <div id="history-timeline-container" class="flex-1 overflow-y-auto space-y-3">
+                            <p class="text-center text-gray-500 py-8">正在加载...</p>
+                        </div>
+                    </div>
+
+                    <!-- Right: Dual Charts -->
+                    <div class="flex flex-col border rounded-lg bg-white p-4 shadow-sm" style="height: 500px;">
+                        <h4 class="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            数据趋势分析
+                        </h4>
+                        <div class="flex-1 flex flex-col gap-4">
+                            <!-- Rebate Trend Chart -->
+                            <div class="flex-1 border rounded-md bg-gray-50 p-3" style="min-height: 0;">
+                                <p class="text-xs font-medium text-gray-600 mb-2">返点率变化趋势</p>
+                                <div style="height: calc(100% - 24px);">
+                                    <canvas id="history-rebate-chart"></canvas>
+                                </div>
+                            </div>
+                            <!-- Monthly Count Chart -->
+                            <div class="flex-1 border rounded-md bg-gray-50 p-3" style="min-height: 0;">
+                                <p class="text-xs font-medium text-gray-600 mb-2">每月合作次数</p>
+                                <div style="height: calc(100% - 24px);">
+                                    <canvas id="history-monthly-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="settings-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden modal">
