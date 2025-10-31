@@ -222,33 +222,34 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- 左侧：返点率列表 -->
-                <div class="space-y-4">
-                    <div>
-                        <h4 class="text-sm font-semibold text-gray-700 mb-2">当前返点率</h4>
-                        <ul id="rebate-list" class="space-y-2 max-h-80 overflow-y-auto border rounded-md p-3 bg-gray-50"></ul>
+                <!-- 左侧：当前返点率 + 新增返点率 -->
+                <div class="flex flex-col border rounded-md bg-gray-50 p-4 shadow-sm" style="height: 500px;">
+                    <!-- 上部：当前返点率 -->
+                    <div class="flex-1 flex flex-col mb-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3">当前返点率</h4>
+                        <ul id="rebate-list" class="space-y-2 flex-1 overflow-y-auto border rounded-md p-3 bg-white"></ul>
                     </div>
 
-                    <!-- 新增返点率表单 -->
-                    <form id="rebate-form" class="p-4 border rounded-md bg-white shadow-sm">
-                        <h4 class="font-semibold text-gray-800 text-sm mb-3">新增返点率</h4>
-                        <div class="flex items-end gap-2">
-                            <div class="flex-grow">
-                                <label for="new-rebate-rate" class="block text-xs font-medium text-gray-700 mb-1">返点率 (%)</label>
-                                <input type="number" id="new-rebate-rate" step="0.01" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" required>
+                    <!-- 下部：新增返点率表单 -->
+                    <div class="border-t pt-4">
+                        <form id="rebate-form" class="space-y-3">
+                            <h4 class="font-semibold text-gray-800 text-sm">新增返点率</h4>
+                            <div class="flex items-end gap-2">
+                                <div class="flex-grow">
+                                    <label for="new-rebate-rate" class="block text-xs font-medium text-gray-700 mb-1">返点率 (%)</label>
+                                    <input type="number" id="new-rebate-rate" step="0.01" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" required>
+                                </div>
+                                <button type="submit" class="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 font-medium">添加</button>
                             </div>
-                            <button type="submit" class="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 font-medium">添加</button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
 
-                <!-- 右侧：返点率趋势图 -->
-                <div class="space-y-4">
-                    <div>
-                        <h4 class="text-sm font-semibold text-gray-700">返点率变化趋势</h4>
-                    </div>
-                    <div class="border rounded-md p-4 bg-white shadow-sm">
-                        <canvas id="rebate-trend-chart" style="max-height: 400px;"></canvas>
+                <!-- 右侧：返点率变化趋势 -->
+                <div class="flex flex-col border rounded-md bg-white p-4 shadow-sm" style="height: 500px;">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">返点率变化趋势</h4>
+                    <div class="flex-1" style="min-height: 0;">
+                        <canvas id="rebate-trend-chart"></canvas>
                     </div>
                 </div>
             </div>
@@ -267,7 +268,7 @@
             <!-- 上部：左右两栏布局 -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <!-- 左上：历史价格记录 -->
-                <div class="flex flex-col border rounded-md bg-gray-50 p-4 shadow-sm" style="height: 300px;">
+                <div class="flex flex-col border rounded-md bg-gray-50 p-4 shadow-sm" style="height: 350px;">
                     <div class="flex items-center justify-between mb-3">
                         <h4 class="text-sm font-semibold text-gray-700">历史价格记录</h4>
                         <div class="flex gap-2">
@@ -281,7 +282,7 @@
                 </div>
 
                 <!-- 右上：新增/更新价格 -->
-                <div class="flex flex-col border rounded-md bg-white p-4 shadow-sm" style="height: 300px;">
+                <div class="flex flex-col border rounded-md bg-white p-4 shadow-sm" style="height: 350px;">
                     <h4 class="font-semibold text-gray-800 text-sm mb-3">新增/更新价格</h4>
                     <form id="price-form" class="space-y-3 flex-1 overflow-y-auto">
                         <div class="grid grid-cols-2 gap-3">
