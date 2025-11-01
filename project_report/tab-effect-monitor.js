@@ -306,7 +306,21 @@ export class EffectMonitorTab {
         listContainer.innerHTML = '<div class="text-center py-8 text-gray-500">正在加载数据...</div>';
 
         try {
-            // 获取日期范围内的所有日报数据
+            // 1. 先获取项目的所有合作订单，建立collaborationId到videoId/taskId的映射
+            const collabResponse = await API.request(`${API_ENDPOINTS.COLLABORATORS}?projectId=${this.projectId}`);
+            const collaborations = collabResponse.data || [];
+
+            // 建立映射表：collaborationId -> { videoId, taskId }
+            const collabIdMap = new Map();
+            collaborations.forEach(collab => {
+                collabIdMap.set(collab.id, {
+                    videoId: collab.videoId || null,
+                    taskId: collab.taskId || null,
+                    talentName: collab.talentNickname || collab.talentName
+                });
+            });
+
+            // 2. 获取日期范围内的所有日报数据
             const promises = this.dateRange.map(date =>
                 API.request(`${API_ENDPOINTS.REPORT}?projectId=${this.projectId}&date=${date}`)
             );
@@ -330,15 +344,26 @@ export class EffectMonitorTab {
                 ['hotVideos', 'goodVideos', 'normalVideos', 'badVideos', 'worstVideos'].forEach(category => {
                     const videos = details[category] || [];
                     videos.forEach(video => {
-                        // 使用 videoId 作为唯一标识
-                        const videoId = video.videoId || video.taskId || video.collaborationId;
-                        const taskId = video.taskId || video.collaborationId || videoId;
-                        const videoKey = `${videoId}_${date}`;
+                        // 从collaborations集合获取真正的videoId和taskId
+                        const collaborationId = video.collaborationId;
+                        const collabInfo = collabIdMap.get(collaborationId);
+
+                        if (!collabInfo) {
+                            console.warn(`找不到collaborationId=${collaborationId}的合作订单信息`);
+                            return; // 跳过没有映射信息的视频
+                        }
+
+                        // 使用真正的videoId（如果没有则使用taskId或collaborationId作为fallback）
+                        const videoId = collabInfo.videoId || collabInfo.taskId || collaborationId;
+                        const taskId = collabInfo.taskId || collaborationId;
+                        const talentName = collabInfo.talentName || video.talentName;
+                        const videoKey = `${collaborationId}_${date}`; // 使用collaborationId作为key更准确
 
                         if (!videoDateMap.has(videoKey)) {
                             // 第一次遇到这个视频
                             videoDateMap.set(videoKey, {
-                                talentName: video.talentName,
+                                collaborationId: collaborationId,
+                                talentName: talentName,
                                 taskId: taskId,
                                 videoId: videoId,
                                 date: date,
@@ -356,25 +381,26 @@ export class EffectMonitorTab {
                     });
                 });
 
-                // 第二步：将去重后的数据按 videoId 聚合（每个视频独立）
+                // 第二步：将去重后的数据按 collaborationId 聚合（每个合作独立）
                 videoDateMap.forEach(videoData => {
-                    const videoId = videoData.videoId;
+                    const collaborationId = videoData.collaborationId;
 
                     // 计算该视频当天的平均值
                     const avgViews = videoData.viewsSum / videoData.count;
                     const avgCpm = videoData.cpmSum / videoData.count;
 
-                    if (!videoMap.has(videoId)) {
-                        // 第一次遇到这个视频，创建新条目
-                        videoMap.set(videoId, {
-                            videoId: videoId,
+                    if (!videoMap.has(collaborationId)) {
+                        // 第一次遇到这个合作，创建新条目
+                        videoMap.set(collaborationId, {
+                            collaborationId: collaborationId,
+                            videoId: videoData.videoId,
                             taskId: videoData.taskId,
                             talentName: videoData.talentName,
                             dailyData: []
                         });
                     }
 
-                    const video = videoMap.get(videoId);
+                    const video = videoMap.get(collaborationId);
 
                     // 添加每日数据
                     video.dailyData.push({
@@ -492,26 +518,33 @@ export class EffectMonitorTab {
         }
 
         container.innerHTML = this.filteredVideoList.map(video => {
-            const isSelected = this.selectedVideo && this.selectedVideo.videoId === video.videoId;
+            const isSelected = this.selectedVideo && this.selectedVideo.collaborationId === video.collaborationId;
+
+            // 如果videoId或taskId为空，显示N/A
+            const videoIdDisplay = video.videoId || '<span class="text-gray-400">N/A</span>';
+            const taskIdDisplay = video.taskId || '<span class="text-gray-400">N/A</span>';
+            const hasVideoId = !!video.videoId;
 
             return `
-                <div class="talent-card p-4 border-b ${isSelected ? 'selected' : ''}" data-video-id="${video.videoId}">
+                <div class="talent-card p-4 border-b ${isSelected ? 'selected' : ''}" data-collaboration-id="${video.collaborationId}">
                     <div class="flex justify-between items-start mb-2">
                         <div class="flex-1">
                             <h4 class="font-medium text-gray-900 mb-1">${video.talentName}</h4>
                             <div class="text-xs text-gray-500 space-y-0.5">
-                                <div>任务ID: ${video.taskId}</div>
+                                <div>任务ID: ${taskIdDisplay}</div>
                                 <div class="flex items-center gap-1">
                                     <span>视频ID:</span>
-                                    <a href="https://www.douyin.com/video/${video.videoId}"
-                                       target="_blank"
-                                       class="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-0.5"
-                                       onclick="event.stopPropagation()">
-                                        ${video.videoId}
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                                        </svg>
-                                    </a>
+                                    ${hasVideoId ? `
+                                        <a href="https://www.douyin.com/video/${video.videoId}"
+                                           target="_blank"
+                                           class="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-0.5"
+                                           onclick="event.stopPropagation()">
+                                            ${video.videoId}
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                            </svg>
+                                        </a>
+                                    ` : videoIdDisplay}
                                 </div>
                             </div>
                         </div>
@@ -542,8 +575,8 @@ export class EffectMonitorTab {
         // 绑定点击事件
         container.querySelectorAll('.talent-card').forEach(card => {
             card.addEventListener('click', () => {
-                const videoId = card.dataset.videoId;
-                const video = this.filteredVideoList.find(v => v.videoId === videoId);
+                const collaborationId = card.dataset.collaborationId;
+                const video = this.filteredVideoList.find(v => v.collaborationId === collaborationId);
                 if (video) {
                     this.handleVideoSelect(video);
                 }
@@ -575,23 +608,29 @@ export class EffectMonitorTab {
 
         const video = this.selectedVideoDetail;
 
+        // 处理可能为空的videoId和taskId
+        const taskIdDisplay = video.taskId || '<span class="text-gray-400">N/A</span>';
+        const hasVideoId = !!video.videoId;
+
         container.innerHTML = `
             <!-- 标题 -->
             <div class="p-4 border-b bg-gradient-to-r from-blue-50 to-white">
                 <h3 class="text-xl font-semibold text-gray-800">📊 视频效果数据</h3>
                 <div class="mt-2 text-sm text-gray-600 space-y-1">
                     <div>达人: <span class="font-medium text-gray-800">${video.talentName}</span></div>
-                    <div>任务ID: <span class="font-mono text-gray-800">${video.taskId}</span></div>
+                    <div>任务ID: <span class="font-mono text-gray-800">${taskIdDisplay}</span></div>
                     <div class="flex items-center gap-1">
                         <span>视频ID:</span>
-                        <a href="https://www.douyin.com/video/${video.videoId}"
-                           target="_blank"
-                           class="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1 font-mono">
-                            ${video.videoId}
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                            </svg>
-                        </a>
+                        ${hasVideoId ? `
+                            <a href="https://www.douyin.com/video/${video.videoId}"
+                               target="_blank"
+                               class="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1 font-mono">
+                                ${video.videoId}
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                            </a>
+                        ` : '<span class="font-mono text-gray-400">N/A</span>'}
                     </div>
                 </div>
             </div>
@@ -612,31 +651,10 @@ export class EffectMonitorTab {
                 </div>
             </div>
 
-            <!-- 趋势图 -->
-            <div class="p-4 grid grid-cols-2 gap-4">
-                <div class="border rounded-lg p-4">
-                    <h4 class="text-sm font-medium text-gray-700 mb-3">累积播放量趋势</h4>
-                    <div style="height: 250px;">
-                        <canvas id="viewsTrendChart"></canvas>
-                    </div>
-                </div>
-                <div class="border rounded-lg p-4">
-                    <h4 class="text-sm font-medium text-gray-700 mb-3">CPM 趋势</h4>
-                    <div style="height: 250px;">
-                        <canvas id="cpmTrendChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 历史对比占位 -->
-            <div class="p-4 border-t">
-                <div id="historyComparisonPlaceholder"></div>
-            </div>
-
             <!-- 每日数据明细表 -->
-            <div class="p-4">
+            <div class="p-4 flex flex-col" style="height: calc(100vh - 400px);">
                 <h4 class="text-sm font-medium text-gray-700 mb-3">📅 每日数据明细</h4>
-                <div class="border rounded-lg overflow-hidden">
+                <div class="border rounded-lg overflow-hidden flex-1 overflow-y-auto">
                     <table class="w-full text-sm">
                         <thead class="bg-gray-100">
                             <tr>
@@ -676,12 +694,6 @@ export class EffectMonitorTab {
         // 隐藏空状态提示
         const emptyTip = document.getElementById('emptyStateTip');
         if (emptyTip) emptyTip.style.display = 'none';
-
-        // 渲染图表
-        this.renderTrendsCharts();
-
-        // 渲染历史对比占位
-        this.renderHistoryPlaceholder();
     }
 
     /**
