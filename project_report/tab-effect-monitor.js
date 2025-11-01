@@ -97,53 +97,11 @@ export class EffectMonitorTab {
         }
 
         container.innerHTML = `
-            <!-- 顶部：日期范围选择器 -->
-            <div class="mb-4 p-4 bg-white rounded-lg border">
-                <div class="flex items-center gap-4 flex-wrap">
-                    <!-- 快捷选项 -->
-                    <div class="flex gap-2">
-                        <button class="range-quick-btn px-4 py-2 rounded text-sm font-medium transition-colors" data-days="7">发布后7天</button>
-                        <button class="range-quick-btn px-4 py-2 rounded text-sm font-medium transition-colors active" data-days="14">发布后14天</button>
-                        <button class="range-quick-btn px-4 py-2 rounded text-sm font-medium transition-colors" data-days="30">发布后30天</button>
-                        <button class="range-quick-btn px-4 py-2 rounded text-sm font-medium transition-colors" data-days="all">全部数据</button>
-                    </div>
-
-                    <!-- 自定义日期 -->
-                    <div class="flex items-center gap-2 text-sm">
-                        <span class="text-gray-600">自定义:</span>
-                        <input type="date" id="effectMonitorStartDate" class="border rounded px-2 py-1 text-sm">
-                        <span class="text-gray-600">至</span>
-                        <input type="date" id="effectMonitorEndDate" class="border rounded px-2 py-1 text-sm">
-                        <button id="applyCustomRange" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">应用</button>
-                    </div>
-                </div>
-            </div>
-
             <!-- 主内容区 -->
-            <div class="flex gap-4 h-[calc(100vh-280px)]">
+            <div class="flex gap-4 h-[calc(100vh-200px)]">
 
-                <!-- 左侧：达人列表 -->
+                <!-- 左侧：视频列表 -->
                 <div class="w-1/3 flex flex-col border rounded-lg bg-white overflow-hidden">
-
-                    <!-- 搜索栏 -->
-                    <div class="p-4 border-b">
-                        <input type="text" id="videoSearchInput"
-                               placeholder="🔍 按达人名称搜索..."
-                               class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-
-                    <!-- 排序选项 -->
-                    <div class="px-4 py-3 border-b bg-gray-50">
-                        <select id="videoSortSelect" class="w-full rounded-md border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
-                            <option value="latestCpm_asc" selected>CPM ↑ (从低到高)</option>
-                            <option value="latestCpm_desc">CPM ↓ (从高到低)</option>
-                            <option value="totalViews_desc">总播放量 ↓</option>
-                            <option value="totalViews_asc">总播放量 ↑</option>
-                            <option value="latestViews_desc">最新播放 ↓</option>
-                            <option value="viewsGrowthRate_desc">增长率 ↓</option>
-                        </select>
-                    </div>
-
                     <!-- 视频列表 -->
                     <div class="flex-1 overflow-y-auto" id="videoListContainer">
                         <div class="text-center py-8 text-gray-500">加载中...</div>
@@ -168,17 +126,6 @@ export class EffectMonitorTab {
             </div>
 
             <style>
-                .range-quick-btn {
-                    background-color: #f3f4f6;
-                    color: #6b7280;
-                }
-                .range-quick-btn.active {
-                    background-color: #3b82f6;
-                    color: white;
-                }
-                .range-quick-btn:hover:not(.active) {
-                    background-color: #e5e7eb;
-                }
                 .talent-card {
                     cursor: pointer;
                     transition: all 0.2s;
@@ -481,25 +428,11 @@ export class EffectMonitorTab {
      * 应用搜索和排序
      */
     applyFilterAndSort() {
-        let filtered = [...this.videoList];
-
-        // 搜索过滤（按达人名称搜索）
-        if (this.searchKeyword.trim()) {
-            const keyword = this.searchKeyword.trim().toLowerCase();
-            filtered = filtered.filter(v =>
-                v.talentName.toLowerCase().includes(keyword)
-            );
-        }
-
-        // 排序
-        const [field, order] = this.sortBy.split('_');
-        filtered.sort((a, b) => {
-            const aVal = a[field] || 0;
-            const bVal = b[field] || 0;
-            return order === 'desc' ? bVal - aVal : aVal - bVal;
+        // 简化：不再需要搜索和排序，直接使用原始列表
+        // 默认按CPM从低到高排序
+        this.filteredVideoList = [...this.videoList].sort((a, b) => {
+            return (a.latestCpm || 0) - (b.latestCpm || 0);
         });
-
-        this.filteredVideoList = filtered;
     }
 
     /**
@@ -513,7 +446,6 @@ export class EffectMonitorTab {
             container.innerHTML = `
                 <div class="text-center py-8 text-gray-400">
                     <p>暂无数据</p>
-                    ${this.searchKeyword ? '<p class="text-sm mt-2">试试调整搜索关键词</p>' : ''}
                 </div>
             `;
             return;
@@ -654,7 +586,7 @@ export class EffectMonitorTab {
             </div>
 
             <!-- 每日数据明细表 -->
-            <div class="p-4 flex flex-col" style="height: calc(100vh - 400px);">
+            <div class="p-4 flex flex-col" style="height: calc(100vh - 320px);">
                 <h4 class="text-sm font-medium text-gray-700 mb-3">📅 每日数据明细</h4>
                 <div class="border rounded-lg overflow-hidden flex-1 overflow-y-auto">
                     <table class="w-full text-sm">
@@ -838,75 +770,8 @@ export class EffectMonitorTab {
      * 设置事件监听
      */
     setupEventListeners() {
-        // 快捷日期范围按钮
-        document.querySelectorAll('.range-quick-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                // 移除所有 active 状态
-                document.querySelectorAll('.range-quick-btn').forEach(b => b.classList.remove('active'));
-                // 添加当前按钮的 active 状态
-                e.target.classList.add('active');
-
-                const days = e.target.dataset.days;
-                this.setDateRange(days === 'all' ? 'all' : parseInt(days));
-                await this.loadEffectData();
-            });
-        });
-
-        // 自定义日期范围应用按钮
-        const applyBtn = document.getElementById('applyCustomRange');
-        if (applyBtn) {
-            applyBtn.addEventListener('click', async () => {
-                const startInput = document.getElementById('effectMonitorStartDate');
-                const endInput = document.getElementById('effectMonitorEndDate');
-
-                if (!startInput.value || !endInput.value) {
-                    alert('请选择开始和结束日期');
-                    return;
-                }
-
-                const startDate = new Date(startInput.value);
-                const endDate = new Date(endInput.value);
-
-                if (startDate > endDate) {
-                    alert('开始日期不能晚于结束日期');
-                    return;
-                }
-
-                // 生成自定义日期范围
-                this.dateRange = [];
-                const current = new Date(startDate);
-
-                while (current <= endDate) {
-                    this.dateRange.push(ReportUtils.getLocalDateString(current));
-                    current.setDate(current.getDate() + 1);
-                }
-
-                // 移除所有快捷按钮的 active 状态
-                document.querySelectorAll('.range-quick-btn').forEach(b => b.classList.remove('active'));
-
-                await this.loadEffectData();
-            });
-        }
-
-        // 搜索输入
-        const searchInput = document.getElementById('videoSearchInput');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                this.searchKeyword = e.target.value;
-                this.applyFilterAndSort();
-                this.renderVideoList();
-            });
-        }
-
-        // 排序选择
-        const sortSelect = document.getElementById('videoSortSelect');
-        if (sortSelect) {
-            sortSelect.addEventListener('change', (e) => {
-                this.sortBy = e.target.value;
-                this.applyFilterAndSort();
-                this.renderVideoList();
-            });
-        }
+        // 移除了日期范围选择、搜索、排序等事件监听
+        // 保持方法以防未来需要添加事件监听
     }
 
     /**
