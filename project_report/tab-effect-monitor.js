@@ -39,10 +39,10 @@ export class EffectMonitorTab {
         this.project = project;
 
         // 数据状态
-        this.talentList = [];              // 聚合后的达人列表
-        this.filteredTalentList = [];      // 过滤排序后的列表
-        this.selectedTalent = null;        // 当前选中的达人
-        this.selectedTalentDetail = null;  // 选中达人的详细数据
+        this.videoList = [];               // 聚合后的视频列表
+        this.filteredVideoList = [];       // 过滤排序后的列表
+        this.selectedVideo = null;         // 当前选中的视频
+        this.selectedVideoDetail = null;   // 选中视频的详细数据
 
         // Chart.js 实例
         this.viewsChart = null;
@@ -50,7 +50,7 @@ export class EffectMonitorTab {
 
         // 搜索和排序状态
         this.searchKeyword = '';
-        this.sortBy = 'totalViews_desc';
+        this.sortBy = 'latestCpm_asc';  // 默认按CPM从低到高
 
         // 日期范围状态
         this.dateRange = [];
@@ -127,39 +127,39 @@ export class EffectMonitorTab {
 
                     <!-- 搜索栏 -->
                     <div class="p-4 border-b">
-                        <input type="text" id="talentSearchInput"
-                               placeholder="🔍 搜索达人..."
+                        <input type="text" id="videoSearchInput"
+                               placeholder="🔍 按达人名称搜索..."
                                class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
 
                     <!-- 排序选项 -->
                     <div class="px-4 py-3 border-b bg-gray-50">
-                        <select id="talentSortSelect" class="w-full rounded-md border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                        <select id="videoSortSelect" class="w-full rounded-md border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="latestCpm_asc" selected>CPM ↑ (从低到高)</option>
+                            <option value="latestCpm_desc">CPM ↓ (从高到低)</option>
                             <option value="totalViews_desc">总播放量 ↓</option>
                             <option value="totalViews_asc">总播放量 ↑</option>
-                            <option value="latestCpm_desc">最新CPM ↓</option>
-                            <option value="latestCpm_asc">最新CPM ↑</option>
                             <option value="latestViews_desc">最新播放 ↓</option>
                             <option value="viewsGrowthRate_desc">增长率 ↓</option>
                         </select>
                     </div>
 
-                    <!-- 达人列表 -->
-                    <div class="flex-1 overflow-y-auto" id="talentListContainer">
+                    <!-- 视频列表 -->
+                    <div class="flex-1 overflow-y-auto" id="videoListContainer">
                         <div class="text-center py-8 text-gray-500">加载中...</div>
                     </div>
                 </div>
 
-                <!-- 右侧：达人详情 -->
+                <!-- 右侧：视频详情 -->
                 <div class="w-2/3 flex flex-col border rounded-lg bg-white overflow-hidden">
-                    <div class="flex-1 overflow-y-auto" id="talentDetailContainer">
+                    <div class="flex-1 overflow-y-auto" id="videoDetailContainer">
                         <!-- 未选中时的占位 -->
                         <div id="emptyStateTip" class="flex items-center justify-center h-full">
                             <div class="text-center text-gray-400">
                                 <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
-                                <p class="text-lg">← 请从左侧选择达人查看详细数据</p>
+                                <p class="text-lg">← 请从左侧选择视频查看效果数据</p>
                             </div>
                         </div>
                     </div>
@@ -300,7 +300,7 @@ export class EffectMonitorTab {
      * 加载效果监测数据
      */
     async loadEffectData() {
-        const listContainer = document.getElementById('talentListContainer');
+        const listContainer = document.getElementById('videoListContainer');
         if (!listContainer) return;
 
         listContainer.innerHTML = '<div class="text-center py-8 text-gray-500">正在加载数据...</div>';
@@ -313,8 +313,8 @@ export class EffectMonitorTab {
 
             const responses = await Promise.all(promises);
 
-            // 聚合数据：按达人分组
-            const talentMap = new Map();
+            // 聚合数据：按视频ID分组（每个视频是独立的实体）
+            const videoMap = new Map();
 
             responses.forEach((response, index) => {
                 const date = this.dateRange[index];
@@ -330,16 +330,18 @@ export class EffectMonitorTab {
                 ['hotVideos', 'goodVideos', 'normalVideos', 'badVideos', 'worstVideos'].forEach(category => {
                     const videos = details[category] || [];
                     videos.forEach(video => {
-                        // 使用 videoId(或collaborationId) + date 作为唯一标识
+                        // 使用 videoId 作为唯一标识
                         const videoId = video.videoId || video.taskId || video.collaborationId;
+                        const taskId = video.taskId || video.collaborationId || videoId;
                         const videoKey = `${videoId}_${date}`;
 
                         if (!videoDateMap.has(videoKey)) {
                             // 第一次遇到这个视频
                             videoDateMap.set(videoKey, {
                                 talentName: video.talentName,
-                                date: date,
+                                taskId: taskId,
                                 videoId: videoId,
+                                date: date,
                                 viewsSum: video.totalViews || 0,
                                 cpmSum: video.cpm || 0,
                                 count: 1  // 用于求平均
@@ -354,78 +356,50 @@ export class EffectMonitorTab {
                     });
                 });
 
-                // 第二步：将去重后的视频数据按 达人 + 日期 聚合
-                const talentDateMap = new Map();
-
+                // 第二步：将去重后的数据按 videoId 聚合（每个视频独立）
                 videoDateMap.forEach(videoData => {
-                    const talentKey = `${videoData.talentName}_${videoData.date}`;
+                    const videoId = videoData.videoId;
 
-                    // 计算该视频的平均值
+                    // 计算该视频当天的平均值
                     const avgViews = videoData.viewsSum / videoData.count;
                     const avgCpm = videoData.cpmSum / videoData.count;
 
-                    if (!talentDateMap.has(talentKey)) {
-                        talentDateMap.set(talentKey, {
+                    if (!videoMap.has(videoId)) {
+                        // 第一次遇到这个视频，创建新条目
+                        videoMap.set(videoId, {
+                            videoId: videoId,
+                            taskId: videoData.taskId,
                             talentName: videoData.talentName,
-                            date: videoData.date,
-                            totalViews: avgViews,
-                            weightedCpmSum: avgCpm * avgViews,
-                            totalViewsForCpm: avgViews,
-                            videoCount: 1
-                        });
-                    } else {
-                        // 同一达人同一天有多个不同视频（多次合作）
-                        const existing = talentDateMap.get(talentKey);
-                        existing.totalViews += avgViews;
-                        existing.weightedCpmSum += avgCpm * avgViews;
-                        existing.totalViewsForCpm += avgViews;
-                        existing.videoCount++;
-                    }
-                });
-
-                // 将合并后的数据添加到达人映射中
-                talentDateMap.forEach(dayData => {
-                    if (!talentMap.has(dayData.talentName)) {
-                        talentMap.set(dayData.talentName, {
-                            talentName: dayData.talentName,
-                            dailyData: [],
-                            videoCount: 0
+                            dailyData: []
                         });
                     }
 
-                    const talent = talentMap.get(dayData.talentName);
+                    const video = videoMap.get(videoId);
 
-                    // 计算加权平均CPM
-                    const cpm = dayData.totalViewsForCpm > 0
-                        ? dayData.weightedCpmSum / dayData.totalViewsForCpm
-                        : 0;
-
-                    // 添加每日数据（已去重）
-                    talent.dailyData.push({
-                        date: dayData.date,
-                        views: dayData.totalViews,  // 累积播放量
-                        cpm: cpm                     // 加权平均CPM
+                    // 添加每日数据
+                    video.dailyData.push({
+                        date: videoData.date,
+                        views: avgViews,  // 累积播放量（已去重平均）
+                        cpm: avgCpm       // CPM（已去重平均）
                     });
-
-                    talent.videoCount += dayData.videoCount;
                 });
             });
 
-            // 计算聚合指标和环比增长
-            this.talentList = Array.from(talentMap.values()).map(talent => {
+            // 计算每个视频的聚合指标和环比增长
+            this.videoList = Array.from(videoMap.values()).map(video => {
                 // 按日期排序
-                talent.dailyData.sort((a, b) => a.date.localeCompare(b.date));
+                video.dailyData.sort((a, b) => a.date.localeCompare(b.date));
 
                 // 计算每日环比增长
-                for (let i = 0; i < talent.dailyData.length; i++) {
-                    const currentDay = talent.dailyData[i];
+                for (let i = 0; i < video.dailyData.length; i++) {
+                    const currentDay = video.dailyData[i];
 
                     if (i === 0) {
                         // 第一天：日增量 = 当天累积播放量
                         currentDay.dailyIncrease = currentDay.views;
                         currentDay.cpmChange = 0;
                     } else {
-                        const previousDay = talent.dailyData[i - 1];
+                        const previousDay = video.dailyData[i - 1];
                         // 日增量 = 今天累积 - 昨天累积
                         currentDay.dailyIncrease = currentDay.views - previousDay.views;
                         // CPM环比 = 今天CPM - 昨天CPM
@@ -434,37 +408,40 @@ export class EffectMonitorTab {
                 }
 
                 // 总播放量（最新一天的累积播放量）
-                const latestData = talent.dailyData[talent.dailyData.length - 1];
-                talent.totalViews = latestData ? latestData.views : 0;
+                const latestData = video.dailyData[video.dailyData.length - 1];
+                video.totalViews = latestData ? latestData.views : 0;
 
                 // 最新CPM（最新一天的CPM）
-                talent.latestCpm = latestData ? latestData.cpm : 0;
+                video.latestCpm = latestData ? latestData.cpm : 0;
 
                 // 最新一天播放量
-                talent.latestViews = latestData ? latestData.views : 0;
+                video.latestViews = latestData ? latestData.views : 0;
 
                 // 总增长率（最后一天 vs 第一天）
-                if (talent.dailyData.length >= 2) {
-                    const firstViews = talent.dailyData[0].views;
-                    const lastViews = talent.dailyData[talent.dailyData.length - 1].views;
-                    talent.viewsGrowthRate = firstViews > 0
+                if (video.dailyData.length >= 2) {
+                    const firstViews = video.dailyData[0].views;
+                    const lastViews = video.dailyData[video.dailyData.length - 1].views;
+                    video.viewsGrowthRate = firstViews > 0
                         ? ((lastViews - firstViews) / firstViews) * 100
                         : 0;
                 } else {
-                    talent.viewsGrowthRate = 0;
+                    video.viewsGrowthRate = 0;
                 }
 
-                // 合作天数
-                talent.collaborationDays = talent.dailyData.length;
+                // 数据天数
+                video.collaborationDays = video.dailyData.length;
 
-                return talent;
+                // 视频数量（每个视频都是1）
+                video.videoCount = 1;
+
+                return video;
             });
 
             // 应用过滤和排序
             this.applyFilterAndSort();
 
             // 渲染列表
-            this.renderTalentList();
+            this.renderVideoList();
 
         } catch (error) {
             console.error('加载效果监测数据失败:', error);
@@ -476,13 +453,13 @@ export class EffectMonitorTab {
      * 应用搜索和排序
      */
     applyFilterAndSort() {
-        let filtered = [...this.talentList];
+        let filtered = [...this.videoList];
 
-        // 搜索过滤
+        // 搜索过滤（按达人名称搜索）
         if (this.searchKeyword.trim()) {
             const keyword = this.searchKeyword.trim().toLowerCase();
-            filtered = filtered.filter(t =>
-                t.talentName.toLowerCase().includes(keyword)
+            filtered = filtered.filter(v =>
+                v.talentName.toLowerCase().includes(keyword)
             );
         }
 
@@ -494,17 +471,17 @@ export class EffectMonitorTab {
             return order === 'desc' ? bVal - aVal : aVal - bVal;
         });
 
-        this.filteredTalentList = filtered;
+        this.filteredVideoList = filtered;
     }
 
     /**
-     * 渲染达人列表
+     * 渲染视频列表
      */
-    renderTalentList() {
-        const container = document.getElementById('talentListContainer');
+    renderVideoList() {
+        const container = document.getElementById('videoListContainer');
         if (!container) return;
 
-        if (this.filteredTalentList.length === 0) {
+        if (this.filteredVideoList.length === 0) {
             container.innerHTML = `
                 <div class="text-center py-8 text-gray-400">
                     <p>暂无数据</p>
@@ -514,30 +491,47 @@ export class EffectMonitorTab {
             return;
         }
 
-        container.innerHTML = this.filteredTalentList.map(talent => {
-            const isSelected = this.selectedTalent && this.selectedTalent.talentName === talent.talentName;
+        container.innerHTML = this.filteredVideoList.map(video => {
+            const isSelected = this.selectedVideo && this.selectedVideo.videoId === video.videoId;
 
             return `
-                <div class="talent-card p-4 border-b ${isSelected ? 'selected' : ''}" data-talent-name="${talent.talentName}">
+                <div class="talent-card p-4 border-b ${isSelected ? 'selected' : ''}" data-video-id="${video.videoId}">
                     <div class="flex justify-between items-start mb-2">
-                        <h4 class="font-medium text-gray-900">${talent.talentName}</h4>
-                        <span class="text-xs text-gray-500">${talent.collaborationDays}天</span>
+                        <div class="flex-1">
+                            <h4 class="font-medium text-gray-900 mb-1">${video.talentName}</h4>
+                            <div class="text-xs text-gray-500 space-y-0.5">
+                                <div>任务ID: ${video.taskId}</div>
+                                <div class="flex items-center gap-1">
+                                    <span>视频ID:</span>
+                                    <a href="https://www.douyin.com/video/${video.videoId}"
+                                       target="_blank"
+                                       class="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-0.5"
+                                       onclick="event.stopPropagation()">
+                                        ${video.videoId}
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="text-xs text-gray-500">${video.collaborationDays}天</span>
                     </div>
                     <div class="grid grid-cols-2 gap-2 text-xs">
                         <div>
                             <span class="text-gray-500">播放量:</span>
-                            <span class="font-semibold text-blue-600">${compactNumber(talent.totalViews)}</span>
+                            <span class="font-semibold text-blue-600">${compactNumber(video.totalViews)}</span>
                         </div>
                         <div>
                             <span class="text-gray-500">CPM:</span>
-                            <span class="font-semibold text-purple-600">¥${talent.latestCpm.toFixed(1)}</span>
+                            <span class="font-semibold text-purple-600">¥${video.latestCpm.toFixed(1)}</span>
                         </div>
                     </div>
-                    ${talent.viewsGrowthRate !== 0 ? `
+                    ${video.viewsGrowthRate !== 0 ? `
                         <div class="mt-2 text-xs">
                             <span class="text-gray-500">增长:</span>
-                            <span class="${talent.viewsGrowthRate > 0 ? 'text-green-600' : 'text-red-600'}">
-                                ${talent.viewsGrowthRate > 0 ? '↑' : '↓'} ${Math.abs(talent.viewsGrowthRate).toFixed(1)}%
+                            <span class="${video.viewsGrowthRate > 0 ? 'text-green-600' : 'text-red-600'}">
+                                ${video.viewsGrowthRate > 0 ? '↑' : '↓'} ${Math.abs(video.viewsGrowthRate).toFixed(1)}%
                             </span>
                         </div>
                     ` : ''}
@@ -548,62 +542,73 @@ export class EffectMonitorTab {
         // 绑定点击事件
         container.querySelectorAll('.talent-card').forEach(card => {
             card.addEventListener('click', () => {
-                const talentName = card.dataset.talentName;
-                const talent = this.filteredTalentList.find(t => t.talentName === talentName);
-                if (talent) {
-                    this.handleTalentSelect(talent);
+                const videoId = card.dataset.videoId;
+                const video = this.filteredVideoList.find(v => v.videoId === videoId);
+                if (video) {
+                    this.handleVideoSelect(video);
                 }
             });
         });
     }
 
     /**
-     * 处理达人选中
-     * @param {object} talent - 选中的达人
+     * 处理视频选中
+     * @param {object} video - 选中的视频
      */
-    async handleTalentSelect(talent) {
-        this.selectedTalent = talent;
-        this.selectedTalentDetail = talent; // 数据已在聚合时计算完成
+    async handleVideoSelect(video) {
+        this.selectedVideo = video;
+        this.selectedVideoDetail = video; // 数据已在聚合时计算完成
 
         // 重新渲染列表（更新选中状态）
-        this.renderTalentList();
+        this.renderVideoList();
 
         // 渲染详情
-        this.renderTalentDetail();
+        this.renderVideoDetail();
     }
 
     /**
-     * 渲染达人详情
+     * 渲染视频详情
      */
-    renderTalentDetail() {
-        const container = document.getElementById('talentDetailContainer');
-        if (!container || !this.selectedTalentDetail) return;
+    renderVideoDetail() {
+        const container = document.getElementById('videoDetailContainer');
+        if (!container || !this.selectedVideoDetail) return;
 
-        const talent = this.selectedTalentDetail;
+        const video = this.selectedVideoDetail;
 
         container.innerHTML = `
             <!-- 标题 -->
             <div class="p-4 border-b bg-gradient-to-r from-blue-50 to-white">
-                <h3 class="text-xl font-semibold text-gray-800">📊 ${talent.talentName} - 效果数据</h3>
+                <h3 class="text-xl font-semibold text-gray-800">📊 视频效果数据</h3>
+                <div class="mt-2 text-sm text-gray-600 space-y-1">
+                    <div>达人: <span class="font-medium text-gray-800">${video.talentName}</span></div>
+                    <div>任务ID: <span class="font-mono text-gray-800">${video.taskId}</span></div>
+                    <div class="flex items-center gap-1">
+                        <span>视频ID:</span>
+                        <a href="https://www.douyin.com/video/${video.videoId}"
+                           target="_blank"
+                           class="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1 font-mono">
+                            ${video.videoId}
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <!-- 关键指标卡片 -->
-            <div class="p-4 grid grid-cols-4 gap-4">
+            <div class="p-4 grid grid-cols-3 gap-4">
                 <div class="bg-blue-50 p-4 rounded-lg text-center">
                     <div class="text-sm text-gray-600 mb-1">总播放量</div>
-                    <div class="text-2xl font-bold text-blue-600">${compactNumber(talent.totalViews)}</div>
+                    <div class="text-2xl font-bold text-blue-600">${compactNumber(video.totalViews)}</div>
                 </div>
                 <div class="bg-purple-50 p-4 rounded-lg text-center">
                     <div class="text-sm text-gray-600 mb-1">最新CPM</div>
-                    <div class="text-2xl font-bold text-purple-600">¥${talent.latestCpm.toFixed(1)}</div>
+                    <div class="text-2xl font-bold text-purple-600">¥${video.latestCpm.toFixed(1)}</div>
                 </div>
                 <div class="bg-green-50 p-4 rounded-lg text-center">
-                    <div class="text-sm text-gray-600 mb-1">合作天数</div>
-                    <div class="text-2xl font-bold text-green-600">${talent.collaborationDays}</div>
-                </div>
-                <div class="bg-orange-50 p-4 rounded-lg text-center">
-                    <div class="text-sm text-gray-600 mb-1">视频数量</div>
-                    <div class="text-2xl font-bold text-orange-600">${talent.videoCount}</div>
+                    <div class="text-sm text-gray-600 mb-1">数据天数</div>
+                    <div class="text-2xl font-bold text-green-600">${video.collaborationDays}</div>
                 </div>
             </div>
 
@@ -643,7 +648,7 @@ export class EffectMonitorTab {
                             </tr>
                         </thead>
                         <tbody>
-                            ${talent.dailyData.map((day, index) => {
+                            ${video.dailyData.map((day, index) => {
                                 const increaseClass = day.dailyIncrease > 0 ? 'text-green-600' : 'text-gray-600';
                                 const cpmChangeClass = day.cpmChange > 0 ? 'text-red-600' : day.cpmChange < 0 ? 'text-green-600' : 'text-gray-600';
                                 const cpmChangeSymbol = day.cpmChange > 0 ? '+' : '';
@@ -683,9 +688,9 @@ export class EffectMonitorTab {
      * 渲染趋势图表
      */
     renderTrendsCharts() {
-        if (!this.selectedTalentDetail) return;
+        if (!this.selectedVideoDetail) return;
 
-        const dailyData = this.selectedTalentDetail.dailyData;
+        const dailyData = this.selectedVideoDetail.dailyData;
 
         // 销毁旧图表
         if (this.viewsChart) {
@@ -870,22 +875,22 @@ export class EffectMonitorTab {
         }
 
         // 搜索输入
-        const searchInput = document.getElementById('talentSearchInput');
+        const searchInput = document.getElementById('videoSearchInput');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
                 this.searchKeyword = e.target.value;
                 this.applyFilterAndSort();
-                this.renderTalentList();
+                this.renderVideoList();
             });
         }
 
         // 排序选择
-        const sortSelect = document.getElementById('talentSortSelect');
+        const sortSelect = document.getElementById('videoSortSelect');
         if (sortSelect) {
             sortSelect.addEventListener('change', (e) => {
                 this.sortBy = e.target.value;
                 this.applyFilterAndSort();
-                this.renderTalentList();
+                this.renderVideoList();
             });
         }
     }
