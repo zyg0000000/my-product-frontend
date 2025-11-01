@@ -1,7 +1,7 @@
 /**
  * @file order_list/tab-effect.js
  * @description 效果验收 Tab 模块
- * @version 2.3.0 - T+7表格全展开，T+21保持下拉
+ * @version 2.3.1 - 修复T+7表格缺少总互动量列
  *
  * 功能:
  * - 效果看板数据加载
@@ -9,11 +9,11 @@
  * - T+21 交付目标达成展示（进度条动画、颜色分级、CPM达标状态）
  * - T+7 业务数据复盘展示（横向KPI卡片）
  * - T+21达人明细：支持下拉展开查看互动量和组件明细
- * - T+7达人明细：直接显示所有字段（16列），无下拉
+ * - T+7达人明细：直接显示所有字段（17列），无下拉
  *
  * 表格设计:
  * - T+21: 10列 + 2个下拉明细行（互动量明细、组件明细）
- * - T+7: 16列全展开（达人名称、执行金额、发布时间、播放量、点赞量、评论量、分享量、
+ * - T+7: 17列全展开（达人名称、执行金额、发布时间、播放量、总互动量、点赞量、评论量、分享量、
  *        互动率、赞播比、CPM、CPE、组件展示量、组件点击量、组件点击率、视频完播率、总触达人数）
  */
 
@@ -303,7 +303,7 @@ export class EffectTab {
 
         if (talents.length === 0) {
             talentListT21.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-gray-500">暂无达人效果数据</td></tr>';
-            talentListT7.innerHTML = '<tr><td colspan="16" class="text-center py-8 text-gray-500">暂无达人效果数据</td></tr>';
+            talentListT7.innerHTML = '<tr><td colspan="17" class="text-center py-8 text-gray-500">暂无达人效果数据</td></tr>';
             return;
         }
 
@@ -380,6 +380,7 @@ export class EffectTab {
                 <td class="px-4 py-4">${formatCurrency(talent.executionAmount)}</td>
                 <td class="px-4 py-4">${formatDate(talent.publishDate)}</td>
                 <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_views)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_interactions)}</td>
                 <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_likes)}</td>
                 <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_comments)}</td>
                 <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_shares)}</td>
