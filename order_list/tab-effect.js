@@ -1,20 +1,23 @@
 /**
  * @file order_list/tab-effect.js
  * @description 效果验收 Tab 模块
- * @version 3.0.0 - T+21和T+7统一为全展开模式
+ * @version 3.1.0 - 添加手动视图模式切换（全展开/紧凑）+ localStorage持久化
  *
  * 功能:
  * - 效果看板数据加载
  * - T+21/T+7 子Tab切换
  * - T+21 交付目标达成展示（进度条动画、颜色分级、CPM达标状态）
  * - T+7 业务数据复盘展示（横向KPI卡片）
- * - T+21达人明细：直接显示所有字段（17列），无下拉
- * - T+7达人明细：直接显示所有字段（17列），无下拉
+ * - 达人明细表格：支持手动切换全展开（17列）/紧凑（10列）模式
+ * - 用户偏好保存到localStorage，页面刷新后恢复
+ * - 智能响应式：用户未手动选择时自动根据屏幕宽度切换
  *
  * 表格设计:
- * - T+21: 17列全展开（达人名称、执行金额、发布时间、播放量、总互动量、点赞量、评论量、分享量、
- *        互动率、赞播比、CPM、CPE、组件展示量、组件点击量、组件点击率、视频完播率、总触达人数）
- * - T+7: 17列全展开（与T+21完全一致）
+ * - 全展开模式（17列）：达人名称、执行金额、发布时间、播放量、总互动量、点赞量、评论量、分享量、
+ *                      互动率、赞播比、CPM、CPE、组件展示量、组件点击量、组件点击率、视频完播率、总触达人数
+ * - 紧凑模式（10列）：达人名称、执行金额、发布时间、播放量、总互动量、CPM、CPE、组件点击率、视频完播率、总触达人数
+ *
+ * 优先级：用户手动选择 > 自动响应式判断
  */
 
 import { AppCore } from '../common/app-core.js';
@@ -33,7 +36,8 @@ export class EffectTab {
 
         // 状态
         this.currentSubTab = 't21'; // 当前子Tab: t21 或 t7
-        this.isCompactMode = window.innerWidth < 1440; // 响应式：小屏幕使用紧凑模式
+        this.userPreferredMode = this.loadUserPreference(); // 用户手动选择的模式: 'full' | 'compact' | null
+        this.isCompactMode = this.determineCompactMode(); // 当前是否使用紧凑模式
 
         // DOM 元素
         this.elements = {
@@ -67,25 +71,120 @@ export class EffectTab {
 
             // 达人明细
             talentListT21: document.getElementById('effect-talent-list-t21'),
-            talentListT7: document.getElementById('effect-talent-list-t7')
+            talentListT7: document.getElementById('effect-talent-list-t7'),
+
+            // 视图模式切换按钮
+            t21ViewFullBtn: document.getElementById('t21-view-full-btn'),
+            t21ViewCompactBtn: document.getElementById('t21-view-compact-btn'),
+            t7ViewFullBtn: document.getElementById('t7-view-full-btn'),
+            t7ViewCompactBtn: document.getElementById('t7-view-compact-btn')
         };
 
         // 绑定窗口resize事件，实现响应式切换
         this.handleResize = this.handleResize.bind(this);
         window.addEventListener('resize', this.handleResize);
+
+        // 初始化视图模式按钮状态
+        this.updateViewModeButtons();
+    }
+
+    /**
+     * 从localStorage加载用户偏好
+     */
+    loadUserPreference() {
+        try {
+            return localStorage.getItem('effectTableViewMode'); // 'full' | 'compact' | null
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /**
+     * 保存用户偏好到localStorage
+     */
+    saveUserPreference(mode) {
+        try {
+            if (mode) {
+                localStorage.setItem('effectTableViewMode', mode);
+            } else {
+                localStorage.removeItem('effectTableViewMode');
+            }
+        } catch (e) {
+            console.error('Failed to save view mode preference:', e);
+        }
+    }
+
+    /**
+     * 确定当前是否使用紧凑模式
+     * 优先级：用户手动选择 > 自动响应式判断
+     */
+    determineCompactMode() {
+        if (this.userPreferredMode === 'full') {
+            return false;
+        } else if (this.userPreferredMode === 'compact') {
+            return true;
+        } else {
+            // 自动判断：屏幕宽度 < 1440px 使用紧凑模式
+            return window.innerWidth < 1440;
+        }
+    }
+
+    /**
+     * 更新视图模式按钮状态
+     */
+    updateViewModeButtons() {
+        const { t21ViewFullBtn, t21ViewCompactBtn, t7ViewFullBtn, t7ViewCompactBtn } = this.elements;
+
+        if (this.isCompactMode) {
+            t21ViewFullBtn?.classList.remove('active');
+            t21ViewCompactBtn?.classList.add('active');
+            t7ViewFullBtn?.classList.remove('active');
+            t7ViewCompactBtn?.classList.add('active');
+        } else {
+            t21ViewFullBtn?.classList.add('active');
+            t21ViewCompactBtn?.classList.remove('active');
+            t7ViewFullBtn?.classList.add('active');
+            t7ViewCompactBtn?.classList.remove('active');
+        }
     }
 
     /**
      * 处理窗口resize事件
+     * 仅在用户未手动选择模式时自动响应屏幕宽度变化
      */
     handleResize() {
+        // 如果用户已手动选择模式，则不自动响应resize
+        if (this.userPreferredMode) {
+            return;
+        }
+
         const newMode = window.innerWidth < 1440;
         if (newMode !== this.isCompactMode) {
             this.isCompactMode = newMode;
+            this.updateViewModeButtons();
             // 如果已加载数据，重新渲染表格
             if (this.effectData) {
                 this.renderTalentDetails(this.effectData.talents || []);
             }
+        }
+    }
+
+    /**
+     * 手动切换视图模式
+     */
+    switchViewMode(mode) {
+        this.userPreferredMode = mode;
+        this.isCompactMode = (mode === 'compact');
+
+        // 保存用户偏好
+        this.saveUserPreference(mode);
+
+        // 更新按钮状态
+        this.updateViewModeButtons();
+
+        // 重新渲染表格
+        if (this.effectData) {
+            this.renderTalentDetails(this.effectData.talents || []);
         }
     }
 
@@ -478,6 +577,14 @@ export class EffectTab {
                 this.switchSubTab(tab);
             });
         });
+
+        // 视图模式切换按钮
+        const { t21ViewFullBtn, t21ViewCompactBtn, t7ViewFullBtn, t7ViewCompactBtn } = this.elements;
+
+        t21ViewFullBtn?.addEventListener('click', () => this.switchViewMode('full'));
+        t21ViewCompactBtn?.addEventListener('click', () => this.switchViewMode('compact'));
+        t7ViewFullBtn?.addEventListener('click', () => this.switchViewMode('full'));
+        t7ViewCompactBtn?.addEventListener('click', () => this.switchViewMode('compact'));
     }
 
     /**
