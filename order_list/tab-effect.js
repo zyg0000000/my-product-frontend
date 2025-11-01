@@ -144,6 +144,19 @@ export class EffectTab {
     }
 
     /**
+     * 格式化日期为 YYYY-MM-DD 格式
+     */
+    formatDateYMD(date) {
+        if (!date) return 'N/A';
+        const d = new Date(date);
+        if (isNaN(d.getTime())) return 'N/A';
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    /**
      * 渲染 T+21 数据
      */
     renderT21Data(overall) {
@@ -165,7 +178,7 @@ export class EffectTab {
 
         // 交付日期
         if (deliveryDate) {
-            deliveryDate.textContent = overall.deliveryDate || 'N/A';
+            deliveryDate.textContent = this.formatDateYMD(overall.deliveryDate);
         }
 
         // 目标CPM
@@ -275,7 +288,7 @@ export class EffectTab {
             if (lastPublishDate) {
                 const reviewDate = new Date(lastPublishDate);
                 reviewDate.setDate(reviewDate.getDate() + 7);
-                t7ReviewDate.textContent = reviewDate.toLocaleDateString();
+                t7ReviewDate.textContent = this.formatDateYMD(reviewDate);
             } else {
                 t7ReviewDate.textContent = 'N/A';
             }
