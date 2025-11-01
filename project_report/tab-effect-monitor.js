@@ -75,9 +75,9 @@ export class EffectMonitorTab {
      * 渲染基础布局
      */
     renderLayout() {
-        const container = document.getElementById('effectMonitorContent');
+        const container = document.getElementById('effect-monitor-tab');
         if (!container) {
-            console.error('效果监测容器未找到');
+            console.error('效果监测容器未找到: effect-monitor-tab');
             return;
         }
 
