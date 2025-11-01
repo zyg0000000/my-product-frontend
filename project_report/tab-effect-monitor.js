@@ -73,8 +73,8 @@ export class EffectMonitorTab {
             // 获取项目第一个发布日期
             await this.fetchProjectStartDate();
 
-            // 设置初始日期范围（默认14天）
-            this.setDateRange(this.defaultDaysRange);
+            // 设置日期范围（从最早发布日到今天）
+            this.setDateRange();
 
             // 设置事件监听
             this.setupEventListeners();
@@ -102,6 +102,13 @@ export class EffectMonitorTab {
 
                 <!-- 左侧：视频列表 -->
                 <div class="w-1/3 flex flex-col border rounded-lg bg-white overflow-hidden">
+                    <!-- 搜索栏 -->
+                    <div class="p-4 border-b">
+                        <input type="text" id="videoSearchInput"
+                               placeholder="🔍 按达人名称搜索..."
+                               class="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
                     <!-- 视频列表 -->
                     <div class="flex-1 overflow-y-auto" id="videoListContainer">
                         <div class="text-center py-8 text-gray-500">加载中...</div>
@@ -198,48 +205,20 @@ export class EffectMonitorTab {
     }
 
     /**
-     * 设置日期范围
-     * @param {number|string} days - 天数或'all'
+     * 设置日期范围（从项目最早发布日到今天）
      */
-    setDateRange(days) {
+    setDateRange() {
         const today = new Date();
-        let startDate;
-        let endDate = new Date(today);
+        const startDate = new Date(this.projectStartDate || '2024-01-01');
+        const endDate = new Date(today);
 
-        if (days === 'all' || days === null) {
-            // 全部：从项目最早发布日期到今天
-            startDate = new Date(this.projectStartDate || '2024-01-01');
-            this.currentRangeType = 'all';
-        } else {
-            // 指定天数：从最早发布日开始算N天
-            startDate = new Date(this.projectStartDate || '2024-01-01');
-            endDate = new Date(startDate);
-            endDate.setDate(startDate.getDate() + days - 1); // -1 因为起始日也算一天
-
-            // 如果计算的结束日期超过今天，则截止到今天
-            if (endDate > today) {
-                endDate = new Date(today);
-            }
-
-            this.currentRangeType = String(days);
-        }
-
-        // 生成日期范围数组
+        // 生成从最早发布日到今天的所有日期
         this.dateRange = [];
         const current = new Date(startDate);
 
         while (current <= endDate) {
             this.dateRange.push(ReportUtils.getLocalDateString(current));
             current.setDate(current.getDate() + 1);
-        }
-
-        // 更新自定义日期输入框
-        const startDateInput = document.getElementById('effectMonitorStartDate');
-        const endDateInput = document.getElementById('effectMonitorEndDate');
-
-        if (startDateInput && endDateInput) {
-            startDateInput.value = this.dateRange[0];
-            endDateInput.value = this.dateRange[this.dateRange.length - 1];
         }
     }
 
@@ -259,13 +238,14 @@ export class EffectMonitorTab {
             const videosResponse = await API.request(`${API_ENDPOINTS.VIDEOS_FOR_ENTRY}?projectId=${this.projectId}&date=${today}`);
             const videos = videosResponse.data || [];
 
-            // 建立映射表：collaborationId -> { videoId, taskId, talentName }
+            // 建立映射表：collaborationId -> { videoId, taskId, talentName, publishDate }
             const collabIdMap = new Map();
             videos.forEach(video => {
                 collabIdMap.set(video.collaborationId, {
                     videoId: video.videoId || null,
                     taskId: video.taskId || null,
-                    talentName: video.talentName
+                    talentName: video.talentName,
+                    publishDate: video.publishDate || null
                 });
             });
 
@@ -306,6 +286,13 @@ export class EffectMonitorTab {
                         const videoId = collabInfo.videoId || collabInfo.taskId || collaborationId;
                         const taskId = collabInfo.taskId || collaborationId;
                         const talentName = collabInfo.talentName || video.talentName;
+                        const publishDate = collabInfo.publishDate;
+
+                        // 只保留发布日当天及之后的数据
+                        if (publishDate && date < publishDate) {
+                            return; // 跳过发布日之前的数据
+                        }
+
                         const videoKey = `${collaborationId}_${date}`; // 使用collaborationId作为key更准确
 
                         if (!videoDateMap.has(videoKey)) {
@@ -315,6 +302,7 @@ export class EffectMonitorTab {
                                 talentName: talentName,
                                 taskId: taskId,
                                 videoId: videoId,
+                                publishDate: publishDate,
                                 date: date,
                                 viewsSum: video.totalViews || 0,
                                 cpmSum: video.cpm || 0,
@@ -345,6 +333,7 @@ export class EffectMonitorTab {
                             videoId: videoData.videoId,
                             taskId: videoData.taskId,
                             talentName: videoData.talentName,
+                            publishDate: videoData.publishDate,
                             dailyData: []
                         });
                     }
@@ -428,11 +417,22 @@ export class EffectMonitorTab {
      * 应用搜索和排序
      */
     applyFilterAndSort() {
-        // 简化：不再需要搜索和排序，直接使用原始列表
+        let filtered = [...this.videoList];
+
+        // 搜索过滤（按达人名称搜索）
+        if (this.searchKeyword.trim()) {
+            const keyword = this.searchKeyword.trim().toLowerCase();
+            filtered = filtered.filter(v =>
+                v.talentName.toLowerCase().includes(keyword)
+            );
+        }
+
         // 默认按CPM从低到高排序
-        this.filteredVideoList = [...this.videoList].sort((a, b) => {
+        filtered.sort((a, b) => {
             return (a.latestCpm || 0) - (b.latestCpm || 0);
         });
+
+        this.filteredVideoList = filtered;
     }
 
     /**
@@ -446,6 +446,7 @@ export class EffectMonitorTab {
             container.innerHTML = `
                 <div class="text-center py-8 text-gray-400">
                     <p>暂无数据</p>
+                    ${this.searchKeyword ? '<p class="text-sm mt-2">试试调整搜索关键词</p>' : ''}
                 </div>
             `;
             return;
@@ -494,14 +495,6 @@ export class EffectMonitorTab {
                             <span class="font-semibold text-purple-600">¥${video.latestCpm.toFixed(1)}</span>
                         </div>
                     </div>
-                    ${video.viewsGrowthRate !== 0 ? `
-                        <div class="mt-2 text-xs">
-                            <span class="text-gray-500">增长:</span>
-                            <span class="${video.viewsGrowthRate > 0 ? 'text-green-600' : 'text-red-600'}">
-                                ${video.viewsGrowthRate > 0 ? '↑' : '↓'} ${Math.abs(video.viewsGrowthRate).toFixed(1)}%
-                            </span>
-                        </div>
-                    ` : ''}
                 </div>
             `;
         }).join('');
@@ -770,8 +763,15 @@ export class EffectMonitorTab {
      * 设置事件监听
      */
     setupEventListeners() {
-        // 移除了日期范围选择、搜索、排序等事件监听
-        // 保持方法以防未来需要添加事件监听
+        // 搜索输入
+        const searchInput = document.getElementById('videoSearchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.searchKeyword = e.target.value;
+                this.applyFilterAndSort();
+                this.renderVideoList();
+            });
+        }
     }
 
     /**
