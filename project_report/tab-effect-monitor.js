@@ -17,6 +17,21 @@ import { ReportUtils } from './utils.js';
 
 const { API, Format } = AppCore;
 
+/**
+ * 格式化大数字为紧凑格式 (1M, 150K, 等)
+ * @param {number} num - 数值
+ * @returns {string} 格式化后的字符串
+ */
+function compactNumber(num) {
+    const n = Number(num) || 0;
+    if (n >= 1000000) {
+        return (n / 1000000).toFixed(1) + 'M';
+    } else if (n >= 1000) {
+        return (n / 1000).toFixed(1) + 'K';
+    }
+    return n.toString();
+}
+
 export class EffectMonitorTab {
     constructor(app, projectId, project) {
         this.app = app;
@@ -431,7 +446,7 @@ export class EffectMonitorTab {
                     <div class="grid grid-cols-2 gap-2 text-xs">
                         <div>
                             <span class="text-gray-500">播放量:</span>
-                            <span class="font-semibold text-blue-600">${Format.compactNumber(talent.totalViews)}</span>
+                            <span class="font-semibold text-blue-600">${compactNumber(talent.totalViews)}</span>
                         </div>
                         <div>
                             <span class="text-gray-500">CPM:</span>
@@ -496,7 +511,7 @@ export class EffectMonitorTab {
             <div class="p-4 grid grid-cols-4 gap-4">
                 <div class="bg-blue-50 p-4 rounded-lg text-center">
                     <div class="text-sm text-gray-600 mb-1">总播放量</div>
-                    <div class="text-2xl font-bold text-blue-600">${Format.compactNumber(talent.totalViews)}</div>
+                    <div class="text-2xl font-bold text-blue-600">${compactNumber(talent.totalViews)}</div>
                 </div>
                 <div class="bg-purple-50 p-4 rounded-lg text-center">
                     <div class="text-sm text-gray-600 mb-1">平均CPM</div>
@@ -627,7 +642,7 @@ export class EffectMonitorTab {
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                callback: (value) => Format.compactNumber(value),
+                                callback: (value) => compactNumber(value),
                                 font: { size: 10 }
                             }
                         },
