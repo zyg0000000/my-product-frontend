@@ -317,7 +317,7 @@ export class EffectTab {
     }
 
     /**
-     * 渲染达人明细表格（支持展开明细行）
+     * 渲染达人明细表格（支持响应式：大屏全展开17列，小屏折叠10列+明细行）
      */
     renderTalentDetails(talents) {
         const { talentListT21, talentListT7 } = this.elements;
@@ -329,26 +329,37 @@ export class EffectTab {
         talentListT7.innerHTML = '';
 
         if (talents.length === 0) {
-            talentListT21.innerHTML = '<tr><td colspan="17" class="text-center py-8 text-gray-500">暂无达人效果数据</td></tr>';
-            talentListT7.innerHTML = '<tr><td colspan="17" class="text-center py-8 text-gray-500">暂无达人效果数据</td></tr>';
+            const colspan = this.isCompactMode ? '10' : '17';
+            talentListT21.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-8 text-gray-500">暂无达人效果数据</td></tr>`;
+            talentListT7.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-8 text-gray-500">暂无达人效果数据</td></tr>`;
             return;
         }
 
+        // 根据屏幕模式选择渲染方式
+        if (this.isCompactMode) {
+            this.renderCompactMode(talents, talentListT21, talentListT7);
+        } else {
+            this.renderFullMode(talents, talentListT21, talentListT7);
+        }
+    }
+
+    /**
+     * 渲染全展开模式（大屏>=1440px）
+     */
+    renderFullMode(talents, talentListT21, talentListT7) {
         const notEnteredSpan = `<span class="text-sm text-gray-400">暂未录入</span>`;
         const formatNumber = (num) => (num === null || num === undefined) ? notEnteredSpan : Number(num).toLocaleString();
         const formatCurrency = (num) => (num === null || num === undefined) ? notEnteredSpan : `¥${Number(num).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         const formatPercent = (num) => (num === null || num === undefined) ? notEnteredSpan : `${(Number(num) * 100).toFixed(2)}%`;
-        const formatDate = (dateStr) => (dateStr) ? new Date(dateStr).toLocaleDateString() : 'N/A';
+        const formatDate = (dateStr) => (dateStr) ? this.formatDateYMD(dateStr) : 'N/A';
 
-        // 获取目标CPM用于达标判断
         const targetCpm = this.effectData?.overall?.benchmarkCPM;
 
         talents.forEach(talent => {
-            // ===== T+21 主行（直接显示所有字段，不使用明细行）=====
+            // ===== T+21 主行（17列全展开）=====
             const t21Row = document.createElement('tr');
             t21Row.className = 'bg-white border-b hover:bg-gray-50/50';
 
-            // CPM达标状态判断
             let cpmClass = '';
             if (talent.t21_cpm !== null && talent.t21_cpm !== undefined && targetCpm !== null && targetCpm !== undefined) {
                 cpmClass = talent.t21_cpm <= targetCpm ? 'cpm-达标' : 'cpm-未达标';
@@ -375,10 +386,10 @@ export class EffectTab {
             `;
             talentListT21.appendChild(t21Row);
 
-            // ===== T+7 主行（直接显示所有字段，不使用明细行）=====
-            const t7MainRow = document.createElement('tr');
-            t7MainRow.className = 'bg-white border-b hover:bg-gray-50/50';
-            t7MainRow.innerHTML = `
+            // ===== T+7 主行（17列全展开）=====
+            const t7Row = document.createElement('tr');
+            t7Row.className = 'bg-white border-b hover:bg-gray-50/50';
+            t7Row.innerHTML = `
                 <td class="px-4 py-4 font-medium text-gray-900">${talent.talentName}</td>
                 <td class="px-4 py-4">${formatCurrency(talent.executionAmount)}</td>
                 <td class="px-4 py-4">${formatDate(talent.publishDate)}</td>
@@ -397,7 +408,62 @@ export class EffectTab {
                 <td class="px-4 py-3 font-medium">${formatPercent(talent.t7_completionRate)}</td>
                 <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_totalReach)}</td>
             `;
-            talentListT7.appendChild(t7MainRow);
+            talentListT7.appendChild(t7Row);
+        });
+    }
+
+    /**
+     * 渲染紧凑模式（小屏<1440px）- 10列主行 + 折叠明细
+     */
+    renderCompactMode(talents, talentListT21, talentListT7) {
+        const notEnteredSpan = `<span class="text-sm text-gray-400">暂未录入</span>`;
+        const formatNumber = (num) => (num === null || num === undefined) ? notEnteredSpan : Number(num).toLocaleString();
+        const formatCurrency = (num) => (num === null || num === undefined) ? notEnteredSpan : `¥${Number(num).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        const formatPercent = (num) => (num === null || num === undefined) ? notEnteredSpan : `${(Number(num) * 100).toFixed(2)}%`;
+        const formatDate = (dateStr) => (dateStr) ? this.formatDateYMD(dateStr) : 'N/A';
+
+        const targetCpm = this.effectData?.overall?.benchmarkCPM;
+
+        talents.forEach(talent => {
+            // ===== T+21 紧凑模式（10列）=====
+            const t21Row = document.createElement('tr');
+            t21Row.className = 'bg-white border-b hover:bg-gray-50/50';
+
+            let cpmClass = '';
+            if (talent.t21_cpm !== null && talent.t21_cpm !== undefined && targetCpm !== null && targetCpm !== undefined) {
+                cpmClass = talent.t21_cpm <= targetCpm ? 'cpm-达标' : 'cpm-未达标';
+            }
+
+            t21Row.innerHTML = `
+                <td class="px-4 py-4 font-medium text-gray-900">${talent.talentName}</td>
+                <td class="px-4 py-4">${formatCurrency(talent.executionAmount)}</td>
+                <td class="px-4 py-4">${formatDate(talent.publishDate)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t21_views)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t21_interactions)}</td>
+                <td class="px-4 py-3 font-medium ${cpmClass}">${formatCurrency(talent.t21_cpm)}</td>
+                <td class="px-4 py-3 font-medium">${formatCurrency(talent.t21_cpe)}</td>
+                <td class="px-4 py-3 font-medium">${formatPercent(talent.t21_ctr)}</td>
+                <td class="px-4 py-3 font-medium">${formatPercent(talent.t21_completionRate)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t21_totalReach)}</td>
+            `;
+            talentListT21.appendChild(t21Row);
+
+            // ===== T+7 紧凑模式（10列）=====
+            const t7Row = document.createElement('tr');
+            t7Row.className = 'bg-white border-b hover:bg-gray-50/50';
+            t7Row.innerHTML = `
+                <td class="px-4 py-4 font-medium text-gray-900">${talent.talentName}</td>
+                <td class="px-4 py-4">${formatCurrency(talent.executionAmount)}</td>
+                <td class="px-4 py-4">${formatDate(talent.publishDate)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_views)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_interactions)}</td>
+                <td class="px-4 py-3 font-medium">${formatCurrency(talent.t7_cpm)}</td>
+                <td class="px-4 py-3 font-medium">${formatCurrency(talent.t7_cpe)}</td>
+                <td class="px-4 py-3 font-medium">${formatPercent(talent.t7_ctr)}</td>
+                <td class="px-4 py-3 font-medium">${formatPercent(talent.t7_completionRate)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_totalReach)}</td>
+            `;
+            talentListT7.appendChild(t7Row);
         });
     }
 

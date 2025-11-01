@@ -230,6 +230,13 @@
             transition: width 0.5s ease;
         }
 
+        /* 响应式：小屏幕隐藏部分列 */
+        @media (max-width: 1439px) {
+            .hide-compact {
+                display: none;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -750,15 +757,15 @@
                                             <th scope="col" class="px-4 py-3">发布时间</th>
                                             <th scope="col" class="px-4 py-3">播放量</th>
                                             <th scope="col" class="px-4 py-3">总互动量</th>
-                                            <th scope="col" class="px-4 py-3">点赞量</th>
-                                            <th scope="col" class="px-4 py-3">评论量</th>
-                                            <th scope="col" class="px-4 py-3">分享量</th>
-                                            <th scope="col" class="px-4 py-3">互动率</th>
-                                            <th scope="col" class="px-4 py-3">赞播比</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">点赞量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">评论量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">分享量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">互动率</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">赞播比</th>
                                             <th scope="col" class="px-4 py-3">CPM</th>
                                             <th scope="col" class="px-4 py-3">CPE</th>
-                                            <th scope="col" class="px-4 py-3">组件展示量</th>
-                                            <th scope="col" class="px-4 py-3">组件点击量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">组件展示量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">组件点击量</th>
                                             <th scope="col" class="px-4 py-3">组件点击率</th>
                                             <th scope="col" class="px-4 py-3">视频完播率</th>
                                             <th scope="col" class="px-4 py-3">总触达人数</th>
@@ -834,15 +841,15 @@
                                             <th scope="col" class="px-4 py-3">发布时间</th>
                                             <th scope="col" class="px-4 py-3">播放量</th>
                                             <th scope="col" class="px-4 py-3">总互动量</th>
-                                            <th scope="col" class="px-4 py-3">点赞量</th>
-                                            <th scope="col" class="px-4 py-3">评论量</th>
-                                            <th scope="col" class="px-4 py-3">分享量</th>
-                                            <th scope="col" class="px-4 py-3">互动率</th>
-                                            <th scope="col" class="px-4 py-3">赞播比</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">点赞量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">评论量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">分享量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">互动率</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">赞播比</th>
                                             <th scope="col" class="px-4 py-3">CPM</th>
                                             <th scope="col" class="px-4 py-3">CPE</th>
-                                            <th scope="col" class="px-4 py-3">组件展示量</th>
-                                            <th scope="col" class="px-4 py-3">组件点击量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">组件展示量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">组件点击量</th>
                                             <th scope="col" class="px-4 py-3">组件点击率</th>
                                             <th scope="col" class="px-4 py-3">视频完播率</th>
                                             <th scope="col" class="px-4 py-3">总触达人数</th>
