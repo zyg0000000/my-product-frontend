@@ -1,24 +1,20 @@
 /**
  * @file order_list/tab-effect.js
  * @description 效果验收 Tab 模块
- * @version 2.2.0 - 恢复明细行展开功能
+ * @version 2.3.0 - T+7表格全展开，T+21保持下拉
  *
  * 功能:
  * - 效果看板数据加载
  * - T+21/T+7 子Tab切换
  * - T+21 交付目标达成展示（进度条动画、颜色分级、CPM达标状态）
  * - T+7 业务数据复盘展示（横向KPI卡片）
- * - 达人数据明细表格（支持展开查看互动量和组件明细）
- * - 明细行展开/收起功能（点赞量、评论量、分享量、互动率、赞播比、组件展示量、组件点击量）
+ * - T+21达人明细：支持下拉展开查看互动量和组件明细
+ * - T+7达人明细：直接显示所有字段（16列），无下拉
  *
- * 优化:
- * - ✅ 子Tab切换（7天/21天拆分）
- * - ✅ 进度条动画 + 颜色分级
- * - ✅ KPI卡片美化 + 达标状态可视化
- * - ✅ CPM达标状态高亮
- * - ✅ T+21数据维度补全（与T+7一致）
- * - ✅ T+7业务数据复盘横向排列
- * - ✅ 恢复原来的明细行展开功能
+ * 表格设计:
+ * - T+21: 10列 + 2个下拉明细行（互动量明细、组件明细）
+ * - T+7: 16列全展开（达人名称、执行金额、发布时间、播放量、点赞量、评论量、分享量、
+ *        互动率、赞播比、CPM、CPE、组件展示量、组件点击量、组件点击率、视频完播率、总触达人数）
  */
 
 import { AppCore } from '../common/app-core.js';
@@ -39,9 +35,8 @@ export class EffectTab {
         this.currentSubTab = 't21'; // 当前子Tab: t21 或 t7
         this.detailsToggle = {
             't21-interaction': false,    // T+21 互动量明细
-            't21-component': false,      // T+21 组件明细
-            't7-interaction': false,     // T+7 互动量明细
-            't7-component': false        // T+7 组件明细
+            't21-component': false       // T+21 组件明细
+            // T+7 不需要toggle，直接全展开
         };
 
         // DOM 元素
@@ -308,7 +303,7 @@ export class EffectTab {
 
         if (talents.length === 0) {
             talentListT21.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-gray-500">暂无达人效果数据</td></tr>';
-            talentListT7.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-gray-500">暂无达人效果数据</td></tr>';
+            talentListT7.innerHTML = '<tr><td colspan="16" class="text-center py-8 text-gray-500">暂无达人效果数据</td></tr>';
             return;
         }
 
@@ -377,7 +372,7 @@ export class EffectTab {
             `;
             talentListT21.appendChild(t21ComponentRow);
 
-            // ===== T+7 主行 =====
+            // ===== T+7 主行（直接显示所有字段，不使用明细行）=====
             const t7MainRow = document.createElement('tr');
             t7MainRow.className = 'bg-white border-b hover:bg-gray-50/50';
             t7MainRow.innerHTML = `
@@ -385,45 +380,20 @@ export class EffectTab {
                 <td class="px-4 py-4">${formatCurrency(talent.executionAmount)}</td>
                 <td class="px-4 py-4">${formatDate(talent.publishDate)}</td>
                 <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_views)}</td>
-                <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_interactions)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_likes)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_comments)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_shares)}</td>
+                <td class="px-4 py-3 font-medium">${formatPercent(talent.t7_interactionRate)}</td>
+                <td class="px-4 py-3 font-medium">${formatPercent(talent.t7_likeToViewRatio)}</td>
                 <td class="px-4 py-3 font-medium">${formatCurrency(talent.t7_cpm)}</td>
                 <td class="px-4 py-3 font-medium">${formatCurrency(talent.t7_cpe)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_componentImpressions)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_componentClicks)}</td>
                 <td class="px-4 py-3 font-medium">${formatPercent(talent.t7_ctr)}</td>
                 <td class="px-4 py-3 font-medium">${formatPercent(talent.t7_completionRate)}</td>
                 <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_totalReach)}</td>
             `;
             talentListT7.appendChild(t7MainRow);
-
-            // T+7 互动量明细行
-            const t7InteractionRow = document.createElement('tr');
-            t7InteractionRow.className = 'detail-row t7-interaction-detail-row bg-gray-100';
-            t7InteractionRow.style.display = 'none';
-            t7InteractionRow.innerHTML = `
-                <td colspan="10" class="px-6 py-3 text-xs">
-                    <div class="grid grid-cols-5 gap-4 text-center">
-                        <div><span class="font-semibold text-gray-500">点赞量:</span> ${formatNumber(talent.t7_likes)}</div>
-                        <div><span class="font-semibold text-gray-500">评论量:</span> ${formatNumber(talent.t7_comments)}</div>
-                        <div><span class="font-semibold text-gray-500">分享量:</span> ${formatNumber(talent.t7_shares)}</div>
-                        <div><span class="font-semibold text-gray-500">互动率:</span> ${formatPercent(talent.t7_interactionRate)}</div>
-                        <div><span class="font-semibold text-gray-500">赞播比:</span> ${formatPercent(talent.t7_likeToViewRatio)}</div>
-                    </div>
-                </td>
-            `;
-            talentListT7.appendChild(t7InteractionRow);
-
-            // T+7 组件明细行
-            const t7ComponentRow = document.createElement('tr');
-            t7ComponentRow.className = 'detail-row t7-component-detail-row bg-gray-100';
-            t7ComponentRow.style.display = 'none';
-            t7ComponentRow.innerHTML = `
-                <td colspan="10" class="px-6 py-3 text-xs">
-                    <div class="grid grid-cols-2 gap-4 text-center">
-                        <div><span class="font-semibold text-gray-500">组件展示量:</span> ${formatNumber(talent.t7_componentImpressions)}</div>
-                        <div><span class="font-semibold text-gray-500">组件点击量:</span> ${formatNumber(talent.t7_componentClicks)}</div>
-                    </div>
-                </td>
-            `;
-            talentListT7.appendChild(t7ComponentRow);
         });
     }
 
