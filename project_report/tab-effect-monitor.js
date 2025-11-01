@@ -324,48 +324,61 @@ export class EffectMonitorTab {
 
                 const details = data.details;
 
-                // 先按视频ID去重，避免同一视频在多个分类中重复计算
-                const videoSet = new Set();
-                const uniqueVideos = [];
+                // 第一步：按 videoId + date 去重，同一视频在同一天的重复数据求平均
+                const videoDateMap = new Map();
 
                 ['hotVideos', 'goodVideos', 'normalVideos', 'badVideos', 'worstVideos'].forEach(category => {
                     const videos = details[category] || [];
                     videos.forEach(video => {
-                        // 使用 talentName + videoId 或 collaborationId 作为唯一标识
-                        const videoKey = video.collaborationId || `${video.talentName}_${video.videoId || video.taskId}_${date}`;
+                        // 使用 videoId(或collaborationId) + date 作为唯一标识
+                        const videoId = video.videoId || video.taskId || video.collaborationId;
+                        const videoKey = `${videoId}_${date}`;
 
-                        if (!videoSet.has(videoKey)) {
-                            videoSet.add(videoKey);
-                            uniqueVideos.push(video);
+                        if (!videoDateMap.has(videoKey)) {
+                            // 第一次遇到这个视频
+                            videoDateMap.set(videoKey, {
+                                talentName: video.talentName,
+                                date: date,
+                                videoId: videoId,
+                                viewsSum: video.totalViews || 0,
+                                cpmSum: video.cpm || 0,
+                                count: 1  // 用于求平均
+                            });
+                        } else {
+                            // 同一视频在同一天出现多次（不同分类），累加后求平均
+                            const existing = videoDateMap.get(videoKey);
+                            existing.viewsSum += (video.totalViews || 0);
+                            existing.cpmSum += (video.cpm || 0);
+                            existing.count++;
                         }
                     });
                 });
 
-                // 创建临时的 达人+日期 映射
+                // 第二步：将去重后的视频数据按 达人 + 日期 聚合
                 const talentDateMap = new Map();
 
-                // 处理去重后的视频
-                uniqueVideos.forEach(video => {
-                    const talentName = video.talentName;
-                    const uniqueKey = `${talentName}_${date}`;
+                videoDateMap.forEach(videoData => {
+                    const talentKey = `${videoData.talentName}_${videoData.date}`;
 
-                    if (!talentDateMap.has(uniqueKey)) {
-                        talentDateMap.set(uniqueKey, {
-                            talentName: talentName,
-                            date: date,
-                            totalViews: video.totalViews || 0,
-                            weightedCpmSum: (video.cpm || 0) * (video.totalViews || 0),
-                            totalViewsForCpm: video.totalViews || 0,
+                    // 计算该视频的平均值
+                    const avgViews = videoData.viewsSum / videoData.count;
+                    const avgCpm = videoData.cpmSum / videoData.count;
+
+                    if (!talentDateMap.has(talentKey)) {
+                        talentDateMap.set(talentKey, {
+                            talentName: videoData.talentName,
+                            date: videoData.date,
+                            totalViews: avgViews,
+                            weightedCpmSum: avgCpm * avgViews,
+                            totalViewsForCpm: avgViews,
                             videoCount: 1
                         });
                     } else {
-                        // 同一天同一达人有多个不同视频
-                        const existing = talentDateMap.get(uniqueKey);
-                        // 累积播放量：累加（不同视频的累积播放量）
-                        existing.totalViews += (video.totalViews || 0);
-                        // CPM加权平均：sum(cpm * views)
-                        existing.weightedCpmSum += (video.cpm || 0) * (video.totalViews || 0);
-                        existing.totalViewsForCpm += (video.totalViews || 0);
+                        // 同一达人同一天有多个不同视频（多次合作）
+                        const existing = talentDateMap.get(talentKey);
+                        existing.totalViews += avgViews;
+                        existing.weightedCpmSum += avgCpm * avgViews;
+                        existing.totalViewsForCpm += avgViews;
                         existing.videoCount++;
                     }
                 });
