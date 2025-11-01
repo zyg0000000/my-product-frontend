@@ -237,6 +237,29 @@
             }
         }
 
+        /* 首列固定：横向滚动时达人名称列始终可见 */
+        #effect-talent-list-t21 tr td:first-child,
+        #effect-talent-list-t21 tr th:first-child,
+        #effect-talent-list-t7 tr td:first-child,
+        #effect-talent-list-t7 tr th:first-child,
+        thead tr th:first-child {
+            position: sticky;
+            left: 0;
+            background-color: white;
+            z-index: 10;
+        }
+
+        /* 表头首列背景色调整 */
+        thead tr th:first-child {
+            background-color: rgb(249 250 251 / 0.7); /* bg-gray-50/70 */
+        }
+
+        /* 悬停时首列背景色 */
+        #effect-talent-list-t21 tr:hover td:first-child,
+        #effect-talent-list-t7 tr:hover td:first-child {
+            background-color: rgb(249 250 251 / 0.5); /* hover:bg-gray-50/50 */
+        }
+
     </style>
 </head>
 <body>
