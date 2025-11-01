@@ -459,6 +459,7 @@ export class EffectMonitorTab {
             const videoIdDisplay = video.videoId || '<span class="text-gray-400">N/A</span>';
             const taskIdDisplay = video.taskId || '<span class="text-gray-400">N/A</span>';
             const hasVideoId = !!video.videoId;
+            const hasTaskId = !!video.taskId;
 
             return `
                 <div class="talent-card p-4 border-b ${isSelected ? 'selected' : ''}" data-collaboration-id="${video.collaborationId}">
@@ -466,7 +467,20 @@ export class EffectMonitorTab {
                         <div class="flex-1">
                             <h4 class="font-medium text-gray-900 mb-1">${video.talentName}</h4>
                             <div class="text-xs text-gray-500 space-y-0.5">
-                                <div>任务ID: ${taskIdDisplay}</div>
+                                <div class="flex items-center gap-1">
+                                    <span>任务ID:</span>
+                                    ${hasTaskId ? `
+                                        <a href="https://www.xingtu.cn/ad/creator/task/detail/${video.taskId}"
+                                           target="_blank"
+                                           class="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-0.5"
+                                           onclick="event.stopPropagation()">
+                                            ${video.taskId}
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                            </svg>
+                                        </a>
+                                    ` : taskIdDisplay}
+                                </div>
                                 <div class="flex items-center gap-1">
                                     <span>视频ID:</span>
                                     ${hasVideoId ? `
@@ -538,6 +552,7 @@ export class EffectMonitorTab {
         // 处理可能为空的videoId和taskId
         const taskIdDisplay = video.taskId || '<span class="text-gray-400">N/A</span>';
         const hasVideoId = !!video.videoId;
+        const hasTaskId = !!video.taskId;
 
         container.innerHTML = `
             <!-- 标题 -->
@@ -545,7 +560,19 @@ export class EffectMonitorTab {
                 <h3 class="text-xl font-semibold text-gray-800">📊 视频效果数据</h3>
                 <div class="mt-2 text-sm text-gray-600 space-y-1">
                     <div>达人: <span class="font-medium text-gray-800">${video.talentName}</span></div>
-                    <div>任务ID: <span class="font-mono text-gray-800">${taskIdDisplay}</span></div>
+                    <div class="flex items-center gap-1">
+                        <span>任务ID:</span>
+                        ${hasTaskId ? `
+                            <a href="https://www.xingtu.cn/ad/creator/task/detail/${video.taskId}"
+                               target="_blank"
+                               class="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1 font-mono">
+                                ${video.taskId}
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                            </a>
+                        ` : '<span class="font-mono text-gray-400">N/A</span>'}
+                    </div>
                     <div class="flex items-center gap-1">
                         <span>视频ID:</span>
                         ${hasVideoId ? `
