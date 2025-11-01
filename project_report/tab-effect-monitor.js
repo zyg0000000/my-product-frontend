@@ -306,17 +306,19 @@ export class EffectMonitorTab {
         listContainer.innerHTML = '<div class="text-center py-8 text-gray-500">正在加载数据...</div>';
 
         try {
-            // 1. 先获取项目的所有合作订单，建立collaborationId到videoId/taskId的映射
-            const collabResponse = await API.request(`${API_ENDPOINTS.COLLABORATORS}?projectId=${this.projectId}`);
-            const collaborations = collabResponse.data || [];
+            // 1. 先获取项目的所有视频，建立collaborationId到videoId/taskId的映射
+            // 使用VIDEOS_FOR_ENTRY API（使用今天的日期）
+            const today = ReportUtils.getLocalDateString();
+            const videosResponse = await API.request(`${API_ENDPOINTS.VIDEOS_FOR_ENTRY}?projectId=${this.projectId}&date=${today}`);
+            const videos = videosResponse.data || [];
 
-            // 建立映射表：collaborationId -> { videoId, taskId }
+            // 建立映射表：collaborationId -> { videoId, taskId, talentName }
             const collabIdMap = new Map();
-            collaborations.forEach(collab => {
-                collabIdMap.set(collab.id, {
-                    videoId: collab.videoId || null,
-                    taskId: collab.taskId || null,
-                    talentName: collab.talentNickname || collab.talentName
+            videos.forEach(video => {
+                collabIdMap.set(video.collaborationId, {
+                    videoId: video.videoId || null,
+                    taskId: video.taskId || null,
+                    talentName: video.talentName
                 });
             });
 

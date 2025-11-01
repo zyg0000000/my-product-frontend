@@ -15,8 +15,7 @@ export const API_ENDPOINTS = {
     REPORT_SOLUTION: '/report-solution',
     AUTOMATION_JOBS_CREATE: '/automation-jobs-create',
     AUTOMATION_JOBS_GET: '/automation-jobs-get',
-    AUTOMATION_TASKS: '/automation-tasks',
-    COLLABORATORS: '/getCollaborators'
+    AUTOMATION_TASKS: '/automation-tasks'
 };
 
 /**
