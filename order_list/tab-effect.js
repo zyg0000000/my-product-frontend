@@ -1,20 +1,20 @@
 /**
  * @file order_list/tab-effect.js
  * @description 效果验收 Tab 模块
- * @version 2.3.1 - 修复T+7表格缺少总互动量列
+ * @version 3.0.0 - T+21和T+7统一为全展开模式
  *
  * 功能:
  * - 效果看板数据加载
  * - T+21/T+7 子Tab切换
  * - T+21 交付目标达成展示（进度条动画、颜色分级、CPM达标状态）
  * - T+7 业务数据复盘展示（横向KPI卡片）
- * - T+21达人明细：支持下拉展开查看互动量和组件明细
+ * - T+21达人明细：直接显示所有字段（17列），无下拉
  * - T+7达人明细：直接显示所有字段（17列），无下拉
  *
  * 表格设计:
- * - T+21: 10列 + 2个下拉明细行（互动量明细、组件明细）
- * - T+7: 17列全展开（达人名称、执行金额、发布时间、播放量、总互动量、点赞量、评论量、分享量、
+ * - T+21: 17列全展开（达人名称、执行金额、发布时间、播放量、总互动量、点赞量、评论量、分享量、
  *        互动率、赞播比、CPM、CPE、组件展示量、组件点击量、组件点击率、视频完播率、总触达人数）
+ * - T+7: 17列全展开（与T+21完全一致）
  */
 
 import { AppCore } from '../common/app-core.js';
@@ -33,11 +33,7 @@ export class EffectTab {
 
         // 状态
         this.currentSubTab = 't21'; // 当前子Tab: t21 或 t7
-        this.detailsToggle = {
-            't21-interaction': false,    // T+21 互动量明细
-            't21-component': false       // T+21 组件明细
-            // T+7 不需要toggle，直接全展开
-        };
+        this.isCompactMode = window.innerWidth < 1440; // 响应式：小屏幕使用紧凑模式
 
         // DOM 元素
         this.elements = {
@@ -73,6 +69,24 @@ export class EffectTab {
             talentListT21: document.getElementById('effect-talent-list-t21'),
             talentListT7: document.getElementById('effect-talent-list-t7')
         };
+
+        // 绑定窗口resize事件，实现响应式切换
+        this.handleResize = this.handleResize.bind(this);
+        window.addEventListener('resize', this.handleResize);
+    }
+
+    /**
+     * 处理窗口resize事件
+     */
+    handleResize() {
+        const newMode = window.innerWidth < 1440;
+        if (newMode !== this.isCompactMode) {
+            this.isCompactMode = newMode;
+            // 如果已加载数据，重新渲染表格
+            if (this.effectData) {
+                this.renderTalentDetails(this.effectData.talents || []);
+            }
+        }
     }
 
     /**
@@ -315,7 +329,7 @@ export class EffectTab {
         talentListT7.innerHTML = '';
 
         if (talents.length === 0) {
-            talentListT21.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-gray-500">暂无达人效果数据</td></tr>';
+            talentListT21.innerHTML = '<tr><td colspan="17" class="text-center py-8 text-gray-500">暂无达人效果数据</td></tr>';
             talentListT7.innerHTML = '<tr><td colspan="17" class="text-center py-8 text-gray-500">暂无达人效果数据</td></tr>';
             return;
         }
@@ -330,7 +344,7 @@ export class EffectTab {
         const targetCpm = this.effectData?.overall?.benchmarkCPM;
 
         talents.forEach(talent => {
-            // ===== T+21 主行 =====
+            // ===== T+21 主行（直接显示所有字段，不使用明细行）=====
             const t21Row = document.createElement('tr');
             t21Row.className = 'bg-white border-b hover:bg-gray-50/50';
 
@@ -346,44 +360,20 @@ export class EffectTab {
                 <td class="px-4 py-4">${formatDate(talent.publishDate)}</td>
                 <td class="px-4 py-3 font-medium">${formatNumber(talent.t21_views)}</td>
                 <td class="px-4 py-3 font-medium">${formatNumber(talent.t21_interactions)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t21_likes)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t21_comments)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t21_shares)}</td>
+                <td class="px-4 py-3 font-medium">${formatPercent(talent.t21_interactionRate)}</td>
+                <td class="px-4 py-3 font-medium">${formatPercent(talent.t21_likeToViewRatio)}</td>
                 <td class="px-4 py-3 font-medium ${cpmClass}">${formatCurrency(talent.t21_cpm)}</td>
                 <td class="px-4 py-3 font-medium">${formatCurrency(talent.t21_cpe)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t21_componentImpressions)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t21_componentClicks)}</td>
                 <td class="px-4 py-3 font-medium">${formatPercent(talent.t21_ctr)}</td>
                 <td class="px-4 py-3 font-medium">${formatPercent(talent.t21_completionRate)}</td>
                 <td class="px-4 py-3 font-medium">${formatNumber(talent.t21_totalReach)}</td>
             `;
             talentListT21.appendChild(t21Row);
-
-            // T+21 互动量明细行
-            const t21InteractionRow = document.createElement('tr');
-            t21InteractionRow.className = 'detail-row t21-interaction-detail-row bg-gray-100';
-            t21InteractionRow.style.display = 'none';
-            t21InteractionRow.innerHTML = `
-                <td colspan="10" class="px-6 py-3 text-xs">
-                    <div class="grid grid-cols-5 gap-4 text-center">
-                        <div><span class="font-semibold text-gray-500">点赞量:</span> ${formatNumber(talent.t21_likes)}</div>
-                        <div><span class="font-semibold text-gray-500">评论量:</span> ${formatNumber(talent.t21_comments)}</div>
-                        <div><span class="font-semibold text-gray-500">分享量:</span> ${formatNumber(talent.t21_shares)}</div>
-                        <div><span class="font-semibold text-gray-500">互动率:</span> ${formatPercent(talent.t21_interactionRate)}</div>
-                        <div><span class="font-semibold text-gray-500">赞播比:</span> ${formatPercent(talent.t21_likeToViewRatio)}</div>
-                    </div>
-                </td>
-            `;
-            talentListT21.appendChild(t21InteractionRow);
-
-            // T+21 组件明细行
-            const t21ComponentRow = document.createElement('tr');
-            t21ComponentRow.className = 'detail-row t21-component-detail-row bg-gray-100';
-            t21ComponentRow.style.display = 'none';
-            t21ComponentRow.innerHTML = `
-                <td colspan="10" class="px-6 py-3 text-xs">
-                    <div class="grid grid-cols-2 gap-4 text-center">
-                        <div><span class="font-semibold text-gray-500">组件展示量:</span> ${formatNumber(talent.t21_componentImpressions)}</div>
-                        <div><span class="font-semibold text-gray-500">组件点击量:</span> ${formatNumber(talent.t21_componentClicks)}</div>
-                    </div>
-                </td>
-            `;
-            talentListT21.appendChild(t21ComponentRow);
 
             // ===== T+7 主行（直接显示所有字段，不使用明细行）=====
             const t7MainRow = document.createElement('tr');
@@ -422,37 +412,6 @@ export class EffectTab {
                 this.switchSubTab(tab);
             });
         });
-
-        // 详情展开/收起按钮
-        const detailsToggleBtns = document.querySelectorAll('.details-toggle-btn');
-        detailsToggleBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const target = btn.dataset.target;
-                this.handleToggleDetails(target);
-            });
-        });
-    }
-
-    /**
-     * 展开/收起详情行
-     */
-    handleToggleDetails(target) {
-        this.detailsToggle[target] = !this.detailsToggle[target];
-
-        const rowClass = `.${target}-detail-row`;
-        const rows = document.querySelectorAll(rowClass);
-        const btn = document.querySelector(`.details-toggle-btn[data-target="${target}"]`);
-        const icon = btn?.querySelector('.details-toggle-icon');
-
-        if (this.detailsToggle[target]) {
-            // 展开
-            rows.forEach(row => row.style.display = 'table-row');
-            if (icon) icon.classList.add('rotated');
-        } else {
-            // 收起
-            rows.forEach(row => row.style.display = 'none');
-            if (icon) icon.classList.remove('rotated');
-        }
     }
 
     /**
