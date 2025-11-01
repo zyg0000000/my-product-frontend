@@ -51,8 +51,88 @@
         .add-btn.disabled { @apply bg-gray-200 text-gray-500 cursor-not-allowed pointer-events-none opacity-70 hover:bg-gray-200; }
         .details-toggle-icon { transition: transform 0.2s ease-in-out; }
         .details-toggle-icon.rotated { transform: rotate(180deg); }
-        .detail-row { display: none; }
+        .detail-row { display: none; transition: all 0.3s ease-in-out; }
         .stat-metric-label { @apply text-xs sm:text-sm font-medium text-gray-500; }
+
+        /* === 效果验收子Tab样式 === */
+        .effect-sub-tab {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.625rem 1.5rem;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .effect-sub-tab:not(.active) {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+        .effect-sub-tab:not(.active):hover {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+        .effect-sub-tab.active {
+            background-color: #4f46e5;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+        }
+
+        /* === 进度条动画与颜色分级 === */
+        .progress-bar-animated {
+            transition: width 0.8s ease-out, background-color 0.3s ease;
+        }
+        .progress-excellent { background: linear-gradient(to right, #10b981, #059669); } /* 绿色：>=100% */
+        .progress-good { background: linear-gradient(to right, #3b82f6, #2563eb); } /* 蓝色：80-99% */
+        .progress-warning { background: linear-gradient(to right, #f59e0b, #d97706); } /* 黄色：60-79% */
+        .progress-danger { background: linear-gradient(to right, #ef4444, #dc2626); } /* 红色：<60% */
+
+        /* === KPI卡片美化 === */
+        .kpi-card-enhanced {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease-in-out;
+        }
+        .kpi-card-enhanced:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .kpi-card-enhanced .kpi-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        .kpi-card-enhanced .kpi-value {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #111827;
+            text-align: center;
+        }
+        .kpi-达标 {
+            border-left: 4px solid #10b981;
+            background: linear-gradient(to right, #f0fdf4, #ffffff);
+        }
+        .kpi-未达标 {
+            border-left: 4px solid #ef4444;
+            background: linear-gradient(to right, #fef2f2, #ffffff);
+        }
+
+        /* === 表格达标状态高亮 === */
+        .cpm-达标 {
+            color: #059669;
+            font-weight: 600;
+        }
+        .cpm-未达标 {
+            color: #dc2626;
+            font-weight: 600;
+        }
 
         /* --- Styles Merged from Demo --- */
         .calendar-day {
@@ -148,6 +228,51 @@
         /* 进度条 */
         .progress-bar {
             transition: width 0.5s ease;
+        }
+
+        /* 响应式：小屏幕隐藏部分列 */
+        @media (max-width: 1439px) {
+            .hide-compact {
+                display: none;
+            }
+        }
+
+        /* 首列固定：横向滚动时达人名称列始终可见 */
+        #effect-talent-list-t21 tr td:first-child,
+        #effect-talent-list-t21 tr th:first-child,
+        #effect-talent-list-t7 tr td:first-child,
+        #effect-talent-list-t7 tr th:first-child,
+        thead tr th:first-child {
+            position: sticky;
+            left: 0;
+            background-color: white;
+            z-index: 10;
+        }
+
+        /* 表头首列背景色调整 */
+        thead tr th:first-child {
+            background-color: rgb(249 250 251 / 0.7); /* bg-gray-50/70 */
+        }
+
+        /* 悬停时首列背景色 */
+        #effect-talent-list-t21 tr:hover td:first-child,
+        #effect-talent-list-t7 tr:hover td:first-child {
+            background-color: rgb(249 250 251 / 0.5); /* hover:bg-gray-50/50 */
+        }
+
+        /* 视图模式切换按钮样式 */
+        .view-mode-btn {
+            color: #6b7280;
+            background-color: white;
+        }
+        .view-mode-btn:hover {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+        .view-mode-btn.active {
+            background-color: #4f46e5;
+            color: white;
+            font-weight: 600;
         }
 
     </style>
@@ -601,12 +726,30 @@
                     <div id="effect-dashboard-error" class="text-center py-12 hidden"><p class="text-red-500">效果看板数据加载失败，请稍后重试。</p></div>
 
                     <div id="effect-dashboard-content" class="hidden">
-                        <div class="mb-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border">
+                        <!-- 子Tab切换按钮 -->
+                        <div class="mb-6 flex items-center gap-3">
+                            <button class="effect-sub-tab active" data-effect-tab="t21">
+                                <svg class="w-5 h-5 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                21天验收
+                            </button>
+                            <button class="effect-sub-tab" data-effect-tab="t7">
+                                <svg class="w-5 h-5 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
+                                7天复盘
+                            </button>
+                        </div>
+
+                        <!-- T+21 内容区域 -->
+                        <div id="effect-t21-content" class="effect-tab-content">
+                        <div class="mb-8">
+                            <div class="bg-white p-6 rounded-xl shadow-sm border">
                                 <h3 class="text-xl font-bold text-gray-800 mb-1">T+21 交付目标达成</h3>
                                 <p class="text-sm text-gray-500 mb-6">核心交付指标以最后一个合作作品发布后21天的数据为准。</p>
                                 <div class="bg-blue-50/80 rounded-lg p-4 text-center mb-6">
-                                    <p class="text-lg font-bold text-blue-800">数据交付日期</p>
+                                    <p class="text-lg font-bold text-blue-800">项目数据交付日期（T+21）</p>
                                     <p id="eff-delivery-date" class="text-sm text-blue-600">[...]</p>
                                 </div>
                                 <div>
@@ -614,72 +757,176 @@
                                         <p class="text-base font-semibold text-gray-700">播放量达成进度</p>
                                         <p id="eff-progress-summary" class="text-sm font-mono text-gray-600"></p>
                                     </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-4 relative overflow-hidden">
-                                        <div id="eff-progress-bar" class="bg-green-500 h-4 rounded-full text-center text-white text-xs font-bold leading-4" style="width: 0%;"></div>
+                                    <div class="w-full bg-gray-200 rounded-full h-5 relative overflow-hidden shadow-inner">
+                                        <div id="eff-progress-bar" class="progress-bar-animated progress-excellent h-5 rounded-full text-center text-white text-xs font-bold leading-5" style="width: 0%;"></div>
                                     </div>
                                     <p id="eff-views-gap" class="text-right text-sm font-medium mt-2"></p>
                                 </div>
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                                    <div class="bg-gray-50 p-3 rounded-lg"><p class="text-lg font-bold text-gray-800 text-center">总播放量</p><p id="eff-t21-views" class="text-sm text-gray-600 text-center"></p></div>
-                                    <div class="bg-gray-50 p-3 rounded-lg"><p class="text-lg font-bold text-green-700 text-center">CPM</p><p id="eff-t21-cpm" class="text-sm text-gray-600 text-center"></p></div>
-                                    <div class="bg-gray-50 p-3 rounded-lg"><p class="text-lg font-bold text-gray-800 text-center">目标CPM</p><p id="eff-benchmark-cpm" class="text-sm text-gray-600 text-center"></p></div>
-                                    <div class="bg-gray-50 p-3 rounded-lg"><p class="text-lg font-bold text-gray-800 text-center">目标播放量</p><p id="eff-target-views" class="text-sm text-gray-600 text-center"></p></div>
-                                </div>
-                            </div>
-                            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm border">
-                                <h3 class="text-xl font-bold text-gray-800 mb-4">T+7 业务数据复盘</h3>
-                                <div class="bg-purple-50/80 rounded-lg p-3 text-center mb-6">
-                                    <p class="text-base font-bold text-purple-800">T+7 复盘日期</p>
-                                    <p id="eff-t7-review-date" class="text-sm text-purple-600">[...]</p>
-                                </div>
-                                <div class="space-y-4">
-                                    <div class="flex items-center"><div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mr-4 flex-shrink-0"><svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></div><div><p class="text-lg font-bold text-gray-800">播放量</p><p id="eff-t7-views" class="text-sm text-gray-600"></p></div></div>
-                                    <div class="flex items-center"><div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center mr-4 flex-shrink-0"><svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.085a2 2 0 00-1.736.93L5.5 8m7 2H5M5 8h2m2 0h2m5 0h2"></path></svg></div><div><p class="text-lg font-bold text-gray-800">互动量</p><p id="eff-t7-interactions" class="text-sm text-gray-600"></p></div></div>
-                                    <div class="flex items-center"><div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center mr-4 flex-shrink-0"><svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01M12 16v-1m0 1v.01M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg></div><div><p class="text-lg font-bold text-gray-800">CPM</p><p id="eff-t7-cpm" class="text-sm text-gray-600"></p></div></div>
-                                    <div class="flex items-center"><div class="w-12 h-12 rounded-lg bg-red-100 flex items-center justify-center mr-4 flex-shrink-0"><svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div><div><p class="text-lg font-bold text-gray-800">CPE</p><p id="eff-t7-cpe" class="text-sm text-gray-600"></p></div></div>
-                                    <div class="flex items-center"><div class="w-12 h-12 rounded-lg bg-yellow-100 flex items-center justify-center mr-4 flex-shrink-0"><svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg></div><div><p class="text-lg font-bold text-gray-800">组件点击率</p><p id="eff-t7-ctr" class="text-sm text-gray-600"></p></div></div>
+                                    <div class="kpi-card-enhanced">
+                                        <div class="kpi-label">总播放量</div>
+                                        <div id="eff-t21-views" class="kpi-value"></div>
+                                    </div>
+                                    <div class="kpi-card-enhanced" id="eff-t21-cpm-card">
+                                        <div class="kpi-label">实际CPM</div>
+                                        <div id="eff-t21-cpm" class="kpi-value"></div>
+                                    </div>
+                                    <div class="kpi-card-enhanced">
+                                        <div class="kpi-label">目标CPM</div>
+                                        <div id="eff-benchmark-cpm" class="kpi-value"></div>
+                                    </div>
+                                    <div class="kpi-card-enhanced">
+                                        <div class="kpi-label">目标播放量</div>
+                                        <div id="eff-target-views" class="kpi-value"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- T+21 达人数据明细表格 -->
                         <div class="mt-8">
-                            <h3 class="text-xl font-bold text-gray-800 mb-4">达人数据明细</h3>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-bold text-gray-800">达人数据明细（21天验收）</h3>
+                                <!-- 视图切换开关 -->
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-gray-600">视图模式：</span>
+                                    <div class="inline-flex rounded-lg border border-gray-300 bg-white">
+                                        <button id="t21-view-full-btn" class="view-mode-btn active px-3 py-1.5 text-xs font-medium rounded-l-lg transition-colors">
+                                            📊 全展开（17列）
+                                        </button>
+                                        <button id="t21-view-compact-btn" class="view-mode-btn px-3 py-1.5 text-xs font-medium rounded-r-lg transition-colors">
+                                            📋 紧凑（10列）
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="overflow-x-auto border rounded-lg bg-white">
                                 <table class="w-full text-sm text-left text-gray-500">
                                     <thead class="text-xs text-gray-700 uppercase bg-gray-50/70">
                                         <tr>
-                                            <th scope="col" rowspan="2" class="px-4 py-3 align-bottom border-b">达人名称</th>
-                                            <th scope="col" rowspan="2" class="px-4 py-3 align-bottom border-b">执行金额</th>
-                                            <th scope="col" rowspan="2" class="px-4 py-3 align-bottom border-b">发布时间</th>
-                                            <th scope="col" colspan="2" class="px-4 py-2 text-center border-b border-l">项目 T+21 验收数据</th>
-                                            <th scope="col" colspan="7" class="px-4 py-2 text-center border-b border-l">项目 T+7 效果数据</th>
-                                        </tr>
-                                        <tr>
-                                            <th scope="col" class="px-4 py-3 font-medium border-l">播放量</th>
-                                            <th scope="col" class="px-4 py-3 font-medium">CPM</th>
-                                            <th scope="col" class="px-4 py-3 font-medium border-l">播放量</th>
-                                            <th scope="col" class="px-4 py-3 font-medium">
-                                                <div class="flex items-center justify-center cursor-pointer details-toggle-btn" data-target="interaction">
-                                                    <span>总互动量</span>
-                                                    <svg class="w-4 h-4 ml-1 details-toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                                </div>
-                                            </th>
-                                            <th scope="col" class="px-4 py-3 font-medium">CPM</th>
-                                            <th scope="col" class="px-4 py-3 font-medium">CPE</th>
-                                            <th scope="col" class="px-4 py-3 font-medium">
-                                                <div class="flex items-center justify-center cursor-pointer details-toggle-btn" data-target="component">
-                                                    <span>组件点击率</span>
-                                                    <svg class="w-4 h-4 ml-1 details-toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                                </div>
-                                            </th>
-                                            <th scope="col" class="px-4 py-3 font-medium">视频完播率</th>
-                                            <th scope="col" class="px-4 py-3 font-medium">总触达人数</th>
+                                            <th scope="col" class="px-4 py-3">达人名称</th>
+                                            <th scope="col" class="px-4 py-3">执行金额</th>
+                                            <th scope="col" class="px-4 py-3">发布时间</th>
+                                            <th scope="col" class="px-4 py-3">播放量</th>
+                                            <th scope="col" class="px-4 py-3">总互动量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">点赞量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">评论量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">分享量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">互动率</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">赞播比</th>
+                                            <th scope="col" class="px-4 py-3">CPM</th>
+                                            <th scope="col" class="px-4 py-3">CPE</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">组件展示量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">组件点击量</th>
+                                            <th scope="col" class="px-4 py-3">组件点击率</th>
+                                            <th scope="col" class="px-4 py-3">视频完播率</th>
+                                            <th scope="col" class="px-4 py-3">总触达人数</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="effect-talent-list-body"></tbody>
+                                    <tbody id="effect-talent-list-t21"></tbody>
                                 </table>
                             </div>
                         </div>
+                        </div>
+                        <!-- T+21 内容区域结束 -->
+
+                        <!-- T+7 内容区域 -->
+                        <div id="effect-t7-content" class="effect-tab-content hidden">
+                        <div class="mb-8">
+                            <div class="bg-white p-6 rounded-xl shadow-sm border">
+                                <h3 class="text-xl font-bold text-gray-800 mb-1">T+7 业务数据复盘</h3>
+                                <p class="text-sm text-gray-500 mb-6">核心交付指标以最后一个合作作品发布后7天的数据为准。</p>
+                                <div class="bg-purple-50/80 rounded-lg p-4 text-center mb-6">
+                                    <p class="text-lg font-bold text-purple-800">项目复盘交付日期（T+7）</p>
+                                    <p id="eff-t7-review-date" class="text-sm text-purple-600">[...]</p>
+                                </div>
+                                <!-- 横向排列的KPI卡片 -->
+                                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                                    <div class="kpi-card-enhanced text-center">
+                                        <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mx-auto mb-2">
+                                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                        </div>
+                                        <div class="kpi-label">播放量</div>
+                                        <div id="eff-t7-views" class="kpi-value text-blue-600"></div>
+                                    </div>
+                                    <div class="kpi-card-enhanced text-center">
+                                        <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center mx-auto mb-2">
+                                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.085a2 2 0 00-1.736.93L5.5 8m7 2H5M5 8h2m2 0h2m5 0h2"></path></svg>
+                                        </div>
+                                        <div class="kpi-label">互动量</div>
+                                        <div id="eff-t7-interactions" class="kpi-value text-green-600"></div>
+                                    </div>
+                                    <div class="kpi-card-enhanced text-center">
+                                        <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center mx-auto mb-2">
+                                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01M12 16v-1m0 1v.01M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                                        </div>
+                                        <div class="kpi-label">CPM</div>
+                                        <div id="eff-t7-cpm" class="kpi-value text-purple-600"></div>
+                                    </div>
+                                    <div class="kpi-card-enhanced text-center">
+                                        <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center mx-auto mb-2">
+                                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        </div>
+                                        <div class="kpi-label">CPE</div>
+                                        <div id="eff-t7-cpe" class="kpi-value text-red-600"></div>
+                                    </div>
+                                    <div class="kpi-card-enhanced text-center">
+                                        <div class="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center mx-auto mb-2">
+                                            <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                                        </div>
+                                        <div class="kpi-label">组件点击率</div>
+                                        <div id="eff-t7-ctr" class="kpi-value text-yellow-600"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- T+7 达人数据明细表格 -->
+                        <div class="mt-8">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-bold text-gray-800">达人数据明细（7天验收）</h3>
+                                <!-- 视图切换开关 -->
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-gray-600">视图模式：</span>
+                                    <div class="inline-flex rounded-lg border border-gray-300 bg-white">
+                                        <button id="t7-view-full-btn" class="view-mode-btn active px-3 py-1.5 text-xs font-medium rounded-l-lg transition-colors">
+                                            📊 全展开（17列）
+                                        </button>
+                                        <button id="t7-view-compact-btn" class="view-mode-btn px-3 py-1.5 text-xs font-medium rounded-r-lg transition-colors">
+                                            📋 紧凑（10列）
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto border rounded-lg bg-white">
+                                <table class="w-full text-sm text-left text-gray-500">
+                                    <thead class="text-xs text-gray-700 uppercase bg-gray-50/70">
+                                        <tr>
+                                            <th scope="col" class="px-4 py-3">达人名称</th>
+                                            <th scope="col" class="px-4 py-3">执行金额</th>
+                                            <th scope="col" class="px-4 py-3">发布时间</th>
+                                            <th scope="col" class="px-4 py-3">播放量</th>
+                                            <th scope="col" class="px-4 py-3">总互动量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">点赞量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">评论量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">分享量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">互动率</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">赞播比</th>
+                                            <th scope="col" class="px-4 py-3">CPM</th>
+                                            <th scope="col" class="px-4 py-3">CPE</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">组件展示量</th>
+                                            <th scope="col" class="px-4 py-3 hide-compact">组件点击量</th>
+                                            <th scope="col" class="px-4 py-3">组件点击率</th>
+                                            <th scope="col" class="px-4 py-3">视频完播率</th>
+                                            <th scope="col" class="px-4 py-3">总触达人数</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="effect-talent-list-t7"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        </div>
+                        <!-- T+7 内容区域结束 -->
                     </div>
                 </div>
 
