@@ -1,14 +1,21 @@
 /**
  * @file order_list/tab-effect.js
  * @description 效果验收 Tab 模块
- * @version 1.0.0
+ * @version 2.0.0 - MVP优化版
  *
  * 功能:
  * - 效果看板数据加载
- * - T+21 交付目标达成展示
+ * - T+21/T+7 子Tab切换
+ * - T+21 交付目标达成展示（进度条动画、颜色分级、CPM达标状态）
  * - T+7 业务数据复盘展示
- * - 达人数据明细表格
- * - 互动量/组件点击详情展开收起
+ * - 达人数据明细表格（根据Tab显示不同列）
+ * - 互动量/组件点击详情展开收起（仅T+7）
+ *
+ * 优化:
+ * - ✅ 子Tab切换（7天/21天拆分）
+ * - ✅ 进度条动画 + 颜色分级
+ * - ✅ KPI卡片美化 + 达标状态可视化
+ * - ✅ CPM达标状态高亮
  */
 
 import { AppCore } from '../common/app-core.js';
@@ -26,6 +33,7 @@ export class EffectTab {
         this.effectData = null;
 
         // 状态
+        this.currentSubTab = 't21'; // 当前子Tab: t21 或 t7
         this.detailsToggle = {
             interaction: false,    // 互动量明细
             component: false       // 组件点击明细
@@ -37,6 +45,11 @@ export class EffectTab {
             error: document.getElementById('effect-dashboard-error'),
             content: document.getElementById('effect-dashboard-content'),
 
+            // 子Tab切换按钮
+            subTabBtns: document.querySelectorAll('.effect-sub-tab'),
+            t21Content: document.getElementById('effect-t21-content'),
+            t7Content: document.getElementById('effect-t7-content'),
+
             // T+21 数据
             deliveryDate: document.getElementById('eff-delivery-date'),
             progressSummary: document.getElementById('eff-progress-summary'),
@@ -44,6 +57,7 @@ export class EffectTab {
             viewsGap: document.getElementById('eff-views-gap'),
             t21Views: document.getElementById('eff-t21-views'),
             t21Cpm: document.getElementById('eff-t21-cpm'),
+            t21CpmCard: document.getElementById('eff-t21-cpm-card'),
             benchmarkCpm: document.getElementById('eff-benchmark-cpm'),
             targetViews: document.getElementById('eff-target-views'),
 
@@ -56,7 +70,8 @@ export class EffectTab {
             t7Ctr: document.getElementById('eff-t7-ctr'),
 
             // 达人明细
-            talentListBody: document.getElementById('effect-talent-list-body')
+            talentListT21: document.getElementById('effect-talent-list-t21'),
+            talentListT7: document.getElementById('effect-talent-list-t7')
         };
     }
 
@@ -139,6 +154,7 @@ export class EffectTab {
             viewsGap,
             t21Views,
             t21Cpm,
+            t21CpmCard,
             benchmarkCpm,
             targetViews
         } = this.elements;
@@ -149,7 +165,7 @@ export class EffectTab {
 
         // 交付日期
         if (deliveryDate) {
-            deliveryDate.textContent = `[${overall.deliveryDate || 'N/A'}]`;
+            deliveryDate.textContent = overall.deliveryDate || 'N/A';
         }
 
         // 目标CPM
@@ -163,18 +179,38 @@ export class EffectTab {
         if (isT21DataAvailable) {
             const currentViews = overall.t21_totalViews;
             const targetViewsValue = overall.targetViews;
+            const currentCpm = overall.t21_cpm;
+            const targetCpm = overall.benchmarkCPM;
 
             // 进度摘要
             if (progressSummary) {
                 progressSummary.innerHTML = `当前 <span class="font-bold">${currentViews.toLocaleString()}</span> / 目标 <span class="font-bold">${(targetViewsValue || 0).toLocaleString()}</span>`;
             }
 
-            // 进度条
+            // 进度条 + 颜色分级 + 动画
             const progress = (targetViewsValue && targetViewsValue > 0) ? (currentViews / targetViewsValue) * 100 : 0;
             const progressPercent = Math.min(progress, 100).toFixed(0);
+
             if (progressBar) {
-                progressBar.style.width = `${progressPercent}%`;
-                progressBar.textContent = `${progressPercent}%`;
+                // 清除旧的颜色类
+                progressBar.classList.remove('progress-excellent', 'progress-good', 'progress-warning', 'progress-danger');
+
+                // 根据达成率设置颜色
+                if (progress >= 100) {
+                    progressBar.classList.add('progress-excellent');
+                } else if (progress >= 80) {
+                    progressBar.classList.add('progress-good');
+                } else if (progress >= 60) {
+                    progressBar.classList.add('progress-warning');
+                } else {
+                    progressBar.classList.add('progress-danger');
+                }
+
+                // 动画效果：延迟执行让动画可见
+                setTimeout(() => {
+                    progressBar.style.width = `${progressPercent}%`;
+                    progressBar.textContent = `${progressPercent}%`;
+                }, 100);
             }
 
             // GAP
@@ -184,9 +220,19 @@ export class EffectTab {
             }
 
             // T+21 播放量和CPM
-            if (t21Views) t21Views.innerHTML = `[${formatNumber(currentViews)}]`;
-            if (t21Cpm) t21Cpm.innerHTML = formatCurrency(overall.t21_cpm);
-            if (targetViews) targetViews.innerHTML = `[${formatNumber(targetViewsValue)}]`;
+            if (t21Views) t21Views.innerHTML = formatNumber(currentViews);
+            if (t21Cpm) t21Cpm.innerHTML = formatCurrency(currentCpm);
+            if (targetViews) targetViews.innerHTML = formatNumber(targetViewsValue);
+
+            // CPM达标状态卡片高亮
+            if (t21CpmCard && currentCpm !== null && currentCpm !== undefined && targetCpm !== null && targetCpm !== undefined) {
+                t21CpmCard.classList.remove('kpi-达标', 'kpi-未达标');
+                if (currentCpm <= targetCpm) {
+                    t21CpmCard.classList.add('kpi-达标');
+                } else {
+                    t21CpmCard.classList.add('kpi-未达标');
+                }
+            }
         } else {
             // 数据未录入时的显示
             if (progressSummary) progressSummary.innerHTML = `当前 ${notEnteredSpan} / 目标 ${notEnteredSpan}`;
@@ -195,9 +241,9 @@ export class EffectTab {
                 progressBar.textContent = '0%';
             }
             if (viewsGap) viewsGap.innerHTML = `GAP: ${notEnteredSpan}`;
-            if (t21Views) t21Views.innerHTML = `[${notEnteredSpan}]`;
+            if (t21Views) t21Views.innerHTML = notEnteredSpan;
             if (t21Cpm) t21Cpm.innerHTML = notEnteredSpan;
-            if (targetViews) targetViews.innerHTML = `[${notEnteredSpan}]`;
+            if (targetViews) targetViews.innerHTML = notEnteredSpan;
         }
     }
 
@@ -236,8 +282,8 @@ export class EffectTab {
         }
 
         // T+7 各项指标
-        if (t7Views) t7Views.innerHTML = `[${formatNumber(overall.t7_totalViews)}]`;
-        if (t7Interactions) t7Interactions.innerHTML = `[${formatNumber(overall.t7_totalInteractions)}]`;
+        if (t7Views) t7Views.innerHTML = formatNumber(overall.t7_totalViews);
+        if (t7Interactions) t7Interactions.innerHTML = formatNumber(overall.t7_totalInteractions);
         if (t7Cpm) t7Cpm.innerHTML = formatCurrency(overall.t7_cpm);
         if (t7Cpe) t7Cpe.innerHTML = formatCurrency(overall.t7_cpe);
         if (t7Ctr) t7Ctr.innerHTML = formatPercent(overall.t7_ctr);
@@ -247,13 +293,17 @@ export class EffectTab {
      * 渲染达人明细表格
      */
     renderTalentDetails(talents) {
-        const { talentListBody } = this.elements;
-        if (!talentListBody) return;
+        const { talentListT21, talentListT7 } = this.elements;
 
-        talentListBody.innerHTML = '';
+        if (!talentListT21 || !talentListT7) return;
+
+        // 清空表格
+        talentListT21.innerHTML = '';
+        talentListT7.innerHTML = '';
 
         if (talents.length === 0) {
-            talentListBody.innerHTML = '<tr><td colspan="12" class="text-center py-8 text-gray-500">暂无达人效果数据</td></tr>';
+            talentListT21.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">暂无达人效果数据</td></tr>';
+            talentListT7.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-gray-500">暂无达人效果数据</td></tr>';
             return;
         }
 
@@ -263,17 +313,37 @@ export class EffectTab {
         const formatPercent = (num) => (num === null || num === undefined) ? notEnteredSpan : `${(Number(num) * 100).toFixed(2)}%`;
         const formatDate = (dateStr) => (dateStr) ? new Date(dateStr).toLocaleDateString() : 'N/A';
 
+        // 获取目标CPM用于达标判断
+        const targetCpm = this.effectData?.overall?.benchmarkCPM;
+
         talents.forEach(talent => {
-            // 主行
-            const mainRow = document.createElement('tr');
-            mainRow.className = 'bg-white border-b hover:bg-gray-50/50';
-            mainRow.innerHTML = `
+            // ===== T+21 表格行 =====
+            const t21Row = document.createElement('tr');
+            t21Row.className = 'bg-white border-b hover:bg-gray-50/50';
+
+            // CPM达标状态判断
+            let cpmClass = '';
+            if (talent.t21_cpm !== null && talent.t21_cpm !== undefined && targetCpm !== null && targetCpm !== undefined) {
+                cpmClass = talent.t21_cpm <= targetCpm ? 'cpm-达标' : 'cpm-未达标';
+            }
+
+            t21Row.innerHTML = `
                 <td class="px-4 py-4 font-medium text-gray-900">${talent.talentName}</td>
                 <td class="px-4 py-4">${formatCurrency(talent.executionAmount)}</td>
                 <td class="px-4 py-4">${formatDate(talent.publishDate)}</td>
-                <td class="px-4 py-3 font-medium border-l">${formatNumber(talent.t21_views)}</td>
-                <td class="px-4 py-3 font-medium">${formatCurrency(talent.t21_cpm)}</td>
-                <td class="px-4 py-3 font-medium border-l">${formatNumber(talent.t7_views)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t21_views)}</td>
+                <td class="px-4 py-3 font-medium ${cpmClass}">${formatCurrency(talent.t21_cpm)}</td>
+            `;
+            talentListT21.appendChild(t21Row);
+
+            // ===== T+7 表格行 =====
+            const t7MainRow = document.createElement('tr');
+            t7MainRow.className = 'bg-white border-b hover:bg-gray-50/50';
+            t7MainRow.innerHTML = `
+                <td class="px-4 py-4 font-medium text-gray-900">${talent.talentName}</td>
+                <td class="px-4 py-4">${formatCurrency(talent.executionAmount)}</td>
+                <td class="px-4 py-4">${formatDate(talent.publishDate)}</td>
+                <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_views)}</td>
                 <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_interactions)}</td>
                 <td class="px-4 py-3 font-medium">${formatCurrency(talent.t7_cpm)}</td>
                 <td class="px-4 py-3 font-medium">${formatCurrency(talent.t7_cpe)}</td>
@@ -284,9 +354,9 @@ export class EffectTab {
 
             // 互动量明细行
             const interactionDetailRow = document.createElement('tr');
-            interactionDetailRow.className = 'detail-row interaction-detail-row bg-gray-100';
+            interactionDetailRow.className = 'detail-row interaction-detail-row bg-gradient-to-r from-indigo-50/30 to-purple-50/30';
             interactionDetailRow.innerHTML = `
-                <td colspan="12" class="px-6 py-3 text-xs">
+                <td colspan="10" class="px-6 py-3 text-xs">
                     <div class="grid grid-cols-5 gap-4 text-center">
                         <div><span class="font-semibold text-gray-500">点赞量:</span> ${formatNumber(talent.t7_likes)}</div>
                         <div><span class="font-semibold text-gray-500">评论量:</span> ${formatNumber(talent.t7_comments)}</div>
@@ -299,9 +369,9 @@ export class EffectTab {
 
             // 组件点击明细行
             const componentDetailRow = document.createElement('tr');
-            componentDetailRow.className = 'detail-row component-detail-row bg-gray-100';
+            componentDetailRow.className = 'detail-row component-detail-row bg-gradient-to-r from-indigo-50/30 to-purple-50/30';
             componentDetailRow.innerHTML = `
-                <td colspan="12" class="px-6 py-3 text-xs">
+                <td colspan="10" class="px-6 py-3 text-xs">
                     <div class="grid grid-cols-2 gap-4 text-center">
                         <div><span class="font-semibold text-gray-500">组件展示量:</span> ${formatNumber(talent.t7_componentImpressions)}</div>
                         <div><span class="font-semibold text-gray-500">组件点击量:</span> ${formatNumber(talent.t7_componentClicks)}</div>
@@ -309,9 +379,9 @@ export class EffectTab {
                 </td>
             `;
 
-            talentListBody.appendChild(mainRow);
-            talentListBody.appendChild(interactionDetailRow);
-            talentListBody.appendChild(componentDetailRow);
+            talentListT7.appendChild(t7MainRow);
+            talentListT7.appendChild(interactionDetailRow);
+            talentListT7.appendChild(componentDetailRow);
         });
     }
 
@@ -319,6 +389,14 @@ export class EffectTab {
      * 绑定事件
      */
     bindEvents() {
+        // 子Tab切换
+        this.elements.subTabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.effectTab;
+                this.switchSubTab(tab);
+            });
+        });
+
         // 详情展开/收起按钮
         const detailsToggleBtns = document.querySelectorAll('.details-toggle-btn');
         detailsToggleBtns.forEach(btn => {
@@ -327,6 +405,33 @@ export class EffectTab {
                 this.handleToggleDetails(target);
             });
         });
+    }
+
+    /**
+     * 切换子Tab
+     */
+    switchSubTab(tab) {
+        if (this.currentSubTab === tab) return;
+
+        this.currentSubTab = tab;
+
+        // 更新按钮状态
+        this.elements.subTabBtns.forEach(btn => {
+            if (btn.dataset.effectTab === tab) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // 切换内容显示
+        if (tab === 't21') {
+            this.elements.t21Content?.classList.remove('hidden');
+            this.elements.t7Content?.classList.add('hidden');
+        } else {
+            this.elements.t21Content?.classList.add('hidden');
+            this.elements.t7Content?.classList.remove('hidden');
+        }
     }
 
     /**
