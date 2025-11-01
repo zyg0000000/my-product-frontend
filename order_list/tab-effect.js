@@ -261,9 +261,9 @@ export class EffectTab {
         } = this.elements;
 
         const notEnteredSpan = `<span class="text-sm text-gray-400">暂未录入</span>`;
-        const formatNumber = (num) => (num === null || num === undefined) ? notEnteredSpan : `[${Number(num).toLocaleString()}]`;
-        const formatCurrency = (num) => (num === null || num === undefined) ? notEnteredSpan : formatNumber(num);
-        const formatPercent = (num) => (num === null || num === undefined) ? notEnteredSpan : `[${(Number(num) * 100).toFixed(2)}%]`;
+        const formatNumber = (num) => (num === null || num === undefined) ? notEnteredSpan : Number(num).toLocaleString();
+        const formatCurrency = (num) => (num === null || num === undefined) ? notEnteredSpan : `¥${Number(num).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        const formatPercent = (num) => (num === null || num === undefined) ? notEnteredSpan : `${(Number(num) * 100).toFixed(2)}%`;
 
         // 计算 T+7 复盘日期 (最后发布日期 + 7天)
         if (t7ReviewDate) {
