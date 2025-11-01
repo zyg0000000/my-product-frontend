@@ -1,14 +1,15 @@
 /**
  * @file project_analysis.js
- * @version 2.2 - Time Dimension Filtering
- * @description Adds support for filtering by financial or customer month.
+ * @version 3.0 - Frontend Calculation Alignment
+ * @description [BUG FIX] 修复项目数量计算不一致问题。改为使用与 index.js 相同的前端计算逻辑，
+ *              从 /projects API 获取数据并在前端进行筛选和聚合。
  *
  * @changelog
- * - v2.2 (2025-10-20):
- * - [FEATURE] Added logic to handle new timeDimension and month filters.
- * - [REFACTOR] `fetchDataAndRender` now sends the complete filter state to the backend.
- * - [UI] Populates and resets the new month filter dropdown.
- * - v2.1 (2025-10-20): Implemented chart performance optimization.
+ * - v3.0 (2025-11-01):
+ * - [BUG FIX] 不再使用 /getAnalysisData API，改为使用 /projects API
+ * - [REFACTOR] 复用 index.js 的筛选和聚合计算逻辑
+ * - [FEATURE] 在前端计算月度趋势数据
+ * - [CONSISTENCY] 确保与项目列表页面的项目数量计算一致
  */
 document.addEventListener('DOMContentLoaded', function () {
     // --- DOM Elements ---
@@ -24,54 +25,54 @@ document.addEventListener('DOMContentLoaded', function () {
     // Chart instances
     let monthlyTrendChart = null;
 
+    // Data state
+    let allProjects = [];
+
     // --- API Configuration ---
-    const API_ENDPOINT = 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com/getAnalysisData';
+    const API_BASE_URL = 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com';
 
     // --- Helper Functions ---
     const formatCurrency = (num) => `¥${(Number(num) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const formatPercent = (num) => `${(Number(num) || 0).toFixed(2)}%`;
     const formatNumber = (num) => (Number(num) || 0).toLocaleString();
 
+    // --- API Request Function (复用 index.js 的逻辑) ---
+    async function apiRequest(endpoint, method = 'GET', body = null) {
+        const url = `${API_BASE_URL}${endpoint}`;
+        const options = { method, headers: { 'Content-Type': 'application/json' } };
+        if (body) { options.body = JSON.stringify(body); }
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+            const text = await response.text();
+            return text ? JSON.parse(text) : {};
+        } catch (error) {
+            console.error(`API request failed: ${method} ${endpoint}`, error);
+            throw error;
+        }
+    }
+
     // --- Core Functions ---
     async function initializePage() {
         populateMonthFilter();
         setupEventListeners();
-        await fetchDataAndRender();
+        await loadProjectsAndRender();
     }
 
-    async function fetchDataAndRender() {
+    async function loadProjectsAndRender() {
         loadingIndicator.classList.remove('hidden');
         analysisContent.classList.add('hidden');
 
-        const filters = {
-            timeDimension: filterTimeDimension.value || 'financial',
-            year: filterYear.value || null,
-            month: filterMonth.value || null,
-            projectType: filterProjectType.value || null,
-        };
-
         try {
-            const response = await fetch(API_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters }),
-            });
-            if (!response.ok) {
-                throw new Error(`API request failed with status ${response.status}`);
-            }
-            const apiData = await response.json();
-
-            if (apiData.success && apiData.data) {
-                const data = apiData.data;
-                populateFilters(data.availableFilters);
-                renderKpiCards(data.kpiSummary);
-                renderMonthlyTrendChart(data.monthlyFinancials);
-            } else {
-                throw new Error('API response format is incorrect or indicates failure.');
-            }
-
+            const response = await apiRequest('/projects');
+            allProjects = response.data || [];
+            populateFiltersFromData();
+            renderAnalysis();
         } catch (error) {
-            console.error('Failed to fetch or render analysis data:', error);
+            console.error('Failed to fetch projects:', error);
             analysisContent.innerHTML = `<p class="text-center py-16 text-red-500">数据加载失败，请刷新重试。</p>`;
         } finally {
             loadingIndicator.classList.add('hidden');
@@ -79,20 +80,24 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function populateFilters(availableFilters) {
+    function populateFiltersFromData() {
+        // 获取所有唯一的年份
+        const years = [...new Set(allProjects.map(p => p.financialYear).filter(Boolean))].sort((a, b) => b - a);
         const currentYear = filterYear.value;
         filterYear.innerHTML = '<option value="">所有年份</option>';
-        (availableFilters.years || []).forEach(year => {
+        years.forEach(year => {
             filterYear.innerHTML += `<option value="${year}">${year}年</option>`;
         });
-        filterYear.value = currentYear;
+        if (currentYear) filterYear.value = currentYear;
 
+        // 获取所有唯一的项目类型
+        const types = [...new Set(allProjects.map(p => p.type).filter(Boolean))].sort();
         const currentType = filterProjectType.value;
         filterProjectType.innerHTML = '<option value="">所有类型</option>';
-        (availableFilters.projectTypes || []).forEach(type => {
+        types.forEach(type => {
             filterProjectType.innerHTML += `<option value="${type}">${type}</option>`;
         });
-        filterProjectType.value = currentType;
+        if (currentType) filterProjectType.value = currentType;
     }
 
     function populateMonthFilter() {
@@ -101,9 +106,149 @@ document.addEventListener('DOMContentLoaded', function () {
         for (let i = 1; i <= 12; i++) {
             filterMonth.innerHTML += `<option value="M${i}">M${i}</option>`;
         }
-        filterMonth.value = currentMonth;
+        if (currentMonth) filterMonth.value = currentMonth;
     }
-    
+
+    function renderAnalysis() {
+        // 使用与 index.js 相同的筛选逻辑
+        const filteredProjects = filterProjects();
+
+        // 计算 KPI 汇总数据
+        const kpiSummary = calculateKpiSummary(filteredProjects);
+        renderKpiCards(kpiSummary);
+
+        // 计算月度趋势数据
+        const monthlyData = calculateMonthlyTrends(filteredProjects);
+        renderMonthlyTrendChart(monthlyData);
+    }
+
+    // 复用 index.js 的筛选逻辑 (index.js 第183-197行)
+    function filterProjects() {
+        const typeFilter = filterProjectType.value;
+        const timeDimension = filterTimeDimension.value;
+        const yearFilter = filterYear.value;
+        const monthFilter = filterMonth.value;
+
+        return allProjects.filter(project => {
+            const typeMatch = !typeFilter || project.type === typeFilter;
+
+            let timeMatch = true;
+            if (yearFilter || monthFilter) {
+                const yearField = timeDimension === 'financial' ? 'financialYear' : 'year';
+                const monthField = timeDimension === 'financial' ? 'financialMonth' : 'month';
+                const yearMatch = !yearFilter || project[yearField] === yearFilter;
+                const monthMatch = !monthFilter || project[monthField] === monthFilter;
+                timeMatch = yearMatch && monthMatch;
+            }
+
+            return typeMatch && timeMatch;
+        });
+    }
+
+    // 复用 index.js 的聚合计算逻辑 (index.js 第336-349行)
+    function calculateKpiSummary(projects) {
+        const aggregated = projects.reduce((acc, project) => {
+            const metrics = project.metrics || {};
+            Object.keys(acc).forEach(key => {
+                let sourceKey = key;
+                if (key === 'totalFundsOccupationCost') {
+                    sourceKey = 'fundsOccupationCost';
+                }
+                if (metrics[sourceKey] && typeof metrics[sourceKey] === 'number') {
+                    acc[key] += metrics[sourceKey];
+                }
+            });
+            return acc;
+        }, {
+            totalProjects: 0,
+            totalCollaborators: 0,
+            projectBudget: 0,
+            totalIncome: 0,
+            operationalProfit: 0,
+            totalExpense: 0,
+            totalOperationalCost: 0,
+            preAdjustmentProfit: 0,
+            totalFundsOccupationCost: 0,
+            totalRebateReceivable: 0,
+            incomeAdjustments: 0,
+            expenseAdjustments: 0
+        });
+
+        // 计算派生指标
+        aggregated.totalProjects = projects.length;
+        aggregated.operationalMargin = aggregated.totalIncome === 0 ? 0 : (aggregated.operationalProfit / aggregated.totalIncome) * 100;
+        aggregated.preAdjustmentMargin = aggregated.totalIncome === 0 ? 0 : (aggregated.preAdjustmentProfit / aggregated.totalIncome) * 100;
+        aggregated.budgetUtilization = aggregated.projectBudget === 0 ? 0 : (aggregated.totalIncome / aggregated.projectBudget) * 100;
+
+        return {
+            totalProjects: aggregated.totalProjects,
+            totalCollaborators: aggregated.totalCollaborators,
+            totalIncomeAgg: aggregated.totalIncome,
+            incomeAdjustments: aggregated.incomeAdjustments,
+            preAdjustmentProfit: aggregated.preAdjustmentProfit,
+            preAdjustmentMargin: aggregated.preAdjustmentMargin,
+            operationalProfit: aggregated.operationalProfit,
+            operationalMargin: aggregated.operationalMargin,
+            totalExpense: aggregated.totalExpense,
+            fundsOccupationCost: aggregated.totalFundsOccupationCost,
+            expenseAdjustments: aggregated.expenseAdjustments,
+            totalOperationalCost: aggregated.totalOperationalCost
+        };
+    }
+
+    // 计算月度趋势数据（按选定的时间维度分组）
+    function calculateMonthlyTrends(projects) {
+        const timeDimension = filterTimeDimension.value;
+        const yearField = timeDimension === 'financial' ? 'financialYear' : 'year';
+        const monthField = timeDimension === 'financial' ? 'financialMonth' : 'month';
+
+        // 按年月分组
+        const monthlyMap = {};
+        projects.forEach(project => {
+            const year = project[yearField];
+            const month = project[monthField];
+            if (!year || !month) return;
+
+            const key = `${year}-${month}`;
+            if (!monthlyMap[key]) {
+                monthlyMap[key] = {
+                    year,
+                    month,
+                    projects: [],
+                    totalIncome: 0,
+                    operationalProfit: 0
+                };
+            }
+
+            monthlyMap[key].projects.push(project);
+            const metrics = project.metrics || {};
+            if (metrics.totalIncome) monthlyMap[key].totalIncome += metrics.totalIncome;
+            if (metrics.operationalProfit) monthlyMap[key].operationalProfit += metrics.operationalProfit;
+        });
+
+        // 转换为数组并排序
+        const monthlyArray = Object.values(monthlyMap)
+            .map(item => {
+                const margin = item.totalIncome === 0 ? 0 : (item.operationalProfit / item.totalIncome) * 100;
+                return {
+                    month: `${item.year}-${item.month}`,
+                    totalIncome: item.totalIncome,
+                    margin: margin
+                };
+            })
+            .sort((a, b) => {
+                const [yearA, monthA] = a.month.split('-');
+                const [yearB, monthB] = b.month.split('-');
+                const monthNumA = parseInt(monthA.replace('M', ''));
+                const monthNumB = parseInt(monthB.replace('M', ''));
+
+                if (yearA !== yearB) return parseInt(yearA) - parseInt(yearB);
+                return monthNumA - monthNumB;
+            });
+
+        return monthlyArray;
+    }
+
     function renderKpiCards(kpiSummary) {
         if (!kpiSummary) return;
 
@@ -124,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderMonthlyTrendChart(monthlyData) {
         const ctx = document.getElementById('monthly-trend-chart')?.getContext('2d');
         if (!ctx) return;
-        
+
         const canvasParent = ctx.canvas.parentElement;
         if (!monthlyData || monthlyData.length === 0) {
             if (monthlyTrendChart) {
@@ -191,18 +336,17 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     }
-    
+
     function setupEventListeners() {
-        applyFiltersBtn.addEventListener('click', fetchDataAndRender);
+        applyFiltersBtn.addEventListener('click', renderAnalysis);
         resetFiltersBtn.addEventListener('click', () => {
             filterTimeDimension.value = 'financial';
             if (filterYear.options.length > 0) filterYear.selectedIndex = 0;
             if (filterMonth.options.length > 0) filterMonth.selectedIndex = 0;
             if (filterProjectType.options.length > 0) filterProjectType.selectedIndex = 0;
-            fetchDataAndRender();
+            renderAnalysis();
         });
     }
 
     initializePage();
 });
-
