@@ -316,32 +316,64 @@ export class EffectMonitorTab {
 
                 const details = data.details;
 
+                // 先创建一个临时的 达人+日期 映射，用于合并同一天的多个视频
+                const talentDateMap = new Map();
+
                 // 遍历所有分类的视频
                 ['hotVideos', 'goodVideos', 'normalVideos', 'badVideos', 'worstVideos'].forEach(category => {
                     const videos = details[category] || [];
 
                     videos.forEach(video => {
                         const talentName = video.talentName;
+                        const uniqueKey = `${talentName}_${date}`;
 
-                        if (!talentMap.has(talentName)) {
-                            talentMap.set(talentName, {
+                        if (!talentDateMap.has(uniqueKey)) {
+                            talentDateMap.set(uniqueKey, {
                                 talentName: talentName,
-                                dailyData: [],
-                                videoCount: 0
+                                date: date,
+                                views: video.totalViews || 0,
+                                cpms: [],
+                                videoCount: 1
                             });
+                        } else {
+                            // 同一天同一达人有多个视频，取最大播放量，收集所有CPM
+                            const existing = talentDateMap.get(uniqueKey);
+                            existing.views = Math.max(existing.views, video.totalViews || 0);
+                            existing.videoCount++;
                         }
 
-                        const talent = talentMap.get(talentName);
-
-                        // 添加每日数据
-                        talent.dailyData.push({
-                            date: date,
-                            views: video.totalViews || 0,
-                            cpm: video.cpm || 0
-                        });
-
-                        talent.videoCount++;
+                        // 收集所有有效的CPM
+                        if (video.cpm && video.cpm > 0) {
+                            talentDateMap.get(uniqueKey).cpms.push(video.cpm);
+                        }
                     });
+                });
+
+                // 将合并后的数据添加到达人映射中
+                talentDateMap.forEach(dayData => {
+                    if (!talentMap.has(dayData.talentName)) {
+                        talentMap.set(dayData.talentName, {
+                            talentName: dayData.talentName,
+                            dailyData: [],
+                            videoCount: 0
+                        });
+                    }
+
+                    const talent = talentMap.get(dayData.talentName);
+
+                    // 计算当天的平均CPM
+                    const avgCpm = dayData.cpms.length > 0
+                        ? dayData.cpms.reduce((sum, cpm) => sum + cpm, 0) / dayData.cpms.length
+                        : 0;
+
+                    // 添加每日数据（已去重）
+                    talent.dailyData.push({
+                        date: dayData.date,
+                        views: dayData.views,
+                        cpm: avgCpm
+                    });
+
+                    talent.videoCount += dayData.videoCount;
                 });
             });
 
