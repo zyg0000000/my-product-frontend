@@ -137,8 +137,8 @@ export class EffectMonitorTab {
                         <select id="talentSortSelect" class="w-full rounded-md border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500">
                             <option value="totalViews_desc">总播放量 ↓</option>
                             <option value="totalViews_asc">总播放量 ↑</option>
-                            <option value="avgCpm_desc">平均CPM ↓</option>
-                            <option value="avgCpm_asc">平均CPM ↑</option>
+                            <option value="latestCpm_desc">最新CPM ↓</option>
+                            <option value="latestCpm_asc">最新CPM ↑</option>
                             <option value="latestViews_desc">最新播放 ↓</option>
                             <option value="viewsGrowthRate_desc">增长率 ↓</option>
                         </select>
@@ -257,15 +257,23 @@ export class EffectMonitorTab {
     setDateRange(days) {
         const today = new Date();
         let startDate;
+        let endDate = new Date(today);
 
         if (days === 'all' || days === null) {
-            // 全部：从项目开始日期到今天
+            // 全部：从项目最早发布日期到今天
             startDate = new Date(this.projectStartDate || '2024-01-01');
             this.currentRangeType = 'all';
         } else {
-            // 指定天数
-            startDate = new Date(today);
-            startDate.setDate(today.getDate() - days + 1); // +1 包含今天
+            // 指定天数：从最早发布日开始算N天
+            startDate = new Date(this.projectStartDate || '2024-01-01');
+            endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + days - 1); // -1 因为起始日也算一天
+
+            // 如果计算的结束日期超过今天，则截止到今天
+            if (endDate > today) {
+                endDate = new Date(today);
+            }
+
             this.currentRangeType = String(days);
         }
 
@@ -273,7 +281,7 @@ export class EffectMonitorTab {
         this.dateRange = [];
         const current = new Date(startDate);
 
-        while (current <= today) {
+        while (current <= endDate) {
             this.dateRange.push(ReportUtils.getLocalDateString(current));
             current.setDate(current.getDate() + 1);
         }
@@ -331,20 +339,20 @@ export class EffectMonitorTab {
                             talentDateMap.set(uniqueKey, {
                                 talentName: talentName,
                                 date: date,
-                                views: video.totalViews || 0,
-                                cpms: [],
+                                totalViews: video.totalViews || 0,
+                                weightedCpmSum: (video.cpm || 0) * (video.totalViews || 0),
+                                totalViewsForCpm: video.totalViews || 0,
                                 videoCount: 1
                             });
                         } else {
-                            // 同一天同一达人有多个视频，取最大播放量，收集所有CPM
+                            // 同一天同一达人有多个视频
                             const existing = talentDateMap.get(uniqueKey);
-                            existing.views = Math.max(existing.views, video.totalViews || 0);
+                            // 累积播放量：累加
+                            existing.totalViews += (video.totalViews || 0);
+                            // CPM加权平均：sum(cpm * views)
+                            existing.weightedCpmSum += (video.cpm || 0) * (video.totalViews || 0);
+                            existing.totalViewsForCpm += (video.totalViews || 0);
                             existing.videoCount++;
-                        }
-
-                        // 收集所有有效的CPM
-                        if (video.cpm && video.cpm > 0) {
-                            talentDateMap.get(uniqueKey).cpms.push(video.cpm);
                         }
                     });
                 });
@@ -361,41 +369,55 @@ export class EffectMonitorTab {
 
                     const talent = talentMap.get(dayData.talentName);
 
-                    // 计算当天的平均CPM
-                    const avgCpm = dayData.cpms.length > 0
-                        ? dayData.cpms.reduce((sum, cpm) => sum + cpm, 0) / dayData.cpms.length
+                    // 计算加权平均CPM
+                    const cpm = dayData.totalViewsForCpm > 0
+                        ? dayData.weightedCpmSum / dayData.totalViewsForCpm
                         : 0;
 
                     // 添加每日数据（已去重）
                     talent.dailyData.push({
                         date: dayData.date,
-                        views: dayData.views,
-                        cpm: avgCpm
+                        views: dayData.totalViews,  // 累积播放量
+                        cpm: cpm                     // 加权平均CPM
                     });
 
                     talent.videoCount += dayData.videoCount;
                 });
             });
 
-            // 计算聚合指标
+            // 计算聚合指标和环比增长
             this.talentList = Array.from(talentMap.values()).map(talent => {
                 // 按日期排序
                 talent.dailyData.sort((a, b) => a.date.localeCompare(b.date));
 
-                // 计算总播放量（最新一天的播放量）
+                // 计算每日环比增长
+                for (let i = 0; i < talent.dailyData.length; i++) {
+                    const currentDay = talent.dailyData[i];
+
+                    if (i === 0) {
+                        // 第一天：日增量 = 当天累积播放量
+                        currentDay.dailyIncrease = currentDay.views;
+                        currentDay.cpmChange = 0;
+                    } else {
+                        const previousDay = talent.dailyData[i - 1];
+                        // 日增量 = 今天累积 - 昨天累积
+                        currentDay.dailyIncrease = currentDay.views - previousDay.views;
+                        // CPM环比 = 今天CPM - 昨天CPM
+                        currentDay.cpmChange = currentDay.cpm - previousDay.cpm;
+                    }
+                }
+
+                // 总播放量（最新一天的累积播放量）
                 const latestData = talent.dailyData[talent.dailyData.length - 1];
                 talent.totalViews = latestData ? latestData.views : 0;
 
-                // 计算平均CPM
-                const validCpms = talent.dailyData.filter(d => d.cpm > 0);
-                talent.avgCpm = validCpms.length > 0
-                    ? validCpms.reduce((sum, d) => sum + d.cpm, 0) / validCpms.length
-                    : 0;
+                // 最新CPM（最新一天的CPM）
+                talent.latestCpm = latestData ? latestData.cpm : 0;
 
                 // 最新一天播放量
                 talent.latestViews = latestData ? latestData.views : 0;
 
-                // 计算增长率（最后一天 vs 第一天）
+                // 总增长率（最后一天 vs 第一天）
                 if (talent.dailyData.length >= 2) {
                     const firstViews = talent.dailyData[0].views;
                     const lastViews = talent.dailyData[talent.dailyData.length - 1].views;
@@ -482,7 +504,7 @@ export class EffectMonitorTab {
                         </div>
                         <div>
                             <span class="text-gray-500">CPM:</span>
-                            <span class="font-semibold text-purple-600">¥${talent.avgCpm.toFixed(1)}</span>
+                            <span class="font-semibold text-purple-600">¥${talent.latestCpm.toFixed(1)}</span>
                         </div>
                     </div>
                     ${talent.viewsGrowthRate !== 0 ? `
@@ -546,8 +568,8 @@ export class EffectMonitorTab {
                     <div class="text-2xl font-bold text-blue-600">${compactNumber(talent.totalViews)}</div>
                 </div>
                 <div class="bg-purple-50 p-4 rounded-lg text-center">
-                    <div class="text-sm text-gray-600 mb-1">平均CPM</div>
-                    <div class="text-2xl font-bold text-purple-600">¥${talent.avgCpm.toFixed(1)}</div>
+                    <div class="text-sm text-gray-600 mb-1">最新CPM</div>
+                    <div class="text-2xl font-bold text-purple-600">¥${talent.latestCpm.toFixed(1)}</div>
                 </div>
                 <div class="bg-green-50 p-4 rounded-lg text-center">
                     <div class="text-sm text-gray-600 mb-1">合作天数</div>
@@ -589,17 +611,31 @@ export class EffectMonitorTab {
                             <tr>
                                 <th class="px-4 py-2 text-left text-gray-600">日期</th>
                                 <th class="px-4 py-2 text-right text-gray-600">累积播放量</th>
+                                <th class="px-4 py-2 text-right text-gray-600">日增量</th>
                                 <th class="px-4 py-2 text-right text-gray-600">CPM</th>
+                                <th class="px-4 py-2 text-right text-gray-600">CPM环比</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${talent.dailyData.map((day, index) => `
-                                <tr class="border-t hover:bg-gray-50">
-                                    <td class="px-4 py-2">${day.date}</td>
-                                    <td class="px-4 py-2 text-right font-mono">${Format.number(day.views)}</td>
-                                    <td class="px-4 py-2 text-right font-mono">¥${day.cpm.toFixed(2)}</td>
-                                </tr>
-                            `).join('')}
+                            ${talent.dailyData.map((day, index) => {
+                                const increaseClass = day.dailyIncrease > 0 ? 'text-green-600' : 'text-gray-600';
+                                const cpmChangeClass = day.cpmChange > 0 ? 'text-red-600' : day.cpmChange < 0 ? 'text-green-600' : 'text-gray-600';
+                                const cpmChangeSymbol = day.cpmChange > 0 ? '+' : '';
+
+                                return `
+                                    <tr class="border-t hover:bg-gray-50">
+                                        <td class="px-4 py-2">${day.date}</td>
+                                        <td class="px-4 py-2 text-right font-mono">${Format.number(day.views)}</td>
+                                        <td class="px-4 py-2 text-right font-mono ${increaseClass}">
+                                            ${index === 0 ? '-' : '+' + Format.number(day.dailyIncrease)}
+                                        </td>
+                                        <td class="px-4 py-2 text-right font-mono">¥${day.cpm.toFixed(2)}</td>
+                                        <td class="px-4 py-2 text-right font-mono ${cpmChangeClass}">
+                                            ${index === 0 ? '-' : cpmChangeSymbol + day.cpmChange.toFixed(2)}
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
                         </tbody>
                     </table>
                 </div>
