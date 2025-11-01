@@ -1,21 +1,24 @@
 /**
  * @file order_list/tab-effect.js
  * @description 效果验收 Tab 模块
- * @version 3.1.0 - 添加手动视图模式切换（全展开/紧凑）+ localStorage持久化
+ * @version 3.2.0 - 紧凑模式改为下拉箭头折叠设计（类似main分支）
  *
  * 功能:
  * - 效果看板数据加载
  * - T+21/T+7 子Tab切换
  * - T+21 交付目标达成展示（进度条动画、颜色分级、CPM达标状态）
  * - T+7 业务数据复盘展示（横向KPI卡片）
- * - 达人明细表格：支持手动切换全展开（17列）/紧凑（10列）模式
- * - 用户偏好保存到localStorage，页面刷新后恢复
+ * - 达人明细表格：支持手动切换全展开/紧凑模式 + localStorage持久化
  * - 智能响应式：用户未手动选择时自动根据屏幕宽度切换
  *
  * 表格设计:
- * - 全展开模式（17列）：达人名称、执行金额、发布时间、播放量、总互动量、点赞量、评论量、分享量、
- *                      互动率、赞播比、CPM、CPE、组件展示量、组件点击量、组件点击率、视频完播率、总触达人数
- * - 紧凑模式（10列）：达人名称、执行金额、发布时间、播放量、总互动量、CPM、CPE、组件点击率、视频完播率、总触达人数
+ * - 全展开模式（17列）：
+ *   所有字段直接显示，无需展开
+ *
+ * - 紧凑模式（10列 + 下拉箭头）：
+ *   主行：达人名称、执行金额、发布时间、播放量、总互动量▼、CPM、CPE、组件点击率▼、视频完播率、总触达人数
+ *   明细行1（点击总互动量展开）：点赞量、评论量、分享量、互动率、赞播比
+ *   明细行2（点击组件点击率展开）：组件展示量、组件点击量
  *
  * 优先级：用户手动选择 > 自动响应式判断
  */
@@ -423,6 +426,9 @@ export class EffectTab {
 
         if (!talentListT21 || !talentListT7) return;
 
+        // 更新表头
+        this.updateTableHeaders();
+
         // 清空表格
         talentListT21.innerHTML = '';
         talentListT7.innerHTML = '';
@@ -439,6 +445,77 @@ export class EffectTab {
             this.renderCompactMode(talents, talentListT21, talentListT7);
         } else {
             this.renderFullMode(talents, talentListT21, talentListT7);
+        }
+    }
+
+    /**
+     * 更新表头（根据当前模式）
+     */
+    updateTableHeaders() {
+        // 查找T+21和T+7表格的thead
+        const t21Table = document.querySelector('#effect-talent-list-t21')?.closest('table');
+        const t7Table = document.querySelector('#effect-talent-list-t7')?.closest('table');
+
+        if (!t21Table || !t7Table) return;
+
+        const t21Thead = t21Table.querySelector('thead tr');
+        const t7Thead = t7Table.querySelector('thead tr');
+
+        if (!t21Thead || !t7Thead) return;
+
+        if (this.isCompactMode) {
+            // 紧凑模式：10列 + 下拉箭头
+            const compactHeaderHTML = `
+                <th scope="col" class="px-4 py-3">达人名称</th>
+                <th scope="col" class="px-4 py-3">执行金额</th>
+                <th scope="col" class="px-4 py-3">发布时间</th>
+                <th scope="col" class="px-4 py-3">播放量</th>
+                <th scope="col" class="px-4 py-3">
+                    <div class="flex items-center justify-center cursor-pointer details-toggle-btn" data-target="t21-interaction">
+                        <span>总互动量</span>
+                        <svg class="w-4 h-4 ml-1 details-toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                </th>
+                <th scope="col" class="px-4 py-3">CPM</th>
+                <th scope="col" class="px-4 py-3">CPE</th>
+                <th scope="col" class="px-4 py-3">
+                    <div class="flex items-center justify-center cursor-pointer details-toggle-btn" data-target="t21-component">
+                        <span>组件点击率</span>
+                        <svg class="w-4 h-4 ml-1 details-toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                </th>
+                <th scope="col" class="px-4 py-3">视频完播率</th>
+                <th scope="col" class="px-4 py-3">总触达人数</th>
+            `;
+
+            const t7CompactHeaderHTML = compactHeaderHTML.replace(/t21-/g, 't7-');
+
+            t21Thead.innerHTML = compactHeaderHTML;
+            t7Thead.innerHTML = t7CompactHeaderHTML;
+        } else {
+            // 全展开模式：17列
+            const fullHeaderHTML = `
+                <th scope="col" class="px-4 py-3">达人名称</th>
+                <th scope="col" class="px-4 py-3">执行金额</th>
+                <th scope="col" class="px-4 py-3">发布时间</th>
+                <th scope="col" class="px-4 py-3">播放量</th>
+                <th scope="col" class="px-4 py-3">总互动量</th>
+                <th scope="col" class="px-4 py-3 hide-compact">点赞量</th>
+                <th scope="col" class="px-4 py-3 hide-compact">评论量</th>
+                <th scope="col" class="px-4 py-3 hide-compact">分享量</th>
+                <th scope="col" class="px-4 py-3 hide-compact">互动率</th>
+                <th scope="col" class="px-4 py-3 hide-compact">赞播比</th>
+                <th scope="col" class="px-4 py-3">CPM</th>
+                <th scope="col" class="px-4 py-3">CPE</th>
+                <th scope="col" class="px-4 py-3 hide-compact">组件展示量</th>
+                <th scope="col" class="px-4 py-3 hide-compact">组件点击量</th>
+                <th scope="col" class="px-4 py-3">组件点击率</th>
+                <th scope="col" class="px-4 py-3">视频完播率</th>
+                <th scope="col" class="px-4 py-3">总触达人数</th>
+            `;
+
+            t21Thead.innerHTML = fullHeaderHTML;
+            t7Thead.innerHTML = fullHeaderHTML;
         }
     }
 
@@ -512,7 +589,7 @@ export class EffectTab {
     }
 
     /**
-     * 渲染紧凑模式（小屏<1440px）- 10列主行 + 折叠明细
+     * 渲染紧凑模式 - 10列主行 + 下拉箭头展开明细行
      */
     renderCompactMode(talents, talentListT21, talentListT7) {
         const notEnteredSpan = `<span class="text-sm text-gray-400">暂未录入</span>`;
@@ -523,8 +600,8 @@ export class EffectTab {
 
         const targetCpm = this.effectData?.overall?.benchmarkCPM;
 
-        talents.forEach(talent => {
-            // ===== T+21 紧凑模式（10列）=====
+        talents.forEach((talent, index) => {
+            // ===== T+21 紧凑模式（10列 + 明细行）=====
             const t21Row = document.createElement('tr');
             t21Row.className = 'bg-white border-b hover:bg-gray-50/50';
 
@@ -547,7 +624,38 @@ export class EffectTab {
             `;
             talentListT21.appendChild(t21Row);
 
-            // ===== T+7 紧凑模式（10列）=====
+            // T+21 互动量明细行
+            const t21InteractionRow = document.createElement('tr');
+            t21InteractionRow.className = 'detail-row t21-interaction-detail-row bg-gray-100';
+            t21InteractionRow.style.display = 'none';
+            t21InteractionRow.innerHTML = `
+                <td colspan="10" class="px-6 py-3 text-xs">
+                    <div class="grid grid-cols-5 gap-4 text-center">
+                        <div><span class="font-semibold text-gray-500">点赞量:</span> ${formatNumber(talent.t21_likes)}</div>
+                        <div><span class="font-semibold text-gray-500">评论量:</span> ${formatNumber(talent.t21_comments)}</div>
+                        <div><span class="font-semibold text-gray-500">分享量:</span> ${formatNumber(talent.t21_shares)}</div>
+                        <div><span class="font-semibold text-gray-500">互动率:</span> ${formatPercent(talent.t21_interactionRate)}</div>
+                        <div><span class="font-semibold text-gray-500">赞播比:</span> ${formatPercent(talent.t21_likeToViewRatio)}</div>
+                    </div>
+                </td>
+            `;
+            talentListT21.appendChild(t21InteractionRow);
+
+            // T+21 组件明细行
+            const t21ComponentRow = document.createElement('tr');
+            t21ComponentRow.className = 'detail-row t21-component-detail-row bg-gray-100';
+            t21ComponentRow.style.display = 'none';
+            t21ComponentRow.innerHTML = `
+                <td colspan="10" class="px-6 py-3 text-xs">
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div><span class="font-semibold text-gray-500">组件展示量:</span> ${formatNumber(talent.t21_componentImpressions)}</div>
+                        <div><span class="font-semibold text-gray-500">组件点击量:</span> ${formatNumber(talent.t21_componentClicks)}</div>
+                    </div>
+                </td>
+            `;
+            talentListT21.appendChild(t21ComponentRow);
+
+            // ===== T+7 紧凑模式（10列 + 明细行）=====
             const t7Row = document.createElement('tr');
             t7Row.className = 'bg-white border-b hover:bg-gray-50/50';
             t7Row.innerHTML = `
@@ -563,7 +671,86 @@ export class EffectTab {
                 <td class="px-4 py-3 font-medium">${formatNumber(talent.t7_totalReach)}</td>
             `;
             talentListT7.appendChild(t7Row);
+
+            // T+7 互动量明细行
+            const t7InteractionRow = document.createElement('tr');
+            t7InteractionRow.className = 'detail-row t7-interaction-detail-row bg-gray-100';
+            t7InteractionRow.style.display = 'none';
+            t7InteractionRow.innerHTML = `
+                <td colspan="10" class="px-6 py-3 text-xs">
+                    <div class="grid grid-cols-5 gap-4 text-center">
+                        <div><span class="font-semibold text-gray-500">点赞量:</span> ${formatNumber(talent.t7_likes)}</div>
+                        <div><span class="font-semibold text-gray-500">评论量:</span> ${formatNumber(talent.t7_comments)}</div>
+                        <div><span class="font-semibold text-gray-500">分享量:</span> ${formatNumber(talent.t7_shares)}</div>
+                        <div><span class="font-semibold text-gray-500">互动率:</span> ${formatPercent(talent.t7_interactionRate)}</div>
+                        <div><span class="font-semibold text-gray-500">赞播比:</span> ${formatPercent(talent.t7_likeToViewRatio)}</div>
+                    </div>
+                </td>
+            `;
+            talentListT7.appendChild(t7InteractionRow);
+
+            // T+7 组件明细行
+            const t7ComponentRow = document.createElement('tr');
+            t7ComponentRow.className = 'detail-row t7-component-detail-row bg-gray-100';
+            t7ComponentRow.style.display = 'none';
+            t7ComponentRow.innerHTML = `
+                <td colspan="10" class="px-6 py-3 text-xs">
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div><span class="font-semibold text-gray-500">组件展示量:</span> ${formatNumber(talent.t7_componentImpressions)}</div>
+                        <div><span class="font-semibold text-gray-500">组件点击量:</span> ${formatNumber(talent.t7_componentClicks)}</div>
+                    </div>
+                </td>
+            `;
+            talentListT7.appendChild(t7ComponentRow);
         });
+
+        // 绑定下拉箭头点击事件
+        this.bindDetailToggleEvents();
+    }
+
+    /**
+     * 绑定明细行展开/收起事件
+     */
+    bindDetailToggleEvents() {
+        const detailsToggleBtns = document.querySelectorAll('.details-toggle-btn');
+        detailsToggleBtns.forEach(btn => {
+            // 移除旧的事件监听器（如果有）
+            btn.replaceWith(btn.cloneNode(true));
+        });
+
+        // 重新获取元素并绑定
+        const newToggleBtns = document.querySelectorAll('.details-toggle-btn');
+        newToggleBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.dataset.target;
+                this.handleToggleDetails(target);
+            });
+        });
+    }
+
+    /**
+     * 展开/收起详情行
+     */
+    handleToggleDetails(target) {
+        const rowClass = `.${target}-detail-row`;
+        const rows = document.querySelectorAll(rowClass);
+        const btn = document.querySelector(`.details-toggle-btn[data-target="${target}"]`);
+        const icon = btn?.querySelector('.details-toggle-icon');
+
+        // 切换显示状态
+        const isCurrentlyHidden = rows[0]?.style.display === 'none';
+
+        rows.forEach(row => {
+            row.style.display = isCurrentlyHidden ? 'table-row' : 'none';
+        });
+
+        if (icon) {
+            if (isCurrentlyHidden) {
+                icon.classList.add('rotated');
+            } else {
+                icon.classList.remove('rotated');
+            }
+        }
     }
 
     /**
