@@ -102,10 +102,10 @@ export class EffectMonitorTab {
                 <div class="flex items-center gap-4 flex-wrap">
                     <!-- 快捷选项 -->
                     <div class="flex gap-2">
-                        <button class="range-quick-btn px-4 py-2 rounded text-sm font-medium transition-colors" data-days="7">最近7天</button>
-                        <button class="range-quick-btn px-4 py-2 rounded text-sm font-medium transition-colors active" data-days="14">最近14天</button>
-                        <button class="range-quick-btn px-4 py-2 rounded text-sm font-medium transition-colors" data-days="30">最近30天</button>
-                        <button class="range-quick-btn px-4 py-2 rounded text-sm font-medium transition-colors" data-days="all">全部</button>
+                        <button class="range-quick-btn px-4 py-2 rounded text-sm font-medium transition-colors" data-days="7">发布后7天</button>
+                        <button class="range-quick-btn px-4 py-2 rounded text-sm font-medium transition-colors active" data-days="14">发布后14天</button>
+                        <button class="range-quick-btn px-4 py-2 rounded text-sm font-medium transition-colors" data-days="30">发布后30天</button>
+                        <button class="range-quick-btn px-4 py-2 rounded text-sm font-medium transition-colors" data-days="all">全部数据</button>
                     </div>
 
                     <!-- 自定义日期 -->
@@ -324,37 +324,50 @@ export class EffectMonitorTab {
 
                 const details = data.details;
 
-                // 先创建一个临时的 达人+日期 映射，用于合并同一天的多个视频
-                const talentDateMap = new Map();
+                // 先按视频ID去重，避免同一视频在多个分类中重复计算
+                const videoSet = new Set();
+                const uniqueVideos = [];
 
-                // 遍历所有分类的视频
                 ['hotVideos', 'goodVideos', 'normalVideos', 'badVideos', 'worstVideos'].forEach(category => {
                     const videos = details[category] || [];
-
                     videos.forEach(video => {
-                        const talentName = video.talentName;
-                        const uniqueKey = `${talentName}_${date}`;
+                        // 使用 talentName + videoId 或 collaborationId 作为唯一标识
+                        const videoKey = video.collaborationId || `${video.talentName}_${video.videoId || video.taskId}_${date}`;
 
-                        if (!talentDateMap.has(uniqueKey)) {
-                            talentDateMap.set(uniqueKey, {
-                                talentName: talentName,
-                                date: date,
-                                totalViews: video.totalViews || 0,
-                                weightedCpmSum: (video.cpm || 0) * (video.totalViews || 0),
-                                totalViewsForCpm: video.totalViews || 0,
-                                videoCount: 1
-                            });
-                        } else {
-                            // 同一天同一达人有多个视频
-                            const existing = talentDateMap.get(uniqueKey);
-                            // 累积播放量：累加
-                            existing.totalViews += (video.totalViews || 0);
-                            // CPM加权平均：sum(cpm * views)
-                            existing.weightedCpmSum += (video.cpm || 0) * (video.totalViews || 0);
-                            existing.totalViewsForCpm += (video.totalViews || 0);
-                            existing.videoCount++;
+                        if (!videoSet.has(videoKey)) {
+                            videoSet.add(videoKey);
+                            uniqueVideos.push(video);
                         }
                     });
+                });
+
+                // 创建临时的 达人+日期 映射
+                const talentDateMap = new Map();
+
+                // 处理去重后的视频
+                uniqueVideos.forEach(video => {
+                    const talentName = video.talentName;
+                    const uniqueKey = `${talentName}_${date}`;
+
+                    if (!talentDateMap.has(uniqueKey)) {
+                        talentDateMap.set(uniqueKey, {
+                            talentName: talentName,
+                            date: date,
+                            totalViews: video.totalViews || 0,
+                            weightedCpmSum: (video.cpm || 0) * (video.totalViews || 0),
+                            totalViewsForCpm: video.totalViews || 0,
+                            videoCount: 1
+                        });
+                    } else {
+                        // 同一天同一达人有多个不同视频
+                        const existing = talentDateMap.get(uniqueKey);
+                        // 累积播放量：累加（不同视频的累积播放量）
+                        existing.totalViews += (video.totalViews || 0);
+                        // CPM加权平均：sum(cpm * views)
+                        existing.weightedCpmSum += (video.cpm || 0) * (video.totalViews || 0);
+                        existing.totalViewsForCpm += (video.totalViews || 0);
+                        existing.videoCount++;
+                    }
                 });
 
                 // 将合并后的数据添加到达人映射中
