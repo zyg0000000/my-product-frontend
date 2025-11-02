@@ -24,8 +24,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // --- DOM Elements ---
-    const jobsContainer = document.getElementById('jobs-container');
-    const jobsPaginationContainer = document.getElementById('jobs-pagination-container');
     const talentsContainer = document.getElementById('talents-container');
     const talentsPaginationContainer = document.getElementById('talents-pagination-container');
     const breadcrumbProjectName = document.getElementById('breadcrumb-project-name');
@@ -37,6 +35,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectAllTalentsCheckbox = document.getElementById('select-all-talents');
     const generatedSheetsContainer = document.getElementById('generated-sheets-container');
     const generatedSheetsPaginationContainer = document.getElementById('generated-sheets-pagination-container');
+
+    // Tab相关元素
+    const automationTabBtns = document.querySelectorAll('.automation-tab-btn');
+    const talentsTab = document.getElementById('talents-tab');
+    const jobsTab = document.getElementById('jobs-tab');
+    const sheetsTab = document.getElementById('sheets-tab');
+    const jobsByWorkflowContainer = document.getElementById('jobs-by-workflow-container');
     
     const jobDetailsModal = document.getElementById('job-details-modal');
     const jobDetailsModalTitle = document.getElementById('job-details-modal-title');
@@ -95,6 +100,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let talentCurrentPage = 1;
     let jobCurrentPage = 1;
     let sheetCurrentPage = 1;
+    let currentTab = 'talents'; // 当前激活的Tab
+    let jobsTabInitialized = false; // 任务批次Tab是否已初始化
 
 
     // --- Helper Functions ---
@@ -197,18 +204,6 @@ document.addEventListener('DOMContentLoaded', function () {
             
             const jobs = automationData.data || [];
             allJobsCache = jobs;
-
-            // [临时调试] 检查后端返回的job数据结构
-            console.log('=== 后端返回的Jobs数据结构 ===');
-            console.log('Jobs总数:', jobs.length);
-            if (jobs.length > 0) {
-                console.log('第一个Job示例:', jobs[0]);
-                console.log('是否包含 workflowId?', 'workflowId' in jobs[0]);
-                console.log('是否包含 workflowName?', 'workflowName' in jobs[0]);
-                console.log('是否包含 workflow对象?', 'workflow' in jobs[0]);
-            }
-            console.log('===============================');
-
             tasksCache = {};
             allCompletedTasks = [];
             jobs.forEach(job => {
@@ -222,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             renderProjectDetails(projectData);
             renderTalentList(1);
-            renderAutomationJobs(1);
+            // Tab设计：默认显示talents Tab，jobs Tab在切换时才渲染
             startPolling(jobs);
 
         } catch (error) {
@@ -285,51 +280,155 @@ document.addEventListener('DOMContentLoaded', function () {
         }).join('');
         renderPaginationControls(talentsPaginationContainer, collaborators.length, page, ITEMS_PER_PAGE, renderTalentList);
     }
-    
-    function renderAutomationJobs(page) {
-        jobCurrentPage = page;
+
+    // --- Tab切换功能 ---
+    function switchTab(tabName) {
+        console.log(`[Tab切换] 切换到: ${tabName}`);
+
+        // 隐藏所有Tab面板
+        if (talentsTab) talentsTab.classList.add('hidden');
+        if (jobsTab) jobsTab.classList.add('hidden');
+        if (sheetsTab) sheetsTab.classList.add('hidden');
+
+        // 移除所有Tab按钮的active状态
+        automationTabBtns.forEach(btn => {
+            btn.classList.remove('active', 'border-indigo-600', 'text-indigo-600');
+            btn.classList.add('border-transparent', 'text-gray-500');
+        });
+
+        // 显示目标Tab并激活按钮
+        const targetBtn = document.querySelector(`[data-tab="${tabName}"]`);
+        if (targetBtn) {
+            targetBtn.classList.remove('border-transparent', 'text-gray-500');
+            targetBtn.classList.add('active', 'border-indigo-600', 'text-indigo-600');
+        }
+
+        if (tabName === 'talents' && talentsTab) {
+            talentsTab.classList.remove('hidden');
+        } else if (tabName === 'jobs' && jobsTab) {
+            jobsTab.classList.remove('hidden');
+            // 只在首次切换时渲染，避免重复渲染
+            if (!jobsTabInitialized) {
+                renderJobsByWorkflow();
+                jobsTabInitialized = true;
+            }
+        } else if (tabName === 'sheets' && sheetsTab) {
+            sheetsTab.classList.remove('hidden');
+        }
+
+        currentTab = tabName;
+    }
+
+    // --- 按工作流归类显示任务批次 ---
+    function renderJobsByWorkflow() {
         if (!allJobsCache || allJobsCache.length === 0) {
-            jobsContainer.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500">此项目暂无自动化任务。</td></tr>`;
-            renderPaginationControls(jobsPaginationContainer, 0, page, ITEMS_PER_PAGE, renderAutomationJobs);
+            jobsByWorkflowContainer.innerHTML = `
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <p class="text-center py-8 text-gray-500">此项目暂无自动化任务。</p>
+                </div>`;
             return;
         }
-        const jobs = allJobsCache.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        const start = (page - 1) * ITEMS_PER_PAGE;
-        const end = start + ITEMS_PER_PAGE;
-        const paginatedJobs = jobs.slice(start, end);
-        jobsContainer.innerHTML = paginatedJobs.map(job => {
-            const totalTasks = (job.tasks || []).length;
-            const completedTasks = (job.tasks || []).filter(t => ['completed', 'failed'].includes(t.status)).length;
-            
-            let actionsHtml = '';
-            if (job.status === 'awaiting_review') {
-                actionsHtml = `
-                    <button class="font-medium text-green-600 hover:underline" data-action="complete-review" data-job-id="${job._id}">完成审查</button>
-                    <button class="font-medium text-blue-600 hover:underline" data-action="view-job-details" data-job-id="${job._id}">查看详情</button>
-                `;
-            } else {
-                 actionsHtml = `
-                    <button class="font-medium text-blue-600 hover:underline" data-action="view-job-details" data-job-id="${job._id}">查看详情</button>
-                    <button class="font-medium text-red-600 hover:underline" data-action="delete-job" data-job-id="${job._id}">删除</button>
-                `;
+
+        // 按工作流分组
+        const jobsByWorkflow = {};
+        allJobsCache.forEach(job => {
+            const workflowName = job.workflowName || '未知工作流';
+            const workflowId = job.workflowId || 'unknown';
+            const key = `${workflowId}|${workflowName}`;
+
+            if (!jobsByWorkflow[key]) {
+                jobsByWorkflow[key] = {
+                    workflowId,
+                    workflowName,
+                    jobs: []
+                };
             }
+            jobsByWorkflow[key].jobs.push(job);
+        });
+
+        // 渲染每个工作流分组
+        const groupsHtml = Object.values(jobsByWorkflow).map(group => {
+            const sortedJobs = group.jobs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            const jobsHtml = sortedJobs.map(job => {
+                const totalTasks = (job.tasks || []).length;
+                const completedTasks = (job.tasks || []).filter(t => ['completed', 'failed'].includes(t.status)).length;
+
+                let actionsHtml = '';
+                if (job.status === 'awaiting_review') {
+                    actionsHtml = `
+                        <button class="font-medium text-green-600 hover:underline" data-action="complete-review" data-job-id="${job._id}">完成审查</button>
+                        <button class="font-medium text-blue-600 hover:underline" data-action="view-job-details" data-job-id="${job._id}">查看详情</button>
+                    `;
+                } else {
+                    actionsHtml = `
+                        <button class="font-medium text-blue-600 hover:underline" data-action="view-job-details" data-job-id="${job._id}">查看详情</button>
+                        <button class="font-medium text-red-600 hover:underline" data-action="delete-job" data-job-id="${job._id}">删除</button>
+                    `;
+                }
+
+                return `
+                    <tr class="bg-white border-b hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-900">#${job._id.slice(-6)}</div>
+                            <div class="text-xs text-gray-500">${formatDate(job.createdAt, true)}</div>
+                        </td>
+                        <td class="px-6 py-4">${getStatusBadge(job.status)}</td>
+                        <td class="px-6 py-4 font-mono text-center">${completedTasks} / ${totalTasks}</td>
+                        <td class="px-6 py-4 font-mono text-green-600 text-center">${job.successTasks || 0}</td>
+                        <td class="px-6 py-4 font-mono text-red-600 text-center">${job.failedTasks || 0}</td>
+                        <td class="px-6 py-4 text-right space-x-4">
+                            ${actionsHtml}
+                        </td>
+                    </tr>`;
+            }).join('');
 
             return `
-                <tr class="bg-white border-b hover:bg-gray-50">
-                    <td class="px-6 py-4">
-                        <div class="font-bold text-gray-900">#${job._id.slice(-6)}</div>
-                        <div class="text-xs text-gray-500">${formatDate(job.createdAt, true)}</div>
-                    </td>
-                    <td class="px-6 py-4">${getStatusBadge(job.status)}</td>
-                    <td class="px-6 py-4 font-mono text-center">${completedTasks} / ${totalTasks}</td>
-                    <td class="px-6 py-4 font-mono text-green-600 text-center">${job.successTasks || 0}</td>
-                    <td class="px-6 py-4 font-mono text-red-600 text-center">${job.failedTasks || 0}</td>
-                    <td class="px-6 py-4 text-right space-x-4">
-                        ${actionsHtml}
-                    </td>
-                </tr>`;
+                <div class="bg-white p-6 rounded-xl shadow-sm mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        ${group.workflowName} <span class="text-sm font-normal text-gray-500">(${group.jobs.length} 个批次)</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-700">
+                            <thead class="text-xs text-gray-800 uppercase bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">批次信息</th>
+                                    <th scope="col" class="px-6 py-3">状态</th>
+                                    <th scope="col" class="px-6 py-3 text-center">进度</th>
+                                    <th scope="col" class="px-6 py-3 text-center">成功</th>
+                                    <th scope="col" class="px-6 py-3 text-center">失败</th>
+                                    <th scope="col" class="px-6 py-3 text-right">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="jobs-tbody">
+                                ${jobsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
         }).join('');
-        renderPaginationControls(jobsPaginationContainer, jobs.length, page, ITEMS_PER_PAGE, renderAutomationJobs);
+
+        jobsByWorkflowContainer.innerHTML = groupsHtml;
+
+        // 为所有操作按钮绑定事件
+        jobsByWorkflowContainer.querySelectorAll('[data-action]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const action = e.target.closest('[data-action]').dataset.action;
+                const jobId = e.target.closest('[data-action]').dataset.jobId;
+                handleJobsAreaClick({ target: e.target });
+            });
+        });
+    }
+
+    // 保留此函数作为兼容性包装器，实际渲染由renderJobsByWorkflow完成
+    function renderAutomationJobs(page) {
+        // 如果当前在jobs Tab并且已初始化，则重新渲染
+        if (currentTab === 'jobs' && jobsTabInitialized) {
+            renderJobsByWorkflow();
+        }
     }
     
     async function loadGeneratedSheets(page) {
@@ -439,13 +538,26 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // --- Event Listeners & Handlers ---
     function setupEventListeners() {
+        // Tab切换事件
+        automationTabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.dataset.tab;
+                switchTab(tabName);
+            });
+        });
+
         talentsContainer.addEventListener('change', handleTalentSelectionChange);
         selectAllTalentsCheckbox.addEventListener('change', handleSelectAllChange);
         generateReportBtn.addEventListener('click', openConfigModal);
         closeConfigModalBtn.addEventListener('click', closeConfigModal);
         cancelConfigBtn.addEventListener('click', closeConfigModal);
         configForm.addEventListener('submit', handleConfigFormSubmit);
-        jobsContainer.addEventListener('click', handleJobsAreaClick);
+
+        // 使用事件委托处理jobs区域的点击事件（因为内容是动态生成的）
+        if (jobsByWorkflowContainer) {
+            jobsByWorkflowContainer.addEventListener('click', handleJobsAreaClick);
+        }
+
         generatedSheetsContainer.addEventListener('click', handleSheetHistoryClick);
         
         if (jobDetailsModal) {
