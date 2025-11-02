@@ -419,7 +419,11 @@ class ExecutionBoard {
                 return c.plannedReleaseDate;
             })
             .filter(d => d)
-            .map(d => new Date(d));
+            .map(d => {
+                // 修复时区问题：使用本地时区解析日期
+                const [y, m, day] = d.split('T')[0].split('-').map(Number);
+                return new Date(y, m - 1, day);
+            });
 
         if (dates.length > 0) {
             dates.sort((a, b) => a - b);
@@ -489,7 +493,9 @@ class ExecutionBoard {
             const weekCollabs = this.allCollaborations.filter(c => {
                 const displayDate = this.getCollabDisplayDate(c);
                 if (!displayDate) return false;
-                const date = new Date(displayDate);
+                // 修复时区问题：使用本地时区解析日期
+                const [y, m, d] = displayDate.split('T')[0].split('-').map(Number);
+                const date = new Date(y, m - 1, d);
                 date.setHours(0, 0, 0, 0);  // 标准化到00:00:00进行比较
                 return date >= weekStartDate && date <= weekEndDate;
             });
@@ -514,7 +520,9 @@ class ExecutionBoard {
                 } else if (c.status === '客户已定档') {
                     // 延期判断：计划发布日期 < 今天，但还没发布
                     if (c.plannedReleaseDate) {
-                        const planned = new Date(c.plannedReleaseDate);
+                        // 修复时区问题：使用本地时区解析日期
+                        const [y, m, d] = c.plannedReleaseDate.split('T')[0].split('-').map(Number);
+                        const planned = new Date(y, m - 1, d);
                         if (planned < today) {
                             acc.delayed++;
                         } else {
@@ -635,7 +643,9 @@ class ExecutionBoard {
                 statusText = '已发布';
             } else if (collab.status === '客户已定档' && collab.plannedReleaseDate) {
                 // 延期判断：计划发布日期 < 今天，但还没发布
-                const plannedDate = new Date(collab.plannedReleaseDate);
+                // 修复时区问题：使用本地时区解析日期
+                const [y, m, d] = collab.plannedReleaseDate.split('T')[0].split('-').map(Number);
+                const plannedDate = new Date(y, m - 1, d);
                 if (plannedDate < today) {
                     statusClass = 'status-delayed';
                     statusText = '延期';
@@ -677,7 +687,9 @@ class ExecutionBoard {
         // 全周期延期：计划发布日期 < 今天且未发布
         const allDelayedCount = this.allCollaborations.filter(c => {
             if (!c.plannedReleaseDate || c.status === '视频已发布') return false;
-            const plannedDate = new Date(c.plannedReleaseDate);
+            // 修复时区问题：使用本地时区解析日期
+            const [y, m, d] = c.plannedReleaseDate.split('T')[0].split('-').map(Number);
+            const plannedDate = new Date(y, m - 1, d);
             return plannedDate < today;
         }).length;
 
@@ -703,7 +715,9 @@ class ExecutionBoard {
         const periodCollabs = this.allCollaborations.filter(c => {
             const displayDate = this.getCollabDisplayDate(c);
             if (!displayDate) return false;
-            const collabDate = new Date(displayDate);
+            // 修复时区问题：使用本地时区解析日期
+            const [y, m, d] = displayDate.split('T')[0].split('-').map(Number);
+            const collabDate = new Date(y, m - 1, d);
             collabDate.setHours(0, 0, 0, 0);  // 标准化到00:00:00进行比较
             return collabDate >= this.currentWeekStart && collabDate <= periodEnd;
         });
@@ -733,14 +747,18 @@ class ExecutionBoard {
         sunday.setDate(today.getDate() + (7 - today.getDay()));
         const dueWeekCount = periodCollabs.filter(c => {
             if (!c.plannedReleaseDate || c.status === '视频已发布') return false;
-            const plannedDate = new Date(c.plannedReleaseDate);
+            // 修复时区问题：使用本地时区解析日期
+            const [y, m, d] = c.plannedReleaseDate.split('T')[0].split('-').map(Number);
+            const plannedDate = new Date(y, m - 1, d);
             return plannedDate >= today && plannedDate <= sunday;
         }).length;
 
         // 延期：计划发布日期 < 今天且未发布
         const delayedCount = periodCollabs.filter(c => {
             if (!c.plannedReleaseDate || c.status === '视频已发布') return false;
-            const plannedDate = new Date(c.plannedReleaseDate);
+            // 修复时区问题：使用本地时区解析日期
+            const [y, m, d] = c.plannedReleaseDate.split('T')[0].split('-').map(Number);
+            const plannedDate = new Date(y, m - 1, d);
             return plannedDate < today;
         }).length;
 

@@ -209,7 +209,8 @@ export class EffectMonitorTab {
      */
     setDateRange() {
         const today = new Date();
-        const startDate = new Date(this.projectStartDate || '2024-01-01');
+        // 修复时区问题：使用本地时区解析日期
+        const startDate = ReportUtils.parseLocalDate(this.projectStartDate || '2024-01-01') || new Date('2024-01-01');
         const endDate = new Date(today);
 
         // 生成从最早发布日到今天的所有日期

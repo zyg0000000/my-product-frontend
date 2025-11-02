@@ -292,8 +292,11 @@ document.addEventListener('DOMContentLoaded', function() {
         let filtered = [...richTalentData];
 
         if (enableScheduleFilter.checked && scheduleStartDateInput.value && scheduleEndDateInput.value) {
-            const start = new Date(scheduleStartDateInput.value);
-            const end = new Date(scheduleEndDateInput.value);
+            // 修复时区问题：使用本地时区解析日期
+            const [y1, m1, d1] = scheduleStartDateInput.value.split('-').map(Number);
+            const start = new Date(y1, m1 - 1, d1);
+            const [y2, m2, d2] = scheduleEndDateInput.value.split('-').map(Number);
+            const end = new Date(y2, m2 - 1, d2);
             const requiredDates = getDatesBetween(start, end);
             const logic = scheduleLogicSelect.value;
             if (requiredDates.length > 0) {
@@ -1099,7 +1102,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function calculateScheduleMatch(talent) {
         if (!scheduleStartDateInput.value || !scheduleEndDateInput.value) return '未设置日期';
-        const requiredDates = getDatesBetween(new Date(scheduleStartDateInput.value), new Date(scheduleEndDateInput.value));
+        // 修复时区问题：使用本地时区解析日期
+        const [y1, m1, d1] = scheduleStartDateInput.value.split('-').map(Number);
+        const start = new Date(y1, m1 - 1, d1);
+        const [y2, m2, d2] = scheduleEndDateInput.value.split('-').map(Number);
+        const end = new Date(y2, m2 - 1, d2);
+        const requiredDates = getDatesBetween(start, end);
         if (requiredDates.length === 0) return '日期无效';
         const availableCount = requiredDates.filter(date => talent.schedules.has(formatDate(date))).length;
         if (availableCount === requiredDates.length) return `<span class="text-green-600 font-semibold">档期完全匹配</span>`;

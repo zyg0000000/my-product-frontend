@@ -874,9 +874,13 @@ document.addEventListener('DOMContentLoaded', function () { // <<< Function open
         const formatDate = (dateStr) => (dateStr) ? new Date(dateStr).toLocaleDateString() : 'N/A';
         const t7ReviewDateEl = document.getElementById('eff-t7-review-date');
         if (t7ReviewDateEl) {
+            // 修复时区问题：使用本地时区解析日期
             const lastPublishDate = talents
                 .filter(t => t.publishDate)
-                .map(t => new Date(t.publishDate))
+                .map(t => {
+                    const [y, m, d] = t.publishDate.split('T')[0].split('-').map(Number);
+                    return new Date(y, m - 1, d);
+                })
                 .sort((a, b) => b - a)[0];
 
             if (lastPublishDate) {

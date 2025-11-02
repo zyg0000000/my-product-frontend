@@ -396,9 +396,13 @@ export class EffectTab {
 
         // 计算 T+7 复盘日期 (最后发布日期 + 7天)
         if (t7ReviewDate) {
+            // 修复时区问题：使用本地时区解析日期
             const lastPublishDate = talents
                 .filter(t => t.publishDate)
-                .map(t => new Date(t.publishDate))
+                .map(t => {
+                    const [y, m, d] = t.publishDate.split('T')[0].split('-').map(Number);
+                    return new Date(y, m - 1, d);
+                })
                 .sort((a, b) => b - a)[0];
 
             if (lastPublishDate) {
