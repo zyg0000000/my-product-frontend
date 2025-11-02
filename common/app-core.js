@@ -582,9 +582,22 @@ export class Utils {
      */
     static daysBetween(date1, date2) {
         if (!date1 || !date2) return 0;
-        
-        const d1 = (date1 instanceof Date) ? date1 : new Date(date1.split('T')[0]); // 修复时区问题
-        const d2 = (date2 instanceof Date) ? date2 : new Date(date2.split('T')[0]); // 修复时区问题
+
+        // 修复时区问题：统一使用本地时区解析日期
+        let d1, d2;
+        if (date1 instanceof Date) {
+            d1 = date1;
+        } else {
+            const [y1, m1, d1Val] = String(date1).split('T')[0].split('-').map(Number);
+            d1 = new Date(y1, m1 - 1, d1Val);
+        }
+
+        if (date2 instanceof Date) {
+            d2 = date2;
+        } else {
+            const [y2, m2, d2Val] = String(date2).split('T')[0].split('-').map(Number);
+            d2 = new Date(y2, m2 - 1, d2Val);
+        }
 
         if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
 

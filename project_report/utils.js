@@ -39,6 +39,29 @@ export class ReportUtils {
     }
 
     /**
+     * 统一的本地时区日期解析工具
+     * 将 YYYY-MM-DD 格式的字符串解析为本地时区的日期对象（避免UTC时区问题）
+     * @param {string} dateString - 日期字符串 (YYYY-MM-DD 或 YYYY-MM-DDTHH:mm:ss)
+     * @returns {Date|null} 本地时区的日期对象，解析失败返回 null
+     */
+    static parseLocalDate(dateString) {
+        if (!dateString) return null;
+        try {
+            // 提取日期部分（去掉时间部分）
+            const datePart = String(dateString).split('T')[0];
+            const [year, month, day] = datePart.split('-').map(Number);
+
+            if (!year || !month || !day) return null;
+
+            // 使用本地时区创建日期
+            return new Date(year, month - 1, day);
+        } catch (e) {
+            console.warn(`Failed to parse date: ${dateString}`, e);
+            return null;
+        }
+    }
+
+    /**
      * 检查视频是否发布超过 N 天
      * @param {string} publishDate - 视频发布日期 (YYYY-MM-DD)
      * @param {number} days - 天数阈值 (例如 14)
@@ -49,7 +72,9 @@ export class ReportUtils {
         if (!publishDate) return { isOverdue: false, overdueDays: 0 };
 
         try {
-            const pubDate = new Date(publishDate);
+            // 修复时区问题：统一使用本地时区解析日期
+            const [year, month, day] = publishDate.split('-').map(Number);
+            const pubDate = new Date(year, month - 1, day);
             // 确保比较的是日期而不是时间
             const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
@@ -59,7 +84,7 @@ export class ReportUtils {
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
             return {
-                isOverdue: diffDays > days,
+                isOverdue: diffDays >= days,  // 修复：发布满14天（含）即为超期
                 overdueDays: diffDays
             };
         } catch(e) {

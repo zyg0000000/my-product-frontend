@@ -171,19 +171,21 @@ document.addEventListener('DOMContentLoaded', function () {
      */
     function getOverdueInfo(publishDate, days = 14, today = new Date()) {
         if (!publishDate) return { isOverdue: false, overdueDays: 0 };
-        
+
         try {
-            const pubDate = new Date(publishDate);
+            // 修复时区问题：统一使用本地时区解析日期
+            const [year, month, day] = publishDate.split('-').map(Number);
+            const pubDate = new Date(year, month - 1, day);
             // 确保比较的是日期而不是时间
             const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-            
+
             const diffTime = todayDateOnly.getTime() - pubDate.getTime();
             if (diffTime < 0) return { isOverdue: false, overdueDays: 0 }; // 还没发布
-            
+
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            
+
             return {
-                isOverdue: diffDays > days,
+                isOverdue: diffDays >= days,  // 修复：发布满14天（含）即为超期
                 overdueDays: diffDays
             };
         } catch(e) {
