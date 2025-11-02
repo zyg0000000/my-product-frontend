@@ -41,7 +41,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const talentsTab = document.getElementById('talents-tab');
     const jobsTab = document.getElementById('jobs-tab');
     const sheetsTab = document.getElementById('sheets-tab');
-    const jobsByWorkflowContainer = document.getElementById('jobs-by-workflow-container');
+    const workflowFilterCards = document.getElementById('workflow-filter-cards');
+    const jobsContainer = document.getElementById('jobs-container');
+    const jobsPaginationContainer = document.getElementById('jobs-pagination-container');
+    const jobsTableTitle = document.getElementById('jobs-table-title');
     
     const jobDetailsModal = document.getElementById('job-details-modal');
     const jobDetailsModalTitle = document.getElementById('job-details-modal-title');
@@ -102,6 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let sheetCurrentPage = 1;
     let currentTab = 'talents'; // 当前激活的Tab
     let jobsTabInitialized = false; // 任务批次Tab是否已初始化
+    let selectedWorkflowFilter = 'all'; // 当前选中的工作流筛选（'all' 或 workflowId）
 
 
     // --- Helper Functions ---
@@ -319,107 +323,129 @@ document.addEventListener('DOMContentLoaded', function () {
         currentTab = tabName;
     }
 
-    // --- 按工作流归类显示任务批次 ---
+    // --- 按工作流筛选显示任务批次 ---
     function renderJobsByWorkflow() {
+        // 1. 渲染筛选卡片
+        renderWorkflowFilterCards();
+
+        // 2. 渲染任务列表
+        renderFilteredJobsList();
+    }
+
+    function renderWorkflowFilterCards() {
         if (!allJobsCache || allJobsCache.length === 0) {
-            jobsByWorkflowContainer.innerHTML = `
-                <div class="bg-white p-6 rounded-xl shadow-sm">
-                    <p class="text-center py-8 text-gray-500">此项目暂无自动化任务。</p>
-                </div>`;
+            workflowFilterCards.innerHTML = '';
             return;
         }
 
-        // 按工作流分组
-        const jobsByWorkflow = {};
-        allJobsCache.forEach(job => {
-            const workflowName = job.workflowName || '未知工作流';
-            const workflowId = job.workflowId || 'unknown';
-            const key = `${workflowId}|${workflowName}`;
+        // 按工作流统计
+        const workflowStats = { all: { name: '全部任务', count: allJobsCache.length } };
 
-            if (!jobsByWorkflow[key]) {
-                jobsByWorkflow[key] = {
-                    workflowId,
-                    workflowName,
-                    jobs: []
-                };
+        allJobsCache.forEach(job => {
+            const workflowId = job.workflowId || 'unknown';
+            const workflowName = job.workflowName || '未知工作流';
+
+            if (!workflowStats[workflowId]) {
+                workflowStats[workflowId] = { name: workflowName, count: 0 };
             }
-            jobsByWorkflow[key].jobs.push(job);
+            workflowStats[workflowId].count++;
         });
 
-        // 渲染每个工作流分组
-        const groupsHtml = Object.values(jobsByWorkflow).map(group => {
-            const sortedJobs = group.jobs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-            const jobsHtml = sortedJobs.map(job => {
-                const totalTasks = (job.tasks || []).length;
-                const completedTasks = (job.tasks || []).filter(t => ['completed', 'failed'].includes(t.status)).length;
-
-                let actionsHtml = '';
-                if (job.status === 'awaiting_review') {
-                    actionsHtml = `
-                        <button class="font-medium text-green-600 hover:underline" data-action="complete-review" data-job-id="${job._id}">完成审查</button>
-                        <button class="font-medium text-blue-600 hover:underline" data-action="view-job-details" data-job-id="${job._id}">查看详情</button>
-                    `;
-                } else {
-                    actionsHtml = `
-                        <button class="font-medium text-blue-600 hover:underline" data-action="view-job-details" data-job-id="${job._id}">查看详情</button>
-                        <button class="font-medium text-red-600 hover:underline" data-action="delete-job" data-job-id="${job._id}">删除</button>
-                    `;
-                }
-
-                return `
-                    <tr class="bg-white border-b hover:bg-gray-50">
-                        <td class="px-6 py-4">
-                            <div class="font-bold text-gray-900">#${job._id.slice(-6)}</div>
-                            <div class="text-xs text-gray-500">${formatDate(job.createdAt, true)}</div>
-                        </td>
-                        <td class="px-6 py-4">${getStatusBadge(job.status)}</td>
-                        <td class="px-6 py-4 font-mono text-center">${completedTasks} / ${totalTasks}</td>
-                        <td class="px-6 py-4 font-mono text-green-600 text-center">${job.successTasks || 0}</td>
-                        <td class="px-6 py-4 font-mono text-red-600 text-center">${job.failedTasks || 0}</td>
-                        <td class="px-6 py-4 text-right space-x-4">
-                            ${actionsHtml}
-                        </td>
-                    </tr>`;
-            }).join('');
+        // 渲染卡片
+        const cardsHtml = Object.entries(workflowStats).map(([key, stat]) => {
+            const isActive = selectedWorkflowFilter === key;
+            const bgColor = isActive ? 'bg-indigo-100 border-indigo-500' : 'bg-white border-gray-200 hover:border-indigo-300';
+            const textColor = isActive ? 'text-indigo-700' : 'text-gray-700';
 
             return `
-                <div class="bg-white p-6 rounded-xl shadow-sm mb-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                        ${group.workflowName} <span class="text-sm font-normal text-gray-500">(${group.jobs.length} 个批次)</span>
-                    </h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left text-gray-700">
-                            <thead class="text-xs text-gray-800 uppercase bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3">批次信息</th>
-                                    <th scope="col" class="px-6 py-3">状态</th>
-                                    <th scope="col" class="px-6 py-3 text-center">进度</th>
-                                    <th scope="col" class="px-6 py-3 text-center">成功</th>
-                                    <th scope="col" class="px-6 py-3 text-center">失败</th>
-                                    <th scope="col" class="px-6 py-3 text-right">操作</th>
-                                </tr>
-                            </thead>
-                            <tbody class="jobs-tbody">
-                                ${jobsHtml}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="workflow-filter-card cursor-pointer border-2 ${bgColor} rounded-lg p-4 transition-all hover:shadow-md" data-workflow-id="${key}">
+                    <div class="text-xs ${textColor} font-medium mb-1">${stat.name}</div>
+                    <div class="text-2xl font-bold ${textColor}">${stat.count}</div>
                 </div>`;
         }).join('');
 
-        jobsByWorkflowContainer.innerHTML = groupsHtml;
+        workflowFilterCards.innerHTML = cardsHtml;
 
-        // 为所有操作按钮绑定事件
-        jobsByWorkflowContainer.querySelectorAll('[data-action]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const action = e.target.closest('[data-action]').dataset.action;
-                const jobId = e.target.closest('[data-action]').dataset.jobId;
-                handleJobsAreaClick({ target: e.target });
+        // 绑定点击事件
+        workflowFilterCards.querySelectorAll('.workflow-filter-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const workflowId = card.dataset.workflowId;
+                selectedWorkflowFilter = workflowId;
+                jobCurrentPage = 1; // 重置页码
+                renderJobsByWorkflow(); // 重新渲染
             });
+        });
+    }
+
+    function renderFilteredJobsList() {
+        if (!allJobsCache || allJobsCache.length === 0) {
+            jobsContainer.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-500">此项目暂无自动化任务。</td></tr>`;
+            jobsPaginationContainer.innerHTML = '';
+            jobsTableTitle.textContent = '全部任务批次';
+            return;
+        }
+
+        // 筛选任务
+        let filteredJobs = allJobsCache;
+        if (selectedWorkflowFilter !== 'all') {
+            filteredJobs = allJobsCache.filter(job => job.workflowId === selectedWorkflowFilter);
+        }
+
+        // 排序
+        const sortedJobs = filteredJobs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        // 分页
+        const start = (jobCurrentPage - 1) * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        const paginatedJobs = sortedJobs.slice(start, end);
+
+        // 更新标题
+        const workflowName = selectedWorkflowFilter === 'all'
+            ? '全部任务批次'
+            : (allJobsCache.find(j => j.workflowId === selectedWorkflowFilter)?.workflowName || '任务批次');
+        jobsTableTitle.textContent = `${workflowName} (${filteredJobs.length})`;
+
+        // 渲染表格
+        jobsContainer.innerHTML = paginatedJobs.map(job => {
+            const totalTasks = (job.tasks || []).length;
+            const completedTasks = (job.tasks || []).filter(t => ['completed', 'failed'].includes(t.status)).length;
+
+            let actionsHtml = '';
+            if (job.status === 'awaiting_review') {
+                actionsHtml = `
+                    <button class="font-medium text-green-600 hover:underline" data-action="complete-review" data-job-id="${job._id}">完成审查</button>
+                    <button class="font-medium text-blue-600 hover:underline" data-action="view-job-details" data-job-id="${job._id}">查看详情</button>
+                `;
+            } else {
+                actionsHtml = `
+                    <button class="font-medium text-blue-600 hover:underline" data-action="view-job-details" data-job-id="${job._id}">查看详情</button>
+                    <button class="font-medium text-red-600 hover:underline" data-action="delete-job" data-job-id="${job._id}">删除</button>
+                `;
+            }
+
+            return `
+                <tr class="bg-white border-b hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-gray-900">#${job._id.slice(-6)}</div>
+                        <div class="text-xs text-gray-500">${formatDate(job.createdAt, true)}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-full">${job.workflowName || '未知'}</span>
+                    </td>
+                    <td class="px-6 py-4">${getStatusBadge(job.status)}</td>
+                    <td class="px-6 py-4 font-mono text-center">${completedTasks} / ${totalTasks}</td>
+                    <td class="px-6 py-4 font-mono text-green-600 text-center">${job.successTasks || 0}</td>
+                    <td class="px-6 py-4 font-mono text-red-600 text-center">${job.failedTasks || 0}</td>
+                    <td class="px-6 py-4 text-right space-x-4">
+                        ${actionsHtml}
+                    </td>
+                </tr>`;
+        }).join('');
+
+        // 渲染分页
+        renderPaginationControls(jobsPaginationContainer, filteredJobs.length, jobCurrentPage, ITEMS_PER_PAGE, (page) => {
+            jobCurrentPage = page;
+            renderFilteredJobsList();
         });
     }
 
@@ -554,8 +580,8 @@ document.addEventListener('DOMContentLoaded', function () {
         configForm.addEventListener('submit', handleConfigFormSubmit);
 
         // 使用事件委托处理jobs区域的点击事件（因为内容是动态生成的）
-        if (jobsByWorkflowContainer) {
-            jobsByWorkflowContainer.addEventListener('click', handleJobsAreaClick);
+        if (jobsContainer) {
+            jobsContainer.addEventListener('click', handleJobsAreaClick);
         }
 
         generatedSheetsContainer.addEventListener('click', handleSheetHistoryClick);
