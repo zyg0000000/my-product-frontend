@@ -66,7 +66,11 @@
 - 历史返点记录
 - 调价记录追踪
 
-### 6. 自动化能力
+### 6. 自动化能力 🆕
+- **自动化页面** (Tab设计，2025-11优化)
+  - 3-Tab布局：发起任务、任务批次、飞书表格生成记录
+  - 工作流筛选卡片，提升页面性能
+  - 模板-工作流关联配置，精准控制任务选择
 - 自动任务调度
 - 数据自动同步
 - 报表自动生成
@@ -173,9 +177,13 @@ my-product-frontend/
 ├── *.html                            # 各个页面的 HTML 文件
 ├── *.js                              # 页面脚本（部分已模块化，部分待升级）
 │
-├── docs/                             # 项目文档
-│   ├── ARCHITECTURE_UPGRADE_GUIDE.md # 架构升级指南
-│   └── API_REFERENCE.md             # API 参考文档
+├── doc/                              # 📁 项目文档
+│   ├── BACKEND_API_REQUIREMENTS.md          # 后端API改造需求文档
+│   ├── PR_INFO.md                           # PR提交记录
+│   ├── data-entry-optimization-plan.md      # 数据录入优化方案
+│   ├── mapping-templates-api-v4.0-CHANGELOG.md     # 云函数v4.0更新日志
+│   ├── mapping-templates-api-v4.0-DEPLOYMENT.md    # 云函数v4.0部署指南
+│   └── mapping-templates-api-v4.0-README.md        # 云函数v4.0快速参考
 │
 └── assets/                           # 静态资源
     ├── images/
@@ -189,6 +197,8 @@ my-product-frontend/
 | 项目列表 | `index.html` | ✅ 运行中 | 项目总览和管理入口 |
 | 订单详情 | `order_list.html` | ✅ 已升级 | 项目内达人合作管理（模块化架构） |
 | 项目日报 | `project_report.html` | ✅ 最新优化 | 视频播放量数据录入与日报查看 |
+| 自动化页面 | `project_automation.html` | ✅ 2025-11优化 | 3-Tab设计：任务发起、批次管理、表格生成 |
+| 模板管理 | `mapping_templates.html` | ✅ 2025-11升级 | 飞书表格模板配置与工作流关联 |
 | 执行看板 | `execution_board.html` | ✅ 运行中 | 跨项目达人发布日历视图 |
 | 达人库 | `talent_pool.html` | ✅ 已升级 | 达人档案管理（8个模块，2577行） |
 | 数据分析 | `analysis.html` | ✅ 运行中 | 数据可视化看板 |
@@ -340,6 +350,72 @@ my-product-frontend/
 - ✅ **性能优化**：Chart.js 图表自动销毁，避免内存泄漏
 - ✅ **状态管理**：独立的搜索、排序、日期范围状态
 - ✅ **无外部依赖**：复用 `AppCore`（API、Format）和 `ReportUtils`
+
+### 自动化页面功能详解 🆕
+
+`project_automation.html` 优化升级（2025-11），采用3-Tab设计提升性能和用户体验：
+
+#### 📋 Tab 1: 发起任务
+- 选择达人发起自动化任务
+- 工作流类型选择
+- 任务配置与提交
+- 移至左侧显示区域
+
+#### 📊 Tab 2: 任务批次
+**筛选卡片设计**（性能优化）
+- 统计卡片展示：全部任务、各工作流任务数量
+- 点击卡片筛选：快速切换显示不同工作流的任务
+- 单表分页显示：避免全展开导致的性能问题
+
+**任务列表**
+- 批次信息：ID、创建时间
+- 工作流类型：动态加载，带类型标签
+- 状态追踪：进行中、已完成、失败
+- 进度统计：成功/失败任务数、完成率
+
+#### 📑 Tab 3: 飞书表格生成记录
+**模板-工作流关联**（核心特性）
+- 选择报告模板
+- 根据模板配置的 `allowedWorkflowIds` 自动筛选任务
+- 仅显示允许的工作流类型的已完成任务
+- 精准控制表格生成的数据源
+
+**功能操作**
+- 选择任务记录
+- 一键生成飞书表格
+- 历史生成记录查看
+- 表格链接快速跳转
+
+**技术亮点**
+- ✅ **Tab样式统一**：参考 `project_report` 的Tab设计，包含图标和动效
+- ✅ **性能优化**：工作流筛选卡片替代全展开设计
+- ✅ **配置化控制**：模板-工作流关联实现业务逻辑配置化
+- ✅ **向后兼容**：未配置关联的旧模板仍可正常使用
+
+### 模板管理功能详解 🆕
+
+`mapping_templates.html` 升级（2025-11），新增工作流关联配置：
+
+#### 🔧 模板配置
+1. **基础信息**：名称、描述、飞书表格Token
+2. **字段映射**：飞书表格列与数据字段的映射规则
+3. **工作流关联**（新增）：
+   - 动态加载可用工作流列表
+   - 多选checkbox配置允许的工作流
+   - 未选择表示允许所有工作流
+   - 保存到数据库 `allowedWorkflowIds` 字段
+
+#### 📊 后端支持
+**云函数 v4.0**（mapping-templates-api）
+- 支持 `allowedWorkflowIds` 字段的存储和查询
+- GET 接口返回工作流关联配置
+- POST/PUT 接口支持更新工作流关联
+- 完整的部署文档和迁移脚本
+
+**相关文档**
+- 📖 快速参考：`doc/mapping-templates-api-v4.0-README.md`
+- 📝 更新日志：`doc/mapping-templates-api-v4.0-CHANGELOG.md`
+- 🚀 部署指南：`doc/mapping-templates-api-v4.0-DEPLOYMENT.md`
 
 ---
 
@@ -1093,8 +1169,17 @@ chore: 构建/工具链相关
 
 ## 📚 相关文档
 
-- [架构升级指南](./docs/ARCHITECTURE_UPGRADE_GUIDE.md) - 页面模块化重构指南
-- [API 参考文档](./docs/API_REFERENCE.md) - 云函数接口规范（15 个详细 API）
+### 项目文档
+- [后端API改造需求](./doc/BACKEND_API_REQUIREMENTS.md) - 后端API升级需求文档
+- [数据录入优化方案](./doc/data-entry-optimization-plan.md) - 数据录入功能优化方案
+- [PR提交记录](./doc/PR_INFO.md) - Pull Request历史记录
+
+### 云函数文档
+- [云函数v4.0快速参考](./doc/mapping-templates-api-v4.0-README.md) - 5分钟快速部署指南
+- [云函数v4.0更新日志](./doc/mapping-templates-api-v4.0-CHANGELOG.md) - 完整版本变更说明
+- [云函数v4.0部署指南](./doc/mapping-templates-api-v4.0-DEPLOYMENT.md) - 详细部署步骤
+
+### 外部仓库
 - [云函数仓库](https://github.com/zyg0000000/my-cloud-functions) - 后端 API 实现
 - [本地爬虫代理](https://github.com/zyg0000000/my-local-agent) - Puppeteer 自动化执行器
 - [数据库 Schema](https://github.com/zyg0000000/mongodb-schemas) - MongoDB 数据模型
@@ -1130,6 +1215,15 @@ chore: 构建/工具链相关
   - 合作历史模块（统计 + 时间轴 + 双图表）
   - 批量操作模块（导入/导出/批量更新）
   - 统一视觉系统（蓝/紫/绿/橙渐变主题）
+- [x] **自动化页面优化** ✅ (2025-11)
+  - 3-Tab设计：发起任务、任务批次、飞书表格生成
+  - 工作流筛选卡片，提升页面性能
+  - Tab样式统一，参考 project_report
+- [x] **模板工作流关联系统** ✅ (2025-11)
+  - 模板管理页面新增工作流关联配置
+  - 云函数 v4.0 支持 allowedWorkflowIds 字段
+  - 任务选择精准控制
+  - 完整部署文档和迁移脚本
 - [x] 达人筛选和推荐功能增强
 - [x] 批量操作能力提升
 - [x] 数据导出功能优化
@@ -1185,6 +1279,6 @@ chore: 构建/工具链相关
 
 ---
 
-**最后更新**：2025-10-31
-**当前版本**：v2.10 (多价格类型系统 + 达人库模块化)
+**最后更新**：2025-11-02
+**当前版本**：v2.11 (自动化页面优化 + 模板工作流关联系统)
 **维护者**：产品经理 + Claude Code
