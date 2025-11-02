@@ -296,15 +296,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // 移除所有Tab按钮的active状态
         automationTabBtns.forEach(btn => {
-            btn.classList.remove('active', 'border-indigo-600', 'text-indigo-600');
-            btn.classList.add('border-transparent', 'text-gray-500');
+            btn.classList.remove('active');
         });
 
         // 显示目标Tab并激活按钮
         const targetBtn = document.querySelector(`[data-tab="${tabName}"]`);
         if (targetBtn) {
-            targetBtn.classList.remove('border-transparent', 'text-gray-500');
-            targetBtn.classList.add('active', 'border-indigo-600', 'text-indigo-600');
+            targetBtn.classList.add('active');
         }
 
         if (tabName === 'talents' && talentsTab) {
