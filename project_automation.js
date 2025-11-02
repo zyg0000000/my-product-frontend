@@ -197,6 +197,18 @@ document.addEventListener('DOMContentLoaded', function () {
             
             const jobs = automationData.data || [];
             allJobsCache = jobs;
+
+            // [临时调试] 检查后端返回的job数据结构
+            console.log('=== 后端返回的Jobs数据结构 ===');
+            console.log('Jobs总数:', jobs.length);
+            if (jobs.length > 0) {
+                console.log('第一个Job示例:', jobs[0]);
+                console.log('是否包含 workflowId?', 'workflowId' in jobs[0]);
+                console.log('是否包含 workflowName?', 'workflowName' in jobs[0]);
+                console.log('是否包含 workflow对象?', 'workflow' in jobs[0]);
+            }
+            console.log('===============================');
+
             tasksCache = {};
             allCompletedTasks = [];
             jobs.forEach(job => {
