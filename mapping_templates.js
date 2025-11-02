@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const API_BASE_URL = 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com';
     const MAPPING_TEMPLATES_API = `${API_BASE_URL}/mapping-templates`;
     const FEISHU_API = `${API_BASE_URL}/sync-from-feishu`;
+    const AUTOMATION_WORKFLOWS_API = `${API_BASE_URL}/automation-workflows`;
 
     // --- DOM Elements ---
     const newTemplateBtn = document.getElementById('new-template-btn');
@@ -27,10 +28,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const mappingRulesContainer = document.getElementById('mapping-rules-container');
     const cancelTemplateBtn = document.getElementById('cancel-template-btn');
     const saveTemplateBtn = document.getElementById('save-template-btn');
+    const workflowsSelectionContainer = document.getElementById('workflows-selection-container');
 
     // --- State ---
     let templatesCache = [];
     let mappingSchemas = null;
+    let allWorkflows = []; // 所有可用的工作流
 
     // --- Helper Functions ---
     async function apiRequest(url, method = 'GET', body = null) {
@@ -69,6 +72,41 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    async function loadWorkflows() {
+        if (allWorkflows.length > 0) return; // 已加载过
+        try {
+            const data = await apiRequest(AUTOMATION_WORKFLOWS_API);
+            allWorkflows = data || [];
+        } catch (error) {
+            console.error('加载工作流列表失败:', error);
+            allWorkflows = [];
+        }
+    }
+
+    function renderWorkflowsSelection(selectedWorkflowIds = []) {
+        if (allWorkflows.length === 0) {
+            workflowsSelectionContainer.innerHTML = '<div class="text-center text-gray-400 py-4">暂无可用的工作流</div>';
+            return;
+        }
+
+        workflowsSelectionContainer.innerHTML = allWorkflows
+            .filter(wf => wf.isActive !== false) // 只显示活跃的工作流
+            .map(workflow => {
+                const isChecked = selectedWorkflowIds.includes(workflow._id);
+                return `
+                <label class="flex items-center p-2 hover:bg-gray-100 rounded cursor-pointer">
+                    <input type="checkbox"
+                           class="workflow-checkbox h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                           value="${workflow._id}"
+                           ${isChecked ? 'checked' : ''}>
+                    <div class="ml-3 flex-1">
+                        <p class="text-sm font-medium text-gray-800">${workflow.name}</p>
+                        ${workflow.description ? `<p class="text-xs text-gray-500">${workflow.description}</p>` : ''}
+                    </div>
+                </label>`;
+            }).join('');
+    }
+
     async function loadTemplates() {
         try {
             templatesCache = await apiRequest(MAPPING_TEMPLATES_API) || [];
@@ -97,11 +135,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function openModal(templateId = null) {
-        await loadMappingSchemas();
+        await Promise.all([loadMappingSchemas(), loadWorkflows()]);
         templateForm.reset();
         templateIdInput.value = '';
         saveTemplateBtn.disabled = false;
-        
+
         if (templateId) {
             const template = templatesCache.find(t => t._id === templateId);
             if (!template) return alert('找不到要编辑的模板。');
@@ -110,9 +148,11 @@ document.addEventListener('DOMContentLoaded', function () {
             templateNameInput.value = template.name;
             templateDescriptionInput.value = template.description || '';
             spreadsheetUrlInput.value = template.spreadsheetToken;
+            renderWorkflowsSelection(template.allowedWorkflowIds || []);
             renderMappingRules(template.feishuSheetHeaders || [], template.mappingRules || {});
         } else {
             modalTitle.textContent = '新建映射模板';
+            renderWorkflowsSelection([]);
             mappingRulesContainer.innerHTML = `<div id="mapping-placeholder" class="text-center text-gray-400 p-8 border-2 border-dashed rounded-lg"><p>请先加载飞书表格表头</p></div>`;
         }
         templateModal.classList.remove('hidden');
@@ -256,14 +296,20 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
+        // 收集选中的工作流ID
+        const allowedWorkflowIds = Array.from(
+            workflowsSelectionContainer.querySelectorAll('.workflow-checkbox:checked')
+        ).map(checkbox => checkbox.value);
+
         const payload = {
             name: templateNameInput.value.trim(),
             description: templateDescriptionInput.value.trim(),
             spreadsheetToken: spreadsheetUrlInput.value.trim(),
             feishuSheetHeaders,
             mappingRules,
+            allowedWorkflowIds, // 新增字段
         };
-        
+
         const id = templateIdInput.value;
 
         try {

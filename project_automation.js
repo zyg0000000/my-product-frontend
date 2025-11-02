@@ -854,23 +854,70 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function renderTasksForSelection() {
-        if (allCompletedTasks.length === 0) {
-            tasksForSelectionList.innerHTML = '<div class="p-4 text-center text-gray-500">此项目暂无任何已完成的任务记录。</div>';
+        const templateId = mappingTemplateSelect.value;
+        if (!templateId) {
+            tasksForSelectionList.innerHTML = '<div class="p-4 text-center text-gray-500">请先选择报告模板。</div>';
             return;
         }
-        tasksForSelectionList.innerHTML = allCompletedTasks
+
+        // 获取模板配置
+        const template = mappingTemplatesCache.find(t => t._id === templateId);
+        const allowedWorkflowIds = template?.allowedWorkflowIds || [];
+
+        // 筛选任务
+        let filteredTasks = allCompletedTasks;
+
+        if (allowedWorkflowIds.length > 0) {
+            // 如果模板配置了允许的工作流，则只显示匹配的任务
+            filteredTasks = allCompletedTasks.filter(task => {
+                const job = allJobsCache.find(j => j._id === task.jobId);
+                return job && allowedWorkflowIds.includes(job.workflowId);
+            });
+
+            if (filteredTasks.length === 0) {
+                const workflowNames = allJobsCache
+                    .filter(j => allowedWorkflowIds.includes(j.workflowId))
+                    .map(j => j.workflowName)
+                    .filter((name, index, self) => self.indexOf(name) === index)
+                    .join('、') || '指定工作流';
+
+                tasksForSelectionList.innerHTML = `
+                    <div class="p-4 text-center text-gray-500">
+                        <p class="mb-2">暂无"${workflowNames}"的已完成任务。</p>
+                        <button class="text-indigo-600 hover:underline text-sm" onclick="document.querySelector('[data-tab=\\'talents\\']').click()">
+                            前往发起任务 →
+                        </button>
+                    </div>`;
+                return;
+            }
+        } else {
+            // 如果没有配置，显示所有已完成任务（向后兼容）
+            if (allCompletedTasks.length === 0) {
+                tasksForSelectionList.innerHTML = '<div class="p-4 text-center text-gray-500">此项目暂无任何已完成的任务记录。</div>';
+                return;
+            }
+        }
+
+        // 渲染任务列表
+        tasksForSelectionList.innerHTML = filteredTasks
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-            .map(task => `
-            <div class="p-3">
-                <label class="flex items-center space-x-3 cursor-pointer">
-                    <input type="checkbox" data-task-id="${task._id}" class="h-4 w-4 text-indigo-600 border-gray-300 rounded task-for-selection-checkbox">
-                    <div>
-                        <p class="text-sm font-medium text-gray-800">${task.metadata?.talentNickname || '未知达人'}</p>
-                        <p class="text-xs text-gray-500">执行于: ${formatDate(task.createdAt, true)}</p>
-                    </div>
-                </label>
-            </div>`).join('');
-        
+            .map(task => {
+                const job = allJobsCache.find(j => j._id === task.jobId);
+                return `
+                <div class="p-3 border-b border-gray-100 last:border-b-0">
+                    <label class="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded p-2">
+                        <input type="checkbox" data-task-id="${task._id}" class="h-4 w-4 text-indigo-600 border-gray-300 rounded task-for-selection-checkbox">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-800">${task.metadata?.talentNickname || '未知达人'}</p>
+                            <div class="flex items-center gap-2 mt-1">
+                                ${job ? `<span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded">${job.workflowName}</span>` : ''}
+                                <span class="text-xs text-gray-500">执行于: ${formatDate(task.createdAt, true)}</span>
+                            </div>
+                        </div>
+                    </label>
+                </div>`;
+            }).join('');
+
         tasksForSelectionList.querySelectorAll('.task-for-selection-checkbox')
             .forEach(cb => cb.addEventListener('change', updateGenerateSheetButtonState));
     }
