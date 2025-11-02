@@ -120,7 +120,18 @@
                     </div>
 
                     <div>
-                        <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">3. 配置数据映射</h4>
+                        <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">3. 关联工作流 <span class="text-sm font-normal text-gray-500">(限制可用于生成此表格的任务类型)</span></h4>
+                        <div>
+                            <p class="text-sm text-gray-600 mb-3">选择哪些自动化工作流的任务可以用于生成此表格：</p>
+                            <div id="workflows-selection-container" class="space-y-2 p-4 border rounded-md bg-gray-50">
+                                <div class="text-center text-gray-400 py-4">正在加载工作流列表...</div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">💡 提示：如果不选择任何工作流，则允许所有类型的任务。</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">4. 配置数据映射</h4>
                         <div id="mapping-rules-container" class="space-y-4">
                             <div id="mapping-placeholder" class="text-center text-gray-400 p-8 border-2 border-dashed rounded-lg">
                                 <p>请先加载飞书表格表头</p>

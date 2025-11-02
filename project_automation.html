@@ -34,6 +34,58 @@
         .nav-link { display: flex; align-items: center; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 500; color: #4b5563; border-radius: 0.5rem; position: relative; }
         .nav-link:hover { background-color: #f3f4f6; }
         .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; }
+
+        /* --- Tab 按钮样式（参考 project_report.html）--- */
+        .automation-tab-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6b7280;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+
+        .automation-tab-btn:hover {
+            color: #4f46e5;
+            background-color: #eef2ff;
+        }
+
+        .automation-tab-btn.active {
+            color: #4f46e5;
+            background-color: #eef2ff;
+            font-weight: 700;
+        }
+
+        .automation-tab-btn svg {
+            transition: transform 0.2s ease;
+        }
+
+        .automation-tab-btn:hover svg {
+            transform: translateY(-2px);
+        }
+
+        /* Tab 分隔线 */
+        .automation-tab-divider {
+            height: 1.5rem;
+            width: 1px;
+            background-color: #e5e7eb;
+            margin: 0 0.5rem;
+        }
+
+        /* Tab 内容面板淡入动画 */
+        .tab-panel {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="flex h-screen bg-gray-100">
@@ -62,81 +114,114 @@
                 <p id="project-qianchuan-id" class="text-sm text-gray-500 mt-1">仟传编号: 加载中...</p>
             </div>
 
-            <!-- 新的左右布局容器 -->
-            <div class="grid grid-cols-1 lg:grid-cols-10 lg:gap-8">
-                <!-- 左侧面板 -->
-                <div class="lg:col-span-5 flex flex-col gap-8">
-                    <!-- [重构] 任务批次面板 (表格布局) -->
-                    <div class="bg-white p-6 rounded-xl shadow-sm flex flex-col">
-                        <div class="flex justify-between items-center mb-4 flex-shrink-0">
-                            <h2 class="text-xl font-semibold text-gray-800">任务批次</h2>
-                            <button id="open-sheet-generator-btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700 flex items-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                                生成飞书表格
-                            </button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm text-left text-gray-700">
-                                <thead class="text-xs text-gray-800 uppercase bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3">批次信息</th>
-                                        <th scope="col" class="px-6 py-3">状态</th>
-                                        <th scope="col" class="px-6 py-3 text-center">进度</th>
-                                        <th scope="col" class="px-6 py-3 text-center">成功</th>
-                                        <th scope="col" class="px-6 py-3 text-center">失败</th>
-                                        <th scope="col" class="px-6 py-3 text-right">操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="jobs-container"></tbody>
-                            </table>
-                        </div>
-                        <div id="jobs-pagination-container" class="mt-4 flex justify-end items-center"></div>
-                    </div>
-
-                    <!-- [重构] 历史记录面板 (表格布局) -->
-                    <div class="bg-white p-6 rounded-xl shadow-sm flex flex-col">
-                        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex-shrink-0">历史生成记录</h2>
-                        <div class="overflow-x-auto">
-                           <table class="w-full text-sm text-left text-gray-700">
-                                <thead class="text-xs text-gray-800 uppercase bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3">文件名</th>
-                                        <th scope="col" class="px-6 py-3">生成时间</th>
-                                        <th scope="col" class="px-6 py-3">链接</th>
-                                        <th scope="col" class="px-6 py-3 text-right">操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="generated-sheets-container"></tbody>
-                            </table>
-                        </div>
-                        <div id="generated-sheets-pagination-container" class="mt-4 flex justify-end items-center"></div>
-                    </div>
+            <!-- Tab 导航 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <nav class="flex items-center" aria-label="Automation Tabs">
+                        <button class="automation-tab-btn active" data-tab="talents">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            发起任务
+                        </button>
+                        <div class="automation-tab-divider"></div>
+                        <button class="automation-tab-btn" data-tab="jobs">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                            </svg>
+                            任务批次
+                        </button>
+                        <div class="automation-tab-divider"></div>
+                        <button class="automation-tab-btn" data-tab="sheets">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            飞书表格生成记录
+                        </button>
+                    </nav>
                 </div>
-                
-                <!-- 右侧面板 (未改动) -->
-                <div class="lg:col-span-5 bg-white p-6 rounded-xl shadow-sm mt-6 lg:mt-0">
-                    <div>
-                        <h2 class="text-xl font-semibold text-gray-800 mb-4">选择达人发起任务</h2>
-                        <div id="batch-actions-bar" class="hidden p-3 bg-blue-50 border border-blue-200 rounded-lg mb-4">
-                            <div class="flex items-center justify-between">
-                                <span id="selection-count" class="text-sm font-medium text-blue-800">已选择 0 位达人</span>
-                                <button id="generate-report-btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700">生成报名表</button>
-                            </div>
+            </div>
+
+            <!-- Tab 1: 发起任务 -->
+            <div id="talents-tab" class="tab-panel">
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">选择达人发起任务</h2>
+                    <div id="batch-actions-bar" class="hidden p-3 bg-blue-50 border border-blue-200 rounded-lg mb-4">
+                        <div class="flex items-center justify-between">
+                            <span id="selection-count" class="text-sm font-medium text-blue-800">已选择 0 位达人</span>
+                            <button id="generate-report-btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700">生成报名表</button>
                         </div>
-                        <div class="border rounded-lg overflow-x-auto">
-                            <table class="w-full text-sm text-left text-gray-500">
-                                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="p-4 w-12 text-center"><input type="checkbox" id="select-all-talents" class="rounded text-blue-600"></th>
-                                        <th scope="col" class="px-6 py-3">达人昵称</th><th scope="col" class="px-6 py-3">星图ID</th>
-                                        <th scope="col" class="px-6 py-3">合作状态</th><th scope="col" class="px-6 py-3">合作档期</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="talents-container"><tr><td colspan="5" class="text-center py-8 text-gray-500">正在加载达人列表...</td></tr></tbody>
-                            </table>
-                        </div>
-                        <div id="talents-pagination-container" class="mt-4 flex justify-end items-center"></div>
                     </div>
+                    <div class="border rounded-lg overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="p-4 w-12 text-center"><input type="checkbox" id="select-all-talents" class="rounded text-blue-600"></th>
+                                    <th scope="col" class="px-6 py-3">达人昵称</th>
+                                    <th scope="col" class="px-6 py-3">星图ID</th>
+                                    <th scope="col" class="px-6 py-3">合作状态</th>
+                                    <th scope="col" class="px-6 py-3">合作档期</th>
+                                </tr>
+                            </thead>
+                            <tbody id="talents-container"><tr><td colspan="5" class="text-center py-8 text-gray-500">正在加载达人列表...</td></tr></tbody>
+                        </table>
+                    </div>
+                    <div id="talents-pagination-container" class="mt-4 flex justify-end items-center"></div>
+                </div>
+            </div>
+
+            <!-- Tab 2: 任务批次 -->
+            <div id="jobs-tab" class="tab-panel hidden">
+                <!-- 工作流筛选卡片 -->
+                <div id="workflow-filter-cards" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6"></div>
+
+                <!-- 任务列表 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4" id="jobs-table-title">全部任务批次</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-700">
+                            <thead class="text-xs text-gray-800 uppercase bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">批次信息</th>
+                                    <th scope="col" class="px-6 py-3">工作流</th>
+                                    <th scope="col" class="px-6 py-3">状态</th>
+                                    <th scope="col" class="px-6 py-3 text-center">进度</th>
+                                    <th scope="col" class="px-6 py-3 text-center">成功</th>
+                                    <th scope="col" class="px-6 py-3 text-center">失败</th>
+                                    <th scope="col" class="px-6 py-3 text-right">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jobs-container"></tbody>
+                        </table>
+                    </div>
+                    <div id="jobs-pagination-container" class="mt-4 flex justify-end items-center"></div>
+                </div>
+            </div>
+
+            <!-- Tab 3: 飞书表格生成记录 -->
+            <div id="sheets-tab" class="tab-panel hidden">
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-gray-800">飞书表格生成记录</h2>
+                        <button id="open-sheet-generator-btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                            生成飞书表格
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-700">
+                            <thead class="text-xs text-gray-800 uppercase bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">文件名</th>
+                                    <th scope="col" class="px-6 py-3">生成时间</th>
+                                    <th scope="col" class="px-6 py-3">链接</th>
+                                    <th scope="col" class="px-6 py-3 text-right">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="generated-sheets-container"></tbody>
+                        </table>
+                    </div>
+                    <div id="generated-sheets-pagination-container" class="mt-4 flex justify-end items-center"></div>
                 </div>
             </div>
         </div>
