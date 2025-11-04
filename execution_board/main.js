@@ -140,9 +140,6 @@ class ExecutionBoard {
         // 拖拽事件（事件委托）
         this.elements.calendarGrid.addEventListener('dragstart', (e) => this.handleDragStart(e));
         this.elements.calendarGrid.addEventListener('dragend', (e) => this.handleDragEnd(e));
-        this.elements.calendarGrid.addEventListener('dragover', (e) => this.calendarView.handleDragOver(e));
-        this.elements.calendarGrid.addEventListener('dragenter', (e) => this.calendarView.handleDragEnter(e));
-        this.elements.calendarGrid.addEventListener('dragleave', (e) => this.calendarView.handleDragLeave(e));
         this.elements.calendarGrid.addEventListener('drop', (e) => this.handleDrop(e));
 
         // 全周期概览点击（事件委托）

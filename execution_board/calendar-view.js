@@ -269,6 +269,27 @@ export class CalendarView {
         }
 
         this.elements.calendarGrid.innerHTML = gridHtml;
+
+        // 为每个日历格子重新绑定拖放事件（必须在 innerHTML 之后）
+        const calendarDays = this.elements.calendarGrid.querySelectorAll('.calendar-day');
+        calendarDays.forEach(dayDiv => {
+            dayDiv.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.dataTransfer.dropEffect = 'move';
+            });
+
+            dayDiv.addEventListener('dragenter', (e) => {
+                e.preventDefault();
+                dayDiv.classList.add('bg-indigo-50');
+            });
+
+            dayDiv.addEventListener('dragleave', (e) => {
+                if (!dayDiv.contains(e.relatedTarget)) {
+                    dayDiv.classList.remove('bg-indigo-50');
+                }
+            });
+        });
     }
 
     /**
