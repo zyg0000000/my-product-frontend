@@ -177,13 +177,19 @@ my-product-frontend/
 ├── *.html                            # 各个页面的 HTML 文件
 ├── *.js                              # 页面脚本（部分已模块化，部分待升级）
 │
-├── doc/                              # 📁 项目文档
-│   ├── BACKEND_API_REQUIREMENTS.md          # 后端API改造需求文档
-│   ├── PR_INFO.md                           # PR提交记录
-│   ├── data-entry-optimization-plan.md      # 数据录入优化方案
-│   ├── mapping-templates-api-v4.0-CHANGELOG.md     # 云函数v4.0更新日志
-│   ├── mapping-templates-api-v4.0-DEPLOYMENT.md    # 云函数v4.0部署指南
-│   └── mapping-templates-api-v4.0-README.md        # 云函数v4.0快速参考
+├── docs/                             # 📁 项目文档
+│   ├── architecture/                         # 架构文档
+│   │   └── ARCHITECTURE_UPGRADE_GUIDE.md    # 架构升级指南
+│   ├── api/                                  # API文档
+│   │   ├── API_REFERENCE.md                 # 云函数API参考文档
+│   │   ├── backend-api-v4.0-README.md       # 后端API v4.0快速参考
+│   │   ├── backend-api-v4.0-DEPLOYMENT.md   # 后端API v4.0部署指南
+│   │   └── backend-api-v4.0-CHANGELOG.md    # 后端API v4.0更新日志
+│   ├── features/                             # 功能文档
+│   │   ├── data-entry-optimization-plan.md  # 数据录入优化方案
+│   │   └── BACKEND_API_REQUIREMENTS.md      # 后端API改造需求文档
+│   └── releases/                             # 发布文档
+│       └── PR_INFO.md                        # PR提交记录
 │
 └── assets/                           # 静态资源
     ├── images/
@@ -1089,7 +1095,7 @@ automation-workflows (工作流)
 ### 架构升级
 
 如需对现有页面进行模块化重构，请参考：
-- 📖 [架构升级指南](./docs/ARCHITECTURE_UPGRADE_GUIDE.md)
+- 📖 [架构升级指南](./docs/architecture/ARCHITECTURE_UPGRADE_GUIDE.md)
 
 该指南包含：
 - 完整的升级步骤
@@ -1169,15 +1175,21 @@ chore: 构建/工具链相关
 
 ## 📚 相关文档
 
-### 项目文档
-- [后端API改造需求](./doc/BACKEND_API_REQUIREMENTS.md) - 后端API升级需求文档
-- [数据录入优化方案](./doc/data-entry-optimization-plan.md) - 数据录入功能优化方案
-- [PR提交记录](./doc/PR_INFO.md) - Pull Request历史记录
+### 架构文档
+- [架构升级指南](./docs/architecture/ARCHITECTURE_UPGRADE_GUIDE.md) - 页面模块化重构指南
 
-### 云函数文档
-- [云函数v4.0快速参考](./doc/mapping-templates-api-v4.0-README.md) - 5分钟快速部署指南
-- [云函数v4.0更新日志](./doc/mapping-templates-api-v4.0-CHANGELOG.md) - 完整版本变更说明
-- [云函数v4.0部署指南](./doc/mapping-templates-api-v4.0-DEPLOYMENT.md) - 详细部署步骤
+### API文档
+- [云函数API参考](./docs/api/API_REFERENCE.md) - 完整的云函数接口文档
+- [后端API v4.0快速参考](./docs/api/backend-api-v4.0-README.md) - 5分钟快速部署指南
+- [后端API v4.0部署指南](./docs/api/backend-api-v4.0-DEPLOYMENT.md) - 详细部署步骤
+- [后端API v4.0更新日志](./docs/api/backend-api-v4.0-CHANGELOG.md) - 完整版本变更说明
+
+### 功能文档
+- [数据录入优化方案](./docs/features/data-entry-optimization-plan.md) - 数据录入功能优化方案
+- [后端API改造需求](./docs/features/BACKEND_API_REQUIREMENTS.md) - 后端API升级需求文档
+
+### 发布文档
+- [PR提交记录](./docs/releases/PR_INFO.md) - Pull Request历史记录
 
 ### 外部仓库
 - [云函数仓库](https://github.com/zyg0000000/my-cloud-functions) - 后端 API 实现
