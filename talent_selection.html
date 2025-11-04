@@ -17,12 +17,12 @@
         .table-row-selected { background-color: #eff6ff; }
         .pagination-btn { padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; background-color: white; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; }
         .pagination-btn:hover:not(:disabled) { background-color: #f3f4f6; }
-        .pagination-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
+        .pagination-btn.active { background-color: #4f46e5; color: white; border-color: #4f46e5; }
         .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .pagination-ellipsis { padding: 0.5rem 0.25rem; color: #6b7280; }
         .talent-type-tag { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; margin: 0.125rem; }
         .modal-tab-btn { padding: 0.5rem 1rem; border-bottom: 2px solid transparent; cursor: pointer; }
-        .modal-tab-btn.active { border-color: #2563eb; color: #2563eb; }
+        .modal-tab-btn.active { border-color: #4f46e5; color: #4f46e5; }
 
         .sidebar { transition: width 0.3s ease-in-out; }
         .main-content { transition: margin-left 0.3s ease-in-out; }
@@ -37,12 +37,36 @@
         .nav-toggle:hover { background-color: #f3f4f6; }
         .nav-link { display: flex; align-items: center; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 500; color: #4b5563; border-radius: 0.5rem; position: relative; }
         .nav-link:hover { background-color: #f3f4f6; }
-        .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; }
-        
-        .top-section { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 1.5rem; align-items: stretch; }
-        .selection-sidebar { flex-shrink: 0; }
-        .selection-list-container { max-height: 200px; overflow-y: auto; }
+        .nav-link.active { background-color: #4f46e5; color: white; font-weight: 600; }
+
+        .top-section { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: stretch; }
+        .selection-sidebar { position: sticky; top: 2rem; flex-shrink: 0; }
+        .selection-list-container {
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+            max-height: 420px; /* 约可显示5个达人（每个达人约80-85px）*/
+        }
+        /* 自定义滚动条 */
+        .selection-list-container::-webkit-scrollbar { width: 6px; }
+        .selection-list-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+        .selection-list-container::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+        .selection-list-container::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+        /* 高级筛选左右布局（桌面端多维度数据筛选更宽）*/
+        .advanced-filters-grid {
+            grid-template-columns: 1fr; /* 移动端单列 */
+        }
+        @media (min-width: 1024px) {
+            .advanced-filters-grid {
+                grid-template-columns: 5fr 3fr; /* 桌面端 5:3，左侧更宽 */
+            }
+        }
+
         #selection-list .selection-item:hover { background-color: #f9fafb; }
+        #selection-list .selection-group { margin-bottom: 0.5rem; }
+        #selection-list .talent-name { font-size: 0.875rem; font-weight: 600; }
+        #selection-list .collab-item { padding: 0.25rem 0; font-size: 0.813rem; }
         .sortable-header { @apply cursor-pointer hover:bg-gray-100; }
         .table-wrapper { max-height: 65vh; overflow-y: auto; }
         .table-wrapper thead th { position: sticky; top: 0; z-index: 10; background-color: #f9fafb; }
@@ -55,132 +79,222 @@
     
     <div id="sidebar-container"></div>
 
-    <!-- [核心修复] 使用响应式 padding 替换固定的 p-6，与 index.html 保持一致 -->
     <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 main-content" style="margin-left: 16rem;">
-        <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+        <!-- 页面头部 -->
+        <header class="bg-white p-6 rounded-xl shadow-sm mb-8 border border-gray-200">
+            <nav class="text-sm mb-4" aria-label="Breadcrumb">
+                <ol class="list-none p-0 inline-flex">
+                    <li class="flex items-center">
+                        <a href="index.html" class="text-gray-500 hover:text-indigo-600 transition-colors">项目中心</a>
+                        <svg class="fill-current w-3 h-3 mx-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                            <path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569 9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z"/>
+                        </svg>
+                    </li>
+                    <li class="flex items-center">
+                        <span class="font-semibold text-gray-700">达人挑选</span>
+                    </li>
+                </ol>
+            </nav>
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">达人挑选</h1>
-                <p class="text-sm text-gray-500 mt-1">根据多维度数据，为您的项目挑选最合适的达人。</p>
+                <h1 class="text-3xl font-bold text-gray-900">达人挑选</h1>
+                <p class="text-sm text-gray-500 mt-2">根据多维度数据，为您的项目挑选最合适的达人</p>
             </div>
-        </div>
+        </header>
 
+        <!-- 主内容区域 -->
         <div class="space-y-6">
             <div class="top-section">
-                <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
-                    <h2 class="text-lg font-semibold text-gray-800 mb-4">第一步：设定目标</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <label for="target-project" class="block text-sm font-medium text-gray-700">选择目标项目 <span class="text-red-500">*</span></label>
-                            <select id="target-project" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
-                        </div>
-                        <div>
-                            <label for="execution-month" class="block text-sm font-medium text-gray-700">项目预估执行月份 <span class="text-red-500">*</span></label>
-                            <input type="month" id="execution-month" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                        </div>
+                <!-- 左侧：设定目标 + 项目速览 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        <h2 class="text-xl font-bold text-gray-900">项目配置</h2>
                     </div>
-                </div>
-                <div class="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
-                    <h2 class="text-lg font-semibold text-gray-800 mb-4">项目速览</h2>
-                    <div class="space-y-3 text-sm">
-                        <div class="flex justify-between items-baseline">
-                            <span class="text-gray-500">项目总预算:</span>
-                            <span id="snapshot-total-budget" class="font-semibold text-gray-800 text-base">¥ 0</span>
-                        </div>
-                        <div class="flex justify-between items-baseline">
-                            <span class="text-gray-500">已用预算:</span>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- 设定目标 -->
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold mr-2">1</span>
+                                设定目标
+                            </h3>
                             <div>
-                                <span id="snapshot-used-budget" class="font-semibold text-blue-600 text-base">¥ 0</span>
-                                <span id="snapshot-budget-rate" class="text-xs text-gray-500 ml-1">(0.00%)</span>
+                                <label for="target-project" class="block text-sm font-medium text-gray-700 mb-1">选择目标项目 <span class="text-red-500">*</span></label>
+                                <select id="target-project" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></select>
+                            </div>
+                            <div>
+                                <label for="execution-month" class="block text-sm font-medium text-gray-700 mb-1">预估执行月份 <span class="text-red-500">*</span></label>
+                                <input type="month" id="execution-month" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                             </div>
                         </div>
-                        <div class="flex justify-between items-baseline">
-                            <span class="text-gray-500">合作达人数:</span>
-                            <span id="snapshot-talent-count" class="font-semibold text-gray-800 text-base">0 位</span>
+
+                        <!-- 项目速览 -->
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-semibold text-gray-700 mb-3">项目速览</h3>
+                            <div class="space-y-3 p-4 bg-gray-50 rounded-lg">
+                                <div class="flex justify-between items-baseline">
+                                    <span class="text-sm text-gray-600">项目总预算:</span>
+                                    <span id="snapshot-total-budget" class="font-semibold text-gray-900 text-base">¥ 0</span>
+                                </div>
+                                <div class="flex justify-between items-baseline">
+                                    <span class="text-sm text-gray-600">已用预算:</span>
+                                    <div>
+                                        <span id="snapshot-used-budget" class="font-semibold text-indigo-600 text-base">¥ 0</span>
+                                        <span id="snapshot-budget-rate" class="text-xs text-gray-500 ml-1">(0.00%)</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-baseline">
+                                    <span class="text-sm text-gray-600">合作达人数:</span>
+                                    <span id="snapshot-talent-count" class="font-semibold text-gray-900 text-base">0 位</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <aside class="selection-sidebar">
-                    <div class="bg-white rounded-lg shadow-md p-6 h-full flex flex-col">
-                        <h2 class="text-lg font-semibold text-gray-800 mb-4">待选清单</h2>
-                        <div id="selection-list" class="selection-list-container flex-grow">
-                            <p id="selection-placeholder" class="text-sm text-gray-500 text-center py-4">请从下方列表勾选达人</p>
+
+                <!-- 右侧：待选清单（固定侧边栏）-->
+                <aside class="selection-sidebar h-full">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col h-full">
+                        <div class="flex items-center gap-3 mb-4 flex-shrink-0">
+                            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                            </svg>
+                            <h2 class="text-lg font-bold text-gray-900">待选清单</h2>
                         </div>
-                        <div class="mt-4 text-center">
-                            <button id="add-to-project-btn" class="px-5 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
-                                添加 <span id="selection-count">0</span> 次合作至项目
-                            </button>
+                        <div id="selection-list" class="selection-list-container border rounded-lg p-3 bg-gray-50 mb-4">
+                            <p id="selection-placeholder" class="text-sm text-gray-500 text-center py-8">请从下方列表勾选达人</p>
                         </div>
+                        <button id="add-to-project-btn" class="w-full px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-sm flex-shrink-0" disabled>
+                            添加 <span id="selection-count">0</span> 次合作至项目
+                        </button>
                     </div>
                 </aside>
             </div>
 
-            <div class="bg-white rounded-lg shadow-md p-6 space-y-4"> 
-                <h2 class="text-lg font-semibold text-gray-800">第二步：筛选达人</h2>
-                <div>
-                    <div class="flex items-center mb-2">
-                        <input id="enable-schedule-filter" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        <label for="enable-schedule-filter" class="ml-2 block text-sm font-semibold text-gray-800">启用档期筛选</label>
-                    </div>
-                    <div id="schedule-filter-inputs" class="grid grid-cols-1 md:grid-cols-3 gap-4 opacity-50 transition-opacity">
-                        <input type="date" id="schedule-start-date" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" disabled>
-                        <input type="date" id="schedule-end-date" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" disabled>
-                        <select id="schedule-logic" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" disabled>
-                            <option value="ANY">满足任一档期</option>
-                            <option value="ALL">满足全部档期</option>
-                        </select>
-                    </div>
+            <!-- 筛选面板 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+                <div class="flex items-center gap-3 mb-2">
+                    <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                    </svg>
+                    <h2 class="text-xl font-bold text-gray-900">筛选达人</h2>
                 </div>
-                <hr>
+
                 <div class="flex flex-col lg:flex-row gap-6">
                     <div class="lg:w-2/3 space-y-4">
-                        <div>
-                            <h3 class="text-sm font-semibold text-gray-600 mb-2">定向搜索</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="direct-search-nickname" class="block text-xs font-medium text-gray-600 mb-1">达人昵称 (模糊)</label>
-                                    <input type="text" id="direct-search-nickname" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" placeholder="输入昵称关键字...">
+                        <!-- 基础筛选 (默认折叠) -->
+                        <div class="border border-gray-200 rounded-lg">
+                            <button type="button" id="toggle-basic-filters" class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                                    </svg>
+                                    <h3 class="text-base font-semibold text-gray-800">基础筛选</h3>
                                 </div>
+                                <svg id="basic-filters-arrow" class="w-5 h-5 text-gray-500 transform transition-transform -rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div id="basic-filters-content" class="hidden px-4 pb-4 space-y-4">
                                 <div>
-                                    <label for="direct-search-xingtu-id" class="block text-xs font-medium text-gray-600 mb-1">达人星图ID (精准)</label>
-                                    <input type="text" id="direct-search-xingtu-id" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" placeholder="输入完整星图ID...">
+                                    <h3 class="text-sm font-semibold text-gray-600 mb-2">定向搜索</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="direct-search-nickname" class="block text-xs font-medium text-gray-600 mb-1">达人昵称 (模糊)</label>
+                                            <input type="text" id="direct-search-nickname" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" placeholder="输入昵称关键字...">
+                                        </div>
+                                        <div>
+                                            <label for="direct-search-xingtu-id" class="block text-xs font-medium text-gray-600 mb-1">达人星图ID (精准)</label>
+                                            <input type="text" id="direct-search-xingtu-id" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" placeholder="输入完整星图ID...">
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-gray-600 mb-2">达人类型筛选</h3>
+                                        <div id="talent-type-filters-container" class="flex flex-wrap gap-x-6 gap-y-3"></div>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-gray-600 mb-2">达人层级筛选</h3>
+                                        <div id="talent-tier-filters-container" class="flex flex-wrap gap-x-6 gap-y-3"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <hr>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h3 class="text-sm font-semibold text-gray-600 mb-2">达人类型筛选</h3>
-                                <div id="talent-type-filters-container" class="flex flex-wrap gap-x-6 gap-y-3"></div>
-                            </div>
-                            <div>
-                                <h3 class="text-sm font-semibold text-gray-600 mb-2">达人层级筛选</h3>
-                                <div id="talent-tier-filters-container" class="flex flex-wrap gap-x-6 gap-y-3"></div>
-                            </div>
-                        </div>
-                        <hr>
-                         <div>
-                            <h3 class="text-sm font-semibold text-gray-600 mb-3">多维度数据筛选</h3>
-                            <div class="w-full p-4 bg-gray-50/70 rounded-lg border border-gray-200/80 space-y-3">
-                                <div id="data-filters-container" class="space-y-3"></div>
-                                <button id="add-filter-btn" class="w-full text-sm flex items-center justify-center gap-2 text-blue-600 hover:bg-blue-50 font-medium py-2 px-4 border-2 border-dashed border-gray-300 hover:border-blue-400 rounded-lg transition-colors">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                                    添加数据筛选条件
-                                </button>
+
+                        <!-- 高级筛选 (默认展开) -->
+                        <div class="border border-gray-200 rounded-lg">
+                            <button type="button" id="toggle-advanced-filters" class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                                    </svg>
+                                    <h3 class="text-base font-semibold text-gray-800">高级筛选</h3>
+                                </div>
+                                <svg id="advanced-filters-arrow" class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div id="advanced-filters-content" class="px-4 pb-4">
+                                <div class="grid gap-6 advanced-filters-grid">
+                                    <!-- 左侧：多维度数据筛选 -->
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-gray-600 mb-3">多维度数据筛选</h3>
+                                        <div class="p-4 bg-gray-50/70 rounded-lg border border-gray-200/80 space-y-3">
+                                            <div id="data-filters-container" class="space-y-3"></div>
+                                            <button id="add-filter-btn" class="w-full text-sm flex items-center justify-center gap-2 text-indigo-600 hover:bg-indigo-50 font-medium py-2 px-4 border-2 border-dashed border-gray-300 hover:border-indigo-400 rounded-lg transition-colors">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                                添加数据筛选条件
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- 右侧：档期筛选 -->
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-gray-600 mb-3">档期筛选</h3>
+                                        <div class="p-4 bg-gray-50/70 rounded-lg border border-gray-200/80 space-y-3">
+                                            <div class="flex items-center mb-3">
+                                                <input id="enable-schedule-filter" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                                <label for="enable-schedule-filter" class="ml-2 block text-sm font-medium text-gray-700">启用档期筛选</label>
+                                            </div>
+                                            <div id="schedule-filter-inputs" class="space-y-3 opacity-50 transition-opacity">
+                                                <div>
+                                                    <label for="schedule-start-date" class="block text-xs font-medium text-gray-600 mb-1">开始日期</label>
+                                                    <input type="date" id="schedule-start-date" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" disabled>
+                                                </div>
+                                                <div>
+                                                    <label for="schedule-end-date" class="block text-xs font-medium text-gray-600 mb-1">结束日期</label>
+                                                    <input type="date" id="schedule-end-date" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" disabled>
+                                                </div>
+                                                <div>
+                                                    <label for="schedule-logic" class="block text-xs font-medium text-gray-600 mb-1">匹配逻辑</label>
+                                                    <select id="schedule-logic" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" disabled>
+                                                        <option value="ANY">满足任一档期</option>
+                                                        <option value="ALL">满足全部档期</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="lg:w-1/3 flex flex-col">
                         <div class="flex-grow"></div>
-                        <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm space-y-4">
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-4">
                              <fieldset>
                                 <legend class="text-sm font-medium text-gray-800 mb-2">筛选逻辑</legend>
                                 <div class="space-y-2">
                                     <div class="flex items-center">
-                                        <input id="filter-logic-and" name="filter-logic" type="radio" value="AND" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500" checked>
+                                        <input id="filter-logic-and" name="filter-logic" type="radio" value="AND" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" checked>
                                         <label for="filter-logic-and" class="ml-2 block text-sm text-gray-700">满足所有 (AND)</label>
                                     </div>
                                     <div class="flex items-center">
-                                        <input id="filter-logic-or" name="filter-logic" type="radio" value="OR" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                        <input id="filter-logic-or" name="filter-logic" type="radio" value="OR" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
                                         <label for="filter-logic-or" class="ml-2 block text-sm text-gray-700">满足任一 (OR)</label>
                                     </div>
                                 </div>
@@ -189,27 +303,30 @@
                             <div>
                                 <legend class="text-sm font-medium text-gray-800 mb-2">操作</legend>
                                 <div class="flex flex-col gap-2">
-                                    <button id="apply-filters-btn" class="h-10 px-4 flex items-center justify-center bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 shadow-sm">筛选</button>
-                                    <button id="reset-filters-btn" class="h-10 px-4 flex items-center justify-center bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50">重置</button>
-                                    <button id="customize-cols-btn" class="h-10 px-4 flex items-center justify-center bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50">自定义显示列</button>
+                                    <button id="apply-filters-btn" class="h-10 px-4 flex items-center justify-center bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 shadow-sm transition-colors">筛选</button>
+                                    <button id="reset-filters-btn" class="h-10 px-4 flex items-center justify-center bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">重置</button>
+                                    <button id="customize-cols-btn" class="h-10 px-4 flex items-center justify-center bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">自定义显示列</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div id="results-container" class="mt-4">
+                <div id="results-container" class="mt-6">
                     <!-- Price Type Filter Bar -->
-                    <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
+                    <div class="mb-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg flex items-center gap-3">
+                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
                         <label for="table-price-type-filter" class="text-sm font-medium text-gray-700">表格一口价显示档位:</label>
-                        <select id="table-price-type-filter" class="text-sm rounded-md border-gray-300 shadow-sm">
+                        <select id="table-price-type-filter" class="text-sm rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
                             <option value="60s_plus">60s+视频</option>
                             <option value="20_to_60s">20-60s视频</option>
                             <option value="1_to_20s">1-20s视频</option>
                         </select>
                         <span class="text-xs text-gray-500">（仅显示所选档位价格，不会fallback到其他类型）</span>
                     </div>
-                    <div class="table-wrapper border rounded-lg">
+                    <div class="table-wrapper border rounded-xl shadow-sm">
                         <div id="performance-table-container"></div>
                     </div>
                     <div id="pagination-controls" class="pt-4 flex flex-col sm:flex-row justify-between items-center gap-4"></div>
@@ -220,21 +337,26 @@
 
     <!-- Modals -->
     <div id="batch-import-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50 p-4">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl flex flex-col" style="height: 80vh;">
-            <div class="p-4 border-b flex justify-between items-center">
-                <h2 class="text-xl font-bold text-gray-800">批量录入合作信息</h2>
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl flex flex-col" style="height: 80vh;">
+            <div class="p-5 border-b flex justify-between items-center bg-gradient-to-r from-indigo-50 to-white rounded-t-xl">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <h2 class="text-xl font-bold text-gray-900">批量录入合作信息</h2>
+                </div>
                 <button id="close-import-modal-btn" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
             </div>
             <div class="flex-grow overflow-y-auto p-6">
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">下单方式 <span class="text-red-500">*</span></label>
-                    <div class="mt-2 flex items-center space-x-6 p-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">下单方式 <span class="text-red-500">*</span></label>
+                    <div class="flex items-center space-x-6 p-3 bg-gray-50 rounded-lg">
                         <label class="flex items-center cursor-pointer">
-                            <input type="radio" name="batch-order-type" value="modified" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500" checked>
+                            <input type="radio" name="batch-order-type" value="modified" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" checked>
                             <span class="ml-2 text-sm text-gray-700">改价下单</span>
                         </label>
                         <label class="flex items-center cursor-pointer">
-                            <input type="radio" name="batch-order-type" value="original" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                            <input type="radio" name="batch-order-type" value="original" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
                             <span class="ml-2 text-sm text-gray-700">原价下单</span>
                         </label>
                     </div>
@@ -255,26 +377,26 @@
                     </table>
                 </div>
             </div>
-            <div class="bg-gray-50 px-6 py-3 text-right border-t border-gray-200">
-                <button id="confirm-import-btn" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">确认添加</button>
+            <div class="bg-gray-50 px-6 py-4 text-right border-t border-gray-200 rounded-b-xl">
+                <button id="confirm-import-btn" class="px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">确认添加</button>
             </div>
         </div>
     </div>
     <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-lg shadow-xl p-8 max-w-sm text-center">
+        <div class="bg-white rounded-xl shadow-xl p-8 max-w-sm text-center">
             <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
                 <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
             </div>
             <h3 id="success-modal-title" class="text-lg font-medium text-gray-900 mt-4">添加成功！</h3>
-            <p id="success-modal-message" class="text-sm text-gray-500 mt-2">已成功将合作添加至项目，状态为“待提报工作台”。</p>
+            <p id="success-modal-message" class="text-sm text-gray-500 mt-2">已成功将合作添加至项目，状态为"待提报工作台"。</p>
             <div class="mt-4 flex space-x-2">
-                <button id="close-success-modal-btn" class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">关闭</button>
-                <a id="go-to-project-btn" href="#" class="flex-1 px-4 py-2 bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 text-center">查看项目</a>
+                <button id="close-success-modal-btn" class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">关闭</button>
+                <a id="go-to-project-btn" href="#" class="flex-1 px-4 py-2 bg-indigo-100 text-indigo-800 rounded-lg hover:bg-indigo-200 text-center transition-colors">查看项目</a>
             </div>
         </div>
     </div>
     <div id="columns-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50 p-4">
-        <div class="relative mx-auto p-5 border w-full max-w-3xl shadow-lg rounded-md bg-white flex flex-col" style="height: 70vh;">
+        <div class="relative mx-auto p-5 border border-gray-200 w-full max-w-3xl shadow-lg rounded-xl bg-white flex flex-col" style="height: 70vh;">
             <div class="flex-shrink-0 flex justify-between items-center mb-4 pb-4 border-b">
                 <h3 class="text-lg font-bold text-gray-900">自定义显示列</h3>
                 <button id="close-columns-modal-btn" class="text-gray-400 hover:text-gray-600 p-2 text-2xl">&times;</button>
@@ -292,13 +414,24 @@
                 </div>
             </div>
             <div class="flex-shrink-0 mt-6 flex justify-end">
-                <button id="save-columns-btn" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">保存设置</button>
+                <button id="save-columns-btn" class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold transition-colors shadow-sm">保存设置</button>
             </div>
         </div>
     </div>
 
     <script src="sidebar.js" defer></script>
-    <script src="talent_selection.js" defer></script>
+
+    <!-- 新架构：模块化加载 -->
+    <script type="module">
+        import TalentSelectionApp from './talent_selection/main.js';
+        window.addEventListener('DOMContentLoaded', () => {
+            const app = new TalentSelectionApp();
+            app.init();
+        });
+    </script>
+
+    <!-- 备份：回退到旧版本时启用 -->
+    <!-- <script src="talent_selection.js" defer></script> -->
 </body>
 </html>
 
