@@ -53,10 +53,13 @@
         .selection-list-container::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
         .selection-list-container::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
 
-        /* 高级筛选 4:3 宽度比例（桌面端）*/
+        /* 高级筛选左右布局（桌面端多维度数据筛选更宽）*/
+        .advanced-filters-grid {
+            grid-template-columns: 1fr; /* 移动端单列 */
+        }
         @media (min-width: 1024px) {
             .advanced-filters-grid {
-                grid-template-columns: 4fr 3fr;
+                grid-template-columns: 5fr 3fr; /* 桌面端 5:3，左侧更宽 */
             }
         }
 
@@ -236,7 +239,7 @@
                                 </svg>
                             </button>
                             <div id="advanced-filters-content" class="px-4 pb-4">
-                                <div class="grid grid-cols-1 advanced-filters-grid gap-6">
+                                <div class="grid gap-6 advanced-filters-grid">
                                     <!-- 左侧：多维度数据筛选 -->
                                     <div>
                                         <h3 class="text-sm font-semibold text-gray-600 mb-3">多维度数据筛选</h3>
