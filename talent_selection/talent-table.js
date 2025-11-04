@@ -161,7 +161,7 @@ export default class TalentTable {
         // Render body
         const tbody = document.createElement('tbody');
         paginatedTalents.forEach(talent => {
-            const isSelected = this.selectedTalentIds.has(talent.talentId);
+            const isSelected = this.selectedTalentIds.has(talent.id);
             let row = document.createElement('tr');
             row.className = `bg-white border-b ${isSelected ? 'bg-blue-50' : ''}`;
 
@@ -173,7 +173,7 @@ export default class TalentTable {
 
                 switch (col.id) {
                     case 'checkbox':
-                        cell.innerHTML = `<input type="checkbox" class="talent-checkbox rounded" data-talent-id="${talent.talentId}" ${isSelected ? 'checked' : ''}>`;
+                        cell.innerHTML = `<input type="checkbox" class="talent-checkbox rounded" data-talent-id="${talent.id}" ${isSelected ? 'checked' : ''}>`;
                         break;
                     case 'price':
                         const priceInfo = getBestPrice(talent, this.selectedPriceType, this.executionMonthInput.value);
@@ -332,7 +332,7 @@ export default class TalentTable {
         if (!e.target.classList.contains('talent-checkbox')) return;
 
         const talentId = e.target.dataset.talentId;
-        const talent = this.displayedTalents.find(t => t.talentId === talentId);
+        const talent = this.displayedTalents.find(t => t.id === talentId);
         if (!talent) return;
 
         if (e.target.checked) {

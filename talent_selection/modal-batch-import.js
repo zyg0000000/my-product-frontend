@@ -67,7 +67,7 @@ export default class BatchImportModal {
         this.selectedCollaborations.forEach((collab, index) => {
             const row = document.createElement('tr');
             row.dataset.tempId = collab._tempId;
-            row.dataset.talentId = collab.talentId || collab.talent?.id;
+            row.dataset.talentId = collab.talent?.id || collab.id;
 
             const talent = collab.talent || collab;
             const rebateOptions = generateRebateOptions(talent);
@@ -152,7 +152,7 @@ export default class BatchImportModal {
      */
     updatePriceDisplay(row) {
         const talentId = row.dataset.talentId;
-        const talent = this.richTalentData.find(t => t.talentId === talentId || t.id === talentId);
+        const talent = this.richTalentData.find(t => t.id === talentId);
 
         if (!talent) return;
 
@@ -236,7 +236,7 @@ export default class BatchImportModal {
             const talent = collab.talent || collab;
             payloads.push({
                 projectId,
-                talentId: talent.talentId || talent.id,
+                talentId: talent.id,
                 amount: priceObj.price,
                 priceInfo: `${priceObj.year}年${priceObj.month}月 - ${typeLabel}`,
                 rebate: rebateSelect.value,

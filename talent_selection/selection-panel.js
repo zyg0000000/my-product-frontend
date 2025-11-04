@@ -58,7 +58,7 @@ export default class SelectionPanel {
 
         // Group collaborations by talent
         const groupedByTalent = this.selectedCollaborations.reduce((acc, collab) => {
-            const talentId = collab.talentId || collab.talent?.id;
+            const talentId = collab.talent?.id || collab.id;
             if (!acc[talentId]) {
                 acc[talentId] = [];
             }
@@ -75,7 +75,7 @@ export default class SelectionPanel {
             talentGroupEl.innerHTML = `
                 <div class="flex justify-between items-center mb-2">
                     <a href="https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/${talent.xingtuId}" target="_blank" class="text-sm font-bold text-blue-600 hover:underline">${talent.nickname}</a>
-                    <button class="add-another-collab-btn text-xs bg-green-100 text-green-700 hover:bg-green-200 px-2 py-1 rounded-md" data-talent-id="${talent.talentId || talent.id}">+ 添加合作</button>
+                    <button class="add-another-collab-btn text-xs bg-green-100 text-green-700 hover:bg-green-200 px-2 py-1 rounded-md" data-talent-id="${talent.id}">+ 添加合作</button>
                 </div>
             `;
 

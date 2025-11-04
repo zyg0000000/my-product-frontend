@@ -171,7 +171,7 @@ export default class TalentSelectionApp {
         // 监听添加多次合作事件
         document.addEventListener('addAnotherCollaboration', (e) => {
             const talentId = e.detail.talentId;
-            const talent = this.richTalentData.find(t => t.talentId === talentId || t.id === talentId);
+            const talent = this.richTalentData.find(t => t.id === talentId);
             if (talent) {
                 this.addCollaborationToList(talent);
                 this.modules.selectionPanel.updateCollaborations(this.selectedCollaborations);
@@ -226,8 +226,8 @@ export default class TalentSelectionApp {
     handleTalentSelected(e) {
         const talent = e.detail.talent;
         const exists = this.selectedCollaborations.find(c => {
-            const cTalentId = c.talentId || c.talent?.id;
-            return cTalentId === talent.talentId;
+            const cTalentId = c.talent?.id;
+            return cTalentId === talent.id;
         });
         if (!exists) {
             this.addCollaborationToList(talent);
@@ -245,7 +245,7 @@ export default class TalentSelectionApp {
         } else {
             // Remove all collaborations for this talent
             this.selectedCollaborations = this.selectedCollaborations.filter(c => {
-                const cTalentId = c.talentId || c.talent?.id;
+                const cTalentId = c.talent?.id;
                 return cTalentId !== talentId;
             });
         }
@@ -257,8 +257,7 @@ export default class TalentSelectionApp {
     addCollaborationToList(talent) {
         const newCollab = {
             _tempId: `temp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-            talent: talent,
-            talentId: talent.talentId
+            talent: talent
         };
         this.selectedCollaborations.push(newCollab);
     }
