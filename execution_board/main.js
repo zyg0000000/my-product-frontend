@@ -47,8 +47,8 @@ class ExecutionBoard {
             // 筛选器
             yearSelector: document.getElementById('year-selector'),
             monthSelector: document.getElementById('month-selector'),
-            btnWeekMode: document.getElementById('btn-week-mode'),
-            btnBiweekMode: document.getElementById('btn-biweek-mode'),
+            projectFilter: document.getElementById('project-filter'),
+            statusFilter: document.getElementById('status-filter'),
             refreshBtn: document.getElementById('refresh-btn'),
 
             // KPI - 全周期统计
@@ -122,6 +122,10 @@ class ExecutionBoard {
         this.elements.yearSelector.addEventListener('change', () => this.handleMonthChange());
         this.elements.monthSelector.addEventListener('change', () => this.handleMonthChange());
 
+        // 项目和状态筛选
+        this.elements.projectFilter.addEventListener('change', () => this.handleFilterChange());
+        this.elements.statusFilter.addEventListener('change', () => this.handleFilterChange());
+
         // 刷新按钮
         this.elements.refreshBtn.addEventListener('click', () => this.refresh());
 
@@ -132,6 +136,14 @@ class ExecutionBoard {
 
         // 日历格子点击（事件委托）
         this.elements.calendarGrid.addEventListener('click', (e) => this.handleCalendarClick(e));
+
+        // 拖拽事件（事件委托）
+        this.elements.calendarGrid.addEventListener('dragstart', (e) => this.handleDragStart(e));
+        this.elements.calendarGrid.addEventListener('dragend', (e) => this.handleDragEnd(e));
+        this.elements.calendarGrid.addEventListener('dragover', (e) => this.calendarView.handleDragOver(e));
+        this.elements.calendarGrid.addEventListener('dragenter', (e) => this.calendarView.handleDragEnter(e));
+        this.elements.calendarGrid.addEventListener('dragleave', (e) => this.calendarView.handleDragLeave(e));
+        this.elements.calendarGrid.addEventListener('drop', (e) => this.handleDrop(e));
 
         // 全周期概览点击（事件委托）
         this.elements.overviewContainer.addEventListener('click', (e) => this.handleOverviewClick(e));
@@ -187,8 +199,30 @@ class ExecutionBoard {
             return;
         }
 
+        // 更新项目筛选器选项
+        this.filterPanel.updateProjectFilter(this.dataManager.selectedProjects);
+
+        // 重置筛选器
+        this.filterPanel.resetProjectFilter();
+        this.filterPanel.resetStatusFilter();
+
         // 渲染视图
         this.render();
+    }
+
+    /**
+     * 处理筛选条件变更
+     */
+    handleFilterChange() {
+        // 获取当前筛选条件
+        const projectId = this.filterPanel.getSelectedProject();
+        const status = this.filterPanel.getSelectedStatus();
+
+        // 应用筛选条件
+        this.calendarView.setFilters({ projectId, status });
+
+        // 重新渲染日历
+        this.calendarView.renderCalendar();
     }
 
     /**
@@ -308,6 +342,65 @@ class ExecutionBoard {
             // 重新加载数据
             await this.loadSelectedMonthProjects();
         });
+    }
+
+    /**
+     * 处理拖拽开始
+     */
+    handleDragStart(e) {
+        const card = e.target.closest('.talent-card');
+        if (!card || card.dataset.editable !== 'true') {
+            e.preventDefault();
+            return;
+        }
+
+        const collabId = card.dataset.collabId;
+        this.calendarView.handleDragStart(e, collabId);
+    }
+
+    /**
+     * 处理拖拽结束
+     */
+    handleDragEnd(e) {
+        const card = e.target.closest('.talent-card');
+        if (!card) return;
+
+        this.calendarView.handleDragEnd(e);
+    }
+
+    /**
+     * 处理放置
+     */
+    async handleDrop(e) {
+        await this.calendarView.handleDrop(e, async (collabId, targetDate) => {
+            await this.handleCollabDateChange(collabId, targetDate);
+        });
+    }
+
+    /**
+     * 处理合作日期变更
+     * @param {string} collabId - 合作ID
+     * @param {string} targetDate - 目标日期
+     */
+    async handleCollabDateChange(collabId, targetDate) {
+        const collab = this.dataManager.allCollaborations.find(c => c.id === collabId);
+        if (!collab) return;
+
+        const payload = {
+            plannedReleaseDate: targetDate
+        };
+
+        // 如果已发布，也更新发布日期
+        if (collab.status === '视频已发布') {
+            payload.publishDate = targetDate;
+        }
+
+        const result = await this.dataManager.updateCollaboration(collabId, payload);
+
+        if (result.success) {
+            // 重新加载数据并渲染
+            await this.loadSelectedMonthProjects();
+        }
     }
 }
 

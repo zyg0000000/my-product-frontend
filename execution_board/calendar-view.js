@@ -21,6 +21,133 @@ export class CalendarView {
 
         // 视图状态
         this.currentWeekStart = getMonday(new Date()); // 当前周的周一
+
+        // 筛选条件
+        this.filters = {
+            projectId: 'all',
+            status: 'all'
+        };
+
+        // 拖拽状态
+        this.draggedCollabId = null;
+    }
+
+    /**
+     * 开始拖拽
+     * @param {Event} e - 拖拽事件
+     * @param {string} collabId - 合作ID
+     */
+    handleDragStart(e, collabId) {
+        this.draggedCollabId = collabId;
+        e.dataTransfer.effectAllowed = 'move';
+        e.target.style.opacity = '0.5';
+    }
+
+    /**
+     * 拖拽结束
+     * @param {Event} e - 拖拽事件
+     */
+    handleDragEnd(e) {
+        e.target.style.opacity = '1';
+        this.draggedCollabId = null;
+    }
+
+    /**
+     * 拖拽悬停
+     * @param {Event} e - 拖拽事件
+     */
+    handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        return false;
+    }
+
+    /**
+     * 拖拽进入
+     * @param {Event} e - 拖拽事件
+     */
+    handleDragEnter(e) {
+        const dayDiv = e.target.closest('.calendar-day');
+        if (dayDiv) {
+            dayDiv.classList.add('bg-indigo-50');
+        }
+    }
+
+    /**
+     * 拖拽离开
+     * @param {Event} e - 拖拽事件
+     */
+    handleDragLeave(e) {
+        const dayDiv = e.target.closest('.calendar-day');
+        if (dayDiv && !dayDiv.contains(e.relatedTarget)) {
+            dayDiv.classList.remove('bg-indigo-50');
+        }
+    }
+
+    /**
+     * 放置
+     * @param {Event} e - 拖拽事件
+     * @param {Function} onDrop - 放置回调函数
+     */
+    async handleDrop(e, onDrop) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const dayDiv = e.target.closest('.calendar-day');
+        if (!dayDiv) return;
+
+        dayDiv.classList.remove('bg-indigo-50');
+
+        const targetDate = dayDiv.dataset.date;
+        if (!this.draggedCollabId || !targetDate) return;
+
+        // 调用回调函数处理放置
+        if (onDrop) {
+            await onDrop(this.draggedCollabId, targetDate);
+        }
+
+        return false;
+    }
+
+    /**
+     * 设置筛选条件
+     * @param {Object} filters - 筛选条件 { projectId, status }
+     */
+    setFilters(filters) {
+        this.filters = { ...this.filters, ...filters };
+    }
+
+    /**
+     * 应用筛选条件到合作列表
+     * @param {Array} collabs - 合作列表
+     * @returns {Array} 筛选后的合作列表
+     */
+    applyFilters(collabs) {
+        let filtered = collabs;
+
+        // 项目筛选
+        if (this.filters.projectId !== 'all') {
+            filtered = filtered.filter(c => c.projectId === this.filters.projectId);
+        }
+
+        // 状态筛选
+        if (this.filters.status !== 'all') {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (this.filters.status === 'delayed') {
+                // 延期：计划发布日期 < 今天且未发布
+                filtered = filtered.filter(c => {
+                    if (!c.plannedReleaseDate || c.status === '视频已发布') return false;
+                    const plannedDate = new Date(c.plannedReleaseDate);
+                    return plannedDate < today;
+                });
+            } else {
+                filtered = filtered.filter(c => c.status === this.filters.status);
+            }
+        }
+
+        return filtered;
     }
 
     /**
@@ -115,10 +242,13 @@ export class CalendarView {
             const isToday = dateStr === todayStr;
 
             // 获取该日期的合作（使用实际显示日期）
-            const dayCollabs = this.dataManager.allCollaborations.filter(c => {
+            let dayCollabs = this.dataManager.allCollaborations.filter(c => {
                 const displayDate = getCollabDisplayDate(c);
                 return displayDate && Format.date(new Date(displayDate)) === dateStr;
             });
+
+            // 应用筛选条件
+            dayCollabs = this.applyFilters(dayCollabs);
 
             gridHtml += `
                 <div class="calendar-day border rounded-lg ${isWeekend ? 'weekend-day' : ''} ${isToday ? 'today-indicator' : ''}"
@@ -176,9 +306,12 @@ export class CalendarView {
             const isEditable = project && project.status === '执行中';
             const disabledClass = isEditable ? '' : 'disabled';
             const colorClass = projectColor ? `project-color-${projectColor.index}` : '';
+            const draggableAttr = isEditable ? 'draggable="true"' : '';
+            const cursorClass = isEditable ? 'cursor-move' : '';
 
             return `
-                <div class="talent-card ${statusClass} ${colorClass} ${disabledClass}"
+                <div class="talent-card ${statusClass} ${colorClass} ${disabledClass} ${cursorClass}"
+                     ${draggableAttr}
                      data-collab-id="${collab.id}"
                      data-project-id="${collab.projectId}"
                      data-editable="${isEditable}">

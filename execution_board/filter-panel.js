@@ -1,6 +1,6 @@
 /**
  * @file filter-panel.js
- * @description 筛选控制模块 - 负责年份/月份选择器和刷新功能
+ * @description 筛选控制模块 - 负责年份/月份/项目/状态选择器和刷新功能
  */
 
 export class FilterPanel {
@@ -30,6 +30,18 @@ export class FilterPanel {
     }
 
     /**
+     * 更新项目筛选器选项
+     * @param {Array} projects - 项目列表
+     */
+    updateProjectFilter(projects) {
+        const options = ['<option value="all">全部项目</option>'];
+        projects.forEach(project => {
+            options.push(`<option value="${project.id}">${project.name}</option>`);
+        });
+        this.elements.projectFilter.innerHTML = options.join('');
+    }
+
+    /**
      * 获取当前选中的年份
      */
     getSelectedYear() {
@@ -41,5 +53,33 @@ export class FilterPanel {
      */
     getSelectedMonth() {
         return this.elements.monthSelector.value;
+    }
+
+    /**
+     * 获取当前选中的项目ID
+     */
+    getSelectedProject() {
+        return this.elements.projectFilter.value;
+    }
+
+    /**
+     * 获取当前选中的状态
+     */
+    getSelectedStatus() {
+        return this.elements.statusFilter.value;
+    }
+
+    /**
+     * 重置项目筛选
+     */
+    resetProjectFilter() {
+        this.elements.projectFilter.value = 'all';
+    }
+
+    /**
+     * 重置状态筛选
+     */
+    resetStatusFilter() {
+        this.elements.statusFilter.value = 'all';
     }
 }

@@ -184,13 +184,24 @@
                         </select>
                     </div>
 
-                    <!-- 周/双周切换 (已简化为仅周模式，隐藏切换按钮) -->
-                    <div class="flex items-center gap-2 ml-4 hidden">
-                        <label class="text-sm font-medium text-gray-700">视图：</label>
-                        <div class="inline-flex rounded-lg border border-gray-300 overflow-hidden">
-                            <button id="btn-week-mode" class="view-mode-btn active rounded-l-lg">周模式</button>
-                            <button id="btn-biweek-mode" class="view-mode-btn rounded-r-lg">双周模式</button>
-                        </div>
+                    <!-- 项目筛选 -->
+                    <div class="flex items-center gap-2 ml-4">
+                        <label class="text-sm font-medium text-gray-700">项目：</label>
+                        <select id="project-filter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[150px]">
+                            <option value="all">全部项目</option>
+                            <!-- 动态填充 -->
+                        </select>
+                    </div>
+
+                    <!-- 状态筛选 -->
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-medium text-gray-700">状态：</label>
+                        <select id="status-filter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="all">全部状态</option>
+                            <option value="视频已发布">已发布</option>
+                            <option value="客户已定档">待发布</option>
+                            <option value="delayed">延期</option>
+                        </select>
                     </div>
                 </div>
 
