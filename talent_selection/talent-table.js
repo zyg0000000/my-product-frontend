@@ -72,6 +72,9 @@ export default class TalentTable {
     renderTable() {
         if (!this.tableContainer) return;
 
+        console.log('[TalentTable] renderTable called, displayedTalents:', this.displayedTalents.length);
+        console.log('[TalentTable] visibleColumns:', this.visibleColumns.length);
+
         this.tableContainer.innerHTML = '';
 
         // Apply sorting
@@ -129,6 +132,9 @@ export default class TalentTable {
         table.className = 'w-full text-sm text-gray-500 whitespace-nowrap';
 
         const visibleCols = this.visibleColumns.filter(d => d.visible);
+        console.log('[TalentTable] visibleCols after filter:', visibleCols.length);
+        console.log('[TalentTable] visibleCols:', visibleCols);
+
         const columns = [
             { id: 'checkbox', name: '', sortable: false },
             ...visibleCols,
