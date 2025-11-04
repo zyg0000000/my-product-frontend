@@ -395,8 +395,19 @@ class ExecutionBoard {
         const result = await this.dataManager.updateCollaboration(collabId, payload);
 
         if (result.success) {
-            // 重新加载数据并渲染
-            await this.loadSelectedMonthProjects();
+            // 更新本地数据
+            if (collab.status === '视频已发布') {
+                collab.publishDate = targetDate;
+            }
+            collab.plannedReleaseDate = targetDate;
+
+            // 重新计算项目周期（因为日期可能超出原周期范围）
+            this.calendarView.calculateProjectCycle();
+
+            // 重新渲染所有视图
+            this.overviewPanel.renderOverview();
+            this.calendarView.renderCalendar();
+            this.kpiPanel.renderKPIs();
         }
     }
 }
