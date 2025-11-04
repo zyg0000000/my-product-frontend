@@ -89,8 +89,6 @@ export default class TalentSelectionApp {
 
         // 初始化可见列
         this.visibleColumns = initializeVisibleColumns(this.VISIBLE_COLUMNS_KEY, this.allConfigurations);
-        console.log('[TalentSelectionApp] visibleColumns initialized:', this.visibleColumns.length);
-        console.log('[TalentSelectionApp] visibleColumns sample:', this.visibleColumns.slice(0, 3));
 
         // 增强达人数据
         this.richTalentData = this.allTalents.map(talent => {

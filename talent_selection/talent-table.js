@@ -15,7 +15,7 @@ export default class TalentTable {
         this.showAlert = options.showAlert;
 
         // DOM Elements
-        this.tableContainer = document.getElementById('table-container');
+        this.tableContainer = document.getElementById('performance-table-container');
         this.paginationControls = document.getElementById('pagination-controls');
         this.tablePriceTypeFilter = document.getElementById('table-price-type-filter');
         this.customizeColsBtn = document.getElementById('customize-cols-btn');
@@ -71,9 +71,6 @@ export default class TalentTable {
 
     renderTable() {
         if (!this.tableContainer) return;
-
-        console.log('[TalentTable] renderTable called, displayedTalents:', this.displayedTalents.length);
-        console.log('[TalentTable] visibleColumns:', this.visibleColumns.length);
 
         this.tableContainer.innerHTML = '';
 
@@ -132,9 +129,6 @@ export default class TalentTable {
         table.className = 'w-full text-sm text-gray-500 whitespace-nowrap';
 
         const visibleCols = this.visibleColumns.filter(d => d.visible);
-        console.log('[TalentTable] visibleCols after filter:', visibleCols.length);
-        console.log('[TalentTable] visibleCols:', visibleCols);
-
         const columns = [
             { id: 'checkbox', name: '', sortable: false },
             ...visibleCols,
