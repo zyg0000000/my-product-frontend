@@ -171,56 +171,88 @@
                     <h2 class="text-xl font-bold text-gray-900">筛选达人</h2>
                 </div>
 
-                <div>
-                    <div class="flex items-center mb-2">
-                        <input id="enable-schedule-filter" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                        <label for="enable-schedule-filter" class="ml-2 block text-sm font-semibold text-gray-800">启用档期筛选</label>
-                    </div>
-                    <div id="schedule-filter-inputs" class="grid grid-cols-1 md:grid-cols-3 gap-4 opacity-50 transition-opacity">
-                        <input type="date" id="schedule-start-date" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" disabled>
-                        <input type="date" id="schedule-end-date" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" disabled>
-                        <select id="schedule-logic" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" disabled>
-                            <option value="ANY">满足任一档期</option>
-                            <option value="ALL">满足全部档期</option>
-                        </select>
-                    </div>
-                </div>
-                <hr>
                 <div class="flex flex-col lg:flex-row gap-6">
                     <div class="lg:w-2/3 space-y-4">
-                        <div>
-                            <h3 class="text-sm font-semibold text-gray-600 mb-2">定向搜索</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="direct-search-nickname" class="block text-xs font-medium text-gray-600 mb-1">达人昵称 (模糊)</label>
-                                    <input type="text" id="direct-search-nickname" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" placeholder="输入昵称关键字...">
+                        <!-- 基础筛选 (默认展开) -->
+                        <div class="border border-gray-200 rounded-lg">
+                            <button type="button" id="toggle-basic-filters" class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                                    </svg>
+                                    <h3 class="text-base font-semibold text-gray-800">基础筛选</h3>
                                 </div>
+                                <svg id="basic-filters-arrow" class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div id="basic-filters-content" class="px-4 pb-4 space-y-4">
                                 <div>
-                                    <label for="direct-search-xingtu-id" class="block text-xs font-medium text-gray-600 mb-1">达人星图ID (精准)</label>
-                                    <input type="text" id="direct-search-xingtu-id" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" placeholder="输入完整星图ID...">
+                                    <div class="flex items-center mb-2">
+                                        <input id="enable-schedule-filter" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                        <label for="enable-schedule-filter" class="ml-2 block text-sm font-semibold text-gray-800">启用档期筛选</label>
+                                    </div>
+                                    <div id="schedule-filter-inputs" class="grid grid-cols-1 md:grid-cols-3 gap-4 opacity-50 transition-opacity">
+                                        <input type="date" id="schedule-start-date" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" disabled>
+                                        <input type="date" id="schedule-end-date" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" disabled>
+                                        <select id="schedule-logic" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" disabled>
+                                            <option value="ANY">满足任一档期</option>
+                                            <option value="ALL">满足全部档期</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div>
+                                    <h3 class="text-sm font-semibold text-gray-600 mb-2">定向搜索</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="direct-search-nickname" class="block text-xs font-medium text-gray-600 mb-1">达人昵称 (模糊)</label>
+                                            <input type="text" id="direct-search-nickname" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" placeholder="输入昵称关键字...">
+                                        </div>
+                                        <div>
+                                            <label for="direct-search-xingtu-id" class="block text-xs font-medium text-gray-600 mb-1">达人星图ID (精准)</label>
+                                            <input type="text" id="direct-search-xingtu-id" class="block w-full text-sm rounded-md border-gray-300 shadow-sm" placeholder="输入完整星图ID...">
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-gray-600 mb-2">达人类型筛选</h3>
+                                        <div id="talent-type-filters-container" class="flex flex-wrap gap-x-6 gap-y-3"></div>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-gray-600 mb-2">达人层级筛选</h3>
+                                        <div id="talent-tier-filters-container" class="flex flex-wrap gap-x-6 gap-y-3"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <hr>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h3 class="text-sm font-semibold text-gray-600 mb-2">达人类型筛选</h3>
-                                <div id="talent-type-filters-container" class="flex flex-wrap gap-x-6 gap-y-3"></div>
-                            </div>
-                            <div>
-                                <h3 class="text-sm font-semibold text-gray-600 mb-2">达人层级筛选</h3>
-                                <div id="talent-tier-filters-container" class="flex flex-wrap gap-x-6 gap-y-3"></div>
-                            </div>
-                        </div>
-                        <hr>
-                         <div>
-                            <h3 class="text-sm font-semibold text-gray-600 mb-3">多维度数据筛选</h3>
-                            <div class="w-full p-4 bg-gray-50/70 rounded-lg border border-gray-200/80 space-y-3">
-                                <div id="data-filters-container" class="space-y-3"></div>
-                                <button id="add-filter-btn" class="w-full text-sm flex items-center justify-center gap-2 text-indigo-600 hover:bg-indigo-50 font-medium py-2 px-4 border-2 border-dashed border-gray-300 hover:border-indigo-400 rounded-lg transition-colors">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                                    添加数据筛选条件
-                                </button>
+
+                        <!-- 高级筛选 (默认折叠) -->
+                        <div class="border border-gray-200 rounded-lg">
+                            <button type="button" id="toggle-advanced-filters" class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                                    </svg>
+                                    <h3 class="text-base font-semibold text-gray-800">高级筛选</h3>
+                                </div>
+                                <svg id="advanced-filters-arrow" class="w-5 h-5 text-gray-500 transform transition-transform -rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div id="advanced-filters-content" class="hidden px-4 pb-4 space-y-4">
+                                <div>
+                                    <h3 class="text-sm font-semibold text-gray-600 mb-3">多维度数据筛选</h3>
+                                    <div class="w-full p-4 bg-gray-50/70 rounded-lg border border-gray-200/80 space-y-3">
+                                        <div id="data-filters-container" class="space-y-3"></div>
+                                        <button id="add-filter-btn" class="w-full text-sm flex items-center justify-center gap-2 text-indigo-600 hover:bg-indigo-50 font-medium py-2 px-4 border-2 border-dashed border-gray-300 hover:border-indigo-400 rounded-lg transition-colors">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                            添加数据筛选条件
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

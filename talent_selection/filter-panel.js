@@ -28,6 +28,14 @@ export default class FilterPanel {
         this.resetFiltersBtn = document.getElementById('reset-filters-btn');
         this.applyFiltersBtn = document.getElementById('apply-filters-btn');
 
+        // Collapsible section elements
+        this.toggleBasicFiltersBtn = document.getElementById('toggle-basic-filters');
+        this.basicFiltersContent = document.getElementById('basic-filters-content');
+        this.basicFiltersArrow = document.getElementById('basic-filters-arrow');
+        this.toggleAdvancedFiltersBtn = document.getElementById('toggle-advanced-filters');
+        this.advancedFiltersContent = document.getElementById('advanced-filters-content');
+        this.advancedFiltersArrow = document.getElementById('advanced-filters-arrow');
+
         // State
         this.dataFilters = [];
 
@@ -44,6 +52,20 @@ export default class FilterPanel {
     }
 
     setupEventListeners() {
+        // 折叠/展开基础筛选
+        if (this.toggleBasicFiltersBtn) {
+            this.toggleBasicFiltersBtn.addEventListener('click', () => {
+                this.toggleSection(this.basicFiltersContent, this.basicFiltersArrow);
+            });
+        }
+
+        // 折叠/展开高级筛选
+        if (this.toggleAdvancedFiltersBtn) {
+            this.toggleAdvancedFiltersBtn.addEventListener('click', () => {
+                this.toggleSection(this.advancedFiltersContent, this.advancedFiltersArrow);
+            });
+        }
+
         // 档期筛选开关
         if (this.enableScheduleFilter) {
             this.enableScheduleFilter.addEventListener('change', (e) => {
@@ -283,5 +305,21 @@ export default class FilterPanel {
 
     updateData(richTalentData) {
         this.richTalentData = richTalentData;
+    }
+
+    toggleSection(contentElement, arrowElement) {
+        if (!contentElement || !arrowElement) return;
+
+        const isHidden = contentElement.classList.contains('hidden');
+
+        if (isHidden) {
+            // 展开
+            contentElement.classList.remove('hidden');
+            arrowElement.classList.remove('-rotate-90');
+        } else {
+            // 折叠
+            contentElement.classList.add('hidden');
+            arrowElement.classList.add('-rotate-90');
+        }
     }
 }
