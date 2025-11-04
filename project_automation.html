@@ -261,8 +261,19 @@
     
     <!-- 脚本 -->
     <script src="sidebar.js"></script>
-    <script src="project_automation.js"></script>
-    
+
+    <!-- 新架构：模块化加载 -->
+    <script type="module">
+        import { ProjectAutomationApp } from './project_automation/main.js';
+        window.addEventListener('DOMContentLoaded', () => {
+            const app = new ProjectAutomationApp();
+            app.init();
+        });
+    </script>
+
+    <!-- 备份：回退到旧版本时启用 -->
+    <!-- <script src="project_automation.js"></script> -->
+
 </body>
 </html>
 
