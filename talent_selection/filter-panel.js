@@ -117,17 +117,17 @@ export default class FilterPanel {
 
             const operatorOptions = [
                 '<option value="">--</option>',
-                '<option value=">" ${filter.operator === ">" ? "selected" : ""}>大于</option>',
-                '<option value=">=" ${filter.operator === ">=" ? "selected" : ""}>大于等于</option>',
-                '<option value="<" ${filter.operator === "<" ? "selected" : ""}>小于</option>',
-                '<option value="<=" ${filter.operator === "<=" ? "selected" : ""}>小于等于</option>',
-                '<option value="=" ${filter.operator === "=" ? "selected" : ""}>等于</option>',
-                '<option value="!=" ${filter.operator === "!=" ? "selected" : ""}>不等于</option>',
-                '<option value="contains" ${filter.operator === "contains" ? "selected" : ""}>包含</option>',
-                '<option value="notContains" ${filter.operator === "notContains" ? "selected" : ""}>不包含</option>',
-                '<option value="isEmpty" ${filter.operator === "isEmpty" ? "selected" : ""}>为空</option>',
-                '<option value="isNotEmpty" ${filter.operator === "isNotEmpty" ? "selected" : ""}>不为空</option>',
-                '<option value="between" ${filter.operator === "between" ? "selected" : ""}>介于</option>'
+                `<option value=">" ${filter.operator === ">" ? "selected" : ""}>&gt; 大于</option>`,
+                `<option value=">=" ${filter.operator === ">=" ? "selected" : ""}>&gt;= 大于等于</option>`,
+                `<option value="<" ${filter.operator === "<" ? "selected" : ""}>&lt; 小于</option>`,
+                `<option value="<=" ${filter.operator === "<=" ? "selected" : ""}>&lt;= 小于等于</option>`,
+                `<option value="=" ${filter.operator === "=" ? "selected" : ""}>= 等于</option>`,
+                `<option value="!=" ${filter.operator === "!=" ? "selected" : ""}>!= 不等于</option>`,
+                `<option value="contains" ${filter.operator === "contains" ? "selected" : ""}>包含</option>`,
+                `<option value="notContains" ${filter.operator === "notContains" ? "selected" : ""}>不包含</option>`,
+                `<option value="isEmpty" ${filter.operator === "isEmpty" ? "selected" : ""}>为空</option>`,
+                `<option value="isNotEmpty" ${filter.operator === "isNotEmpty" ? "selected" : ""}>不为空</option>`,
+                `<option value="between" ${filter.operator === "between" ? "selected" : ""}>介于</option>`
             ].join('');
 
             return `
