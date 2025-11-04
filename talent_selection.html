@@ -53,6 +53,13 @@
         .selection-list-container::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
         .selection-list-container::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
 
+        /* 高级筛选 4:3 宽度比例（桌面端）*/
+        @media (min-width: 1024px) {
+            .advanced-filters-grid {
+                grid-template-columns: 4fr 3fr;
+            }
+        }
+
         #selection-list .selection-item:hover { background-color: #f9fafb; }
         #selection-list .selection-group { margin-bottom: 0.5rem; }
         #selection-list .talent-name { font-size: 0.875rem; font-weight: 600; }
@@ -174,7 +181,7 @@
 
                 <div class="flex flex-col lg:flex-row gap-6">
                     <div class="lg:w-2/3 space-y-4">
-                        <!-- 基础筛选 (默认展开) -->
+                        <!-- 基础筛选 (默认折叠) -->
                         <div class="border border-gray-200 rounded-lg">
                             <button type="button" id="toggle-basic-filters" class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors rounded-lg">
                                 <div class="flex items-center gap-2">
@@ -183,11 +190,11 @@
                                     </svg>
                                     <h3 class="text-base font-semibold text-gray-800">基础筛选</h3>
                                 </div>
-                                <svg id="basic-filters-arrow" class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg id="basic-filters-arrow" class="w-5 h-5 text-gray-500 transform transition-transform -rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>
                             </button>
-                            <div id="basic-filters-content" class="px-4 pb-4 space-y-4">
+                            <div id="basic-filters-content" class="hidden px-4 pb-4 space-y-4">
                                 <div>
                                     <h3 class="text-sm font-semibold text-gray-600 mb-2">定向搜索</h3>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -215,7 +222,7 @@
                             </div>
                         </div>
 
-                        <!-- 高级筛选 (默认折叠) -->
+                        <!-- 高级筛选 (默认展开) -->
                         <div class="border border-gray-200 rounded-lg">
                             <button type="button" id="toggle-advanced-filters" class="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors rounded-lg">
                                 <div class="flex items-center gap-2">
@@ -224,12 +231,12 @@
                                     </svg>
                                     <h3 class="text-base font-semibold text-gray-800">高级筛选</h3>
                                 </div>
-                                <svg id="advanced-filters-arrow" class="w-5 h-5 text-gray-500 transform transition-transform -rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg id="advanced-filters-arrow" class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>
                             </button>
-                            <div id="advanced-filters-content" class="hidden px-4 pb-4">
-                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div id="advanced-filters-content" class="px-4 pb-4">
+                                <div class="grid grid-cols-1 advanced-filters-grid gap-6">
                                     <!-- 左侧：多维度数据筛选 -->
                                     <div>
                                         <h3 class="text-sm font-semibold text-gray-600 mb-3">多维度数据筛选</h3>

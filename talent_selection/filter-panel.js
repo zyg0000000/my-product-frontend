@@ -153,16 +153,16 @@ export default class FilterPanel {
             ].join('');
 
             return `
-                <div class="flex items-center gap-2 mb-2" data-filter-index="${index}">
-                    <select class="filter-dimension text-sm rounded-md border-gray-300">${dimensionOptions}</select>
-                    <select class="filter-operator text-sm rounded-md border-gray-300">${operatorOptions}</select>
+                <div class="flex flex-wrap items-center gap-2 mb-2" data-filter-index="${index}">
+                    <select class="filter-dimension text-sm rounded-md border-gray-300 flex-shrink-0" style="min-width: 140px; max-width: 180px;">${dimensionOptions}</select>
+                    <select class="filter-operator text-sm rounded-md border-gray-300 flex-shrink-0" style="min-width: 120px; max-width: 150px;">${operatorOptions}</select>
                     ${filter.operator === 'between' ?
-                        `<input type="number" class="filter-value-min text-sm rounded-md border-gray-300 w-24" placeholder="最小值" value="${filter.value?.[0] || ''}">
-                         <input type="number" class="filter-value-max text-sm rounded-md border-gray-300 w-24" placeholder="最大值" value="${filter.value?.[1] || ''}">` :
+                        `<input type="number" class="filter-value-min text-sm rounded-md border-gray-300 w-20 flex-shrink-0" placeholder="最小值" value="${filter.value?.[0] || ''}">
+                         <input type="number" class="filter-value-max text-sm rounded-md border-gray-300 w-20 flex-shrink-0" placeholder="最大值" value="${filter.value?.[1] || ''}">` :
                         ['isEmpty', 'isNotEmpty'].includes(filter.operator) ? '' :
-                        `<input type="text" class="filter-value text-sm rounded-md border-gray-300" placeholder="筛选值" value="${filter.value || ''}">`
+                        `<input type="text" class="filter-value text-sm rounded-md border-gray-300 flex-shrink-0" style="min-width: 100px; max-width: 140px;" placeholder="筛选值" value="${filter.value || ''}">`
                     }
-                    <button class="remove-filter text-red-600 hover:text-red-800 text-sm">删除</button>
+                    <button class="remove-filter text-red-600 hover:text-red-800 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 flex-shrink-0 transition-colors">删除</button>
                 </div>`;
         }).join('');
 
