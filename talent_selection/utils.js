@@ -176,7 +176,16 @@ export function generateConfigurationsFromData(talents) {
             tierSet.add(talent.talentTier);
         }
         if (talent.performanceData) {
-            Object.keys(talent.performanceData).forEach(key => dimensionSet.add(key));
+            Object.keys(talent.performanceData).forEach(key => {
+                // 过滤掉特殊字符、内部属性和原型属性
+                if (key &&
+                    typeof key === 'string' &&
+                    !key.startsWith('__') &&
+                    !key.startsWith('constructor') &&
+                    /^[a-zA-Z0-9_]+$/.test(key)) {
+                    dimensionSet.add(key);
+                }
+            });
         }
     });
 
@@ -213,13 +222,16 @@ export function generateConfigurationsFromData(talents) {
         'ratio_town_youth', 'ratio_exquisite_mom', 'ratio_new_white_collar', 'ratio_urban_blue_collar'
     ]);
 
-    const dimensions = Array.from(dimensionSet).sort().map(id => ({
-        id: id,
-        name: displayNameMap[id] || id,
-        type: percentageFields.has(id) ? 'percentage' : 'number',
-        visible: ['cpm60s', 'femaleAudienceRatio', 'audience_18_40_ratio'].includes(id),
-        required: false,
-    }));
+    const dimensions = Array.from(dimensionSet)
+        .filter(id => displayNameMap[id]) // 只保留有中文名称映射的维度
+        .sort()
+        .map(id => ({
+            id: id,
+            name: displayNameMap[id],
+            type: percentageFields.has(id) ? 'percentage' : 'number',
+            visible: ['cpm60s', 'femaleAudienceRatio', 'audience_18_40_ratio'].includes(id),
+            required: false,
+        }));
 
     return { talentTypes, talentTiers, dimensions };
 }
