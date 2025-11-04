@@ -24,7 +24,7 @@
         .nav-toggle:hover { background-color: #f3f4f6; }
         .nav-link { display: flex; align-items: center; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 500; color: #4b5563; border-radius: 0.5rem; position: relative; }
         .nav-link:hover { background-color: #f3f4f6; }
-        .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; }
+        .nav-link.active { background-color: #4f46e5; color: white; font-weight: 600; }
 
         /* 自定义滚动条 */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -52,8 +52,8 @@
             background-color: #FAFAFA !important;
         }
         .today-indicator {
-            border: 2px solid #1677FF;
-            background-color: #E6F4FF;
+            border: 2px solid #4f46e5;
+            background-color: #e0e7ff;
         }
 
         /* 达人卡片样式 */
@@ -106,9 +106,9 @@
             background: #f3f4f6;
         }
         .view-mode-btn.active {
-            background: #1677FF;
+            background: #4f46e5;
             color: white;
-            border-color: #1677FF;
+            border-color: #4f46e5;
         }
 
         /* 全周期概览 */
@@ -154,13 +154,13 @@
         </header>
 
         <!-- 筛选工具栏 -->
-        <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
+        <div class="bg-white rounded-xl shadow-sm border p-4 mb-6">
             <div class="flex items-center justify-between gap-4 flex-wrap">
                 <div class="flex items-center gap-4">
                     <!-- 年份选择 -->
                     <div class="flex items-center gap-2">
                         <label class="text-sm font-medium text-gray-700">年份：</label>
-                        <select id="year-selector" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="year-selector" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <!-- 动态填充 -->
                         </select>
                     </div>
@@ -168,7 +168,7 @@
                     <!-- 月份选择 -->
                     <div class="flex items-center gap-2">
                         <label class="text-sm font-medium text-gray-700">月份：</label>
-                        <select id="month-selector" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="month-selector" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <option value="M1">M1</option>
                             <option value="M2">M2</option>
                             <option value="M3">M3</option>
@@ -195,14 +195,14 @@
                 </div>
 
                 <!-- 刷新按钮 -->
-                <button id="refresh-btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
+                <button id="refresh-btn" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
                     🔄 刷新
                 </button>
             </div>
         </div>
 
         <!-- KPI 统计 & 全周期概览 -->
-        <div class="bg-white rounded-lg shadow-sm border mb-6">
+        <div class="bg-white rounded-xl shadow-sm border mb-6">
             <!-- 全周期统计 -->
             <div class="p-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
                 <p class="text-xs text-gray-600 mb-2">全周期统计</p>
@@ -246,7 +246,7 @@
                         </div>
                         <div class="flex items-center gap-1.5">
                             <span class="text-xs text-gray-600">今日到期</span>
-                            <span id="kpi-due-today" class="text-base font-bold text-blue-600">-</span>
+                            <span id="kpi-due-today" class="text-base font-bold text-indigo-600">-</span>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <span class="text-xs text-gray-600">本周到期</span>
@@ -262,14 +262,14 @@
         </div>
 
         <!-- 无数据提示 -->
-        <div id="no-data-message" class="hidden bg-white rounded-lg shadow-sm border p-12 text-center">
+        <div id="no-data-message" class="hidden bg-white rounded-xl shadow-sm border p-12 text-center">
             <div class="text-gray-400 text-lg mb-2">📭</div>
             <p class="text-gray-600">该月份暂无项目</p>
             <p class="text-sm text-gray-400 mt-2">请选择其他月份或创建新项目</p>
         </div>
 
         <!-- 日历容器 -->
-        <div id="calendar-container" class="bg-white rounded-lg shadow-sm border">
+        <div id="calendar-container" class="bg-white rounded-xl shadow-sm border">
             <!-- Loading -->
             <div id="calendar-loading" class="hidden py-12 text-center">
                 <p class="text-gray-500">加载中...</p>
@@ -325,7 +325,7 @@
 
     <!-- 编辑发布信息弹窗 -->
     <div id="quickInputModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-xl p-5 w-96 quick-input-popup">
+        <div class="bg-white rounded-xl shadow-xl p-5 w-96 quick-input-popup">
             <div class="flex justify-between items-center mb-4">
                 <h3 id="quickInputTitle" class="text-base font-semibold text-gray-900">编辑发布信息</h3>
                 <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600">
@@ -351,7 +351,7 @@
                     <label class="text-sm text-gray-600">视频ID</label>
                     <div class="flex gap-2 mt-1">
                         <input type="text" id="quick-input-videoId" placeholder="输入视频ID" class="flex-1 px-3 py-2 border rounded-lg text-sm">
-                        <button type="button" id="open-video-link-btn" class="px-3 py-2 border rounded-lg text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition disabled:opacity-30 disabled:cursor-not-allowed" title="在新标签页打开抖音视频" disabled>
+                        <button type="button" id="open-video-link-btn" class="px-3 py-2 border rounded-lg text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="在新标签页打开抖音视频" disabled>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                             </svg>
@@ -362,27 +362,27 @@
                     <label class="text-sm text-gray-600">任务ID</label>
                     <div class="flex gap-2 mt-1">
                         <input type="text" id="quick-input-taskId" placeholder="输入任务ID" class="flex-1 px-3 py-2 border rounded-lg text-sm">
-                        <button type="button" id="open-task-link-btn" class="px-3 py-2 border rounded-lg text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition disabled:opacity-30 disabled:cursor-not-allowed" title="在新标签页打开星图任务" disabled>
+                        <button type="button" id="open-task-link-btn" class="px-3 py-2 border rounded-lg text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="在新标签页打开星图任务" disabled>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                             </svg>
                         </button>
                     </div>
                 </div>
-                <div class="text-xs text-gray-500 bg-blue-50 p-2 rounded">
-                    💡 提示：录入视频ID或任务ID后，状态将自动变为"视频已发布"
+                <div class="text-xs text-gray-500 bg-indigo-50 p-2 rounded">
+                    💡 提示:录入视频ID或任务ID后，状态将自动变为"视频已发布"
                 </div>
             </form>
             <div class="mt-4 flex gap-2">
-                <button id="saveQuickInputBtn" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">保存</button>
-                <button id="cancelModalBtn" class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm">取消</button>
+                <button id="saveQuickInputBtn" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">保存</button>
+                <button id="cancelModalBtn" class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm">取消</button>
             </div>
         </div>
     </div>
 
     <!-- 查看详情弹窗（只读模式 - 用于已结束的项目） -->
     <div id="viewDetailModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg shadow-xl p-5 w-96 border-2 border-gray-300">
+        <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl shadow-xl p-5 w-96 border-2 border-gray-300">
             <div class="flex justify-between items-center mb-4">
                 <div>
                     <h3 class="text-base font-semibold text-gray-700">查看发布详情</h3>
@@ -414,7 +414,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                             </svg>
                         </button>
-                        <button type="button" id="view-open-video-link-btn" class="px-3 py-2 border rounded-lg text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition disabled:opacity-30 disabled:cursor-not-allowed" title="在新标签页打开抖音视频" disabled>
+                        <button type="button" id="view-open-video-link-btn" class="px-3 py-2 border rounded-lg text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="在新标签页打开抖音视频" disabled>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                             </svg>
@@ -430,7 +430,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                             </svg>
                         </button>
-                        <button type="button" id="view-open-task-link-btn" class="px-3 py-2 border rounded-lg text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition disabled:opacity-30 disabled:cursor-not-allowed" title="在新标签页打开星图任务" disabled>
+                        <button type="button" id="view-open-task-link-btn" class="px-3 py-2 border rounded-lg text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="在新标签页打开星图任务" disabled>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                             </svg>
@@ -444,12 +444,12 @@
                 </div>
             </div>
             <div class="mt-4">
-                <button id="closeViewModalBtn2" class="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm">关闭</button>
+                <button id="closeViewModalBtn2" class="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm">关闭</button>
             </div>
         </div>
     </div>
 
     <script src="sidebar.js" defer></script>
-    <script type="module" src="execution_board.js"></script>
+    <script type="module" src="execution_board/main.js"></script>
 </body>
 </html>
