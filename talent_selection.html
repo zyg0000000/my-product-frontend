@@ -39,10 +39,23 @@
         .nav-link:hover { background-color: #f3f4f6; }
         .nav-link.active { background-color: #4f46e5; color: white; font-weight: 600; }
 
-        .top-section { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start; }
+        .top-section { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: stretch; }
         .selection-sidebar { position: sticky; top: 2rem; flex-shrink: 0; }
-        .selection-list-container { max-height: 400px; overflow-y: auto; }
+        .selection-list-container {
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+        }
+        /* 自定义滚动条 */
+        .selection-list-container::-webkit-scrollbar { width: 6px; }
+        .selection-list-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+        .selection-list-container::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+        .selection-list-container::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
         #selection-list .selection-item:hover { background-color: #f9fafb; }
+        #selection-list .selection-group { margin-bottom: 0.5rem; }
+        #selection-list .talent-name { font-size: 0.875rem; font-weight: 600; }
+        #selection-list .collab-item { padding: 0.25rem 0; font-size: 0.813rem; }
         .sortable-header { @apply cursor-pointer hover:bg-gray-100; }
         .table-wrapper { max-height: 65vh; overflow-y: auto; }
         .table-wrapper thead th { position: sticky; top: 0; z-index: 10; background-color: #f9fafb; }
@@ -131,18 +144,18 @@
                 </div>
 
                 <!-- 右侧：待选清单（固定侧边栏）-->
-                <aside class="selection-sidebar">
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col">
-                        <div class="flex items-center gap-3 mb-4">
+                <aside class="selection-sidebar h-full">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col h-full">
+                        <div class="flex items-center gap-3 mb-4 flex-shrink-0">
                             <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                             </svg>
                             <h2 class="text-lg font-bold text-gray-900">待选清单</h2>
                         </div>
-                        <div id="selection-list" class="selection-list-container flex-grow mb-4 border rounded-lg p-2 bg-gray-50">
+                        <div id="selection-list" class="selection-list-container border rounded-lg p-3 bg-gray-50 mb-4">
                             <p id="selection-placeholder" class="text-sm text-gray-500 text-center py-8">请从下方列表勾选达人</p>
                         </div>
-                        <button id="add-to-project-btn" class="w-full px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-sm" disabled>
+                        <button id="add-to-project-btn" class="w-full px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-sm flex-shrink-0" disabled>
                             添加 <span id="selection-count">0</span> 次合作至项目
                         </button>
                     </div>

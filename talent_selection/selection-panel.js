@@ -70,24 +70,24 @@ export default class SelectionPanel {
             const firstCollab = collabGroup[0];
             const talent = firstCollab.talent || firstCollab;
             const talentGroupEl = document.createElement('div');
-            talentGroupEl.className = 'p-2 border-b';
+            talentGroupEl.className = 'px-2 py-1.5 border-b';
 
             talentGroupEl.innerHTML = `
-                <div class="flex justify-between items-center mb-2">
-                    <a href="https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/${talent.xingtuId}" target="_blank" class="text-sm font-bold text-blue-600 hover:underline">${talent.nickname}</a>
-                    <button class="add-another-collab-btn text-xs bg-green-100 text-green-700 hover:bg-green-200 px-2 py-1 rounded-md" data-talent-id="${talent.id}">+ 添加合作</button>
+                <div class="flex justify-between items-center mb-1">
+                    <a href="https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/${talent.xingtuId}" target="_blank" class="text-xs font-semibold text-indigo-600 hover:underline">${talent.nickname}</a>
+                    <button class="add-another-collab-btn text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-1.5 py-0.5 rounded transition-colors" data-talent-id="${talent.id}">+ 添加</button>
                 </div>
             `;
 
             collabGroup.forEach((collab, index) => {
                 const item = document.createElement('div');
-                item.className = 'selection-item flex justify-between items-center py-1';
+                item.className = 'selection-item flex justify-between items-center py-0.5';
                 const tempId = collab._tempId || `${collab.talentId || collab.talent?.id}_${index}`;
                 item.innerHTML = `
-                    <div class="flex-grow flex items-center gap-2">
-                        <span class="text-sm text-gray-600">合作 ${index + 1}:</span>
+                    <div class="flex-grow flex items-center gap-1.5">
+                        <span class="text-xs text-gray-600">合作 ${index + 1}</span>
                     </div>
-                    <button class="remove-selection-btn text-red-500 hover:text-red-700 p-1 ml-2 flex-shrink-0" data-temp-id="${tempId}">&times;</button>
+                    <button class="remove-selection-btn text-red-500 hover:text-red-700 text-lg leading-none flex-shrink-0" data-temp-id="${tempId}">&times;</button>
                 `;
                 talentGroupEl.appendChild(item);
             });
