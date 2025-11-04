@@ -280,8 +280,8 @@ document.addEventListener('DOMContentLoaded', function() {
             day.innerHTML = `<span class="date-number">${date.getDate()}</span>`;
             if (modalSelectedDates.has(dateString)) day.classList.add('selected');
             if (dateString === todayString) day.classList.add('today');
-            if (date.getDate() === 1) day.innerHTML = `<span class="date-number font-bold text-blue-600">${date.getMonth() + 1}月${date.getDate()}</span>`;
-            
+            if (date.getDate() === 1) day.innerHTML = `<span class="date-number font-bold text-indigo-600">${date.getMonth() + 1}月${date.getDate()}</span>`;
+
             calendarGrid.appendChild(day);
         }
         renderRemarks(Array.from(visibleMonths));
