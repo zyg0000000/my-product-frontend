@@ -54,7 +54,10 @@ export class APIManager {
      * @returns {Promise<Object>} 更新结果
      */
     async updateTalentSchedule(talentId, updateData) {
-        return await this.apiRequest(`/update-talent/${talentId}`, 'PUT', updateData);
+        return await this.apiRequest('/update-talent', 'PUT', {
+            id: talentId,
+            ...updateData
+        });
     }
 
     /**
