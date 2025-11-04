@@ -21,6 +21,7 @@ export default class WorkflowModal {
         this.workflowDescriptionInput = document.getElementById('workflow-description-input');
         this.requiredInputKeyInput = document.getElementById('required-input-key');
         this.requiredInputLabelInput = document.getElementById('required-input-label');
+        this.closeBtn = document.getElementById('close-workflow-modal');
         this.cancelBtn = document.getElementById('cancel-workflow-btn');
         this.actionLibrary = document.getElementById('action-library');
         this.workflowCanvas = document.getElementById('workflow-canvas');
@@ -38,6 +39,9 @@ export default class WorkflowModal {
     bindEvents() {
         if (this.form) {
             this.form.addEventListener('submit', this.handleFormSubmit);
+        }
+        if (this.closeBtn) {
+            this.closeBtn.addEventListener('click', this.handleCancel);
         }
         if (this.cancelBtn) {
             this.cancelBtn.addEventListener('click', this.handleCancel);
@@ -379,6 +383,9 @@ export default class WorkflowModal {
     unload() {
         if (this.form) {
             this.form.removeEventListener('submit', this.handleFormSubmit);
+        }
+        if (this.closeBtn) {
+            this.closeBtn.removeEventListener('click', this.handleCancel);
         }
         if (this.cancelBtn) {
             this.cancelBtn.removeEventListener('click', this.handleCancel);

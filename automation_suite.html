@@ -214,9 +214,14 @@
 
     <!-- Modals and Templates (Unchanged) -->
     <div id="workflow-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 overflow-y-auto">
-        <div class="relative top-10 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-xl bg-white flex flex-col" style="max-height: calc(100vh - 5rem);">
-            <header class="flex-shrink-0">
-                 <h3 id="modal-title" class="text-xl leading-6 font-bold text-gray-900 mb-6">新建/编辑工作流</h3>
+        <div class="relative top-10 mx-auto p-5 border border-gray-200 w-full max-w-4xl shadow-lg rounded-xl bg-white flex flex-col" style="max-height: calc(100vh - 5rem);">
+            <header class="flex-shrink-0 flex justify-between items-start mb-6">
+                <h3 id="modal-title" class="text-xl leading-6 font-bold text-gray-900">新建/编辑工作流</h3>
+                <button id="close-workflow-modal" type="button" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-1 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
             </header>
             <div class="flex-grow min-h-0 overflow-y-auto pr-2 custom-scrollbar">
                 <form id="workflow-form" class="space-y-4">
@@ -256,7 +261,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">工作流步骤</label>
-                        <div class="mt-2 grid grid-cols-12 gap-4 border p-4 rounded-lg bg-gray-50/50">
+                        <div class="mt-2 grid grid-cols-12 gap-4 border border-gray-200 p-4 rounded-xl bg-gray-50/50">
                             <div class="col-span-3 border-r pr-4">
                                 <h4 class="font-semibold text-gray-600 mb-3 text-sm">动作库</h4>
                                 <div id="action-library" class="space-y-2"></div>
@@ -277,13 +282,17 @@
     </div>
 
     <div id="screenshot-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 h-full w-full hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-6xl h-full max-h-[90vh] flex flex-col">
+        <div class="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-6xl h-full max-h-[90vh] flex flex-col">
             <header class="flex-shrink-0 p-4 border-b flex justify-between items-center">
                 <h3 id="screenshot-modal-title" class="text-lg font-bold text-gray-800">截图结果</h3>
-                <button id="close-screenshot-modal" class="text-gray-400 hover:text-gray-700">&times;</button>
+                <button id="close-screenshot-modal" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-1 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
             </header>
             <main class="flex-grow flex min-h-0 p-4 gap-4">
-                <div class="w-3/4 flex items-center justify-center bg-gray-100 rounded-lg relative">
+                <div class="w-3/4 flex items-center justify-center bg-gray-100 rounded-xl relative">
                     <img id="modal-main-image" src="" alt="Main screenshot" class="max-w-full max-h-full object-contain">
                     <button id="modal-prev-btn" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/50 p-2 rounded-full hover:bg-white">&lt;</button>
                     <button id="modal-next-btn" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/50 p-2 rounded-full hover:bg-white">&gt;</button>
@@ -294,10 +303,14 @@
     </div>
 
     <div id="data-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 h-full w-full hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div class="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-2xl max-h-[90vh] flex flex-col">
             <header class="flex-shrink-0 p-4 border-b flex justify-between items-center">
                 <h3 id="data-modal-title" class="text-lg font-bold text-gray-800">数据抓取结果</h3>
-                <button id="close-data-modal" class="text-gray-400 hover:text-gray-700">&times;</button>
+                <button id="close-data-modal" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-1 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
             </header>
             <main id="data-modal-content" class="flex-grow min-h-0 p-6 overflow-y-auto custom-scrollbar">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -318,7 +331,7 @@
     </div>
 
     <template id="step-block-template">
-        <div class="step-block bg-white p-3 rounded-lg border shadow-sm" data-action-type="">
+        <div class="step-block bg-white p-3 rounded-xl border border-gray-200 shadow-sm" data-action-type="">
             <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-2">
                     <div class="step-block-handle text-gray-400 hover:text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></div>
