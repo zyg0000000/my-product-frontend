@@ -7,10 +7,8 @@ import { AppCore } from '../common/app-core.js';
 
 const { Modal } = AppCore;
 
-// API基础URL
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:3000/api'
-    : 'https://my-product-backend-production.up.railway.app/api';
+// API基础URL - 使用火山引擎API Gateway
+const API_BASE_URL = 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com';
 
 export class APIManager {
     /**
@@ -45,7 +43,8 @@ export class APIManager {
      * @returns {Promise<Array>} 达人列表
      */
     async loadTalents() {
-        return await this.apiRequest('/talent-info');
+        const response = await this.apiRequest('/talents');
+        return response.data || [];
     }
 
     /**
@@ -55,7 +54,7 @@ export class APIManager {
      * @returns {Promise<Object>} 更新结果
      */
     async updateTalentSchedule(talentId, updateData) {
-        return await this.apiRequest(`/talent-info/${talentId}`, 'PUT', updateData);
+        return await this.apiRequest(`/update-talent/${talentId}`, 'PUT', updateData);
     }
 
     /**
@@ -83,7 +82,8 @@ export class APIManager {
      * @returns {Promise<Object>} 达人合作统计
      */
     async loadCollaborationStats() {
-        const collaborations = await this.apiRequest('/collaborations');
+        const response = await this.apiRequest('/collaborations?allowGlobal=true&limit=9999');
+        const collaborations = response.data || [];
         return this.preprocessCollaborationData(collaborations);
     }
 }
