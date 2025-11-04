@@ -236,7 +236,19 @@
     </template>
     
     <script src="sidebar.js" defer></script>
-    <script src="automation_suite.js" defer></script>
+
+    <!-- 新架构：模块化加载 -->
+    <script type="module">
+        import { AutomationSuiteApp } from './automation_suite/main.js';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const app = new AutomationSuiteApp();
+            app.init();
+        });
+    </script>
+
+    <!-- 备份：回退到旧版本时启用 -->
+    <!-- <script src="automation_suite.js" defer></script> -->
 </body>
 </html>
 
