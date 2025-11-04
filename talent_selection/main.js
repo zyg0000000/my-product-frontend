@@ -137,6 +137,7 @@ export default class TalentSelectionApp {
             apiRequest: this.apiRequest.bind(this),
             showAlert: (msg) => this.modals.alert.show(msg)
         });
+        this.modules.selectionPanel.init();
 
         // 初始化批量录入弹窗
         this.modals.batchImport = new BatchImportModal({
@@ -146,6 +147,7 @@ export default class TalentSelectionApp {
             showSuccess: (title, msg, projectId) => this.modals.success.show(title, msg, projectId),
             showAlert: (msg) => this.modals.alert.show(msg)
         });
+        this.modals.batchImport.init(this.richTalentData);
 
         // 初始化自定义列弹窗
         this.modals.columns = new ColumnsModal({
@@ -153,6 +155,7 @@ export default class TalentSelectionApp {
             visibleColumns: this.visibleColumns,
             VISIBLE_COLUMNS_KEY: this.VISIBLE_COLUMNS_KEY
         });
+        this.modals.columns.init();
 
         console.log('[TalentSelectionApp] 模块初始化完成');
     }
@@ -165,9 +168,20 @@ export default class TalentSelectionApp {
         document.addEventListener('talentSelected', this.handleTalentSelected);
         document.addEventListener('talentDeselected', this.handleTalentDeselected);
 
+        // 监听添加多次合作事件
+        document.addEventListener('addAnotherCollaboration', (e) => {
+            const talentId = e.detail.talentId;
+            const talent = this.richTalentData.find(t => t.talentId === talentId || t.id === talentId);
+            if (talent) {
+                this.addCollaborationToList(talent);
+                this.modules.selectionPanel.updateCollaborations(this.selectedCollaborations);
+                this.modules.selectionPanel.renderSelectionList();
+            }
+        });
+
         // 监听打开批量录入弹窗事件
         document.addEventListener('openBatchImportModal', (e) => {
-            this.modals.batchImport.open(e.detail.selectedCollaborations);
+            this.modals.batchImport.open(this.selectedCollaborations);
         });
 
         // 监听打开自定义列弹窗事件
@@ -211,25 +225,49 @@ export default class TalentSelectionApp {
 
     handleTalentSelected(e) {
         const talent = e.detail.talent;
-        const exists = this.selectedCollaborations.find(c => c.talentId === talent.talentId);
+        const exists = this.selectedCollaborations.find(c => {
+            const cTalentId = c.talentId || c.talent?.id;
+            return cTalentId === talent.talentId;
+        });
         if (!exists) {
-            this.selectedCollaborations.push(talent);
+            this.addCollaborationToList(talent);
             this.modules.selectionPanel.updateCollaborations(this.selectedCollaborations);
             this.modules.selectionPanel.renderSelectionList();
         }
     }
 
     handleTalentDeselected(e) {
-        const talentId = e.detail.talentId;
-        this.selectedCollaborations = this.selectedCollaborations.filter(c => c.talentId !== talentId);
+        const { talentId, tempId } = e.detail;
+
+        if (tempId) {
+            // Remove specific collaboration by tempId
+            this.selectedCollaborations = this.selectedCollaborations.filter(c => c._tempId !== tempId);
+        } else {
+            // Remove all collaborations for this talent
+            this.selectedCollaborations = this.selectedCollaborations.filter(c => {
+                const cTalentId = c.talentId || c.talent?.id;
+                return cTalentId !== talentId;
+            });
+        }
+
         this.modules.selectionPanel.updateCollaborations(this.selectedCollaborations);
         this.modules.selectionPanel.renderSelectionList();
+    }
+
+    addCollaborationToList(talent) {
+        const newCollab = {
+            _tempId: `temp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+            talent: talent,
+            talentId: talent.talentId
+        };
+        this.selectedCollaborations.push(newCollab);
     }
 
     async handleRefreshData() {
         console.log('[TalentSelectionApp] 刷新数据');
         await this.loadData();
         this.modules.filterPanel.updateData(this.richTalentData);
+        this.modals.batchImport.updateRichTalentData(this.richTalentData);
         this.modules.filterPanel.applyFiltersAndRender();
     }
 
