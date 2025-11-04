@@ -177,13 +177,19 @@ my-product-frontend/
 ├── *.html                            # 各个页面的 HTML 文件
 ├── *.js                              # 页面脚本（部分已模块化，部分待升级）
 │
-├── doc/                              # 📁 项目文档
-│   ├── BACKEND_API_REQUIREMENTS.md          # 后端API改造需求文档
-│   ├── PR_INFO.md                           # PR提交记录
-│   ├── data-entry-optimization-plan.md      # 数据录入优化方案
-│   ├── mapping-templates-api-v4.0-CHANGELOG.md     # 云函数v4.0更新日志
-│   ├── mapping-templates-api-v4.0-DEPLOYMENT.md    # 云函数v4.0部署指南
-│   └── mapping-templates-api-v4.0-README.md        # 云函数v4.0快速参考
+├── docs/                             # 📁 项目文档
+│   ├── architecture/                         # 架构文档
+│   │   └── ARCHITECTURE_UPGRADE_GUIDE.md    # 架构升级指南
+│   ├── api/                                  # API文档
+│   │   ├── API_REFERENCE.md                 # 云函数API参考文档
+│   │   ├── backend-api-v4.0-README.md       # 后端API v4.0快速参考
+│   │   ├── backend-api-v4.0-DEPLOYMENT.md   # 后端API v4.0部署指南
+│   │   └── backend-api-v4.0-CHANGELOG.md    # 后端API v4.0更新日志
+│   ├── features/                             # 功能文档
+│   │   ├── data-entry-optimization-plan.md  # 数据录入优化方案
+│   │   └── BACKEND_API_REQUIREMENTS.md      # 后端API改造需求文档
+│   └── releases/                             # 发布文档
+│       └── PR_INFO.md                        # PR提交记录
 │
 └── assets/                           # 静态资源
     ├── images/
@@ -1089,7 +1095,7 @@ automation-workflows (工作流)
 ### 架构升级
 
 如需对现有页面进行模块化重构，请参考：
-- 📖 [架构升级指南](./docs/ARCHITECTURE_UPGRADE_GUIDE.md)
+- 📖 [架构升级指南](./docs/architecture/ARCHITECTURE_UPGRADE_GUIDE.md)
 
 该指南包含：
 - 完整的升级步骤
@@ -1099,6 +1105,7 @@ automation-workflows (工作流)
 
 ### Git 工作流
 
+#### 标准工作流
 ```bash
 # 1. 创建功能分支
 git checkout -b feature/your-feature-name
@@ -1114,6 +1121,56 @@ git push origin feature/your-feature-name
 
 # 5. 测试通过后合并到 main
 ```
+
+#### AI 协作开发工作流 🤖
+
+**重要规范**：在 AI (Claude Code) 协助开发时，遵循以下流程：
+
+1. **始终在新分支上开发**
+   - AI 会自动创建 `claude/xxx` 格式的功能分支
+   - 所有代码修改、功能开发都在该分支上进行
+
+2. **持续推送更新**
+   - 每次重要修改后，AI 会提交并推送到远程分支
+   - 允许实时查看进度和代码变更
+
+3. **最终确认后再合并** ⚠️
+   - **未经明确确认，AI 不会创建 Pull Request**
+   - **未经明确确认，AI 不会合并到 main 分支**
+   - 所有工作保留在功能分支，直到产品经理最终审核通过
+
+4. **GitHub 认证配置**
+   ```bash
+   # GitHub Personal Access Token 已保存在本地配置文件中
+   # 文件位置: .github-token (已加入 .gitignore，不会提交到仓库)
+   # 创建日期: 2025-11-04
+   # 到期日期: 2026-02-02 (90天有效期)
+   # 权限范围: repo (完整仓库访问)
+
+   # 配置 Git 使用 token (仅需执行一次)
+   git remote set-url origin https://$(cat .github-token | grep TOKEN= | cut -d= -f2)@github.com/zyg0000000/my-product-frontend.git
+   ```
+
+5. **工作流程示例**
+   ```bash
+   # AI 自动创建分支
+   git checkout -b claude/feature-name-sessionid
+
+   # AI 持续开发和提交
+   git add .
+   git commit -m "feat: 实现某功能"
+   git push -u origin claude/feature-name-sessionid
+
+   # ... 多次迭代，持续推送到该分支 ...
+
+   # 🚫 AI 不会自动创建 PR 或合并到 main
+   # ✅ 产品经理确认后，手动创建 PR 并合并
+   ```
+
+**安全说明**：
+- ✅ Token 存储在本地文件 `.github-token` 中，不会提交到 Git 仓库
+- ⚠️ Token 到期日期：2026-02-02，到期前需要重新生成
+- 🔒 如需撤销 token：访问 GitHub Settings → Developer settings → Personal access tokens
 
 ### 提交消息规范
 
@@ -1169,15 +1226,21 @@ chore: 构建/工具链相关
 
 ## 📚 相关文档
 
-### 项目文档
-- [后端API改造需求](./doc/BACKEND_API_REQUIREMENTS.md) - 后端API升级需求文档
-- [数据录入优化方案](./doc/data-entry-optimization-plan.md) - 数据录入功能优化方案
-- [PR提交记录](./doc/PR_INFO.md) - Pull Request历史记录
+### 架构文档
+- [架构升级指南](./docs/architecture/ARCHITECTURE_UPGRADE_GUIDE.md) - 页面模块化重构指南
 
-### 云函数文档
-- [云函数v4.0快速参考](./doc/mapping-templates-api-v4.0-README.md) - 5分钟快速部署指南
-- [云函数v4.0更新日志](./doc/mapping-templates-api-v4.0-CHANGELOG.md) - 完整版本变更说明
-- [云函数v4.0部署指南](./doc/mapping-templates-api-v4.0-DEPLOYMENT.md) - 详细部署步骤
+### API文档
+- [云函数API参考](./docs/api/API_REFERENCE.md) - 完整的云函数接口文档
+- [后端API v4.0快速参考](./docs/api/backend-api-v4.0-README.md) - 5分钟快速部署指南
+- [后端API v4.0部署指南](./docs/api/backend-api-v4.0-DEPLOYMENT.md) - 详细部署步骤
+- [后端API v4.0更新日志](./docs/api/backend-api-v4.0-CHANGELOG.md) - 完整版本变更说明
+
+### 功能文档
+- [数据录入优化方案](./docs/features/data-entry-optimization-plan.md) - 数据录入功能优化方案
+- [后端API改造需求](./docs/features/BACKEND_API_REQUIREMENTS.md) - 后端API升级需求文档
+
+### 发布文档
+- [PR提交记录](./docs/releases/PR_INFO.md) - Pull Request历史记录
 
 ### 外部仓库
 - [云函数仓库](https://github.com/zyg0000000/my-cloud-functions) - 后端 API 实现
