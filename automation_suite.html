@@ -8,9 +8,13 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
-        
-        /* Sidebar Styles */
+        /* --- 全局及基础样式 --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f8fc; /* 统一背景色 */
+        }
+
+        /* --- 侧边栏样式 (与其他页面保持一致) --- */
         .sidebar { transition: width 0.3s ease-in-out; }
         .main-content { transition: margin-left 0.3s ease-in-out; }
         .sidebar-collapsed { width: 5rem; }
@@ -22,46 +26,122 @@
         .nav-toggle:hover { background-color: #f3f4f6; }
         .nav-link { display: flex; align-items: center; width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 500; color: #4b5563; border-radius: 0.5rem; position: relative; }
         .nav-link:hover { background-color: #f3f4f6; }
-        .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; }
+        .nav-link.active { background-color: #4338ca; color: white; font-weight: 600; } /* 统一为 indigo */
 
-        /* Page Specific Styles */
+        /* --- 工作流编辑器样式 --- */
         .step-block-handle { cursor: grab; }
         .step-block-handle:active { cursor: grabbing; }
         .sortable-ghost { background: #c7d2fe; border-radius: 0.5rem; }
+
+        /* --- 自定义滚动条 --- */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a3a3a3; }
+
+        /* --- 通用组件样式 --- */
         .thumbnail-item.active { border-color: #4f46e5; }
-        .pagination-btn { padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; background-color: white; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; }
-        .pagination-btn:hover:not(:disabled) { background-color: #f3f4f6; }
-        .pagination-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
+
+        .pagination-btn {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            background-color: white;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .pagination-btn:hover:not(:disabled) { background-color: #f3f4f6; border-color: #9ca3af; }
+        .pagination-btn.active { background-color: #4f46e5; color: white; border-color: #4f46e5; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2); } /* 统一为 indigo */
         .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* New styles for Dashboard UI */
-        .view-toggle-btn { @apply px-4 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50; }
-        .view-toggle-btn.active { @apply bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700; }
-        .stat-card { @apply cursor-pointer transition-all duration-200 ease-in-out; }
-        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .stat-card.active { box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.5); }
-        .job-details-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
-        .job-row.expanded .job-details-content { max-height: 1000px; /* Large enough value */ }
-        .job-row.expanded .expand-icon { transform: rotate(90deg); }
-        .expand-icon { transition: transform 0.3s ease; }
+        /* --- 视图切换按钮样式 --- */
+        .view-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6b7280;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+        .view-toggle-btn:hover {
+            color: #4f46e5;
+            background-color: #eef2ff;
+        }
+        .view-toggle-btn.active {
+            color: #4f46e5;
+            background-color: #eef2ff;
+            font-weight: 700;
+        }
+        .view-toggle-btn svg {
+            transition: transform 0.2s ease;
+        }
+        .view-toggle-btn:hover svg {
+            transform: translateY(-2px);
+        }
+
+        /* --- 统计卡片样式 --- */
+        .stat-card {
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .stat-card.active {
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.5);
+        }
+
+        /* --- 任务行展开样式 --- */
+        .job-details-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+        }
+        .job-row.expanded .job-details-content {
+            max-height: 1000px;
+        }
+        .job-row.expanded .expand-icon {
+            transform: rotate(90deg);
+        }
+        .expand-icon {
+            transition: transform 0.3s ease;
+        }
     </style>
 </head>
-<body class="bg-gray-100">
+<body>
 
     <div id="sidebar-container"></div>
 
     <main id="main-content" class="main-content flex-1 p-4 sm:p-6 lg:p-8">
-        <header class="mb-8">
-            <h1 class="text-2xl font-bold text-gray-800">自动化套件</h1>
-            <p class="text-sm text-gray-500 mt-1">创建和管理您的自动化工作流，并执行截图与数据抓取任务。</p>
+        <!-- 页面头部 -->
+        <header class="bg-white p-6 rounded-xl shadow-sm mb-8 border border-gray-200">
+            <nav class="text-sm mb-4" aria-label="Breadcrumb">
+                <ol class="list-none p-0 inline-flex">
+                    <li class="flex items-center">
+                        <a href="index.html" class="text-gray-500 hover:text-indigo-600 transition-colors">项目中心</a>
+                        <svg class="fill-current w-3 h-3 mx-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                            <path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z"/>
+                        </svg>
+                    </li>
+                    <li class="flex items-center">
+                        <span class="font-semibold text-gray-700">自动化套件</span>
+                    </li>
+                </ol>
+            </nav>
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">自动化套件</h1>
+                <p class="text-sm text-gray-500 mt-2">创建和管理您的自动化工作流，并执行截图与数据抓取任务</p>
+            </div>
         </header>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Left Panel for Controls -->
-            <div class="bg-white p-6 rounded-lg shadow-sm space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
                 <div>
                     <div class="flex justify-between items-center mb-3">
                         <h3 class="text-lg font-semibold text-gray-700">1. 工作流管理</h3>
@@ -85,13 +165,28 @@
             </div>
 
             <!-- Right Panel for History & Dashboard -->
-            <div class="bg-white p-6 rounded-lg shadow-sm flex flex-col">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col">
                 <div class="flex justify-between items-center mb-4 flex-shrink-0">
                     <h3 class="text-lg font-semibold text-gray-700">任务执行历史</h3>
                     <div class="flex items-center space-x-2">
-                        <button id="toggle-view-workflow" class="view-toggle-btn active">按工作流统计</button>
-                        <button id="toggle-view-project" class="view-toggle-btn">按项目统计</button>
-                        <button id="toggle-view-test" class="view-toggle-btn">🧪 测试任务</button>
+                        <button id="toggle-view-workflow" class="view-toggle-btn active">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            按工作流统计
+                        </button>
+                        <button id="toggle-view-project" class="view-toggle-btn">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                            </svg>
+                            按项目统计
+                        </button>
+                        <button id="toggle-view-test" class="view-toggle-btn">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            测试任务
+                        </button>
                     </div>
                 </div>
                 
@@ -119,9 +214,14 @@
 
     <!-- Modals and Templates (Unchanged) -->
     <div id="workflow-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 overflow-y-auto">
-        <div class="relative top-10 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-xl bg-white flex flex-col" style="max-height: calc(100vh - 5rem);">
-            <header class="flex-shrink-0">
-                 <h3 id="modal-title" class="text-xl leading-6 font-bold text-gray-900 mb-6">新建/编辑工作流</h3>
+        <div class="relative top-10 mx-auto p-5 border border-gray-200 w-full max-w-4xl shadow-lg rounded-xl bg-white flex flex-col" style="max-height: calc(100vh - 5rem);">
+            <header class="flex-shrink-0 flex justify-between items-start mb-6">
+                <h3 id="modal-title" class="text-xl leading-6 font-bold text-gray-900">新建/编辑工作流</h3>
+                <button id="close-workflow-modal" type="button" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-1 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
             </header>
             <div class="flex-grow min-h-0 overflow-y-auto pr-2 custom-scrollbar">
                 <form id="workflow-form" class="space-y-4">
@@ -161,7 +261,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">工作流步骤</label>
-                        <div class="mt-2 grid grid-cols-12 gap-4 border p-4 rounded-lg bg-gray-50/50">
+                        <div class="mt-2 grid grid-cols-12 gap-4 border border-gray-200 p-4 rounded-xl bg-gray-50/50">
                             <div class="col-span-3 border-r pr-4">
                                 <h4 class="font-semibold text-gray-600 mb-3 text-sm">动作库</h4>
                                 <div id="action-library" class="space-y-2"></div>
@@ -182,13 +282,17 @@
     </div>
 
     <div id="screenshot-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 h-full w-full hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-6xl h-full max-h-[90vh] flex flex-col">
+        <div class="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-6xl h-full max-h-[90vh] flex flex-col">
             <header class="flex-shrink-0 p-4 border-b flex justify-between items-center">
                 <h3 id="screenshot-modal-title" class="text-lg font-bold text-gray-800">截图结果</h3>
-                <button id="close-screenshot-modal" class="text-gray-400 hover:text-gray-700">&times;</button>
+                <button id="close-screenshot-modal" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-1 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
             </header>
             <main class="flex-grow flex min-h-0 p-4 gap-4">
-                <div class="w-3/4 flex items-center justify-center bg-gray-100 rounded-lg relative">
+                <div class="w-3/4 flex items-center justify-center bg-gray-100 rounded-xl relative">
                     <img id="modal-main-image" src="" alt="Main screenshot" class="max-w-full max-h-full object-contain">
                     <button id="modal-prev-btn" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/50 p-2 rounded-full hover:bg-white">&lt;</button>
                     <button id="modal-next-btn" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/50 p-2 rounded-full hover:bg-white">&gt;</button>
@@ -199,10 +303,14 @@
     </div>
 
     <div id="data-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 h-full w-full hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div class="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-2xl max-h-[90vh] flex flex-col">
             <header class="flex-shrink-0 p-4 border-b flex justify-between items-center">
                 <h3 id="data-modal-title" class="text-lg font-bold text-gray-800">数据抓取结果</h3>
-                <button id="close-data-modal" class="text-gray-400 hover:text-gray-700">&times;</button>
+                <button id="close-data-modal" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-1 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
             </header>
             <main id="data-modal-content" class="flex-grow min-h-0 p-6 overflow-y-auto custom-scrollbar">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -223,7 +331,7 @@
     </div>
 
     <template id="step-block-template">
-        <div class="step-block bg-white p-3 rounded-lg border shadow-sm" data-action-type="">
+        <div class="step-block bg-white p-3 rounded-xl border border-gray-200 shadow-sm" data-action-type="">
             <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-2">
                     <div class="step-block-handle text-gray-400 hover:text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></div>
@@ -236,7 +344,19 @@
     </template>
     
     <script src="sidebar.js" defer></script>
-    <script src="automation_suite.js" defer></script>
+
+    <!-- 新架构：模块化加载 -->
+    <script type="module">
+        import { AutomationSuiteApp } from './automation_suite/main.js';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const app = new AutomationSuiteApp();
+            app.init();
+        });
+    </script>
+
+    <!-- 备份：回退到旧版本时启用 -->
+    <!-- <script src="automation_suite.js" defer></script> -->
 </body>
 </html>
 
