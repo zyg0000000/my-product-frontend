@@ -26,78 +26,314 @@
         .nav-link:hover { background-color: #f3f4f6; }
         .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; }
 
-        /* --- Page Specific Styles (Aligned with automation_suite.html) --- */
-        /* Card style matching automation_suite panels */
+        /* --- Page Specific Styles --- */
+
+        /* 步骤指示器 */
+        .step-indicator {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        .step-indicator-item {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        .step-indicator-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 1.25rem;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, #e5e7eb 0%, #e5e7eb 100%);
+            z-index: -1;
+        }
+        .step-indicator-item.active:not(:last-child)::after {
+            background: linear-gradient(to right, #4f46e5 0%, #e5e7eb 100%);
+        }
+        .step-indicator-item.completed:not(:last-child)::after {
+            background: linear-gradient(to right, #4f46e5 0%, #4f46e5 100%);
+        }
+        .step-circle {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #e5e7eb;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #9ca3af;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .step-indicator-item.active .step-circle {
+            border-color: #4f46e5;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        .step-indicator-item.completed .step-circle {
+            border-color: #4f46e5;
+            background: #4f46e5;
+            color: white;
+        }
+
+        /* 配置卡片升级 */
         .config-card {
-            @apply bg-white p-6 rounded-lg shadow-sm; /* Key style for the cards */
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+            transition: all 0.3s ease;
         }
-        /* Card Title style matching automation_suite headers inside cards */
+        .config-card:hover {
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.1);
+            transform: translateY(-2px);
+        }
         .config-card h3 {
-             /* Adjusted font size and weight */
-            @apply text-lg font-semibold text-gray-700 flex items-center mb-0; /* 将 mb-4 移除或改为 mb-0，由内部容器控制间距 */
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0;
         }
-        /* Step number styled similarly to icons/indicators in automation_suite */
+
+        /* 步骤编号徽章 */
         .step-number {
-             /* Using rounded-md as in automation_suite buttons/elements */
-            @apply bg-indigo-100 text-indigo-700 w-6 h-6 rounded-md flex items-center justify-center font-bold text-xs mr-3;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.5rem;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            margin-right: 0.75rem;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
         }
-        /* Radio button choice styling */
+        /* 单选按钮选项样式 */
         .choice-label {
-            /* Mimics styling of selectable items */
-            @apply flex items-center p-3 border rounded-md cursor-pointer bg-white hover:bg-gray-50 transition duration-150 ease-in-out has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:ring-1 has-[:checked]:ring-indigo-200;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        .choice-label:hover {
+            border-color: #c7d2fe;
+            background: #faf5ff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+        }
+        .choice-label:has(input:checked) {
+            border-color: #4f46e5;
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.15);
+        }
+        .choice-label:has(input:checked)::before {
+            content: '';
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .choice-label:has(input:checked)::after {
+            content: '✓';
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
         }
         .choice-input {
-             /* Consistent form element style */
-            @apply h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 rounded;
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #4f46e5;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .choice-input:checked {
+            background: #4f46e5;
+            border-color: #4f46e5;
+        }
+        .choice-input:focus {
+            outline: none;
+            ring: 2px;
+            ring-color: #a5b4fc;
         }
         .choice-text {
-            @apply ml-3 text-sm font-medium text-gray-800;
+            margin-left: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .choice-label:has(input:checked) .choice-text {
+            color: #4338ca;
         }
 
-        /* Details/Summary styling for Dimension Groups */
-        details.dimension-group > summary::-webkit-details-marker { 
-            display: none; 
-        }
-        details.dimension-group > summary { 
-            list-style: none; 
-            @apply cursor-pointer p-3 bg-gray-50 hover:bg-gray-100 flex justify-between items-center font-medium text-sm text-gray-700;
-        }
-        /* 修复折叠组的圆角问题 */
+        /* 维度折叠组样式 */
         details.dimension-group {
-             @apply border border-gray-200 rounded-md overflow-hidden;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        details.dimension-group:hover {
+            border-color: #c7d2fe;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.08);
+        }
+        details.dimension-group[open] {
+            border-color: #a5b4fc;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12);
+        }
+        details.dimension-group > summary::-webkit-details-marker {
+            display: none;
+        }
+        details.dimension-group > summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 1rem;
+            background: linear-gradient(to right, #f9fafb, #ffffff);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #374151;
+            transition: all 0.2s;
+        }
+        details.dimension-group > summary:hover {
+            background: linear-gradient(to right, #eef2ff, #f9fafb);
+            color: #4338ca;
         }
         details.dimension-group[open] > summary {
-            /* 展开时移除底部圆角 */
-            @apply rounded-b-none;
+            background: linear-gradient(to right, #eef2ff, #e0e7ff);
+            color: #4338ca;
+            border-bottom: 1px solid #c7d2fe;
         }
-        details.dimension-group:not([open]) > summary {
-             /* 折叠时保持圆角 */
-            @apply rounded-md;
+        details[open] > summary .arrow-icon {
+            transform: rotate(90deg);
         }
-        
-        details[open] > summary .arrow-icon { 
-            transform: rotate(90deg); 
+        .arrow-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #6b7280;
+            transition: transform 0.3s ease, color 0.2s;
         }
-        .arrow-icon { 
-            /* 箭头样式和过渡 */
-            transition: transform 0.2s; 
-            @apply w-4 h-4 text-gray-500; 
+        details.dimension-group[open] > summary .arrow-icon {
+            color: #4f46e5;
         }
-        .dimension-options { 
-            /* 选项容器，使用白色背景 */
-            @apply p-4 grid grid-cols-1 md:grid-cols-2 gap-3 bg-white; 
+        .dimension-options {
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 0.75rem;
+            background: white;
+        }
+        @media (min-width: 768px) {
+            .dimension-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
 
-        /* Form element styles matching automation_suite inputs/selects */
+        /* 表单元素样式 */
         .form-input, .form-select {
-            @apply mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm;
+            margin-top: 0.25rem;
+            display: block;
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #4f46e5;
+            ring: 2px;
+            ring-color: rgba(79, 70, 229, 0.2);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
         .form-checkbox {
-             @apply h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500;
+            width: 1rem;
+            height: 1rem;
+            color: #4f46e5;
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+            transition: all 0.2s;
+        }
+        .form-checkbox:checked {
+            background: #4f46e5;
+            border-color: #4f46e5;
+        }
+        .form-checkbox:focus {
+            outline: none;
+            ring: 2px;
+            ring-color: rgba(79, 70, 229, 0.2);
         }
         .form-label {
-             @apply block text-sm font-medium text-gray-700;
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.25rem;
+        }
+
+        /* 主要操作按钮 */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.625rem 1.25rem;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #4338ca, #4f46e5);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+            transform: translateY(-2px);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         /* Custom scrollbar copied from automation_suite */
@@ -134,8 +370,46 @@
             </div>
         </header>
 
-        <!-- Use space-y-8 for card spacing, matching automation_suite -->
-        <div class="space-y-8">
+        <!-- 步骤指示器 -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200/80 p-6 mb-6">
+            <div class="step-indicator">
+                <div class="step-indicator-item active">
+                    <div class="step-circle">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="text-xs font-medium text-gray-900">选择主体</div>
+                </div>
+                <div class="step-indicator-item">
+                    <div class="step-circle">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        </svg>
+                    </div>
+                    <div class="text-xs font-medium text-gray-500">设定筛选</div>
+                </div>
+                <div class="step-indicator-item">
+                    <div class="step-circle">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                    </div>
+                    <div class="text-xs font-medium text-gray-500">选择维度</div>
+                </div>
+                <div class="step-indicator-item">
+                    <div class="step-circle">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                    </div>
+                    <div class="text-xs font-medium text-gray-500">导出数据</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Use space-y-6 for card spacing -->
+        <div class="space-y-6">
 
             <!-- Step 1 Card -->
             <div class="config-card">
@@ -191,10 +465,12 @@
                         <label for="export-time-month" class="form-label">数据月份 (用于价格等)</label>
                         <input type="month" id="export-time-month" class="form-input">
                     </div>
-                    <!-- [TAILWIND 修复] 将样式类直接内联到按钮上，而不是使用 @apply -->
-                    <button id="generate-export-btn" class="w-full h-10 px-5 flex items-center justify-center bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed">
+                    <button id="generate-export-btn" class="btn-primary w-full gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
                         <span id="export-btn-text">生成并下载 Excel</span>
-                        <div id="export-btn-loader" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <div id="export-btn-loader" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white ml-2"></div>
                     </button>
                 </div>
             </div>
