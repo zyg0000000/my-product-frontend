@@ -6,6 +6,38 @@
 import { getEntityDimensions } from './dimension-config.js';
 import { getState } from './state-manager.js';
 
+/**
+ * 前端字段ID到后端返回的中文字段名的映射
+ * 这个映射需要与后端 exportComprehensiveData/index.js 中的 projectStage 保持一致
+ */
+const FIELD_TO_BACKEND_KEY_MAP = {
+    // 达人维度
+    'nickname': '达人昵称',
+    'xingtuId': '星图ID',
+    'uid': 'UID',
+    'talentTier': '达人层级',
+    'talentSource': '达人来源',
+    'talentType': '内容标签',
+    'price': '一口价',
+    'highestRebate': '最高返点率',
+    'collaboration_count': '历史合作总次数',
+    'work_total_t7_views': 'T+7 总播放量',
+    // 以下字段后端直接使用英文ID（特殊处理）
+    'cpm60s': 'cpm60s',
+    'maleAudienceRatio': 'maleAudienceRatio',
+    'femaleAudienceRatio': 'femaleAudienceRatio',
+    'audience_18_40_ratio': 'audience_18_40_ratio',
+    // 合作/项目维度
+    'collaboration_status': '合作状态',
+    'collaboration_amount': '合作金额',
+    'collaboration_orderType': '下单方式',
+    'collaboration_plannedReleaseDate': '计划发布日期',
+    'collaboration_publishDate': '实际发布日期',
+    'project_name': '项目名称',
+    'work_t7_totalViews': 'T+7 播放量',
+    'work_t7_likeCount': 'T+7 点赞数'
+};
+
 // 分页状态
 let currentPage = 1;
 let pageSize = 50;
@@ -103,7 +135,9 @@ function renderTableBody(data) {
 
     tbody.innerHTML = data.map((row, index) => {
         const cells = selectedFields.map(fieldId => {
-            const value = row[fieldId];
+            // 使用映射获取后端返回的字段名（中文或英文）
+            const backendKey = FIELD_TO_BACKEND_KEY_MAP[fieldId] || fieldId;
+            const value = row[backendKey];
             return `<td>${formatCellValue(value)}</td>`;
         }).join('');
 

@@ -10,6 +10,38 @@ import { getFilterValues } from './filter-renderer.js';
 import { showToast, checkXLSXLibrary, generateExcelFilename, setLoadingState } from './utils.js';
 
 /**
+ * 前端字段ID到后端返回的字段名的映射
+ * 与后端 exportComprehensiveData/index.js 的 projectStage 保持一致
+ */
+const BACKEND_FIELD_KEY_MAP = {
+    // 达人维度
+    'nickname': '达人昵称',
+    'xingtuId': '星图ID',
+    'uid': 'UID',
+    'talentTier': '达人层级',
+    'talentSource': '达人来源',
+    'talentType': '内容标签',
+    'price': '一口价',
+    'highestRebate': '最高返点率',
+    'collaboration_count': '历史合作总次数',
+    'work_total_t7_views': 'T+7 总播放量',
+    // 以下字段后端直接使用英文ID
+    'cpm60s': 'cpm60s',
+    'maleAudienceRatio': 'maleAudienceRatio',
+    'femaleAudienceRatio': 'femaleAudienceRatio',
+    'audience_18_40_ratio': 'audience_18_40_ratio',
+    // 合作/项目维度
+    'collaboration_status': '合作状态',
+    'collaboration_amount': '合作金额',
+    'collaboration_orderType': '下单方式',
+    'collaboration_plannedReleaseDate': '计划发布日期',
+    'collaboration_publishDate': '实际发布日期',
+    'project_name': '项目名称',
+    'work_t7_totalViews': 'T+7 播放量',
+    'work_t7_likeCount': 'T+7 点赞数'
+};
+
+/**
  * 处理导出操作的主函数
  * @param {Object} uiElements - UI元素对象
  * @param {HTMLElement} uiElements.loadingOverlay - 加载遮罩
@@ -173,7 +205,7 @@ export async function generateExcelFile(data, selectedFields, filename) {
 /**
  * 处理数据以准备导出
  * @param {Array} data - 原始数据
- * @param {Array} selectedFields - 选中的字段
+ * @param {Array} selectedFields - 选中的字段（前端字段ID）
  * @returns {Array} 处理后的数据
  */
 function processDataForExport(data, selectedFields) {
@@ -188,9 +220,14 @@ function processDataForExport(data, selectedFields) {
         const processedRow = {};
 
         selectedFields.forEach(field => {
+            // 获取后端返回的字段key（中文或英文）
+            const backendKey = BACKEND_FIELD_KEY_MAP[field] || field;
+
             // 使用友好的列名（如果有映射的话）
             const columnName = fieldMapping[field] || field;
-            processedRow[columnName] = formatCellValue(row[field]);
+
+            // 从后端数据中读取值
+            processedRow[columnName] = formatCellValue(row[backendKey]);
         });
 
         return processedRow;

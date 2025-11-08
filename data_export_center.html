@@ -342,37 +342,61 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a3a3a3; }
 
-        /* Tab 导航样式 */
-        .tab-nav {
-            display: flex;
-            border-bottom: 2px solid #e5e7eb;
-            gap: 2rem;
-        }
+        /* Tab 导航样式（参考 project-report） */
         .tab-button {
-            padding: 0.75rem 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
             font-size: 0.875rem;
             font-weight: 600;
             color: #6b7280;
-            background: transparent;
-            border: none;
-            border-bottom: 3px solid transparent;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
             cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            top: 2px;
+            border: none;
+            background: transparent;
         }
+
         .tab-button:hover {
             color: #4f46e5;
+            background-color: #eef2ff;
         }
+
         .tab-button.active {
             color: #4f46e5;
-            border-bottom-color: #4f46e5;
+            background-color: #eef2ff;
+            font-weight: 700;
         }
+
+        .tab-button svg {
+            transition: transform 0.2s ease;
+        }
+
+        .tab-button:hover svg {
+            transform: translateY(-2px);
+        }
+
+        /* Tab 分隔线 */
+        .tab-divider {
+            height: 1.5rem;
+            width: 1px;
+            background-color: #e5e7eb;
+            margin: 0 0.5rem;
+        }
+
+        /* Tab 内容面板 */
         .tab-content {
             display: none;
+            animation: fadeIn 0.3s ease-in-out;
         }
+
         .tab-content.active {
             display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* 数据表格样式 */
@@ -464,25 +488,24 @@
         </header>
 
         <!-- Tab 导航 -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200/80 p-6 mb-6">
-            <div class="tab-nav">
-                <button class="tab-button active" data-tab="config-tab">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200/80">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <nav class="flex items-center" aria-label="Export Tabs">
+                    <button class="tab-button active" data-tab="config-tab">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
                         配置导出条件
-                    </div>
-                </button>
-                <button class="tab-button" data-tab="preview-tab">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    </button>
+                    <div class="tab-divider"></div>
+                    <button class="tab-button" data-tab="preview-tab">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                         </svg>
                         数据预览
-                    </div>
-                </button>
+                    </button>
+                </nav>
             </div>
         </div>
 
