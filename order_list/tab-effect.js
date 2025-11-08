@@ -241,15 +241,13 @@ export class EffectTab {
             if (this.effectData && this.effectData.talents && this.allCollaborations.length > 0) {
                 const originalCount = this.effectData.talents.length;
 
-                // 使用 talentName 关联 allCollaborations 获取状态信息
+                // 使用 id 字段关联 allCollaborations 获取状态信息
                 this.effectData.talents = this.effectData.talents.filter(talent => {
-                    const collaboration = this.allCollaborations.find(c => c.talentName === talent.talentName);
+                    const collaboration = this.allCollaborations.find(c => c.id === talent.id);
                     const matched = collaboration && collaboration.status === '视频已发布';
 
-                    // 调试：输出每个达人的匹配情况
-                    if (!matched) {
-                        console.log(`❌ 达人 "${talent.talentName}" 未匹配 - 找到合作:${!!collaboration}, 状态:${collaboration?.status || 'N/A'}`);
-                    }
+                    // 调试：输出匹配情况
+                    console.log(`${matched ? '✅' : '❌'} 达人 "${talent.talentName}" (id:${talent.id}) - 找到合作:${!!collaboration}, 状态:${collaboration?.status || 'N/A'}`);
 
                     return matched;
                 });
