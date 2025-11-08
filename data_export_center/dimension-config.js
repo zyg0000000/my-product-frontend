@@ -1,7 +1,10 @@
 /**
  * @module dimension-config
  * @description 维度配置模块，定义所有导出主体的筛选条件和可导出维度
+ * @version 2.0.0 - 支持从后端动态加载字段元数据
  */
+
+import { fetchFieldMetadata, convertMetadataToDimensions } from './field-metadata.js';
 
 /**
  * 维度配置对象
@@ -208,4 +211,116 @@ export function isValidDimension(entity, dimensionId) {
         }
     }
     return false;
+}
+
+// ==================== 动态维度加载功能 ====================
+
+/**
+ * 动态维度缓存（从后端加载的维度）
+ */
+let dynamicDimensionsCache = {};
+
+/**
+ * 是否启用动态加载（默认启用）
+ */
+let useDynamicLoading = true;
+
+/**
+ * 设置是否启用动态加载
+ * @param {boolean} enabled - 是否启用
+ */
+export function setDynamicLoadingEnabled(enabled) {
+    useDynamicLoading = enabled;
+    console.log(`[Dimension Config] 动态加载已${enabled ? '启用' : '禁用'}`);
+}
+
+/**
+ * 从后端动态获取实体的维度配置
+ * @param {string} entity - 实体类型
+ * @param {boolean} forceRefresh - 是否强制刷新
+ * @returns {Promise<Object>} 维度配置对象
+ */
+export async function getEntityDimensionsDynamic(entity, forceRefresh = false) {
+    if (!useDynamicLoading) {
+        console.log('[Dimension Config] 动态加载已禁用，使用静态配置');
+        return getEntityDimensions(entity);
+    }
+
+    try {
+        // 检查缓存
+        if (!forceRefresh && dynamicDimensionsCache[entity]) {
+            console.log(`[Dimension Config] 使用缓存的动态维度: ${entity}`);
+            return dynamicDimensionsCache[entity];
+        }
+
+        // 从后端获取元数据
+        console.log(`[Dimension Config] 从后端加载维度配置: ${entity}`);
+        const metadata = await fetchFieldMetadata(entity, forceRefresh);
+
+        if (!metadata) {
+            console.warn(`[Dimension Config] 后端返回空数据，使用静态配置: ${entity}`);
+            return getEntityDimensions(entity);
+        }
+
+        // 转换为维度配置格式
+        const dimensions = convertMetadataToDimensions(metadata);
+
+        // 更新缓存
+        dynamicDimensionsCache[entity] = dimensions;
+
+        console.log(`[Dimension Config] 动态维度加载成功: ${entity}`, dimensions);
+        return dimensions;
+
+    } catch (error) {
+        console.error(`[Dimension Config] 动态加载失败: ${entity}`, error);
+        console.warn('[Dimension Config] 降级使用静态配置');
+        return getEntityDimensions(entity);
+    }
+}
+
+/**
+ * 预加载所有实体的动态维度
+ * @returns {Promise<void>}
+ */
+export async function preloadAllDynamicDimensions() {
+    if (!useDynamicLoading) {
+        console.log('[Dimension Config] 动态加载已禁用，跳过预加载');
+        return;
+    }
+
+    console.log('[Dimension Config] 预加载所有实体的动态维度');
+    const entities = getAvailableEntities();
+
+    const promises = entities.map(entity =>
+        getEntityDimensionsDynamic(entity).catch(err => {
+            console.error(`预加载 ${entity} 失败:`, err);
+        })
+    );
+
+    await Promise.all(promises);
+    console.log('[Dimension Config] 所有动态维度预加载完成');
+}
+
+/**
+ * 清除动态维度缓存
+ */
+export function clearDynamicDimensionsCache() {
+    dynamicDimensionsCache = {};
+    console.log('[Dimension Config] 动态维度缓存已清除');
+}
+
+/**
+ * 获取实体的维度配置（智能选择静态或动态）
+ * 如果动态加载已初始化，优先使用动态数据；否则使用静态配置
+ * @param {string} entity - 实体类型
+ * @returns {Object} 维度配置对象
+ */
+export function getEntityDimensionsSmart(entity) {
+    // 如果有动态缓存，使用动态数据
+    if (useDynamicLoading && dynamicDimensionsCache[entity]) {
+        return dynamicDimensionsCache[entity];
+    }
+
+    // 否则使用静态配置
+    return getEntityDimensions(entity);
 }

@@ -1,13 +1,14 @@
 /**
  * @module dimension-renderer
  * @description 维度渲染模块，负责动态生成和管理可导出维度的UI
+ * @version 2.0.0 - 支持动态加载维度配置
  */
 
-import { getEntityDimensions } from './dimension-config.js';
+import { getEntityDimensions, getEntityDimensionsDynamic, getEntityDimensionsSmart } from './dimension-config.js';
 import { toggleDimension, getSelectedDimensionIds } from './state-manager.js';
 
 /**
- * 渲染指定实体的可导出维度
+ * 渲染指定实体的可导出维度（同步版本，使用静态或缓存的配置）
  * @param {string} entity - 实体类型 (talent/collaboration/project)
  * @param {HTMLElement} container - 维度容器元素
  */
@@ -20,8 +21,8 @@ export function renderDimensions(entity, container) {
     // 清空容器
     container.innerHTML = '';
 
-    // 获取维度配置
-    const dimensionGroups = getEntityDimensions(entity);
+    // 获取维度配置（智能选择静态或动态）
+    const dimensionGroups = getEntityDimensionsSmart(entity);
     if (!dimensionGroups || Object.keys(dimensionGroups).length === 0) {
         container.innerHTML = '<p class="text-sm text-gray-500 p-4 text-center col-span-full">无可用维度。</p>';
         return;
@@ -32,6 +33,48 @@ export function renderDimensions(entity, container) {
 
     // 绑定维度选择事件
     setupDimensionEventListeners(container);
+}
+
+/**
+ * 渲染指定实体的可导出维度（异步版本，从后端动态加载）
+ * @param {string} entity - 实体类型 (talent/collaboration/project)
+ * @param {HTMLElement} container - 维度容器元素
+ * @param {boolean} forceRefresh - 是否强制刷新
+ * @returns {Promise<void>}
+ */
+export async function renderDimensionsDynamic(entity, container, forceRefresh = false) {
+    if (!container) {
+        console.error('Dimensions container element not provided');
+        return;
+    }
+
+    // 显示加载状态
+    container.innerHTML = '<p class="text-sm text-gray-500 p-4 text-center col-span-full">正在加载维度配置...</p>';
+
+    try {
+        // 从后端动态获取维度配置
+        const dimensionGroups = await getEntityDimensionsDynamic(entity, forceRefresh);
+
+        if (!dimensionGroups || Object.keys(dimensionGroups).length === 0) {
+            container.innerHTML = '<p class="text-sm text-gray-500 p-4 text-center col-span-full">无可用维度。</p>';
+            return;
+        }
+
+        // 清空容器
+        container.innerHTML = '';
+
+        // 渲染维度组
+        renderDimensionGroups(dimensionGroups, container);
+
+        // 绑定维度选择事件
+        setupDimensionEventListeners(container);
+
+        console.log(`[Dimension Renderer] 动态渲染完成: ${entity}`);
+
+    } catch (error) {
+        console.error('[Dimension Renderer] 动态渲染失败:', error);
+        container.innerHTML = '<p class="text-sm text-red-500 p-4 text-center col-span-full">加载维度配置失败，请刷新页面重试。</p>';
+    }
 }
 
 /**

@@ -10,7 +10,8 @@ export const API_BASE_URL = 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shangha
 export const API_ENDPOINTS = {
     export: `${API_BASE_URL}/export-comprehensive-data`,
     filters: `${API_BASE_URL}/talents/filter-options`,
-    projects: `${API_BASE_URL}/projects?view=simple`
+    projects: `${API_BASE_URL}/projects?view=simple`,
+    fieldMetadata: `${API_BASE_URL}/get-field-metadata`
 };
 
 // 导出实体类型

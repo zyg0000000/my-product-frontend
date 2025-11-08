@@ -1,10 +1,17 @@
 /**
  * @module table-preview
  * @description 数据预览表格渲染和分页管理模块
+ * @version 2.0.0 - 支持动态字段映射
  */
 
 import { getEntityDimensions } from './dimension-config.js';
 import { getState } from './state-manager.js';
+import { fetchFieldMetadata, buildFieldMapping, buildLabelMapping } from './field-metadata.js';
+
+/**
+ * 动态字段映射缓存
+ */
+let dynamicFieldMapping = null;
 
 /**
  * 前端字段ID到后端返回的中文字段名的映射
@@ -53,6 +60,42 @@ const FIELD_TO_BACKEND_KEY_MAP = {
     'work_t7_totalViews': 'T+7 播放量',
     'work_t7_likeCount': 'T+7 点赞数'
 };
+
+/**
+ * 获取字段映射（支持动态和静态）
+ * @param {string} entity - 实体类型
+ * @returns {Object} 字段映射对象
+ */
+async function getFieldMappingForEntity(entity) {
+    // 如果已有动态映射缓存，直接使用
+    if (dynamicFieldMapping) {
+        return dynamicFieldMapping;
+    }
+
+    try {
+        // 尝试从后端获取元数据
+        const metadata = await fetchFieldMetadata(entity);
+        if (metadata) {
+            dynamicFieldMapping = buildFieldMapping(metadata);
+            console.log('[Table Preview] 使用动态字段映射');
+            return dynamicFieldMapping;
+        }
+    } catch (error) {
+        console.warn('[Table Preview] 动态映射获取失败，使用静态映射', error);
+    }
+
+    // 降级使用静态映射
+    console.log('[Table Preview] 使用静态字段映射');
+    return FIELD_TO_BACKEND_KEY_MAP;
+}
+
+/**
+ * 获取字段映射（同步版本，仅使用缓存或静态配置）
+ * @returns {Object} 字段映射对象
+ */
+function getFieldMappingSync() {
+    return dynamicFieldMapping || FIELD_TO_BACKEND_KEY_MAP;
+}
 
 // 分页状态
 let currentPage = 1;
@@ -149,10 +192,13 @@ function renderTableBody(data) {
     const state = getState();
     const selectedFields = state.selectedDimensions[state.selectedEntity] || [];
 
+    // 获取字段映射（支持动态和静态）
+    const fieldMapping = getFieldMappingSync();
+
     tbody.innerHTML = data.map((row, index) => {
         const cells = selectedFields.map(fieldId => {
             // 使用映射获取后端返回的字段名（中文或英文）
-            const backendKey = FIELD_TO_BACKEND_KEY_MAP[fieldId] || fieldId;
+            const backendKey = fieldMapping[fieldId] || fieldId;
             const value = row[backendKey];
             return `<td>${formatCellValue(value)}</td>`;
         }).join('');

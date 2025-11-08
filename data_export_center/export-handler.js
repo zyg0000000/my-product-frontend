@@ -1,6 +1,7 @@
 /**
  * @module export-handler
  * @description 导出处理模块，负责数据导出和Excel文件生成
+ * @version 2.0.0 - 支持动态字段映射
  */
 
 import { API_ENDPOINTS } from './constants.js';
@@ -8,6 +9,13 @@ import { postRequest } from './api.js';
 import { getSelectedEntity, getSelectedDimensionIds } from './state-manager.js';
 import { getFilterValues } from './filter-renderer.js';
 import { showToast, checkXLSXLibrary, generateExcelFilename, setLoadingState } from './utils.js';
+import { fetchFieldMetadata, buildFieldMapping, buildLabelMapping } from './field-metadata.js';
+
+/**
+ * 动态字段映射缓存
+ */
+let dynamicBackendFieldMapping = null;
+let dynamicLabelMapping = null;
 
 /**
  * 前端字段ID到后端返回的字段名的映射
@@ -56,6 +64,43 @@ const BACKEND_FIELD_KEY_MAP = {
     'work_t7_totalViews': 'T+7 播放量',
     'work_t7_likeCount': 'T+7 点赞数'
 };
+
+/**
+ * 获取后端字段映射（支持动态和静态）
+ * @param {string} entity - 实体类型
+ * @returns {Promise<Object>} 字段映射对象
+ */
+async function getBackendFieldMapping(entity) {
+    // 如果已有动态映射缓存，直接使用
+    if (dynamicBackendFieldMapping) {
+        return dynamicBackendFieldMapping;
+    }
+
+    try {
+        // 尝试从后端获取元数据
+        const metadata = await fetchFieldMetadata(entity);
+        if (metadata) {
+            dynamicBackendFieldMapping = buildFieldMapping(metadata);
+            dynamicLabelMapping = buildLabelMapping(metadata);
+            console.log('[Export Handler] 使用动态字段映射');
+            return dynamicBackendFieldMapping;
+        }
+    } catch (error) {
+        console.warn('[Export Handler] 动态映射获取失败，使用静态映射', error);
+    }
+
+    // 降级使用静态映射
+    console.log('[Export Handler] 使用静态字段映射');
+    return BACKEND_FIELD_KEY_MAP;
+}
+
+/**
+ * 获取后端字段映射（同步版本，仅使用缓存或静态配置）
+ * @returns {Object} 字段映射对象
+ */
+function getBackendFieldMappingSync() {
+    return dynamicBackendFieldMapping || BACKEND_FIELD_KEY_MAP;
+}
 
 /**
  * 处理导出操作的主函数
@@ -229,18 +274,19 @@ function processDataForExport(data, selectedFields) {
         return data;
     }
 
-    // 创建字段映射（用于显示友好的列名）
-    const fieldMapping = getFieldMapping();
+    // 获取字段映射（支持动态和静态）
+    const backendFieldMap = getBackendFieldMappingSync();
+    const labelMap = dynamicLabelMapping || getFieldMapping();
 
     return data.map(row => {
         const processedRow = {};
 
         selectedFields.forEach(field => {
             // 获取后端返回的字段key（中文或英文）
-            const backendKey = BACKEND_FIELD_KEY_MAP[field] || field;
+            const backendKey = backendFieldMap[field] || field;
 
             // 使用友好的列名（如果有映射的话）
-            const columnName = fieldMapping[field] || field;
+            const columnName = labelMap[field] || field;
 
             // 从后端数据中读取值
             processedRow[columnName] = formatCellValue(row[backendKey]);
