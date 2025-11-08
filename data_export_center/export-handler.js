@@ -5,9 +5,8 @@
 
 import { API_ENDPOINTS } from './constants.js';
 import { postRequest } from './api.js';
-import { getSelectedEntity } from './state-manager.js';
+import { getSelectedEntity, getSelectedDimensionIds } from './state-manager.js';
 import { getFilterValues } from './filter-renderer.js';
-import { getSelectedDimensions } from './dimension-renderer.js';
 import { showToast, checkXLSXLibrary, generateExcelFilename, setLoadingState } from './utils.js';
 
 /**
@@ -84,7 +83,7 @@ export async function handleExport(uiElements) {
  */
 export function buildExportPayload(timeMonth) {
     const entity = getSelectedEntity();
-    const fields = getSelectedDimensions();
+    const fields = getSelectedDimensionIds();
     const filters = getFilterValues(entity);
 
     // 清理空值筛选条件
