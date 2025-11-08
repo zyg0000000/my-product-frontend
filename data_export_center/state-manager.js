@@ -19,7 +19,10 @@ const state = {
         talentTiers: [],
         talentTypes: [],
         projects: []
-    }
+    },
+    // 预览数据状态
+    previewData: null,
+    hasPreviewData: false
 };
 
 /**
@@ -177,4 +180,39 @@ export function resetState() {
         collaboration: [],
         project: []
     };
+    state.previewData = null;
+    state.hasPreviewData = false;
+}
+
+/**
+ * 更新预览数据
+ * @param {Array} data - 预览数据
+ */
+export function updatePreviewData(data) {
+    state.previewData = data;
+    state.hasPreviewData = data && data.length > 0;
+}
+
+/**
+ * 获取预览数据
+ * @returns {Array|null} 预览数据
+ */
+export function getPreviewData() {
+    return state.previewData;
+}
+
+/**
+ * 检查是否有预览数据
+ * @returns {boolean} 是否有预览数据
+ */
+export function hasPreviewData() {
+    return state.hasPreviewData;
+}
+
+/**
+ * 清空预览数据
+ */
+export function clearPreviewData() {
+    state.previewData = null;
+    state.hasPreviewData = false;
 }

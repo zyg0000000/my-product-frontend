@@ -5,7 +5,7 @@
  */
 
 import { API_ENDPOINTS, EXPORT_ENTITIES } from './constants.js';
-import { getRequest } from './api.js';
+import { getRequest, postRequest } from './api.js';
 import {
     checkXLSXLibrary,
     getDefaultTimeMonth,
@@ -17,12 +17,15 @@ import {
     updateInitialConfigs,
     getSelectedEntity,
     clearFilters,
-    clearDimensions
+    clearDimensions,
+    getSelectedDimensionIds,
+    updatePreviewData,
+    clearPreviewData as clearStatePreviewData
 } from './state-manager.js';
 import { renderFilters } from './filter-renderer.js';
-import { renderDimensions } from './dimension-renderer.js';
-import { handleExport } from './export-handler.js';
+import { buildExportPayload, generateExcelFile } from './export-handler.js';
 import { initializeDimensionModal, updateDimensionsPreview } from './modal-dimensions.js';
+import { renderPreviewTable, initializeTablePreview, clearPreviewData } from './table-preview.js';
 
 // DOM元素缓存
 let DOM_ELEMENTS = {};
@@ -76,14 +79,30 @@ async function initializeApp() {
  */
 function cacheDOMElements() {
     DOM_ELEMENTS = {
+        // 加载和主体选择
         loadingOverlay: document.getElementById('loading-overlay'),
         entitySelection: document.getElementById('entity-selection'),
         filtersContainer: document.getElementById('filters-container'),
+
+        // 导出设置
         exportFilenameInput: document.getElementById('export-filename'),
         exportTimeMonthInput: document.getElementById('export-time-month'),
-        generateExportBtn: document.getElementById('generate-export-btn'),
-        exportBtnText: document.getElementById('export-btn-text'),
-        exportBtnLoader: document.getElementById('export-btn-loader')
+
+        // Tab 元素
+        configTab: document.getElementById('config-tab'),
+        previewTab: document.getElementById('preview-tab'),
+
+        // 配置 Tab 按钮
+        generatePreviewBtn: document.getElementById('generate-preview-btn'),
+        previewBtnText: document.getElementById('preview-btn-text'),
+        previewBtnLoader: document.getElementById('preview-btn-loader'),
+
+        // 预览 Tab 按钮
+        backToConfigBtn: document.getElementById('back-to-config-btn'),
+        refreshPreviewBtn: document.getElementById('refresh-preview-btn'),
+        exportExcelBtn: document.getElementById('export-excel-btn'),
+        exportExcelText: document.getElementById('export-excel-text'),
+        exportExcelLoader: document.getElementById('export-excel-loader')
     };
 
     // 验证所有元素是否存在
@@ -181,22 +200,34 @@ function setupEventListeners() {
         DOM_ELEMENTS.entitySelection.addEventListener('change', handleEntityChange);
     }
 
-    // 导出按钮点击事件
-    if (DOM_ELEMENTS.generateExportBtn) {
-        DOM_ELEMENTS.generateExportBtn.addEventListener('click', handleExportClick);
+    // Tab 切换事件
+    setupTabListeners();
+
+    // 配置 Tab：生成预览按钮
+    if (DOM_ELEMENTS.generatePreviewBtn) {
+        DOM_ELEMENTS.generatePreviewBtn.addEventListener('click', handleGeneratePreview);
     }
 
-    // 文件名输入框回车事件（可选）
-    if (DOM_ELEMENTS.exportFilenameInput) {
-        DOM_ELEMENTS.exportFilenameInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                handleExportClick();
-            }
-        });
+    // 预览 Tab：返回配置按钮
+    if (DOM_ELEMENTS.backToConfigBtn) {
+        DOM_ELEMENTS.backToConfigBtn.addEventListener('click', () => switchTab('config-tab'));
+    }
+
+    // 预览 Tab：刷新数据按钮
+    if (DOM_ELEMENTS.refreshPreviewBtn) {
+        DOM_ELEMENTS.refreshPreviewBtn.addEventListener('click', handleGeneratePreview);
+    }
+
+    // 预览 Tab：导出 Excel 按钮
+    if (DOM_ELEMENTS.exportExcelBtn) {
+        DOM_ELEMENTS.exportExcelBtn.addEventListener('click', handleExportExcel);
     }
 
     // 初始化维度管理模态框
     initializeDimensionModal();
+
+    // 初始化表格预览模块
+    initializeTablePreview();
 
     // 监听键盘快捷键（可选）
     document.addEventListener('keydown', handleKeyboardShortcuts);
@@ -211,27 +242,188 @@ function handleEntityChange(event) {
         const newEntity = event.target.value;
         console.log(`Entity changed to: ${newEntity}`);
         renderUIForEntity(newEntity);
+
+        // 清空预览数据
+        clearPreviewData();
+        clearStatePreviewData();
     }
 }
 
 /**
- * 处理导出按钮点击
+ * 设置 Tab 切换监听器
  */
-async function handleExportClick() {
-    console.log('Export button clicked');
+function setupTabListeners() {
+    const tabButtons = document.querySelectorAll('.tab-button');
 
-    // 收集UI元素用于导出处理
-    const uiElements = {
-        loadingOverlay: DOM_ELEMENTS.loadingOverlay,
-        exportButton: DOM_ELEMENTS.generateExportBtn,
-        buttonText: DOM_ELEMENTS.exportBtnText,
-        buttonLoader: DOM_ELEMENTS.exportBtnLoader,
-        filenameInput: DOM_ELEMENTS.exportFilenameInput,
-        timeMonthInput: DOM_ELEMENTS.exportTimeMonthInput
-    };
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetTab = button.dataset.tab;
+            switchTab(targetTab);
+        });
+    });
+}
 
-    // 调用导出处理函数
-    await handleExport(uiElements);
+/**
+ * 切换 Tab
+ * @param {string} tabId - Tab ID
+ */
+function switchTab(tabId) {
+    // 更新 Tab 按钮状态
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        if (btn.dataset.tab === tabId) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    // 更新 Tab 内容显示
+    document.querySelectorAll('.tab-content').forEach(content => {
+        if (content.id === tabId) {
+            content.classList.add('active');
+        } else {
+            content.classList.remove('active');
+        }
+    });
+}
+
+/**
+ * 处理生成预览按钮点击
+ */
+async function handleGeneratePreview() {
+    console.log('Generate preview button clicked');
+
+    // 验证是否选择了维度
+    const selectedFields = getSelectedDimensionIds();
+    if (selectedFields.length === 0) {
+        showToast('请至少选择一个要导出的数据维度', false);
+        return;
+    }
+
+    // 设置加载状态
+    setButtonLoading(DOM_ELEMENTS.generatePreviewBtn, DOM_ELEMENTS.previewBtnText, DOM_ELEMENTS.previewBtnLoader, true, '生成中...');
+
+    try {
+        // 构建请求 payload
+        const payload = buildExportPayload(DOM_ELEMENTS.exportTimeMonthInput.value);
+
+        // 发送请求获取数据
+        const response = await postRequest(API_ENDPOINTS.export, payload);
+
+        // 验证响应
+        if (!response.success || !response.data) {
+            throw new Error(response.message || '后端返回数据为空');
+        }
+
+        if (response.data.length === 0) {
+            showToast('没有找到符合筛选条件的数据', false);
+            clearPreviewData();
+            clearStatePreviewData();
+            return;
+        }
+
+        // 保存预览数据到状态
+        updatePreviewData(response.data);
+
+        // 渲染预览表格
+        renderPreviewTable(response.data, selectedFields);
+
+        // 切换到预览 Tab
+        switchTab('preview-tab');
+
+        showToast(`成功加载 ${response.data.length} 条数据`, true);
+
+    } catch (error) {
+        console.error('Generate preview failed:', error);
+        showToast(`生成预览失败: ${error.message}`, false);
+    } finally {
+        setButtonLoading(DOM_ELEMENTS.generatePreviewBtn, DOM_ELEMENTS.previewBtnText, DOM_ELEMENTS.previewBtnLoader, false);
+    }
+}
+
+/**
+ * 处理导出 Excel 按钮点击
+ */
+async function handleExportExcel() {
+    console.log('Export Excel button clicked');
+
+    // 验证是否有预览数据
+    const selectedFields = getSelectedDimensionIds();
+    if (selectedFields.length === 0) {
+        showToast('请先选择要导出的数据维度', false);
+        return;
+    }
+
+    // 设置加载状态
+    setButtonLoading(DOM_ELEMENTS.exportExcelBtn, DOM_ELEMENTS.exportExcelText, DOM_ELEMENTS.exportExcelLoader, true, '导出中...');
+
+    try {
+        // 构建请求 payload
+        const payload = buildExportPayload(DOM_ELEMENTS.exportTimeMonthInput.value);
+
+        // 发送请求获取完整数据
+        const response = await postRequest(API_ENDPOINTS.export, payload);
+
+        // 验证响应
+        if (!response.success || !response.data) {
+            throw new Error(response.message || '后端返回数据为空');
+        }
+
+        if (response.data.length === 0) {
+            showToast('没有可导出的数据', false);
+            return;
+        }
+
+        // 生成文件名
+        const filename = DOM_ELEMENTS.exportFilenameInput.value || '数据导出报表';
+        const fullFilename = filename.endsWith('.xlsx') ? filename : `${filename}.xlsx`;
+
+        // 生成并下载 Excel
+        await generateExcelFile(response.data, selectedFields, fullFilename);
+
+        showToast(`导出成功！文件已保存为: ${fullFilename}`, true);
+
+    } catch (error) {
+        console.error('Export Excel failed:', error);
+        showToast(`导出失败: ${error.message}`, false);
+    } finally {
+        setButtonLoading(DOM_ELEMENTS.exportExcelBtn, DOM_ELEMENTS.exportExcelText, DOM_ELEMENTS.exportExcelLoader, false);
+    }
+}
+
+/**
+ * 设置按钮加载状态
+ * @param {HTMLButtonElement} button - 按钮元素
+ * @param {HTMLElement} textElement - 文本元素
+ * @param {HTMLElement} loaderElement - 加载器元素
+ * @param {boolean} isLoading - 是否加载中
+ * @param {string} loadingText - 加载中显示的文本
+ */
+function setButtonLoading(button, textElement, loaderElement, isLoading, loadingText = '') {
+    if (!button) return;
+
+    button.disabled = isLoading;
+
+    if (textElement) {
+        if (isLoading && loadingText) {
+            textElement.textContent = loadingText;
+        } else if (!isLoading) {
+            // 恢复原始文本
+            if (button.id === 'generate-preview-btn') {
+                textElement.textContent = '生成数据预览';
+            } else if (button.id === 'export-excel-btn') {
+                textElement.textContent = '导出 Excel';
+            }
+        }
+    }
+
+    if (loaderElement) {
+        if (isLoading) {
+            loaderElement.classList.remove('hidden');
+        } else {
+            loaderElement.classList.add('hidden');
+        }
+    }
 }
 
 /**
@@ -239,10 +431,19 @@ async function handleExportClick() {
  * @param {KeyboardEvent} event - 键盘事件
  */
 function handleKeyboardShortcuts(event) {
-    // Ctrl/Cmd + E: 触发导出
+    // Ctrl/Cmd + P: 生成预览
+    if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
+        event.preventDefault();
+        handleGeneratePreview();
+    }
+
+    // Ctrl/Cmd + E: 触发导出（在预览 Tab 中）
     if ((event.ctrlKey || event.metaKey) && event.key === 'e') {
         event.preventDefault();
-        handleExportClick();
+        const previewTab = document.getElementById('preview-tab');
+        if (previewTab && previewTab.classList.contains('active')) {
+            handleExportExcel();
+        }
     }
 
     // Ctrl/Cmd + Shift + C: 清空所有选择
@@ -258,28 +459,32 @@ function handleKeyboardShortcuts(event) {
 function clearAllSelections() {
     clearFilters();
     clearDimensions();
+    clearPreviewData();
+    clearStatePreviewData();
 
     // 重新渲染当前实体的UI
     const currentEntity = getSelectedEntity();
     renderUIForEntity(currentEntity);
 
+    // 切换回配置 Tab
+    switchTab('config-tab');
+
     showToast('已清空所有选择', true);
 }
 
 /**
- * 显示/隐藏加载状态
+ * 显示/隐藏加载状态（用于初始化）
  * @param {boolean} isLoading - 是否显示加载状态
  * @param {string} message - 加载消息
  */
 function showLoadingState(isLoading, message = '') {
-    setLoadingState(
-        DOM_ELEMENTS.loadingOverlay,
-        DOM_ELEMENTS.generateExportBtn,
-        DOM_ELEMENTS.exportBtnText,
-        DOM_ELEMENTS.exportBtnLoader,
-        isLoading,
-        message
-    );
+    if (DOM_ELEMENTS.loadingOverlay) {
+        if (isLoading) {
+            DOM_ELEMENTS.loadingOverlay.classList.remove('hidden');
+        } else {
+            DOM_ELEMENTS.loadingOverlay.classList.add('hidden');
+        }
+    }
 }
 
 /**
@@ -290,9 +495,7 @@ function showInitializationError() {
         DOM_ELEMENTS.filtersContainer.innerHTML =
             '<p class="text-red-500 text-center p-4">页面初始化失败，请刷新重试。</p>';
     }
-    if (DOM_ELEMENTS.dimensionsContainer) {
-        DOM_ELEMENTS.dimensionsContainer.innerHTML = '';
-    }
+    showToast('页面初始化失败，请刷新重试', false);
 }
 
 /**
