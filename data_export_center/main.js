@@ -79,7 +79,6 @@ function cacheDOMElements() {
         loadingOverlay: document.getElementById('loading-overlay'),
         entitySelection: document.getElementById('entity-selection'),
         filtersContainer: document.getElementById('filters-container'),
-        dimensionsContainer: document.getElementById('dimensions-container'),
         exportFilenameInput: document.getElementById('export-filename'),
         exportTimeMonthInput: document.getElementById('export-time-month'),
         generateExportBtn: document.getElementById('generate-export-btn'),
