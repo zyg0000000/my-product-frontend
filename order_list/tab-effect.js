@@ -231,8 +231,14 @@ export class EffectTab {
             // 对比 talentName 字段
             if (this.effectData.talents?.[0] && this.allCollaborations[0]) {
                 console.log('📊 字段对比:');
+                console.log('   talents[0] 的所有字段名:', Object.keys(this.effectData.talents[0]));
                 console.log('   talents[0].talentName =', JSON.stringify(this.effectData.talents[0].talentName));
+
+                console.log('   allCollaborations[0] 的所有字段名:', Object.keys(this.allCollaborations[0]));
                 console.log('   allCollaborations[0].talentName =', JSON.stringify(this.allCollaborations[0].talentName));
+                console.log('   allCollaborations[0].talent =', JSON.stringify(this.allCollaborations[0].talent));
+                console.log('   allCollaborations[0].name =', JSON.stringify(this.allCollaborations[0].name));
+
                 console.log('   是否相等:', this.effectData.talents[0].talentName === this.allCollaborations[0].talentName);
             }
 
