@@ -22,6 +22,7 @@ import {
 import { renderFilters } from './filter-renderer.js';
 import { renderDimensions } from './dimension-renderer.js';
 import { handleExport } from './export-handler.js';
+import { initializeDimensionModal, updateDimensionsPreview } from './modal-dimensions.js';
 
 // DOM元素缓存
 let DOM_ELEMENTS = {};
@@ -165,8 +166,11 @@ function renderUIForEntity(entity) {
     // 渲染筛选器
     renderFilters(entity, DOM_ELEMENTS.filtersContainer);
 
-    // 渲染维度
-    renderDimensions(entity, DOM_ELEMENTS.dimensionsContainer);
+    // 渲染维度（已废弃，现在使用模态框）
+    // renderDimensions(entity, DOM_ELEMENTS.dimensionsContainer);
+
+    // 更新维度预览区域
+    updateDimensionsPreview();
 }
 
 /**
@@ -191,6 +195,9 @@ function setupEventListeners() {
             }
         });
     }
+
+    // 初始化维度管理模态框
+    initializeDimensionModal();
 
     // 监听键盘快捷键（可选）
     document.addEventListener('keydown', handleKeyboardShortcuts);

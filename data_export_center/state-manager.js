@@ -9,7 +9,12 @@ import { EXPORT_ENTITIES } from './constants.js';
 const state = {
     selectedEntity: EXPORT_ENTITIES.TALENT,
     currentFilters: {},
-    selectedDimensions: {},
+    // selectedDimensions 现在是一个对象，每个实体有自己的维度ID数组（保持顺序）
+    selectedDimensions: {
+        talent: [],
+        collaboration: [],
+        project: []
+    },
     initialConfigs: {
         talentTiers: [],
         talentTypes: [],
@@ -50,32 +55,49 @@ export function updateFilter(filterKey, filterValue) {
 }
 
 /**
- * 更新选中的维度
- * @param {Object} dimensions - 选中的维度对象
+ * 更新选中的维度（全量替换）
+ * @param {Object} dimensions - 选中的维度对象，格式：{ talent: [...], collaboration: [...], project: [...] }
  */
 export function updateDimensions(dimensions) {
     state.selectedDimensions = { ...dimensions };
 }
 
 /**
- * 添加或移除单个维度
- * @param {string} dimensionId - 维度ID
- * @param {boolean} selected - 是否选中
+ * 更新指定实体的已选维度列表
+ * @param {string} entity - 实体类型 (talent/collaboration/project)
+ * @param {string[]} dimensionIds - 维度ID数组（有序）
  */
-export function toggleDimension(dimensionId, selected) {
-    if (selected) {
-        state.selectedDimensions[dimensionId] = true;
+export function updateSelectedDimensions(entity, dimensionIds) {
+    if (Object.values(EXPORT_ENTITIES).includes(entity)) {
+        state.selectedDimensions[entity] = [...dimensionIds];
     } else {
-        delete state.selectedDimensions[dimensionId];
+        console.error(`Invalid entity type: ${entity}`);
     }
 }
 
 /**
- * 获取所有选中的维度ID列表
- * @returns {string[]} 选中的维度ID数组
+ * 添加或移除单个维度（兼容旧代码）
+ * @param {string} dimensionId - 维度ID
+ * @param {boolean} selected - 是否选中
+ */
+export function toggleDimension(dimensionId, selected) {
+    const entity = state.selectedEntity;
+    const currentList = state.selectedDimensions[entity] || [];
+
+    if (selected && !currentList.includes(dimensionId)) {
+        state.selectedDimensions[entity] = [...currentList, dimensionId];
+    } else if (!selected) {
+        state.selectedDimensions[entity] = currentList.filter(id => id !== dimensionId);
+    }
+}
+
+/**
+ * 获取当前实体的选中维度ID列表
+ * @returns {string[]} 选中的维度ID数组（有序）
  */
 export function getSelectedDimensionIds() {
-    return Object.keys(state.selectedDimensions).filter(key => state.selectedDimensions[key]);
+    const entity = state.selectedEntity;
+    return state.selectedDimensions[entity] || [];
 }
 
 /**
@@ -137,7 +159,11 @@ export function clearFilters() {
  * 清空所有选中维度
  */
 export function clearDimensions() {
-    state.selectedDimensions = {};
+    state.selectedDimensions = {
+        talent: [],
+        collaboration: [],
+        project: []
+    };
 }
 
 /**
@@ -146,5 +172,9 @@ export function clearDimensions() {
 export function resetState() {
     state.selectedEntity = EXPORT_ENTITIES.TALENT;
     state.currentFilters = {};
-    state.selectedDimensions = {};
+    state.selectedDimensions = {
+        talent: [],
+        collaboration: [],
+        project: []
+    };
 }
