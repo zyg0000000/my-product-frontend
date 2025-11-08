@@ -141,9 +141,7 @@ export function renderDataFilterRows() {
  * @returns {Object} 搜索参数对象
  */
 export function buildSearchPayload() {
-    const directSearchNickname = document.getElementById('direct-search-nickname');
-    const directSearchXingtuId = document.getElementById('direct-search-xingtu-id');
-    const directSearchUid = document.getElementById('direct-search-uid');
+    const unifiedSearch = document.getElementById('unified-search');
     const talentTierFiltersContainer = document.getElementById('talent-tier-filters-container');
     const talentTypeFiltersContainer = document.getElementById('talent-type-filters-container');
 
@@ -163,7 +161,7 @@ export function buildSearchPayload() {
     return {
         page: currentPage,
         pageSize: itemsPerPage,
-        search: directSearchNickname.value.trim() || directSearchXingtuId.value.trim() || directSearchUid.value.trim(),
+        search: unifiedSearch.value.trim(),
         tiers: Array.from(talentTierFiltersContainer.querySelectorAll('input:checked')).map(cb => cb.value),
         types: Array.from(talentTypeFiltersContainer.querySelectorAll('input:checked')).map(cb => cb.value),
         sortBy: sortConfig.key,
@@ -225,15 +223,11 @@ export function addDataFilterRow() {
  * @param {Function} fetchCallback - 获取数据的回调函数
  */
 export function resetAllFilters(fetchCallback) {
-    const directSearchNickname = document.getElementById('direct-search-nickname');
-    const directSearchXingtuId = document.getElementById('direct-search-xingtu-id');
-    const directSearchUid = document.getElementById('direct-search-uid');
+    const unifiedSearch = document.getElementById('unified-search');
     const talentTypeFiltersContainer = document.getElementById('talent-type-filters-container');
     const talentTierFiltersContainer = document.getElementById('talent-tier-filters-container');
 
-    directSearchNickname.value = '';
-    directSearchXingtuId.value = '';
-    directSearchUid.value = '';
+    unifiedSearch.value = '';
 
     if (talentTypeFiltersContainer) {
         talentTypeFiltersContainer.querySelectorAll('input').forEach(cb => cb.checked = false);

@@ -191,33 +191,47 @@ function setupEventListeners() {
         }
     };
 
-    setupSearchOnEnter(document.getElementById('direct-search-nickname'));
-    setupSearchOnEnter(document.getElementById('direct-search-xingtu-id'));
-    setupSearchOnEnter(document.getElementById('direct-search-uid'));
+    setupSearchOnEnter(document.getElementById('unified-search'));
 
     // Excel 导入
     if (importExcelInput) {
         importExcelInput.addEventListener('change', handleExcelImport);
     }
 
+    // 高级筛选折叠按钮
+    const toggleAdvancedFiltersBtn = document.getElementById('toggle-advanced-filters');
+    const advancedFiltersContent = document.getElementById('advanced-filters-content');
+
+    if (toggleAdvancedFiltersBtn && advancedFiltersContent) {
+        toggleAdvancedFiltersBtn.addEventListener('click', () => {
+            const isCollapsed = advancedFiltersContent.classList.contains('hidden');
+            if (isCollapsed) {
+                advancedFiltersContent.classList.remove('hidden');
+                toggleAdvancedFiltersBtn.classList.remove('collapsed');
+            } else {
+                advancedFiltersContent.classList.add('hidden');
+                toggleAdvancedFiltersBtn.classList.add('collapsed');
+            }
+        });
+        // 默认折叠状态
+        toggleAdvancedFiltersBtn.classList.add('collapsed');
+    }
+
     // 筛选器按钮
     const applyFiltersBtn = document.getElementById('apply-filters-btn');
     const resetFiltersBtn = document.getElementById('reset-filters-btn');
     const addFilterBtn = document.getElementById('add-filter-btn');
-    const advancedFiltersDetails = document.getElementById('advanced-filters-details');
 
     if (applyFiltersBtn) {
         applyFiltersBtn.addEventListener('click', () => {
             updateCurrentPage(1);
             fetchAndRenderTalents();
-            if (advancedFiltersDetails) advancedFiltersDetails.open = false;
         });
     }
 
     if (resetFiltersBtn) {
         resetFiltersBtn.addEventListener('click', () => {
             resetAllFilters(fetchAndRenderTalents);
-            if (advancedFiltersDetails) advancedFiltersDetails.open = false;
         });
     }
 
