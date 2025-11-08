@@ -238,6 +238,8 @@ export class EffectTab {
                 console.log('   allCollaborations[0].talentName =', JSON.stringify(this.allCollaborations[0].talentName));
                 console.log('   allCollaborations[0].talent =', JSON.stringify(this.allCollaborations[0].talent));
                 console.log('   allCollaborations[0].name =', JSON.stringify(this.allCollaborations[0].name));
+                console.log('   allCollaborations[0].talentInfo =', this.allCollaborations[0].talentInfo);
+                console.log('   allCollaborations[0].talentInfo?.talentName =', JSON.stringify(this.allCollaborations[0].talentInfo?.talentName));
 
                 console.log('   是否相等:', this.effectData.talents[0].talentName === this.allCollaborations[0].talentName);
             }
