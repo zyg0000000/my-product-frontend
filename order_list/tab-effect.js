@@ -219,42 +219,22 @@ export class EffectTab {
 
             this.effectData = response;
 
-            // [v3.3.0 调试] 输出原始数据查看结构
-            console.log('🔍 [效果验收 Tab 调试]');
+            // [v3.3.0 调试] 检查 talents 是否已包含 status 字段
+            console.log('🔍 [效果验收 Tab 调试 - 简化版]');
             console.log('1. API返回的talents数量:', this.effectData.talents?.length || 0);
-            console.log('2. API返回的talents样例:', this.effectData.talents?.[0]);
-            console.log('   talents[0]的所有字段:', this.effectData.talents?.[0] ? Object.keys(this.effectData.talents[0]) : []);
-            console.log('3. allCollaborations数量:', this.allCollaborations.length);
-            console.log('4. allCollaborations样例:', this.allCollaborations[0]);
-            console.log('   allCollaborations[0]的所有字段:', this.allCollaborations[0] ? Object.keys(this.allCollaborations[0]) : []);
+            if (this.effectData.talents?.[0]) {
+                console.log('2. talents[0]的完整数据:', this.effectData.talents[0]);
+                console.log('3. talents[0].status =', JSON.stringify(this.effectData.talents[0].status));
+                console.log('4. talents[0].talentName =', JSON.stringify(this.effectData.talents[0].talentName));
 
-            // 对比 talentName 字段
-            if (this.effectData.talents?.[0] && this.allCollaborations[0]) {
-                console.log('📊 字段对比:');
-                console.log('   talents[0] 的所有字段名:', Object.keys(this.effectData.talents[0]));
-                console.log('   talents[0].talentName =', JSON.stringify(this.effectData.talents[0].talentName));
-
-                console.log('   allCollaborations[0] 的所有字段名:', Object.keys(this.allCollaborations[0]));
-                console.log('   allCollaborations[0].talentName =', JSON.stringify(this.allCollaborations[0].talentName));
-                console.log('   allCollaborations[0].talent =', JSON.stringify(this.allCollaborations[0].talent));
-                console.log('   allCollaborations[0].name =', JSON.stringify(this.allCollaborations[0].name));
-                console.log('   allCollaborations[0].talentInfo =', this.allCollaborations[0].talentInfo);
-                if (this.allCollaborations[0].talentInfo) {
-                    console.log('   talentInfo 的字段名:', Object.keys(this.allCollaborations[0].talentInfo));
-                    console.log('   talentInfo.talentName =', JSON.stringify(this.allCollaborations[0].talentInfo.talentName));
-                    console.log('   talentInfo.name =', JSON.stringify(this.allCollaborations[0].talentInfo.name));
-                    console.log('   talentInfo.nickname =', JSON.stringify(this.allCollaborations[0].talentInfo.nickname));
-                }
-
-                console.log('   是否相等:', this.effectData.talents[0].talentName === this.allCollaborations[0].talentName);
+                // 统计各状态的 talent 数量
+                const talentStatusCount = {};
+                this.effectData.talents.forEach(t => {
+                    const status = t.status || '未知';
+                    talentStatusCount[status] = (talentStatusCount[status] || 0) + 1;
+                });
+                console.log('5. talents 中各状态数量:', talentStatusCount);
             }
-
-            // 统计各状态的合作数量
-            const statusCount = {};
-            this.allCollaborations.forEach(c => {
-                statusCount[c.status] = (statusCount[c.status] || 0) + 1;
-            });
-            console.log('5. 各状态合作数量:', statusCount);
 
             // [v3.3.0 核心修复] 过滤出 '视频已发布' 状态的达人数据
             // 效果验收只关心已发布的视频，因为只有发布后才有 T+7 和 T+21 的效果数据
