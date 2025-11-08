@@ -221,11 +221,12 @@ export class EffectTab {
 
             // [v3.3.0 核心修复] 过滤出 '视频已发布' 状态的达人数据
             // 效果验收只关心已发布的视频，因为只有发布后才有 T+7 和 T+21 的效果数据
-            if (this.effectData && this.effectData.talents) {
-                const publishedStatuses = ['视频已发布'];
-                this.effectData.talents = this.effectData.talents.filter(talent =>
-                    publishedStatuses.includes(talent.status)
-                );
+            if (this.effectData && this.effectData.talents && this.allCollaborations.length > 0) {
+                // 使用 talentName 关联 allCollaborations 获取状态信息
+                this.effectData.talents = this.effectData.talents.filter(talent => {
+                    const collaboration = this.allCollaborations.find(c => c.talentName === talent.talentName);
+                    return collaboration && collaboration.status === '视频已发布';
+                });
             }
 
             this.render();
@@ -416,9 +417,9 @@ export class EffectTab {
         // 计算 T+7 复盘日期 (最后发布日期 + 7天)
         if (t7ReviewDate) {
             // [v3.3.0 修复] 修复时区问题：使用本地时区解析日期
-            // 只计算"视频已发布"状态且有发布日期的达人
+            // talents 已在 load() 方法中过滤为"视频已发布"状态，这里只需检查 publishDate
             const lastPublishDate = talents
-                .filter(t => t.status === '视频已发布' && t.publishDate)
+                .filter(t => t.publishDate)
                 .map(t => {
                     const [y, m, d] = t.publishDate.split('T')[0].split('-').map(Number);
                     return new Date(y, m - 1, d);
