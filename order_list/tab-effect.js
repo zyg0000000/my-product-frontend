@@ -219,70 +219,14 @@ export class EffectTab {
 
             this.effectData = response;
 
-            // [v3.3.0 调试] 检查 API 返回的数据结构
-            console.log('🔍 [效果验收 Tab 调试]');
-            console.log('1. API返回的overall数据:', this.effectData.overall);
-            console.log('2. overall中的关键指标:');
-            console.log('   - t21_cpm:', this.effectData.overall?.t21_cpm);
-            console.log('   - t7_cpm:', this.effectData.overall?.t7_cpm);
-            console.log('   - t21_totalViews:', this.effectData.overall?.t21_totalViews);
-            console.log('   - t7_totalViews:', this.effectData.overall?.t7_totalViews);
-            console.log('3. API返回的talents数量:', this.effectData.talents?.length || 0);
-
-            if (this.effectData.talents?.[0]) {
-                console.log('4. talents[0]样例:', this.effectData.talents[0]);
-
-                // 统计 talents 中各状态的数量（如果有status字段）
-                const talentStatusCount = {};
-                this.effectData.talents.forEach(t => {
-                    const status = t.status || '未知';
-                    talentStatusCount[status] = (talentStatusCount[status] || 0) + 1;
-                });
-                console.log('5. talents 中各状态数量:', JSON.stringify(talentStatusCount));
-            }
-
-            console.log('6. allCollaborations数量:', this.allCollaborations.length);
-            // 统计 allCollaborations 中各状态的数量
-            const collabStatusCount = {};
-            this.allCollaborations.forEach(c => {
-                collabStatusCount[c.status] = (collabStatusCount[c.status] || 0) + 1;
-            });
-            console.log('7. allCollaborations 中各状态数量:', JSON.stringify(collabStatusCount));
-
-            // 计算各状态的总金额
-            const publishedAmount = this.allCollaborations
-                .filter(c => c.status === '视频已发布')
-                .reduce((sum, c) => sum + (c.amount || 0), 0);
-            const totalAmount = this.allCollaborations
-                .reduce((sum, c) => sum + (c.amount || 0), 0);
-            console.log('8. 金额统计:');
-            console.log(`   - 视频已发布的总金额: ¥${publishedAmount.toLocaleString()}`);
-            console.log(`   - 所有合作的总金额: ¥${totalAmount.toLocaleString()}`);
-
-            // 根据 CPM 公式反推后端使用的金额: 金额 = (CPM * 播放量) / 1000
-            if (this.effectData.overall?.t7_cpm && this.effectData.overall?.t7_totalViews) {
-                const calculatedAmount = (this.effectData.overall.t7_cpm * this.effectData.overall.t7_totalViews) / 1000;
-                console.log(`   - 根据 t7_cpm 反推的金额: ¥${calculatedAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
-                console.log(`   - 公式: (${this.effectData.overall.t7_cpm} × ${this.effectData.overall.t7_totalViews}) ÷ 1000`);
-            }
-
             // [v3.3.0 核心修复] 过滤出 '视频已发布' 状态的达人数据
             // 效果验收只关心已发布的视频，因为只有发布后才有 T+7 和 T+21 的效果数据
             if (this.effectData && this.effectData.talents && this.allCollaborations.length > 0) {
-                const originalCount = this.effectData.talents.length;
-
                 // 使用 id 字段关联 allCollaborations 获取状态信息
                 this.effectData.talents = this.effectData.talents.filter(talent => {
                     const collaboration = this.allCollaborations.find(c => c.id === talent.id);
-                    const matched = collaboration && collaboration.status === '视频已发布';
-
-                    // 调试：输出匹配情况
-                    console.log(`${matched ? '✅' : '❌'} 达人 "${talent.talentName}" (id:${talent.id}) - 找到合作:${!!collaboration}, 状态:${collaboration?.status || 'N/A'}`);
-
-                    return matched;
+                    return collaboration && collaboration.status === '视频已发布';
                 });
-
-                console.log(`6. 过滤结果: ${originalCount} -> ${this.effectData.talents.length} (已发布)`);
             }
 
             this.render();
