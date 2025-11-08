@@ -219,15 +219,20 @@ export class EffectTab {
 
             this.effectData = response;
 
-            // [v3.3.0 调试] 检查 talents 是否已包含 status 字段
-            console.log('🔍 [效果验收 Tab 调试 - 简化版]');
-            console.log('1. API返回的talents数量:', this.effectData.talents?.length || 0);
-            if (this.effectData.talents?.[0]) {
-                console.log('2. talents[0]的完整数据:', this.effectData.talents[0]);
-                console.log('3. talents[0].status =', JSON.stringify(this.effectData.talents[0].status));
-                console.log('4. talents[0].talentName =', JSON.stringify(this.effectData.talents[0].talentName));
+            // [v3.3.0 调试] 检查 API 返回的数据结构
+            console.log('🔍 [效果验收 Tab 调试]');
+            console.log('1. API返回的overall数据:', this.effectData.overall);
+            console.log('2. overall中的关键指标:');
+            console.log('   - t21_cpm:', this.effectData.overall?.t21_cpm);
+            console.log('   - t7_cpm:', this.effectData.overall?.t7_cpm);
+            console.log('   - t21_totalViews:', this.effectData.overall?.t21_totalViews);
+            console.log('   - t7_totalViews:', this.effectData.overall?.t7_totalViews);
+            console.log('3. API返回的talents数量:', this.effectData.talents?.length || 0);
 
-                // 统计各状态的 talent 数量
+            if (this.effectData.talents?.[0]) {
+                console.log('4. talents[0]样例:', this.effectData.talents[0]);
+
+                // 统计 talents 中各状态的数量（如果有status字段）
                 const talentStatusCount = {};
                 this.effectData.talents.forEach(t => {
                     const status = t.status || '未知';
@@ -235,6 +240,14 @@ export class EffectTab {
                 });
                 console.log('5. talents 中各状态数量:', talentStatusCount);
             }
+
+            console.log('6. allCollaborations数量:', this.allCollaborations.length);
+            // 统计 allCollaborations 中各状态的数量
+            const collabStatusCount = {};
+            this.allCollaborations.forEach(c => {
+                collabStatusCount[c.status] = (collabStatusCount[c.status] || 0) + 1;
+            });
+            console.log('7. allCollaborations 中各状态数量:', collabStatusCount);
 
             // [v3.3.0 核心修复] 过滤出 '视频已发布' 状态的达人数据
             // 效果验收只关心已发布的视频，因为只有发布后才有 T+7 和 T+21 的效果数据
