@@ -26,7 +26,7 @@ import { renderFilters } from './filter-renderer.js';
 import { buildExportPayload, generateExcelFile } from './export-handler.js';
 import { initializeDimensionModal, updateDimensionsPreview } from './modal-dimensions.js';
 import { renderPreviewTable, initializeTablePreview, clearPreviewData } from './table-preview.js';
-import { preloadAllDynamicDimensions } from './dimension-config.js';
+import { preloadAllDynamicDimensions, setDynamicLoadingEnabled } from './dimension-config.js';
 import { preloadMetadata } from './field-metadata.js';
 
 // DOM元素缓存
@@ -135,18 +135,22 @@ function setDefaultTimeMonth() {
  */
 async function loadInitialConfigs() {
     try {
+        // 【临时禁用】暂时禁用动态加载，等getFieldMetadata部署后再启用
+        setDynamicLoadingEnabled(false);
+        console.log('[Main] 动态维度加载已禁用，使用静态配置');
+
         // 并行加载筛选选项、项目列表和字段元数据
         const [filterOptsRes, projectsRes] = await Promise.all([
             getRequest(API_ENDPOINTS.filters),
             getRequest(API_ENDPOINTS.projects),
             // 预加载字段元数据（用于智能维度管理）
-            preloadMetadata().catch(err => {
-                console.warn('[Main] 预加载字段元数据失败，将使用静态配置:', err);
-            }),
+            // preloadMetadata().catch(err => {
+            //     console.warn('[Main] 预加载字段元数据失败，将使用静态配置:', err);
+            // }),
             // 预加载所有实体的动态维度配置
-            preloadAllDynamicDimensions().catch(err => {
-                console.warn('[Main] 预加载动态维度失败，将使用静态配置:', err);
-            })
+            // preloadAllDynamicDimensions().catch(err => {
+            //     console.warn('[Main] 预加载动态维度失败，将使用静态配置:', err);
+            // })
         ]);
 
         const configs = {};
@@ -170,7 +174,7 @@ async function loadInitialConfigs() {
             types: configs.talentTypes.length,
             projects: configs.projects.length
         });
-        console.log('[Main] 智能维度管理系统已初始化（动态加载+静态降级）');
+        console.log('[Main] 使用静态维度配置（动态加载已临时禁用）');
 
     } catch (error) {
         console.error('Failed to load initial configs:', error);
