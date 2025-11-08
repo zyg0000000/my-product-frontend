@@ -108,7 +108,7 @@ let allData = [];
  * @param {Array} data - 预览数据
  * @param {Array} selectedFields - 选中的字段ID列表
  */
-export function renderPreviewTable(data, selectedFields) {
+export async function renderPreviewTable(data, selectedFields) {
     if (!data || data.length === 0) {
         renderEmptyState();
         return;
@@ -121,6 +121,12 @@ export function renderPreviewTable(data, selectedFields) {
     // 获取字段配置（用于显示友好的列名）
     const state = getState();
     const { selectedEntity } = state;
+
+    // 初始化动态字段映射（如果尚未初始化）
+    if (!dynamicFieldMapping) {
+        await getFieldMappingForEntity(selectedEntity);
+    }
+
     const dimensionGroups = getEntityDimensions(selectedEntity);
 
     // 构建字段映射

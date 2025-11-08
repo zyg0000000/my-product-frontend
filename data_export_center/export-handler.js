@@ -234,6 +234,12 @@ export async function generateExcelFile(data, selectedFields, filename) {
             throw new Error('XLSX库未加载');
         }
 
+        // 初始化动态字段映射（如果尚未初始化）
+        if (!dynamicBackendFieldMapping) {
+            const entity = getSelectedEntity() || 'talent';
+            await getBackendFieldMapping(entity);
+        }
+
         // 处理数据，确保只包含选中的字段
         const processedData = processDataForExport(data, selectedFields);
 

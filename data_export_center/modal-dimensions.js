@@ -1,9 +1,10 @@
 /**
  * @module modal-dimensions
  * @description 维度管理模态框模块，管理维度选择和顺序调整
+ * @version 2.1.0 - 支持智能维度加载（动态+静态）
  */
 
-import { getEntityDimensions } from './dimension-config.js';
+import { getEntityDimensionsSmart } from './dimension-config.js';
 import { getState, updateSelectedDimensions } from './state-manager.js';
 
 /**
@@ -34,8 +35,8 @@ export function renderDimensionsModal() {
     const state = getState();
     const { selectedEntity } = state;
 
-    // 获取当前实体的所有维度
-    const allDimensionGroups = getEntityDimensions(selectedEntity);
+    // 获取当前实体的所有维度（智能选择动态或静态配置）
+    const allDimensionGroups = getEntityDimensionsSmart(selectedEntity);
     if (!allDimensionGroups) {
         console.warn('No dimensions available for entity:', selectedEntity);
         return;
