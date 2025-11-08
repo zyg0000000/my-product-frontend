@@ -16,13 +16,15 @@
 
 ## 📁 文件清单
 
-### 已模块化的页面（10个）
+### 已模块化的页面（12个）
 
 | 旧文件（本目录） | 大小 | 替代版本（模块化） | 模块数量 | 迁移时间 |
 |-----------------|------|-------------------|----------|----------|
 | `automation_suite.js` | 64K | `../automation_suite/` | 10个模块 | 2025-11 |
+| `data_export_center.js` | 18K | `../data_export_center/` | 10个模块 | 2025-11 |
 | `order_list.js` | 95K | `../order_list/` | 5个模块 | 2025-11 |
 | `performance.js` | 50K | `../performance/` | 11个模块 | 2025-11 |
+| `project_analysis.js` | 16K | `../project_analysis/` | 9个模块 | 2025-11 |
 | `project_automation.js` | 60K | `../project_automation/` | 7个模块 | 2025-11 |
 | `project_report.js` | 63K | `../project_report/` | 7个模块 | 2025-11 |
 | `rebate_management.js` | 37K | `../rebate_management/` | 11个模块 | 2025-11 |
@@ -31,7 +33,7 @@
 | `task_center.js` | 26K | `../task_center/` | 11个模块 | 2025-11 |
 | `works_management.js` | 20K | `../works_management/` | 10个模块 | 2025-11 |
 
-**总计**：10个文件，约 558KB
+**总计**：12个文件，约 592KB
 
 ---
 
