@@ -10,7 +10,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa; /* Consistent background from automation_suite */
+            background-color: #f7f8fc;
         }
         /* --- Sidebar Styles (Copied from automation_suite.html) --- */
         .sidebar { transition: width 0.3s ease-in-out; }
@@ -26,78 +26,314 @@
         .nav-link:hover { background-color: #f3f4f6; }
         .nav-link.active { background-color: #2563eb; color: white; font-weight: 600; }
 
-        /* --- Page Specific Styles (Aligned with automation_suite.html) --- */
-        /* Card style matching automation_suite panels */
+        /* --- Page Specific Styles --- */
+
+        /* 步骤指示器 */
+        .step-indicator {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        .step-indicator-item {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        .step-indicator-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 1.25rem;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, #e5e7eb 0%, #e5e7eb 100%);
+            z-index: -1;
+        }
+        .step-indicator-item.active:not(:last-child)::after {
+            background: linear-gradient(to right, #4f46e5 0%, #e5e7eb 100%);
+        }
+        .step-indicator-item.completed:not(:last-child)::after {
+            background: linear-gradient(to right, #4f46e5 0%, #4f46e5 100%);
+        }
+        .step-circle {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #e5e7eb;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #9ca3af;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .step-indicator-item.active .step-circle {
+            border-color: #4f46e5;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        .step-indicator-item.completed .step-circle {
+            border-color: #4f46e5;
+            background: #4f46e5;
+            color: white;
+        }
+
+        /* 配置卡片升级 */
         .config-card {
-            @apply bg-white p-6 rounded-lg shadow-sm; /* Key style for the cards */
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+            transition: all 0.3s ease;
         }
-        /* Card Title style matching automation_suite headers inside cards */
+        .config-card:hover {
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.1);
+            transform: translateY(-2px);
+        }
         .config-card h3 {
-             /* Adjusted font size and weight */
-            @apply text-lg font-semibold text-gray-700 flex items-center mb-0; /* 将 mb-4 移除或改为 mb-0，由内部容器控制间距 */
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0;
         }
-        /* Step number styled similarly to icons/indicators in automation_suite */
+
+        /* 步骤编号徽章 */
         .step-number {
-             /* Using rounded-md as in automation_suite buttons/elements */
-            @apply bg-indigo-100 text-indigo-700 w-6 h-6 rounded-md flex items-center justify-center font-bold text-xs mr-3;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.5rem;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            margin-right: 0.75rem;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
         }
-        /* Radio button choice styling */
+        /* 单选按钮选项样式 */
         .choice-label {
-            /* Mimics styling of selectable items */
-            @apply flex items-center p-3 border rounded-md cursor-pointer bg-white hover:bg-gray-50 transition duration-150 ease-in-out has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-300 has-[:checked]:ring-1 has-[:checked]:ring-indigo-200;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        .choice-label:hover {
+            border-color: #c7d2fe;
+            background: #faf5ff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+        }
+        .choice-label:has(input:checked) {
+            border-color: #4f46e5;
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.15);
+        }
+        .choice-label:has(input:checked)::before {
+            content: '';
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .choice-label:has(input:checked)::after {
+            content: '✓';
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
         }
         .choice-input {
-             /* Consistent form element style */
-            @apply h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 rounded;
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #4f46e5;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .choice-input:checked {
+            background: #4f46e5;
+            border-color: #4f46e5;
+        }
+        .choice-input:focus {
+            outline: none;
+            ring: 2px;
+            ring-color: #a5b4fc;
         }
         .choice-text {
-            @apply ml-3 text-sm font-medium text-gray-800;
+            margin-left: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .choice-label:has(input:checked) .choice-text {
+            color: #4338ca;
         }
 
-        /* Details/Summary styling for Dimension Groups */
-        details.dimension-group > summary::-webkit-details-marker { 
-            display: none; 
-        }
-        details.dimension-group > summary { 
-            list-style: none; 
-            @apply cursor-pointer p-3 bg-gray-50 hover:bg-gray-100 flex justify-between items-center font-medium text-sm text-gray-700;
-        }
-        /* 修复折叠组的圆角问题 */
+        /* 维度折叠组样式 */
         details.dimension-group {
-             @apply border border-gray-200 rounded-md overflow-hidden;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        details.dimension-group:hover {
+            border-color: #c7d2fe;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.08);
+        }
+        details.dimension-group[open] {
+            border-color: #a5b4fc;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12);
+        }
+        details.dimension-group > summary::-webkit-details-marker {
+            display: none;
+        }
+        details.dimension-group > summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 1rem;
+            background: linear-gradient(to right, #f9fafb, #ffffff);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #374151;
+            transition: all 0.2s;
+        }
+        details.dimension-group > summary:hover {
+            background: linear-gradient(to right, #eef2ff, #f9fafb);
+            color: #4338ca;
         }
         details.dimension-group[open] > summary {
-            /* 展开时移除底部圆角 */
-            @apply rounded-b-none;
+            background: linear-gradient(to right, #eef2ff, #e0e7ff);
+            color: #4338ca;
+            border-bottom: 1px solid #c7d2fe;
         }
-        details.dimension-group:not([open]) > summary {
-             /* 折叠时保持圆角 */
-            @apply rounded-md;
+        details[open] > summary .arrow-icon {
+            transform: rotate(90deg);
         }
-        
-        details[open] > summary .arrow-icon { 
-            transform: rotate(90deg); 
+        .arrow-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #6b7280;
+            transition: transform 0.3s ease, color 0.2s;
         }
-        .arrow-icon { 
-            /* 箭头样式和过渡 */
-            transition: transform 0.2s; 
-            @apply w-4 h-4 text-gray-500; 
+        details.dimension-group[open] > summary .arrow-icon {
+            color: #4f46e5;
         }
-        .dimension-options { 
-            /* 选项容器，使用白色背景 */
-            @apply p-4 grid grid-cols-1 md:grid-cols-2 gap-3 bg-white; 
+        .dimension-options {
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 0.75rem;
+            background: white;
+        }
+        @media (min-width: 768px) {
+            .dimension-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
 
-        /* Form element styles matching automation_suite inputs/selects */
+        /* 表单元素样式 */
         .form-input, .form-select {
-            @apply mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm;
+            margin-top: 0.25rem;
+            display: block;
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #4f46e5;
+            ring: 2px;
+            ring-color: rgba(79, 70, 229, 0.2);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
         .form-checkbox {
-             @apply h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500;
+            width: 1rem;
+            height: 1rem;
+            color: #4f46e5;
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+            transition: all 0.2s;
+        }
+        .form-checkbox:checked {
+            background: #4f46e5;
+            border-color: #4f46e5;
+        }
+        .form-checkbox:focus {
+            outline: none;
+            ring: 2px;
+            ring-color: rgba(79, 70, 229, 0.2);
         }
         .form-label {
-             @apply block text-sm font-medium text-gray-700;
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.25rem;
+        }
+
+        /* 主要操作按钮 */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.625rem 1.25rem;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #4338ca, #4f46e5);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+            transform: translateY(-2px);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         /* Custom scrollbar copied from automation_suite */
@@ -106,20 +342,215 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a3a3a3; }
 
+        /* Tab 导航样式（参考 project-report） */
+        .tab-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6b7280;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+
+        .tab-button:hover {
+            color: #4f46e5;
+            background-color: #eef2ff;
+        }
+
+        .tab-button.active {
+            color: #4f46e5;
+            background-color: #eef2ff;
+            font-weight: 700;
+        }
+
+        .tab-button svg {
+            transition: transform 0.2s ease;
+        }
+
+        .tab-button:hover svg {
+            transform: translateY(-2px);
+        }
+
+        /* Tab 分隔线 */
+        .tab-divider {
+            height: 1.5rem;
+            width: 1px;
+            background-color: #e5e7eb;
+            margin: 0 0.5rem;
+        }
+
+        /* Tab 内容面板 */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 数据表格样式 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        .data-table thead {
+            background: linear-gradient(to right, #f9fafb, #f3f4f6);
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .data-table th {
+            padding: 0.875rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            white-space: nowrap;
+        }
+        .data-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            color: #4b5563;
+        }
+        .data-table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 分页器样式 */
+        .pagination {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .pagination-btn {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .pagination-btn:hover:not(:disabled) {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .pagination-btn.active {
+            background: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+
         /* [修复] 移除了 .btn-primary，因为样式将内联 */
-    </style>
+</style>
 </head>
 <body class="bg-gray-100">
     <div id="sidebar-container"></div>
 
-    <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 main-content">
-        <header class="mb-8">
-            <h1 class="text-2xl font-bold text-gray-800">数据导出中心</h1>
-            <p class="text-sm text-gray-500 mt-1">按需组合维度与筛选条件，生成定制化的业务报表。</p>
+    <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 main-content" style="margin-left: 9.5rem;">
+        <!-- 面包屑导航 -->
+        <nav class="mb-4">
+            <ol class="flex items-center space-x-2 text-sm text-gray-600">
+                <li><a href="index.html" class="hover:text-indigo-600 transition-colors">首页</a></li>
+                <li>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </li>
+                <li class="text-gray-900 font-medium">数据导出中心</li>
+            </ol>
+        </nav>
+
+        <!-- Header 卡片 -->
+        <header class="bg-white rounded-xl shadow-sm border border-gray-200/80 p-6 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">数据导出中心</h1>
+                <p class="text-sm text-gray-500 mt-2">按需组合维度与筛选条件，生成定制化的业务报表</p>
+            </div>
         </header>
 
-        <!-- Use space-y-8 for card spacing, matching automation_suite -->
-        <div class="space-y-8">
+        <!-- Tab 导航 -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200/80">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <nav class="flex items-center" aria-label="Export Tabs">
+                    <button class="tab-button active" data-tab="config-tab">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        配置导出条件
+                    </button>
+                    <div class="tab-divider"></div>
+                    <button class="tab-button" data-tab="preview-tab">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        数据预览
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Tab 1: 配置导出条件 -->
+        <div id="config-tab" class="tab-content active">
+            <!-- 步骤指示器 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200/80 p-6 mb-6">
+                <div class="step-indicator">
+                    <div class="step-indicator-item active">
+                        <div class="step-circle">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <div class="text-xs font-medium text-gray-900">选择主体</div>
+                    </div>
+                    <div class="step-indicator-item">
+                        <div class="step-circle">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                            </svg>
+                        </div>
+                        <div class="text-xs font-medium text-gray-500">设定筛选</div>
+                    </div>
+                    <div class="step-indicator-item">
+                        <div class="step-circle">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                            </svg>
+                        </div>
+                        <div class="text-xs font-medium text-gray-500">选择维度</div>
+                    </div>
+                    <div class="step-indicator-item">
+                        <div class="step-circle">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="text-xs font-medium text-gray-500">生成预览</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Use space-y-6 for card spacing -->
+            <div class="space-y-6">
 
             <!-- Step 1 Card -->
             <div class="config-card">
@@ -153,36 +584,143 @@
 
             <!-- Step 3 Card -->
             <div id="dimensions-section" class="config-card">
-                <h3><span class="step-number">3</span>选择导出维度 (数据列)</h3>
-                <!-- [UI 优化] 添加 bg-gray-50 容器，并在此处应用滚动条 -->
-                <div class="bg-gray-50 rounded-md p-4 mt-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                    <div id="dimensions-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <p class="text-sm text-gray-500 p-4 text-center col-span-full">正在根据您选择的导出主体加载可选维度...</p>
-                        <!-- Dimension groups will be injected here by JS -->
+                <div class="flex justify-between items-center mb-4">
+                    <h3><span class="step-number">3</span>选择导出维度 (数据列)</h3>
+                    <button id="manage-dimensions-btn" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300 transition-all shadow-sm inline-flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        管理维度
+                    </button>
+                </div>
+                <!-- 已选维度显示区 -->
+                <div class="bg-gray-50/70 rounded-lg p-4 border border-gray-200/80">
+                    <div id="selected-dimensions-preview" class="flex flex-wrap gap-2">
+                        <p class="text-sm text-gray-500 w-full text-center py-2">请点击"管理维度"按钮选择要导出的数据列...</p>
                     </div>
                 </div>
             </div>
 
             <!-- Step 4 Card -->
             <div id="export-action-section" class="config-card">
-                 <h3><span class="step-number">4</span>生成报表</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end pt-4"> <!-- 增加 pt-4 保持间距 -->
+                 <h3><span class="step-number">4</span>生成数据预览</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end pt-4">
                     <div>
                         <label for="export-filename" class="form-label">导出文件名</label>
-                        <input type="text" id="export-filename" class="form-input" placeholder="默认为“数据导出报表”">
+                        <input type="text" id="export-filename" class="form-input" placeholder="默认为"数据导出报表"">
                     </div>
                     <div>
                         <label for="export-time-month" class="form-label">数据月份 (用于价格等)</label>
                         <input type="month" id="export-time-month" class="form-input">
                     </div>
-                    <!-- [TAILWIND 修复] 将样式类直接内联到按钮上，而不是使用 @apply -->
-                    <button id="generate-export-btn" class="w-full h-10 px-5 flex items-center justify-center bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed">
-                        <span id="export-btn-text">生成并下载 Excel</span>
-                        <div id="export-btn-loader" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <button id="generate-preview-btn" class="btn-primary w-full gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span id="preview-btn-text">生成数据预览</span>
+                        <div id="preview-btn-loader" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white ml-2"></div>
                     </button>
                 </div>
             </div>
-        </div>
+
+            </div><!-- End of space-y-6 -->
+        </div><!-- End of Tab 1 -->
+
+        <!-- Tab 2: 数据预览与下载 -->
+        <div id="preview-tab" class="tab-content">
+            <!-- 顶部工具栏 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200/80 p-6 mb-6">
+                <div class="flex justify-between items-center">
+                    <!-- 左侧：数据统计 -->
+                    <div class="flex items-center gap-6">
+                        <div>
+                            <p class="text-sm text-gray-500">总记录数</p>
+                            <p id="total-records" class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                        <div class="h-12 w-px bg-gray-200"></div>
+                        <div>
+                            <p class="text-sm text-gray-500">当前页</p>
+                            <p id="current-page-display" class="text-lg font-semibold text-indigo-600">1 / 1</p>
+                        </div>
+                        <div class="h-12 w-px bg-gray-200"></div>
+                        <div>
+                            <p class="text-sm text-gray-500">每页显示</p>
+                            <select id="page-size-select" class="text-lg font-semibold text-gray-700 border-0 bg-transparent cursor-pointer">
+                                <option value="20">20 条</option>
+                                <option value="50" selected>50 条</option>
+                                <option value="100">100 条</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- 右侧：操作按钮 -->
+                    <div class="flex gap-3">
+                        <button id="back-to-config-btn" class="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all shadow-sm inline-flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            返回配置
+                        </button>
+                        <button id="refresh-preview-btn" class="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-all shadow-sm inline-flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            刷新数据
+                        </button>
+                        <button id="export-excel-btn" class="btn-primary px-6 py-2 gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                            <span id="export-excel-text">导出 Excel</span>
+                            <div id="export-excel-loader" class="hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white ml-2"></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据表格区域 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200/80 overflow-hidden">
+                <div class="overflow-x-auto custom-scrollbar" style="max-height: 600px;">
+                    <table id="data-preview-table" class="data-table">
+                        <thead>
+                            <tr id="table-header-row">
+                                <th class="sticky top-0 bg-gray-50">加载中...</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <tr>
+                                <td class="text-center py-12 text-gray-500">
+                                    <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    <p class="text-lg font-medium">暂无数据</p>
+                                    <p class="text-sm mt-2">请先在"配置导出条件"中设置筛选条件和维度，然后点击"生成数据预览"</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 分页控件 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200/80 p-4 mt-6">
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-600">
+                        显示第 <span id="range-start">0</span> - <span id="range-end">0</span> 条，共 <span id="range-total">0</span> 条
+                    </div>
+                    <div class="pagination" id="pagination-controls">
+                        <button class="pagination-btn" id="first-page-btn" disabled>首页</button>
+                        <button class="pagination-btn" id="prev-page-btn" disabled>上一页</button>
+                        <div id="page-numbers" class="flex gap-2">
+                            <button class="pagination-btn active">1</button>
+                        </div>
+                        <button class="pagination-btn" id="next-page-btn" disabled>下一页</button>
+                        <button class="pagination-btn" id="last-page-btn" disabled>尾页</button>
+                    </div>
+                </div>
+            </div>
+        </div><!-- End of Tab 2 -->
+
     </main>
 
     <!-- Loading Overlay -->
@@ -193,8 +731,85 @@
         </div>
     </div>
 
+    <!-- 维度管理模态框 -->
+    <div id="dimensions-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 flex items-center justify-center p-4">
+        <div class="relative mx-auto p-6 border w-full max-w-5xl shadow-2xl rounded-xl bg-white">
+            <!-- 模态框标题 -->
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900">管理导出维度</h3>
+                    <p class="text-sm text-gray-500 mt-1">从左侧选择维度，在右侧调整顺序</p>
+                </div>
+                <button id="close-dimensions-modal-btn" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-2 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- 双面板布局 -->
+            <div class="grid grid-cols-2 gap-6 mt-4 max-h-[65vh] overflow-hidden">
+                <!-- 左侧：可选维度池 -->
+                <div class="flex flex-col">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-semibold text-gray-800 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                            可选维度
+                        </h4>
+                        <span id="available-count" class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">0 个</span>
+                    </div>
+                    <div id="available-dimensions-pool" class="flex-1 space-y-2 p-3 border-2 border-gray-200 rounded-lg bg-gray-50/50 overflow-y-auto custom-scrollbar"></div>
+                </div>
+
+                <!-- 右侧：已选维度列表 -->
+                <div class="flex flex-col">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-semibold text-gray-800 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            已选维度
+                        </h4>
+                        <span id="selected-count" class="text-xs text-white bg-indigo-500 px-2 py-1 rounded-full">0 个</span>
+                    </div>
+                    <div id="selected-dimensions-list" class="flex-1 p-3 border-2 border-indigo-200 rounded-lg bg-indigo-50/30 overflow-y-auto custom-scrollbar">
+                        <p id="selected-placeholder" class="text-sm text-gray-400 text-center py-8">
+                            <svg class="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                            </svg>
+                            从左侧点击添加维度
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部操作按钮 -->
+            <div class="mt-6 flex justify-between items-center border-t pt-6">
+                <button id="select-all-dimensions-btn" class="px-4 py-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg font-medium transition-all inline-flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    全选
+                </button>
+                <div class="flex gap-3">
+                    <button id="cancel-dimensions-btn" class="px-6 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 font-medium transition-all shadow-sm">
+                        取消
+                    </button>
+                    <button id="save-dimensions-btn" class="btn-primary px-6 py-2.5 gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        保存设置
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="sidebar.js"></script>
-    <script src="data_export_center.js"></script>
+    <script type="module" src="data_export_center/main.js"></script>
 </body>
 </html>
 
