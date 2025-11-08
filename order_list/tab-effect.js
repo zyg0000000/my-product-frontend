@@ -1,7 +1,15 @@
 /**
  * @file order_list/tab-effect.js
  * @description 效果验收 Tab 模块
- * @version 3.2.0 - 紧凑模式改为下拉箭头折叠设计（类似main分支）
+ * @version 3.3.0 - 添加合作状态过滤（只显示"视频已发布"）
+ *
+ * 变更日志:
+ * - v3.3.0:
+ * - [核心修复] 增加了对合作状态的过滤
+ * - 构造函数现在接收 `collaborations` 参数
+ * - `load()` 方法现在会过滤出 '视频已发布' 状态的数据
+ * - T+7 复盘日期计算和达人明细表格渲染现在都使用过滤后的数据
+ * - 添加了 `updateData()` 方法以支持数据刷新
  *
  * 功能:
  * - 效果看板数据加载
@@ -30,9 +38,10 @@ const { API, Modal, Format } = AppCore;
 const PERFORMANCE_API_ENDPOINT = '/project-performance';
 
 export class EffectTab {
-    constructor(projectId, project) {
+    constructor(projectId, project, allCollaborations) {
         this.projectId = projectId;
         this.project = project;
+        this.allCollaborations = allCollaborations || []; // [v3.3.0] 存储全量合作数据
 
         // 数据
         this.effectData = null;
@@ -209,6 +218,17 @@ export class EffectTab {
             });
 
             this.effectData = response;
+
+            // [v3.3.0 核心修复] 过滤出 '视频已发布' 状态的达人数据
+            // 效果验收只关心已发布的视频，因为只有发布后才有 T+7 和 T+21 的效果数据
+            if (this.effectData && this.effectData.talents && this.allCollaborations.length > 0) {
+                // 使用 id 字段关联 allCollaborations 获取状态信息
+                this.effectData.talents = this.effectData.talents.filter(talent => {
+                    const collaboration = this.allCollaborations.find(c => c.id === talent.id);
+                    return collaboration && collaboration.status === '视频已发布';
+                });
+            }
+
             this.render();
         } catch (error) {
             console.error('加载效果看板数据失败:', error);
@@ -396,7 +416,8 @@ export class EffectTab {
 
         // 计算 T+7 复盘日期 (最后发布日期 + 7天)
         if (t7ReviewDate) {
-            // 修复时区问题：使用本地时区解析日期
+            // [v3.3.0 修复] 修复时区问题：使用本地时区解析日期
+            // talents 已在 load() 方法中过滤为"视频已发布"状态，这里只需检查 publishDate
             const lastPublishDate = talents
                 .filter(t => t.publishDate)
                 .map(t => {
@@ -803,6 +824,16 @@ export class EffectTab {
             this.elements.t21Content?.classList.add('hidden');
             this.elements.t7Content?.classList.remove('hidden');
         }
+    }
+
+    /**
+     * [v3.3.0] 更新数据（用于刷新项目数据后重新加载）
+     */
+    updateData(project, allCollaborations) {
+        this.project = project;
+        this.allCollaborations = allCollaborations || [];
+        // 清空缓存的效果数据，强制下次 load 时重新获取
+        this.effectData = null;
     }
 }
 
