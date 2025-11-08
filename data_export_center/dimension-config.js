@@ -48,11 +48,29 @@ export const DIMENSION_CONFIG = {
             '作品表现 (T+7)': [
                 { id: 'work_total_t7_views', label: 'T+7 总播放量' }
             ],
-            '粉丝画像': [
+            '粉丝画像 - 基础指标': [
                 { id: 'cpm60s', label: '60s+预期CPM' },
                 { id: 'maleAudienceRatio', label: '男性观众比例' },
                 { id: 'femaleAudienceRatio', label: '女性观众比例' },
-                { id: 'audience_18_40_ratio', label: '18-40岁观众占比' },
+            ],
+            '粉丝画像 - 年龄段分布': [
+                { id: 'ratio_18_23', label: '18-23岁粉丝比例' },
+                { id: 'ratio_24_30', label: '24-30岁粉丝比例' },
+                { id: 'ratio_31_40', label: '31-40岁粉丝比例' },
+                { id: 'ratio_41_50', label: '41-50岁粉丝比例' },
+                { id: 'ratio_50_plus', label: '50岁以上粉丝比例' },
+                { id: 'audience_18_40_ratio', label: '18-40岁观众占比（计算）' },
+                { id: 'audience_40_plus_ratio', label: '40岁以上观众占比（计算）' },
+            ],
+            '粉丝画像 - 八大人群': [
+                { id: 'ratio_town_middle_aged', label: '小镇中老年粉丝比例' },
+                { id: 'ratio_senior_middle_class', label: '资深中产粉丝比例' },
+                { id: 'ratio_z_era', label: 'Z时代粉丝比例' },
+                { id: 'ratio_urban_silver', label: '都市银发粉丝比例' },
+                { id: 'ratio_town_youth', label: '小镇青年粉丝比例' },
+                { id: 'ratio_exquisite_mom', label: '精致妈妈粉丝比例' },
+                { id: 'ratio_new_white_collar', label: '新锐白领粉丝比例' },
+                { id: 'ratio_urban_blue_collar', label: '都市蓝领粉丝比例' },
             ]
         }
     },

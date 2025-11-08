@@ -22,11 +22,27 @@ const FIELD_TO_BACKEND_KEY_MAP = {
     'highestRebate': '最高返点率',
     'collaboration_count': '历史合作总次数',
     'work_total_t7_views': 'T+7 总播放量',
-    // 以下字段后端直接使用英文ID（特殊处理）
+    // 以下字段后端直接使用英文ID（特殊处理 - performanceData字段）
     'cpm60s': 'cpm60s',
     'maleAudienceRatio': 'maleAudienceRatio',
     'femaleAudienceRatio': 'femaleAudienceRatio',
+    // 年龄段分布
+    'ratio_18_23': 'ratio_18_23',
+    'ratio_24_30': 'ratio_24_30',
+    'ratio_31_40': 'ratio_31_40',
+    'ratio_41_50': 'ratio_41_50',
+    'ratio_50_plus': 'ratio_50_plus',
     'audience_18_40_ratio': 'audience_18_40_ratio',
+    'audience_40_plus_ratio': 'audience_40_plus_ratio',
+    // 八大人群包
+    'ratio_town_middle_aged': 'ratio_town_middle_aged',
+    'ratio_senior_middle_class': 'ratio_senior_middle_class',
+    'ratio_z_era': 'ratio_z_era',
+    'ratio_urban_silver': 'ratio_urban_silver',
+    'ratio_town_youth': 'ratio_town_youth',
+    'ratio_exquisite_mom': 'ratio_exquisite_mom',
+    'ratio_new_white_collar': 'ratio_new_white_collar',
+    'ratio_urban_blue_collar': 'ratio_urban_blue_collar',
     // 合作/项目维度
     'collaboration_status': '合作状态',
     'collaboration_amount': '合作金额',
