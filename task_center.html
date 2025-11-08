@@ -7,9 +7,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #f8f9fa;
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f8fc;
+        }
+
+        /* 系统维护卡片 hover 效果 */
+        .system-card {
+            transition: all 0.3s ease;
+        }
+        .system-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.15);
         }
 
         /* --- [新增] 与 index.html 保持一致的侧边栏样式 --- */
@@ -77,22 +86,46 @@
 
     <!-- [核心修正] 主内容区结构与 index.html 完全对齐，确保 sidebar.js 能正确控制布局 -->
     <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 main-content" style="margin-left: 9.5rem;">
-        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">任务中心</h1>
-                <p class="text-sm text-gray-500 mt-1">集中处理所有项目的待办事项和系统维护任务。</p>
-            </div>
-            <div class="flex items-center gap-6">
-                <div id="logs-container" class="text-right">
-                     <div class="flex items-center gap-2">
-                        <div class="log-status-dot bg-gray-300 animate-pulse"></div>
-                        <div><p class="text-sm font-semibold text-gray-500">正在加载记录...</p><p class="text-xs text-gray-400">请稍候</p></div>
-                    </div>
+        <!-- 面包屑导航 -->
+        <nav class="mb-4">
+            <ol class="flex items-center space-x-2 text-sm text-gray-600">
+                <li><a href="index.html" class="hover:text-indigo-600 transition-colors">首页</a></li>
+                <li>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </li>
+                <li class="text-gray-900 font-medium">任务中心</li>
+            </ol>
+        </nav>
+
+        <!-- Header 卡片 -->
+        <header class="bg-white rounded-xl shadow-sm border border-gray-200/80 p-6 mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+                        <svg class="w-7 h-7 mr-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                        任务中心
+                    </h1>
+                    <p class="text-sm text-gray-500 mt-2">集中处理所有项目的待办事项和系统维护任务</p>
                 </div>
-                <button id="trigger-scan-btn" class="flex items-center justify-center px-4 py-2 h-9 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-300 shadow-sm w-36 text-sm">
-                    <span class="btn-text">立即扫描新任务</span>
-                    <div class="loader hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                </button>
+                <div class="flex items-center gap-6">
+                    <div id="logs-container" class="text-right">
+                        <div class="flex items-center gap-2">
+                            <div class="log-status-dot bg-gray-300 animate-pulse"></div>
+                            <div><p class="text-sm font-semibold text-gray-500">正在加载记录...</p><p class="text-xs text-gray-400">请稍候</p></div>
+                        </div>
+                    </div>
+                    <button id="trigger-scan-btn" class="flex items-center justify-center px-4 py-2 h-10 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-md hover:shadow-lg w-40 text-sm">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span class="btn-text">扫描新任务</span>
+                        <div class="loader hidden animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    </button>
+                </div>
             </div>
         </header>
 
