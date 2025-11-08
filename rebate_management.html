@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+        body { font-family: 'Inter', sans-serif; background-color: #f7f8fc; }
 
         /* --- [统一] 侧边栏样式 --- */
         .sidebar {
@@ -62,17 +62,28 @@
             background-color: #f3f4f6;
         }
         .nav-link.active {
-            background-color: #2563eb;
+            background-color: #4f46e5;
             color: white;
             font-weight: 600;
         }
 
-        /* --- [统一] 分页样式 --- */
-        .pagination-btn { padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; background-color: white; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; }
-        .pagination-btn:hover:not(:disabled) { background-color: #f3f4f6; }
-        .pagination-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
+        /* --- [统一] 分页样式（Indigo 主题）--- */
+        .pagination-btn { padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; background-color: white; border-radius: 0.375rem; cursor: pointer; transition: all 0.2s ease; }
+        .pagination-btn:hover:not(:disabled) { background-color: #eef2ff; border-color: #818cf8; }
+        .pagination-btn.active { background-color: #4f46e5; color: white; border-color: #4f46e5; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2); }
         .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .pagination-ellipsis { padding: 0.5rem 0.25rem; color: #6b7280; }
+
+        /* --- KPI 卡片 hover 动画 --- */
+        .kpi-card {
+            transition: all 0.2s ease-in-out;
+            border: 1px solid #f3f4f6;
+        }
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: #e5e7eb;
+        }
 
         /* --- Page Specific Styles --- */
         .status-tag { @apply inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full; }
@@ -88,21 +99,85 @@
 
     <!-- [统一] 主内容区 -->
     <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8" style="margin-left: 9.5rem;">
-        <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+        <!-- Breadcrumb Navigation -->
+        <nav class="mb-4">
+            <ol class="flex items-center space-x-2 text-sm text-gray-600">
+                <li>
+                    <a href="index.html" class="hover:text-indigo-600 transition-colors">首页</a>
+                </li>
+                <li>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </li>
+                <li class="text-gray-900 font-medium">返点回收</li>
+            </ol>
+        </nav>
+
+        <!-- Header Card -->
+        <header class="bg-white rounded-xl shadow-sm p-6 mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">返点回收</h1>
-                <p class="text-sm text-gray-500 mt-1">聚合所有项目的返点任务，集中处理与追踪。</p>
+                <h1 class="text-2xl font-bold text-gray-900">返点回收</h1>
+                <p class="text-sm text-gray-500 mt-1">聚合所有项目的返点任务，集中处理与追踪</p>
+            </div>
+        </header>
+
+        <!-- Dashboard Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <!-- 应收返点卡片 -->
+            <div class="kpi-card bg-white p-5 rounded-xl shadow-sm">
+                <div class="flex items-center space-x-2 mb-2">
+                    <div class="p-2 bg-indigo-100 rounded-lg">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-sm font-semibold text-gray-600">应收返点总额</h4>
+                </div>
+                <p id="stats-receivable" class="text-2xl font-bold text-gray-900 mt-1">¥ 0.00</p>
+            </div>
+
+            <!-- 实收返点卡片 -->
+            <div class="kpi-card bg-white p-5 rounded-xl shadow-sm">
+                <div class="flex items-center space-x-2 mb-2">
+                    <div class="p-2 bg-green-100 rounded-lg">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-sm font-semibold text-gray-600">实收返点总额</h4>
+                </div>
+                <p id="stats-recovered" class="text-2xl font-bold text-gray-900 mt-1">¥ 0.00</p>
+            </div>
+
+            <!-- 回收率卡片 -->
+            <div class="kpi-card bg-white p-5 rounded-xl shadow-sm">
+                <div class="flex items-center space-x-2 mb-2">
+                    <div class="p-2 bg-teal-100 rounded-lg">
+                        <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-sm font-semibold text-gray-600">整体回收率</h4>
+                </div>
+                <p id="stats-recovery-rate" class="text-2xl font-bold text-gray-900 mt-1">0.00%</p>
+            </div>
+
+            <!-- 待办任务卡片 -->
+            <div class="kpi-card bg-white p-5 rounded-xl shadow-sm">
+                <div class="flex items-center space-x-2 mb-2">
+                    <div class="p-2 bg-yellow-100 rounded-lg">
+                        <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-sm font-semibold text-gray-600">待办任务数</h4>
+                </div>
+                <p id="stats-todo-count" class="text-2xl font-bold text-gray-900 mt-1">0</p>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <div class="bg-white p-6 rounded-xl shadow-sm"><p class="text-sm font-medium text-gray-500">全局应收返点总额</p><p id="stats-receivable" class="text-3xl font-bold text-blue-600 mt-2">¥ 0.00</p></div>
-            <div class="bg-white p-6 rounded-xl shadow-sm"><p class="text-sm font-medium text-gray-500">全局实收返点总额</p><p id="stats-recovered" class="text-3xl font-bold text-green-600 mt-2">¥ 0.00</p></div>
-            <div class="bg-white p-6 rounded-xl shadow-sm"><p class="text-sm font-medium text-gray-500">全局整体回收率</p><p id="stats-recovery-rate" class="text-3xl font-bold text-teal-600 mt-2">0.00%</p></div>
-            <div class="bg-white p-6 rounded-xl shadow-sm"><p class="text-sm font-medium text-gray-500">待办回收任务数</p><p id="stats-todo-count" class="text-3xl font-bold text-yellow-600 mt-2">0</p></div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">项目筛选</label>
@@ -124,8 +199,18 @@
                     <input type="search" id="talent-search" class="w-full text-sm rounded-md border-gray-300 shadow-sm" placeholder="搜索达人...">
                 </div>
                 <div class="flex gap-2">
-                    <button id="apply-filters-btn" class="w-full px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700">筛选</button>
-                    <button id="reset-filters-btn" class="w-full px-4 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-300">重置</button>
+                    <button id="apply-filters-btn" class="w-full px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm hover:shadow-md transition-all inline-flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        </svg>
+                        筛选
+                    </button>
+                    <button id="reset-filters-btn" class="w-full px-4 py-2 bg-white text-gray-700 border border-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-50 hover:border-gray-400 shadow-sm transition-all inline-flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        重置
+                    </button>
                 </div>
             </div>
         </div>
