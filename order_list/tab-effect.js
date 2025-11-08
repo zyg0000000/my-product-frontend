@@ -223,8 +223,18 @@ export class EffectTab {
             console.log('🔍 [效果验收 Tab 调试]');
             console.log('1. API返回的talents数量:', this.effectData.talents?.length || 0);
             console.log('2. API返回的talents样例:', this.effectData.talents?.[0]);
+            console.log('   talents[0]的所有字段:', this.effectData.talents?.[0] ? Object.keys(this.effectData.talents[0]) : []);
             console.log('3. allCollaborations数量:', this.allCollaborations.length);
             console.log('4. allCollaborations样例:', this.allCollaborations[0]);
+            console.log('   allCollaborations[0]的所有字段:', this.allCollaborations[0] ? Object.keys(this.allCollaborations[0]) : []);
+
+            // 对比 talentName 字段
+            if (this.effectData.talents?.[0] && this.allCollaborations[0]) {
+                console.log('📊 字段对比:');
+                console.log('   talents[0].talentName =', JSON.stringify(this.effectData.talents[0].talentName));
+                console.log('   allCollaborations[0].talentName =', JSON.stringify(this.allCollaborations[0].talentName));
+                console.log('   是否相等:', this.effectData.talents[0].talentName === this.allCollaborations[0].talentName);
+            }
 
             // 统计各状态的合作数量
             const statusCount = {};
