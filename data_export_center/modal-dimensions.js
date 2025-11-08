@@ -1,7 +1,7 @@
 /**
  * @module modal-dimensions
  * @description 维度管理模态框模块，管理维度选择和顺序调整
- * @version 2.1.0 - 支持智能维度加载（动态+静态）
+ * @version 2.2.0 - 支持分组折叠功能，优化大量字段展示
  */
 
 import { getEntityDimensionsSmart } from './dimension-config.js';
@@ -92,23 +92,30 @@ function renderAvailablePool(dimensions) {
     });
 
     // 渲染每个组
+    let isFirstGroup = true;
     Object.entries(grouped).forEach(([groupName, dims]) => {
         const groupEl = document.createElement('div');
-        groupEl.className = 'mb-3';
+        groupEl.className = 'mb-3 border border-gray-200 rounded-lg bg-gray-50';
 
-        // 组标题
+        // 组标题（可折叠）
         const groupTitle = document.createElement('div');
-        groupTitle.className = 'text-xs font-semibold text-gray-600 mb-2 px-2 py-1 bg-white rounded flex items-center gap-2';
+        groupTitle.className = 'text-xs font-semibold text-gray-700 px-3 py-2.5 bg-white rounded-t-lg flex items-center gap-2 cursor-pointer hover:bg-gray-50 transition-colors select-none';
+        const isExpanded = isFirstGroup; // 默认第一个分组展开
+
         groupTitle.innerHTML = `
+            <svg class="w-4 h-4 text-gray-500 transition-transform duration-200 chevron-icon ${isExpanded ? '' : '-rotate-90'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
             <svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
             </svg>
-            ${groupName}
+            <span>${groupName}</span>
+            <span class="ml-auto text-xs text-gray-400 font-normal">${dims.length}个</span>
         `;
 
-        // 维度项
+        // 维度项容器
         const itemsContainer = document.createElement('div');
-        itemsContainer.className = 'space-y-1.5';
+        itemsContainer.className = `space-y-1.5 p-2 transition-all duration-200 overflow-hidden ${isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`;
 
         dims.forEach(dim => {
             const item = document.createElement('div');
@@ -126,9 +133,29 @@ function renderAvailablePool(dimensions) {
             itemsContainer.appendChild(item);
         });
 
+        // 点击标题切换展开/折叠
+        groupTitle.addEventListener('click', () => {
+            const chevron = groupTitle.querySelector('.chevron-icon');
+            const isCurrentlyExpanded = !itemsContainer.classList.contains('max-h-0');
+
+            if (isCurrentlyExpanded) {
+                // 折叠
+                itemsContainer.classList.remove('max-h-[2000px]', 'opacity-100');
+                itemsContainer.classList.add('max-h-0', 'opacity-0');
+                chevron.classList.add('-rotate-90');
+            } else {
+                // 展开
+                itemsContainer.classList.remove('max-h-0', 'opacity-0');
+                itemsContainer.classList.add('max-h-[2000px]', 'opacity-100');
+                chevron.classList.remove('-rotate-90');
+            }
+        });
+
         groupEl.appendChild(groupTitle);
         groupEl.appendChild(itemsContainer);
         container.appendChild(groupEl);
+
+        isFirstGroup = false;
     });
 }
 
