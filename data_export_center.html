@@ -10,7 +10,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa; /* Consistent background from automation_suite */
+            background-color: #f7f8fc;
         }
         /* --- Sidebar Styles (Copied from automation_suite.html) --- */
         .sidebar { transition: width 0.3s ease-in-out; }
@@ -112,10 +112,26 @@
 <body class="bg-gray-100">
     <div id="sidebar-container"></div>
 
-    <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 main-content">
-        <header class="mb-8">
-            <h1 class="text-2xl font-bold text-gray-800">数据导出中心</h1>
-            <p class="text-sm text-gray-500 mt-1">按需组合维度与筛选条件，生成定制化的业务报表。</p>
+    <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 main-content" style="margin-left: 9.5rem;">
+        <!-- 面包屑导航 -->
+        <nav class="mb-4">
+            <ol class="flex items-center space-x-2 text-sm text-gray-600">
+                <li><a href="index.html" class="hover:text-indigo-600 transition-colors">首页</a></li>
+                <li>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </li>
+                <li class="text-gray-900 font-medium">数据导出中心</li>
+            </ol>
+        </nav>
+
+        <!-- Header 卡片 -->
+        <header class="bg-white rounded-xl shadow-sm border border-gray-200/80 p-6 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">数据导出中心</h1>
+                <p class="text-sm text-gray-500 mt-2">按需组合维度与筛选条件，生成定制化的业务报表</p>
+            </div>
         </header>
 
         <!-- Use space-y-8 for card spacing, matching automation_suite -->
