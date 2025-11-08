@@ -238,7 +238,7 @@ export class EffectTab {
                     const status = t.status || '未知';
                     talentStatusCount[status] = (talentStatusCount[status] || 0) + 1;
                 });
-                console.log('5. talents 中各状态数量:', talentStatusCount);
+                console.log('5. talents 中各状态数量:', JSON.stringify(talentStatusCount));
             }
 
             console.log('6. allCollaborations数量:', this.allCollaborations.length);
@@ -247,7 +247,24 @@ export class EffectTab {
             this.allCollaborations.forEach(c => {
                 collabStatusCount[c.status] = (collabStatusCount[c.status] || 0) + 1;
             });
-            console.log('7. allCollaborations 中各状态数量:', collabStatusCount);
+            console.log('7. allCollaborations 中各状态数量:', JSON.stringify(collabStatusCount));
+
+            // 计算各状态的总金额
+            const publishedAmount = this.allCollaborations
+                .filter(c => c.status === '视频已发布')
+                .reduce((sum, c) => sum + (c.amount || 0), 0);
+            const totalAmount = this.allCollaborations
+                .reduce((sum, c) => sum + (c.amount || 0), 0);
+            console.log('8. 金额统计:');
+            console.log(`   - 视频已发布的总金额: ¥${publishedAmount.toLocaleString()}`);
+            console.log(`   - 所有合作的总金额: ¥${totalAmount.toLocaleString()}`);
+
+            // 根据 CPM 公式反推后端使用的金额: 金额 = (CPM * 播放量) / 1000
+            if (this.effectData.overall?.t7_cpm && this.effectData.overall?.t7_totalViews) {
+                const calculatedAmount = (this.effectData.overall.t7_cpm * this.effectData.overall.t7_totalViews) / 1000;
+                console.log(`   - 根据 t7_cpm 反推的金额: ¥${calculatedAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
+                console.log(`   - 公式: (${this.effectData.overall.t7_cpm} × ${this.effectData.overall.t7_totalViews}) ÷ 1000`);
+            }
 
             // [v3.3.0 核心修复] 过滤出 '视频已发布' 状态的达人数据
             // 效果验收只关心已发布的视频，因为只有发布后才有 T+7 和 T+21 的效果数据
