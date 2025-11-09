@@ -38,6 +38,10 @@ export class ProjectReportApp {
         // 自动化管理器
         this.automationManager = null;
 
+        // [V2.1 归档功能增强] 数据日期范围（用于归档项目）
+        this.firstReportDate = null;
+        this.lastReportDate = null;
+
         // DOM 元素
         this.elements = {
             breadcrumbProjectName: document.getElementById('breadcrumb-project-name'),
@@ -88,6 +92,12 @@ export class ProjectReportApp {
         const canProceed = await this.loadProjectDetails();
         if (!canProceed) return; // 未启用追踪
 
+        // [V2.0 归档功能] 如果是归档状态，隐藏数据录入Tab按钮
+        const trackingStatus = this.getTrackingStatus();
+        if (trackingStatus === 'archived') {
+            this.hideDataEntryTab();
+        }
+
         // 初始化模块
         this.initModules();
 
@@ -96,6 +106,16 @@ export class ProjectReportApp {
 
         // 初始化默认显示日报Tab
         await this.switchTab(TAB_NAMES.DAILY_REPORT);
+    }
+
+    /**
+     * [V2.0 新增] 隐藏数据录入Tab按钮
+     */
+    hideDataEntryTab() {
+        const dataEntryBtn = document.querySelector('[data-tab="data-entry"]');
+        if (dataEntryBtn) {
+            dataEntryBtn.style.display = 'none';
+        }
     }
 
     /**
@@ -109,17 +129,26 @@ export class ProjectReportApp {
             const response = await API.request(`${API_ENDPOINTS.PROJECTS}?projectId=${this.projectId}`);
             this.project = response.data;
 
-            // 更新页面标题和面包屑
-            document.title = `${this.project.name} - 项目执行报告`;
+            // [V2.0 归档功能] 检查追踪状态（兼容新旧字段）
+            const trackingStatus = this.getTrackingStatus();
+
+            // [V2.1 增强] 更新页面标题和面包屑（归档项目添加标记）
+            const titleSuffix = trackingStatus === 'archived' ? ' [已归档]' : '';
+            document.title = `${this.project.name}${titleSuffix} - 项目执行报告`;
             if (this.elements.breadcrumbProjectName) {
                 this.elements.breadcrumbProjectName.textContent = this.project.name;
             }
 
-            // 检查效果追踪权限（只有明确为true才允许访问）
-            if (this.project.trackingEnabled !== true) {
+            if (trackingStatus === 'disabled') {
                 loading.close();
                 this.showTrackingDisabledMessage();
                 return false; // 阻止后续加载
+            }
+
+            // [V2.1 增强] 如果是归档状态，获取数据日期范围
+            if (trackingStatus === 'archived') {
+                await this.loadLastReportDate();
+                this.showArchivedBanner();
             }
 
             loading.close();
@@ -129,6 +158,110 @@ export class ProjectReportApp {
             document.body.innerHTML = `<div class="p-8 text-center text-red-500">无法加载页面数据: ${error.message}</div>`;
             return false;
         }
+    }
+
+    /**
+     * [V2.0 新增] 获取项目追踪状态
+     * @returns {string} 'active' | 'archived' | 'disabled'
+     */
+    getTrackingStatus() {
+        // 优先使用新字段 trackingStatus
+        if (this.project.trackingStatus) {
+            return this.project.trackingStatus; // 'active' 或 'archived'
+        }
+
+        // 兼容旧字段 trackingEnabled
+        if (this.project.trackingEnabled === true) {
+            return 'active';
+        }
+
+        return 'disabled';
+    }
+
+    /**
+     * [V2.1 增强] 加载数据日期范围（第一个和最后一个有数据的日期）
+     */
+    async loadLastReportDate() {
+        try {
+            const today = ReportUtils.getLocalDateString();
+            const response = await API.request(`${API_ENDPOINTS.REPORT}?projectId=${this.projectId}&date=${today}`);
+
+            if (response.data) {
+                // 存储日期范围
+                this.lastReportDate = response.data.lastReportDate || null;
+                this.firstReportDate = response.data.firstReportDate || null;
+
+                console.log(`[归档项目] 数据范围: ${this.firstReportDate} 至 ${this.lastReportDate}`);
+
+                // 设置所有日期选择器为最后数据日期
+                if (this.lastReportDate) {
+                    if (this.elements.globalDatePicker) this.elements.globalDatePicker.value = this.lastReportDate;
+                    if (this.elements.reportDatePicker) this.elements.reportDatePicker.value = this.lastReportDate;
+                    if (this.elements.entryDatePicker) this.elements.entryDatePicker.value = this.lastReportDate;
+                }
+
+                // [V2.1 新增] 为日期选择器添加硬限制
+                this.applyDatePickerLimits();
+            }
+        } catch (error) {
+            console.warn('[归档项目] 获取数据日期范围失败:', error);
+            // 失败时保持默认今天的日期
+        }
+    }
+
+    /**
+     * [V2.1 新增] 为日期选择器添加硬限制（只允许选择数据范围内的日期）
+     */
+    applyDatePickerLimits() {
+        if (!this.firstReportDate || !this.lastReportDate) return;
+
+        const datePickers = [
+            this.elements.globalDatePicker,
+            this.elements.reportDatePicker,
+            this.elements.entryDatePicker
+        ];
+
+        datePickers.forEach(picker => {
+            if (picker) {
+                picker.setAttribute('min', this.firstReportDate);
+                picker.setAttribute('max', this.lastReportDate);
+            }
+        });
+
+        console.log(`[归档项目] 日期选择范围限制为: ${this.firstReportDate} ~ ${this.lastReportDate}`);
+    }
+
+    /**
+     * [V2.1 增强] 显示归档提示横幅（含数据范围）
+     */
+    showArchivedBanner() {
+        const mainContent = document.getElementById('main-content') || document.querySelector('main');
+        if (!mainContent) return;
+
+        // 构建数据范围显示文本
+        let dateRangeText = '';
+        if (this.firstReportDate && this.lastReportDate) {
+            dateRangeText = `<span class="ml-2 text-xs text-amber-600">（数据范围：${this.firstReportDate} 至 ${this.lastReportDate}）</span>`;
+        }
+
+        // 在主内容区顶部插入提示横幅
+        const banner = document.createElement('div');
+        banner.className = 'mb-6 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg shadow-sm';
+        banner.innerHTML = `
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-amber-800">
+                        <strong>已归档项目</strong> - 该项目已停止追踪，页面为只读模式，无法录入新数据。${dateRangeText}
+                    </p>
+                </div>
+            </div>
+        `;
+        mainContent.insertBefore(banner, mainContent.firstChild);
     }
 
     /**
@@ -199,6 +332,13 @@ export class ProjectReportApp {
      */
     async switchTab(tabName) {
         console.log(`[Tab切换] 切换到: ${tabName}`);
+
+        // [V2.0 归档功能] 归档项目不允许切换到数据录入Tab
+        const trackingStatus = this.getTrackingStatus();
+        if (trackingStatus === 'archived' && tabName === TAB_NAMES.DATA_ENTRY) {
+            Modal.showAlert('归档项目无法录入新数据', '提示');
+            return;
+        }
 
         // 隐藏所有Tab面板
         if (this.elements.dailyReportTab) this.elements.dailyReportTab.classList.add('hidden');
@@ -282,9 +422,18 @@ export class ProjectReportApp {
     }
 
     /**
-     * 设置日报日期快捷按钮
+     * [V2.1 增强] 设置日报日期快捷按钮（归档项目显示前后日期导航）
      */
     setupReportDateShortcuts() {
+        const trackingStatus = this.getTrackingStatus();
+
+        // [V2.1 归档项目] 替换为前后日期导航
+        if (trackingStatus === 'archived') {
+            this.setupArchivedDateNavigation();
+            return;
+        }
+
+        // 活跃项目：保持原有的今天/昨天/前天按钮
         // 辅助函数：更新按钮高亮状态
         const updateHighlight = (activeButton) => {
             const buttons = [
@@ -339,6 +488,85 @@ export class ProjectReportApp {
                 this.elements.globalDatePicker.value = beforeYesterdayStr;
                 updateHighlight(this.elements.reportDateBeforeYesterday);
                 if (this.tabs.dailyReport) this.tabs.dailyReport.load(beforeYesterdayStr);
+            });
+        }
+    }
+
+    /**
+     * [V2.1 新增] 为归档项目设置前后日期导航
+     */
+    setupArchivedDateNavigation() {
+        // 找到日期快捷按钮的容器
+        const container = this.elements.reportDateToday?.parentElement;
+        if (!container) return;
+
+        // 替换为前后日期导航按钮
+        container.innerHTML = `
+            <button id="report-date-prev" class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                ◀ 前一天
+            </button>
+            <button id="report-date-next" class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                后一天 ▶
+            </button>
+        `;
+
+        // 获取新创建的按钮
+        const prevBtn = document.getElementById('report-date-prev');
+        const nextBtn = document.getElementById('report-date-next');
+
+        // 辅助函数：更新按钮状态
+        const updateButtonStates = (currentDate) => {
+            if (!this.firstReportDate || !this.lastReportDate) return;
+
+            // 当前日期到达第一个数据日期时，禁用"前一天"
+            if (prevBtn) {
+                prevBtn.disabled = currentDate <= this.firstReportDate;
+            }
+
+            // 当前日期到达最后一个数据日期时，禁用"后一天"
+            if (nextBtn) {
+                nextBtn.disabled = currentDate >= this.lastReportDate;
+            }
+        };
+
+        // 前一天按钮
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                const currentDate = this.elements.globalDatePicker.value;
+                const date = new Date(currentDate + 'T00:00:00');
+                date.setDate(date.getDate() - 1);
+                const newDate = ReportUtils.getLocalDateString(date);
+
+                this.elements.reportDatePicker.value = newDate;
+                this.elements.globalDatePicker.value = newDate;
+                updateButtonStates(newDate);
+                if (this.tabs.dailyReport) this.tabs.dailyReport.load(newDate);
+            });
+        }
+
+        // 后一天按钮
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                const currentDate = this.elements.globalDatePicker.value;
+                const date = new Date(currentDate + 'T00:00:00');
+                date.setDate(date.getDate() + 1);
+                const newDate = ReportUtils.getLocalDateString(date);
+
+                this.elements.reportDatePicker.value = newDate;
+                this.elements.globalDatePicker.value = newDate;
+                updateButtonStates(newDate);
+                if (this.tabs.dailyReport) this.tabs.dailyReport.load(newDate);
+            });
+        }
+
+        // 初始化按钮状态
+        const initialDate = this.elements.globalDatePicker.value;
+        updateButtonStates(initialDate);
+
+        // 监听日期选择器变化，更新按钮状态
+        if (this.elements.globalDatePicker) {
+            this.elements.globalDatePicker.addEventListener('change', (e) => {
+                updateButtonStates(e.target.value);
             });
         }
     }
