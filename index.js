@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     if (trackingStatus === 'active') {
                                         return `<a href="project_report.html?projectId=${project.id}" class="px-3 py-1 text-xs font-medium rounded-md text-amber-700 bg-amber-100 hover:bg-amber-200">追踪</a>`;
                                     } else if (trackingStatus === 'archived') {
-                                        return `<a href="project_report.html?projectId=${project.id}" class="px-3 py-1 text-xs font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300" title="已归档，只读模式">📁 历史</a>`;
+                                        return `<a href="project_report.html?projectId=${project.id}" class="px-3 py-1 text-xs font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300" title="已归档，只读模式">历史</a>`;
                                     }
                                     return '';
                                 })()}
