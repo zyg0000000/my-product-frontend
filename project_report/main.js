@@ -88,6 +88,12 @@ export class ProjectReportApp {
         const canProceed = await this.loadProjectDetails();
         if (!canProceed) return; // 未启用追踪
 
+        // [V2.0 归档功能] 如果是归档状态，隐藏数据录入Tab按钮
+        const trackingStatus = this.getTrackingStatus();
+        if (trackingStatus === 'archived') {
+            this.hideDataEntryTab();
+        }
+
         // 初始化模块
         this.initModules();
 
@@ -96,6 +102,16 @@ export class ProjectReportApp {
 
         // 初始化默认显示日报Tab
         await this.switchTab(TAB_NAMES.DAILY_REPORT);
+    }
+
+    /**
+     * [V2.0 新增] 隐藏数据录入Tab按钮
+     */
+    hideDataEntryTab() {
+        const dataEntryBtn = document.querySelector('[data-tab="data-entry"]');
+        if (dataEntryBtn) {
+            dataEntryBtn.style.display = 'none';
+        }
     }
 
     /**
@@ -115,11 +131,19 @@ export class ProjectReportApp {
                 this.elements.breadcrumbProjectName.textContent = this.project.name;
             }
 
-            // 检查效果追踪权限（只有明确为true才允许访问）
-            if (this.project.trackingEnabled !== true) {
+            // [V2.0 归档功能] 检查追踪状态（兼容新旧字段）
+            const trackingStatus = this.getTrackingStatus();
+
+            if (trackingStatus === 'disabled') {
                 loading.close();
                 this.showTrackingDisabledMessage();
                 return false; // 阻止后续加载
+            }
+
+            // [V2.0 归档功能] 如果是归档状态，获取最后数据日期
+            if (trackingStatus === 'archived') {
+                await this.loadLastReportDate();
+                this.showArchivedBanner();
             }
 
             loading.close();
@@ -129,6 +153,74 @@ export class ProjectReportApp {
             document.body.innerHTML = `<div class="p-8 text-center text-red-500">无法加载页面数据: ${error.message}</div>`;
             return false;
         }
+    }
+
+    /**
+     * [V2.0 新增] 获取项目追踪状态
+     * @returns {string} 'active' | 'archived' | 'disabled'
+     */
+    getTrackingStatus() {
+        // 优先使用新字段 trackingStatus
+        if (this.project.trackingStatus) {
+            return this.project.trackingStatus; // 'active' 或 'archived'
+        }
+
+        // 兼容旧字段 trackingEnabled
+        if (this.project.trackingEnabled === true) {
+            return 'active';
+        }
+
+        return 'disabled';
+    }
+
+    /**
+     * [V2.0 新增] 加载最后有数据的日期
+     */
+    async loadLastReportDate() {
+        try {
+            const today = ReportUtils.getLocalDateString();
+            const response = await API.request(`${API_ENDPOINTS.REPORT}?projectId=${this.projectId}&date=${today}`);
+
+            if (response.data && response.data.lastReportDate) {
+                const lastDate = response.data.lastReportDate;
+                console.log(`[归档项目] 最后有数据的日期: ${lastDate}`);
+
+                // 设置所有日期选择器为最后数据日期
+                if (this.elements.globalDatePicker) this.elements.globalDatePicker.value = lastDate;
+                if (this.elements.reportDatePicker) this.elements.reportDatePicker.value = lastDate;
+                if (this.elements.entryDatePicker) this.elements.entryDatePicker.value = lastDate;
+            }
+        } catch (error) {
+            console.warn('[归档项目] 获取最后数据日期失败:', error);
+            // 失败时保持默认今天的日期
+        }
+    }
+
+    /**
+     * [V2.0 新增] 显示归档提示横幅
+     */
+    showArchivedBanner() {
+        const mainContent = document.getElementById('main-content') || document.querySelector('main');
+        if (!mainContent) return;
+
+        // 在主内容区顶部插入提示横幅
+        const banner = document.createElement('div');
+        banner.className = 'mb-6 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg shadow-sm';
+        banner.innerHTML = `
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-amber-800">
+                        <strong>已归档项目</strong> - 该项目已停止追踪，页面为只读模式，无法录入新数据。
+                    </p>
+                </div>
+            </div>
+        `;
+        mainContent.insertBefore(banner, mainContent.firstChild);
     }
 
     /**
@@ -199,6 +291,13 @@ export class ProjectReportApp {
      */
     async switchTab(tabName) {
         console.log(`[Tab切换] 切换到: ${tabName}`);
+
+        // [V2.0 归档功能] 归档项目不允许切换到数据录入Tab
+        const trackingStatus = this.getTrackingStatus();
+        if (trackingStatus === 'archived' && tabName === TAB_NAMES.DATA_ENTRY) {
+            Modal.showAlert('归档项目无法录入新数据', '提示');
+            return;
+        }
 
         // 隐藏所有Tab面板
         if (this.elements.dailyReportTab) this.elements.dailyReportTab.classList.add('hidden');

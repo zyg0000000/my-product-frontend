@@ -32,8 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const financialMonthWarning = document.getElementById('financial-month-warning');
     const projectDiscountSelect = document.getElementById('project-discount');
     const projectCapitalRateSelect = document.getElementById('project-capital-rate');
-    const enableTrackingCheckbox = document.getElementById('enable-tracking'); // [Phase 2] 效果追踪开关
-    const trackingEnabledStatus = document.getElementById('tracking-enabled-status'); // [Phase 2] 追踪状态显示
+    const trackingStatusSelect = document.getElementById('tracking-status-select'); // [V2.0 归档功能] 追踪状态下拉框
     const filterNameInput = document.getElementById('filter-name');
     const filterTypeSelect = document.getElementById('filter-type');
     const filterTimeDimensionSelect = document.getElementById('filter-time-dimension');
@@ -292,10 +291,15 @@ document.addEventListener('DOMContentLoaded', function () {
                             <div class="flex items-center gap-2 mt-1">
                                 <a href="order_list.html?projectId=${project.id}" class="px-3 py-1 text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200">进展</a>
                                 <a href="project_automation.html?id=${project.id}" class="px-3 py-1 text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200">自动化</a>
-                                ${project.trackingEnabled === true
-                                    ? `<a href="project_report.html?projectId=${project.id}" class="px-3 py-1 text-xs font-medium rounded-md text-amber-700 bg-amber-100 hover:bg-amber-200">追踪</a>`
-                                    : ''
-                                }
+                                ${(() => {
+                                    const trackingStatus = project.trackingStatus || (project.trackingEnabled === true ? 'active' : null);
+                                    if (trackingStatus === 'active') {
+                                        return `<a href="project_report.html?projectId=${project.id}" class="px-3 py-1 text-xs font-medium rounded-md text-amber-700 bg-amber-100 hover:bg-amber-200">追踪</a>`;
+                                    } else if (trackingStatus === 'archived') {
+                                        return `<a href="project_report.html?projectId=${project.id}" class="px-3 py-1 text-xs font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300" title="已归档，只读模式">📁 历史</a>`;
+                                    }
+                                    return '';
+                                })()}
                                 <div class="dropdown">
                                     <button class="px-2 py-1 text-xs font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg></button>
                                     <div class="dropdown-content">
@@ -404,34 +408,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 projectTypeSelect.value = projectToEdit.type || '';
                 if (!projectToEdit.financialMonth) financialMonthWarning.classList.remove('hidden');
 
-                // [Phase 2] 处理效果追踪开关
-                // 设置开关值（只有明确为true才启用）
-                enableTrackingCheckbox.checked = projectToEdit.trackingEnabled === true;
-                // 显示/隐藏状态文本
-                if (projectToEdit.trackingEnabled === true) {
-                    trackingEnabledStatus.classList.remove('hidden');
-                } else {
-                    trackingEnabledStatus.classList.add('hidden');
-                }
-                // 只有"执行中"的项目可以修改开关
-                const isExecuting = projectToEdit.status === '执行中';
-                enableTrackingCheckbox.disabled = !isExecuting;
-                const trackingContainer = enableTrackingCheckbox.closest('.p-4');
-                if (!isExecuting) {
-                    trackingContainer.classList.add('opacity-50', 'cursor-not-allowed');
-                } else {
-                    trackingContainer.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
+                // [V2.0 归档功能] 处理追踪状态（兼容新旧字段）
+                const trackingStatus = projectToEdit.trackingStatus || (projectToEdit.trackingEnabled === true ? 'active' : '');
+                trackingStatusSelect.value = trackingStatus;
             }
         } else {
             modalTitle.textContent = '创建新项目';
             modalSubmitBtn.textContent = '确认创建';
-            // [Phase 2] 新建项目默认关闭追踪，但可编辑
-            enableTrackingCheckbox.checked = false;
-            trackingEnabledStatus.classList.add('hidden');
-            enableTrackingCheckbox.disabled = false;
-            const trackingContainer = enableTrackingCheckbox.closest('.p-4');
-            trackingContainer.classList.remove('opacity-50', 'cursor-not-allowed');
+            // [V2.0 归档功能] 新建项目默认未启用追踪
+            trackingStatusSelect.value = '';
         }
         projectModal.classList.remove('hidden');
         setTimeout(() => projectModalContent.classList.remove('scale-95', 'opacity-0'), 10);
@@ -501,14 +486,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         
         projectTypeSelect.addEventListener('change', () => newTypeContainer.classList.toggle('hidden', projectTypeSelect.value !== 'add_new'));
-        // [Phase 2] 效果追踪toggle状态切换
-        enableTrackingCheckbox.addEventListener('change', () => {
-            if (enableTrackingCheckbox.checked) {
-                trackingEnabledStatus.classList.remove('hidden');
-            } else {
-                trackingEnabledStatus.classList.add('hidden');
-            }
-        });
+
         [filterNameInput, filterTypeSelect, filterTimeDimensionSelect, filterYearSelect, filterMonthSelect, filterStatusSelect].forEach(el => el.addEventListener('input', () => { currentPage = 1; renderPage(); }));
         resetFiltersBtn.addEventListener('click', () => {
              filterNameInput.value = '';
@@ -552,7 +530,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const financialYear = projectFinancialYearSelect.value;
         const financialMonth = projectFinancialMonthSelect.value;
         if (!projectNameInput.value.trim() || !projectType || !financialYear || !financialMonth) { alert('项目名称、类型和财务归属月份为必填项'); return; }
-        // [Phase 2] 添加trackingEnabled字段
+        // [V2.0 归档功能] 添加trackingStatus字段
         const projectData = {
             name: projectNameInput.value.trim(),
             qianchuanId: projectQianchuanIdInput.value.trim(),
@@ -565,7 +543,7 @@ document.addEventListener('DOMContentLoaded', function () {
             financialMonth,
             discount: projectDiscountSelect.value,
             capitalRateId: projectCapitalRateSelect.value,
-            trackingEnabled: enableTrackingCheckbox.checked // [Phase 2] 效果追踪开关
+            trackingStatus: trackingStatusSelect.value || null // [V2.0 归档功能] 追踪状态
         };
         try {
             if (editingId) { await apiRequest('/update-project', 'PUT', { id: editingId, ...projectData }); } 

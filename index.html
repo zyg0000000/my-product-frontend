@@ -255,26 +255,25 @@
                         </div>
                     </div>
 
-                    <!-- [Phase 2 新增] 效果追踪配置 -->
+                    <!-- [V2.0 归档功能] 效果追踪配置 -->
                     <div class="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200">
-                        <div class="flex items-center justify-between">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2">
-                                    <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-                                    </svg>
-                                    <h4 class="text-sm font-semibold text-gray-800">效果追踪功能</h4>
-                                </div>
-                                <p class="text-xs text-gray-600 mt-1 ml-7">启用后可查看项目日报、数据录入和效果监测。仅"执行中"项目可修改此设置。</p>
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-2 flex-1">
+                                <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                                </svg>
+                                <h4 class="text-sm font-semibold text-gray-800">效果追踪状态</h4>
                             </div>
-                            <label class="relative inline-flex items-center cursor-pointer ml-4">
-                                <input type="checkbox" id="enable-tracking" class="sr-only peer">
-                                <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                            </label>
+                            <select id="tracking-status-select" class="rounded-md border-gray-300 text-sm focus:ring-indigo-500 focus:border-indigo-500 min-w-[140px]">
+                                <option value="">未启用</option>
+                                <option value="active">活跃追踪</option>
+                                <option value="archived">已归档</option>
+                            </select>
                         </div>
-                        <div id="tracking-enabled-status" class="mt-2 ml-7 text-xs font-medium hidden">
-                            <span class="text-green-600">● 已启用</span>
-                        </div>
+                        <p class="text-xs text-gray-600 mt-2 ml-7">
+                            <span class="font-medium">活跃:</span> 可查看日报和录入数据 •
+                            <span class="font-medium">归档:</span> 只读模式，保留历史数据
+                        </p>
                     </div>
 
                     <!-- 提交按钮 -->
