@@ -36,6 +36,14 @@ export class DailyReportTab {
     }
 
     /**
+     * [V2.1 新增] 检查是否为归档项目
+     * @returns {boolean}
+     */
+    isArchived() {
+        return this.app.getTrackingStatus() === 'archived';
+    }
+
+    /**
      * 加载日报数据
      * @param {string} date - 日期（可选，默认使用 reportDatePicker 的值）
      */
@@ -259,8 +267,9 @@ export class DailyReportTab {
                                                 <textarea
                                                     class="w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-indigo-500 focus:border-indigo-500 solution-textarea"
                                                     rows="1"
-                                                    placeholder="输入解决方案..."
-                                                    data-collaboration-id="${video.collaborationId}">${video.solution || ''}</textarea>
+                                                    placeholder="${this.isArchived() ? '已归档，无法编辑' : '输入解决方案...'}"
+                                                    data-collaboration-id="${video.collaborationId}"
+                                                    ${this.isArchived() ? 'disabled' : ''}>${video.solution || ''}</textarea>
                                                 <div class="absolute right-8 top-5 text-xs text-gray-400 hidden solution-feedback"></div>
                                             </td>
                                         </tr>
