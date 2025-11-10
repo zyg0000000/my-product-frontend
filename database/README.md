@@ -2,6 +2,32 @@
 
 > 本目录包含 MongoDB 数据库的 Schema 定义和数据迁移脚本
 
+## 🚀 Schema 同步工具
+
+**想要从 MongoDB 同步最新的 Schema？请查看以下教程：**
+
+| 文档 | 适用场景 | 阅读时间 |
+|------|---------|---------|
+| 📖 [Mac 用户完整设置指南](./MAC_SETUP.md) | 🌟 **首次使用必读**，从零开始设置环境 | 15 分钟 |
+| ⚡ [快速开始指南](./QUICKSTART.md) | 已完成环境设置，快速上手 | 5 分钟 |
+| 🎓 [实战教程](./TUTORIAL.md) | 详细的使用教程和最佳实践 | 30 分钟 |
+| 🎬 [场景演示](./DEMO.md) | 4 个真实场景的完整演示 | 20 分钟 |
+| 🗺️ [流程指南](./SCHEMA_SYNC_GUIDE.md) | 可视化流程图和决策树 | 10 分钟 |
+
+**快速命令：**
+```bash
+# 设置 MongoDB 连接
+export MONGO_URI="mongodb://用户名:密码@主机:端口/?authSource=admin&..."
+
+# 同步单个集合
+./database/scripts/sync-schema.sh talents
+
+# 同步所有集合
+./database/scripts/sync-schema.sh --all
+```
+
+---
+
 ## 📁 目录说明
 
 ```

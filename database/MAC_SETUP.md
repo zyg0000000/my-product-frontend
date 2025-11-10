@@ -163,11 +163,17 @@ echo $MONGO_URI
 **🔐 永久设置（推荐）**：
 
 ```bash
-# 编辑你的 shell 配置文件
-# 如果使用 bash（Mac 默认）
+# 1. 先检查你的 Mac 使用的是哪个 shell
+echo $SHELL
+
+# 如果显示 /bin/bash，使用下面的 bash 命令
+# 如果显示 /bin/zsh，使用下面的 zsh 命令
+
+# 2. 编辑你的 shell 配置文件
+# 如果使用 bash
 nano ~/.bash_profile
 
-# 如果使用 zsh（较新的 Mac 默认）
+# 如果使用 zsh（macOS Catalina 10.15 及以后的默认 shell）
 nano ~/.zshrc
 
 # 在文件末尾添加：
@@ -190,6 +196,27 @@ echo $MONGO_URI
 **⚠️ 安全提示**：
 - 连接字符串包含密码，不要提交到 Git
 - 考虑使用 `.env` 文件或密钥管理工具
+
+**💡 使用 .env 文件（更安全的方式）**：
+
+```bash
+# 1. 复制示例文件
+cp database/.env.example database/.env
+
+# 2. 编辑 .env 文件，填入真实的连接信息
+nano database/.env
+# 或使用你喜欢的编辑器：
+code database/.env
+
+# 3. 在 .env 文件中设置：
+# MONGO_URI=mongodb://你的实际连接字符串
+
+# 4. 每次使用前加载 .env 文件（或添加到 ~/.zshrc 中自动加载）
+source database/.env
+export MONGO_URI
+
+# 注意：.env 文件已在 .gitignore 中，不会被提交到 Git
+```
 
 ---
 
