@@ -13,11 +13,10 @@ import { fetchFieldMetadata, buildFieldMapping, buildLabelMapping } from './fiel
 
 /**
  * 动态字段映射缓存
- * [临时禁用] 强制使用静态映射，确保包含最新的 taskId 和 videoId 字段
  */
 let dynamicBackendFieldMapping = null;
 let dynamicLabelMapping = null;
-const FORCE_USE_STATIC_MAPPING = true; // 临时强制使用静态映射
+const FORCE_USE_STATIC_MAPPING = false; // 已恢复动态加载（后端 API 已包含新字段）
 
 /**
  * 前端字段ID到后端返回的字段名的映射
