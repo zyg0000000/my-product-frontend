@@ -336,11 +336,32 @@
             cursor: not-allowed;
         }
 
-        /* Custom scrollbar copied from automation_suite */
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a3a3a3; }
+        /* Custom scrollbar - 优化版本 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 4px;
+            margin: 4px 0;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+            border: 2px solid #f3f4f6;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:active {
+            background: #64748b;
+        }
+
+        /* Firefox 滚动条样式 */
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f3f4f6;
+        }
 
         /* Tab 导航样式（参考 project-report） */
         .tab-button {
@@ -748,9 +769,9 @@
             </div>
 
             <!-- 双面板布局 -->
-            <div class="grid grid-cols-2 gap-6 mt-4 max-h-[65vh] overflow-hidden">
+            <div class="grid grid-cols-2 gap-6 mt-4" style="height: 500px;">
                 <!-- 左侧：可选维度池 -->
-                <div class="flex flex-col">
+                <div class="flex flex-col h-full">
                     <div class="flex items-center justify-between mb-3">
                         <h4 class="font-semibold text-gray-800 flex items-center gap-2">
                             <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -760,11 +781,11 @@
                         </h4>
                         <span id="available-count" class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">0 个</span>
                     </div>
-                    <div id="available-dimensions-pool" class="flex-1 space-y-2 p-3 border-2 border-gray-200 rounded-lg bg-gray-50/50 overflow-y-auto custom-scrollbar"></div>
+                    <div id="available-dimensions-pool" class="flex-1 space-y-2 p-3 border-2 border-gray-200 rounded-lg bg-gray-50/50 overflow-y-auto custom-scrollbar" style="min-height: 300px; max-height: 460px;"></div>
                 </div>
 
                 <!-- 右侧：已选维度列表 -->
-                <div class="flex flex-col">
+                <div class="flex flex-col h-full">
                     <div class="flex items-center justify-between mb-3">
                         <h4 class="font-semibold text-gray-800 flex items-center gap-2">
                             <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -774,7 +795,7 @@
                         </h4>
                         <span id="selected-count" class="text-xs text-white bg-indigo-500 px-2 py-1 rounded-full">0 个</span>
                     </div>
-                    <div id="selected-dimensions-list" class="flex-1 p-3 border-2 border-indigo-200 rounded-lg bg-indigo-50/30 overflow-y-auto custom-scrollbar">
+                    <div id="selected-dimensions-list" class="flex-1 p-3 border-2 border-indigo-200 rounded-lg bg-indigo-50/30 overflow-y-auto custom-scrollbar" style="min-height: 300px; max-height: 460px;">
                         <p id="selected-placeholder" class="text-sm text-gray-400 text-center py-8">
                             <svg class="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
@@ -809,7 +830,7 @@
     </div>
 
     <script src="sidebar.js"></script>
-    <script type="module" src="data_export_center/main.js"></script>
+    <script type="module" src="data_export_center/main.js?v=1.5.0"></script>
 </body>
 </html>
 

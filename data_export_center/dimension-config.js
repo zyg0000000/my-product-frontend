@@ -105,6 +105,8 @@ export const DIMENSION_CONFIG = {
                 { id: 'collaboration_orderType', label: '下单方式' },
                 { id: 'collaboration_plannedReleaseDate', label: '计划发布日期' },
                 { id: 'collaboration_publishDate', label: '实际发布日期' },
+                { id: 'taskId', label: '星图任务ID' },
+                { id: 'videoId', label: '视频ID' },
             ],
             '项目信息': [
                 { id: 'project_name', label: '所属项目' },
@@ -124,16 +126,32 @@ export const DIMENSION_CONFIG = {
     project: {
         filters: [
             {
-                id: 'projectIds',
-                label: '选择项目',
-                type: 'multiselect',
-                optionsKey: 'projects'
+                id: 'monthType',
+                label: '时间维度类型',
+                type: 'radio',
+                options: [
+                    { value: 'customer', label: '客户月份' },
+                    { value: 'financial', label: '财务月份' }
+                ],
+                defaultValue: 'customer'
+            },
+            {
+                id: 'yearMonth',
+                label: '年份月份',
+                type: 'yearmonth'
             },
             {
                 id: 'status',
                 label: '合作状态',
                 type: 'checkbox',
                 options: ['待提报工作台', '工作台已提交', '客户已定档', '视频已发布']
+            },
+            {
+                id: 'projectIds',
+                label: '选择项目',
+                type: 'checkbox',
+                optionsKey: 'projects',
+                dependsOn: 'yearMonth'  // 标记依赖于时间选择
             }
         ],
         dimensions: {
@@ -143,6 +161,8 @@ export const DIMENSION_CONFIG = {
                 { id: 'collaboration_orderType', label: '下单方式' },
                 { id: 'collaboration_plannedReleaseDate', label: '计划发布日期' },
                 { id: 'collaboration_publishDate', label: '实际发布日期' },
+                { id: 'taskId', label: '星图任务ID' },
+                { id: 'videoId', label: '视频ID' },
             ],
             '项目信息': [
                 { id: 'project_name', label: '所属项目' },
@@ -222,8 +242,9 @@ let dynamicDimensionsCache = {};
 
 /**
  * 是否启用动态加载（默认启用）
+ * [临时禁用] 后端 /get-field-metadata API 尚未更新 taskId 和 videoId 字段
  */
-let useDynamicLoading = true;
+let useDynamicLoading = false;
 
 /**
  * 设置是否启用动态加载
@@ -318,9 +339,12 @@ export function clearDynamicDimensionsCache() {
 export function getEntityDimensionsSmart(entity) {
     // 如果有动态缓存，使用动态数据
     if (useDynamicLoading && dynamicDimensionsCache[entity]) {
+        console.log(`[Dimension Config] 使用动态配置: ${entity}`);
         return dynamicDimensionsCache[entity];
     }
 
     // 否则使用静态配置
-    return getEntityDimensions(entity);
+    const staticDimensions = getEntityDimensions(entity);
+    console.log(`[Dimension Config] 使用静态配置: ${entity}`, staticDimensions);
+    return staticDimensions;
 }

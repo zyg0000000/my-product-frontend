@@ -1,21 +1,26 @@
 /**
  * @module table-preview
  * @description 数据预览表格渲染和分页管理模块
- * @version 2.0.0 - 支持动态字段映射
+ * @version 2.1.0 - 修复taskId和videoId字段映射
  */
 
 import { getEntityDimensions } from './dimension-config.js';
 import { getState } from './state-manager.js';
 import { fetchFieldMetadata, buildFieldMapping, buildLabelMapping } from './field-metadata.js';
 
+// 版本标识 - 用于验证是否加载了最新版本
+console.log('✅ table-preview.js v2.1.0 已加载 (包含 taskId 和 videoId 映射)');
+
 /**
  * 动态字段映射缓存
  */
 let dynamicFieldMapping = null;
+const FORCE_USE_STATIC_MAPPING = false; // 已恢复动态加载（后端 API 已包含新字段）
 
 /**
  * 前端字段ID到后端返回的中文字段名的映射
  * 这个映射需要与后端 exportComprehensiveData/index.js 中的 projectStage 保持一致
+ * [v2.1.0] 已添加 taskId 和 videoId 映射
  */
 const FIELD_TO_BACKEND_KEY_MAP = {
     // 达人维度
@@ -56,10 +61,20 @@ const FIELD_TO_BACKEND_KEY_MAP = {
     'collaboration_orderType': '下单方式',
     'collaboration_plannedReleaseDate': '计划发布日期',
     'collaboration_publishDate': '实际发布日期',
+    'taskId': '星图任务ID',
+    'videoId': '视频ID',
     'project_name': '项目名称',
     'work_t7_totalViews': 'T+7 播放量',
     'work_t7_likeCount': 'T+7 点赞数'
 };
+
+// 验证关键字段映射存在
+console.log('🔍 字段映射验证:', {
+    hasTaskId: 'taskId' in FIELD_TO_BACKEND_KEY_MAP,
+    hasVideoId: 'videoId' in FIELD_TO_BACKEND_KEY_MAP,
+    taskIdMapping: FIELD_TO_BACKEND_KEY_MAP['taskId'],
+    videoIdMapping: FIELD_TO_BACKEND_KEY_MAP['videoId']
+});
 
 /**
  * 获取字段映射（支持动态和静态）
@@ -67,6 +82,12 @@ const FIELD_TO_BACKEND_KEY_MAP = {
  * @returns {Object} 字段映射对象
  */
 async function getFieldMappingForEntity(entity) {
+    // 🔧 临时强制使用静态映射
+    if (FORCE_USE_STATIC_MAPPING) {
+        console.log('[Table Preview] ⚠️ 强制使用静态字段映射（包含最新字段）');
+        return FIELD_TO_BACKEND_KEY_MAP;
+    }
+
     // 如果已有动态映射缓存，直接使用
     if (dynamicFieldMapping) {
         return dynamicFieldMapping;
@@ -94,6 +115,11 @@ async function getFieldMappingForEntity(entity) {
  * @returns {Object} 字段映射对象
  */
 function getFieldMappingSync() {
+    // 🔧 临时强制使用静态映射，确保包含最新字段
+    if (FORCE_USE_STATIC_MAPPING) {
+        console.log('⚠️ 强制使用静态字段映射');
+        return FIELD_TO_BACKEND_KEY_MAP;
+    }
     return dynamicFieldMapping || FIELD_TO_BACKEND_KEY_MAP;
 }
 
@@ -201,11 +227,31 @@ function renderTableBody(data) {
     // 获取字段映射（支持动态和静态）
     const fieldMapping = getFieldMappingSync();
 
+    // 🔍 调试：记录使用的映射和第一行数据
+    console.log('📊 renderTableBody 调试信息:', {
+        selectedFields,
+        usingDynamicMapping: !!dynamicFieldMapping,
+        fieldMapping,
+        firstRowKeys: data[0] ? Object.keys(data[0]) : [],
+        firstRowSample: data[0]
+    });
+
     tbody.innerHTML = data.map((row, index) => {
         const cells = selectedFields.map(fieldId => {
             // 使用映射获取后端返回的字段名（中文或英文）
             const backendKey = fieldMapping[fieldId] || fieldId;
             const value = row[backendKey];
+
+            // 🔍 调试：对于 taskId 和 videoId 特别记录
+            if (fieldId === 'taskId' || fieldId === 'videoId') {
+                console.log(`🔍 字段 ${fieldId}:`, {
+                    fieldId,
+                    backendKey,
+                    value,
+                    hasValue: value !== undefined && value !== null
+                });
+            }
+
             return `<td>${formatCellValue(value)}</td>`;
         }).join('');
 
