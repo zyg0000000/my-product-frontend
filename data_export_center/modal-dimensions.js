@@ -299,7 +299,7 @@ export function handleSelectAll() {
     const { selectedEntity } = state;
 
     // 获取所有维度
-    const allDimensionGroups = getEntityDimensions(selectedEntity);
+    const allDimensionGroups = getEntityDimensionsSmart(selectedEntity);
     if (!allDimensionGroups) return;
 
     const allDimensionIds = [];
@@ -337,7 +337,7 @@ export function updateDimensionsPreview() {
     }
 
     // 获取维度详情
-    const allDimensionGroups = getEntityDimensions(selectedEntity);
+    const allDimensionGroups = getEntityDimensionsSmart(selectedEntity);
     const allDimensions = [];
     Object.values(allDimensionGroups || {}).forEach(dimensions => {
         dimensions.forEach(dim => allDimensions.push(dim));
