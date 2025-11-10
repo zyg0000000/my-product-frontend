@@ -56,8 +56,18 @@ export function renderDimensionsModal() {
     // 获取已选维度ID列表
     const selectedDimensionIds = state.selectedDimensions[selectedEntity] || [];
 
-    // 分离已选和未选维度
-    const selectedDimensions = allDimensions.filter(d => selectedDimensionIds.includes(d.id));
+    // 构建维度ID到维度对象的映射
+    const dimensionMap = new Map();
+    allDimensions.forEach(dim => {
+        dimensionMap.set(dim.id, dim);
+    });
+
+    // 按照 selectedDimensionIds 的顺序构建已选维度数组（保持用户拖拽的顺序）
+    const selectedDimensions = selectedDimensionIds
+        .map(id => dimensionMap.get(id))
+        .filter(dim => dim !== undefined); // 过滤掉不存在的ID
+
+    // 未选维度（不在 selectedDimensionIds 中的）
     const availableDimensions = allDimensions.filter(d => !selectedDimensionIds.includes(d.id));
 
     // 渲染两个面板
