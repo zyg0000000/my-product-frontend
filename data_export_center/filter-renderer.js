@@ -29,8 +29,13 @@ export function renderFilters(entity, container) {
     }
 
     // 创建筛选器网格容器
+    // 项目导出使用2列布局（筛选器较多且部分占用空间大），其他使用3列布局
     const gridContainer = document.createElement('div');
-    gridContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
+    if (entity === 'project') {
+        gridContainer.className = 'grid grid-cols-1 lg:grid-cols-2 gap-6';
+    } else {
+        gridContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
+    }
 
     // 渲染每个筛选器
     config.filters.forEach(filter => {
@@ -179,17 +184,19 @@ function createCheckboxGroup(filter, options) {
 
     options.forEach(option => {
         const label = document.createElement('label');
-        label.className = 'flex items-center';
+        label.className = 'flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded';
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.value = option;
+        // 支持对象类型的选项（如项目数据）
+        checkbox.value = typeof option === 'object' ? option.id : option;
         checkbox.className = 'form-checkbox filter-checkbox';
         checkbox.setAttribute('data-filter-id', filter.id);
 
         const span = document.createElement('span');
         span.className = 'ml-2 text-sm';
-        span.textContent = option;
+        // 支持对象类型的选项（如项目数据）
+        span.textContent = typeof option === 'object' ? option.name : option;
 
         label.appendChild(checkbox);
         label.appendChild(span);
