@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导出字段调试工具</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 { color: #1f2937; }
+        h2 { color: #4b5563; margin-top: 0; }
+        .test-btn {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        .test-btn:hover {
+            background: #4338ca;
+        }
+        pre {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .status {
+            padding: 8px 16px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .label {
+            font-weight: bold;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 导出字段调试工具</h1>
+
+    <div class="section">
+        <h2>步骤 1: 测试后端 API 调用</h2>
+        <p>直接调用后端 API，验证 taskId 和 videoId 是否正确返回</p>
+        <button class="test-btn" onclick="testBackendAPI()">测试后端 API</button>
+        <div id="backend-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>步骤 2: 检查字段映射</h2>
+        <p>验证前端所有映射表是否包含新字段</p>
+        <button class="test-btn" onclick="checkMappings()">检查映射</button>
+        <div id="mapping-result"></div>
+    </div>
+
+    <script type="module">
+        window.testBackendAPI = async function() {
+            const resultDiv = document.getElementById('backend-result');
+            resultDiv.innerHTML = '<p class="status">正在测试...</p>';
+
+            const API_URL = 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com/export-comprehensive-data';
+
+            const payload = {
+                entity: 'collaboration',
+                fields: [
+                    'collaboration_status',
+                    'collaboration_amount',
+                    'taskId',
+                    'videoId',
+                    'nickname'
+                ],
+                filters: {}
+            };
+
+            try {
+                console.log('📤 发送请求:', payload);
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                console.log('📥 后端响应:', data);
+
+                if (data.success && data.data && data.data.length > 0) {
+                    const firstRecord = data.data[0];
+                    const hasTaskId = '星图任务ID' in firstRecord;
+                    const hasVideoId = '视频ID' in firstRecord;
+
+                    let html = `<p class="status success">✅ API 调用成功，返回 ${data.data.length} 条记录</p>`;
+                    html += `<div class="label">第一条记录的字段：</div>`;
+                    html += `<pre>${JSON.stringify(firstRecord, null, 2)}</pre>`;
+
+                    html += `<div class="label">字段检查：</div>`;
+                    html += `<p style="color: ${hasTaskId ? '#10b981' : '#ef4444'}">`;
+                    html += `${hasTaskId ? '✅' : '❌'} 星图任务ID: ${hasTaskId ? firstRecord['星图任务ID'] : '缺失'}`;
+                    html += `</p>`;
+                    html += `<p style="color: ${hasVideoId ? '#10b981' : '#ef4444'}">`;
+                    html += `${hasVideoId ? '✅' : '❌'} 视频ID: ${hasVideoId ? firstRecord['视频ID'] : '缺失'}`;
+                    html += `</p>`;
+
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.innerHTML = `<p class="status error">❌ ${data.message || '未返回数据'}</p>`;
+                }
+
+            } catch (error) {
+                console.error('测试失败:', error);
+                resultDiv.innerHTML = `<p class="status error">❌ 请求失败: ${error.message}</p>`;
+            }
+        };
+
+        window.checkMappings = async function() {
+            const resultDiv = document.getElementById('mapping-result');
+
+            try {
+                // 动态导入模块
+                const { default: tablePreview } = await import('./data_export_center/table-preview.js');
+                const { default: exportHandler } = await import('./data_export_center/export-handler.js');
+
+                let html = '<div class="label">正在检查映射...</div>';
+
+                // 检查 table-preview.js 中的映射
+                const tablePreviewCode = await fetch('./data_export_center/table-preview.js').then(r => r.text());
+                const hasTaskIdInTable = tablePreviewCode.includes("'taskId': '星图任务ID'");
+                const hasVideoIdInTable = tablePreviewCode.includes("'videoId': '视频ID'");
+
+                // 检查 export-handler.js 中的映射
+                const exportHandlerCode = await fetch('./data_export_center/export-handler.js').then(r => r.text());
+                const hasTaskIdInExport = exportHandlerCode.includes("'taskId': '星图任务ID'");
+                const hasVideoIdInExport = exportHandlerCode.includes("'videoId': '视频ID'");
+
+                html += '<h3>table-preview.js FIELD_TO_BACKEND_KEY_MAP:</h3>';
+                html += `<p style="color: ${hasTaskIdInTable ? '#10b981' : '#ef4444'}">`;
+                html += `${hasTaskIdInTable ? '✅' : '❌'} taskId 映射`;
+                html += `</p>`;
+                html += `<p style="color: ${hasVideoIdInTable ? '#10b981' : '#ef4444'}">`;
+                html += `${hasVideoIdInTable ? '✅' : '❌'} videoId 映射`;
+                html += `</p>`;
+
+                html += '<h3>export-handler.js BACKEND_FIELD_KEY_MAP:</h3>';
+                html += `<p style="color: ${hasTaskIdInExport ? '#10b981' : '#ef4444'}">`;
+                html += `${hasTaskIdInExport ? '✅' : '❌'} taskId 映射`;
+                html += `</p>`;
+                html += `<p style="color: ${hasVideoIdInExport ? '#10b981' : '#ef4444'}">`;
+                html += `${hasVideoIdInExport ? '✅' : '❌'} videoId 映射`;
+                html += `</p>`;
+
+                resultDiv.innerHTML = html;
+
+            } catch (error) {
+                console.error('检查失败:', error);
+                resultDiv.innerHTML = `<p class="status error">❌ 检查失败: ${error.message}</p>`;
+            }
+        };
+    </script>
+</body>
+</html>
