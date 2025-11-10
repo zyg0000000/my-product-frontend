@@ -206,9 +206,11 @@ function createMultiSelectInput(filter, options) {
 function createCheckboxGroup(filter, options, entity = null) {
     const container = document.createElement('div');
 
-    // 合作状态使用横向平铺展示，其他使用滚动容器
+    // 合作状态使用横向平铺展示，项目列表使用高容器，其他使用默认滚动容器
     if (filter.id === 'status') {
         container.className = 'mt-2 flex flex-wrap gap-4';
+    } else if (filter.id === 'projectIds') {
+        container.className = 'mt-2 space-y-2 border p-3 rounded-md max-h-[500px] overflow-y-auto custom-scrollbar';
     } else {
         container.className = 'mt-2 space-y-2 border p-2 rounded-md max-h-32 overflow-y-auto custom-scrollbar';
     }
