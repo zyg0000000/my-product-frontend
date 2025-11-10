@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>维度配置测试</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .field {
+            padding: 8px;
+            border-left: 3px solid #4f46e5;
+            margin: 5px 0;
+            background: #f9fafb;
+        }
+        .new-field {
+            border-left-color: #10b981;
+            background: #ecfdf5;
+            font-weight: bold;
+        }
+        h2 {
+            color: #1f2937;
+        }
+        h3 {
+            color: #4b5563;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 维度配置测试页面</h1>
+
+    <div class="section">
+        <h2>按合作导出 (collaboration)</h2>
+        <div id="collaboration-dimensions"></div>
+    </div>
+
+    <div class="section">
+        <h2>按项目导出 (project)</h2>
+        <div id="project-dimensions"></div>
+    </div>
+
+    <script type="module">
+        import { getEntityDimensions } from './data_export_center/dimension-config.js';
+
+        function renderDimensions(entity, containerId) {
+            const dimensions = getEntityDimensions(entity);
+            const container = document.getElementById(containerId);
+
+            if (!dimensions) {
+                container.innerHTML = '<p style="color: red;">配置未找到！</p>';
+                return;
+            }
+
+            let html = '';
+            for (const [groupName, fields] of Object.entries(dimensions)) {
+                html += `<h3>📁 ${groupName}</h3>`;
+                fields.forEach(field => {
+                    const isNew = field.id === 'taskId' || field.id === 'videoId';
+                    const className = isNew ? 'field new-field' : 'field';
+                    const badge = isNew ? ' <span style="color: #10b981;">✅ 新增</span>' : '';
+                    html += `<div class="${className}">${field.id}: ${field.label}${badge}</div>`;
+                });
+            }
+
+            container.innerHTML = html;
+        }
+
+        // 渲染两个实体的配置
+        renderDimensions('collaboration', 'collaboration-dimensions');
+        renderDimensions('project', 'project-dimensions');
+
+        console.log('✅ 配置测试页面加载完成');
+        console.log('Collaboration 配置:', getEntityDimensions('collaboration'));
+        console.log('Project 配置:', getEntityDimensions('project'));
+    </script>
+</body>
+</html>
