@@ -1,0 +1,173 @@
+{
+    "collection": "projects",
+    "description": "项目信息集合，存储所有营销项目的基本信息、预算、状态等",
+    "database": "kol_data",
+    "fields": {
+        "_id": {
+            "type": "ObjectId",
+            "description": "MongoDB 文档 ID",
+            "required": true,
+            "auto": true
+        },
+        "id": {
+            "type": "String",
+            "description": "项目唯一标识",
+            "required": true,
+            "unique": true,
+            "pattern": "^proj_[a-zA-Z0-9]+$",
+            "example": "proj_abc123"
+        },
+        "name": {
+            "type": "String",
+            "description": "项目名称",
+            "required": true,
+            "minLength": 1,
+            "maxLength": 200
+        },
+        "budget": {
+            "type": "String",
+            "description": "项目预算（字符串格式，可能包含单位）",
+            "required": true,
+            "example": "100万"
+        },
+        "status": {
+            "type": "String",
+            "description": "项目状态",
+            "required": true,
+            "enum": ["执行中", "已完成", "已暂停", "已归档"],
+            "default": "执行中"
+        },
+        "type": {
+            "type": "String",
+            "description": "项目类型",
+            "required": true,
+            "example": "品牌推广"
+        },
+        "financialYear": {
+            "type": "String",
+            "description": "财务年份",
+            "required": true,
+            "pattern": "^\\d{4}$",
+            "example": "2025"
+        },
+        "financialMonth": {
+            "type": "String",
+            "description": "财务月份",
+            "required": true,
+            "enum": ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12"],
+            "example": "M11"
+        },
+        "discount": {
+            "type": "String",
+            "description": "折扣配置",
+            "required": true,
+            "example": "0.95"
+        },
+        "capitalRateId": {
+            "type": "String",
+            "description": "资金利率 ID",
+            "required": true
+        },
+        "benchmarkCPM": {
+            "type": "Integer",
+            "description": "基准 CPM 值（千次播放成本）",
+            "required": true,
+            "min": 0,
+            "example": 50
+        },
+        "adjustments": {
+            "type": "Array",
+            "description": "调价记录数组",
+            "required": true,
+            "default": [],
+            "itemType": "Object",
+            "itemSchema": {
+                "date": {
+                    "type": "Date",
+                    "description": "调价日期"
+                },
+                "reason": {
+                    "type": "String",
+                    "description": "调价原因"
+                },
+                "oldValue": {
+                    "type": "Integer",
+                    "description": "原值"
+                },
+                "newValue": {
+                    "type": "Integer",
+                    "description": "新值"
+                }
+            }
+        },
+        "auditLog": {
+            "type": "Array",
+            "description": "审计日志",
+            "required": true,
+            "default": [],
+            "itemType": "Object"
+        },
+        "qianchuanId": {
+            "type": "String",
+            "description": "千川 ID（可选）",
+            "required": false
+        },
+        "createdAt": {
+            "type": "Date",
+            "description": "创建时间",
+            "required": true,
+            "default": "now"
+        },
+        "updatedAt": {
+            "type": "Date",
+            "description": "更新时间",
+            "required": true,
+            "default": "now"
+        }
+    },
+    "indexes": [
+        {
+            "name": "idx_project_id",
+            "fields": { "id": 1 },
+            "unique": true,
+            "comment": "项目 ID 唯一索引"
+        },
+        {
+            "name": "idx_project_status",
+            "fields": { "status": 1 },
+            "comment": "项目状态索引，用于筛选"
+        },
+        {
+            "name": "idx_project_financial",
+            "fields": { "financialYear": 1, "financialMonth": 1 },
+            "comment": "财务年月复合索引"
+        },
+        {
+            "name": "idx_project_created",
+            "fields": { "createdAt": -1 },
+            "comment": "创建时间倒序索引"
+        }
+    ],
+    "relations": [
+        {
+            "collection": "collaborations",
+            "type": "one-to-many",
+            "foreignKey": "projectId",
+            "description": "一个项目包含多个合作订单"
+        },
+        {
+            "collection": "daily_stats",
+            "type": "one-to-many",
+            "foreignKey": "projectId",
+            "description": "一个项目包含多条每日数据"
+        }
+    ],
+    "version": "2.0",
+    "lastUpdated": "2025-11-10",
+    "author": "开发团队",
+    "notes": [
+        "项目是整个系统的核心实体",
+        "通过 projectId 关联到合作订单和其他数据",
+        "财务年月用于财务报表和统计"
+    ]
+}

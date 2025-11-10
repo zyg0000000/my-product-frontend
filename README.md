@@ -6,6 +6,8 @@
 [![数据库](https://img.shields.io/badge/database-MongoDB-green)](https://www.mongodb.com/)
 [![云函数](https://img.shields.io/badge/serverless-火山引擎-blue)](https://www.volcengine.com/)
 
+> **🎉 Monorepo 架构升级 (v2.12)**: 本仓库已整合前端、云函数、数据库 Schema，实现全栈代码统一管理！
+
 ---
 
 ## 📖 项目概述
@@ -139,13 +141,140 @@
 
 ---
 
+## 🏗️ Monorepo 架构 (v2.12)
+
+### 📋 架构升级概述
+
+本项目已从**多仓库**架构升级为 **Monorepo（单一仓库）** 架构，将前端、云函数、数据库 Schema 统一管理。
+
+**升级目标：**
+- ✅ 统一版本控制，一次提交包含完整功能（前端+后端+数据）
+- ✅ 提升 AI 协作效率（Claude Code 可以看到完整上下文）
+- ✅ 简化开发流程，减少仓库间切换
+- ✅ 为多前端架构做准备，支持未来新业务线
+
+### 📅 分阶段实施计划
+
+#### 阶段 1：添加后端代码（当前阶段）✅
+
+**目标：** 在当前结构基础上添加云函数和数据库 Schema，前端位置不变
+
+**变更：**
+```
+my-product-frontend/
+├── functions/         # 🆕 云函数源码
+├── database/          # 🆕 数据库 Schema
+└── [前端代码保持根目录]
+```
+
+**优势：**
+- Cloudflare Pages 自动部署无需任何配置
+- 风险最低，改动最小
+- 快速实现全栈代码统一管理
+
+**状态：** ✅ 已完成目录结构创建，待迁移代码
+
+---
+
+#### 阶段 2：前端迁移到子目录（计划中）
+
+**目标：** 将前端代码移到 `frontends/marketing/` 子目录
+
+**变更：**
+```
+kol-platform/  (重命名仓库)
+├── frontends/
+│   └── marketing/     # ⬅️ 前端代码移到这里
+├── functions/         # 保持
+└── database/          # 保持
+```
+
+**优势：**
+- 结构更清晰，职责分明
+- 为多前端架构奠定基础
+- 便于未来添加新业务前端
+
+**需要调整：**
+- Cloudflare Pages 部署配置（构建目录改为 `frontends/marketing/`）
+- 可选择重命名仓库为 `kol-platform`
+
+---
+
+#### 阶段 3：新前端开发（未来）
+
+**目标：** 在同一仓库中开发新的前端项目，共享后端 API
+
+**变更：**
+```
+kol-platform/
+├── frontends/
+│   ├── marketing/         # 现有营销管理前端
+│   └── [new-business]/    # 🆕 新业务前端
+├── functions/             # 共享云函数 API
+└── database/              # 共享数据库 Schema
+```
+
+**优势：**
+- 一套后端服务多个业务
+- 代码复用，提升开发效率
+- 统一的技术栈和开发规范
+
+---
+
+### 🔧 部署说明
+
+#### 前端部署（Cloudflare Pages）
+
+- **阶段 1**: 自动部署，无需配置（根目录）
+- **阶段 2**: 需调整构建目录为 `frontends/marketing/`
+
+#### 后端部署（火山引擎云函数）
+
+**工作流程：**
+```
+1. GitHub 提交代码
+   ↓
+2. VSCode 拉取代码到本地
+   ↓
+3. 使用火山引擎 VSCode 插件部署
+```
+
+**注意：** 云函数代码仅用于版本管理，不自动部署
+
+#### 数据库（MongoDB）
+
+- Schema 定义文件仅供文档和验证使用
+- 实际数据存储在 MongoDB 云数据库中
+- 数据迁移需手动执行脚本
+
+---
+
 ## 📁 项目结构
 
 ```
-my-product-frontend/
+my-product-frontend/  (考虑未来重命名为 kol-platform)
 ├── README.md                          # 项目总览（本文件）
 │
-├── common/                            # 通用库（跨页面复用）
+├── 📁 functions/                      # 🆕 云函数源码（Monorepo 阶段1）
+│   ├── README.md                     # 云函数开发指南
+│   ├── _template/                    # 云函数模板
+│   ├── getProjects/                  # 获取项目列表
+│   ├── getTalents/                   # 获取达人列表
+│   ├── handleProjectReport/          # 项目日报处理
+│   └── ...                           # 51+ 个云函数（待迁移）
+│
+├── 📁 database/                       # 🆕 数据库 Schema（Monorepo 阶段1）
+│   ├── README.md                     # Schema 文档
+│   ├── schemas/                      # Schema 定义文件
+│   │   ├── _template.json           # Schema 模板
+│   │   ├── projects.json            # 项目集合
+│   │   ├── talents.json             # 达人集合
+│   │   └── ...                      # 其他集合（待迁移）
+│   ├── indexes/                      # 索引定义
+│   └── migrations/                   # 数据迁移脚本
+│       └── _template.js             # 迁移脚本模板
+│
+├── common/                            # 前端通用库（跨页面复用）
 │   └── app-core.js                   # 核心工具类（API、Modal、格式化等）
 │
 ├── legacy/                            # 🗂️ 旧版单文件代码存档（仅供参考）
@@ -1495,6 +1624,6 @@ chore: 构建/工具链相关
 
 ---
 
-**最后更新**：2025-11-02
-**当前版本**：v2.11 (自动化页面优化 + 模板工作流关联系统)
+**最后更新**：2025-11-10
+**当前版本**：v2.12 (Monorepo 架构升级 - 阶段1完成)
 **维护者**：产品经理 + Claude Code

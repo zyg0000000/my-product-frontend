@@ -1,0 +1,122 @@
+{
+    "collection": "collection_name",
+    "description": "集合说明",
+    "database": "kol_data",
+    "fields": {
+        "_id": {
+            "type": "ObjectId",
+            "description": "MongoDB 文档 ID",
+            "required": true,
+            "auto": true,
+            "comment": "由 MongoDB 自动生成"
+        },
+        "id": {
+            "type": "String",
+            "description": "业务唯一标识",
+            "required": true,
+            "unique": true,
+            "comment": "格式如: proj_xxx, talent_xxx"
+        },
+        "name": {
+            "type": "String",
+            "description": "名称",
+            "required": true,
+            "minLength": 1,
+            "maxLength": 200
+        },
+        "status": {
+            "type": "String",
+            "description": "状态",
+            "required": true,
+            "enum": ["active", "inactive", "archived"],
+            "default": "active"
+        },
+        "count": {
+            "type": "Integer",
+            "description": "数量",
+            "required": false,
+            "min": 0,
+            "default": 0
+        },
+        "rate": {
+            "type": "Double",
+            "description": "比率",
+            "required": false,
+            "min": 0,
+            "max": 1,
+            "comment": "范围 0.0 - 1.0"
+        },
+        "enabled": {
+            "type": "Boolean",
+            "description": "是否启用",
+            "required": true,
+            "default": true
+        },
+        "tags": {
+            "type": "Array",
+            "description": "标签数组",
+            "required": false,
+            "itemType": "String",
+            "default": []
+        },
+        "metadata": {
+            "type": "Object",
+            "description": "元数据",
+            "required": false,
+            "properties": {
+                "key1": {
+                    "type": "String",
+                    "description": "键1"
+                },
+                "key2": {
+                    "type": "Integer",
+                    "description": "键2"
+                }
+            }
+        },
+        "createdAt": {
+            "type": "Date",
+            "description": "创建时间",
+            "required": true,
+            "default": "now",
+            "comment": "ISO 8601 格式"
+        },
+        "updatedAt": {
+            "type": "Date",
+            "description": "更新时间",
+            "required": true,
+            "default": "now",
+            "comment": "每次更新时自动更新"
+        }
+    },
+    "indexes": [
+        {
+            "name": "idx_id",
+            "fields": { "id": 1 },
+            "unique": true,
+            "comment": "业务 ID 唯一索引"
+        },
+        {
+            "name": "idx_status",
+            "fields": { "status": 1 },
+            "comment": "状态索引"
+        },
+        {
+            "name": "idx_created",
+            "fields": { "createdAt": -1 },
+            "comment": "创建时间倒序索引"
+        }
+    ],
+    "validation": {
+        "level": "moderate",
+        "comment": "可选值: strict, moderate, off"
+    },
+    "version": "1.0",
+    "lastUpdated": "2025-11-10",
+    "author": "开发团队",
+    "notes": [
+        "这是一个 Schema 模板文件",
+        "创建新 Schema 时可以复制此文件",
+        "根据实际需求修改字段定义"
+    ]
+}
