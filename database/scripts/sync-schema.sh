@@ -84,11 +84,11 @@ sync_collection() {
     local target_file="$SCHEMAS_DIR/${collection}.schema.json"
 
     echo -e "${YELLOW}⏳ 从 MongoDB 导出...${NC}"
-    if mongodb-schema "$MONGO_URI" -d "$DB_NAME" -c "$collection" \
-        --format json-schema > "$temp_file" 2>/dev/null; then
+    if mongodb-schema "$MONGO_URI" "$DB_NAME.$collection" --format json > "$temp_file" 2>&1; then
         echo -e "${GREEN}✅ 导出成功${NC}"
     else
         echo -e "${RED}❌ 导出失败（集合可能不存在或无数据）${NC}"
+        cat "$temp_file" 2>/dev/null || true
         return 1
     fi
 
