@@ -226,11 +226,7 @@ function renderSelectedList(dimensions) {
         const moveUpBtn = item.querySelector('.move-up-btn');
         const moveDownBtn = item.querySelector('.move-down-btn');
 
-        // 防止按钮触发拖拽
-        removeBtn.addEventListener('mousedown', (e) => e.stopPropagation());
-        moveUpBtn.addEventListener('mousedown', (e) => e.stopPropagation());
-        moveDownBtn.addEventListener('mousedown', (e) => e.stopPropagation());
-
+        // 按钮点击事件（不使用 stopPropagation 防止阻止 dragstart）
         removeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             handleRemoveDimension(dim.id);
@@ -244,7 +240,7 @@ function renderSelectedList(dimensions) {
             handleMoveDimension(index, 'down');
         });
 
-        // 绑定拖拽事件
+        // 绑定拖拽事件到整个 item
         item.addEventListener('dragstart', handleDragStart);
         item.addEventListener('dragover', handleDragOver);
         item.addEventListener('drop', handleDrop);
@@ -439,6 +435,14 @@ let draggedOverElement = null;
  * @param {DragEvent} e - 拖拽事件
  */
 function handleDragStart(e) {
+    // 检查是否从按钮发起拖拽，如果是则取消
+    const target = e.target;
+    if (target.tagName === 'BUTTON' || target.closest('button')) {
+        console.log('❌ 从按钮发起拖拽，已取消');
+        e.preventDefault();
+        return;
+    }
+
     draggedElement = e.currentTarget;
     draggedElement.classList.add('opacity-50');
     e.dataTransfer.effectAllowed = 'move';
@@ -447,7 +451,9 @@ function handleDragStart(e) {
     console.log('🚀 拖拽开始:', {
         element: draggedElement,
         id: draggedElement.dataset.id,
-        label: draggedElement.querySelector('.text-sm')?.textContent
+        label: draggedElement.querySelector('.text-sm')?.textContent,
+        targetTag: e.target.tagName,
+        targetClass: e.target.className
     });
 }
 
