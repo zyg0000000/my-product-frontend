@@ -1,5 +1,5 @@
 {
-  "count": 5,
+  "count": 6,
   "fields": [
     {
       "name": "_id",
@@ -8,7 +8,7 @@
       ],
       "count": 36,
       "type": "ObjectId",
-      "probability": 7.2,
+      "probability": 6,
       "hasDuplicates": false,
       "types": [
         {
@@ -17,93 +17,51 @@
             "_id"
           ],
           "count": 35,
-          "probability": 7,
+          "probability": 5.833333333333333,
           "unique": 35,
           "hasDuplicates": false,
           "values": [
             {
-              "$oid": "68d971e6e0e21a44ed2e9565"
+              "$oid": "68c1528467b290e0b9eae4e3"
             },
             {
-              "$oid": "68e9ffa25876a988f2069f46"
-            },
-            {
-              "$oid": "68f0e0275027debcfb75cb4b"
-            },
-            {
-              "$oid": "68c45d5442fb2ee29ccad0f2"
+              "$oid": "68f0dfc85027debcfb75cb45"
             },
             {
               "$oid": "68c152ed67b290e0b9eae4e7"
             },
             {
-              "$oid": "68c1530a67b290e0b9eae4e9"
-            },
-            {
-              "$oid": "68f0dfea5027debcfb75cb47"
-            },
-            {
-              "$oid": "68c152c367b290e0b9eae4e5"
-            },
-            {
-              "$oid": "68f0df9c5027debcfb75cb43"
-            },
-            {
-              "$oid": "68f0da1b5027debcfb75cb3f"
-            },
-            {
-              "$oid": "68c1528467b290e0b9eae4e3"
-            },
-            {
-              "$oid": "68bf90031089e90cfbf6d814"
-            },
-            {
-              "$oid": "68f0e0535027debcfb75cb4d"
-            },
-            {
-              "$oid": "68f0cefc5027debcfb75cb3d"
-            },
-            {
-              "$oid": "68c14acc67b290e0b9eae4df"
-            },
-            {
-              "$oid": "68ca751503211713fa558612"
-            },
-            {
-              "$oid": "68d8e949cb79db6dc3870f0f"
-            },
-            {
-              "$oid": "68c993d554535e519337cf6c"
-            },
-            {
-              "$oid": "68d8e535cb79db6dc3870f0b"
-            },
-            {
-              "$oid": "68ca46b7cedd1bd73e5a3efd"
-            },
-            {
-              "$oid": "68d8e1075e9c1cb153a68aee"
-            },
-            {
-              "$oid": "68f0e00c5027debcfb75cb49"
-            },
-            {
               "$oid": "68ca754803211713fa558614"
             },
             {
-              "$oid": "690db21f4be82647400aef90"
-            },
-            {
-              "$oid": "68c14a9867b290e0b9eae4dd"
-            },
-            {
-              "$oid": "68f1d7dec884930e5ca8a35d"
+              "$oid": "68f0df6c5027debcfb75cb41"
             },
             {
               "$oid": "68f922159278b112d87e01a1"
             },
             {
-              "$oid": "69046aa4c9c8f9279ca9a189"
+              "$oid": "68bf90031089e90cfbf6d814"
+            },
+            {
+              "$oid": "690db21f4be82647400aef90"
+            },
+            {
+              "$oid": "68d971e6e0e21a44ed2e9565"
+            },
+            {
+              "$oid": "68ca713803211713fa55860e"
+            },
+            {
+              "$oid": "68c45d5442fb2ee29ccad0f2"
+            },
+            {
+              "$oid": "68e9ffa25876a988f2069f46"
+            },
+            {
+              "$oid": "68d8e1075e9c1cb153a68aee"
+            },
+            {
+              "$oid": "68d8e535cb79db6dc3870f0b"
             },
             {
               "$oid": "68f1dfcdc884930e5ca8a35f"
@@ -112,19 +70,61 @@
               "$oid": "68ca74b403211713fa558610"
             },
             {
-              "$oid": "68ca713803211713fa55860e"
+              "$oid": "68d97234e0e21a44ed2e9567"
             },
             {
-              "$oid": "68f0dfc85027debcfb75cb45"
+              "$oid": "68c1530a67b290e0b9eae4e9"
+            },
+            {
+              "$oid": "68f0dfea5027debcfb75cb47"
+            },
+            {
+              "$oid": "68ca46b7cedd1bd73e5a3efd"
+            },
+            {
+              "$oid": "68f0e00c5027debcfb75cb49"
+            },
+            {
+              "$oid": "68d8ea4bcb79db6dc3870f11"
+            },
+            {
+              "$oid": "68c14a9867b290e0b9eae4dd"
+            },
+            {
+              "$oid": "68c993d554535e519337cf6c"
+            },
+            {
+              "$oid": "68f1d7dec884930e5ca8a35d"
+            },
+            {
+              "$oid": "68f0df9c5027debcfb75cb43"
+            },
+            {
+              "$oid": "69046aa4c9c8f9279ca9a189"
+            },
+            {
+              "$oid": "68f0e0275027debcfb75cb4b"
             },
             {
               "$oid": "68c14b1367b290e0b9eae4e1"
             },
             {
-              "$oid": "68f0df6c5027debcfb75cb41"
+              "$oid": "68f0cefc5027debcfb75cb3d"
             },
             {
-              "$oid": "68d97234e0e21a44ed2e9567"
+              "$oid": "68c152c367b290e0b9eae4e5"
+            },
+            {
+              "$oid": "68f0da1b5027debcfb75cb3f"
+            },
+            {
+              "$oid": "68c14acc67b290e0b9eae4df"
+            },
+            {
+              "$oid": "68f0e0535027debcfb75cb4d"
+            },
+            {
+              "$oid": "68d8e949cb79db6dc3870f0f"
             }
           ],
           "bsonType": "ObjectId"
@@ -138,7 +138,7 @@
       ],
       "count": 17,
       "type": "Array",
-      "probability": 3.4,
+      "probability": 2.8333333333333335,
       "hasDuplicates": false,
       "types": [
         {
@@ -147,7 +147,7 @@
             "adjustments"
           ],
           "count": 17,
-          "probability": 3.4,
+          "probability": 2.8333333333333335,
           "unique": null,
           "hasDuplicates": null,
           "values": null,
@@ -165,6 +165,34 @@
               "values": null,
               "bsonType": "Document",
               "fields": [
+                {
+                  "name": "amount",
+                  "path": [
+                    "adjustments",
+                    "amount"
+                  ],
+                  "count": 1,
+                  "type": "Number",
+                  "probability": 1,
+                  "hasDuplicates": false,
+                  "types": [
+                    {
+                      "name": "Number",
+                      "path": [
+                        "adjustments",
+                        "amount"
+                      ],
+                      "count": 1,
+                      "probability": 1,
+                      "unique": 1,
+                      "hasDuplicates": false,
+                      "values": [
+                        78000
+                      ],
+                      "bsonType": "Number"
+                    }
+                  ]
+                },
                 {
                   "name": "date",
                   "path": [
@@ -288,13 +316,13 @@
             0,
             0,
             0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
             1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
             0,
             0,
             0,
@@ -309,9 +337,9 @@
       "path": [
         "auditLog"
       ],
-      "count": 15,
+      "count": 16,
       "type": "Array",
-      "probability": 3,
+      "probability": 2.6666666666666665,
       "hasDuplicates": false,
       "types": [
         {
@@ -319,8 +347,8 @@
           "path": [
             "auditLog"
           ],
-          "count": 14,
-          "probability": 2.8,
+          "count": 15,
+          "probability": 2.5,
           "unique": null,
           "hasDuplicates": null,
           "values": null,
@@ -331,7 +359,7 @@
               "path": [
                 "auditLog"
               ],
-              "count": 17,
+              "count": 13,
               "probability": 1,
               "unique": null,
               "hasDuplicates": null,
@@ -344,12 +372,12 @@
                     "auditLog",
                     "action"
                   ],
-                  "count": 14,
+                  "count": 11,
                   "type": [
                     "String",
                     "Undefined"
                   ],
-                  "probability": 0.8235294117647058,
+                  "probability": 0.8461538461538461,
                   "hasDuplicates": true,
                   "types": [
                     {
@@ -358,24 +386,22 @@
                         "auditLog",
                         "action"
                       ],
-                      "count": 13,
-                      "probability": 0.7647058823529411,
-                      "unique": 3,
+                      "count": 11,
+                      "probability": 0.8461538461538461,
+                      "unique": 2,
                       "hasDuplicates": true,
                       "values": [
-                        "项目状态由人工变更为: 已收款",
-                        "项目状态由人工变更为: 待结算",
-                        "项目状态由人工变更为: 待结算",
                         "项目状态由人工变更为: 待结算",
                         "项目状态由人工变更为: 已收款",
                         "项目状态由人工变更为: 待结算",
                         "项目状态由人工变更为: 待结算",
                         "项目状态由人工变更为: 待结算",
+                        "项目状态由人工变更为: 已收款",
                         "项目状态由人工变更为: 待结算",
-                        "项目状态由人工变更为: 执行中",
                         "项目状态由人工变更为: 待结算",
                         "项目状态由人工变更为: 待结算",
-                        "项目状态由人工变更为: 待结算"
+                        "项目状态由人工变更为: 待结算",
+                        "项目状态由人工变更为: 已收款"
                       ],
                       "bsonType": "String"
                     },
@@ -388,8 +414,8 @@
                         "auditLog",
                         "action"
                       ],
-                      "count": 3,
-                      "probability": 0.17647058823529413
+                      "count": 2,
+                      "probability": 0.15384615384615385
                     }
                   ]
                 },
@@ -399,12 +425,9 @@
                     "auditLog",
                     "timestamp"
                   ],
-                  "count": 16,
-                  "type": [
-                    "Date",
-                    "Undefined"
-                  ],
-                  "probability": 0.9411764705882353,
+                  "count": 13,
+                  "type": "Date",
+                  "probability": 1,
                   "hasDuplicates": false,
                   "types": [
                     {
@@ -413,70 +436,52 @@
                         "auditLog",
                         "timestamp"
                       ],
-                      "count": 15,
-                      "probability": 0.8823529411764706,
-                      "unique": 15,
+                      "count": 13,
+                      "probability": 1,
+                      "unique": 13,
                       "hasDuplicates": false,
                       "values": [
                         {
-                          "$date": "2025-10-23T15:46:37.292Z"
+                          "$date": "2025-09-14T14:27:55.983Z"
                         },
                         {
-                          "$date": "2025-10-01T16:16:09.633Z"
+                          "$date": "2025-10-23T15:50:40.595Z"
                         },
                         {
                           "$date": "2025-09-10T16:06:18.379Z"
                         },
                         {
-                          "$date": "2025-09-15T05:50:30.930Z"
+                          "$date": "2025-09-17T10:21:27.199Z"
                         },
                         {
-                          "$date": "2025-10-23T15:48:47.738Z"
+                          "$date": "2025-10-18T05:48:14.051Z"
                         },
                         {
-                          "$date": "2025-10-23T15:46:33.658Z"
+                          "$date": "2025-09-14T14:27:42.282Z"
                         },
                         {
-                          "$date": "2025-10-18T03:43:37.998Z"
+                          "$date": "2025-10-23T15:48:05.036Z"
                         },
                         {
-                          "$date": "2025-09-10T16:05:59.915Z"
+                          "$date": "2025-09-17T10:14:52.118Z"
                         },
                         {
-                          "$date": "2025-10-16T12:03:23.878Z"
+                          "$date": "2025-09-10T16:05:41.960Z"
                         },
                         {
-                          "$date": "2025-09-15T05:50:01.937Z"
+                          "$date": "2025-10-01T16:16:09.633Z"
                         },
                         {
-                          "$date": "2025-09-14T14:27:55.983Z"
+                          "$date": "2025-10-23T14:36:35.994Z"
                         },
                         {
-                          "$date": "2025-10-23T15:48:01.642Z"
+                          "$date": "2025-09-14T16:27:03.694Z"
                         },
                         {
-                          "$date": "2025-10-20T04:11:09.346Z"
-                        },
-                        {
-                          "$date": "2025-10-23T15:00:16.858Z"
-                        },
-                        {
-                          "$date": "2025-10-16T11:34:28.584Z"
+                          "$date": "2025-09-17T09:28:58.968Z"
                         }
                       ],
                       "bsonType": "Date"
-                    },
-                    {
-                      "name": "Undefined",
-                      "bsonType": "Undefined",
-                      "unique": 1,
-                      "hasDuplicates": false,
-                      "path": [
-                        "auditLog",
-                        "timestamp"
-                      ],
-                      "count": 1,
-                      "probability": 0.058823529411764705
                     }
                   ]
                 },
@@ -486,12 +491,12 @@
                     "auditLog",
                     "user"
                   ],
-                  "count": 14,
+                  "count": 11,
                   "type": [
                     "String",
                     "Undefined"
                   ],
-                  "probability": 0.8235294117647058,
+                  "probability": 0.8461538461538461,
                   "hasDuplicates": true,
                   "types": [
                     {
@@ -500,14 +505,11 @@
                         "auditLog",
                         "user"
                       ],
-                      "count": 14,
-                      "probability": 0.8235294117647058,
+                      "count": 11,
+                      "probability": 0.8461538461538461,
                       "unique": 1,
                       "hasDuplicates": true,
                       "values": [
-                        "System",
-                        "System",
-                        "System",
                         "System",
                         "System",
                         "System",
@@ -531,32 +533,33 @@
                         "auditLog",
                         "user"
                       ],
-                      "count": 3,
-                      "probability": 0.17647058823529413
+                      "count": 2,
+                      "probability": 0.15384615384615385
                     }
                   ]
                 }
               ]
             }
           ],
-          "totalCount": 17,
+          "totalCount": 13,
           "lengths": [
-            0,
-            0,
-            6,
-            1,
-            1,
-            7,
+            3,
             6,
             1,
             1,
             1,
+            0,
+            0,
+            0,
             3,
-            3,
-            3,
-            1
+            0,
+            1,
+            0,
+            0,
+            5,
+            0
           ],
-          "averageLength": 1.2142857142857142
+          "averageLength": 0.8666666666666667
         }
       ]
     },
@@ -567,7 +570,7 @@
       ],
       "count": 28,
       "type": "Number",
-      "probability": 5.6,
+      "probability": 4.666666666666667,
       "hasDuplicates": true,
       "types": [
         {
@@ -576,7 +579,7 @@
             "benchmarkCPM"
           ],
           "count": 27,
-          "probability": 5.4,
+          "probability": 4.5,
           "unique": 2,
           "hasDuplicates": true,
           "values": [
@@ -591,10 +594,10 @@
             15,
             15,
             15,
-            18.5,
             15,
             15,
             15,
+            50,
             15,
             15,
             15,
@@ -619,7 +622,7 @@
       ],
       "count": 29,
       "type": "String",
-      "probability": 5.8,
+      "probability": 4.833333333333333,
       "hasDuplicates": true,
       "types": [
         {
@@ -628,39 +631,39 @@
             "budget"
           ],
           "count": 29,
-          "probability": 5.8,
-          "unique": 19,
+          "probability": 4.833333333333333,
+          "unique": 17,
           "hasDuplicates": true,
           "values": [
             "1000000",
-            "1400000",
-            "2100000",
-            "1000000",
+            "1800000",
             "500000",
+            "1600000",
+            "1750000",
+            "1060000",
+            "2000000",
+            "300000",
+            "1400000",
+            "500000",
+            "1000000",
+            "1000000",
+            "1000000",
+            "3500000",
+            "1000000",
+            "800000",
+            "1000000",
             "2720000",
             "1800000",
-            "3000000",
-            "184080",
-            "200000",
-            "1000000",
-            "600000",
-            "2000000",
-            "1500000",
-            "680000",
-            "1800000",
+            "2500000",
+            "2500000",
             "500000",
+            "300000",
             "2000000",
-            "3500000",
-            "2500000",
-            "1000000",
-            "2500000",
-            "1600000",
-            "300000",
-            "300000",
+            "3000000",
             "200000",
-            "1060000",
             "700000",
-            "1000000"
+            "2100000",
+            "200000"
           ],
           "bsonType": "String"
         }
@@ -673,7 +676,7 @@
       ],
       "count": 20,
       "type": "String",
-      "probability": 4,
+      "probability": 3.3333333333333335,
       "hasDuplicates": true,
       "types": [
         {
@@ -682,7 +685,7 @@
             "capitalRateId"
           ],
           "count": 19,
-          "probability": 3.8,
+          "probability": 3.1666666666666665,
           "unique": 1,
           "hasDuplicates": true,
           "values": [
@@ -715,9 +718,9 @@
       "path": [
         "createdAt"
       ],
-      "count": 7,
+      "count": 9,
       "type": "Date",
-      "probability": 1.4,
+      "probability": 1.5,
       "hasDuplicates": false,
       "types": [
         {
@@ -725,28 +728,37 @@
           "path": [
             "createdAt"
           ],
-          "count": 6,
-          "probability": 1.2,
-          "unique": 6,
+          "count": 9,
+          "probability": 1.5,
+          "unique": 9,
           "hasDuplicates": false,
           "values": [
             {
-              "$date": "2025-10-11T06:56:34.890Z"
-            },
-            {
-              "$date": "2025-09-28T17:35:34.701Z"
-            },
-            {
-              "$date": "2025-09-12T17:50:12.131Z"
+              "$date": "2025-10-22T18:27:33.643Z"
             },
             {
               "$date": "2025-09-10T10:29:01.239Z"
             },
             {
-              "$date": "2025-10-16T12:05:48.445Z"
+              "$date": "2025-09-17T08:46:00.791Z"
             },
             {
-              "$date": "2025-09-10T10:28:19.674Z"
+              "$date": "2025-09-28T17:35:34.701Z"
+            },
+            {
+              "$date": "2025-11-07T08:47:27.498Z"
+            },
+            {
+              "$date": "2025-10-16T12:05:00.342Z"
+            },
+            {
+              "$date": "2025-10-11T06:56:34.890Z"
+            },
+            {
+              "$date": "2025-09-28T07:17:27.530Z"
+            },
+            {
+              "$date": "2025-09-28T07:35:17.192Z"
             }
           ],
           "bsonType": "Date"
@@ -760,7 +772,7 @@
       ],
       "count": 21,
       "type": "String",
-      "probability": 4.2,
+      "probability": 3.5,
       "hasDuplicates": true,
       "types": [
         {
@@ -769,10 +781,23 @@
             "discount"
           ],
           "count": 21,
-          "probability": 4.2,
+          "probability": 3.5,
           "unique": 2,
           "hasDuplicates": true,
           "values": [
+            "0.8",
+            "0.8",
+            "0.8",
+            "0.8",
+            "0.8",
+            "0.795",
+            "0.795",
+            "0.795",
+            "0.795",
+            "0.8",
+            "0.795",
+            "0.795",
+            "0.795",
             "0.795",
             "0.795",
             "0.8",
@@ -780,20 +805,7 @@
             "0.8",
             "0.8",
             "0.8",
-            "0.8",
-            "0.8",
-            "0.8",
-            "0.8",
-            "0.8",
-            "0.795",
-            "0.8",
-            "0.795",
-            "0.8",
-            "0.795",
-            "0.8",
-            "0.795",
-            "0.8",
-            "0.795"
+            "0.8"
           ],
           "bsonType": "String"
         }
@@ -806,7 +818,7 @@
       ],
       "count": 22,
       "type": "String",
-      "probability": 4.4,
+      "probability": 3.6666666666666665,
       "hasDuplicates": true,
       "types": [
         {
@@ -815,32 +827,32 @@
             "financialMonth"
           ],
           "count": 22,
-          "probability": 4.4,
-          "unique": 7,
+          "probability": 3.6666666666666665,
+          "unique": 10,
           "hasDuplicates": true,
           "values": [
-            "M10",
-            "M10",
-            "M5",
-            "M9",
-            "M8",
             "M8",
             "M5",
-            "M6",
-            "M8",
-            "M6",
             "M8",
             "M4",
-            "M9",
             "M6",
+            "M11",
             "M9",
-            "M4",
+            "M11",
             "M10",
+            "M2",
+            "M10",
+            "M9",
+            "M10",
+            "M10",
+            "M10",
+            "M3",
+            "M10",
+            "M8",
+            "M5",
             "M7",
-            "M10",
-            "M7",
-            "M10",
-            "M5"
+            "M5",
+            "M10"
           ],
           "bsonType": "String"
         }
@@ -853,7 +865,7 @@
       ],
       "count": 24,
       "type": "String",
-      "probability": 4.8,
+      "probability": 4,
       "hasDuplicates": true,
       "types": [
         {
@@ -862,7 +874,7 @@
             "financialYear"
           ],
           "count": 23,
-          "probability": 4.6,
+          "probability": 3.8333333333333335,
           "unique": 1,
           "hasDuplicates": true,
           "values": [
@@ -901,7 +913,7 @@
       ],
       "count": 34,
       "type": "String",
-      "probability": 6.8,
+      "probability": 5.666666666666667,
       "hasDuplicates": false,
       "types": [
         {
@@ -910,44 +922,44 @@
             "id"
           ],
           "count": 34,
-          "probability": 6.8,
+          "probability": 5.666666666666667,
           "unique": 34,
           "hasDuplicates": false,
           "values": [
-            "proj_1759080934701_d684asv",
-            "proj_1760165794890_t4bag3c",
-            "proj_1760616487313_8r7sp59",
-            "proj_1757699412131_cvytrph",
-            "proj_1757500141239_pladtfd",
-            "proj_1757500170827_0b18dq5",
-            "proj_1760616426224_q7aenxp",
-            "proj_1757500099674_yglg1qk",
-            "proj_1760616348445_rxxz3hn",
-            "proj_1760614939634_akzoc20",
             "proj_1757500036094_yzinmza",
-            "proj_1757384707590_j627j8w",
-            "proj_1760616531885_zwxgw8j",
-            "proj_1760612092100_ew28zys",
-            "proj_1757498060329_1p0nxm8",
-            "proj_1758098709967_j0ptaba",
-            "proj_1759045961033_3ts94j4",
-            "proj_1758041045955_x2s58hk",
-            "proj_1759044917192_py5qvc6",
-            "proj_1758086839932_107uf0s",
-            "proj_1759043847530_ciykak2",
-            "proj_1760616460585_66favmx",
+            "proj_1760616392353_c0ddpct",
+            "proj_1757500141239_pladtfd",
             "proj_1758098760791_ttftusv",
-            "proj_1762505247498_o86pcpb",
-            "proj_1757498008544_bjibdss",
-            "proj_1760679902672_xg6hhl9",
+            "proj_1760616300342_x28ecsl",
             "proj_1761157653643_qfm8v5y",
-            "proj_1761897124823_nnywjjm",
+            "proj_1757384707590_j627j8w",
+            "proj_1762505247498_o86pcpb",
+            "proj_1759080934701_d684asv",
+            "proj_1758097720297_559eyui",
+            "proj_1757699412131_cvytrph",
+            "proj_1760165794890_t4bag3c",
+            "proj_1759043847530_ciykak2",
+            "proj_1759044917192_py5qvc6",
             "proj_1760681933176_gtvi2bj",
             "proj_1758098612049_pss4dpi",
-            "proj_1758097720297_559eyui",
-            "proj_1760616392353_c0ddpct",
+            "proj_1759081012348_2ksox4h",
+            "proj_1757500170827_0b18dq5",
+            "proj_1760616426224_q7aenxp",
+            "proj_1758086839932_107uf0s",
+            "proj_1760616460585_66favmx",
+            "proj_1759046219254_b56x498",
+            "proj_1757498008544_bjibdss",
+            "proj_1758041045955_x2s58hk",
+            "proj_1760679902672_xg6hhl9",
+            "proj_1760616348445_rxxz3hn",
+            "proj_1761897124823_nnywjjm",
+            "proj_1760616487313_8r7sp59",
             "proj_1757498131467_5d2zq8t",
-            "proj_1760616300342_x28ecsl"
+            "proj_1760612092100_ew28zys",
+            "proj_1757500099674_yglg1qk",
+            "proj_1760614939634_akzoc20",
+            "proj_1757498060329_1p0nxm8",
+            "proj_1760616531885_zwxgw8j"
           ],
           "bsonType": "String"
         }
@@ -958,9 +970,9 @@
       "path": [
         "month"
       ],
-      "count": 25,
+      "count": 26,
       "type": "String",
-      "probability": 5,
+      "probability": 4.333333333333333,
       "hasDuplicates": true,
       "types": [
         {
@@ -968,36 +980,37 @@
           "path": [
             "month"
           ],
-          "count": 25,
-          "probability": 5,
-          "unique": 8,
+          "count": 26,
+          "probability": 4.333333333333333,
+          "unique": 10,
           "hasDuplicates": true,
           "values": [
-            "M10",
-            "M10",
-            "M5",
-            "M9",
-            "M8",
             "M8",
             "M5",
-            "M6",
-            "M8",
-            "M6",
             "M8",
             "M4",
-            "M9",
             "M6",
-            "M9",
-            "M4",
-            "M10",
-            "M7",
-            "M10",
-            "M7",
-            "M10",
-            "M5",
-            "M4",
             "M11",
-            "M9"
+            "M9",
+            "M11",
+            "M10",
+            "M2",
+            "M10",
+            "M9",
+            "M10",
+            "M10",
+            "M10",
+            "M3",
+            "M10",
+            "M8",
+            "M5",
+            "M7",
+            "M5",
+            "M10",
+            "M9",
+            "M7",
+            "M6",
+            "M10"
           ],
           "bsonType": "String"
         }
@@ -1010,7 +1023,7 @@
       ],
       "count": 33,
       "type": "String",
-      "probability": 6.6,
+      "probability": 5.5,
       "hasDuplicates": false,
       "types": [
         {
@@ -1019,43 +1032,43 @@
             "name"
           ],
           "count": 33,
-          "probability": 6.6,
+          "probability": 5.5,
           "unique": 33,
           "hasDuplicates": false,
           "values": [
-            "25年女性双11大促",
-            "25年M10话费",
-            "25年国补专项M5",
-            "25年日常礼赠M9",
-            "25年女性M8搜索",
-            "25年常规投放M8秒杀",
-            "25年M5母亲节礼赠",
-            "25年女性M8一分购",
-            "25年常规投放M6秒杀",
-            "25年女性M6搜索一分购",
             "25年七夕礼赠M8",
-            "25年常规投放M9秒杀",
-            "25年纪念日礼赠M4",
-            "25年日常礼赠M6",
-            "25年男性覆盖M9一分购",
-            "女性人群25年M4搜索市集",
-            "25年女性搜索双11大促",
-            "25年常规投放M7秒杀",
-            "25年礼赠双11大促",
-            "25年日常礼赠M7",
-            "男性覆盖M10",
-            "25年520礼赠",
+            "25年女性M5搜索一分购",
+            "25年女性M8搜索",
             "25年常规投放M4大牌试用",
-            "25年女性M11一分购",
-            "25年女性M9一分购",
-            "25年女性秒杀双11大促",
+            "25年国补专项M6",
             "25年常规投放M11秒杀",
-            "25年日常礼赠M11",
+            "25年常规投放M9秒杀",
+            "25年女性M11一分购",
+            "25年女性双11大促",
+            "25年常规投放M2秒杀",
+            "25年日常礼赠M9",
+            "25年M10话费",
+            "男性覆盖M10",
+            "25年礼赠双11大促",
             "25年达人联投思搜Q4",
             "25年M3春上新",
-            "25年常规投放M2秒杀",
-            "25年女性M5搜索一分购",
-            "25年女性M9秒杀"
+            "男性覆盖M11",
+            "25年常规投放M8秒杀",
+            "25年M5母亲节礼赠",
+            "25年日常礼赠M7",
+            "25年520礼赠",
+            "25年女性一分购双11大促",
+            "25年女性M9一分购",
+            "25年常规投放M7秒杀",
+            "25年女性秒杀双11大促",
+            "25年常规投放M6秒杀",
+            "25年日常礼赠M11",
+            "25年国补专项M5",
+            "25年女性M9秒杀",
+            "25年日常礼赠M6",
+            "25年女性M8一分购",
+            "25年女性M6搜索一分购",
+            "25年男性覆盖M9一分购"
           ],
           "bsonType": "String"
         }
@@ -1066,9 +1079,9 @@
       "path": [
         "qianchuanId"
       ],
-      "count": 30,
+      "count": 31,
       "type": "String",
-      "probability": 6,
+      "probability": 5.166666666666667,
       "hasDuplicates": true,
       "types": [
         {
@@ -1076,40 +1089,41 @@
           "path": [
             "qianchuanId"
           ],
-          "count": 29,
-          "probability": 5.8,
+          "count": 30,
+          "probability": 5,
           "unique": 14,
           "hasDuplicates": true,
           "values": [
-            "2025SS-DY1108",
+            "111",
             "",
-            "2025SS-DY1011",
             "2025SS-DY0812",
-            "111",
-            "",
-            "111",
-            "111",
-            "111",
-            "111",
-            "2025SS-DY0711",
-            "111",
             "2025SS-DY0416",
-            "2025SS-DY1115",
             "",
+            "111",
+            "111",
+            "111",
             "2025SS-DY1108",
-            "",
-            "2025SS-DY1118",
+            "2025AI-DY0315",
+            "2025SS-DY1011",
             "2025SS-DY1012",
-            "2025SS-DY0612",
-            "2025SS-DY0416",
-            "111",
-            "2025SS-DY0916",
-            "111",
-            "111",
-            "111",
+            "2025SS-DY1108",
             "111",
             "2025SS-DY0405",
-            "2025AI-DY0315"
+            "111",
+            "111",
+            "",
+            "",
+            "2025SS-DY0612",
+            "2025SS-DY1114",
+            "2025SS-DY0916",
+            "",
+            "111",
+            "111",
+            "",
+            "111",
+            "2025SS-DY0711",
+            "2025SS-DY1118",
+            "111"
           ],
           "bsonType": "String"
         }
@@ -1122,7 +1136,7 @@
       ],
       "count": 18,
       "type": "String",
-      "probability": 3.6,
+      "probability": 3,
       "hasDuplicates": true,
       "types": [
         {
@@ -1131,30 +1145,71 @@
             "status"
           ],
           "count": 18,
-          "probability": 3.6,
+          "probability": 3,
           "unique": 3,
           "hasDuplicates": true,
           "values": [
-            "执行中",
-            "执行中",
-            "已收款",
-            "待结算",
-            "待结算",
             "待结算",
             "已收款",
             "待结算",
             "待结算",
             "待结算",
-            "待结算",
-            "待结算",
-            "待结算",
-            "待结算",
+            "执行中",
             "待结算",
             "执行中",
+            "执行中",
+            "待结算",
+            "执行中",
+            "待结算",
+            "执行中",
+            "执行中",
+            "执行中",
+            "待结算",
             "执行中",
             "待结算"
           ],
           "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "trackingEnabled",
+      "path": [
+        "trackingEnabled"
+      ],
+      "count": 2,
+      "type": [
+        "Boolean",
+        "Undefined"
+      ],
+      "probability": 0.3333333333333333,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Boolean",
+          "path": [
+            "trackingEnabled"
+          ],
+          "count": 2,
+          "probability": 0.3333333333333333,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": [
+            true,
+            true
+          ],
+          "bsonType": "Boolean"
+        },
+        {
+          "name": "Undefined",
+          "bsonType": "Undefined",
+          "unique": 0,
+          "hasDuplicates": true,
+          "path": [
+            "trackingEnabled"
+          ],
+          "count": 4,
+          "probability": 0.6666666666666666
         }
       ]
     },
@@ -1168,7 +1223,7 @@
         "String",
         "Undefined"
       ],
-      "probability": 0.4,
+      "probability": 0.3333333333333333,
       "hasDuplicates": true,
       "types": [
         {
@@ -1176,12 +1231,11 @@
           "path": [
             "trackingStatus"
           ],
-          "count": 2,
-          "probability": 0.4,
+          "count": 1,
+          "probability": 0.16666666666666666,
           "unique": 1,
-          "hasDuplicates": true,
+          "hasDuplicates": false,
           "values": [
-            "archived",
             "archived"
           ],
           "bsonType": "String"
@@ -1194,8 +1248,8 @@
           "path": [
             "trackingStatus"
           ],
-          "count": 3,
-          "probability": 0.6
+          "count": 4,
+          "probability": 0.6666666666666666
         }
       ]
     },
@@ -1206,7 +1260,7 @@
       ],
       "count": 30,
       "type": "String",
-      "probability": 6,
+      "probability": 5,
       "hasDuplicates": true,
       "types": [
         {
@@ -1215,40 +1269,40 @@
             "type"
           ],
           "count": 30,
-          "probability": 6,
+          "probability": 5,
           "unique": 9,
           "hasDuplicates": true,
           "values": [
-            "常规话费",
-            "大促专项",
-            "常规国补",
-            "常规礼赠",
-            "搜索",
-            "常规秒杀",
-            "大促专项",
-            "常规秒杀",
-            "一分购",
-            "一分购",
-            "常规礼赠",
-            "常规礼赠",
-            "常规秒杀",
             "常规礼赠",
             "一分购",
             "搜索",
-            "大促专项",
-            "常规秒杀",
-            "大促专项",
-            "常规礼赠",
-            "大促专项",
-            "大促专项",
             "大牌试用",
+            "常规国补",
+            "常规秒杀",
+            "常规秒杀",
             "一分购",
+            "大促专项",
+            "常规秒杀",
+            "常规话费",
+            "常规礼赠",
+            "大促专项",
+            "大促专项",
+            "常规联投",
+            "大促专项",
+            "大促专项",
+            "常规秒杀",
+            "大促专项",
+            "常规礼赠",
+            "大促专项",
+            "大促专项",
             "一分购",
+            "常规秒杀",
             "常规秒杀",
             "常规秒杀",
             "常规礼赠",
-            "常规联投",
-            "大促专项"
+            "常规国补",
+            "常规秒杀",
+            "常规礼赠"
           ],
           "bsonType": "String"
         }
@@ -1259,9 +1313,9 @@
       "path": [
         "updatedAt"
       ],
-      "count": 6,
+      "count": 8,
       "type": "Date",
-      "probability": 1.2,
+      "probability": 1.3333333333333333,
       "hasDuplicates": false,
       "types": [
         {
@@ -1269,28 +1323,34 @@
           "path": [
             "updatedAt"
           ],
-          "count": 6,
-          "probability": 1.2,
-          "unique": 6,
+          "count": 8,
+          "probability": 1.3333333333333333,
+          "unique": 8,
           "hasDuplicates": false,
           "values": [
             {
-              "$date": "2025-11-10T02:44:09.539Z"
-            },
-            {
-              "$date": "2025-11-10T02:44:14.995Z"
-            },
-            {
-              "$date": "2025-10-17T13:53:03.653Z"
+              "$date": "2025-10-27T10:49:16.652Z"
             },
             {
               "$date": "2025-10-23T09:49:24.796Z"
             },
             {
-              "$date": "2025-10-18T03:43:37.998Z"
+              "$date": "2025-09-17T10:21:27.199Z"
             },
             {
-              "$date": "2025-09-10T16:05:59.915Z"
+              "$date": "2025-11-10T02:44:14.995Z"
+            },
+            {
+              "$date": "2025-11-07T08:47:27.498Z"
+            },
+            {
+              "$date": "2025-10-18T05:48:14.051Z"
+            },
+            {
+              "$date": "2025-11-10T02:44:09.539Z"
+            },
+            {
+              "$date": "2025-11-10T02:38:45.460Z"
             }
           ],
           "bsonType": "Date"
@@ -1304,7 +1364,7 @@
       ],
       "count": 26,
       "type": "String",
-      "probability": 5.2,
+      "probability": 4.333333333333333,
       "hasDuplicates": true,
       "types": [
         {
@@ -1313,7 +1373,7 @@
             "year"
           ],
           "count": 26,
-          "probability": 5.2,
+          "probability": 4.333333333333333,
           "unique": 1,
           "hasDuplicates": true,
           "values": [
@@ -1353,6 +1413,7 @@
 [
   [ '_id' ],
   [ 'adjustments' ],
+  [ 'adjustments', 'amount' ],
   [ 'adjustments', 'date' ],
   [ 'adjustments', 'description' ],
   [ 'adjustments', 'id' ],
@@ -1373,6 +1434,7 @@
   [ 'name' ],
   [ 'qianchuanId' ],
   [ 'status' ],
+  [ 'trackingEnabled' ],
   [ 'trackingStatus' ],
   [ 'type' ],
   [ 'updatedAt' ],
@@ -1404,7 +1466,8 @@
               id: { types: [ { bsonType: 'String' } ] },
               date: { types: [ { bsonType: 'String' } ] },
               type: { types: [ { bsonType: 'String' } ] },
-              description: { types: [ { bsonType: 'String' } ] }
+              description: { types: [ { bsonType: 'String' } ] },
+              amount: { types: [ { bsonType: 'Number' } ] }
             }
           }
         ]
@@ -1428,6 +1491,7 @@
       }
     ]
   },
+  trackingEnabled: { types: [ { bsonType: 'Boolean' } ] },
   createdAt: { types: [ { bsonType: 'Date' } ] },
   updatedAt: { types: [ { bsonType: 'Date' } ] },
   trackingStatus: { types: [ { bsonType: 'String' } ] }

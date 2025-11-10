@@ -1,184 +1,2889 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "required": [
-    "_id",
-    "actualRebate",
-    "amount",
-    "createdAt",
-    "id",
-    "orderDate",
-    "orderType",
-    "paymentDate",
-    "priceInfo",
-    "projectId",
-    "rebate",
-    "recoveryDate",
-    "status",
-    "talentId",
-    "talentSource",
-    "updatedAt"
-  ],
-  "properties": {
-    "_id": {
-      "$ref": "#/$defs/ObjectId"
-    },
-    "actualRebate": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "type": "integer"
-        },
-        {
-          "$ref": "#/$defs/Double"
-        }
-      ]
-    },
-    "amount": {
-      "type": "integer"
-    },
-    "contentFile": {
-      "type": [
-        "null",
-        "string"
-      ]
-    },
-    "createdAt": {
-      "$ref": "#/$defs/Date"
-    },
-    "discrepancyReason": {
-      "type": "null"
-    },
-    "discrepancyReasonUpdatedAt": {
-      "$ref": "#/$defs/Date"
-    },
-    "id": {
-      "type": "string"
-    },
-    "orderDate": {
-      "type": [
-        "null",
-        "string"
-      ]
-    },
-    "orderType": {
-      "type": "string"
-    },
-    "paymentDate": {
-      "type": [
-        "null",
-        "string"
-      ]
-    },
-    "plannedReleaseDate": {
-      "type": "string"
-    },
-    "priceInfo": {
-      "type": "string"
-    },
-    "projectId": {
-      "type": "string"
-    },
-    "publishDate": {
-      "type": [
-        "string",
-        "null"
-      ]
-    },
-    "rebate": {
-      "anyOf": [
-        {
-          "type": "integer"
-        },
-        {
-          "$ref": "#/$defs/Double"
-        }
-      ]
-    },
-    "rebateScreenshots": {
-      "type": "array",
-      "items": {
-        "type": []
-      }
-    },
-    "recoveryDate": {
-      "type": [
-        "null",
-        "string"
-      ]
-    },
-    "status": {
-      "type": "string"
-    },
-    "talentId": {
-      "type": "string"
-    },
-    "talentSource": {
-      "type": "string"
-    },
-    "taskId": {
-      "type": [
-        "string",
-        "null"
-      ]
-    },
-    "updatedAt": {
-      "$ref": "#/$defs/Date"
-    },
-    "videoId": {
-      "type": [
-        "string",
-        "null"
-      ]
-    }
-  },
-  "$defs": {
-    "ObjectId": {
-      "type": "object",
-      "properties": {
-        "$oid": {
-          "type": "string",
-          "pattern": "^[0-9a-fA-F]{24}$"
-        }
-      },
-      "required": [
-        "$oid"
+  "count": 69,
+  "fields": [
+    {
+      "name": "_id",
+      "path": [
+        "_id"
       ],
-      "additionalProperties": false
-    },
-    "Double": {
-      "oneOf": [
+      "count": 100,
+      "type": "ObjectId",
+      "probability": 1.4492753623188406,
+      "hasDuplicates": false,
+      "types": [
         {
-          "type": "number"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "$numberDouble": {
-              "enum": [
-                "Infinity",
-                "-Infinity",
-                "NaN"
-              ]
+          "name": "ObjectId",
+          "path": [
+            "_id"
+          ],
+          "count": 99,
+          "probability": 1.434782608695652,
+          "unique": 99,
+          "hasDuplicates": false,
+          "values": [
+            {
+              "$oid": "69033db0ac9bcc7136b2baab"
+            },
+            {
+              "$oid": "69007db2ac9bcc7136b2ba9b"
+            },
+            {
+              "$oid": "68c1120d48f76272dcc7ea80"
+            },
+            {
+              "$oid": "68ea9d35ac9bcc7136b2ba00"
+            },
+            {
+              "$oid": "68ca4bc2ac9bcc7136b2b99b"
+            },
+            {
+              "$oid": "690de916ac9bcc7136b2babb"
+            },
+            {
+              "$oid": "68f792c8ac9bcc7136b2ba80"
+            },
+            {
+              "$oid": "68ca84ebac9bcc7136b2b9c2"
+            },
+            {
+              "$oid": "68ea1ad2ac9bcc7136b2b9ff"
+            },
+            {
+              "$oid": "68d8e234ac9bcc7136b2b9d7"
+            },
+            {
+              "$oid": "690a31fbac9bcc7136b2bab5"
+            },
+            {
+              "$oid": "68f79157ac9bcc7136b2ba78"
+            },
+            {
+              "$oid": "68ca848dac9bcc7136b2b9be"
+            },
+            {
+              "$oid": "68d8e6c7ac9bcc7136b2b9e7"
+            },
+            {
+              "$oid": "690a3155ac9bcc7136b2bab3"
+            },
+            {
+              "$oid": "68ca789fac9bcc7136b2b9b3"
+            },
+            {
+              "$oid": "68c158e648f76272dcc7ea9c"
+            },
+            {
+              "$oid": "68ca4bc2ac9bcc7136b2b99c"
+            },
+            {
+              "$oid": "68c9943aac9bcc7136b2b990"
+            },
+            {
+              "$oid": "68c14cd548f76272dcc7ea91"
+            },
+            {
+              "$oid": "68d8e58fac9bcc7136b2b9da"
+            },
+            {
+              "$oid": "68ec70f8ac9bcc7136b2ba07"
+            },
+            {
+              "$oid": "69046b24ac9bcc7136b2baaf"
+            },
+            {
+              "$oid": "68f791a9ac9bcc7136b2ba7b"
+            },
+            {
+              "$oid": "69046b11ac9bcc7136b2baae"
+            },
+            {
+              "$oid": "68f31117ac9bcc7136b2ba3e"
+            },
+            {
+              "$oid": "68c1570848f76272dcc7ea9a"
+            },
+            {
+              "$oid": "68ca857cac9bcc7136b2b9c7"
+            },
+            {
+              "$oid": "690c402fac9bcc7136b2bab6"
+            },
+            {
+              "$oid": "68f344eaac9bcc7136b2ba4d"
+            },
+            {
+              "$oid": "68f0d235ac9bcc7136b2ba1d"
+            },
+            {
+              "$oid": "68ca7404ac9bcc7136b2b9ae"
+            },
+            {
+              "$oid": "68f06e19ac9bcc7136b2ba15"
+            },
+            {
+              "$oid": "68c6eeb5ac9bcc7136b2b947"
+            },
+            {
+              "$oid": "68f0d1b7ac9bcc7136b2ba17"
+            },
+            {
+              "$oid": "68ea0298ac9bcc7136b2b9f5"
+            },
+            {
+              "$oid": "68c79727ac9bcc7136b2b982"
+            },
+            {
+              "$oid": "68fb028dac9bcc7136b2ba8e"
+            },
+            {
+              "$oid": "68c1120d48f76272dcc7ea85"
+            },
+            {
+              "$oid": "68d8e282ac9bcc7136b2b9d9"
+            },
+            {
+              "$oid": "68f3456dac9bcc7136b2ba52"
+            },
+            {
+              "$oid": "68d8e1a5ac9bcc7136b2b9d0"
+            },
+            {
+              "$oid": "68ca4bc2ac9bcc7136b2b999"
+            },
+            {
+              "$oid": "68f1e39aac9bcc7136b2ba2c"
+            },
+            {
+              "$oid": "68f7935cac9bcc7136b2ba84"
+            },
+            {
+              "$oid": "68f3515bac9bcc7136b2ba55"
+            },
+            {
+              "$oid": "68f1d2a1ac9bcc7136b2ba23"
+            },
+            {
+              "$oid": "68d8e1d2ac9bcc7136b2b9d2"
+            },
+            {
+              "$oid": "68f0dc40ac9bcc7136b2ba20"
+            },
+            {
+              "$oid": "68d8e246ac9bcc7136b2b9d8"
+            },
+            {
+              "$oid": "68f32d21ac9bcc7136b2ba3f"
+            },
+            {
+              "$oid": "6902d2f9ac9bcc7136b2baa6"
+            },
+            {
+              "$oid": "68d8e220ac9bcc7136b2b9d6"
+            },
+            {
+              "$oid": "68c1120d48f76272dcc7ea7e"
+            },
+            {
+              "$oid": "68d8ea5dac9bcc7136b2b9ec"
+            },
+            {
+              "$oid": "68ff4b34ac9bcc7136b2ba98"
+            },
+            {
+              "$oid": "68f0d25dac9bcc7136b2ba1e"
+            },
+            {
+              "$oid": "68d8e668ac9bcc7136b2b9e2"
+            },
+            {
+              "$oid": "68fa260eac9bcc7136b2ba87"
+            },
+            {
+              "$oid": "68c79727ac9bcc7136b2b980"
+            },
+            {
+              "$oid": "690d7643ac9bcc7136b2bab8"
+            },
+            {
+              "$oid": "68ca2046ac9bcc7136b2b997"
+            },
+            {
+              "$oid": "68f1e356ac9bcc7136b2ba29"
+            },
+            {
+              "$oid": "6902d30cac9bcc7136b2baa7"
+            },
+            {
+              "$oid": "68f7931bac9bcc7136b2ba82"
+            },
+            {
+              "$oid": "68f35193ac9bcc7136b2ba57"
+            },
+            {
+              "$oid": "68f79344ac9bcc7136b2ba83"
+            },
+            {
+              "$oid": "68c1567e48f76272dcc7ea98"
+            },
+            {
+              "$oid": "68f3521dac9bcc7136b2ba5b"
+            },
+            {
+              "$oid": "68f3451cac9bcc7136b2ba4f"
+            },
+            {
+              "$oid": "69033e12ac9bcc7136b2baac"
+            },
+            {
+              "$oid": "68f34537ac9bcc7136b2ba50"
+            },
+            {
+              "$oid": "68ca4bc2ac9bcc7136b2b9a3"
+            },
+            {
+              "$oid": "68f35135ac9bcc7136b2ba54"
+            },
+            {
+              "$oid": "68f35347ac9bcc7136b2ba61"
+            },
+            {
+              "$oid": "68f79141ac9bcc7136b2ba77"
+            },
+            {
+              "$oid": "68c15c3e48f76272dcc7ea9f"
+            },
+            {
+              "$oid": "68c6ef7eac9bcc7136b2b94b"
+            },
+            {
+              "$oid": "68ca4bc2ac9bcc7136b2b9a4"
+            },
+            {
+              "$oid": "68c799f1ac9bcc7136b2b98a"
+            },
+            {
+              "$oid": "68f5ee9fac9bcc7136b2ba63"
+            },
+            {
+              "$oid": "68c1120d48f76272dcc7ea8a"
+            },
+            {
+              "$oid": "68fb0546ac9bcc7136b2ba95"
+            },
+            {
+              "$oid": "690078f7ac9bcc7136b2ba9a"
+            },
+            {
+              "$oid": "69046b48ac9bcc7136b2bab0"
+            },
+            {
+              "$oid": "68d8e99cac9bcc7136b2b9e8"
+            },
+            {
+              "$oid": "68d8e9a8ac9bcc7136b2b9e9"
+            },
+            {
+              "$oid": "68ea15c6ac9bcc7136b2b9fb"
+            },
+            {
+              "$oid": "68f1e36bac9bcc7136b2ba2a"
+            },
+            {
+              "$oid": "68ca840aac9bcc7136b2b9b9"
+            },
+            {
+              "$oid": "6911abc6ac9bcc7136b2babe"
+            },
+            {
+              "$oid": "68f0d21eac9bcc7136b2ba1c"
+            },
+            {
+              "$oid": "68c1120d48f76272dcc7ea82"
+            },
+            {
+              "$oid": "68ecb45fac9bcc7136b2ba0c"
+            },
+            {
+              "$oid": "68f310cbac9bcc7136b2ba3c"
+            },
+            {
+              "$oid": "68f06d5dac9bcc7136b2ba14"
+            },
+            {
+              "$oid": "68c1566548f76272dcc7ea97"
+            },
+            {
+              "$oid": "68f30f34ac9bcc7136b2ba39"
+            },
+            {
+              "$oid": "68ec715cac9bcc7136b2ba09"
             }
-          }
+          ],
+          "bsonType": "ObjectId"
         }
       ]
     },
-    "Date": {
-      "type": "object",
-      "properties": {
-        "$date": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "$date"
+    {
+      "name": "actualRebate",
+      "path": [
+        "actualRebate"
       ],
-      "additionalProperties": false
+      "count": 75,
+      "type": [
+        "Null",
+        "Number"
+      ],
+      "probability": 1.0869565217391304,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Null",
+          "path": [
+            "actualRebate"
+          ],
+          "count": 46,
+          "probability": 0.6666666666666666,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": null,
+          "bsonType": "Null"
+        },
+        {
+          "name": "Number",
+          "path": [
+            "actualRebate"
+          ],
+          "count": 29,
+          "probability": 0.42028985507246375,
+          "unique": 24,
+          "hasDuplicates": true,
+          "values": [
+            6000,
+            50000,
+            10000,
+            17550,
+            39500,
+            10000,
+            10560,
+            13000,
+            8000,
+            4060,
+            25000,
+            11060,
+            15438,
+            2700,
+            11200,
+            0,
+            15000,
+            4000,
+            7500,
+            6000,
+            12500,
+            10000,
+            0,
+            2000,
+            8000,
+            29400,
+            38400,
+            5940,
+            11875
+          ],
+          "bsonType": "Number"
+        }
+      ]
+    },
+    {
+      "name": "amount",
+      "path": [
+        "amount"
+      ],
+      "count": 93,
+      "type": "Number",
+      "probability": 1.3478260869565217,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Number",
+          "path": [
+            "amount"
+          ],
+          "count": 93,
+          "probability": 1.3478260869565217,
+          "unique": 43,
+          "hasDuplicates": true,
+          "values": [
+            100000,
+            400000,
+            60000,
+            500000,
+            50000,
+            125000,
+            59800,
+            250000,
+            60000,
+            130000,
+            100000,
+            65000,
+            158000,
+            30900,
+            88000,
+            65000,
+            200000,
+            98000,
+            400000,
+            80000,
+            318888,
+            58000,
+            270000,
+            100000,
+            125000,
+            300000,
+            158000,
+            49800,
+            40000,
+            85000,
+            250000,
+            90000,
+            160000,
+            59800,
+            118000,
+            98000,
+            100000,
+            250000,
+            42450,
+            318888,
+            120000,
+            500000,
+            400000,
+            19800,
+            200000,
+            50000,
+            270000,
+            250000,
+            98000,
+            60000,
+            66000,
+            30900,
+            200000,
+            250000,
+            500000,
+            150000,
+            60000,
+            270000,
+            450000,
+            240000,
+            34800,
+            120000,
+            40000,
+            100000,
+            158000,
+            98000,
+            200000,
+            400000,
+            120000,
+            19800,
+            270000,
+            47500,
+            160000,
+            400000,
+            130000,
+            100000,
+            150000,
+            280000,
+            500000,
+            110000,
+            58000,
+            180000,
+            40000,
+            680000,
+            500000,
+            280000,
+            159800,
+            98000,
+            55000,
+            52100,
+            50000,
+            310000,
+            130000
+          ],
+          "bsonType": "Number"
+        }
+      ]
+    },
+    {
+      "name": "contentFile",
+      "path": [
+        "contentFile"
+      ],
+      "count": 66,
+      "type": [
+        "Null",
+        "String",
+        "Undefined"
+      ],
+      "probability": 0.9565217391304348,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Null",
+          "path": [
+            "contentFile"
+          ],
+          "count": 42,
+          "probability": 0.6086956521739131,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": null,
+          "bsonType": "Null"
+        },
+        {
+          "name": "String",
+          "path": [
+            "contentFile"
+          ],
+          "count": 23,
+          "probability": 0.3333333333333333,
+          "unique": 23,
+          "hasDuplicates": false,
+          "values": [
+            "https://p13j1x0fk4.feishu.cn/docx/PWJSdADkloEhUvxoNGLc1YFInag?from=from_copylink",
+            "https://p13j1x0fk4.feishu.cn/docx/DEerdA2IDoY8WPxfNW6ca37Xnte?from=from_copylink",
+            "https://p13j1x0fk4.feishu.cn/docx/Reqqdl6o4ox9ZhxkGeWcvbOAnVd?from=from_copylink",
+            "https://hcna4xifm94l.feishu.cn/wiki/WrrIwVb0pipLeNke3jgcpCbJnLn",
+            "https://nx4q6cxzqr4.feishu.cn/wiki/KOA0wifhSijF2uk0VelcENmcnfg",
+            "https://tf0r8cum98.feishu.cn/docx/ZFJcdO4sNoZDBmxK3sycx0PXnOV?from=from_copylink",
+            "https://lhu3mmcxw9.feishu.cn/docx/LcsLdCCdfoneR8x9EM2cz3vunkh?from=from_copylink",
+            "https://nx4q6cxzqr4.feishu.cn/wiki/RwlFw4UZfijS0Qkxh3WcDrnynUe?from=from_copylink",
+            "https://tf0r8cum98.feishu.cn/docx/Cv0vdPg26o1XDOx8alKcGBEqn5g",
+            "https://tf0r8cum98.feishu.cn/docx/RNHjdH9JIo5E0Sxmd7Ncud5NnEi",
+            "https://ltx4ymowgk.feishu.cn/docx/SH7ldNhhCovWd2xspGVcddmXn2b?from=from_copylink",
+            "https://tf0r8cum98.feishu.cn/docx/ArPLdnEs5oSVyJxySvjc10u4nOh?from=from_copylink",
+            "https://lhu3mmcxw9.feishu.cn/docx/C0k5dXXu0orSzfxiwS4ceHPZnMg?from=from_copylink",
+            "https://ltx4ymowgk.feishu.cn/docx/FkD0dSbVEoFe83xAH5rckLRvnmr?from=from_copylink",
+            "https://ltx4ymowgk.feishu.cn/docx/LwPod8d2sop9OWx5rsscJZBwnUh?from=from_copylink",
+            "https://p13j1x0fk4.feishu.cn/docx/ViiqdS4ooop6UOxRRsBcDZm0nXc?from=from_copylink",
+            "https://tf0r8cum98.feishu.cn/docx/JYzsd3QnvoPCcjxBs3jc7IqSnHe?from=from_copylink",
+            "https://nx4q6cxzqr4.feishu.cn/wiki/EHuLwL7TjiXU6Rk1DYiccHvDnvc?from=from_copylink",
+            "https://nx4q6cxzqr4.feishu.cn/wiki/N2NGwErbwi2714kykBScCuU5nuf?from=from_copylink",
+            "https://p13j1x0fk4.feishu.cn/docx/ZdirdMBe5oMxAaxCuC5cquRjncg?from=from_copylink",
+            "https://tf0r8cum98.feishu.cn/docx/LlTydROsio6soYxbcUXcJw6SnCc?from=from_copylink",
+            "https://ltx4ymowgk.feishu.cn/docx/BOzIdG6O6otXdcxLQU2crShWnrx?from=from_copylink",
+            "https://va2nrxslm4c.feishu.cn/wiki/C4FTwy9CPidG3WkVoMCcUPaCnRb"
+          ],
+          "bsonType": "String"
+        },
+        {
+          "name": "Undefined",
+          "bsonType": "Undefined",
+          "unique": 0,
+          "hasDuplicates": true,
+          "path": [
+            "contentFile"
+          ],
+          "count": 3,
+          "probability": 0.043478260869565216
+        }
+      ]
+    },
+    {
+      "name": "createdAt",
+      "path": [
+        "createdAt"
+      ],
+      "count": 85,
+      "type": "Date",
+      "probability": 1.2318840579710144,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Date",
+          "path": [
+            "createdAt"
+          ],
+          "count": 85,
+          "probability": 1.2318840579710144,
+          "unique": 77,
+          "hasDuplicates": true,
+          "values": [
+            {
+              "$date": "2025-10-30T10:28:00.072Z"
+            },
+            {
+              "$date": "2025-09-10T05:52:13.449Z"
+            },
+            {
+              "$date": "2025-10-28T08:24:18.895Z"
+            },
+            {
+              "$date": "2025-10-11T18:08:53.168Z"
+            },
+            {
+              "$date": "2025-09-17T05:48:50.515Z"
+            },
+            {
+              "$date": "2025-11-07T12:41:58.921Z"
+            },
+            {
+              "$date": "2025-10-21T14:03:52.907Z"
+            },
+            {
+              "$date": "2025-09-17T09:52:43.286Z"
+            },
+            {
+              "$date": "2025-10-11T08:52:34.944Z"
+            },
+            {
+              "$date": "2025-09-28T07:22:28.673Z"
+            },
+            {
+              "$date": "2025-11-04T17:03:55.371Z"
+            },
+            {
+              "$date": "2025-10-21T13:57:43.336Z"
+            },
+            {
+              "$date": "2025-09-17T09:51:09.072Z"
+            },
+            {
+              "$date": "2025-09-28T07:41:59.717Z"
+            },
+            {
+              "$date": "2025-11-04T17:01:09.100Z"
+            },
+            {
+              "$date": "2025-09-10T10:54:30.129Z"
+            },
+            {
+              "$date": "2025-09-17T09:00:15.627Z"
+            },
+            {
+              "$date": "2025-09-17T05:48:50.521Z"
+            },
+            {
+              "$date": "2025-09-10T10:03:01.187Z"
+            },
+            {
+              "$date": "2025-09-16T16:45:46.966Z"
+            },
+            {
+              "$date": "2025-09-28T07:36:47.660Z"
+            },
+            {
+              "$date": "2025-10-13T03:24:40.187Z"
+            },
+            {
+              "$date": "2025-10-31T07:54:12.344Z"
+            },
+            {
+              "$date": "2025-10-21T13:59:05.555Z"
+            },
+            {
+              "$date": "2025-10-31T07:53:53.742Z"
+            },
+            {
+              "$date": "2025-09-10T10:46:32.051Z"
+            },
+            {
+              "$date": "2025-10-18T04:01:27.872Z"
+            },
+            {
+              "$date": "2025-09-17T09:55:08.402Z"
+            },
+            {
+              "$date": "2025-11-06T06:29:03.218Z"
+            },
+            {
+              "$date": "2025-10-18T07:42:34.838Z"
+            },
+            {
+              "$date": "2025-10-16T11:08:37.428Z"
+            },
+            {
+              "$date": "2025-09-17T08:40:36.467Z"
+            },
+            {
+              "$date": "2025-10-16T04:01:29.020Z"
+            },
+            {
+              "$date": "2025-09-14T16:35:01.685Z"
+            },
+            {
+              "$date": "2025-10-16T11:06:31.169Z"
+            },
+            {
+              "$date": "2025-10-11T07:09:12.836Z"
+            },
+            {
+              "$date": "2025-09-15T04:33:43.251Z"
+            },
+            {
+              "$date": "2025-09-10T05:52:13.458Z"
+            },
+            {
+              "$date": "2025-10-24T04:37:33.676Z"
+            },
+            {
+              "$date": "2025-09-28T07:23:46.491Z"
+            },
+            {
+              "$date": "2025-10-18T07:44:45.554Z"
+            },
+            {
+              "$date": "2025-09-28T07:20:05.703Z"
+            },
+            {
+              "$date": "2025-09-17T05:48:50.511Z"
+            },
+            {
+              "$date": "2025-10-17T06:35:06.509Z"
+            },
+            {
+              "$date": "2025-10-21T14:06:20.195Z"
+            },
+            {
+              "$date": "2025-10-18T08:35:39.121Z"
+            },
+            {
+              "$date": "2025-10-17T05:22:41.874Z"
+            },
+            {
+              "$date": "2025-09-28T07:20:50.531Z"
+            },
+            {
+              "$date": "2025-10-16T11:51:28.540Z"
+            },
+            {
+              "$date": "2025-09-28T07:22:46.117Z"
+            },
+            {
+              "$date": "2025-10-18T06:01:05.018Z"
+            },
+            {
+              "$date": "2025-10-30T02:52:41.771Z"
+            },
+            {
+              "$date": "2025-09-10T05:52:13.439Z"
+            },
+            {
+              "$date": "2025-09-28T07:22:08.376Z"
+            },
+            {
+              "$date": "2025-09-28T07:57:17.102Z"
+            },
+            {
+              "$date": "2025-10-27T10:36:36.463Z"
+            },
+            {
+              "$date": "2025-10-16T11:09:17.240Z"
+            },
+            {
+              "$date": "2025-09-28T07:40:24.613Z"
+            },
+            {
+              "$date": "2025-10-23T12:56:46.148Z"
+            },
+            {
+              "$date": "2025-09-15T04:33:43.244Z"
+            },
+            {
+              "$date": "2025-11-07T04:32:03.360Z"
+            },
+            {
+              "$date": "2025-09-17T02:43:18.289Z"
+            },
+            {
+              "$date": "2025-10-17T06:33:58.067Z"
+            },
+            {
+              "$date": "2025-10-30T02:53:00.385Z"
+            },
+            {
+              "$date": "2025-10-21T14:05:15.060Z"
+            },
+            {
+              "$date": "2025-10-18T08:36:35.546Z"
+            },
+            {
+              "$date": "2025-09-10T10:44:14.915Z"
+            },
+            {
+              "$date": "2025-10-21T14:05:56.900Z"
+            },
+            {
+              "$date": "2025-10-18T08:38:53.946Z"
+            },
+            {
+              "$date": "2025-10-18T07:43:24.636Z"
+            },
+            {
+              "$date": "2025-10-30T10:29:38.414Z"
+            },
+            {
+              "$date": "2025-10-18T07:43:51.868Z"
+            },
+            {
+              "$date": "2025-09-17T05:48:50.535Z"
+            },
+            {
+              "$date": "2025-10-18T08:35:01.150Z"
+            },
+            {
+              "$date": "2025-10-18T08:43:51.091Z"
+            },
+            {
+              "$date": "2025-09-10T11:08:46.864Z"
+            },
+            {
+              "$date": "2025-10-21T13:57:21.149Z"
+            },
+            {
+              "$date": "2025-09-14T16:38:22.699Z"
+            },
+            {
+              "$date": "2025-09-17T05:48:50.537Z"
+            },
+            {
+              "$date": "2025-09-15T04:45:37.082Z"
+            },
+            {
+              "$date": "2025-09-10T05:52:13.554Z"
+            },
+            {
+              "$date": "2025-10-20T08:11:11.572Z"
+            },
+            {
+              "$date": "2025-10-24T04:49:10.141Z"
+            },
+            {
+              "$date": "2025-10-28T08:04:07.204Z"
+            },
+            {
+              "$date": "2025-10-31T07:54:48.640Z"
+            }
+          ],
+          "bsonType": "Date"
+        }
+      ]
+    },
+    {
+      "name": "discrepancyReason",
+      "path": [
+        "discrepancyReason"
+      ],
+      "count": 68,
+      "type": [
+        "Null",
+        "Undefined"
+      ],
+      "probability": 0.9855072463768116,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Null",
+          "path": [
+            "discrepancyReason"
+          ],
+          "count": 67,
+          "probability": 0.9710144927536232,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": null,
+          "bsonType": "Null"
+        },
+        {
+          "name": "Undefined",
+          "bsonType": "Undefined",
+          "unique": 1,
+          "hasDuplicates": false,
+          "path": [
+            "discrepancyReason"
+          ],
+          "count": 1,
+          "probability": 0.014492753623188406
+        }
+      ]
+    },
+    {
+      "name": "discrepancyReasonUpdatedAt",
+      "path": [
+        "discrepancyReasonUpdatedAt"
+      ],
+      "count": 4,
+      "type": [
+        "Date",
+        "Undefined"
+      ],
+      "probability": 0.057971014492753624,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Date",
+          "path": [
+            "discrepancyReasonUpdatedAt"
+          ],
+          "count": 4,
+          "probability": 0.057971014492753624,
+          "unique": 4,
+          "hasDuplicates": false,
+          "values": [
+            {
+              "$date": "2025-09-17T10:30:07.881Z"
+            },
+            {
+              "$date": "2025-09-17T09:19:58.224Z"
+            },
+            {
+              "$date": "2025-09-17T10:28:48.424Z"
+            },
+            {
+              "$date": "2025-09-17T09:18:55.187Z"
+            }
+          ],
+          "bsonType": "Date"
+        },
+        {
+          "name": "Undefined",
+          "bsonType": "Undefined",
+          "unique": 0,
+          "hasDuplicates": true,
+          "path": [
+            "discrepancyReasonUpdatedAt"
+          ],
+          "count": 65,
+          "probability": 0.9420289855072463
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "path": [
+        "id"
+      ],
+      "count": 98,
+      "type": "String",
+      "probability": 1.4202898550724639,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "id"
+          ],
+          "count": 98,
+          "probability": 1.4202898550724639,
+          "unique": 98,
+          "hasDuplicates": false,
+          "values": [
+            "collab_1761820080072_e21r4cu",
+            "collab_1761639858895_76qwi6j",
+            "collab_1757483533449_tc5zx3l",
+            "collab_1760206133168_74ywdj6",
+            "collab_1758088130515_jtfh1hf",
+            "collab_1762519318921_mbltdk1",
+            "collab_1761055432907_8dj6ulc",
+            "collab_1758102763286_s4pggoy",
+            "collab_1760172754944_7u774db",
+            "collab_1759044148673_gtejwx9",
+            "collab_1762275835371_nywlbp7",
+            "collab_1761055063336_tzrg562",
+            "collab_1758102669072_orxrqgt",
+            "collab_1759045319717_uogui78",
+            "collab_1762275669100_djx2vgf",
+            "collab_1758099615627_m839mrm",
+            "collab_1757501670129_zus3vvu",
+            "collab_1758088130521_im1qivm",
+            "collab_1758041146966_x4o39kf",
+            "collab_1757498581187_c396f5t",
+            "collab_1759045007660_1959eu4",
+            "collab_1760325880187_izro84b",
+            "collab_1761897252344_ehimjdz",
+            "collab_1761055145555_zjpt64z",
+            "collab_1761897233742_9srpoft",
+            "collab_1760760087872_syef2ik",
+            "collab_1757501192051_nvgmzsb",
+            "collab_1758102908402_a70xy7j",
+            "collab_1762410543218_6120mki",
+            "collab_1760773354838_94fqe10",
+            "collab_1760612917428_0krdrx5",
+            "collab_1758098436467_zo9oixn",
+            "collab_1760587289020_m6mr2dx",
+            "collab_1757867701685_2c35ou8",
+            "collab_1760612791169_muprjhc",
+            "collab_1760166552836_9x8zpva",
+            "collab_1757910823251_2qwj95s",
+            "collab_1761280653676_nstw6q8",
+            "collab_1757483533458_k9jv8ap",
+            "collab_1759044226491_54pih1t",
+            "collab_1760773485554_na3fkk3",
+            "collab_1759044005703_ritkybv",
+            "collab_1758088130511_zqtckyv",
+            "collab_1760682906509_sm9w2lf",
+            "collab_1761055580195_minmpg8",
+            "collab_1760776539121_2wi4h3k",
+            "collab_1760678561874_4bs9b8h",
+            "collab_1759044050531_d5zfhk6",
+            "collab_1760615488540_3e00g1o",
+            "collab_1759044166117_7lp2tvb",
+            "collab_1760767265018_ij7bpt1",
+            "collab_1761792761771_exo5tsh",
+            "collab_1759044128376_jxmz300",
+            "collab_1757483533439_47kk66z",
+            "collab_1759046237102_mbhryrv",
+            "collab_1761561396463_x8ac07a",
+            "collab_1760612957240_znvh0a1",
+            "collab_1759045224613_h83onwv",
+            "collab_1761224206148_7mnztx7",
+            "collab_1757910823244_ccrcmyh",
+            "collab_1762489923360_w2zhzaw",
+            "collab_1758076998289_2ipqe1o",
+            "collab_1760682838067_1kba0p9",
+            "collab_1761792780385_7vd9ubt",
+            "collab_1761055515060_mog016x",
+            "collab_1760776595546_qph8xig",
+            "collab_1761055556900_qnzum38",
+            "collab_1757501054915_l7dwrxm",
+            "collab_1760776733946_caejyl7",
+            "collab_1760773404636_c2ll4tl",
+            "collab_1761820178414_d166fsr",
+            "collab_1760773431868_23846en",
+            "collab_1758088130535_3v9b2go",
+            "collab_1760776501150_cbq51f8",
+            "collab_1760777031091_w1i7ixd",
+            "collab_1761055041149_6akpndk",
+            "collab_1757502526864_dtt909n",
+            "collab_1757867902699_z5obuf3",
+            "collab_1758088130537_ept86m2",
+            "collab_1757911537082_0tqsd2m",
+            "collab_1760947871572_8kl1rhy",
+            "collab_1757483533554_76u13fe",
+            "collab_1761281350141_puejtso",
+            "collab_1761638647204_jieq9ov",
+            "collab_1761897288640_3nh5tv5",
+            "collab_1759046044199_xebaak6",
+            "collab_1759046056503_t6hwjav",
+            "collab_1760171462516_ipbal66",
+            "collab_1760682859767_o42cz2k",
+            "collab_1758102538005_s8xcc90",
+            "collab_1762765766874_rveln9f",
+            "collab_1760612894614_bdgzvm7",
+            "collab_1757483533452_tn0lgd6",
+            "collab_1760343135364_i6weske",
+            "collab_1760760011129_etruv4f",
+            "collab_1760587101754_p3tkeuw",
+            "collab_1757501029780_kccl6h0",
+            "collab_1760759604910_esn0tpo"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "orderDate",
+      "path": [
+        "orderDate"
+      ],
+      "count": 82,
+      "type": [
+        "Null",
+        "String"
+      ],
+      "probability": 1.1884057971014492,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Null",
+          "path": [
+            "orderDate"
+          ],
+          "count": 68,
+          "probability": 0.9855072463768116,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": null,
+          "bsonType": "Null"
+        },
+        {
+          "name": "String",
+          "path": [
+            "orderDate"
+          ],
+          "count": 14,
+          "probability": 0.2028985507246377,
+          "unique": 10,
+          "hasDuplicates": true,
+          "values": [
+            "2025-09-08",
+            "2025-04-14",
+            "2025-04-14",
+            "2025-08-27",
+            "2025-03-11",
+            "2025-08-29",
+            "2025-08-26",
+            "2025-04-14",
+            "2025-02-12",
+            "2025-09-08",
+            "2025-09-05",
+            "2025-08-26",
+            "2025-08-08",
+            "2025-09-10"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "orderType",
+      "path": [
+        "orderType"
+      ],
+      "count": 89,
+      "type": "String",
+      "probability": 1.289855072463768,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "orderType"
+          ],
+          "count": 89,
+          "probability": 1.289855072463768,
+          "unique": 2,
+          "hasDuplicates": true,
+          "values": [
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "original",
+            "original",
+            "modified",
+            "modified",
+            "modified",
+            "original",
+            "original",
+            "modified",
+            "modified",
+            "original",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "original",
+            "modified",
+            "modified",
+            "modified",
+            "original",
+            "modified",
+            "original",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "original",
+            "modified",
+            "modified",
+            "modified",
+            "original",
+            "original",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "original",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "original",
+            "original",
+            "original",
+            "modified",
+            "original",
+            "original",
+            "modified",
+            "original",
+            "modified",
+            "original",
+            "original",
+            "original",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "original",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified",
+            "modified"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "paymentDate",
+      "path": [
+        "paymentDate"
+      ],
+      "count": 77,
+      "type": [
+        "Null",
+        "String"
+      ],
+      "probability": 1.1159420289855073,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Null",
+          "path": [
+            "paymentDate"
+          ],
+          "count": 71,
+          "probability": 1.0289855072463767,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": null,
+          "bsonType": "Null"
+        },
+        {
+          "name": "String",
+          "path": [
+            "paymentDate"
+          ],
+          "count": 5,
+          "probability": 0.07246376811594203,
+          "unique": 2,
+          "hasDuplicates": true,
+          "values": [
+            "2025-08-12",
+            "2025-08-12",
+            "2025-08-12",
+            "2025-08-12",
+            "2025-06-16"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "plannedReleaseDate",
+      "path": [
+        "plannedReleaseDate"
+      ],
+      "count": 79,
+      "type": "String",
+      "probability": 1.144927536231884,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "plannedReleaseDate"
+          ],
+          "count": 79,
+          "probability": 1.144927536231884,
+          "unique": 59,
+          "hasDuplicates": true,
+          "values": [
+            "2025-11-08",
+            "2025-11-30",
+            "2025-11-06",
+            "2025-07-23",
+            "2025-11-20",
+            "2025-05-18",
+            "2025-04-18",
+            "2025-10-22",
+            "2025-10-17",
+            "2025-11-20",
+            "2025-05-23",
+            "2025-04-15",
+            "2025-10-25",
+            "2025-11-20",
+            "2025-03-20",
+            "2025-07-23",
+            "2025-07-13",
+            "2025-10-15",
+            "2025-10-17",
+            "2025-11-22",
+            "2025-05-17",
+            "2025-11-26",
+            "2025-06-15",
+            "2025-04-22",
+            "2025-11-26",
+            "2025-05-17",
+            "2025-06-28",
+            "2025-02-25",
+            "2025-10-27",
+            "2025-09-22",
+            "2025-06-27",
+            "2025-10-23",
+            "2025-08-13",
+            "2025-11-20",
+            "2025-10-07",
+            "2025-05-22",
+            "2025-10-13",
+            "2025-07-26",
+            "2025-10-30",
+            "2025-05-25",
+            "2025-05-13",
+            "2025-10-26",
+            "2025-10-15",
+            "2025-06-24",
+            "2025-10-09",
+            "2025-04-30",
+            "2025-11-20",
+            "2025-11-01",
+            "2025-09-10",
+            "2025-10-17",
+            "2025-11-25",
+            "2025-07-02",
+            "2025-10-12",
+            "2025-10-28",
+            "2025-08-11",
+            "2025-11-20",
+            "2025-07-11",
+            "2025-10-31",
+            "2025-11-20",
+            "2025-05-16",
+            "2025-05-15",
+            "2025-05-16",
+            "2025-09-09",
+            "2025-05-10",
+            "2025-05-20",
+            "2025-11-08",
+            "2025-05-17",
+            "2025-07-18",
+            "2025-05-11",
+            "2025-05-16",
+            "2025-05-20",
+            "2025-09-25",
+            "2025-07-24",
+            "2025-08-14",
+            "2025-05-07",
+            "2025-11-16",
+            "2025-11-06",
+            "2025-11-20",
+            "2025-10-27"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "priceInfo",
+      "path": [
+        "priceInfo"
+      ],
+      "count": 92,
+      "type": "String",
+      "probability": 1.3333333333333333,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "priceInfo"
+          ],
+          "count": 91,
+          "probability": 1.318840579710145,
+          "unique": 15,
+          "hasDuplicates": true,
+          "values": [
+            "2025年10月 - 60s+视频",
+            "2025年10月",
+            "2025年9月 (已确认)",
+            "2025年10月",
+            "2025年7月 (已确认)",
+            "2025年11月 - 60s+视频",
+            "2025年5月",
+            "2025年4月",
+            "2025年10月",
+            "2025年9月",
+            "2025年11月 - 60s+视频",
+            "2025年5月",
+            "2025年9月",
+            "2025年9月",
+            "2025年11月 - 60s+视频",
+            "2025年3月",
+            "2025年9月",
+            "2025年9月 (已确认)",
+            "2025年8月",
+            "2025年9月",
+            "2025年9月",
+            "2025年10月",
+            "2025年10月 - 60s+视频",
+            "2025年5月",
+            "2025年10月 - 60s+视频",
+            "2025年6月",
+            "2025年9月",
+            "2025年3月",
+            "2025年11月 - 60s+视频",
+            "2025年5月",
+            "2025年6月",
+            "2025年2月",
+            "2025年10月",
+            "2025年9月",
+            "2025年6月",
+            "2025年10月",
+            "2025年8月 (已确认)",
+            "2025年10月 (已确认)",
+            "2025年9月 (已确认)",
+            "2025年9月",
+            "2025年5月",
+            "2025年9月",
+            "2025年8月 (已确认)",
+            "2025年10月",
+            "2025年5月",
+            "2025年5月",
+            "2025年10月",
+            "2025年9月",
+            "2025年6月",
+            "2025年9月",
+            "2025年4月",
+            "2025年10月 - 60s+视频",
+            "2025年9月",
+            "2025年9月 (已确认)",
+            "2025年9月",
+            "2025年10月",
+            "2025年6月",
+            "2025年9月",
+            "2025年10月",
+            "2025年9月 (已确认)",
+            "2025年11月 - 60s+视频",
+            "2025年9月",
+            "2025年10月",
+            "2025年10月 - 60s+视频",
+            "2025年5月",
+            "2025年4月",
+            "2025年10月",
+            "2025年8月",
+            "2025年5月",
+            "2025年5月",
+            "2025年10月 - 60s+视频",
+            "2025年5月",
+            "2025年9月 (已确认)",
+            "2025年5月",
+            "2025年5月",
+            "2025年5月",
+            "2025年9月",
+            "2025年9月",
+            "2025年9月 (已确认)",
+            "2025年8月",
+            "2025年5月",
+            "2025年9月 (已确认)",
+            "2025年11月",
+            "2025年10月",
+            "2025年10月 - 60s+视频",
+            "2025年9月",
+            "2025年9月",
+            "2025年10月",
+            "2025年10月",
+            "2025年4月",
+            "2025年11月 - 60s+视频"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "projectId",
+      "path": [
+        "projectId"
+      ],
+      "count": 97,
+      "type": "String",
+      "probability": 1.4057971014492754,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "projectId"
+          ],
+          "count": 97,
+          "probability": 1.4057971014492754,
+          "unique": 32,
+          "hasDuplicates": true,
+          "values": [
+            "proj_1759080934701_d684asv",
+            "proj_1761157653643_qfm8v5y",
+            "proj_1757384707590_j627j8w",
+            "proj_1759044917192_py5qvc6",
+            "proj_1758086839932_107uf0s",
+            "proj_1762505247498_o86pcpb",
+            "proj_1760616392353_c0ddpct",
+            "proj_1758098760791_ttftusv",
+            "proj_1760165794890_t4bag3c",
+            "proj_1759043847530_ciykak2",
+            "proj_1760681933176_gtvi2bj",
+            "proj_1760616392353_c0ddpct",
+            "proj_1758098760791_ttftusv",
+            "proj_1759044917192_py5qvc6",
+            "proj_1760681933176_gtvi2bj",
+            "proj_1758098612049_pss4dpi",
+            "proj_1757500099674_yglg1qk",
+            "proj_1758086839932_107uf0s",
+            "proj_1758041045955_x2s58hk",
+            "proj_1757498008544_bjibdss",
+            "proj_1759044917192_py5qvc6",
+            "proj_1760165794890_t4bag3c",
+            "proj_1761897124823_nnywjjm",
+            "proj_1760616392353_c0ddpct",
+            "proj_1761897124823_nnywjjm",
+            "proj_1760616300342_x28ecsl",
+            "proj_1757500036094_yzinmza",
+            "proj_1758098760791_ttftusv",
+            "proj_1760681933176_gtvi2bj",
+            "proj_1760616487313_8r7sp59",
+            "proj_1760612092100_ew28zys",
+            "proj_1758097720297_559eyui",
+            "proj_1760165794890_t4bag3c",
+            "proj_1757699412131_cvytrph",
+            "proj_1760612092100_ew28zys",
+            "proj_1760165794890_t4bag3c",
+            "proj_1757500170827_0b18dq5",
+            "proj_1761157653643_qfm8v5y",
+            "proj_1757384707590_j627j8w",
+            "proj_1759043847530_ciykak2",
+            "proj_1760616487313_8r7sp59",
+            "proj_1759043847530_ciykak2",
+            "proj_1758086839932_107uf0s",
+            "proj_1760681933176_gtvi2bj",
+            "proj_1760616392353_c0ddpct",
+            "proj_1760616460585_66favmx",
+            "proj_1759046219254_b56x498",
+            "proj_1759043847530_ciykak2",
+            "proj_1760614939634_akzoc20",
+            "proj_1759043847530_ciykak2",
+            "proj_1760616531885_zwxgw8j",
+            "proj_1761157653643_qfm8v5y",
+            "proj_1759043847530_ciykak2",
+            "proj_1757384707590_j627j8w",
+            "proj_1759046219254_b56x498",
+            "proj_1761157653643_qfm8v5y",
+            "proj_1760612092100_ew28zys",
+            "proj_1759044917192_py5qvc6",
+            "proj_1760165794890_t4bag3c",
+            "proj_1757500170827_0b18dq5",
+            "proj_1761897124823_nnywjjm",
+            "proj_1758041045955_x2s58hk",
+            "proj_1760681933176_gtvi2bj",
+            "proj_1761157653643_qfm8v5y",
+            "proj_1760616392353_c0ddpct",
+            "proj_1760616460585_66favmx",
+            "proj_1760616392353_c0ddpct",
+            "proj_1757500036094_yzinmza",
+            "proj_1760616460585_66favmx",
+            "proj_1760616487313_8r7sp59",
+            "proj_1760679902672_xg6hhl9",
+            "proj_1760616487313_8r7sp59",
+            "proj_1758086839932_107uf0s",
+            "proj_1760616460585_66favmx",
+            "proj_1760616460585_66favmx",
+            "proj_1760616392353_c0ddpct",
+            "proj_1757500141239_pladtfd",
+            "proj_1757699412131_cvytrph",
+            "proj_1758086839932_107uf0s",
+            "proj_1757500170827_0b18dq5",
+            "proj_1760616426224_q7aenxp",
+            "proj_1757384707590_j627j8w",
+            "proj_1761157653643_qfm8v5y",
+            "proj_1759081012348_2ksox4h",
+            "proj_1761897124823_nnywjjm",
+            "proj_1759045961033_3ts94j4",
+            "proj_1759045961033_3ts94j4",
+            "proj_1760165794890_t4bag3c",
+            "proj_1760681933176_gtvi2bj",
+            "proj_1758098760791_ttftusv",
+            "proj_1762505247498_o86pcpb",
+            "proj_1760612092100_ew28zys",
+            "proj_1757384707590_j627j8w",
+            "proj_1760165794890_t4bag3c",
+            "proj_1760616300342_x28ecsl",
+            "proj_1760165794890_t4bag3c",
+            "proj_1757500036094_yzinmza"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "publishDate",
+      "path": [
+        "publishDate"
+      ],
+      "count": 80,
+      "type": [
+        "String",
+        "Null"
+      ],
+      "probability": 1.1594202898550725,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "publishDate"
+          ],
+          "count": 64,
+          "probability": 0.927536231884058,
+          "unique": 51,
+          "hasDuplicates": true,
+          "values": [
+            "2025-11-08",
+            "2025-09-10",
+            "2025-11-06",
+            "2025-07-22",
+            "2025-05-18",
+            "2025-04-18",
+            "2025-10-18",
+            "2025-05-23",
+            "2025-04-15",
+            "2025-10-25",
+            "2025-08-29",
+            "2025-03-20",
+            "2025-07-23",
+            "2025-09-09",
+            "2025-07-13",
+            "2025-05-17",
+            "2025-08-27",
+            "2025-06-15",
+            "2025-04-22",
+            "2025-10-15",
+            "2025-05-17",
+            "2025-06-28",
+            "2025-02-25",
+            "2025-09-22",
+            "2025-08-13",
+            "2025-09-10",
+            "2025-10-07",
+            "2025-05-22",
+            "2025-10-13",
+            "2025-07-13",
+            "2025-10-30",
+            "2025-05-23",
+            "2025-06-25",
+            "2025-05-13",
+            "2025-10-26",
+            "2025-10-15",
+            "2025-06-24",
+            "2025-10-09",
+            "2025-04-30",
+            "2025-09-09",
+            "2025-11-01",
+            "2025-10-18",
+            "2025-07-02",
+            "2025-10-13",
+            "2025-10-28",
+            "2025-08-11",
+            "2025-07-11",
+            "2025-10-31",
+            "2025-05-16",
+            "2025-05-15",
+            "2025-08-26",
+            "2025-05-16",
+            "2025-05-11",
+            "2025-05-17",
+            "2025-11-08",
+            "2025-05-19",
+            "2025-07-22",
+            "2025-05-14",
+            "2025-05-16",
+            "2025-08-12",
+            "2025-05-24",
+            "2025-09-25",
+            "2025-07-19",
+            "2025-08-14"
+          ],
+          "bsonType": "String"
+        },
+        {
+          "name": "Null",
+          "path": [
+            "publishDate"
+          ],
+          "count": 16,
+          "probability": 0.2318840579710145,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": null,
+          "bsonType": "Null"
+        }
+      ]
+    },
+    {
+      "name": "rebate",
+      "path": [
+        "rebate"
+      ],
+      "count": 90,
+      "type": "Number",
+      "probability": 1.3043478260869565,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Number",
+          "path": [
+            "rebate"
+          ],
+          "count": 90,
+          "probability": 1.3043478260869565,
+          "unique": 14,
+          "hasDuplicates": true,
+          "values": [
+            25,
+            23,
+            30,
+            25,
+            25,
+            26,
+            31,
+            20,
+            25,
+            30,
+            30,
+            27,
+            25,
+            25,
+            32,
+            20,
+            25,
+            24,
+            22,
+            22,
+            22,
+            27,
+            22,
+            25,
+            26,
+            25,
+            27,
+            31,
+            23,
+            23,
+            25,
+            23,
+            27,
+            20,
+            27,
+            24,
+            30,
+            25,
+            25,
+            22,
+            22,
+            23,
+            21,
+            10,
+            25,
+            25,
+            20,
+            23,
+            23,
+            30,
+            20,
+            25,
+            25,
+            25,
+            25,
+            30,
+            20,
+            20,
+            25,
+            15,
+            25,
+            27,
+            25,
+            25,
+            25,
+            30,
+            22,
+            22,
+            32,
+            30,
+            22,
+            25,
+            30,
+            15,
+            25,
+            20,
+            23,
+            25,
+            25,
+            30,
+            27,
+            25,
+            25,
+            23,
+            23,
+            30,
+            31,
+            25,
+            30,
+            18
+          ],
+          "bsonType": "Number"
+        }
+      ]
+    },
+    {
+      "name": "rebateScreenshots",
+      "path": [
+        "rebateScreenshots"
+      ],
+      "count": 66,
+      "type": [
+        "Array",
+        "Undefined"
+      ],
+      "probability": 0.9565217391304348,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Array",
+          "path": [
+            "rebateScreenshots"
+          ],
+          "count": 66,
+          "probability": 0.9565217391304348,
+          "unique": null,
+          "hasDuplicates": null,
+          "values": null,
+          "bsonType": "Array",
+          "types": [],
+          "totalCount": 0,
+          "lengths": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "averageLength": 0
+        },
+        {
+          "name": "Undefined",
+          "bsonType": "Undefined",
+          "unique": 0,
+          "hasDuplicates": true,
+          "path": [
+            "rebateScreenshots"
+          ],
+          "count": 3,
+          "probability": 0.043478260869565216
+        }
+      ]
+    },
+    {
+      "name": "recoveryDate",
+      "path": [
+        "recoveryDate"
+      ],
+      "count": 74,
+      "type": [
+        "Null",
+        "String"
+      ],
+      "probability": 1.0724637681159421,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Null",
+          "path": [
+            "recoveryDate"
+          ],
+          "count": 70,
+          "probability": 1.0144927536231885,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": null,
+          "bsonType": "Null"
+        },
+        {
+          "name": "String",
+          "path": [
+            "recoveryDate"
+          ],
+          "count": 4,
+          "probability": 0.057971014492753624,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": [
+            "2025-09-17",
+            "2025-09-17",
+            "2025-09-17",
+            "2025-09-17"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "status",
+      "path": [
+        "status"
+      ],
+      "count": 88,
+      "type": "String",
+      "probability": 1.2753623188405796,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "status"
+          ],
+          "count": 87,
+          "probability": 1.2608695652173914,
+          "unique": 3,
+          "hasDuplicates": true,
+          "values": [
+            "视频已发布",
+            "工作台已提交",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "客户已定档",
+            "视频已发布",
+            "视频已发布",
+            "工作台已提交",
+            "视频已发布",
+            "客户已定档",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "客户已定档",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "工作台已提交",
+            "客户已定档",
+            "视频已发布",
+            "工作台已提交",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "客户已定档",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "工作台已提交",
+            "视频已发布",
+            "视频已发布",
+            "工作台已提交",
+            "视频已发布",
+            "工作台已提交",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "工作台已提交",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "工作台已提交",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "工作台已提交",
+            "视频已发布",
+            "视频已发布",
+            "工作台已提交",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "视频已发布",
+            "客户已定档",
+            "视频已发布",
+            "客户已定档",
+            "视频已发布",
+            "视频已发布"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "talentId",
+      "path": [
+        "talentId"
+      ],
+      "count": 96,
+      "type": "String",
+      "probability": 1.391304347826087,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "talentId"
+          ],
+          "count": 95,
+          "probability": 1.3768115942028984,
+          "unique": 64,
+          "hasDuplicates": true,
+          "values": [
+            "talent_1757345209658_yps6t5411",
+            "talent_1757345209659_xzw8m0au8",
+            "talent_1757345209659_vdhj93qfa",
+            "talent_1757345209659_ltm80h3og",
+            "talent_1757345209659_ox1au07pq",
+            "talent_1757345209659_h6qxvosco",
+            "talent_1757345209659_g7s97xo3s",
+            "talent_1757345209659_nygc8gztf",
+            "talent_1757345209658_hsfbhhq6d",
+            "talent_1757345209659_4i8plrffp",
+            "talent_1762275753182_nfsiz2a",
+            "talent_1757345209658_gv6hvjvru",
+            "talent_1757345209658_od9702lln",
+            "talent_1757345209658_4c4y1o01b",
+            "talent_1762275428886_4vabnxn",
+            "talent_1758099353823_gx6dfsj",
+            "talent_1757345209659_rd968my6f",
+            "talent_1757345209658_9h61efoi0",
+            "talent_1757345209659_ouyzxsy3v",
+            "talent_1757345209659_47tv2aber",
+            "talent_1757345209658_1bvmbfhtj",
+            "talent_1757345209659_y9camvsaw",
+            "talent_1757345209659_mbvvqotsj",
+            "talent_1757345209659_rd968my6f",
+            "talent_1757345209659_h6qxvosco",
+            "talent_1757345209659_ltm80h3og",
+            "talent_1757345209658_9jj2pelfa",
+            "talent_1757345209659_g7s97xo3s",
+            "talent_1762407798876_em2475p",
+            "talent_1757345209659_xnlhs5ypg",
+            "talent_1757345209659_d7p0890vm",
+            "talent_1758098048658_wz8tnxb",
+            "talent_1760587181741_7e45omu",
+            "talent_1757345209659_zqsg82p06",
+            "talent_1757345209658_ahe3vscs8",
+            "talent_1757345209658_9h61efoi0",
+            "talent_1757345209659_4i8plrffp",
+            "talent_1757345209659_tjufv5kpe",
+            "talent_1757345209659_95ucdudv9",
+            "talent_1757345209658_1bvmbfhtj",
+            "talent_1757345209659_aoz90xsok",
+            "talent_1757345209659_ouyzxsy3v",
+            "talent_1757345209659_ouyzxsy3v",
+            "talent_1760682514744_9li6dye",
+            "talent_1757345209659_ltm80h3og",
+            "talent_1757345209658_hsfbhhq6d",
+            "talent_1757345209659_mbvvqotsj",
+            "talent_1757345209659_6p8pcq2tk",
+            "talent_1757345209658_9h61efoi0",
+            "talent_1757345209659_vdhj93qfa",
+            "talent_1757345209659_n00judmvq",
+            "talent_1757345209658_4c4y1o01b",
+            "talent_1757345209659_rd968my6f",
+            "talent_1757345209659_6p8pcq2tk",
+            "talent_1757345209659_ltm80h3og",
+            "talent_1757345209659_xq0pkuc6s",
+            "talent_1757345209659_q4etfl5tk",
+            "talent_1757345209659_mbvvqotsj",
+            "talent_1757345209658_7yi9eu6qp",
+            "talent_1757345209659_bbps3z66q",
+            "talent_1762489692122_bn3xg7c",
+            "talent_1757345209659_80v73gy0g",
+            "talent_1760682780707_rmvvv3m",
+            "talent_1757345209658_yps6t5411",
+            "talent_1757345209658_od9702lln",
+            "talent_1757345209659_xgp8991k3",
+            "talent_1757345209659_eap18vgf1",
+            "talent_1757345209659_ouyzxsy3v",
+            "talent_1757345209658_136hxoeq1",
+            "talent_1760771426763_3tskq90",
+            "talent_1757345209659_mbvvqotsj",
+            "talent_1760771502972_0o20cl8",
+            "talent_1757345209659_cmzko5gxw",
+            "talent_1757345209659_4gnvcg3en",
+            "talent_1757345209659_dq95jy7yh",
+            "talent_1757345209658_i01eu25ds",
+            "talent_1757345209658_n9nrr2f26",
+            "talent_1757345209659_nygc8gztf",
+            "talent_1757345209659_ltm80h3og",
+            "talent_1757345209659_t873z3nsp",
+            "talent_1757345209659_y9camvsaw",
+            "talent_1757345209658_3ryw7xom6",
+            "talent_1761279230386_g0h8w63",
+            "talent_1757345209658_ja25tiexq",
+            "talent_1757345209659_ouyzxsy3v",
+            "talent_1757345209659_bucd39alq",
+            "talent_1757345209659_g7s97xo3s",
+            "talent_1757345209659_3v05h9f3z",
+            "talent_1760682612254_6xf8ebj",
+            "talent_1757345209659_pt8wqizmy",
+            "talent_1761015504697_3k1b2lg",
+            "talent_1757345209659_mbvvqotsj",
+            "talent_1757345209659_4i8plrffp",
+            "talent_1757345209659_e4hkkbeub",
+            "talent_1757345209658_7yi9eu6qp"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "talentSource",
+      "path": [
+        "talentSource"
+      ],
+      "count": 94,
+      "type": "String",
+      "probability": 1.3623188405797102,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "talentSource"
+          ],
+          "count": 94,
+          "probability": 1.3623188405797102,
+          "unique": 2,
+          "hasDuplicates": true,
+          "values": [
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "机构达人",
+            "机构达人",
+            "机构达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "机构达人",
+            "野生达人",
+            "机构达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "taskId",
+      "path": [
+        "taskId"
+      ],
+      "count": 79,
+      "type": [
+        "String",
+        "Null"
+      ],
+      "probability": 1.144927536231884,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "taskId"
+          ],
+          "count": 63,
+          "probability": 0.9130434782608695,
+          "unique": 63,
+          "hasDuplicates": false,
+          "values": [
+            "7547627868893741106",
+            "7569533404685795355",
+            "7569460331756388406",
+            "7528327912341127187",
+            "7504131019621007398",
+            "7493081671688781834",
+            "7561361956167221257",
+            "7504126941161127945",
+            "7493054028662882355",
+            "7564354350126989350",
+            "7542825155597172763",
+            "7480464200892940339",
+            "7543938494940905518",
+            "7527605707076534326",
+            "7560632876216090650",
+            "7524987463584972851",
+            "7504128246552723466",
+            "7542457121720238130",
+            "7513868921804423206",
+            "7493077733178605595",
+            "7504135057569742874",
+            "7519801352071938067",
+            "7470449903882534950",
+            "7519431158791143475",
+            "7551726500601561107",
+            "7533177575816822811",
+            "7547630572118474791",
+            "7557953299603324966",
+            "7559881594689814537",
+            "7504141680004104242",
+            "7527606329569968169",
+            "7566216509358342153",
+            "7561291707809759282",
+            "7564713414157664262",
+            "7517201817789267978",
+            "7557952503195631654",
+            "7546513264893493258",
+            "7506064426122870834",
+            "7567321366379429897",
+            "7501906645228716059",
+            "7561364229249302538",
+            "7520550449322131502",
+            "7559145120419807258",
+            "7497186896336453669",
+            "7565772194439725083",
+            "7534646123094933513",
+            "7522405150909022258",
+            "7566200068911398958",
+            "7504131964534784037",
+            "7542456436052197403",
+            "7501909293227048997",
+            "7504132413476306994",
+            "7501903794629378098",
+            "7504138957177782323",
+            "7569532042356523046",
+            "7504135556297654298",
+            "7527602902743908394",
+            "7536124882648563738",
+            "7501907592509063194",
+            "7504126400706641929",
+            "7527597006554923027",
+            "7553204504464719922",
+            "7548378493961109514"
+          ],
+          "bsonType": "String"
+        },
+        {
+          "name": "Null",
+          "path": [
+            "taskId"
+          ],
+          "count": 16,
+          "probability": 0.2318840579710145,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": null,
+          "bsonType": "Null"
+        }
+      ]
+    },
+    {
+      "name": "updatedAt",
+      "path": [
+        "updatedAt"
+      ],
+      "count": 84,
+      "type": "Date",
+      "probability": 1.2173913043478262,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "Date",
+          "path": [
+            "updatedAt"
+          ],
+          "count": 83,
+          "probability": 1.2028985507246377,
+          "unique": 83,
+          "hasDuplicates": false,
+          "values": [
+            {
+              "$date": "2025-11-08T04:45:12.581Z"
+            },
+            {
+              "$date": "2025-09-10T08:47:16.760Z"
+            },
+            {
+              "$date": "2025-10-28T08:28:52.462Z"
+            },
+            {
+              "$date": "2025-11-06T05:39:54.878Z"
+            },
+            {
+              "$date": "2025-09-17T06:08:22.258Z"
+            },
+            {
+              "$date": "2025-11-07T12:47:24.064Z"
+            },
+            {
+              "$date": "2025-10-21T14:17:22.526Z"
+            },
+            {
+              "$date": "2025-09-17T10:26:00.309Z"
+            },
+            {
+              "$date": "2025-10-13T03:08:56.280Z"
+            },
+            {
+              "$date": "2025-10-18T01:36:37.599Z"
+            },
+            {
+              "$date": "2025-11-04T17:04:00.760Z"
+            },
+            {
+              "$date": "2025-10-21T14:26:40.798Z"
+            },
+            {
+              "$date": "2025-09-17T10:30:07.881Z"
+            },
+            {
+              "$date": "2025-10-26T04:59:29.559Z"
+            },
+            {
+              "$date": "2025-11-04T17:01:30.496Z"
+            },
+            {
+              "$date": "2025-09-10T10:56:47.862Z"
+            },
+            {
+              "$date": "2025-09-17T09:26:14.215Z"
+            },
+            {
+              "$date": "2025-09-17T06:08:50.688Z"
+            },
+            {
+              "$date": "2025-09-10T10:08:30.812Z"
+            },
+            {
+              "$date": "2025-09-17T02:46:20.938Z"
+            },
+            {
+              "$date": "2025-10-16T01:59:14.091Z"
+            },
+            {
+              "$date": "2025-10-13T03:57:03.055Z"
+            },
+            {
+              "$date": "2025-11-05T15:34:13.246Z"
+            },
+            {
+              "$date": "2025-10-21T14:24:42.775Z"
+            },
+            {
+              "$date": "2025-11-05T15:34:02.496Z"
+            },
+            {
+              "$date": "2025-09-10T10:51:47.365Z"
+            },
+            {
+              "$date": "2025-10-18T05:45:08.582Z"
+            },
+            {
+              "$date": "2025-09-17T10:28:48.424Z"
+            },
+            {
+              "$date": "2025-11-06T06:29:08.462Z"
+            },
+            {
+              "$date": "2025-10-18T08:11:58.532Z"
+            },
+            {
+              "$date": "2025-10-16T11:19:17.414Z"
+            },
+            {
+              "$date": "2025-09-17T09:23:49.117Z"
+            },
+            {
+              "$date": "2025-10-16T04:04:20.287Z"
+            },
+            {
+              "$date": "2025-09-23T02:36:58.333Z"
+            },
+            {
+              "$date": "2025-10-16T11:34:12.898Z"
+            },
+            {
+              "$date": "2025-10-11T08:32:31.158Z"
+            },
+            {
+              "$date": "2025-09-15T05:50:11.854Z"
+            },
+            {
+              "$date": "2025-09-12T17:42:48.980Z"
+            },
+            {
+              "$date": "2025-10-25T11:05:04.428Z"
+            },
+            {
+              "$date": "2025-10-16T01:49:41.839Z"
+            },
+            {
+              "$date": "2025-10-18T08:17:28.690Z"
+            },
+            {
+              "$date": "2025-10-13T10:07:48.082Z"
+            },
+            {
+              "$date": "2025-09-17T06:17:20.283Z"
+            },
+            {
+              "$date": "2025-10-30T11:38:26.225Z"
+            },
+            {
+              "$date": "2025-10-21T14:29:59.436Z"
+            },
+            {
+              "$date": "2025-10-18T08:59:10.403Z"
+            },
+            {
+              "$date": "2025-10-26T16:27:55.390Z"
+            },
+            {
+              "$date": "2025-10-16T01:51:59.467Z"
+            },
+            {
+              "$date": "2025-10-16T11:55:14.620Z"
+            },
+            {
+              "$date": "2025-10-10T06:52:43.179Z"
+            },
+            {
+              "$date": "2025-10-20T04:08:15.293Z"
+            },
+            {
+              "$date": "2025-11-01T07:06:05.030Z"
+            },
+            {
+              "$date": "2025-09-12T17:45:04.240Z"
+            },
+            {
+              "$date": "2025-11-01T10:45:09.270Z"
+            },
+            {
+              "$date": "2025-10-18T01:35:42.028Z"
+            },
+            {
+              "$date": "2025-10-28T08:28:54.946Z"
+            },
+            {
+              "$date": "2025-10-16T11:19:56.618Z"
+            },
+            {
+              "$date": "2025-10-13T10:05:37.088Z"
+            },
+            {
+              "$date": "2025-10-28T01:45:13.077Z"
+            },
+            {
+              "$date": "2025-09-15T04:48:49.172Z"
+            },
+            {
+              "$date": "2025-11-07T12:37:07.574Z"
+            },
+            {
+              "$date": "2025-09-17T02:47:09.934Z"
+            },
+            {
+              "$date": "2025-10-30T11:39:22.887Z"
+            },
+            {
+              "$date": "2025-11-01T07:05:56.823Z"
+            },
+            {
+              "$date": "2025-10-21T14:12:38.251Z"
+            },
+            {
+              "$date": "2025-10-18T08:57:31.568Z"
+            },
+            {
+              "$date": "2025-09-10T10:51:12.731Z"
+            },
+            {
+              "$date": "2025-10-21T14:11:57.333Z"
+            },
+            {
+              "$date": "2025-10-18T08:53:52.025Z"
+            },
+            {
+              "$date": "2025-10-18T08:14:40.664Z"
+            },
+            {
+              "$date": "2025-11-08T08:37:33.229Z"
+            },
+            {
+              "$date": "2025-10-18T08:15:54.150Z"
+            },
+            {
+              "$date": "2025-09-17T06:11:15.065Z"
+            },
+            {
+              "$date": "2025-10-18T11:59:27.028Z"
+            },
+            {
+              "$date": "2025-10-18T08:48:23.063Z"
+            },
+            {
+              "$date": "2025-09-10T11:20:22.160Z"
+            },
+            {
+              "$date": "2025-10-21T14:31:43.893Z"
+            },
+            {
+              "$date": "2025-09-26T01:08:07.892Z"
+            },
+            {
+              "$date": "2025-09-17T06:12:49.007Z"
+            },
+            {
+              "$date": "2025-09-15T04:52:15.179Z"
+            },
+            {
+              "$date": "2025-09-12T17:45:36.385Z"
+            },
+            {
+              "$date": "2025-10-23T14:05:59.250Z"
+            },
+            {
+              "$date": "2025-10-27T07:32:48.959Z"
+            }
+          ],
+          "bsonType": "Date"
+        }
+      ]
+    },
+    {
+      "name": "videoId",
+      "path": [
+        "videoId"
+      ],
+      "count": 77,
+      "type": [
+        "String",
+        "Null"
+      ],
+      "probability": 1.1159420289855073,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "videoId"
+          ],
+          "count": 61,
+          "probability": 0.8840579710144928,
+          "unique": 61,
+          "hasDuplicates": false,
+          "values": [
+            "7548017633195724066",
+            "7569842508634674658",
+            "7569462352779080522",
+            "7529793082921864486",
+            "7505644702469885247",
+            "7494246074794708250",
+            "7562089483509501242",
+            "7507220033232325939",
+            "7493193619004820763",
+            "7565024840785956155",
+            "7543530530948648234",
+            "7483037693564243257",
+            "7547672073284455706",
+            "7530130358581775675",
+            "7526158653360049443",
+            "7505056500008766770",
+            "7543086164225838393",
+            "7515508256954273065",
+            "7561288758713306428",
+            "7496048811136077092",
+            "7505306044529413433",
+            "7520625206018215206",
+            "7475243729650011446",
+            "7520213930053815602",
+            "7552778984237387050",
+            "7537985420349639996",
+            "7547977077719321883",
+            "7558309012559711546",
+            "7560616205717212450",
+            "7506902934644411688",
+            "7530909374291840271",
+            "7506770260050119990",
+            "7503828273451027764",
+            "7566279075859320090",
+            "7561301458814471483",
+            "7565201241077271846",
+            "7519428372196298042",
+            "7498756399670381882",
+            "7559097542639422729",
+            "7547652656261975354",
+            "7567464286226877723",
+            "7562037416635403546",
+            "7521991886883884347",
+            "7560321691566574883",
+            "7565817263681441024",
+            "7537169826889600282",
+            "7525293813185154361",
+            "7566588795789872420",
+            "7504574350511721766",
+            "7542482083525971235",
+            "7504600431218576640",
+            "7504644268423023932",
+            "7502875856885730614",
+            "7505274950346804506",
+            "7570220608236047626",
+            "7506084810244083002",
+            "7504191136053202185",
+            "7529494819920465194",
+            "7537173260027333926",
+            "7505025100032068923",
+            "7507636196999269683"
+          ],
+          "bsonType": "String"
+        },
+        {
+          "name": "Null",
+          "path": [
+            "videoId"
+          ],
+          "count": 16,
+          "probability": 0.2318840579710145,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": null,
+          "bsonType": "Null"
+        }
+      ]
     }
-  }
+  ]
+}
+[
+  [ '_id' ],
+  [ 'actualRebate' ],
+  [ 'amount' ],
+  [ 'contentFile' ],
+  [ 'createdAt' ],
+  [ 'discrepancyReason' ],
+  [ 'discrepancyReasonUpdatedAt' ],
+  [ 'id' ],
+  [ 'orderDate' ],
+  [ 'orderType' ],
+  [ 'paymentDate' ],
+  [ 'plannedReleaseDate' ],
+  [ 'priceInfo' ],
+  [ 'projectId' ],
+  [ 'publishDate' ],
+  [ 'rebate' ],
+  [ 'rebateScreenshots' ],
+  [ 'recoveryDate' ],
+  [ 'status' ],
+  [ 'talentId' ],
+  [ 'talentSource' ],
+  [ 'taskId' ],
+  [ 'updatedAt' ],
+  [ 'videoId' ]
+]
+[Object: null prototype] {
+  _id: { types: [ { bsonType: 'ObjectId' } ] },
+  id: { types: [ { bsonType: 'String' } ] },
+  projectId: { types: [ { bsonType: 'String' } ] },
+  talentId: { types: [ { bsonType: 'String' } ] },
+  talentSource: { types: [ { bsonType: 'String' } ] },
+  amount: { types: [ { bsonType: 'Number' } ] },
+  priceInfo: { types: [ { bsonType: 'String' } ] },
+  rebate: { types: [ { bsonType: 'Number' } ] },
+  orderType: { types: [ { bsonType: 'String' } ] },
+  status: { types: [ { bsonType: 'String' } ] },
+  plannedReleaseDate: { types: [ { bsonType: 'String' } ] },
+  createdAt: { types: [ { bsonType: 'Date' } ] },
+  updatedAt: { types: [ { bsonType: 'Date' } ] },
+  orderDate: { types: [ { bsonType: 'Null' }, { bsonType: 'String' } ] },
+  publishDate: { types: [ { bsonType: 'String' }, { bsonType: 'Null' } ] },
+  contentFile: { types: [ { bsonType: 'Null' }, { bsonType: 'String' } ] },
+  taskId: { types: [ { bsonType: 'String' }, { bsonType: 'Null' } ] },
+  videoId: { types: [ { bsonType: 'String' }, { bsonType: 'Null' } ] },
+  paymentDate: { types: [ { bsonType: 'Null' }, { bsonType: 'String' } ] },
+  actualRebate: { types: [ { bsonType: 'Null' }, { bsonType: 'Number' } ] },
+  recoveryDate: { types: [ { bsonType: 'Null' }, { bsonType: 'String' } ] },
+  discrepancyReason: { types: [ { bsonType: 'Null' } ] },
+  rebateScreenshots: { types: [ { bsonType: 'Array', types: [] } ] },
+  discrepancyReasonUpdatedAt: { types: [ { bsonType: 'Date' } ] }
 }

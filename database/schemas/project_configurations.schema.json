@@ -1,109 +1,388 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "required": [
-    "_id"
-  ],
-  "properties": {
-    "_id": {
-      "type": "string"
-    },
-    "settings": {
-      "type": "object",
-      "required": [],
-      "properties": {
-        "PROJECT_BUDGET_WARNING": {
-          "type": "boolean"
-        },
-        "PROJECT_DATA_DUE": {
-          "type": "boolean"
-        },
-        "PROJECT_DATA_OVERDUE": {
-          "type": "boolean"
-        },
-        "PROJECT_PAYMENT_REMINDER": {
-          "type": "boolean"
-        },
-        "PROJECT_PENDING_ARCHIVE": {
-          "type": "boolean"
-        },
-        "PROJECT_PENDING_PUBLISH": {
-          "type": "boolean"
-        }
-      }
-    },
-    "updatedAt": {
-      "$ref": "#/$defs/Date"
-    },
-    "values": {
-      "type": "array",
-      "items": {
-        "anyOf": [
-          {
-            "type": "object",
-            "required": [
-              "id",
-              "name",
-              "value"
-            ],
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "name": {
-                "type": "string"
-              },
-              "value": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "$ref": "#/$defs/Double"
-                  }
-                ]
-              }
-            }
+  "count": 0,
+  "fields": [
+    {
+      "name": "_id",
+      "path": [
+        "_id"
+      ],
+      "count": 6,
+      "type": "String",
+      "probability": {
+        "$numberDouble": "Infinity"
+      },
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "_id"
+          ],
+          "count": 5,
+          "probability": {
+            "$numberDouble": "Infinity"
           },
-          {
-            "type": "string"
-          }
-        ]
-      }
-    }
-  },
-  "$defs": {
-    "Double": {
-      "oneOf": [
-        {
-          "type": "number"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "$numberDouble": {
-              "enum": [
-                "Infinity",
-                "-Infinity",
-                "NaN"
-              ]
-            }
-          }
+          "unique": 5,
+          "hasDuplicates": false,
+          "values": [
+            "NOTIFICATION_SETTINGS",
+            "FRAMEWORK_DISCOUNTS",
+            "CAPITAL_RATES",
+            "FEISHU_NOTIFICATIONS",
+            "PROJECT_TYPES"
+          ],
+          "bsonType": "String"
         }
       ]
     },
-    "Date": {
-      "type": "object",
-      "properties": {
-        "$date": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "$date"
+    {
+      "name": "settings",
+      "path": [
+        "settings"
       ],
-      "additionalProperties": false
+      "count": 2,
+      "type": "Document",
+      "probability": {
+        "$numberDouble": "Infinity"
+      },
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "Document",
+          "path": [
+            "settings"
+          ],
+          "count": 2,
+          "probability": {
+            "$numberDouble": "Infinity"
+          },
+          "unique": null,
+          "hasDuplicates": null,
+          "values": null,
+          "bsonType": "Document",
+          "fields": [
+            {
+              "name": "PROJECT_BUDGET_WARNING",
+              "path": [
+                "settings",
+                "PROJECT_BUDGET_WARNING"
+              ],
+              "count": 1,
+              "type": "Undefined",
+              "probability": 0.5,
+              "hasDuplicates": false,
+              "types": [
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 1,
+                  "hasDuplicates": false,
+                  "path": [
+                    "settings",
+                    "PROJECT_BUDGET_WARNING"
+                  ],
+                  "count": 1,
+                  "probability": 0.5
+                }
+              ]
+            },
+            {
+              "name": "PROJECT_DATA_DUE",
+              "path": [
+                "settings",
+                "PROJECT_DATA_DUE"
+              ],
+              "count": 1,
+              "type": [
+                "Boolean",
+                "Undefined"
+              ],
+              "probability": 0.5,
+              "hasDuplicates": false,
+              "types": [
+                {
+                  "name": "Boolean",
+                  "path": [
+                    "settings",
+                    "PROJECT_DATA_DUE"
+                  ],
+                  "count": 1,
+                  "probability": 0.5,
+                  "unique": 1,
+                  "hasDuplicates": false,
+                  "values": [
+                    true
+                  ],
+                  "bsonType": "Boolean"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 1,
+                  "hasDuplicates": false,
+                  "path": [
+                    "settings",
+                    "PROJECT_DATA_DUE"
+                  ],
+                  "count": 1,
+                  "probability": 0.5
+                }
+              ]
+            },
+            {
+              "name": "PROJECT_DATA_OVERDUE",
+              "path": [
+                "settings",
+                "PROJECT_DATA_OVERDUE"
+              ],
+              "count": 1,
+              "type": [
+                "Boolean",
+                "Undefined"
+              ],
+              "probability": 0.5,
+              "hasDuplicates": false,
+              "types": [
+                {
+                  "name": "Boolean",
+                  "path": [
+                    "settings",
+                    "PROJECT_DATA_OVERDUE"
+                  ],
+                  "count": 1,
+                  "probability": 0.5,
+                  "unique": 1,
+                  "hasDuplicates": false,
+                  "values": [
+                    true
+                  ],
+                  "bsonType": "Boolean"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 1,
+                  "hasDuplicates": false,
+                  "path": [
+                    "settings",
+                    "PROJECT_DATA_OVERDUE"
+                  ],
+                  "count": 1,
+                  "probability": 0.5
+                }
+              ]
+            },
+            {
+              "name": "PROJECT_PENDING_PUBLISH",
+              "path": [
+                "settings",
+                "PROJECT_PENDING_PUBLISH"
+              ],
+              "count": 1,
+              "type": [
+                "Boolean",
+                "Undefined"
+              ],
+              "probability": 0.5,
+              "hasDuplicates": false,
+              "types": [
+                {
+                  "name": "Boolean",
+                  "path": [
+                    "settings",
+                    "PROJECT_PENDING_PUBLISH"
+                  ],
+                  "count": 1,
+                  "probability": 0.5,
+                  "unique": 1,
+                  "hasDuplicates": false,
+                  "values": [
+                    false
+                  ],
+                  "bsonType": "Boolean"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 1,
+                  "hasDuplicates": false,
+                  "path": [
+                    "settings",
+                    "PROJECT_PENDING_PUBLISH"
+                  ],
+                  "count": 1,
+                  "probability": 0.5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "values",
+      "path": [
+        "values"
+      ],
+      "count": 2,
+      "type": "Array",
+      "probability": {
+        "$numberDouble": "Infinity"
+      },
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "Array",
+          "path": [
+            "values"
+          ],
+          "count": 2,
+          "probability": {
+            "$numberDouble": "Infinity"
+          },
+          "unique": null,
+          "hasDuplicates": null,
+          "values": null,
+          "bsonType": "Array",
+          "types": [
+            {
+              "name": "Document",
+              "path": [
+                "values"
+              ],
+              "count": 2,
+              "probability": 1,
+              "unique": null,
+              "hasDuplicates": null,
+              "values": null,
+              "bsonType": "Document",
+              "fields": [
+                {
+                  "name": "id",
+                  "path": [
+                    "values",
+                    "id"
+                  ],
+                  "count": 2,
+                  "type": "String",
+                  "probability": 1,
+                  "hasDuplicates": false,
+                  "types": [
+                    {
+                      "name": "String",
+                      "path": [
+                        "values",
+                        "id"
+                      ],
+                      "count": 2,
+                      "probability": 1,
+                      "unique": 2,
+                      "hasDuplicates": false,
+                      "values": [
+                        "disc_1756830933150",
+                        "rate_1756830641749"
+                      ],
+                      "bsonType": "String"
+                    }
+                  ]
+                },
+                {
+                  "name": "name",
+                  "path": [
+                    "values",
+                    "name"
+                  ],
+                  "count": 1,
+                  "type": [
+                    "String",
+                    "Undefined"
+                  ],
+                  "probability": 0.5,
+                  "hasDuplicates": false,
+                  "types": [
+                    {
+                      "name": "String",
+                      "path": [
+                        "values",
+                        "name"
+                      ],
+                      "count": 1,
+                      "probability": 0.5,
+                      "unique": 1,
+                      "hasDuplicates": false,
+                      "values": [
+                        "24/25折扣"
+                      ],
+                      "bsonType": "String"
+                    },
+                    {
+                      "name": "Undefined",
+                      "bsonType": "Undefined",
+                      "unique": 1,
+                      "hasDuplicates": false,
+                      "path": [
+                        "values",
+                        "name"
+                      ],
+                      "count": 1,
+                      "probability": 0.5
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "totalCount": 2,
+          "lengths": [
+            2,
+            1
+          ],
+          "averageLength": 1
+        }
+      ]
     }
+  ]
+}
+[
+  [ '_id' ],
+  [ 'settings' ],
+  [ 'settings', 'PROJECT_BUDGET_WARNING' ],
+  [ 'settings', 'PROJECT_DATA_DUE' ],
+  [ 'settings', 'PROJECT_DATA_OVERDUE' ],
+  [ 'settings', 'PROJECT_PENDING_PUBLISH' ],
+  [ 'values' ],
+  [ 'values', 'id' ],
+  [ 'values', 'name' ]
+]
+[Object: null prototype] {
+  _id: { types: [ { bsonType: 'String' } ] },
+  settings: {
+    types: [
+      {
+        bsonType: 'Document',
+        fields: [Object: null prototype] {
+          PROJECT_PENDING_PUBLISH: { types: [ { bsonType: 'Boolean' } ] },
+          PROJECT_DATA_DUE: { types: [ { bsonType: 'Boolean' } ] },
+          PROJECT_DATA_OVERDUE: { types: [ { bsonType: 'Boolean' } ] },
+          PROJECT_BUDGET_WARNING: { types: [] }
+        }
+      }
+    ]
+  },
+  values: {
+    types: [
+      {
+        bsonType: 'Array',
+        types: [
+          {
+            bsonType: 'Document',
+            fields: [Object: null prototype] {
+              id: { types: [ { bsonType: 'String' } ] },
+              name: { types: [ { bsonType: 'String' } ] }
+            }
+          }
+        ]
+      }
+    ]
   }
 }

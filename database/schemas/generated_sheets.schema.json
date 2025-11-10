@@ -1,64 +1,486 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "required": [
-    "_id",
-    "createdAt",
-    "createdBy",
-    "fileName",
-    "projectId",
-    "sheetToken",
-    "sheetUrl"
-  ],
-  "properties": {
-    "_id": {
-      "$ref": "#/$defs/ObjectId"
-    },
-    "createdAt": {
-      "$ref": "#/$defs/Date"
-    },
-    "createdBy": {
-      "type": "string"
-    },
-    "fileName": {
-      "type": "string"
-    },
-    "projectId": {
-      "type": "string"
-    },
-    "sheetToken": {
-      "type": "string"
-    },
-    "sheetUrl": {
-      "type": "string"
-    }
-  },
-  "$defs": {
-    "ObjectId": {
-      "type": "object",
-      "properties": {
-        "$oid": {
-          "type": "string",
-          "pattern": "^[0-9a-fA-F]{24}$"
-        }
-      },
-      "required": [
-        "$oid"
+  "count": 22,
+  "fields": [
+    {
+      "name": "_id",
+      "path": [
+        "_id"
       ],
-      "additionalProperties": false
-    },
-    "Date": {
-      "type": "object",
-      "properties": {
-        "$date": {
-          "type": "string",
-          "format": "date-time"
+      "count": 31,
+      "type": "ObjectId",
+      "probability": 1.4090909090909092,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "ObjectId",
+          "path": [
+            "_id"
+          ],
+          "count": 30,
+          "probability": 1.3636363636363635,
+          "unique": 30,
+          "hasDuplicates": false,
+          "values": [
+            {
+              "$oid": "690726f868644983f1087624"
+            },
+            {
+              "$oid": "6901d968d00d27dc070d4398"
+            },
+            {
+              "$oid": "68fb2a610ef5197193832952"
+            },
+            {
+              "$oid": "68ecb6f049c3e084d060c81b"
+            },
+            {
+              "$oid": "68ea389565937bb0bc6b5396"
+            },
+            {
+              "$oid": "69086c70ca906d5d8bcb7021"
+            },
+            {
+              "$oid": "69008164ac6c658c7e21be65"
+            },
+            {
+              "$oid": "69048d052a514c381321d7cb"
+            },
+            {
+              "$oid": "68f9e63a57caafb37e6cbb7c"
+            },
+            {
+              "$oid": "690a33a987818f83085f7595"
+            },
+            {
+              "$oid": "690d773d9cd6a52a7a426080"
+            },
+            {
+              "$oid": "6908745dca906d5d8bcb7022"
+            },
+            {
+              "$oid": "6911afa3b9fe9ffb1299f485"
+            },
+            {
+              "$oid": "68f1da982b2ca3734ec851e1"
+            },
+            {
+              "$oid": "68ec9448542d817f97a66998"
+            },
+            {
+              "$oid": "690088c3ac6c658c7e21be66"
+            },
+            {
+              "$oid": "68f1d91b2b2ca3734ec851e0"
+            },
+            {
+              "$oid": "68f1d6332b2ca3734ec851de"
+            },
+            {
+              "$oid": "6902db905ec4869ea7a3b12c"
+            },
+            {
+              "$oid": "6902e1185ec4869ea7a3b12e"
+            },
+            {
+              "$oid": "68f1d6da2b2ca3734ec851df"
+            },
+            {
+              "$oid": "690c5273d68628ea5d0dd0bc"
+            },
+            {
+              "$oid": "68fb5c65ae473390cfbc08d5"
+            },
+            {
+              "$oid": "68f1d3982b2ca3734ec851dd"
+            },
+            {
+              "$oid": "6900802aac6c658c7e21be64"
+            },
+            {
+              "$oid": "68f06f65433181bb045b68db"
+            },
+            {
+              "$oid": "690abb5e908ffe7d8b1ccc44"
+            },
+            {
+              "$oid": "68f1d0ee2b2ca3734ec851dc"
+            },
+            {
+              "$oid": "69086b5bca906d5d8bcb7020"
+            },
+            {
+              "$oid": "6902e07d5ec4869ea7a3b12d"
+            }
+          ],
+          "bsonType": "ObjectId"
         }
-      },
-      "required": [
-        "$date"
+      ]
+    },
+    {
+      "name": "createdAt",
+      "path": [
+        "createdAt"
       ],
-      "additionalProperties": false
+      "count": 23,
+      "type": "Date",
+      "probability": 1.0454545454545454,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "Date",
+          "path": [
+            "createdAt"
+          ],
+          "count": 22,
+          "probability": 1,
+          "unique": 22,
+          "hasDuplicates": false,
+          "values": [
+            {
+              "$date": "2025-11-02T09:40:08.994Z"
+            },
+            {
+              "$date": "2025-10-29T09:07:52.563Z"
+            },
+            {
+              "$date": "2025-10-24T07:27:29.232Z"
+            },
+            {
+              "$date": "2025-10-13T08:23:12.087Z"
+            },
+            {
+              "$date": "2025-10-11T10:59:33.579Z"
+            },
+            {
+              "$date": "2025-11-03T08:48:48.975Z"
+            },
+            {
+              "$date": "2025-10-28T08:40:04.268Z"
+            },
+            {
+              "$date": "2025-10-31T10:18:45.087Z"
+            },
+            {
+              "$date": "2025-10-23T08:24:26.630Z"
+            },
+            {
+              "$date": "2025-11-04T17:11:05.651Z"
+            },
+            {
+              "$date": "2025-11-07T04:36:13.287Z"
+            },
+            {
+              "$date": "2025-11-03T09:22:37.101Z"
+            },
+            {
+              "$date": "2025-11-10T09:25:55.748Z"
+            },
+            {
+              "$date": "2025-10-17T05:56:40.949Z"
+            },
+            {
+              "$date": "2025-10-13T05:55:20.584Z"
+            },
+            {
+              "$date": "2025-10-28T09:11:31.268Z"
+            },
+            {
+              "$date": "2025-10-17T05:50:19.849Z"
+            },
+            {
+              "$date": "2025-10-17T05:37:55.250Z"
+            },
+            {
+              "$date": "2025-10-30T03:29:20.158Z"
+            },
+            {
+              "$date": "2025-10-30T03:52:56.708Z"
+            },
+            {
+              "$date": "2025-10-17T05:40:42.106Z"
+            },
+            {
+              "$date": "2025-11-06T07:46:59.503Z"
+            }
+          ],
+          "bsonType": "Date"
+        }
+      ]
+    },
+    {
+      "name": "createdBy",
+      "path": [
+        "createdBy"
+      ],
+      "count": 24,
+      "type": "String",
+      "probability": 1.0909090909090908,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "createdBy"
+          ],
+          "count": 24,
+          "probability": 1.0909090909090908,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": [
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown",
+            "unknown"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "fileName",
+      "path": [
+        "fileName"
+      ],
+      "count": 28,
+      "type": "String",
+      "probability": 1.2727272727272727,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "fileName"
+          ],
+          "count": 28,
+          "probability": 1.2727272727272727,
+          "unique": 11,
+          "hasDuplicates": true,
+          "values": [
+            "男性覆盖M10 - 报名表",
+            "25年女性秒杀双11大促 - 报名表",
+            "25年常规投放M11秒杀 - 报名表",
+            "25年话费M10 - 报名表",
+            "25年话费M10 - 报名表",
+            "男性覆盖M11 - 报名表",
+            "25年常规投放M11秒杀 - 报名表",
+            "25年日常礼赠M11 - 报名表",
+            "男性覆盖M11 - 报名表",
+            "25年达人联投思搜Q4 - 报名表",
+            "25年日常礼赠M11 - 报名表",
+            "25年常规投放M11秒杀 - 报名表",
+            "25年女性M11一分购 - 报名表",
+            "25年话费M10 - 报名表",
+            "25年话费M10 - 报名表",
+            "25年常规投放M11秒杀 - 报名表",
+            "25年女性秒杀双11大促 - 报名表",
+            "25年礼赠双11大促 - 报名表",
+            "25年常规投放M11秒杀 - 报名表",
+            "25年礼赠双11大促 - 报名表",
+            "25年礼赠双11大促 - 报名表",
+            "25年女性双11大促 - 报名表",
+            "25年常规投放M11秒杀 - 报名表",
+            "25年女性一分购双11大促 - 报名表",
+            "25年常规投放M11秒杀 - 报名表",
+            "25年话费M10 - 报名表",
+            "25年礼赠双11大促 - 报名表",
+            "25年女性双11大促 - 报名表"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "projectId",
+      "path": [
+        "projectId"
+      ],
+      "count": 29,
+      "type": "String",
+      "probability": 1.3181818181818181,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "projectId"
+          ],
+          "count": 29,
+          "probability": 1.3181818181818181,
+          "unique": 11,
+          "hasDuplicates": true,
+          "values": [
+            "proj_1759043847530_ciykak2",
+            "proj_1760679902672_xg6hhl9",
+            "proj_1761157653643_qfm8v5y",
+            "proj_1760165794890_t4bag3c",
+            "proj_1760165794890_t4bag3c",
+            "proj_1759081012348_2ksox4h",
+            "proj_1761157653643_qfm8v5y",
+            "proj_1761897124823_nnywjjm",
+            "proj_1759081012348_2ksox4h",
+            "proj_1760681933176_gtvi2bj",
+            "proj_1761897124823_nnywjjm",
+            "proj_1761157653643_qfm8v5y",
+            "proj_1762505247498_o86pcpb",
+            "proj_1760165794890_t4bag3c",
+            "proj_1760165794890_t4bag3c",
+            "proj_1761157653643_qfm8v5y",
+            "proj_1760679902672_xg6hhl9",
+            "proj_1759044917192_py5qvc6",
+            "proj_1761157653643_qfm8v5y",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759080934701_d684asv",
+            "proj_1761157653643_qfm8v5y",
+            "proj_1759046219254_b56x498",
+            "proj_1761157653643_qfm8v5y",
+            "proj_1760165794890_t4bag3c",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759080934701_d684asv",
+            "proj_1759044917192_py5qvc6"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "sheetToken",
+      "path": [
+        "sheetToken"
+      ],
+      "count": 25,
+      "type": "String",
+      "probability": 1.1363636363636365,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "sheetToken"
+          ],
+          "count": 25,
+          "probability": 1.1363636363636365,
+          "unique": 25,
+          "hasDuplicates": false,
+          "values": [
+            "BlGvsByf1hyImitHUaccGgsynxe",
+            "DQwfsRZL5hIwxytWJIrcahWJnSf",
+            "B4DBsg1u7hASXaty3L0clYi9nOh",
+            "XrxJsEmHbhTDIktN5MlcP8S5nob",
+            "O3p6sM1Obhut3utXYJ2cYiLmnOd",
+            "V6DdsvRixh9FqKtvyEicvNO4nNc",
+            "PbcBsO1Azh5Mjut4BetcQ36anjf",
+            "OGfksnCk3hno5otVOazcU4srnx4",
+            "EHdDsYDVNh3XgQtaA6icPwLmnve",
+            "AZPisRWEKhCBlHtojsVchOdSnfc",
+            "OAlgs8iuphkUPgtwlkvciDEenme",
+            "T8IDs2zvohW81ytFg6ccYApknvg",
+            "BeKXsYXpshzT6et2cGocNji3nAb",
+            "RQiZsubRqhmWaat6BANc11KUnSg",
+            "XiL6sWAoBhIXqZttzPtcW2Z0nzd",
+            "IAo2sBcOwhIvT3tg3oUcPCU5nBh",
+            "VOqCsyeXxhOygjtDRTmcNRPfnkc",
+            "E470sw1C0h4m2qt4d39ciAS5nnh",
+            "QtlGsbcgxhYtl1t8rp8crBjynHd",
+            "ZQrHsIVdMhLeqDtSM66csHnTnCf",
+            "ODafswdy5hxsOqtyIr8c9mQ9ngd",
+            "JC3Ys3PI0hK0FDthZRNc7y9TnKg",
+            "XufBsijhRhI9gOtXPFpck4SMn7e",
+            "TnRosuaQAhg9pDtHAHmcwkOFneb",
+            "GKgHs2lI1hc8ntt4MDFcKqjbniG"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "sheetUrl",
+      "path": [
+        "sheetUrl"
+      ],
+      "count": 27,
+      "type": "String",
+      "probability": 1.2272727272727273,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "sheetUrl"
+          ],
+          "count": 26,
+          "probability": 1.1818181818181819,
+          "unique": 26,
+          "hasDuplicates": false,
+          "values": [
+            "https://va2nrxslm4c.feishu.cn/sheets/BlGvsByf1hyImitHUaccGgsynxe",
+            "https://va2nrxslm4c.feishu.cn/sheets/DQwfsRZL5hIwxytWJIrcahWJnSf",
+            "https://va2nrxslm4c.feishu.cn/sheets/B4DBsg1u7hASXaty3L0clYi9nOh",
+            "https://va2nrxslm4c.feishu.cn/sheets/XrxJsEmHbhTDIktN5MlcP8S5nob",
+            "https://va2nrxslm4c.feishu.cn/sheets/O3p6sM1Obhut3utXYJ2cYiLmnOd",
+            "https://va2nrxslm4c.feishu.cn/sheets/V6DdsvRixh9FqKtvyEicvNO4nNc",
+            "https://va2nrxslm4c.feishu.cn/sheets/PbcBsO1Azh5Mjut4BetcQ36anjf",
+            "https://va2nrxslm4c.feishu.cn/sheets/OGfksnCk3hno5otVOazcU4srnx4",
+            "https://va2nrxslm4c.feishu.cn/sheets/EHdDsYDVNh3XgQtaA6icPwLmnve",
+            "https://va2nrxslm4c.feishu.cn/sheets/AZPisRWEKhCBlHtojsVchOdSnfc",
+            "https://va2nrxslm4c.feishu.cn/sheets/OAlgs8iuphkUPgtwlkvciDEenme",
+            "https://va2nrxslm4c.feishu.cn/sheets/T8IDs2zvohW81ytFg6ccYApknvg",
+            "https://va2nrxslm4c.feishu.cn/sheets/BeKXsYXpshzT6et2cGocNji3nAb",
+            "https://va2nrxslm4c.feishu.cn/sheets/RQiZsubRqhmWaat6BANc11KUnSg",
+            "https://va2nrxslm4c.feishu.cn/sheets/XiL6sWAoBhIXqZttzPtcW2Z0nzd",
+            "https://va2nrxslm4c.feishu.cn/sheets/IAo2sBcOwhIvT3tg3oUcPCU5nBh",
+            "https://va2nrxslm4c.feishu.cn/sheets/VOqCsyeXxhOygjtDRTmcNRPfnkc",
+            "https://va2nrxslm4c.feishu.cn/sheets/E470sw1C0h4m2qt4d39ciAS5nnh",
+            "https://va2nrxslm4c.feishu.cn/sheets/QtlGsbcgxhYtl1t8rp8crBjynHd",
+            "https://va2nrxslm4c.feishu.cn/sheets/ZQrHsIVdMhLeqDtSM66csHnTnCf",
+            "https://va2nrxslm4c.feishu.cn/sheets/ODafswdy5hxsOqtyIr8c9mQ9ngd",
+            "https://va2nrxslm4c.feishu.cn/sheets/JC3Ys3PI0hK0FDthZRNc7y9TnKg",
+            "https://va2nrxslm4c.feishu.cn/sheets/XufBsijhRhI9gOtXPFpck4SMn7e",
+            "https://va2nrxslm4c.feishu.cn/sheets/TnRosuaQAhg9pDtHAHmcwkOFneb",
+            "https://va2nrxslm4c.feishu.cn/sheets/GKgHs2lI1hc8ntt4MDFcKqjbniG",
+            "https://va2nrxslm4c.feishu.cn/sheets/L6wksLHOvhRYrttb0p3cEVTanYe"
+          ],
+          "bsonType": "String"
+        }
+      ]
     }
-  }
+  ]
+}
+[
+  [ '_id' ],
+  [ 'createdAt' ],
+  [ 'createdBy' ],
+  [ 'fileName' ],
+  [ 'projectId' ],
+  [ 'sheetToken' ],
+  [ 'sheetUrl' ]
+]
+[Object: null prototype] {
+  _id: { types: [ { bsonType: 'ObjectId' } ] },
+  projectId: { types: [ { bsonType: 'String' } ] },
+  fileName: { types: [ { bsonType: 'String' } ] },
+  sheetUrl: { types: [ { bsonType: 'String' } ] },
+  sheetToken: { types: [ { bsonType: 'String' } ] },
+  createdBy: { types: [ { bsonType: 'String' } ] },
+  createdAt: { types: [ { bsonType: 'Date' } ] }
 }
