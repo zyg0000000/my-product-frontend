@@ -126,12 +126,6 @@ export const DIMENSION_CONFIG = {
     project: {
         filters: [
             {
-                id: 'projectIds',
-                label: '选择项目',
-                type: 'checkbox',  // 改为checkbox便于多选且可滚动
-                optionsKey: 'projects'
-            },
-            {
                 id: 'monthType',
                 label: '时间维度类型',
                 type: 'radio',
@@ -151,6 +145,13 @@ export const DIMENSION_CONFIG = {
                 label: '合作状态',
                 type: 'checkbox',
                 options: ['待提报工作台', '工作台已提交', '客户已定档', '视频已发布']
+            },
+            {
+                id: 'projectIds',
+                label: '选择项目',
+                type: 'checkbox',
+                optionsKey: 'projects',
+                dependsOn: 'yearMonth'  // 标记依赖于时间选择
             }
         ],
         dimensions: {

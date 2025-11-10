@@ -28,30 +28,41 @@ export function renderFilters(entity, container) {
         return;
     }
 
-    // 创建筛选器网格容器
-    // 项目导出使用2列布局（筛选器较多且部分占用空间大），其他使用3列布局
-    const gridContainer = document.createElement('div');
+    // 项目导出使用自定义2x2布局
     if (entity === 'project') {
+        const gridContainer = document.createElement('div');
         gridContainer.className = 'grid grid-cols-1 lg:grid-cols-2 gap-6';
+
+        // 筛选器顺序：monthType, yearMonth, status, projectIds
+        // 布局：[monthType] [yearMonth]
+        //       [status]    [projectIds]
+        config.filters.forEach(filter => {
+            const filterElement = renderFilterInput(filter, entity);
+            gridContainer.appendChild(filterElement);
+        });
+
+        container.appendChild(gridContainer);
     } else {
+        // 其他导出主体使用3列布局
+        const gridContainer = document.createElement('div');
         gridContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
+
+        config.filters.forEach(filter => {
+            const filterElement = renderFilterInput(filter, entity);
+            gridContainer.appendChild(filterElement);
+        });
+
+        container.appendChild(gridContainer);
     }
-
-    // 渲染每个筛选器
-    config.filters.forEach(filter => {
-        const filterElement = renderFilterInput(filter);
-        gridContainer.appendChild(filterElement);
-    });
-
-    container.appendChild(gridContainer);
 }
 
 /**
  * 渲染单个筛选器输入控件
  * @param {Object} filter - 筛选器配置对象
+ * @param {string} entity - 实体类型（可选）
  * @returns {HTMLElement} 筛选器DOM元素
  */
-export function renderFilterInput(filter) {
+export function renderFilterInput(filter, entity = null) {
     const filterWrapper = document.createElement('div');
 
     // 创建标签
@@ -65,7 +76,7 @@ export function renderFilterInput(filter) {
     const options = getFilterOptions(filter);
 
     // 根据类型创建输入控件
-    const inputElement = createFilterControl(filter, options);
+    const inputElement = createFilterControl(filter, options, entity);
     filterWrapper.appendChild(inputElement);
 
     return filterWrapper;
@@ -75,9 +86,10 @@ export function renderFilterInput(filter) {
  * 创建筛选器控件
  * @param {Object} filter - 筛选器配置
  * @param {Array} options - 选项数据
+ * @param {string} entity - 实体类型（可选）
  * @returns {HTMLElement} 控件元素
  */
-function createFilterControl(filter, options) {
+function createFilterControl(filter, options, entity = null) {
     switch (filter.type) {
         case FILTER_TYPES.TEXT:
             return createTextInput(filter);
@@ -89,7 +101,7 @@ function createFilterControl(filter, options) {
             return createMultiSelectInput(filter, options);
 
         case FILTER_TYPES.CHECKBOX:
-            return createCheckboxGroup(filter, options);
+            return createCheckboxGroup(filter, options, entity);
 
         case FILTER_TYPES.DATERANGE:
             return createDateRangeInput(filter);
@@ -176,32 +188,89 @@ function createMultiSelectInput(filter, options) {
  * 创建复选框组
  * @param {Object} filter - 筛选器配置
  * @param {Array} options - 选项数据
+ * @param {string} entity - 实体类型（可选）
  * @returns {HTMLDivElement} 复选框组容器
  */
-function createCheckboxGroup(filter, options) {
+function createCheckboxGroup(filter, options, entity = null) {
     const container = document.createElement('div');
     container.className = 'mt-2 space-y-2 border p-2 rounded-md max-h-32 overflow-y-auto custom-scrollbar';
+    container.id = `checkbox-group-${filter.id}`;
 
-    options.forEach(option => {
-        const label = document.createElement('label');
-        label.className = 'flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded';
+    // 存储完整的选项数据，用于筛选
+    let allOptions = options;
 
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        // 支持对象类型的选项（如项目数据）
-        checkbox.value = typeof option === 'object' ? option.id : option;
-        checkbox.className = 'form-checkbox filter-checkbox';
-        checkbox.setAttribute('data-filter-id', filter.id);
+    // 渲染复选框列表
+    const renderCheckboxes = (optionsToRender) => {
+        container.innerHTML = '';
 
-        const span = document.createElement('span');
-        span.className = 'ml-2 text-sm';
-        // 支持对象类型的选项（如项目数据）
-        span.textContent = typeof option === 'object' ? option.name : option;
+        if (optionsToRender.length === 0) {
+            const emptyMsg = document.createElement('p');
+            emptyMsg.className = 'text-sm text-gray-500 text-center py-2';
+            emptyMsg.textContent = '暂无匹配的项目';
+            container.appendChild(emptyMsg);
+            return;
+        }
 
-        label.appendChild(checkbox);
-        label.appendChild(span);
-        container.appendChild(label);
-    });
+        optionsToRender.forEach(option => {
+            const label = document.createElement('label');
+            label.className = 'flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            // 支持对象类型的选项（如项目数据）
+            checkbox.value = typeof option === 'object' ? option.id : option;
+            checkbox.className = 'form-checkbox filter-checkbox';
+            checkbox.setAttribute('data-filter-id', filter.id);
+
+            const span = document.createElement('span');
+            span.className = 'ml-2 text-sm';
+            // 支持对象类型的选项（如项目数据）
+            span.textContent = typeof option === 'object' ? option.name : option;
+
+            label.appendChild(checkbox);
+            label.appendChild(span);
+            container.appendChild(label);
+        });
+    };
+
+    // 初始渲染
+    renderCheckboxes(allOptions);
+
+    // 如果是项目选择器，监听时间变化事件
+    if (filter.id === 'projectIds' && entity === 'project') {
+        const handleTimeFilter = (event) => {
+            const { year, month } = event.detail;
+
+            // 如果时间未选择完整，显示所有项目
+            if (!year || !month) {
+                renderCheckboxes(allOptions);
+                return;
+            }
+
+            // 筛选符合时间条件的项目
+            const filteredOptions = allOptions.filter(option => {
+                if (typeof option !== 'object') return true;
+
+                // 获取项目的时间字段（根据时间维度类型）
+                const monthTypeRadio = document.querySelector('input[name="filter-monthType"]:checked');
+                const monthType = monthTypeRadio ? monthTypeRadio.value : 'customer';
+
+                // 根据时间维度类型选择对应的月份字段
+                const projectMonth = monthType === 'customer' ? option.customerMonth : option.financialMonth;
+
+                // 如果项目没有对应的月份数据，显示该项目
+                if (!projectMonth) return true;
+
+                // 匹配 "YYYY-MXX" 格式，例如 "2024-M10"
+                const targetYearMonth = `${year}-${month}`;
+                return projectMonth === targetYearMonth;
+            });
+
+            renderCheckboxes(filteredOptions);
+        };
+
+        document.addEventListener('yearmonth-changed', handleTimeFilter);
+    }
 
     return container;
 }
@@ -269,6 +338,24 @@ function createRadioGroup(filter) {
         label.appendChild(radio);
         label.appendChild(span);
         container.appendChild(label);
+
+        // 如果是时间维度类型选择器，添加变化监听器
+        if (filter.id === 'monthType') {
+            radio.addEventListener('change', () => {
+                // 重新触发时间筛选
+                const yearSelect = document.getElementById('filter-yearMonth-year');
+                const monthSelect = document.getElementById('filter-yearMonth-month');
+                if (yearSelect && monthSelect) {
+                    const event = new CustomEvent('yearmonth-changed', {
+                        detail: {
+                            year: yearSelect.value,
+                            month: monthSelect.value
+                        }
+                    });
+                    document.dispatchEvent(event);
+                }
+            });
+        }
     });
 
     return container;
@@ -317,12 +404,13 @@ function createYearMonthSelector(filter) {
     defaultMonthOption.textContent = '选择月份';
     monthSelect.appendChild(defaultMonthOption);
 
-    // 生成月份选项
+    // 生成月份选项（M01-M12格式）
     const currentMonth = new Date().getMonth() + 1;
     for (let month = 1; month <= 12; month++) {
         const option = document.createElement('option');
-        option.value = month;
-        option.textContent = `${month}月`;
+        const monthStr = `M${month.toString().padStart(2, '0')}`;
+        option.value = monthStr;
+        option.textContent = monthStr;
         if (month === currentMonth) {
             option.selected = true;
         }
@@ -331,6 +419,21 @@ function createYearMonthSelector(filter) {
 
     container.appendChild(yearSelect);
     container.appendChild(monthSelect);
+
+    // 添加变化监听器，用于触发依赖项目的筛选
+    const handleTimeChange = () => {
+        // 触发自定义事件，通知项目筛选器更新
+        const event = new CustomEvent('yearmonth-changed', {
+            detail: {
+                year: yearSelect.value,
+                month: monthSelect.value
+            }
+        });
+        document.dispatchEvent(event);
+    };
+
+    yearSelect.addEventListener('change', handleTimeChange);
+    monthSelect.addEventListener('change', handleTimeChange);
 
     return container;
 }
