@@ -193,7 +193,13 @@ function createMultiSelectInput(filter, options) {
  */
 function createCheckboxGroup(filter, options, entity = null) {
     const container = document.createElement('div');
-    container.className = 'mt-2 space-y-2 border p-2 rounded-md max-h-32 overflow-y-auto custom-scrollbar';
+
+    // 合作状态使用平铺展示，其他使用滚动容器
+    if (filter.id === 'status') {
+        container.className = 'mt-2 space-y-2';
+    } else {
+        container.className = 'mt-2 space-y-2 border p-2 rounded-md max-h-32 overflow-y-auto custom-scrollbar';
+    }
     container.id = `checkbox-group-${filter.id}`;
 
     // 存储完整的选项数据，用于筛选
@@ -338,24 +344,6 @@ function createRadioGroup(filter) {
         label.appendChild(radio);
         label.appendChild(span);
         container.appendChild(label);
-
-        // 如果是时间维度类型选择器，添加变化监听器
-        if (filter.id === 'monthType') {
-            radio.addEventListener('change', () => {
-                // 重新触发时间筛选
-                const yearSelect = document.getElementById('filter-yearMonth-year');
-                const monthSelect = document.getElementById('filter-yearMonth-month');
-                if (yearSelect && monthSelect) {
-                    const event = new CustomEvent('yearmonth-changed', {
-                        detail: {
-                            year: yearSelect.value,
-                            month: monthSelect.value
-                        }
-                    });
-                    document.dispatchEvent(event);
-                }
-            });
-        }
     });
 
     return container;
@@ -420,8 +408,14 @@ function createYearMonthSelector(filter) {
     container.appendChild(yearSelect);
     container.appendChild(monthSelect);
 
-    // 添加变化监听器，用于触发依赖项目的筛选
-    const handleTimeChange = () => {
+    // 添加"筛选项目"按钮
+    const filterButton = document.createElement('button');
+    filterButton.type = 'button';
+    filterButton.className = 'px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors';
+    filterButton.textContent = '筛选项目';
+    filterButton.id = 'filter-projects-btn';
+
+    filterButton.addEventListener('click', () => {
         // 触发自定义事件，通知项目筛选器更新
         const event = new CustomEvent('yearmonth-changed', {
             detail: {
@@ -430,10 +424,9 @@ function createYearMonthSelector(filter) {
             }
         });
         document.dispatchEvent(event);
-    };
+    });
 
-    yearSelect.addEventListener('change', handleTimeChange);
-    monthSelect.addEventListener('change', handleTimeChange);
+    container.appendChild(filterButton);
 
     return container;
 }
