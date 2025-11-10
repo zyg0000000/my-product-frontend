@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "_id"
+  ],
+  "properties": {
+    "_id": {
+      "type": "string"
+    },
+    "settings": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "PROJECT_BUDGET_WARNING": {
+          "type": "boolean"
+        },
+        "PROJECT_DATA_DUE": {
+          "type": "boolean"
+        },
+        "PROJECT_DATA_OVERDUE": {
+          "type": "boolean"
+        },
+        "PROJECT_PAYMENT_REMINDER": {
+          "type": "boolean"
+        },
+        "PROJECT_PENDING_ARCHIVE": {
+          "type": "boolean"
+        },
+        "PROJECT_PENDING_PUBLISH": {
+          "type": "boolean"
+        }
+      }
+    },
+    "updatedAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "values": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "value"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/Double"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "type": "string"
+          }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "Double": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "$numberDouble": {
+              "enum": [
+                "Infinity",
+                "-Infinity",
+                "NaN"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "Date": {
+      "type": "object",
+      "properties": {
+        "$date": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "$date"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

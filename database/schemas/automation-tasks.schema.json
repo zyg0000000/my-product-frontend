@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "_id",
+    "agentId",
+    "completedAt",
+    "createdAt",
+    "errorMessage",
+    "jobId",
+    "metadata",
+    "processingAt",
+    "projectId",
+    "result",
+    "status",
+    "updatedAt",
+    "workflowId"
+  ],
+  "properties": {
+    "_id": {
+      "$ref": "#/$defs/ObjectId"
+    },
+    "agentId": {
+      "type": "string"
+    },
+    "completedAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "createdAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "errorMessage": {
+      "type": "null"
+    },
+    "failedAt": {
+      "type": "null"
+    },
+    "jobId": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ObjectId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "metadata": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "collaborationId": {
+          "type": "string"
+        },
+        "talentNickname": {
+          "type": "string"
+        }
+      }
+    },
+    "processingAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "projectId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "result": {
+      "type": "object",
+      "required": [
+        "data",
+        "screenshots"
+      ],
+      "properties": {
+        "data": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "个人视频播放量均值": {
+              "type": "string"
+            },
+            "完播率": {
+              "type": "string"
+            },
+            "播放量": {
+              "type": "string"
+            },
+            "星图频播放量均值": {
+              "type": "string"
+            },
+            "爆文率": {
+              "type": "string"
+            },
+            "用户画像总结": {
+              "type": "string"
+            },
+            "预期CPM": {
+              "type": "string"
+            }
+          }
+        },
+        "screenshots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "url"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    },
+    "taskId": {
+      "type": "string"
+    },
+    "updatedAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "workflowId": {
+      "type": "string"
+    },
+    "xingtuId": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "ObjectId": {
+      "type": "object",
+      "properties": {
+        "$oid": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{24}$"
+        }
+      },
+      "required": [
+        "$oid"
+      ],
+      "additionalProperties": false
+    },
+    "Date": {
+      "type": "object",
+      "properties": {
+        "$date": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "$date"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

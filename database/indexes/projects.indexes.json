@@ -1,0 +1,44 @@
+{
+  "collection": "projects",
+  "description": "projects 集合索引定义",
+  "indexes": [
+    {
+      "name": "idx_project_id",
+      "keys": { "id": 1 },
+      "unique": true,
+      "comment": "项目 ID 唯一索引"
+    },
+    {
+      "name": "idx_project_status",
+      "keys": { "status": 1 },
+      "comment": "项目状态索引，用于筛选"
+    },
+    {
+      "name": "idx_project_financial",
+      "keys": {
+        "financialYear": 1,
+        "financialMonth": 1
+      },
+      "comment": "财务年月复合索引"
+    },
+    {
+      "name": "idx_project_created",
+      "keys": { "createdAt": -1 },
+      "comment": "创建时间倒序索引"
+    },
+    {
+      "name": "idx_project_type_status",
+      "keys": {
+        "type": 1,
+        "status": 1
+      },
+      "comment": "项目类型和状态复合索引"
+    }
+  ],
+  "notes": [
+    "id 字段必须有唯一索引",
+    "status 字段经常用于筛选，需要索引",
+    "财务年月经常一起查询，使用复合索引",
+    "按创建时间倒序排列是常见需求"
+  ]
+}

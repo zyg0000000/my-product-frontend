@@ -1,0 +1,262 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "_id",
+    "collaborationId",
+    "platformWorkId",
+    "projectId",
+    "publishedAt",
+    "sourceType",
+    "talentId",
+    "taskId"
+  ],
+  "properties": {
+    "_id": {
+      "$ref": "#/$defs/ObjectId"
+    },
+    "collaborationId": {
+      "type": "string"
+    },
+    "createdAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "dailyStats": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "cpm",
+          "cpmChange",
+          "date",
+          "totalViews"
+        ],
+        "properties": {
+          "cpm": {
+            "$ref": "#/$defs/Double"
+          },
+          "cpmChange": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Double"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "date": {
+            "type": "string"
+          },
+          "solution": {
+            "type": "string"
+          },
+          "totalViews": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "id": {
+      "type": "string"
+    },
+    "platformWorkId": {
+      "type": "string"
+    },
+    "projectId": {
+      "type": "string"
+    },
+    "publishedAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "sourceType": {
+      "type": "string"
+    },
+    "t21_commentCount": {
+      "type": "integer"
+    },
+    "t21_completionRate": {
+      "$ref": "#/$defs/Double"
+    },
+    "t21_componentClickCount": {
+      "type": "integer"
+    },
+    "t21_componentImpressionCount": {
+      "type": "integer"
+    },
+    "t21_likeCount": {
+      "type": "integer"
+    },
+    "t21_platformWorkId": {
+      "type": "string"
+    },
+    "t21_publishedAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "t21_reachByFrequency": {
+      "type": "object",
+      "required": [
+        "freq1",
+        "freq2",
+        "freq3",
+        "freq4",
+        "freq5",
+        "freq6",
+        "freq7plus"
+      ],
+      "properties": {
+        "freq1": {
+          "type": "integer"
+        },
+        "freq2": {
+          "type": "integer"
+        },
+        "freq3": {
+          "type": "integer"
+        },
+        "freq4": {
+          "type": "integer"
+        },
+        "freq5": {
+          "type": "integer"
+        },
+        "freq6": {
+          "type": "integer"
+        },
+        "freq7plus": {
+          "type": "integer"
+        }
+      }
+    },
+    "t21_shareCount": {
+      "type": "integer"
+    },
+    "t21_statsUpdatedAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "t21_totalViews": {
+      "type": "integer"
+    },
+    "t7_commentCount": {
+      "type": "integer"
+    },
+    "t7_completionRate": {
+      "$ref": "#/$defs/Double"
+    },
+    "t7_componentClickCount": {
+      "type": "integer"
+    },
+    "t7_componentImpressionCount": {
+      "type": "integer"
+    },
+    "t7_likeCount": {
+      "type": "integer"
+    },
+    "t7_platformWorkId": {
+      "type": "string"
+    },
+    "t7_publishedAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "t7_reachByFrequency": {
+      "type": "object",
+      "required": [
+        "freq1",
+        "freq2",
+        "freq3",
+        "freq4",
+        "freq5",
+        "freq6",
+        "freq7plus"
+      ],
+      "properties": {
+        "freq1": {
+          "type": "integer"
+        },
+        "freq2": {
+          "type": "integer"
+        },
+        "freq3": {
+          "type": "integer"
+        },
+        "freq4": {
+          "type": "integer"
+        },
+        "freq5": {
+          "type": "integer"
+        },
+        "freq6": {
+          "type": "integer"
+        },
+        "freq7plus": {
+          "type": "integer"
+        }
+      }
+    },
+    "t7_shareCount": {
+      "type": "integer"
+    },
+    "t7_statsUpdatedAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "t7_totalViews": {
+      "type": "integer"
+    },
+    "talentId": {
+      "type": "string"
+    },
+    "taskId": {
+      "type": "string"
+    },
+    "updatedAt": {
+      "$ref": "#/$defs/Date"
+    }
+  },
+  "$defs": {
+    "ObjectId": {
+      "type": "object",
+      "properties": {
+        "$oid": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{24}$"
+        }
+      },
+      "required": [
+        "$oid"
+      ],
+      "additionalProperties": false
+    },
+    "Double": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "$numberDouble": {
+              "enum": [
+                "Infinity",
+                "-Infinity",
+                "NaN"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "Date": {
+      "type": "object",
+      "properties": {
+        "$date": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "$date"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

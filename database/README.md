@@ -9,18 +9,20 @@ database/
 ├── README.md              # 本文件
 │
 ├── schemas/               # 数据库 Schema 定义
-│   ├── projects.json      # projects 集合
-│   ├── collaborations.json# collaborations 集合
-│   ├── talents.json       # talents 集合
-│   ├── tasks.json         # tasks 集合
-│   └── ...                # 其他集合
+│   ├── INDEX.md           # Schema 文件索引（推荐先看）
+│   ├── _template.json     # Schema 模板
+│   ├── *.schema.json      # 标准 JSON Schema 文件（12个）
+│   ├── *.doc.json         # 文档格式 Schema（易读）
+│   └── ...
 │
 ├── indexes/               # 索引定义
 │   ├── projects.indexes.json
+│   ├── talents.indexes.json
+│   ├── collaborations.indexes.json
 │   └── ...
 │
 └── migrations/            # 数据迁移脚本
-    ├── 001_add_price_type.js
+    ├── _template.js       # 迁移脚本模板
     └── ...
 ```
 
@@ -32,38 +34,45 @@ database/
 
 ## 📊 集合列表
 
+> 💡 **完整的 Schema 清单和详细说明请查看**: [schemas/INDEX.md](./schemas/INDEX.md)
+
+### ✅ 已迁移的 Schema（12个集合）
+
+**迁移时间**: 2025-11-10
+**格式**: JSON Schema Draft 2020-12
+**来源**: mongodb-schemas 仓库
+
 ### 核心业务集合
 
-| 集合名 | 说明 | Schema 文件 |
-|--------|------|------------|
-| `projects` | 项目信息 | [schemas/projects.json](./schemas/projects.json) |
-| `collaborations` | 合作订单 | [schemas/collaborations.json](./schemas/collaborations.json) |
-| `talents` | 达人档案 | [schemas/talents.json](./schemas/talents.json) |
+| 集合名 | 说明 | Schema 文件 | 版本 |
+|--------|------|------------|------|
+| `projects` | 项目信息 | [projects.schema.json](./schemas/projects.schema.json) | v2.0 |
+| `collaborations` | 合作订单 | [collaborations.schema.json](./schemas/collaborations.schema.json) | v1.0 |
+| `talents` | 达人档案 🔥 **支持多价格类型** | [talents.schema.json](./schemas/talents.schema.json) | **v2.9** |
 
 ### 自动化相关集合
 
-| 集合名 | 说明 | Schema 文件 |
-|--------|------|------------|
-| `tasks` | 自动化任务 | [schemas/tasks.json](./schemas/tasks.json) |
-| `automation-workflows` | 自动化工作流 | [schemas/automation-workflows.json](./schemas/automation-workflows.json) |
-| `automation-jobs` | 任务实例 | [schemas/automation-jobs.json](./schemas/automation-jobs.json) |
-| `task_run_logs` | 任务运行日志 | [schemas/task_run_logs.json](./schemas/task_run_logs.json) |
+| 集合名 | 说明 | Schema 文件 | 版本 |
+|--------|------|------------|------|
+| `automation-workflows` | 自动化工作流 | [automation-workflows.schema.json](./schemas/automation-workflows.schema.json) | v1.0 |
+| `automation-jobs` | 任务实例 | [automation-jobs.schema.json](./schemas/automation-jobs.schema.json) | v1.0 |
+| `automation-tasks` | 自动化任务 | [automation-tasks.schema.json](./schemas/automation-tasks.schema.json) | v1.0 |
+| `task_run_logs` | 任务运行日志 | [task_run_logs.schema.json](./schemas/task_run_logs.schema.json) | v1.0 |
+| `tasks` | 任务（旧版） | [tasks.schema.json](./schemas/tasks.schema.json) | v1.0 |
 
 ### 配置和元数据集合
 
-| 集合名 | 说明 | Schema 文件 |
-|--------|------|------------|
-| `mapping_templates` | 映射模板 | [schemas/mapping_templates.json](./schemas/mapping_templates.json) |
-| `project_configurations` | 项目配置 | [schemas/project_configurations.json](./schemas/project_configurations.json) |
-| `generated_sheets` | 生成的数据表格 | [schemas/generated_sheets.json](./schemas/generated_sheets.json) |
+| 集合名 | 说明 | Schema 文件 | 版本 |
+|--------|------|------------|------|
+| `mapping_templates` | 映射模板 🔥 **支持工作流关联** | [mapping_templates.schema.json](./schemas/mapping_templates.schema.json) | **v4.0** |
+| `project_configurations` | 项目配置 | [project_configurations.schema.json](./schemas/project_configurations.schema.json) | v1.0 |
+| `generated_sheets` | 生成的数据表格 | [generated_sheets.schema.json](./schemas/generated_sheets.schema.json) | v1.0 |
 
 ### 其他集合
 
-| 集合名 | 说明 | Schema 文件 |
-|--------|------|------------|
-| `works` | 作品信息 | [schemas/works.json](./schemas/works.json) |
-| `daily_stats` | 每日数据统计 | [schemas/daily_stats.json](./schemas/daily_stats.json) |
-| `feishu_sync_logs` | 飞书同步日志 | [schemas/feishu_sync_logs.json](./schemas/feishu_sync_logs.json) |
+| 集合名 | 说明 | Schema 文件 | 版本 |
+|--------|------|------------|------|
+| `works` | 作品信息 | [works.schema.json](./schemas/works.schema.json) | v1.0 |
 
 ## 📝 Schema 文件格式
 
