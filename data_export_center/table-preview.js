@@ -56,6 +56,8 @@ const FIELD_TO_BACKEND_KEY_MAP = {
     'collaboration_orderType': '下单方式',
     'collaboration_plannedReleaseDate': '计划发布日期',
     'collaboration_publishDate': '实际发布日期',
+    'taskId': '星图任务ID',
+    'videoId': '视频ID',
     'project_name': '项目名称',
     'work_t7_totalViews': 'T+7 播放量',
     'work_t7_likeCount': 'T+7 点赞数'
