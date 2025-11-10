@@ -443,6 +443,12 @@ function handleDragStart(e) {
     draggedElement.classList.add('opacity-50');
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', draggedElement.innerHTML);
+
+    console.log('🚀 拖拽开始:', {
+        element: draggedElement,
+        id: draggedElement.dataset.id,
+        label: draggedElement.querySelector('.text-sm')?.textContent
+    });
 }
 
 /**
@@ -466,6 +472,11 @@ function handleDragEnter(e) {
     if (target && target !== draggedElement && target.classList.contains('dimension-selected-item')) {
         target.classList.add('border-indigo-400', 'bg-indigo-50');
         draggedOverElement = target;
+
+        console.log('👉 拖拽进入目标:', {
+            targetId: target.dataset.id,
+            targetLabel: target.querySelector('.text-sm')?.textContent
+        });
     }
 }
 
@@ -485,11 +496,22 @@ function handleDragLeave(e) {
  * @param {DragEvent} e - 拖拽事件
  */
 function handleDrop(e) {
+    // 阻止默认行为和事件传播
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
     if (e.stopPropagation) {
         e.stopPropagation();
     }
 
     const dropTarget = e.currentTarget;
+
+    console.log('🎯 Drop event:', {
+        draggedElement,
+        dropTarget,
+        draggedId: draggedElement?.dataset?.id,
+        targetId: dropTarget?.dataset?.id
+    });
 
     if (draggedElement && dropTarget && draggedElement !== dropTarget) {
         // 获取拖拽元素和目标元素的ID
@@ -505,11 +527,21 @@ function handleDrop(e) {
             const draggedIndex = currentSelected.indexOf(draggedId);
             const targetIndex = currentSelected.indexOf(targetId);
 
+            console.log('📝 重新排序:', {
+                draggedId,
+                targetId,
+                draggedIndex,
+                targetIndex,
+                before: currentSelected
+            });
+
             if (draggedIndex !== -1 && targetIndex !== -1) {
                 // 移除拖拽项
                 currentSelected.splice(draggedIndex, 1);
                 // 在目标位置插入
                 currentSelected.splice(targetIndex, 0, draggedId);
+
+                console.log('✅ 排序后:', currentSelected);
 
                 // 更新状态
                 updateSelectedDimensions(selectedEntity, currentSelected);
@@ -519,7 +551,9 @@ function handleDrop(e) {
         }
     }
 
-    dropTarget.classList.remove('border-indigo-400', 'bg-indigo-50');
+    if (dropTarget) {
+        dropTarget.classList.remove('border-indigo-400', 'bg-indigo-50');
+    }
     return false;
 }
 
