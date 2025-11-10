@@ -204,23 +204,28 @@ function createMultiSelectInput(filter, options) {
  * @returns {HTMLDivElement} 复选框组容器
  */
 function createCheckboxGroup(filter, options, entity = null) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'mt-2';
+
     const container = document.createElement('div');
 
-    // 合作状态使用横向平铺展示，项目列表使用高容器，其他使用默认滚动容器
+    // 合作状态使用横向平铺展示，项目列表使用分页，其他使用滚动容器
     if (filter.id === 'status') {
-        container.className = 'mt-2 flex flex-wrap gap-4';
+        container.className = 'flex flex-wrap gap-4';
     } else if (filter.id === 'projectIds') {
-        container.className = 'mt-2 space-y-2 border p-3 rounded-md max-h-[500px] overflow-y-auto custom-scrollbar';
+        container.className = 'space-y-2 border p-3 rounded-md';
     } else {
-        container.className = 'mt-2 space-y-2 border p-2 rounded-md max-h-32 overflow-y-auto custom-scrollbar';
+        container.className = 'space-y-2 border p-2 rounded-md max-h-32 overflow-y-auto custom-scrollbar';
     }
     container.id = `checkbox-group-${filter.id}`;
 
     // 存储完整的选项数据，用于筛选
     let allOptions = options;
+    let currentPage = 1;
+    const pageSize = 8;
 
     // 渲染复选框列表
-    const renderCheckboxes = (optionsToRender) => {
+    const renderCheckboxes = (optionsToRender, page = 1) => {
         // 保存当前选中的项目ID
         const selectedValues = Array.from(
             container.querySelectorAll('.filter-checkbox:checked')
@@ -236,7 +241,20 @@ function createCheckboxGroup(filter, options, entity = null) {
             return;
         }
 
-        optionsToRender.forEach(option => {
+        // 项目列表使用分页
+        const isPaginated = filter.id === 'projectIds';
+        let displayOptions = optionsToRender;
+        let totalPages = 1;
+
+        if (isPaginated) {
+            totalPages = Math.ceil(optionsToRender.length / pageSize);
+            currentPage = Math.min(page, totalPages);
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            displayOptions = optionsToRender.slice(startIndex, endIndex);
+        }
+
+        displayOptions.forEach(option => {
             const label = document.createElement('label');
             label.className = 'flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded';
 
@@ -262,7 +280,73 @@ function createCheckboxGroup(filter, options, entity = null) {
             label.appendChild(span);
             container.appendChild(label);
         });
+
+        // 渲染分页控件
+        if (isPaginated && totalPages > 1) {
+            renderPagination(optionsToRender, currentPage, totalPages);
+        }
     };
+
+    // 渲染分页控件
+    const renderPagination = (optionsToRender, page, totalPages) => {
+        const existingPagination = wrapper.querySelector('.pagination-controls');
+        if (existingPagination) {
+            existingPagination.remove();
+        }
+
+        const paginationContainer = document.createElement('div');
+        paginationContainer.className = 'pagination-controls flex items-center justify-between mt-3 pt-3 border-t';
+
+        // 统计信息
+        const info = document.createElement('div');
+        info.className = 'text-xs text-gray-500';
+        const start = (page - 1) * pageSize + 1;
+        const end = Math.min(page * pageSize, optionsToRender.length);
+        info.textContent = `显示 ${start}-${end} / 共 ${optionsToRender.length} 项`;
+        paginationContainer.appendChild(info);
+
+        // 分页按钮组
+        const buttonsContainer = document.createElement('div');
+        buttonsContainer.className = 'flex items-center gap-2';
+
+        // 上一页按钮
+        const prevButton = document.createElement('button');
+        prevButton.type = 'button';
+        prevButton.className = `px-2 py-1 text-xs rounded ${page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`;
+        prevButton.textContent = '上一页';
+        prevButton.disabled = page === 1;
+        prevButton.addEventListener('click', () => {
+            if (page > 1) {
+                renderCheckboxes(optionsToRender, page - 1);
+            }
+        });
+        buttonsContainer.appendChild(prevButton);
+
+        // 页码显示
+        const pageInfo = document.createElement('span');
+        pageInfo.className = 'text-xs text-gray-600';
+        pageInfo.textContent = `${page} / ${totalPages}`;
+        buttonsContainer.appendChild(pageInfo);
+
+        // 下一页按钮
+        const nextButton = document.createElement('button');
+        nextButton.type = 'button';
+        nextButton.className = `px-2 py-1 text-xs rounded ${page === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`;
+        nextButton.textContent = '下一页';
+        nextButton.disabled = page === totalPages;
+        nextButton.addEventListener('click', () => {
+            if (page < totalPages) {
+                renderCheckboxes(optionsToRender, page + 1);
+            }
+        });
+        buttonsContainer.appendChild(nextButton);
+
+        paginationContainer.appendChild(buttonsContainer);
+        wrapper.appendChild(paginationContainer);
+    };
+
+    // 将 container 添加到 wrapper
+    wrapper.appendChild(container);
 
     // 初始渲染
     renderCheckboxes(allOptions);
@@ -338,7 +422,8 @@ function createCheckboxGroup(filter, options, entity = null) {
         document.addEventListener('yearmonth-changed', handleTimeFilter);
     }
 
-    return container;
+    // 合作状态直接返回 container（无分页），项目列表返回 wrapper（包含分页）
+    return filter.id === 'status' ? container : wrapper;
 }
 
 /**
