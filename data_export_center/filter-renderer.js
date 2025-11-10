@@ -300,20 +300,30 @@ function createCheckboxGroup(filter, options, entity = null) {
                     console.log(`[项目筛选] 项目 ${index + 1} 字段:`, Object.keys(option));
                 }
 
-                // 根据时间维度类型选择对应的月份字段
-                const projectMonth = monthType === 'customer' ? option.customerMonth : option.financialMonth;
+                // 根据时间维度类型组合年月字段
+                // 客户月份：year + month
+                // 财务月份：financialYear + financialMonth
+                let projectYear, projectMonth;
+                if (monthType === 'customer') {
+                    projectYear = option.year;
+                    projectMonth = option.month;
+                } else {
+                    projectYear = option.financialYear;
+                    projectMonth = option.financialMonth;
+                }
 
-                // 如果项目没有对应的月份数据，不显示该项目（改为不显示）
-                if (!projectMonth) {
+                // 如果项目没有对应的月份数据，不显示该项目
+                if (!projectYear || !projectMonth) {
                     return false;
                 }
 
-                // 匹配 "YYYY-MXX" 格式，例如 "2024-M10"
+                // 组合并匹配 "YYYY-MXX" 格式，例如 "2025-M10"
+                const projectYearMonth = `${projectYear}-${projectMonth}`;
                 const targetYearMonth = `${year}-${month}`;
-                const matched = projectMonth === targetYearMonth;
+                const matched = projectYearMonth === targetYearMonth;
 
                 if (matched) {
-                    console.log('[项目筛选] ✓ 匹配项目:', option.name, projectMonth);
+                    console.log('[项目筛选] ✓ 匹配项目:', option.name, projectYearMonth, '=', targetYearMonth);
                 }
 
                 return matched;

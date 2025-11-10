@@ -10,7 +10,7 @@ export const API_BASE_URL = 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shangha
 export const API_ENDPOINTS = {
     export: `${API_BASE_URL}/export-comprehensive-data`,
     filters: `${API_BASE_URL}/talents/filter-options`,
-    projects: `${API_BASE_URL}/projects?view=simple`,
+    projects: `${API_BASE_URL}/projects`,  // 去掉 view=simple 以获取完整项目数据（包含月份信息）
     fieldMetadata: `${API_BASE_URL}/get-field-metadata`
 };
 
