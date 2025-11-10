@@ -28,19 +28,18 @@ export function renderFilters(entity, container) {
         return;
     }
 
-    // 项目导出使用左右分栏布局
+    // 项目导出使用左右分栏布局 (5:5)
     if (entity === 'project') {
         const mainContainer = document.createElement('div');
-        mainContainer.className = 'flex gap-6';
+        mainContainer.className = 'grid grid-cols-2 gap-6';
 
-        // 左侧筛选条件区域
+        // 左侧筛选条件区域 (50%)
         const leftPanel = document.createElement('div');
-        leftPanel.className = 'flex-shrink-0 space-y-4';
-        leftPanel.style.width = '400px';
+        leftPanel.className = 'space-y-4';
 
-        // 右侧项目列表区域
+        // 右侧项目列表区域 (50%)
         const rightPanel = document.createElement('div');
-        rightPanel.className = 'flex-1';
+        rightPanel.className = '';
 
         // 筛选器顺序：monthType, yearMonth, status (左侧), projectIds (右侧)
         config.filters.forEach(filter => {
@@ -268,6 +267,12 @@ function createCheckboxGroup(filter, options, entity = null) {
 
     // 如果是项目选择器，监听时间变化事件
     if (filter.id === 'projectIds' && entity === 'project') {
+        // 输出第一个项目对象结构，帮助调试
+        if (allOptions.length > 0) {
+            console.log('[项目筛选] 第一个项目对象结构:', allOptions[0]);
+            console.log('[项目筛选] 项目对象所有字段:', Object.keys(allOptions[0]));
+        }
+
         const handleTimeFilter = (event) => {
             const { year, month } = event.detail;
 
@@ -286,16 +291,25 @@ function createCheckboxGroup(filter, options, entity = null) {
             console.log('[项目筛选] 时间维度类型:', monthType);
 
             // 筛选符合时间条件的项目
-            const filteredOptions = allOptions.filter(option => {
+            const filteredOptions = allOptions.filter((option, index) => {
                 if (typeof option !== 'object') return true;
+
+                // 输出前3个项目的详细信息
+                if (index < 3) {
+                    console.log(`[项目筛选] 项目 ${index + 1}:`, {
+                        name: option.name,
+                        customerMonth: option.customerMonth,
+                        financialMonth: option.financialMonth,
+                        allFields: Object.keys(option)
+                    });
+                }
 
                 // 根据时间维度类型选择对应的月份字段
                 const projectMonth = monthType === 'customer' ? option.customerMonth : option.financialMonth;
 
-                // 如果项目没有对应的月份数据，显示该项目
+                // 如果项目没有对应的月份数据，不显示该项目（改为不显示）
                 if (!projectMonth) {
-                    console.log('[项目筛选] 项目缺少月份数据:', option.name);
-                    return true;
+                    return false;
                 }
 
                 // 匹配 "YYYY-MXX" 格式，例如 "2024-M10"
@@ -303,7 +317,7 @@ function createCheckboxGroup(filter, options, entity = null) {
                 const matched = projectMonth === targetYearMonth;
 
                 if (matched) {
-                    console.log('[项目筛选] 匹配项目:', option.name, projectMonth);
+                    console.log('[项目筛选] ✓ 匹配项目:', option.name, projectMonth);
                 }
 
                 return matched;
