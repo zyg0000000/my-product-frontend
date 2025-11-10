@@ -1,12 +1,15 @@
 /**
  * @module table-preview
  * @description 数据预览表格渲染和分页管理模块
- * @version 2.0.0 - 支持动态字段映射
+ * @version 2.1.0 - 修复taskId和videoId字段映射
  */
 
 import { getEntityDimensions } from './dimension-config.js';
 import { getState } from './state-manager.js';
 import { fetchFieldMetadata, buildFieldMapping, buildLabelMapping } from './field-metadata.js';
+
+// 版本标识 - 用于验证是否加载了最新版本
+console.log('✅ table-preview.js v2.1.0 已加载 (包含 taskId 和 videoId 映射)');
 
 /**
  * 动态字段映射缓存
@@ -16,6 +19,7 @@ let dynamicFieldMapping = null;
 /**
  * 前端字段ID到后端返回的中文字段名的映射
  * 这个映射需要与后端 exportComprehensiveData/index.js 中的 projectStage 保持一致
+ * [v2.1.0] 已添加 taskId 和 videoId 映射
  */
 const FIELD_TO_BACKEND_KEY_MAP = {
     // 达人维度
@@ -62,6 +66,14 @@ const FIELD_TO_BACKEND_KEY_MAP = {
     'work_t7_totalViews': 'T+7 播放量',
     'work_t7_likeCount': 'T+7 点赞数'
 };
+
+// 验证关键字段映射存在
+console.log('🔍 字段映射验证:', {
+    hasTaskId: 'taskId' in FIELD_TO_BACKEND_KEY_MAP,
+    hasVideoId: 'videoId' in FIELD_TO_BACKEND_KEY_MAP,
+    taskIdMapping: FIELD_TO_BACKEND_KEY_MAP['taskId'],
+    videoIdMapping: FIELD_TO_BACKEND_KEY_MAP['videoId']
+});
 
 /**
  * 获取字段映射（支持动态和静态）
