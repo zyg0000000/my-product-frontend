@@ -185,37 +185,37 @@ function renderSelectedList(dimensions) {
 
     dimensions.forEach((dim, index) => {
         const item = document.createElement('div');
-        item.className = 'dimension-selected-item flex items-center justify-between p-3 rounded-lg bg-white border-2 border-indigo-200 mb-2 group hover:shadow-sm transition-all cursor-move';
+        item.className = 'dimension-selected-item flex items-center justify-between p-3 rounded-lg bg-white border-2 border-indigo-200 mb-2 group hover:shadow-sm transition-all select-none';
         item.dataset.id = dim.id;
         item.dataset.index = index;
         item.draggable = true; // 启用拖拽
 
         item.innerHTML = `
             <div class="flex items-center gap-3 flex-1">
-                <div class="drag-handle flex flex-col gap-0.5 cursor-move" title="拖拽排序">
+                <div class="drag-handle flex flex-col gap-0.5 cursor-move select-none" title="拖拽排序">
                     <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M9 3h2v2H9V3zm0 4h2v2H9V7zm0 4h2v2H9v-2zm0 4h2v2H9v-2zm0 4h2v2H9v-2zm4-16h2v2h-2V3zm0 4h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/>
                     </svg>
                 </div>
                 <div class="flex flex-col gap-0.5">
-                    <button class="move-up-btn text-gray-400 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" ${index === 0 ? 'disabled' : ''}>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button class="move-up-btn text-gray-400 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" ${index === 0 ? 'disabled' : ''} draggable="false">
+                        <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
                         </svg>
                     </button>
-                    <button class="move-down-btn text-gray-400 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" ${index === dimensions.length - 1 ? 'disabled' : ''}>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button class="move-down-btn text-gray-400 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" ${index === dimensions.length - 1 ? 'disabled' : ''} draggable="false">
+                        <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </button>
                 </div>
-                <div class="flex-1">
+                <div class="flex-1 cursor-move">
                     <div class="text-sm font-medium text-gray-800">${dim.label}</div>
                     <div class="text-xs text-gray-500">${dim.group || '其他'}</div>
                 </div>
             </div>
-            <button class="remove-btn opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg p-1.5 transition-all">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button class="remove-btn opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg p-1.5 transition-all" draggable="false">
+                <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
@@ -226,9 +226,23 @@ function renderSelectedList(dimensions) {
         const moveUpBtn = item.querySelector('.move-up-btn');
         const moveDownBtn = item.querySelector('.move-down-btn');
 
-        removeBtn.addEventListener('click', () => handleRemoveDimension(dim.id));
-        moveUpBtn.addEventListener('click', () => handleMoveDimension(index, 'up'));
-        moveDownBtn.addEventListener('click', () => handleMoveDimension(index, 'down'));
+        // 防止按钮触发拖拽
+        removeBtn.addEventListener('mousedown', (e) => e.stopPropagation());
+        moveUpBtn.addEventListener('mousedown', (e) => e.stopPropagation());
+        moveDownBtn.addEventListener('mousedown', (e) => e.stopPropagation());
+
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleRemoveDimension(dim.id);
+        });
+        moveUpBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleMoveDimension(index, 'up');
+        });
+        moveDownBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleMoveDimension(index, 'down');
+        });
 
         // 绑定拖拽事件
         item.addEventListener('dragstart', handleDragStart);
