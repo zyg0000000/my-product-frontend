@@ -185,12 +185,18 @@ function renderSelectedList(dimensions) {
 
     dimensions.forEach((dim, index) => {
         const item = document.createElement('div');
-        item.className = 'dimension-selected-item flex items-center justify-between p-3 rounded-lg bg-white border-2 border-indigo-200 mb-2 group hover:shadow-sm transition-all';
+        item.className = 'dimension-selected-item flex items-center justify-between p-3 rounded-lg bg-white border-2 border-indigo-200 mb-2 group hover:shadow-sm transition-all cursor-move';
         item.dataset.id = dim.id;
         item.dataset.index = index;
+        item.draggable = true; // 启用拖拽
 
         item.innerHTML = `
             <div class="flex items-center gap-3 flex-1">
+                <div class="drag-handle flex flex-col gap-0.5 cursor-move" title="拖拽排序">
+                    <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 3h2v2H9V3zm0 4h2v2H9V7zm0 4h2v2H9v-2zm0 4h2v2H9v-2zm0 4h2v2H9v-2zm4-16h2v2h-2V3zm0 4h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/>
+                    </svg>
+                </div>
                 <div class="flex flex-col gap-0.5">
                     <button class="move-up-btn text-gray-400 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" ${index === 0 ? 'disabled' : ''}>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -215,7 +221,7 @@ function renderSelectedList(dimensions) {
             </button>
         `;
 
-        // 绑定事件
+        // 绑定点击事件
         const removeBtn = item.querySelector('.remove-btn');
         const moveUpBtn = item.querySelector('.move-up-btn');
         const moveDownBtn = item.querySelector('.move-down-btn');
@@ -223,6 +229,14 @@ function renderSelectedList(dimensions) {
         removeBtn.addEventListener('click', () => handleRemoveDimension(dim.id));
         moveUpBtn.addEventListener('click', () => handleMoveDimension(index, 'up'));
         moveDownBtn.addEventListener('click', () => handleMoveDimension(index, 'down'));
+
+        // 绑定拖拽事件
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragover', handleDragOver);
+        item.addEventListener('drop', handleDrop);
+        item.addEventListener('dragend', handleDragEnd);
+        item.addEventListener('dragenter', handleDragEnter);
+        item.addEventListener('dragleave', handleDragLeave);
 
         container.appendChild(item);
     });
@@ -398,4 +412,117 @@ export function initializeDimensionModal() {
             }
         });
     }
+}
+
+/**
+ * 拖拽状态管理
+ */
+let draggedElement = null;
+let draggedOverElement = null;
+
+/**
+ * 拖拽开始事件处理
+ * @param {DragEvent} e - 拖拽事件
+ */
+function handleDragStart(e) {
+    draggedElement = e.currentTarget;
+    draggedElement.classList.add('opacity-50');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', draggedElement.innerHTML);
+}
+
+/**
+ * 拖拽经过事件处理
+ * @param {DragEvent} e - 拖拽事件
+ */
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+/**
+ * 拖拽进入事件处理
+ * @param {DragEvent} e - 拖拽事件
+ */
+function handleDragEnter(e) {
+    const target = e.currentTarget;
+    if (target && target !== draggedElement && target.classList.contains('dimension-selected-item')) {
+        target.classList.add('border-indigo-400', 'bg-indigo-50');
+        draggedOverElement = target;
+    }
+}
+
+/**
+ * 拖拽离开事件处理
+ * @param {DragEvent} e - 拖拽事件
+ */
+function handleDragLeave(e) {
+    const target = e.currentTarget;
+    if (target && target.classList.contains('dimension-selected-item')) {
+        target.classList.remove('border-indigo-400', 'bg-indigo-50');
+    }
+}
+
+/**
+ * 放置事件处理
+ * @param {DragEvent} e - 拖拽事件
+ */
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+
+    const dropTarget = e.currentTarget;
+
+    if (draggedElement && dropTarget && draggedElement !== dropTarget) {
+        // 获取拖拽元素和目标元素的ID
+        const draggedId = draggedElement.dataset.id;
+        const targetId = dropTarget.dataset.id;
+
+        if (draggedId && targetId) {
+            // 更新状态中的维度顺序
+            const state = getState();
+            const { selectedEntity } = state;
+            const currentSelected = [...(state.selectedDimensions[selectedEntity] || [])];
+
+            const draggedIndex = currentSelected.indexOf(draggedId);
+            const targetIndex = currentSelected.indexOf(targetId);
+
+            if (draggedIndex !== -1 && targetIndex !== -1) {
+                // 移除拖拽项
+                currentSelected.splice(draggedIndex, 1);
+                // 在目标位置插入
+                currentSelected.splice(targetIndex, 0, draggedId);
+
+                // 更新状态
+                updateSelectedDimensions(selectedEntity, currentSelected);
+                // 重新渲染
+                renderDimensionsModal();
+            }
+        }
+    }
+
+    dropTarget.classList.remove('border-indigo-400', 'bg-indigo-50');
+    return false;
+}
+
+/**
+ * 拖拽结束事件处理
+ * @param {DragEvent} e - 拖拽事件
+ */
+function handleDragEnd(e) {
+    if (draggedElement) {
+        draggedElement.classList.remove('opacity-50');
+    }
+
+    // 清除所有高亮状态
+    document.querySelectorAll('.dimension-selected-item').forEach(item => {
+        item.classList.remove('border-indigo-400', 'bg-indigo-50');
+    });
+
+    draggedElement = null;
+    draggedOverElement = null;
 }
