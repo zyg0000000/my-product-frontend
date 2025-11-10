@@ -296,12 +296,8 @@ function createCheckboxGroup(filter, options, entity = null) {
 
                 // 输出前3个项目的详细信息
                 if (index < 3) {
-                    console.log(`[项目筛选] 项目 ${index + 1}:`, {
-                        name: option.name,
-                        customerMonth: option.customerMonth,
-                        financialMonth: option.financialMonth,
-                        allFields: Object.keys(option)
-                    });
+                    console.log(`[项目筛选] 项目 ${index + 1}:`, option);
+                    console.log(`[项目筛选] 项目 ${index + 1} 字段:`, Object.keys(option));
                 }
 
                 // 根据时间维度类型选择对应的月份字段
@@ -463,7 +459,7 @@ function createYearMonthSelector(filter) {
     // 添加"筛选"按钮
     const filterButton = document.createElement('button');
     filterButton.type = 'button';
-    filterButton.className = 'px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors';
+    filterButton.className = 'px-4 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors whitespace-nowrap min-w-[80px]';
     filterButton.textContent = '筛选';
     filterButton.id = 'filter-projects-btn';
 
