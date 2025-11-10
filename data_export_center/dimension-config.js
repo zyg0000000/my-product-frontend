@@ -226,8 +226,9 @@ let dynamicDimensionsCache = {};
 
 /**
  * 是否启用动态加载（默认启用）
+ * [临时禁用] 后端 /get-field-metadata API 尚未更新 taskId 和 videoId 字段
  */
-let useDynamicLoading = true;
+let useDynamicLoading = false;
 
 /**
  * 设置是否启用动态加载
