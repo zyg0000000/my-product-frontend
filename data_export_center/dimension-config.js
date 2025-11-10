@@ -322,9 +322,12 @@ export function clearDynamicDimensionsCache() {
 export function getEntityDimensionsSmart(entity) {
     // 如果有动态缓存，使用动态数据
     if (useDynamicLoading && dynamicDimensionsCache[entity]) {
+        console.log(`[Dimension Config] 使用动态配置: ${entity}`);
         return dynamicDimensionsCache[entity];
     }
 
     // 否则使用静态配置
-    return getEntityDimensions(entity);
+    const staticDimensions = getEntityDimensions(entity);
+    console.log(`[Dimension Config] 使用静态配置: ${entity}`, staticDimensions);
+    return staticDimensions;
 }
