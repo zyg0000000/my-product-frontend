@@ -128,8 +128,23 @@ export const DIMENSION_CONFIG = {
             {
                 id: 'projectIds',
                 label: '选择项目',
-                type: 'multiselect',
+                type: 'checkbox',  // 改为checkbox便于多选且可滚动
                 optionsKey: 'projects'
+            },
+            {
+                id: 'monthType',
+                label: '时间维度类型',
+                type: 'radio',
+                options: [
+                    { value: 'customer', label: '客户月份' },
+                    { value: 'financial', label: '财务月份' }
+                ],
+                defaultValue: 'customer'
+            },
+            {
+                id: 'yearMonth',
+                label: '年份月份',
+                type: 'yearmonth'
             },
             {
                 id: 'status',

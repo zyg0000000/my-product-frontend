@@ -89,6 +89,12 @@ function createFilterControl(filter, options) {
         case FILTER_TYPES.DATERANGE:
             return createDateRangeInput(filter);
 
+        case FILTER_TYPES.RADIO:
+            return createRadioGroup(filter);
+
+        case FILTER_TYPES.YEARMONTH:
+            return createYearMonthSelector(filter);
+
         default:
             console.warn(`Unknown filter type: ${filter.type}`);
             return document.createElement('div');
@@ -224,6 +230,105 @@ function createDateRangeInput(filter) {
 }
 
 /**
+ * 创建单选按钮组
+ * @param {Object} filter - 筛选器配置
+ * @returns {HTMLDivElement} 单选按钮组容器
+ */
+function createRadioGroup(filter) {
+    const container = document.createElement('div');
+    container.className = 'mt-2 flex items-center gap-4';
+
+    const options = filter.options || [];
+    options.forEach((option, index) => {
+        const label = document.createElement('label');
+        label.className = 'flex items-center cursor-pointer';
+
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = `filter-${filter.id}`;
+        radio.value = typeof option === 'object' ? option.value : option;
+        radio.className = 'form-radio';
+        radio.id = `filter-${filter.id}-${index}`;
+
+        // 设置默认选中
+        if (filter.defaultValue === radio.value || (index === 0 && !filter.defaultValue)) {
+            radio.checked = true;
+        }
+
+        const span = document.createElement('span');
+        span.className = 'ml-2 text-sm';
+        span.textContent = typeof option === 'object' ? option.label : option;
+
+        label.appendChild(radio);
+        label.appendChild(span);
+        container.appendChild(label);
+    });
+
+    return container;
+}
+
+/**
+ * 创建年月选择器
+ * @param {Object} filter - 筛选器配置
+ * @returns {HTMLDivElement} 年月选择器容器
+ */
+function createYearMonthSelector(filter) {
+    const container = document.createElement('div');
+    container.className = 'mt-1 flex items-center gap-2';
+
+    // 年份下拉框
+    const yearSelect = document.createElement('select');
+    yearSelect.id = `filter-${filter.id}-year`;
+    yearSelect.className = 'form-select';
+
+    // 默认选项
+    const defaultYearOption = document.createElement('option');
+    defaultYearOption.value = '';
+    defaultYearOption.textContent = '选择年份';
+    yearSelect.appendChild(defaultYearOption);
+
+    // 生成年份选项（前3年到未来1年）
+    const currentYear = new Date().getFullYear();
+    for (let year = currentYear - 3; year <= currentYear + 1; year++) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = `${year}年`;
+        if (year === currentYear) {
+            option.selected = true;
+        }
+        yearSelect.appendChild(option);
+    }
+
+    // 月份下拉框
+    const monthSelect = document.createElement('select');
+    monthSelect.id = `filter-${filter.id}-month`;
+    monthSelect.className = 'form-select';
+
+    // 默认选项
+    const defaultMonthOption = document.createElement('option');
+    defaultMonthOption.value = '';
+    defaultMonthOption.textContent = '选择月份';
+    monthSelect.appendChild(defaultMonthOption);
+
+    // 生成月份选项
+    const currentMonth = new Date().getMonth() + 1;
+    for (let month = 1; month <= 12; month++) {
+        const option = document.createElement('option');
+        option.value = month;
+        option.textContent = `${month}月`;
+        if (month === currentMonth) {
+            option.selected = true;
+        }
+        monthSelect.appendChild(option);
+    }
+
+    container.appendChild(yearSelect);
+    container.appendChild(monthSelect);
+
+    return container;
+}
+
+/**
  * 获取筛选器的选项数据
  * @param {Object} filter - 筛选器配置
  * @returns {Array} 选项数组
@@ -333,6 +438,29 @@ export function getFilterValues(entity) {
                         start: startDate.value,
                         end: endDate.value
                     };
+                }
+                break;
+
+            case FILTER_TYPES.RADIO:
+                const selectedRadio = document.querySelector(`input[name="filter-${filter.id}"]:checked`);
+                if (selectedRadio) {
+                    filters[filter.id] = selectedRadio.value;
+                }
+                break;
+
+            case FILTER_TYPES.YEARMONTH:
+                const yearSelect = document.getElementById(`filter-${filter.id}-year`);
+                const monthSelect = document.getElementById(`filter-${filter.id}-month`);
+                if (yearSelect && monthSelect) {
+                    const year = yearSelect.value;
+                    const month = monthSelect.value;
+                    // 只有当年份和月份都选择了才添加到筛选条件
+                    if (year && month) {
+                        filters[filter.id] = {
+                            year: year,
+                            month: month
+                        };
+                    }
                 }
                 break;
         }

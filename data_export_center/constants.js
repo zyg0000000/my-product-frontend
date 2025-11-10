@@ -27,5 +27,7 @@ export const FILTER_TYPES = {
     SELECT: 'select',
     MULTISELECT: 'multiselect',
     CHECKBOX: 'checkbox',
-    DATERANGE: 'daterange'
+    DATERANGE: 'daterange',
+    RADIO: 'radio',              // 单选按钮组
+    YEARMONTH: 'yearmonth'       // 年月选择器
 };
