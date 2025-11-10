@@ -13,13 +13,16 @@ import { fetchFieldMetadata, buildFieldMapping, buildLabelMapping } from './fiel
 
 /**
  * 动态字段映射缓存
+ * [临时禁用] 强制使用静态映射，确保包含最新的 taskId 和 videoId 字段
  */
 let dynamicBackendFieldMapping = null;
 let dynamicLabelMapping = null;
+const FORCE_USE_STATIC_MAPPING = true; // 临时强制使用静态映射
 
 /**
  * 前端字段ID到后端返回的字段名的映射
  * 与后端 exportComprehensiveData/index.js 的 projectStage 保持一致
+ * [v2.1.0] 已添加 taskId 和 videoId 映射
  */
 const BACKEND_FIELD_KEY_MAP = {
     // 达人维度
@@ -73,6 +76,12 @@ const BACKEND_FIELD_KEY_MAP = {
  * @returns {Promise<Object>} 字段映射对象
  */
 async function getBackendFieldMapping(entity) {
+    // 🔧 临时强制使用静态映射
+    if (FORCE_USE_STATIC_MAPPING) {
+        console.log('[Export Handler] ⚠️ 强制使用静态字段映射（包含最新字段）');
+        return BACKEND_FIELD_KEY_MAP;
+    }
+
     // 如果已有动态映射缓存，直接使用
     if (dynamicBackendFieldMapping) {
         return dynamicBackendFieldMapping;
@@ -101,6 +110,10 @@ async function getBackendFieldMapping(entity) {
  * @returns {Object} 字段映射对象
  */
 function getBackendFieldMappingSync() {
+    // 🔧 临时强制使用静态映射
+    if (FORCE_USE_STATIC_MAPPING) {
+        return BACKEND_FIELD_KEY_MAP;
+    }
     return dynamicBackendFieldMapping || BACKEND_FIELD_KEY_MAP;
 }
 

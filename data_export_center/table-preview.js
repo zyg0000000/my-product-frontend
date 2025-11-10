@@ -13,8 +13,10 @@ console.log('✅ table-preview.js v2.1.0 已加载 (包含 taskId 和 videoId �
 
 /**
  * 动态字段映射缓存
+ * [临时禁用] 强制使用静态映射，确保包含最新的 taskId 和 videoId 字段
  */
 let dynamicFieldMapping = null;
+const FORCE_USE_STATIC_MAPPING = true; // 临时强制使用静态映射
 
 /**
  * 前端字段ID到后端返回的中文字段名的映射
@@ -81,6 +83,12 @@ console.log('🔍 字段映射验证:', {
  * @returns {Object} 字段映射对象
  */
 async function getFieldMappingForEntity(entity) {
+    // 🔧 临时强制使用静态映射
+    if (FORCE_USE_STATIC_MAPPING) {
+        console.log('[Table Preview] ⚠️ 强制使用静态字段映射（包含最新字段）');
+        return FIELD_TO_BACKEND_KEY_MAP;
+    }
+
     // 如果已有动态映射缓存，直接使用
     if (dynamicFieldMapping) {
         return dynamicFieldMapping;
@@ -108,6 +116,11 @@ async function getFieldMappingForEntity(entity) {
  * @returns {Object} 字段映射对象
  */
 function getFieldMappingSync() {
+    // 🔧 临时强制使用静态映射，确保包含最新字段
+    if (FORCE_USE_STATIC_MAPPING) {
+        console.log('⚠️ 强制使用静态字段映射');
+        return FIELD_TO_BACKEND_KEY_MAP;
+    }
     return dynamicFieldMapping || FIELD_TO_BACKEND_KEY_MAP;
 }
 
@@ -215,11 +228,31 @@ function renderTableBody(data) {
     // 获取字段映射（支持动态和静态）
     const fieldMapping = getFieldMappingSync();
 
+    // 🔍 调试：记录使用的映射和第一行数据
+    console.log('📊 renderTableBody 调试信息:', {
+        selectedFields,
+        usingDynamicMapping: !!dynamicFieldMapping,
+        fieldMapping,
+        firstRowKeys: data[0] ? Object.keys(data[0]) : [],
+        firstRowSample: data[0]
+    });
+
     tbody.innerHTML = data.map((row, index) => {
         const cells = selectedFields.map(fieldId => {
             // 使用映射获取后端返回的字段名（中文或英文）
             const backendKey = fieldMapping[fieldId] || fieldId;
             const value = row[backendKey];
+
+            // 🔍 调试：对于 taskId 和 videoId 特别记录
+            if (fieldId === 'taskId' || fieldId === 'videoId') {
+                console.log(`🔍 字段 ${fieldId}:`, {
+                    fieldId,
+                    backendKey,
+                    value,
+                    hasValue: value !== undefined && value !== null
+                });
+            }
+
             return `<td>${formatCellValue(value)}</td>`;
         }).join('');
 
