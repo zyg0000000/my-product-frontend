@@ -1,279 +1,4858 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "required": [
-    "_id",
-    "createdAt",
-    "id",
-    "nickname",
-    "prices",
-    "talentSource",
-    "talentTier",
-    "talentType",
-    "uid",
-    "updatedAt",
-    "xingtuId"
-  ],
-  "properties": {
-    "_id": {
-      "$ref": "#/$defs/ObjectId"
-    },
-    "__EMPTY": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "$ref": "#/$defs/Double"
-        },
-        {
-          "type": "integer"
-        }
-      ]
-    },
-    "createdAt": {
-      "$ref": "#/$defs/Date"
-    },
-    "id": {
-      "type": "string"
-    },
-    "nickname": {
-      "type": "string"
-    },
-    "performanceData": {
-      "type": "object",
-      "required": [
-        "audience_18_40_ratio",
-        "audience_40_plus_ratio",
-        "cpm60s",
-        "femaleAudienceRatio",
-        "lastUpdated",
-        "maleAudienceRatio"
+  "count": 4,
+  "fields": [
+    {
+      "name": "_id",
+      "path": [
+        "_id"
       ],
-      "properties": {
-        "audience_18_40_ratio": {
-          "$ref": "#/$defs/Double"
-        },
-        "audience_40_plus_ratio": {
-          "$ref": "#/$defs/Double"
-        },
-        "cpm60s": {
-          "anyOf": [
+      "count": 100,
+      "type": "ObjectId",
+      "probability": 25,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "ObjectId",
+          "path": [
+            "_id"
+          ],
+          "count": 99,
+          "probability": 24.75,
+          "unique": 99,
+          "hasDuplicates": false,
+          "values": [
             {
-              "$ref": "#/$defs/Double"
+              "$oid": "68bef5b9174b8c6d36094953"
             },
             {
-              "type": "integer"
+              "$oid": "68bef5b9174b8c6d3609492c"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d3609498b"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360948e2"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360948e6"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949d1"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094973"
+            },
+            {
+              "$oid": "68cbf435f32f55f6f5094f46"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360948f8"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094a1e"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360948d9"
+            },
+            {
+              "$oid": "68eca103bb5aa716afb2a2d5"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360948f6"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d3609490c"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d3609498f"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094905"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949f9"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949ca"
+            },
+            {
+              "$oid": "68ca77c9f32f55f6f5ecfd27"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094977"
+            },
+            {
+              "$oid": "690d755cbb5aa716af3cdfde"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094a1a"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360948d0"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094a2b"
+            },
+            {
+              "$oid": "68cd26c4f32f55f6f520284b"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094925"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094936"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094924"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949d2"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949ed"
+            },
+            {
+              "$oid": "68cd262df32f55f6f5201caf"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949db"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949e4"
+            },
+            {
+              "$oid": "68cd247ff32f55f6f51ffb70"
+            },
+            {
+              "$oid": "690ed546bb5aa716af5795e8"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949d5"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094a07"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949e3"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094965"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949af"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094901"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949c2"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094920"
+            },
+            {
+              "$oid": "68d90b91f32f55f6f503a858"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360948e7"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094a26"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d3609496f"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094a1d"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949f7"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949c9"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949c1"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949dd"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d3609495e"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949fa"
+            },
+            {
+              "$oid": "68ca7280f32f55f6f5ec8cd6"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094987"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094945"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949c3"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094959"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094952"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949f1"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949e5"
+            },
+            {
+              "$oid": "68f1e0ccbb5aa716af1a4e88"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d3609495a"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094944"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360948da"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360948d1"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094906"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094a15"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949a3"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d3609492e"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094a0c"
+            },
+            {
+              "$oid": "68cbf4d9f32f55f6f5095b90"
+            },
+            {
+              "$oid": "68c7e8e391a346b639037ee2"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360948de"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360948e8"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094934"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094904"
+            },
+            {
+              "$oid": "69003c94bb5aa716af3830b4"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d3609495c"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949f5"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094921"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949b2"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d3609493b"
+            },
+            {
+              "$oid": "6911a83ebb5aa716af8efea8"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d3609498a"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949de"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949fd"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949e9"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949cf"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094917"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094922"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d3609494b"
+            },
+            {
+              "$oid": "68c7e8e391a346b639037edb"
+            },
+            {
+              "$oid": "68c7e8e391a346b639037ee1"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094970"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949e7"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d36094a11"
+            },
+            {
+              "$oid": "68bef5b9174b8c6d360949fc"
             }
-          ]
-        },
-        "femaleAudienceRatio": {
-          "$ref": "#/$defs/Double"
-        },
-        "lastUpdated": {
-          "type": "string"
-        },
-        "maleAudienceRatio": {
-          "$ref": "#/$defs/Double"
-        },
-        "ratio_18_23": {
-          "$ref": "#/$defs/Double"
-        },
-        "ratio_24_30": {
-          "$ref": "#/$defs/Double"
-        },
-        "ratio_31_40": {
-          "$ref": "#/$defs/Double"
-        },
-        "ratio_41_50": {
-          "$ref": "#/$defs/Double"
-        },
-        "ratio_50_plus": {
-          "$ref": "#/$defs/Double"
-        },
-        "ratio_exquisite_mom": {
-          "$ref": "#/$defs/Double"
-        },
-        "ratio_new_white_collar": {
-          "$ref": "#/$defs/Double"
-        },
-        "ratio_senior_middle_class": {
-          "$ref": "#/$defs/Double"
-        },
-        "ratio_town_middle_aged": {
-          "$ref": "#/$defs/Double"
-        },
-        "ratio_town_youth": {
-          "$ref": "#/$defs/Double"
-        },
-        "ratio_urban_blue_collar": {
-          "$ref": "#/$defs/Double"
-        },
-        "ratio_urban_silver": {
-          "$ref": "#/$defs/Double"
-        },
-        "ratio_z_era": {
-          "type": "integer"
-        }
-      }
-    },
-    "prices": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "month",
-          "price",
-          "status",
-          "type",
-          "year"
-        ],
-        "properties": {
-          "month": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 12
-          },
-          "price": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "status": {
-            "type": "string",
-            "enum": ["confirmed", "provisional"]
-          },
-          "type": {
-            "type": "string",
-            "enum": ["60s_plus", "20_to_60s", "1_to_20s"],
-            "description": "价格类型：60s_plus=60s+长视频, 20_to_60s=20-60s中等视频, 1_to_20s=1-20s短视频"
-          },
-          "year": {
-            "type": "integer",
-            "minimum": 2020,
-            "maximum": 2100
-          }
-        }
-      }
-    },
-    "rebates": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "rate"
-        ],
-        "properties": {
-          "rate": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "$ref": "#/$defs/Double"
-              }
-            ]
-          }
-        }
-      }
-    },
-    "remarks": {
-      "type": "object",
-      "required": [
-        "2025-10"
-      ],
-      "properties": {
-        "2025-10": {
-          "type": "string"
-        }
-      }
-    },
-    "schedules": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "talentSource": {
-      "type": "string"
-    },
-    "talentTier": {
-      "type": "string"
-    },
-    "talentType": {
-      "anyOf": [
-        {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        {
-          "type": "null"
+          ],
+          "bsonType": "ObjectId"
         }
       ]
     },
-    "uid": {
-      "anyOf": [
+    {
+      "name": "__EMPTY",
+      "path": [
+        "__EMPTY"
+      ],
+      "count": 23,
+      "type": [
+        "String",
+        "Number"
+      ],
+      "probability": 5.75,
+      "hasDuplicates": false,
+      "types": [
         {
-          "type": "string"
+          "name": "String",
+          "path": [
+            "__EMPTY"
+          ],
+          "count": 13,
+          "probability": 3.25,
+          "unique": 13,
+          "hasDuplicates": false,
+          "values": [
+            "1204672132025055",
+            "668118911292903",
+            "108701551143",
+            "365496353954320",
+            "756896562951196",
+            "3320956676749535",
+            "2796751719248720",
+            "1697238673790879",
+            "396287080662355",
+            "1450993778169764",
+            "105540807765",
+            "2243427840042451",
+            "3175020615441479"
+          ],
+          "bsonType": "String"
         },
         {
-          "$ref": "#/$defs/Double"
+          "name": "Number",
+          "path": [
+            "__EMPTY"
+          ],
+          "count": 9,
+          "probability": 2.25,
+          "unique": 9,
+          "hasDuplicates": false,
+          "values": [
+            77660100346,
+            61936463473,
+            66330345110,
+            91648174833,
+            60507562521,
+            88473872737,
+            93408337003,
+            57739253108,
+            77961126013
+          ],
+          "bsonType": "Number"
         }
       ]
     },
-    "updatedAt": {
-      "$ref": "#/$defs/Date"
-    },
-    "xingtuId": {
-      "type": "string"
-    }
-  },
-  "$defs": {
-    "ObjectId": {
-      "type": "object",
-      "properties": {
-        "$oid": {
-          "type": "string",
-          "pattern": "^[0-9a-fA-F]{24}$"
-        }
-      },
-      "required": [
-        "$oid"
+    {
+      "name": "createdAt",
+      "path": [
+        "createdAt"
       ],
-      "additionalProperties": false
+      "count": 40,
+      "type": "Date",
+      "probability": 10,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Date",
+          "path": [
+            "createdAt"
+          ],
+          "count": 40,
+          "probability": 10,
+          "unique": 15,
+          "hasDuplicates": true,
+          "values": [
+            {
+              "$date": "2025-09-18T11:59:49.394Z"
+            },
+            {
+              "$date": "2025-10-13T06:49:39.174Z"
+            },
+            {
+              "$date": "2025-09-17T08:56:41.786Z"
+            },
+            {
+              "$date": "2025-11-07T04:28:12.121Z"
+            },
+            {
+              "$date": "2025-09-19T09:47:48.625Z"
+            },
+            {
+              "$date": "2025-09-19T09:45:17.505Z"
+            },
+            {
+              "$date": "2025-09-19T09:38:07.546Z"
+            },
+            {
+              "$date": "2025-11-08T05:29:42.854Z"
+            },
+            {
+              "$date": "2025-09-28T10:18:57.829Z"
+            },
+            {
+              "$date": "2025-09-17T08:34:08.658Z"
+            },
+            {
+              "$date": "2025-10-17T06:23:08.377Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-18T12:02:33.329Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.658Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.658Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.658Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-10-28T03:46:28.233Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-11-10T08:54:22.341Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.659Z"
+            },
+            {
+              "$date": "2025-09-08T15:26:49.658Z"
+            }
+          ],
+          "bsonType": "Date"
+        }
+      ]
     },
-    "Double": {
-      "oneOf": [
+    {
+      "name": "id",
+      "path": [
+        "id"
+      ],
+      "count": 98,
+      "type": "String",
+      "probability": 24.5,
+      "hasDuplicates": false,
+      "types": [
         {
-          "type": "number"
-        },
+          "name": "String",
+          "path": [
+            "id"
+          ],
+          "count": 98,
+          "probability": 24.5,
+          "unique": 98,
+          "hasDuplicates": false,
+          "values": [
+            "talent_1757345209659_bai4e3i95",
+            "talent_1757345209659_zeyci21q4",
+            "talent_1757345209659_en7beyplp",
+            "talent_1757345209658_9jj2pelfa",
+            "talent_1757345209658_od9702lln",
+            "talent_1757345209659_n7xhfsq15",
+            "talent_1757345209659_xhtygffao",
+            "talent_1757345209659_ad0oxcshb",
+            "talent_1757345209659_7y0qt59dj",
+            "talent_1758196789394_wmc9iw8",
+            "talent_1757345209658_pl05hwpr1",
+            "talent_1757345209659_qnpmcg9v8",
+            "talent_1757345209659_rd968my6f",
+            "talent_1760338179174_wr4r4z4",
+            "talent_1757345209659_tbgt8ai1f",
+            "talent_1757345209659_xgp8991k3",
+            "talent_1757345209659_exaqc7h9l",
+            "talent_1757345209659_6ljo9j5s1",
+            "talent_1757345209659_902l0u35o",
+            "talent_1758099401786_57ji5rv",
+            "talent_1757345209659_zohb58m7i",
+            "talent_1757345209658_yzlk9qox8",
+            "talent_1762489692122_bn3xg7c",
+            "talent_1757345209659_bsii9aaob",
+            "talent_1757345209659_0f8pzw7oy",
+            "talent_1757345209659_9m8qq099a",
+            "talent_1758275268625_s9u2kjm",
+            "talent_1757345209659_advjz4af3",
+            "talent_1757345209659_o281w7ert",
+            "talent_1757345209659_d7opi2yfn",
+            "talent_1757345209659_osi1rt0rg",
+            "talent_1757345209659_bbkixof93",
+            "talent_1758275117505_oxxuyl3",
+            "talent_1757345209659_k3vc7e4ug",
+            "talent_1758274687546_n42n250",
+            "talent_1757345209659_282a837zv",
+            "talent_1762579782854_x74ybgi",
+            "talent_1757345209659_gfskd6kva",
+            "talent_1757345209659_tq9mwjo9k",
+            "talent_1757345209659_yimebjrcu",
+            "talent_1757345209659_pt8wqizmy",
+            "talent_1757345209659_qss6x83zc",
+            "talent_1757345209659_d7p0890vm",
+            "talent_1757345209658_sulwduit0",
+            "talent_1757345209659_athwmbyea",
+            "talent_1759054737829_1nuw01p",
+            "talent_1757345209659_c9awm7l7e",
+            "talent_1757345209659_56hywurpo",
+            "talent_1757345209659_fb6t5a68b",
+            "talent_1757345209659_352s9ydzi",
+            "talent_1757345209659_0pjsomn3t",
+            "talent_1757345209659_b7f9z9s4h",
+            "talent_1757345209659_fxrcvrxpc",
+            "talent_1757345209659_lt44v2rid",
+            "talent_1757345209659_4r2ijet8d",
+            "talent_1757345209659_slvz0ckn2",
+            "talent_1758098048658_wz8tnxb",
+            "talent_1757345209659_47tv2aber",
+            "talent_1757345209659_7nq6lbfmx",
+            "talent_1757345209659_aeg875znj",
+            "talent_1757345209659_msezwqg8b",
+            "talent_1757345209659_69ozpkzge",
+            "talent_1757345209659_rp1zrq2mb",
+            "talent_1757345209659_yoco6uocu",
+            "talent_1760682188377_hqh96l0",
+            "talent_1757345209658_3ryw7xom6",
+            "talent_1757345209658_gv6hvjvru",
+            "talent_1757345209659_aoz90xsok",
+            "talent_1757345209659_cm9rgy0st",
+            "talent_1757345209659_b9lhrtlk9",
+            "talent_1757345209659_53yuvbgi8",
+            "talent_1757345209659_kr997kw62",
+            "talent_1757931747206_j26eoy7rw",
+            "talent_1757345209658_9h61efoi0",
+            "talent_1758196953329_7guhtz9",
+            "talent_1757345209658_jjx2x75zy",
+            "talent_1757345209659_cw79fzrou",
+            "talent_1757345209659_u0hfauckg",
+            "talent_1757345209659_cpsh3l7jy",
+            "talent_1757345209659_w2mzllyyc",
+            "talent_1761623188233_mm1yp7j",
+            "talent_1757345209659_6p8pcq2tk",
+            "talent_1757345209659_76vkmqaxo",
+            "talent_1757345209659_4ejdi2fkl",
+            "talent_1757345209659_4inhcbsju",
+            "talent_1757345209659_zb083bble",
+            "talent_1762764862341_subtq6y",
+            "talent_1757345209659_c10p9ir1x",
+            "talent_1757345209659_3qnk06ocj",
+            "talent_1757345209659_j93361q39",
+            "talent_1757345209659_j5szqxh4m",
+            "talent_1757345209659_t873z3nsp",
+            "talent_1757345209659_boycdim78",
+            "talent_1757931747206_jlle8tvmn",
+            "talent_1757931747206_uee9dgfil",
+            "talent_1757345209659_cdidfetpw",
+            "talent_1757345209659_hw6tntk5p",
+            "talent_1757345209659_12z7263gd"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "nickname",
+      "path": [
+        "nickname"
+      ],
+      "count": 97,
+      "type": "String",
+      "probability": 24.25,
+      "hasDuplicates": false,
+      "types": [
         {
-          "type": "object",
-          "properties": {
-            "$numberDouble": {
-              "enum": [
-                "Infinity",
-                "-Infinity",
-                "NaN"
+          "name": "String",
+          "path": [
+            "nickname"
+          ],
+          "count": 97,
+          "probability": 24.25,
+          "unique": 97,
+          "hasDuplicates": false,
+          "values": [
+            "东北独子",
+            "姜瑞秋rachel",
+            "侯绿萝",
+            "阿伟家婆娘",
+            "猪猪七分饱",
+            "小羊来了",
+            "杨龙健身",
+            "猪猪狠无敌",
+            "夏天妹妹",
+            "农村小磊哥",
+            "千金饱了",
+            "🍄小猫仔",
+            "许二木",
+            "胡成功",
+            "做我的猫",
+            "刘大炮",
+            "山东葱花",
+            "李什么闯",
+            "我真是枫哥🍀",
+            "悦哥.",
+            "强驸马",
+            "张大牛",
+            "杨大牛",
+            "明天谁做东",
+            "林思彤7🏀",
+            "优优",
+            "豇豆",
+            "主持人于欢",
+            "晨晨🐰",
+            "葛斌",
+            "来福来福",
+            "八零彪子",
+            "超人也得吃",
+            "二百者也",
+            "朱有鱼",
+            "小郑穿秋裤",
+            "黄小纯🔥人间烟火",
+            "豪哥哥☀️",
+            "王琪琪",
+            "犟种兄弟",
+            "渝乡梅梅",
+            "阿鼎钓鱼",
+            "周小闹",
+            "欣宇的搞笑日常 😎",
+            "爱画画的子衿",
+            "小于没烦恼",
+            "侠客红尘",
+            "《龙龙历险记》",
+            "娜娜的小日子",
+            "小宋·抗揍一哥",
+            "勇敢哥特",
+            "大兵",
+            "李有病",
+            "开箱嘤嘤怪",
+            "小妖精刘诗凡",
+            "岳老板",
+            "邓炫疯",
+            "小嘉开饭啦",
+            "闲不住的阿俊",
+            "三金子🔥🔥🔥",
+            "奔跑吧小塔",
+            "大豪夫妇",
+            "蓝七",
+            "水猴子兄弟",
+            "兜宝一家",
+            "西班牙陈挺",
+            "萍萍和哥哥",
+            "小凤的妯娌冷眉",
+            "亮亮超正经",
+            "方家小宝🙈",
+            "美丽和阿萍",
+            "我是E噔",
+            "传说中的蕙蕙",
+            "周周的周",
+            "头不大的菲恩",
+            "吃货老外铁蛋儿",
+            "石村小月",
+            "张八筒",
+            "大脸哥",
+            "老四的快乐生活",
+            "老韩头",
+            "邢三狗🐶",
+            "忠健",
+            "付冬冬",
+            "爆笑办公室",
+            "丁佳伟",
+            "雷雷雷碧",
+            "不惑兄弟",
+            "高高不上火",
+            "范晓言",
+            "几两",
+            "牛小豪",
+            "吴家三千金（糖糖晚晚）",
+            "赵温豪",
+            "小达达",
+            "查大本事",
+            "柯铭"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "performanceData",
+      "path": [
+        "performanceData"
+      ],
+      "count": 28,
+      "type": "Document",
+      "probability": 7,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "Document",
+          "path": [
+            "performanceData"
+          ],
+          "count": 28,
+          "probability": 7,
+          "unique": null,
+          "hasDuplicates": null,
+          "values": null,
+          "bsonType": "Document",
+          "fields": [
+            {
+              "name": "audience_18_40_ratio",
+              "path": [
+                "performanceData",
+                "audience_18_40_ratio"
+              ],
+              "count": 20,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.7142857142857143,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "audience_18_40_ratio"
+                  ],
+                  "count": 20,
+                  "probability": 0.7142857142857143,
+                  "unique": 20,
+                  "hasDuplicates": false,
+                  "values": [
+                    0.8353999999999999,
+                    0.8806,
+                    0.7508,
+                    0.8325,
+                    0.38530000000000003,
+                    0.8201,
+                    0.4212,
+                    0.49360000000000004,
+                    0.7452,
+                    0.5924,
+                    0.6754,
+                    0.5942000000000001,
+                    0.6352,
+                    0.6718999999999999,
+                    0.7182,
+                    0.7172000000000001,
+                    0.6804,
+                    0.5804,
+                    0.8218,
+                    0.5521
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "audience_18_40_ratio"
+                  ],
+                  "count": 8,
+                  "probability": 0.2857142857142857
+                }
+              ]
+            },
+            {
+              "name": "audience_40_plus_ratio",
+              "path": [
+                "performanceData",
+                "audience_40_plus_ratio"
+              ],
+              "count": 20,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.7142857142857143,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "audience_40_plus_ratio"
+                  ],
+                  "count": 20,
+                  "probability": 0.7142857142857143,
+                  "unique": 20,
+                  "hasDuplicates": false,
+                  "values": [
+                    0.1446,
+                    0.0576,
+                    0.0828,
+                    0.14250000000000002,
+                    0.12010000000000001,
+                    0.0653,
+                    0.2815,
+                    0.2441,
+                    0.2367,
+                    0.23600000000000002,
+                    0.2843,
+                    0.07289999999999999,
+                    0.16140000000000002,
+                    0.11399999999999999,
+                    0.2541,
+                    0.1847,
+                    0.2219,
+                    0.1469,
+                    0.0942,
+                    0.0622
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "audience_40_plus_ratio"
+                  ],
+                  "count": 8,
+                  "probability": 0.2857142857142857
+                }
+              ]
+            },
+            {
+              "name": "cpm60s",
+              "path": [
+                "performanceData",
+                "cpm60s"
+              ],
+              "count": 28,
+              "type": "Number",
+              "probability": 1,
+              "hasDuplicates": false,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "cpm60s"
+                  ],
+                  "count": 27,
+                  "probability": 0.9642857142857143,
+                  "unique": 27,
+                  "hasDuplicates": false,
+                  "values": [
+                    5.36,
+                    31.26,
+                    11.57,
+                    17.38,
+                    21.16,
+                    6.53,
+                    41.24,
+                    2.09,
+                    35.69,
+                    19.69,
+                    20.79,
+                    24.75,
+                    47.43,
+                    26.34,
+                    29.79,
+                    113.62,
+                    39.36,
+                    54.85,
+                    11.82,
+                    11.84,
+                    53.15,
+                    10.52,
+                    5.83,
+                    29.19,
+                    8.49,
+                    111.17,
+                    22.37
+                  ],
+                  "bsonType": "Number"
+                }
+              ]
+            },
+            {
+              "name": "femaleAudienceRatio",
+              "path": [
+                "performanceData",
+                "femaleAudienceRatio"
+              ],
+              "count": 26,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.9285714285714286,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "femaleAudienceRatio"
+                  ],
+                  "count": 26,
+                  "probability": 0.9285714285714286,
+                  "unique": 26,
+                  "hasDuplicates": false,
+                  "values": [
+                    0.6409,
+                    0.1366,
+                    0.1803,
+                    0.2248,
+                    0.4831,
+                    0.1846,
+                    0.7707,
+                    0.7207,
+                    0.2197,
+                    0.7506,
+                    0.094,
+                    0.7358,
+                    0.3262,
+                    0.7641,
+                    0.8039,
+                    0.6785,
+                    0.7456,
+                    0.1382,
+                    0.0982,
+                    0.8616,
+                    0.3532,
+                    0.543,
+                    0.2206,
+                    0.3028,
+                    0.4956,
+                    0.6141
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "femaleAudienceRatio"
+                  ],
+                  "count": 2,
+                  "probability": 0.07142857142857142
+                }
+              ]
+            },
+            {
+              "name": "lastUpdated",
+              "path": [
+                "performanceData",
+                "lastUpdated"
+              ],
+              "count": 17,
+              "type": [
+                "String",
+                "Undefined"
+              ],
+              "probability": 0.6071428571428571,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "String",
+                  "path": [
+                    "performanceData",
+                    "lastUpdated"
+                  ],
+                  "count": 17,
+                  "probability": 0.6071428571428571,
+                  "unique": 1,
+                  "hasDuplicates": true,
+                  "values": [
+                    "2025-11-08",
+                    "2025-11-08",
+                    "2025-11-08",
+                    "2025-11-08",
+                    "2025-11-08",
+                    "2025-11-08",
+                    "2025-11-08",
+                    "2025-11-08",
+                    "2025-11-08",
+                    "2025-11-08",
+                    "2025-11-08",
+                    "2025-11-08",
+                    "2025-11-08",
+                    "2025-11-08",
+                    "2025-11-08",
+                    "2025-11-08",
+                    "2025-11-08"
+                  ],
+                  "bsonType": "String"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "lastUpdated"
+                  ],
+                  "count": 11,
+                  "probability": 0.39285714285714285
+                }
+              ]
+            },
+            {
+              "name": "maleAudienceRatio",
+              "path": [
+                "performanceData",
+                "maleAudienceRatio"
+              ],
+              "count": 27,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.9642857142857143,
+              "hasDuplicates": false,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "maleAudienceRatio"
+                  ],
+                  "count": 27,
+                  "probability": 0.9642857142857143,
+                  "unique": 27,
+                  "hasDuplicates": false,
+                  "values": [
+                    0.3591,
+                    0.8634,
+                    0.8197,
+                    0.7752,
+                    0.5169,
+                    0.8154,
+                    0.2293,
+                    0.2793,
+                    0.7803,
+                    0.2494,
+                    0.906,
+                    0.2642,
+                    0.6738,
+                    0.2359,
+                    0.1961,
+                    0.3215,
+                    0.2544,
+                    0.8618,
+                    0.9018,
+                    0.1384,
+                    0.6468,
+                    0.457,
+                    0.7794,
+                    0.6972,
+                    0.5044,
+                    0.3859,
+                    0.2932
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 1,
+                  "hasDuplicates": false,
+                  "path": [
+                    "performanceData",
+                    "maleAudienceRatio"
+                  ],
+                  "count": 1,
+                  "probability": 0.03571428571428571
+                }
+              ]
+            },
+            {
+              "name": "ratio_18_23",
+              "path": [
+                "performanceData",
+                "ratio_18_23"
+              ],
+              "count": 25,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.8928571428571429,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "ratio_18_23"
+                  ],
+                  "count": 25,
+                  "probability": 0.8928571428571429,
+                  "unique": 24,
+                  "hasDuplicates": true,
+                  "values": [
+                    0.1023,
+                    0.1862,
+                    0.2833,
+                    0.092,
+                    0.2041,
+                    0.2826,
+                    0.0642,
+                    0.1507,
+                    0.0464,
+                    0.1231,
+                    0.0767,
+                    0.3513,
+                    0.1926,
+                    0.1881,
+                    0.0578,
+                    0.1231,
+                    0.1799,
+                    0.245,
+                    0.2093,
+                    0.3397,
+                    0.214,
+                    0.1894,
+                    0.0988,
+                    0.0986,
+                    0.1921
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "ratio_18_23"
+                  ],
+                  "count": 3,
+                  "probability": 0.10714285714285714
+                }
+              ]
+            },
+            {
+              "name": "ratio_24_30",
+              "path": [
+                "performanceData",
+                "ratio_24_30"
+              ],
+              "count": 25,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.8928571428571429,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "ratio_24_30"
+                  ],
+                  "count": 25,
+                  "probability": 0.8928571428571429,
+                  "unique": 25,
+                  "hasDuplicates": false,
+                  "values": [
+                    0.3418,
+                    0.3571,
+                    0.2581,
+                    0.2899,
+                    0.0755,
+                    0.2891,
+                    0.0768,
+                    0.1228,
+                    0.1856,
+                    0.1551,
+                    0.1682,
+                    0.1482,
+                    0.1734,
+                    0.245,
+                    0.2127,
+                    0.2131,
+                    0.2706,
+                    0.1473,
+                    0.2657,
+                    0.1439,
+                    0.2624,
+                    0.1084,
+                    0.0693,
+                    0.0564,
+                    0.2702
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "ratio_24_30"
+                  ],
+                  "count": 3,
+                  "probability": 0.10714285714285714
+                }
+              ]
+            },
+            {
+              "name": "ratio_31_40",
+              "path": [
+                "performanceData",
+                "ratio_31_40"
+              ],
+              "count": 22,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.7857142857142857,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "ratio_31_40"
+                  ],
+                  "count": 21,
+                  "probability": 0.75,
+                  "unique": 21,
+                  "hasDuplicates": false,
+                  "values": [
+                    0.3913,
+                    0.3373,
+                    0.2094,
+                    0.4506,
+                    0.1057,
+                    0.2484,
+                    0.2802,
+                    0.2201,
+                    0.5132,
+                    0.3142,
+                    0.4305,
+                    0.0947,
+                    0.2692,
+                    0.2388,
+                    0.4477,
+                    0.381,
+                    0.2299,
+                    0.1881,
+                    0.3468,
+                    0.0685,
+                    0.2871
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "ratio_31_40"
+                  ],
+                  "count": 6,
+                  "probability": 0.21428571428571427
+                }
+              ]
+            },
+            {
+              "name": "ratio_41_50",
+              "path": [
+                "performanceData",
+                "ratio_41_50"
+              ],
+              "count": 21,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.75,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "ratio_41_50"
+                  ],
+                  "count": 21,
+                  "probability": 0.75,
+                  "unique": 19,
+                  "hasDuplicates": true,
+                  "values": [
+                    0.1126,
+                    0.0467,
+                    0.0473,
+                    0.1109,
+                    0.04,
+                    0.0475,
+                    0.0647,
+                    0.0599,
+                    0.1797,
+                    0.0594,
+                    0.1957,
+                    0.039,
+                    0.0599,
+                    0.0429,
+                    0.1777,
+                    0.1109,
+                    0.0828,
+                    0.0801,
+                    0.0737,
+                    0.0257,
+                    0.0574
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "ratio_41_50"
+                  ],
+                  "count": 7,
+                  "probability": 0.25
+                }
+              ]
+            },
+            {
+              "name": "ratio_50_plus",
+              "path": [
+                "performanceData",
+                "ratio_50_plus"
+              ],
+              "count": 21,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.75,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "ratio_50_plus"
+                  ],
+                  "count": 21,
+                  "probability": 0.75,
+                  "unique": 21,
+                  "hasDuplicates": false,
+                  "values": [
+                    0.032,
+                    0.0109,
+                    0.0355,
+                    0.0316,
+                    0.0801,
+                    0.0178,
+                    0.2168,
+                    0.1842,
+                    0.057,
+                    0.1766,
+                    0.0886,
+                    0.0339,
+                    0.1015,
+                    0.0711,
+                    0.0764,
+                    0.0738,
+                    0.1391,
+                    0.0668,
+                    0.0205,
+                    0.0365,
+                    0.0415
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "ratio_50_plus"
+                  ],
+                  "count": 7,
+                  "probability": 0.25
+                }
+              ]
+            },
+            {
+              "name": "ratio_exquisite_mom",
+              "path": [
+                "performanceData",
+                "ratio_exquisite_mom"
+              ],
+              "count": 17,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.6071428571428571,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "ratio_exquisite_mom"
+                  ],
+                  "count": 17,
+                  "probability": 0.6071428571428571,
+                  "unique": 17,
+                  "hasDuplicates": false,
+                  "values": [
+                    0.0804,
+                    0.0231,
+                    0.032,
+                    0.0534,
+                    0.0116,
+                    0.0309,
+                    0.0349,
+                    0.0339,
+                    0.0427,
+                    0.0675,
+                    0.0149,
+                    0.0313,
+                    0.0419,
+                    0.0968,
+                    0.0851,
+                    0.1256,
+                    0.1201
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "ratio_exquisite_mom"
+                  ],
+                  "count": 11,
+                  "probability": 0.39285714285714285
+                }
+              ]
+            },
+            {
+              "name": "ratio_new_white_collar",
+              "path": [
+                "performanceData",
+                "ratio_new_white_collar"
+              ],
+              "count": 15,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.5357142857142857,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "ratio_new_white_collar"
+                  ],
+                  "count": 15,
+                  "probability": 0.5357142857142857,
+                  "unique": 15,
+                  "hasDuplicates": false,
+                  "values": [
+                    0.0832,
+                    0.2607,
+                    0.2311,
+                    0.2799,
+                    0.0528,
+                    0.2401,
+                    0.048,
+                    0.0778,
+                    0.2525,
+                    0.0884,
+                    0.2382,
+                    0.1182,
+                    0.1796,
+                    0.131,
+                    0.051
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "ratio_new_white_collar"
+                  ],
+                  "count": 13,
+                  "probability": 0.4642857142857143
+                }
+              ]
+            },
+            {
+              "name": "ratio_senior_middle_class",
+              "path": [
+                "performanceData",
+                "ratio_senior_middle_class"
+              ],
+              "count": 13,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.4642857142857143,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "ratio_senior_middle_class"
+                  ],
+                  "count": 13,
+                  "probability": 0.4642857142857143,
+                  "unique": 13,
+                  "hasDuplicates": false,
+                  "values": [
+                    0.0359,
+                    0.0385,
+                    0.0314,
+                    0.0804,
+                    0.0137,
+                    0.0369,
+                    0.0475,
+                    0.0381,
+                    0.1249,
+                    0.0367,
+                    0.1081,
+                    0.0169,
+                    0.0425
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "ratio_senior_middle_class"
+                  ],
+                  "count": 15,
+                  "probability": 0.5357142857142857
+                }
+              ]
+            },
+            {
+              "name": "ratio_town_middle_aged",
+              "path": [
+                "performanceData",
+                "ratio_town_middle_aged"
+              ],
+              "count": 13,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.4642857142857143,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "ratio_town_middle_aged"
+                  ],
+                  "count": 13,
+                  "probability": 0.4642857142857143,
+                  "unique": 12,
+                  "hasDuplicates": true,
+                  "values": [
+                    0.0877,
+                    0.028,
+                    0.0286,
+                    0.0598,
+                    0.0286,
+                    0.0325,
+                    0.1102,
+                    0.0851,
+                    0.0884,
+                    0.0937,
+                    0.0989,
+                    0.0202,
+                    0.0547
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "ratio_town_middle_aged"
+                  ],
+                  "count": 15,
+                  "probability": 0.5357142857142857
+                }
+              ]
+            },
+            {
+              "name": "ratio_town_youth",
+              "path": [
+                "performanceData",
+                "ratio_town_youth"
+              ],
+              "count": 12,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.42857142857142855,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "ratio_town_youth"
+                  ],
+                  "count": 11,
+                  "probability": 0.39285714285714285,
+                  "unique": 11,
+                  "hasDuplicates": false,
+                  "values": [
+                    0.309,
+                    0.2585,
+                    0.224,
+                    0.2141,
+                    0.2285,
+                    0.2476,
+                    0.2348,
+                    0.2115,
+                    0.1616,
+                    0.2244,
+                    0.1503
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "ratio_town_youth"
+                  ],
+                  "count": 16,
+                  "probability": 0.5714285714285714
+                }
+              ]
+            },
+            {
+              "name": "ratio_urban_blue_collar",
+              "path": [
+                "performanceData",
+                "ratio_urban_blue_collar"
+              ],
+              "count": 10,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.35714285714285715,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "ratio_urban_blue_collar"
+                  ],
+                  "count": 10,
+                  "probability": 0.35714285714285715,
+                  "unique": 10,
+                  "hasDuplicates": false,
+                  "values": [
+                    0.3257,
+                    0.254,
+                    0.1499,
+                    0.2215,
+                    0.0909,
+                    0.165,
+                    0.1611,
+                    0.1409,
+                    0.2349,
+                    0.2084
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "ratio_urban_blue_collar"
+                  ],
+                  "count": 18,
+                  "probability": 0.6428571428571429
+                }
+              ]
+            },
+            {
+              "name": "ratio_urban_silver",
+              "path": [
+                "performanceData",
+                "ratio_urban_silver"
+              ],
+              "count": 9,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.32142857142857145,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "ratio_urban_silver"
+                  ],
+                  "count": 9,
+                  "probability": 0.32142857142857145,
+                  "unique": 9,
+                  "hasDuplicates": false,
+                  "values": [
+                    0.0335,
+                    0.0099,
+                    0.0198,
+                    0.0354,
+                    0.0235,
+                    0.0108,
+                    0.1049,
+                    0.0895,
+                    0.0745
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "ratio_urban_silver"
+                  ],
+                  "count": 19,
+                  "probability": 0.6785714285714286
+                }
+              ]
+            },
+            {
+              "name": "ratio_z_era",
+              "path": [
+                "performanceData",
+                "ratio_z_era"
+              ],
+              "count": 9,
+              "type": [
+                "Number",
+                "Undefined"
+              ],
+              "probability": 0.32142857142857145,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Number",
+                  "path": [
+                    "performanceData",
+                    "ratio_z_era"
+                  ],
+                  "count": 9,
+                  "probability": 0.32142857142857145,
+                  "unique": 9,
+                  "hasDuplicates": false,
+                  "values": [
+                    0.0446,
+                    0.1273,
+                    0.2832,
+                    0.0556,
+                    0.5504,
+                    0.2362,
+                    0.2585,
+                    0.3231,
+                    0.0204
+                  ],
+                  "bsonType": "Number"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "performanceData",
+                    "ratio_z_era"
+                  ],
+                  "count": 19,
+                  "probability": 0.6785714285714286
+                }
               ]
             }
-          }
+          ]
         }
       ]
     },
-    "Date": {
-      "type": "object",
-      "properties": {
-        "$date": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "$date"
+    {
+      "name": "prices",
+      "path": [
+        "prices"
       ],
-      "additionalProperties": false
+      "count": 86,
+      "type": "Array",
+      "probability": 21.5,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "Array",
+          "path": [
+            "prices"
+          ],
+          "count": 86,
+          "probability": 21.5,
+          "unique": null,
+          "hasDuplicates": null,
+          "values": null,
+          "bsonType": "Array",
+          "types": [
+            {
+              "name": "Document",
+              "path": [
+                "prices"
+              ],
+              "count": 440,
+              "probability": 1,
+              "unique": null,
+              "hasDuplicates": null,
+              "values": null,
+              "bsonType": "Document",
+              "fields": [
+                {
+                  "name": "month",
+                  "path": [
+                    "prices",
+                    "month"
+                  ],
+                  "count": 426,
+                  "type": [
+                    "Number",
+                    "Undefined"
+                  ],
+                  "probability": 0.9681818181818181,
+                  "hasDuplicates": true,
+                  "types": [
+                    {
+                      "name": "Number",
+                      "path": [
+                        "prices",
+                        "month"
+                      ],
+                      "count": 425,
+                      "probability": 0.9659090909090909,
+                      "unique": 9,
+                      "hasDuplicates": true,
+                      "values": [
+                        9,
+                        9,
+                        9,
+                        9,
+                        9,
+                        9,
+                        9,
+                        10,
+                        9,
+                        10,
+                        9,
+                        10,
+                        9,
+                        10,
+                        10,
+                        9,
+                        10,
+                        9,
+                        10,
+                        10,
+                        9,
+                        9,
+                        10,
+                        10,
+                        9,
+                        10,
+                        10,
+                        10,
+                        9,
+                        10,
+                        5,
+                        5,
+                        9,
+                        10,
+                        10,
+                        10,
+                        10,
+                        3,
+                        9,
+                        10,
+                        10,
+                        9,
+                        7,
+                        10,
+                        11,
+                        10,
+                        9,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        9,
+                        10,
+                        9,
+                        10,
+                        10,
+                        10,
+                        9,
+                        5,
+                        10,
+                        9,
+                        9,
+                        10,
+                        11,
+                        10,
+                        9,
+                        2,
+                        10,
+                        10,
+                        11,
+                        11,
+                        10,
+                        10,
+                        10,
+                        9,
+                        11,
+                        10,
+                        10,
+                        10,
+                        9,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        10,
+                        11,
+                        10,
+                        10,
+                        9,
+                        11,
+                        10,
+                        10,
+                        10,
+                        11,
+                        10,
+                        9,
+                        9,
+                        10,
+                        10,
+                        5,
+                        9,
+                        11,
+                        11,
+                        11,
+                        10,
+                        10,
+                        9,
+                        11,
+                        10,
+                        11,
+                        11,
+                        10,
+                        9,
+                        11,
+                        10,
+                        11,
+                        10,
+                        9,
+                        11,
+                        10,
+                        10,
+                        9,
+                        11,
+                        11,
+                        10,
+                        9,
+                        10,
+                        10,
+                        11,
+                        10,
+                        10,
+                        10,
+                        11,
+                        11,
+                        10,
+                        10,
+                        10,
+                        10,
+                        9,
+                        4,
+                        10,
+                        11,
+                        11,
+                        10,
+                        9,
+                        11,
+                        10,
+                        11,
+                        10,
+                        11,
+                        9,
+                        11,
+                        11,
+                        10,
+                        11,
+                        10,
+                        11,
+                        10,
+                        9,
+                        4,
+                        11,
+                        10,
+                        9,
+                        11,
+                        10,
+                        11,
+                        11,
+                        10,
+                        9,
+                        10,
+                        11,
+                        10,
+                        11,
+                        10,
+                        10,
+                        9,
+                        11,
+                        11,
+                        10,
+                        10,
+                        10,
+                        9,
+                        10,
+                        10,
+                        10,
+                        10,
+                        11,
+                        9,
+                        11,
+                        10,
+                        11,
+                        10,
+                        11,
+                        10,
+                        9,
+                        9,
+                        10,
+                        11,
+                        11,
+                        10,
+                        11,
+                        10,
+                        11,
+                        11,
+                        10,
+                        10,
+                        9,
+                        11,
+                        11,
+                        10,
+                        11,
+                        10,
+                        11,
+                        9,
+                        11,
+                        10,
+                        6,
+                        2,
+                        11,
+                        10,
+                        9,
+                        11,
+                        11,
+                        10,
+                        11,
+                        11,
+                        10,
+                        9,
+                        10,
+                        11,
+                        10,
+                        11,
+                        10,
+                        10,
+                        10,
+                        9,
+                        9,
+                        10,
+                        11,
+                        10,
+                        11,
+                        10,
+                        9,
+                        11,
+                        10,
+                        10,
+                        10,
+                        11,
+                        10,
+                        9,
+                        11,
+                        11,
+                        10,
+                        10,
+                        9,
+                        10,
+                        11,
+                        10,
+                        11,
+                        10,
+                        9,
+                        10,
+                        11,
+                        10,
+                        10,
+                        9,
+                        9,
+                        11,
+                        11,
+                        10,
+                        11,
+                        11,
+                        10,
+                        10,
+                        11,
+                        9,
+                        11,
+                        10,
+                        11,
+                        11,
+                        10,
+                        11,
+                        10,
+                        9,
+                        11,
+                        11,
+                        10,
+                        10,
+                        10,
+                        11,
+                        10,
+                        9,
+                        11,
+                        10,
+                        11,
+                        10,
+                        10,
+                        10,
+                        9,
+                        11,
+                        10,
+                        11,
+                        11,
+                        10,
+                        9,
+                        10,
+                        10,
+                        10,
+                        11,
+                        10,
+                        9,
+                        11,
+                        10,
+                        10,
+                        11,
+                        10,
+                        9,
+                        10,
+                        10,
+                        10,
+                        11,
+                        10,
+                        11,
+                        11,
+                        10,
+                        10,
+                        10,
+                        10,
+                        11,
+                        10,
+                        11,
+                        11,
+                        10,
+                        9,
+                        11,
+                        11,
+                        10,
+                        11,
+                        11,
+                        10,
+                        10,
+                        10,
+                        9,
+                        11,
+                        10,
+                        11,
+                        10,
+                        11,
+                        10,
+                        9,
+                        10,
+                        11,
+                        10,
+                        11,
+                        10,
+                        11,
+                        9,
+                        11,
+                        10,
+                        11,
+                        10,
+                        10,
+                        9,
+                        11,
+                        10,
+                        11,
+                        10,
+                        10,
+                        11,
+                        10,
+                        11,
+                        10,
+                        10,
+                        11,
+                        10,
+                        9,
+                        11,
+                        10,
+                        10,
+                        10,
+                        11,
+                        10,
+                        9,
+                        11,
+                        11,
+                        10,
+                        11,
+                        6,
+                        10,
+                        11,
+                        11,
+                        10,
+                        9,
+                        10,
+                        11,
+                        10,
+                        11,
+                        5,
+                        11,
+                        10,
+                        9,
+                        11,
+                        10,
+                        11,
+                        11,
+                        10,
+                        11,
+                        10,
+                        9,
+                        10,
+                        11,
+                        10,
+                        11,
+                        10,
+                        11,
+                        10,
+                        11,
+                        10,
+                        11,
+                        10,
+                        9
+                      ],
+                      "bsonType": "Number"
+                    },
+                    {
+                      "name": "Undefined",
+                      "bsonType": "Undefined",
+                      "unique": 0,
+                      "hasDuplicates": true,
+                      "path": [
+                        "prices",
+                        "month"
+                      ],
+                      "count": 14,
+                      "probability": 0.031818181818181815
+                    }
+                  ]
+                },
+                {
+                  "name": "price",
+                  "path": [
+                    "prices",
+                    "price"
+                  ],
+                  "count": 412,
+                  "type": [
+                    "Number",
+                    "Undefined"
+                  ],
+                  "probability": 0.9363636363636364,
+                  "hasDuplicates": true,
+                  "types": [
+                    {
+                      "name": "Number",
+                      "path": [
+                        "prices",
+                        "price"
+                      ],
+                      "count": 409,
+                      "probability": 0.9295454545454546,
+                      "unique": 109,
+                      "hasDuplicates": true,
+                      "values": [
+                        98888,
+                        60000,
+                        120000,
+                        158000,
+                        198000,
+                        48000,
+                        86000,
+                        98888,
+                        339000,
+                        60000,
+                        260000,
+                        120000,
+                        70000,
+                        158000,
+                        198000,
+                        53000,
+                        48000,
+                        200000,
+                        86000,
+                        90000,
+                        312500,
+                        48888,
+                        339000,
+                        50000,
+                        260000,
+                        60000,
+                        120200,
+                        288000,
+                        70000,
+                        158000,
+                        100000,
+                        158000,
+                        80000,
+                        53000,
+                        200000,
+                        35000,
+                        45000,
+                        40000,
+                        90000,
+                        76000,
+                        50000,
+                        205000,
+                        28888,
+                        150000,
+                        50000,
+                        298000,
+                        34800,
+                        45000,
+                        288000,
+                        90000,
+                        130000,
+                        86000,
+                        94200,
+                        50000,
+                        110000,
+                        125000,
+                        80000,
+                        210000,
+                        120000,
+                        100000,
+                        48000,
+                        40000,
+                        550000,
+                        36250,
+                        40000,
+                        150000,
+                        43000,
+                        30000,
+                        312500,
+                        98888,
+                        72000,
+                        150000,
+                        85000,
+                        199000,
+                        32000,
+                        60000,
+                        40000,
+                        100000,
+                        66400,
+                        130000,
+                        120000,
+                        84800,
+                        248000,
+                        24000,
+                        110000,
+                        108000,
+                        210000,
+                        64800,
+                        60000,
+                        350000,
+                        43000,
+                        40000,
+                        550000,
+                        48000,
+                        95000,
+                        29100,
+                        230000,
+                        150000,
+                        86000,
+                        50000,
+                        185000,
+                        30000,
+                        450000,
+                        48888,
+                        57600,
+                        90000,
+                        95000,
+                        349000,
+                        28000,
+                        60000,
+                        125000,
+                        100000,
+                        35000,
+                        100000,
+                        260000,
+                        100000,
+                        65000,
+                        130200,
+                        188000,
+                        70000,
+                        158000,
+                        98000,
+                        130000,
+                        198000,
+                        90000,
+                        250000,
+                        40000,
+                        350000,
+                        53000,
+                        45000,
+                        190000,
+                        95000,
+                        29100,
+                        200000,
+                        76000,
+                        35000,
+                        500000,
+                        70000,
+                        98000,
+                        25000,
+                        450000,
+                        28888,
+                        90000,
+                        110200,
+                        580000,
+                        45000,
+                        100000,
+                        298000,
+                        130000,
+                        45000,
+                        80000,
+                        100000,
+                        50000,
+                        90000,
+                        90000,
+                        200000,
+                        86000,
+                        52100,
+                        99500,
+                        288000,
+                        50000,
+                        70000,
+                        153000,
+                        125000,
+                        58000,
+                        150000,
+                        76500,
+                        120000,
+                        90000,
+                        270000,
+                        80000,
+                        48000,
+                        90000,
+                        42000,
+                        150000,
+                        250000,
+                        340000,
+                        100000,
+                        43000,
+                        27000,
+                        400000,
+                        70000,
+                        40000,
+                        72000,
+                        85000,
+                        90000,
+                        25300,
+                        103500,
+                        580000,
+                        20000,
+                        250000,
+                        400000,
+                        120000,
+                        199000,
+                        72800,
+                        130000,
+                        150000,
+                        40000,
+                        90000,
+                        66400,
+                        85000,
+                        200000,
+                        65000,
+                        89200,
+                        248000,
+                        80000,
+                        96800,
+                        24000,
+                        50000,
+                        153000,
+                        108000,
+                        130000,
+                        150000,
+                        76500,
+                        64800,
+                        120000,
+                        250000,
+                        90000,
+                        60000,
+                        120000,
+                        80000,
+                        43000,
+                        90000,
+                        210000,
+                        250000,
+                        230000,
+                        330000,
+                        100000,
+                        40000,
+                        550000,
+                        35000,
+                        158000,
+                        57600,
+                        70200,
+                        80000,
+                        90000,
+                        24100,
+                        150000,
+                        55000,
+                        60000,
+                        70000,
+                        200000,
+                        350000,
+                        120000,
+                        72800,
+                        125000,
+                        390000,
+                        400000,
+                        35000,
+                        85000,
+                        100000,
+                        120000,
+                        188000,
+                        100000,
+                        60000,
+                        96800,
+                        80000,
+                        98000,
+                        200000,
+                        120000,
+                        52100,
+                        150000,
+                        110000,
+                        98000,
+                        100000,
+                        100000,
+                        40000,
+                        100000,
+                        80000,
+                        120000,
+                        190000,
+                        80000,
+                        180000,
+                        250000,
+                        250000,
+                        200000,
+                        350000,
+                        35000,
+                        500000,
+                        70000,
+                        65000,
+                        30000,
+                        158000,
+                        70200,
+                        95000,
+                        29100,
+                        110200,
+                        120000,
+                        200000,
+                        50000,
+                        50000,
+                        70000,
+                        250000,
+                        450000,
+                        80000,
+                        38000,
+                        80000,
+                        260500,
+                        400000,
+                        110000,
+                        95000,
+                        100000,
+                        75000,
+                        66800,
+                        80100,
+                        100000,
+                        100000,
+                        70000,
+                        32000,
+                        58000,
+                        160000,
+                        120000,
+                        48000,
+                        88000,
+                        75000,
+                        90000,
+                        66000,
+                        100000,
+                        100000,
+                        150000,
+                        120000,
+                        150000,
+                        25000,
+                        72000,
+                        180000,
+                        230000,
+                        340000,
+                        70000,
+                        92000,
+                        27000,
+                        400000,
+                        70000,
+                        100000,
+                        69400,
+                        85000,
+                        200000,
+                        98000,
+                        25300,
+                        100000,
+                        100000,
+                        200000,
+                        20000,
+                        70000,
+                        200000,
+                        400000,
+                        148000,
+                        180000,
+                        66200,
+                        50000,
+                        38000,
+                        580000,
+                        100000,
+                        60000,
+                        400000,
+                        90000,
+                        95000,
+                        75000,
+                        56800,
+                        130000,
+                        80000,
+                        300000,
+                        108000,
+                        50000,
+                        32000,
+                        250000,
+                        65000,
+                        85000,
+                        79200,
+                        75000,
+                        153000,
+                        120000,
+                        110000,
+                        58000,
+                        80000,
+                        88000,
+                        290000,
+                        80000,
+                        70000,
+                        340000,
+                        330000,
+                        55000,
+                        98000,
+                        90000,
+                        80000,
+                        65000,
+                        170000,
+                        20000,
+                        180000,
+                        250000,
+                        80000,
+                        160000,
+                        98000,
+                        24100,
+                        130000,
+                        120000,
+                        60000,
+                        60000,
+                        200000,
+                        350000,
+                        128000,
+                        195000,
+                        61100,
+                        90000,
+                        390000,
+                        86000,
+                        90000,
+                        40000,
+                        400000,
+                        120000
+                      ],
+                      "bsonType": "Number"
+                    },
+                    {
+                      "name": "Undefined",
+                      "bsonType": "Undefined",
+                      "unique": 0,
+                      "hasDuplicates": true,
+                      "path": [
+                        "prices",
+                        "price"
+                      ],
+                      "count": 28,
+                      "probability": 0.06363636363636363
+                    }
+                  ]
+                },
+                {
+                  "name": "status",
+                  "path": [
+                    "prices",
+                    "status"
+                  ],
+                  "count": 403,
+                  "type": [
+                    "String",
+                    "Undefined"
+                  ],
+                  "probability": 0.9159090909090909,
+                  "hasDuplicates": true,
+                  "types": [
+                    {
+                      "name": "String",
+                      "path": [
+                        "prices",
+                        "status"
+                      ],
+                      "count": 401,
+                      "probability": 0.9113636363636364,
+                      "unique": 1,
+                      "hasDuplicates": true,
+                      "values": [
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed",
+                        "confirmed"
+                      ],
+                      "bsonType": "String"
+                    },
+                    {
+                      "name": "Undefined",
+                      "bsonType": "Undefined",
+                      "unique": 0,
+                      "hasDuplicates": true,
+                      "path": [
+                        "prices",
+                        "status"
+                      ],
+                      "count": 37,
+                      "probability": 0.08409090909090909
+                    }
+                  ]
+                },
+                {
+                  "name": "type",
+                  "path": [
+                    "prices",
+                    "type"
+                  ],
+                  "count": 412,
+                  "type": [
+                    "String",
+                    "Undefined"
+                  ],
+                  "probability": 0.9363636363636364,
+                  "hasDuplicates": true,
+                  "types": [
+                    {
+                      "name": "String",
+                      "path": [
+                        "prices",
+                        "type"
+                      ],
+                      "count": 410,
+                      "probability": 0.9318181818181818,
+                      "unique": 3,
+                      "hasDuplicates": true,
+                      "values": [
+                        "60s_plus",
+                        "60s_plus",
+                        "60s_plus",
+                        "20_to_60s",
+                        "60s_plus",
+                        "60s_plus",
+                        "60s_plus",
+                        "20_to_60s",
+                        "60s_plus",
+                        "60s_plus",
+                        "60s_plus",
+                        "1_to_20s",
+                        "60s_plus",
+                        "20_to_60s",
+                        "60s_plus",
+                        "1_to_20s",
+                        "60s_plus",
+                        "1_to_20s",
+                        "60s_plus",
+                        "60s_plus",
+                        "20_to_60s",
+                        "60s_plus",
+                        "20_to_60s",
+                        "60s_plus",
+                        "60s_plus",
+                        "60s_plus",
+                        "60s_plus",
+                        "20_to_60s",
+                        "60s_plus",
+                        "20_to_60s",
+                        "60s_plus",
+                        "20_to_60s",
+                        "60s_plus",
+                        "1_to_20s",
+                        "60s_plus",
+                        "60s_plus",
+                        "20_to_60s",
+                        "1_to_20s",
+                        "60s_plus",
+                        "60s_plus",
+                        "20_to_60s",
+                        "60s_plus",
+                        "60s_plus",
+                        "60s_plus",
+                        "1_to_20s",
+                        "60s_plus",
+                        "60s_plus",
+                        "60s_plus",
+                        "20_to_60s",
+                        "20_to_60s",
+                        "1_to_20s",
+                        "1_to_20s",
+                        "60s_plus",
+                        "1_to_20s",
+                        "60s_plus",
+                        "60s_plus",
+                        "60s_plus",
+                        "60s_plus",
+                        "1_to_20s",
+                        "60s_plus",
+                        "20_to_60s",
+                        "20_to_60s",
+                        "60s_plus",
+                        "60s_plus",
+                        "1_to_20s",
+                        "20_to_60s",
+                        "20_to_60s",
+                        "1_to_20s",
+                        "20_to_60s",
+                        "20_to_60s",
+                        "20_to_60s",
+                        "60s_plus",
+                        "1_to_20s",
+                        "60s_plus",
+                        "20_to_60s",
+                        "1_to_20s",
+                        "1_to_20s",
+                        "1_to_20s",
+                        "1_to_20s",
+                        "60s_plus",
+                        "1_to_20s",
+                        "20_to_60s",
+                        "60s_plus",
+                        "60s_plus",
+                        "20_to_60s",
+                        "60s_plus",
+                        "1_to_20s",
+                        "60s_plus",
+                        "20_to_60s",
+                        "60s_plus",
+                        "60s_plus",
+                        "20_to_60s",
+                        "60s_plus",
+                        "60s_plus",
+                        "20_to_60s",
+                        "60s_plus",
+                        "20_to_60s",
+                        "60s_plus",
+                        "1_to_20s",
+                        "20_to_60s"
+                      ],
+                      "bsonType": "String"
+                    },
+                    {
+                      "name": "Undefined",
+                      "bsonType": "Undefined",
+                      "unique": 0,
+                      "hasDuplicates": true,
+                      "path": [
+                        "prices",
+                        "type"
+                      ],
+                      "count": 28,
+                      "probability": 0.06363636363636363
+                    }
+                  ]
+                },
+                {
+                  "name": "year",
+                  "path": [
+                    "prices",
+                    "year"
+                  ],
+                  "count": 437,
+                  "type": [
+                    "Number",
+                    "Undefined"
+                  ],
+                  "probability": 0.9931818181818182,
+                  "hasDuplicates": true,
+                  "types": [
+                    {
+                      "name": "Number",
+                      "path": [
+                        "prices",
+                        "year"
+                      ],
+                      "count": 434,
+                      "probability": 0.9863636363636363,
+                      "unique": 1,
+                      "hasDuplicates": true,
+                      "values": [
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025,
+                        2025
+                      ],
+                      "bsonType": "Number"
+                    },
+                    {
+                      "name": "Undefined",
+                      "bsonType": "Undefined",
+                      "unique": 0,
+                      "hasDuplicates": true,
+                      "path": [
+                        "prices",
+                        "year"
+                      ],
+                      "count": 3,
+                      "probability": 0.006818181818181818
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "totalCount": 440,
+          "lengths": [
+            7,
+            7,
+            7,
+            8,
+            8,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            8,
+            7,
+            10,
+            7,
+            6,
+            7,
+            7,
+            8,
+            7,
+            8,
+            3,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            8,
+            7,
+            8,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            8,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            7,
+            6,
+            7,
+            9,
+            8,
+            7,
+            7,
+            7,
+            7,
+            6,
+            7,
+            9,
+            8,
+            7,
+            8,
+            7,
+            7,
+            6,
+            7,
+            7,
+            7,
+            7,
+            7,
+            3,
+            7
+          ],
+          "averageLength": 5.116279069767442
+        }
+      ]
+    },
+    {
+      "name": "rebates",
+      "path": [
+        "rebates"
+      ],
+      "count": 30,
+      "type": "Array",
+      "probability": 7.5,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "Array",
+          "path": [
+            "rebates"
+          ],
+          "count": 29,
+          "probability": 7.25,
+          "unique": null,
+          "hasDuplicates": null,
+          "values": null,
+          "bsonType": "Array",
+          "types": [
+            {
+              "name": "Document",
+              "path": [
+                "rebates"
+              ],
+              "count": 28,
+              "probability": 1,
+              "unique": null,
+              "hasDuplicates": null,
+              "values": null,
+              "bsonType": "Document",
+              "fields": [
+                {
+                  "name": "rate",
+                  "path": [
+                    "rebates",
+                    "rate"
+                  ],
+                  "count": 28,
+                  "type": "Number",
+                  "probability": 1,
+                  "hasDuplicates": true,
+                  "types": [
+                    {
+                      "name": "Number",
+                      "path": [
+                        "rebates",
+                        "rate"
+                      ],
+                      "count": 28,
+                      "probability": 1,
+                      "unique": 11,
+                      "hasDuplicates": true,
+                      "values": [
+                        35,
+                        25,
+                        5,
+                        27,
+                        8,
+                        25,
+                        30,
+                        15,
+                        25,
+                        27,
+                        25,
+                        25,
+                        30,
+                        33,
+                        15,
+                        25,
+                        22,
+                        25,
+                        25,
+                        20,
+                        25,
+                        25,
+                        25,
+                        32,
+                        20,
+                        30,
+                        25,
+                        25
+                      ],
+                      "bsonType": "Number"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "totalCount": 28,
+          "lengths": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0,
+            1,
+            2,
+            1,
+            1,
+            0,
+            1,
+            2,
+            1,
+            1,
+            1,
+            1,
+            2,
+            1,
+            0
+          ],
+          "averageLength": 0.9655172413793104
+        }
+      ]
+    },
+    {
+      "name": "talentSource",
+      "path": [
+        "talentSource"
+      ],
+      "count": 91,
+      "type": "String",
+      "probability": 22.75,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "talentSource"
+          ],
+          "count": 91,
+          "probability": 22.75,
+          "unique": 2,
+          "hasDuplicates": true,
+          "values": [
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "机构达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人",
+            "野生达人"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "talentTier",
+      "path": [
+        "talentTier"
+      ],
+      "count": 90,
+      "type": "String",
+      "probability": 22.5,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "talentTier"
+          ],
+          "count": 89,
+          "probability": 22.25,
+          "unique": 3,
+          "hasDuplicates": true,
+          "values": [
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "重点达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "头部达人",
+            "常规达人",
+            "重点达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "重点达人",
+            "常规达人",
+            "常规达人",
+            "重点达人",
+            "重点达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "重点达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "重点达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "头部达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人",
+            "常规达人"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "talentType",
+      "path": [
+        "talentType"
+      ],
+      "count": 93,
+      "type": [
+        "Array",
+        "Null"
+      ],
+      "probability": 23.25,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Array",
+          "path": [
+            "talentType"
+          ],
+          "count": 92,
+          "probability": 23,
+          "unique": null,
+          "hasDuplicates": null,
+          "values": null,
+          "bsonType": "Array",
+          "types": [
+            {
+              "name": "String",
+              "path": [
+                "talentType"
+              ],
+              "count": 91,
+              "probability": 1,
+              "unique": 7,
+              "hasDuplicates": true,
+              "values": [
+                "剧情搞笑",
+                "剧情搞笑",
+                "三农",
+                "美食",
+                "剧情搞笑",
+                "美食",
+                "美食",
+                "剧情搞笑",
+                "三农",
+                "美食",
+                "美食",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "三农",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "美食",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "母婴亲子",
+                "运动健身",
+                "剧情搞笑",
+                "三农",
+                "美食",
+                "美食",
+                "运动健身",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "三农",
+                "运动健身",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "三农",
+                "剧情搞笑",
+                "剧情搞笑",
+                "美食",
+                "剧情搞笑",
+                "科技数码",
+                "剧情搞笑",
+                "剧情搞笑",
+                "美食",
+                "美食",
+                "三农",
+                "剧情搞笑",
+                "三农",
+                "运动健身",
+                "剧情搞笑",
+                "三农",
+                "母婴亲子",
+                "美食",
+                "剧情搞笑",
+                "生活",
+                "三农",
+                "母婴亲子",
+                "剧情搞笑",
+                "剧情搞笑",
+                "美食",
+                "剧情搞笑",
+                "美食",
+                "美食",
+                "三农",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑",
+                "剧情搞笑"
+              ],
+              "bsonType": "String"
+            }
+          ],
+          "totalCount": 91,
+          "lengths": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "averageLength": 0.9891304347826086
+        },
+        {
+          "name": "Null",
+          "path": [
+            "talentType"
+          ],
+          "count": 1,
+          "probability": 0.25,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": null,
+          "bsonType": "Null"
+        }
+      ]
+    },
+    {
+      "name": "uid",
+      "path": [
+        "uid"
+      ],
+      "count": 94,
+      "type": [
+        "String",
+        "Number"
+      ],
+      "probability": 23.5,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "uid"
+          ],
+          "count": 93,
+          "probability": 23.25,
+          "unique": 91,
+          "hasDuplicates": true,
+          "values": [
+            "77660100346",
+            "61936463473",
+            "1204672132025055",
+            "756896562951196",
+            "3320956676749535",
+            "668118911292903",
+            "66330345110",
+            "108701551143",
+            "91648174833",
+            "365496353954320",
+            "2796751719248720",
+            "4253382471320813",
+            "60507562521",
+            "1697238673790879",
+            "108433830763",
+            "396287080662355",
+            "95371247360",
+            "1450993778169764",
+            "88473872737",
+            "105540807765",
+            "128012529965759",
+            "2243427840042451",
+            "100945307022",
+            "93408337003",
+            "",
+            "77961126013",
+            "57739253108",
+            "3175020615441479",
+            "97896649528",
+            "446871383575092",
+            "544947914155431",
+            "4336107412000559",
+            "2005164616081176",
+            "",
+            "1322026766696883",
+            "58701108452",
+            "2817383912708878",
+            "3417763130912771",
+            "2422960710762380",
+            "",
+            "61449957822",
+            "97196785379",
+            "70563022822",
+            "58180322231",
+            "3636822291003720",
+            "3284966435725150",
+            "4257743899465891",
+            "3316552757158988",
+            "105236378632",
+            "223897924148323",
+            "2330566391247815",
+            "2422919386904580",
+            "1714858528616030",
+            "4494428809464823",
+            "60844292433",
+            "2997705390977209",
+            "69402042671",
+            "71715186418",
+            "64494531147",
+            "2210441404618372",
+            "932860549671213",
+            "3015290129488060",
+            "60674150831",
+            "95688304188",
+            "3624431698062875",
+            "2821771585659940",
+            "60004243329",
+            "61640758476",
+            "2272041361475390",
+            "2186242062025472",
+            "57901890121",
+            "2852562902715588",
+            "2616482972580196",
+            "104571122388",
+            "100922182532",
+            "4073036161769774",
+            "971591236465779",
+            "111075031881",
+            "11333655062",
+            "93088186539",
+            "57848661884",
+            "2568917370540668",
+            "85146266928",
+            "87263375759",
+            "57707549243",
+            "1764081616298624",
+            "2841612968527363",
+            "4406465742774600",
+            "4301741746304616",
+            "281124271820167",
+            "88818357757",
+            "61778794087",
+            "4424043154637933"
+          ],
+          "bsonType": "String"
+        },
+        {
+          "name": "Number",
+          "path": [
+            "uid"
+          ],
+          "count": 1,
+          "probability": 0.25,
+          "unique": 1,
+          "hasDuplicates": false,
+          "values": [
+            97024766288
+          ],
+          "bsonType": "Number"
+        }
+      ]
+    },
+    {
+      "name": "updatedAt",
+      "path": [
+        "updatedAt"
+      ],
+      "count": 38,
+      "type": "Date",
+      "probability": 9.5,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Date",
+          "path": [
+            "updatedAt"
+          ],
+          "count": 38,
+          "probability": 9.5,
+          "unique": 4,
+          "hasDuplicates": true,
+          "values": [
+            {
+              "$date": "2025-11-08T14:26:49.543Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.543Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.543Z"
+            },
+            {
+              "$date": "2025-11-07T04:28:53.733Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.544Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.543Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.543Z"
+            },
+            {
+              "$date": "2025-11-08T05:29:42.854Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.543Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.544Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.545Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.546Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.545Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.544Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.545Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.543Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.543Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.546Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.546Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.546Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.546Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.546Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.544Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.543Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.544Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.544Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.545Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.544Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.543Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.543Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.542Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.545Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.545Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.545Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.544Z"
+            },
+            {
+              "$date": "2025-11-10T08:58:03.762Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.544Z"
+            },
+            {
+              "$date": "2025-11-08T14:26:49.544Z"
+            }
+          ],
+          "bsonType": "Date"
+        }
+      ]
+    },
+    {
+      "name": "xingtuId",
+      "path": [
+        "xingtuId"
+      ],
+      "count": 96,
+      "type": "String",
+      "probability": 24,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "xingtuId"
+          ],
+          "count": 95,
+          "probability": 23.75,
+          "unique": 95,
+          "hasDuplicates": false,
+          "values": [
+            "6957845087271256078",
+            "7130913055618695206",
+            "7135287963826520072",
+            "6986161330965184527",
+            "7177283235062382596",
+            "7300819420513992723",
+            "7006330770524471333",
+            "7103335806894669863",
+            "6939434828748029956",
+            "6629724090141769735",
+            "6674481003504861198",
+            "7220474388238303270",
+            "7009575190858301471",
+            "6870160694822567949",
+            "6822811813361500173",
+            "6787671751988871176",
+            "6853434264382341120",
+            "7218719657685942276",
+            "6835897841567662093",
+            "7279599099073003579",
+            "6870164335059009544",
+            "6986329081017008159",
+            "7484971874066104370",
+            "7272250366354260025",
+            "7063710781757456420",
+            "6836398974685937678",
+            "7123798125076021255",
+            "6841754017362608136",
+            "6870160797973086222",
+            "6910512708622221325",
+            "6940207143446380544",
+            "7357303143379501056",
+            "7209273120375439364",
+            "6629666726525009923",
+            "7014675558785089577",
+            "6938254635073273886",
+            "7326860927909756979",
+            "6705398161059348491",
+            "7375369762894774282",
+            "6790158034132795406",
+            "7082597730383560712",
+            "7331219864578687002",
+            "7379279834037354506",
+            "6685724522282221571",
+            "6852516526931574798",
+            "6819657623923589127",
+            "6787703762354962445",
+            "7112879237329059871",
+            "7038526421597159454",
+            "6856359110196068359",
+            "7080148136030634015",
+            "7060256610815311913",
+            "7518812357133664307",
+            "7035545768010186789",
+            "6904479777185333255",
+            "7066670004124516359",
+            "6629656225334165518",
+            "7386467308819972146",
+            "6596678285671792648",
+            "6966184345732120576",
+            "7066078355879100451",
+            "7416952270643789874",
+            "7036615522741387271",
+            "7386923251542261811",
+            "6829513877898657799",
+            "6880409166247100416",
+            "7028416256604635167",
+            "7411904652150571023",
+            "6817430127408840711",
+            "7271874588861005880",
+            "7437487278525513755",
+            "7185015526454722619",
+            "6698353365702672395",
+            "7324539968151142437",
+            "6870170568893661197",
+            "6732368811535630340",
+            "7359781633618083850",
+            "7020804629856256000",
+            "7108913448343306254",
+            "6777811650595520526",
+            "6713054700209438724",
+            "6800239329600864264",
+            "7469503765981167654",
+            "6629656744874213380",
+            "6992872719331098661",
+            "6773979432215379982",
+            "6743985258808475660",
+            "7187603412588953638",
+            "7267772025819627579",
+            "7009861085230530567",
+            "7275987773763354661",
+            "7111571189520138277",
+            "6981744922500005901",
+            "6870171673753042951",
+            "7392600933076729883"
+          ],
+          "bsonType": "String"
+        }
+      ]
     }
-  }
+  ]
+}
+[
+  [ '_id' ],
+  [ '__EMPTY' ],
+  [ 'createdAt' ],
+  [ 'id' ],
+  [ 'nickname' ],
+  [ 'performanceData' ],
+  [ 'performanceData', 'audience_18_40_ratio' ],
+  [ 'performanceData', 'audience_40_plus_ratio' ],
+  [ 'performanceData', 'cpm60s' ],
+  [ 'performanceData', 'femaleAudienceRatio' ],
+  [ 'performanceData', 'lastUpdated' ],
+  [ 'performanceData', 'maleAudienceRatio' ],
+  [ 'performanceData', 'ratio_18_23' ],
+  [ 'performanceData', 'ratio_24_30' ],
+  [ 'performanceData', 'ratio_31_40' ],
+  [ 'performanceData', 'ratio_41_50' ],
+  [ 'performanceData', 'ratio_50_plus' ],
+  [ 'performanceData', 'ratio_exquisite_mom' ],
+  [ 'performanceData', 'ratio_new_white_collar' ],
+  [ 'performanceData', 'ratio_senior_middle_class' ],
+  [ 'performanceData', 'ratio_town_middle_aged' ],
+  [ 'performanceData', 'ratio_town_youth' ],
+  [ 'performanceData', 'ratio_urban_blue_collar' ],
+  [ 'performanceData', 'ratio_urban_silver' ],
+  [ 'performanceData', 'ratio_z_era' ],
+  [ 'prices' ],
+  [ 'prices', 'month' ],
+  [ 'prices', 'price' ],
+  [ 'prices', 'status' ],
+  [ 'prices', 'type' ],
+  [ 'prices', 'year' ],
+  [ 'rebates' ],
+  [ 'rebates', 'rate' ],
+  [ 'talentSource' ],
+  [ 'talentTier' ],
+  [ 'talentType' ],
+  [ 'uid' ],
+  [ 'updatedAt' ],
+  [ 'xingtuId' ]
+]
+[Object: null prototype] {
+  _id: { types: [ { bsonType: 'ObjectId' } ] },
+  id: { types: [ { bsonType: 'String' } ] },
+  nickname: { types: [ { bsonType: 'String' } ] },
+  xingtuId: { types: [ { bsonType: 'String' } ] },
+  uid: { types: [ { bsonType: 'String' }, { bsonType: 'Number' } ] },
+  talentType: {
+    types: [
+      { bsonType: 'Array', types: [ { bsonType: 'String' } ] },
+      { bsonType: 'Null' }
+    ]
+  },
+  talentSource: { types: [ { bsonType: 'String' } ] },
+  talentTier: { types: [ { bsonType: 'String' } ] },
+  createdAt: { types: [ { bsonType: 'Date' } ] },
+  prices: {
+    types: [
+      {
+        bsonType: 'Array',
+        types: [
+          {
+            bsonType: 'Document',
+            fields: [Object: null prototype] {
+              year: { types: [ { bsonType: 'Number' } ] },
+              month: { types: [ { bsonType: 'Number' } ] },
+              price: { types: [ { bsonType: 'Number' } ] },
+              status: { types: [ { bsonType: 'String' } ] },
+              type: { types: [ { bsonType: 'String' } ] }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  updatedAt: { types: [ { bsonType: 'Date' } ] },
+  performanceData: {
+    types: [
+      {
+        bsonType: 'Document',
+        fields: [Object: null prototype] {
+          cpm60s: { types: [ { bsonType: 'Number' } ] },
+          maleAudienceRatio: { types: [ { bsonType: 'Number' } ] },
+          femaleAudienceRatio: { types: [ { bsonType: 'Number' } ] },
+          ratio_18_23: { types: [ { bsonType: 'Number' } ] },
+          ratio_24_30: { types: [ { bsonType: 'Number' } ] },
+          ratio_31_40: { types: [ { bsonType: 'Number' } ] },
+          ratio_41_50: { types: [ { bsonType: 'Number' } ] },
+          ratio_50_plus: { types: [ { bsonType: 'Number' } ] },
+          audience_18_40_ratio: { types: [ { bsonType: 'Number' } ] },
+          audience_40_plus_ratio: { types: [ { bsonType: 'Number' } ] },
+          lastUpdated: { types: [ { bsonType: 'String' } ] },
+          ratio_exquisite_mom: { types: [ { bsonType: 'Number' } ] },
+          ratio_new_white_collar: { types: [ { bsonType: 'Number' } ] },
+          ratio_senior_middle_class: { types: [ { bsonType: 'Number' } ] },
+          ratio_town_middle_aged: { types: [ { bsonType: 'Number' } ] },
+          ratio_town_youth: { types: [ { bsonType: 'Number' } ] },
+          ratio_urban_blue_collar: { types: [ { bsonType: 'Number' } ] },
+          ratio_urban_silver: { types: [ { bsonType: 'Number' } ] },
+          ratio_z_era: { types: [ { bsonType: 'Number' } ] }
+        }
+      }
+    ]
+  },
+  rebates: {
+    types: [
+      {
+        bsonType: 'Array',
+        types: [
+          {
+            bsonType: 'Document',
+            fields: [Object: null prototype] {
+              rate: { types: [ { bsonType: 'Number' } ] }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  __EMPTY: { types: [ { bsonType: 'String' }, { bsonType: 'Number' } ] }
 }

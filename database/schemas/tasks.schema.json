@@ -1,74 +1,1175 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "required": [
-    "_id",
-    "createdAt",
-    "description",
-    "relatedProjectId",
-    "status",
-    "title",
-    "type",
-    "updatedAt"
-  ],
-  "properties": {
-    "_id": {
-      "$ref": "#/$defs/ObjectId"
-    },
-    "completedBy": {
-      "type": "string"
-    },
-    "createdAt": {
-      "$ref": "#/$defs/Date"
-    },
-    "description": {
-      "type": "string"
-    },
-    "dueDate": {
-      "$ref": "#/$defs/Date"
-    },
-    "relatedProjectId": {
-      "type": "string"
-    },
-    "status": {
-      "type": "string"
-    },
-    "title": {
-      "type": "string"
-    },
-    "type": {
-      "type": "string"
-    },
-    "updatedAt": {
-      "$ref": "#/$defs/Date"
-    }
-  },
-  "$defs": {
-    "ObjectId": {
-      "type": "object",
-      "properties": {
-        "$oid": {
-          "type": "string",
-          "pattern": "^[0-9a-fA-F]{24}$"
-        }
-      },
-      "required": [
-        "$oid"
+  "count": 49,
+  "fields": [
+    {
+      "name": "_id",
+      "path": [
+        "_id"
       ],
-      "additionalProperties": false
-    },
-    "Date": {
-      "type": "object",
-      "properties": {
-        "$date": {
-          "type": "string",
-          "format": "date-time"
+      "count": 61,
+      "type": "ObjectId",
+      "probability": 1.2448979591836735,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "ObjectId",
+          "path": [
+            "_id"
+          ],
+          "count": 60,
+          "probability": 1.2244897959183674,
+          "unique": 60,
+          "hasDuplicates": false,
+          "values": [
+            {
+              "$oid": "68f6db1cbb5aa716af7db519"
+            },
+            {
+              "$oid": "68f4381fbb5aa716af48fefe"
+            },
+            {
+              "$oid": "68f6db1dbb5aa716af7db559"
+            },
+            {
+              "$oid": "68d1f11af32f55f6f57a5389"
+            },
+            {
+              "$oid": "68d8889af32f55f6f5f98563"
+            },
+            {
+              "$oid": "68ca7b57f32f55f6f5ed4969"
+            },
+            {
+              "$oid": "68c98dccf32f55f6f5db0749"
+            },
+            {
+              "$oid": "68c6e665f32f55f6f5a78e68"
+            },
+            {
+              "$oid": "68ca51c6f32f55f6f5e9d97b"
+            },
+            {
+              "$oid": "68f4381dbb5aa716af48fe9c"
+            },
+            {
+              "$oid": "68ca4f33f32f55f6f5e9a276"
+            },
+            {
+              "$oid": "68ca8a21f32f55f6f5ee8a73"
+            },
+            {
+              "$oid": "68ca8b6ef32f55f6f5eea7a2"
+            },
+            {
+              "$oid": "68f5b644bb5aa716af66fc64"
+            },
+            {
+              "$oid": "68f4381dbb5aa716af48fe87"
+            },
+            {
+              "$oid": "68df201af32f55f6f5761dea"
+            },
+            {
+              "$oid": "68e5b79af32f55f6f5f10b66"
+            },
+            {
+              "$oid": "690fe79abb5aa716af6cba9b"
+            },
+            {
+              "$oid": "68f4381abb5aa716af48fe36"
+            },
+            {
+              "$oid": "68f5b646bb5aa716af66fca2"
+            },
+            {
+              "$oid": "68f2e69abb5aa716af2e272e"
+            },
+            {
+              "$oid": "68e85a9abb5aa716af5e8947"
+            },
+            {
+              "$oid": "68ca51c6f32f55f6f5e9d98b"
+            },
+            {
+              "$oid": "68f4381cbb5aa716af48fe70"
+            },
+            {
+              "$oid": "68cb599af32f55f6f5fddca8"
+            },
+            {
+              "$oid": "68ca8a21f32f55f6f5ee8a6b"
+            },
+            {
+              "$oid": "68ca8a33f32f55f6f5ee8c63"
+            },
+            {
+              "$oid": "68ec4f00bb5aa716afac3048"
+            },
+            {
+              "$oid": "68f58999bb5aa716af6368d6"
+            },
+            {
+              "$oid": "68ec4f02bb5aa716afac30fd"
+            },
+            {
+              "$oid": "68d1f11af32f55f6f57a53bc"
+            },
+            {
+              "$oid": "68f4381cbb5aa716af48fe61"
+            },
+            {
+              "$oid": "68e1c31af32f55f6f5a741b7"
+            },
+            {
+              "$oid": "68ca7b57f32f55f6f5ed4974"
+            },
+            {
+              "$oid": "6906ad1abb5aa716afb6ec07"
+            },
+            {
+              "$oid": "68f4381ebb5aa716af48febf"
+            },
+            {
+              "$oid": "68f5b646bb5aa716af66fcbc"
+            },
+            {
+              "$oid": "68ca8b6ef32f55f6f5eea792"
+            },
+            {
+              "$oid": "68c79a40f32f55f6f5b515a8"
+            },
+            {
+              "$oid": "68f6db1abb5aa716af7db4ae"
+            },
+            {
+              "$oid": "68cf4e1af32f55f6f5489476"
+            },
+            {
+              "$oid": "68dd5391f32f55f6f5547fff"
+            },
+            {
+              "$oid": "68cf4e1af32f55f6f548949d"
+            },
+            {
+              "$oid": "68fa36ddbb5aa716afc0ffb0"
+            },
+            {
+              "$oid": "68ca081af32f55f6f5e4276a"
+            },
+            {
+              "$oid": "68f4381ebb5aa716af48feb1"
+            },
+            {
+              "$oid": "68d1f11af32f55f6f57a5398"
+            },
+            {
+              "$oid": "68ca51c6f32f55f6f5e9d983"
+            },
+            {
+              "$oid": "68ca8b6ef32f55f6f5eea79a"
+            },
+            {
+              "$oid": "68ca8a33f32f55f6f5ee8c5b"
+            },
+            {
+              "$oid": "68d09f99f32f55f6f5613a08"
+            },
+            {
+              "$oid": "68fa3d5cbb5aa716afc18e08"
+            },
+            {
+              "$oid": "68cdfc9af32f55f6f52fd752"
+            },
+            {
+              "$oid": "68c7a935f32f55f6f5b654de"
+            },
+            {
+              "$oid": "68e4661af32f55f6f5d87ed8"
+            },
+            {
+              "$oid": "68f1951abb5aa716af145462"
+            },
+            {
+              "$oid": "690d449abb5aa716af391d11"
+            },
+            {
+              "$oid": "68ca89edf32f55f6f5ee8526"
+            },
+            {
+              "$oid": "690d449cbb5aa716af391d48"
+            },
+            {
+              "$oid": "68c7a935f32f55f6f5b654e5"
+            }
+          ],
+          "bsonType": "ObjectId"
         }
-      },
-      "required": [
-        "$date"
+      ]
+    },
+    {
+      "name": "completedBy",
+      "path": [
+        "completedBy"
       ],
-      "additionalProperties": false
+      "count": 1,
+      "type": [
+        "String",
+        "Undefined"
+      ],
+      "probability": 0.02040816326530612,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "completedBy"
+          ],
+          "count": 1,
+          "probability": 0.02040816326530612,
+          "unique": 1,
+          "hasDuplicates": false,
+          "values": [
+            "3631592d"
+          ],
+          "bsonType": "String"
+        },
+        {
+          "name": "Undefined",
+          "bsonType": "Undefined",
+          "unique": 0,
+          "hasDuplicates": true,
+          "path": [
+            "completedBy"
+          ],
+          "count": 48,
+          "probability": 0.9795918367346939
+        }
+      ]
+    },
+    {
+      "name": "createdAt",
+      "path": [
+        "createdAt"
+      ],
+      "count": 57,
+      "type": "Date",
+      "probability": 1.163265306122449,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Date",
+          "path": [
+            "createdAt"
+          ],
+          "count": 56,
+          "probability": 1.1428571428571428,
+          "unique": 42,
+          "hasDuplicates": true,
+          "values": [
+            {
+              "$date": "2025-10-21T01:00:12.388Z"
+            },
+            {
+              "$date": "2025-10-19T01:00:15.681Z"
+            },
+            {
+              "$date": "2025-10-21T01:00:13.001Z"
+            },
+            {
+              "$date": "2025-09-23T01:00:10.197Z"
+            },
+            {
+              "$date": "2025-09-28T01:00:10.233Z"
+            },
+            {
+              "$date": "2025-09-17T09:11:51.339Z"
+            },
+            {
+              "$date": "2025-09-16T16:18:20.350Z"
+            },
+            {
+              "$date": "2025-09-14T15:59:33.128Z"
+            },
+            {
+              "$date": "2025-09-17T06:14:30.255Z"
+            },
+            {
+              "$date": "2025-10-19T01:00:13.737Z"
+            },
+            {
+              "$date": "2025-09-17T06:03:31.351Z"
+            },
+            {
+              "$date": "2025-09-17T10:14:57.745Z"
+            },
+            {
+              "$date": "2025-09-17T10:20:30.733Z"
+            },
+            {
+              "$date": "2025-10-20T04:10:44.282Z"
+            },
+            {
+              "$date": "2025-10-19T01:00:13.223Z"
+            },
+            {
+              "$date": "2025-10-03T01:00:10.297Z"
+            },
+            {
+              "$date": "2025-10-08T01:00:10.327Z"
+            },
+            {
+              "$date": "2025-11-09T01:00:10.520Z"
+            },
+            {
+              "$date": "2025-10-19T01:00:10.568Z"
+            },
+            {
+              "$date": "2025-10-20T04:10:46.001Z"
+            },
+            {
+              "$date": "2025-10-18T01:00:10.503Z"
+            },
+            {
+              "$date": "2025-10-10T01:00:10.497Z"
+            },
+            {
+              "$date": "2025-09-17T06:14:30.258Z"
+            },
+            {
+              "$date": "2025-10-19T01:00:12.725Z"
+            },
+            {
+              "$date": "2025-09-18T01:00:10.271Z"
+            },
+            {
+              "$date": "2025-09-17T10:14:57.744Z"
+            },
+            {
+              "$date": "2025-09-17T10:15:15.280Z"
+            },
+            {
+              "$date": "2025-10-13T00:59:44.562Z"
+            },
+            {
+              "$date": "2025-10-20T01:00:09.227Z"
+            },
+            {
+              "$date": "2025-10-13T00:59:46.356Z"
+            },
+            {
+              "$date": "2025-09-23T01:00:10.283Z"
+            },
+            {
+              "$date": "2025-10-19T01:00:12.245Z"
+            },
+            {
+              "$date": "2025-10-05T01:00:10.192Z"
+            },
+            {
+              "$date": "2025-09-17T09:11:51.343Z"
+            },
+            {
+              "$date": "2025-11-02T01:00:10.673Z"
+            },
+            {
+              "$date": "2025-10-19T01:00:14.700Z"
+            },
+            {
+              "$date": "2025-10-20T04:10:46.556Z"
+            },
+            {
+              "$date": "2025-09-17T10:20:30.730Z"
+            },
+            {
+              "$date": "2025-09-15T04:46:56.717Z"
+            },
+            {
+              "$date": "2025-10-21T01:00:10.530Z"
+            },
+            {
+              "$date": "2025-09-21T01:00:10.304Z"
+            },
+            {
+              "$date": "2025-10-01T16:15:13.597Z"
+            },
+            {
+              "$date": "2025-09-21T01:00:10.375Z"
+            },
+            {
+              "$date": "2025-10-23T14:08:29.049Z"
+            },
+            {
+              "$date": "2025-09-17T01:00:10.243Z"
+            },
+            {
+              "$date": "2025-10-19T01:00:14.231Z"
+            },
+            {
+              "$date": "2025-09-23T01:00:10.210Z"
+            },
+            {
+              "$date": "2025-09-17T06:14:30.257Z"
+            },
+            {
+              "$date": "2025-09-17T10:20:30.732Z"
+            },
+            {
+              "$date": "2025-09-17T10:15:15.279Z"
+            },
+            {
+              "$date": "2025-09-22T01:00:09.329Z"
+            },
+            {
+              "$date": "2025-10-23T14:36:12.713Z"
+            },
+            {
+              "$date": "2025-09-20T01:00:10.348Z"
+            },
+            {
+              "$date": "2025-09-15T05:50:45.916Z"
+            },
+            {
+              "$date": "2025-10-07T01:00:10.281Z"
+            },
+            {
+              "$date": "2025-10-17T01:00:10.453Z"
+            }
+          ],
+          "bsonType": "Date"
+        }
+      ]
+    },
+    {
+      "name": "description",
+      "path": [
+        "description"
+      ],
+      "count": 55,
+      "type": "String",
+      "probability": 1.1224489795918366,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "description"
+          ],
+          "count": 55,
+          "probability": 1.1224489795918366,
+          "unique": 55,
+          "hasDuplicates": false,
+          "values": [
+            "项目 [25年M5母亲节礼赠] 的 T+7 数据已逾期 7 天！",
+            "项目 [25年纪念日礼赠M4] 有 9 位达人今日或之前应发布但未更新状态。",
+            "项目 [25年达人联投思搜Q4] 有 3 位达人今日或之前应发布但未更新状态。",
+            "项目 [25年女性M9一分购] 的 T+7 数据已逾期 0 天！",
+            "项目 [25年女性M9秒杀] 有 1 位达人今日或之前应发布但未更新状态。",
+            "项目 [25年常规投放M2秒杀] 有 5 位达人今日或之前应发布但未更新状态。",
+            "项目 [25年男性覆盖M9一分购] 有 1 位达人今日或之前应发布但未更新状态。",
+            "项目 [25年女性M9一分购] 有 1 位达人今日或之前应发布但未更新状态。",
+            "项目 [25年日常礼赠M7] 的 T+7 数据已逾期 44 天！",
+            "项目 [25年520礼赠] 的 T+7 数据已逾期 152 天！",
+            "项目 [25年日常礼赠M7] 有 17 位达人今日或之前应发布但未更新状态。",
+            "项目 [25年常规投放M2秒杀] 的 T+21 数据已逾期 234 天！",
+            "项目 [25年常规投放M4大牌试用] 的T+21数据周期已结束，请确认最终数据，发送结算邮件，并将项目状态更新为‘待结算’。",
+            "项目 [25年纪念日礼赠M4] 的 T+7 数据已逾期 158 天！",
+            "项目 [25年常规投放M6秒杀] 的 T+21 数据已逾期 113 天！",
+            "项目 [25年日常礼赠M9] 的 T+7 数据已逾期 0 天！",
+            "项目 [男性覆盖M10] 有 1 位达人今日或之前应发布但未更新状态。",
+            "项目 [男性覆盖M10] 的 T+7 数据已逾期 0 天！",
+            "项目 [25年国补专项M6] 的 T+7 数据已逾期 122 天！",
+            "项目 [25年纪念日礼赠M4] 的 T+21 数据已逾期 144 天！",
+            "项目 [25年女性一分购双11大促] 有 1 位达人今日或之前应发布但未更新状态。",
+            "项目 [25年礼赠双11大促] 有 1 位达人今日或之前应发布但未更新状态。",
+            "项目 [25年日常礼赠M7] 的T+21数据周期已结束，请确认最终数据，发送结算邮件，并将项目状态更新为‘待结算’。",
+            "项目 [25年常规投放M6秒杀] 的 T+7 数据已逾期 127 天！",
+            "项目 [25年七夕礼赠M8] 的 T+21 数据已逾期 1 天！",
+            "项目 [25年常规投放M2秒杀] 的 T+7 数据已逾期 248 天！",
+            "项目 [25年M3春上新] 的 T+21 数据已逾期 204 天！",
+            "项目 [25年男性覆盖M9一分购] 的 T+21 数据已逾期 0 天！",
+            "项目 [25年女性M9一分购] 的 T+21 数据已逾期 0 天！",
+            "项目 [25年女性搜索双11大促] 有 1 位达人今日或之前应发布但未更新状态。",
+            "项目 [25年日常礼赠M9] 有 3 位达人今日或之前应发布但未更新状态。",
+            "项目 [25年国补专项M6] 的 T+21 数据已逾期 108 天！",
+            "项目 [25年常规投放M9秒杀] 的 T+21 数据已逾期 1 天！",
+            "项目 [25年M3春上新] 有 7 位达人今日或之前应发布但未更新状态。",
+            "项目 [25年日常礼赠M11] 有 1 位达人今日或之前应发布但未更新状态。",
+            "项目 [25年国补专项M5] 的 T+7 数据已逾期 146 天！",
+            "项目 [25年纪念日礼赠M4] 的T+21数据周期已结束，请确认最终数据，发送结算邮件，并将项目状态更新为‘待结算’。",
+            "项目 [25年常规投放M4大牌试用] 的 T+7 数据已逾期 172 天！",
+            "项目 [25年常规投放M8秒杀] 有 15 位达人今日或之前应发布但未更新状态。",
+            "项目 [25年M10话费] 有 1 位达人今日或之前应发布但未更新状态。",
+            "项目 [25年常规投放M9秒杀] 的 T+7 数据已逾期 0 天！",
+            "有 400 位达人缺少本月已确认的报价，请及时更新。",
+            "项目 [25年女性M8搜索] 的 T+21 数据已逾期 4 天！",
+            "项目 [25年M5母亲节礼赠] 的T+21数据周期已结束，请确认最终数据，发送结算邮件，并将项目状态更新为‘待结算’。",
+            "项目 [25年常规投放M7秒杀] 有 3 位达人今日或之前应发布但未更新状态。",
+            "项目 [25年520礼赠] 的 T+21 数据已逾期 138 天！",
+            "项目 [25年女性M9秒杀] 的 T+7 数据已逾期 5 天！",
+            "项目 [25年日常礼赠M7] 的 T+21 数据已逾期 30 天！",
+            "项目 [25年常规投放M4大牌试用] 的 T+21 数据已逾期 158 天！",
+            "项目 [25年M3春上新] 的 T+7 数据已逾期 218 天！",
+            "有 3 位达人的表现(performance)数据超过一周未更新，请及时处理。",
+            "项目 [25年女性M5搜索一分购] 的T+21数据周期已结束，请确认最终数据，发送结算邮件，并将项目状态更新为‘待结算’。",
+            "项目 [25年女性M8一分购] 的 T+21 数据已逾期 0 天！",
+            "项目 [25年常规投放M8秒杀] 的 T+7 数据已逾期 19 天！",
+            "项目 [25年女性M9秒杀] 的 T+21 数据已逾期 1 天！"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "dueDate",
+      "path": [
+        "dueDate"
+      ],
+      "count": 30,
+      "type": [
+        "Date",
+        "Undefined"
+      ],
+      "probability": 0.6122448979591837,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Date",
+          "path": [
+            "dueDate"
+          ],
+          "count": 30,
+          "probability": 0.6122448979591837,
+          "unique": 29,
+          "hasDuplicates": true,
+          "values": [
+            {
+              "$date": "2025-10-15T00:00:00Z"
+            },
+            {
+              "$date": "2025-10-05T00:00:00Z"
+            },
+            {
+              "$date": "2025-08-03T00:00:00Z"
+            },
+            {
+              "$date": "2025-05-23T00:00:00Z"
+            },
+            {
+              "$date": "2025-03-20T00:00:00Z"
+            },
+            {
+              "$date": "2025-05-14T00:00:00Z"
+            },
+            {
+              "$date": "2025-07-02T00:00:00Z"
+            },
+            {
+              "$date": "2025-10-02T00:00:00Z"
+            },
+            {
+              "$date": "2025-11-08T00:00:00Z"
+            },
+            {
+              "$date": "2025-06-22T00:00:00Z"
+            },
+            {
+              "$date": "2025-05-28T00:00:00Z"
+            },
+            {
+              "$date": "2025-06-18T00:00:00Z"
+            },
+            {
+              "$date": "2025-09-17T00:00:00Z"
+            },
+            {
+              "$date": "2025-03-06T00:00:00Z"
+            },
+            {
+              "$date": "2025-04-19T00:00:00Z"
+            },
+            {
+              "$date": "2025-10-12T00:00:00Z"
+            },
+            {
+              "$date": "2025-10-19T00:00:00Z"
+            },
+            {
+              "$date": "2025-07-06T00:00:00Z"
+            },
+            {
+              "$date": "2025-10-04T00:00:00Z"
+            },
+            {
+              "$date": "2025-05-29T00:00:00Z"
+            },
+            {
+              "$date": "2025-05-04T00:00:00Z"
+            },
+            {
+              "$date": "2025-09-20T00:00:00Z"
+            },
+            {
+              "$date": "2025-09-20T00:00:00Z"
+            },
+            {
+              "$date": "2025-06-06T00:00:00Z"
+            },
+            {
+              "$date": "2025-09-22T00:00:00Z"
+            },
+            {
+              "$date": "2025-08-17T00:00:00Z"
+            },
+            {
+              "$date": "2025-05-18T00:00:00Z"
+            },
+            {
+              "$date": "2025-04-05T00:00:00Z"
+            },
+            {
+              "$date": "2025-09-19T00:00:00Z"
+            },
+            {
+              "$date": "2025-08-26T00:00:00Z"
+            }
+          ],
+          "bsonType": "Date"
+        },
+        {
+          "name": "Undefined",
+          "bsonType": "Undefined",
+          "unique": 0,
+          "hasDuplicates": true,
+          "path": [
+            "dueDate"
+          ],
+          "count": 19,
+          "probability": 0.3877551020408163
+        }
+      ]
+    },
+    {
+      "name": "relatedProjectId",
+      "path": [
+        "relatedProjectId"
+      ],
+      "count": 59,
+      "type": "String",
+      "probability": 1.2040816326530612,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "relatedProjectId"
+          ],
+          "count": 59,
+          "probability": 1.2040816326530612,
+          "unique": 29,
+          "hasDuplicates": true,
+          "values": [
+            "proj_1760616426224_q7aenxp",
+            "proj_1760616531885_zwxgw8j",
+            "proj_1760681933176_gtvi2bj",
+            "proj_1757498008544_bjibdss",
+            "proj_1757498131467_5d2zq8t",
+            "proj_1758097720297_559eyui",
+            "proj_1757498060329_1p0nxm8",
+            "proj_1757498008544_bjibdss",
+            "proj_1758086839932_107uf0s",
+            "proj_1760616460585_66favmx",
+            "proj_1758086839932_107uf0s",
+            "proj_1758097720297_559eyui",
+            "proj_1758098760791_ttftusv",
+            "proj_1760616531885_zwxgw8j",
+            "proj_1760616348445_rxxz3hn",
+            "proj_1757699412131_cvytrph",
+            "proj_1759043847530_ciykak2",
+            "proj_1759043847530_ciykak2",
+            "proj_1760616300342_x28ecsl",
+            "proj_1760616531885_zwxgw8j",
+            "proj_1759046219254_b56x498",
+            "proj_1759044917192_py5qvc6",
+            "proj_1758086839932_107uf0s",
+            "proj_1760616348445_rxxz3hn",
+            "proj_1757500036094_yzinmza",
+            "proj_1758097720297_559eyui",
+            "proj_1758098612049_pss4dpi",
+            "proj_1757498060329_1p0nxm8",
+            "proj_1757498008544_bjibdss",
+            "proj_1759045961033_3ts94j4",
+            "proj_1757699412131_cvytrph",
+            "proj_1760616300342_x28ecsl",
+            "proj_1757384707590_j627j8w",
+            "proj_1758098612049_pss4dpi",
+            "proj_1761897124823_nnywjjm",
+            "proj_1760616487313_8r7sp59",
+            "proj_1760616531885_zwxgw8j",
+            "proj_1758098760791_ttftusv",
+            "proj_1757500170827_0b18dq5",
+            "proj_1760165794890_t4bag3c",
+            "proj_1757384707590_j627j8w",
+            "system_maintenance",
+            "proj_1757500141239_pladtfd",
+            "proj_1760616426224_q7aenxp",
+            "proj_1758041045955_x2s58hk",
+            "proj_1760616460585_66favmx",
+            "proj_1757498131467_5d2zq8t",
+            "proj_1758086839932_107uf0s",
+            "proj_1758098760791_ttftusv",
+            "proj_1758098612049_pss4dpi",
+            "system_maintenance",
+            "proj_1760616392353_c0ddpct",
+            "proj_1757500099674_yglg1qk",
+            "proj_1757500170827_0b18dq5",
+            "proj_1757498131467_5d2zq8t",
+            "proj_1757699412131_cvytrph",
+            "proj_1759046219254_b56x498",
+            "proj_1758098760791_ttftusv",
+            "proj_1760165794890_t4bag3c"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "status",
+      "path": [
+        "status"
+      ],
+      "count": 53,
+      "type": "String",
+      "probability": 1.0816326530612246,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "status"
+          ],
+          "count": 52,
+          "probability": 1.0612244897959184,
+          "unique": 2,
+          "hasDuplicates": true,
+          "values": [
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "pending",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "pending",
+            "pending",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "pending",
+            "COMPLETED",
+            "pending",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "COMPLETED",
+            "pending",
+            "pending",
+            "pending"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "title",
+      "path": [
+        "title"
+      ],
+      "count": 52,
+      "type": "String",
+      "probability": 1.0612244897959184,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "title"
+          ],
+          "count": 52,
+          "probability": 1.0612244897959184,
+          "unique": 6,
+          "hasDuplicates": true,
+          "values": [
+            "达人待发布",
+            "[告警] T+7 数据已逾期",
+            "达人待发布",
+            "达人待发布",
+            "[告警] T+7 数据已逾期",
+            "达人待发布",
+            "达人待发布",
+            "达人待发布",
+            "[告警] T+7 数据已逾期",
+            "达人待发布",
+            "[告警] T+7 数据已逾期",
+            "项目待定案",
+            "[告警] T+21 数据已逾期",
+            "[告警] T+7 数据已逾期",
+            "[告警] T+21 数据已逾期",
+            "达人待发布",
+            "[告警] T+7 数据已逾期",
+            "[告警] T+7 数据已逾期",
+            "[告警] T+7 数据已逾期",
+            "达人待发布",
+            "[告警] T+21 数据已逾期",
+            "达人待发布",
+            "项目待定案",
+            "[告警] T+7 数据已逾期",
+            "[告警] T+21 数据已逾期",
+            "[告警] T+7 数据已逾期",
+            "[告警] T+21 数据已逾期",
+            "[告警] T+21 数据已逾期",
+            "达人待发布",
+            "[告警] T+21 数据已逾期",
+            "达人待发布",
+            "[告警] T+21 数据已逾期",
+            "达人待发布",
+            "[告警] T+21 数据已逾期",
+            "达人待发布",
+            "项目待定案",
+            "[告警] T+7 数据已逾期",
+            "达人待发布",
+            "[告警] T+7 数据已逾期",
+            "达人待发布",
+            "达人报价待更新",
+            "[告警] T+7 数据已逾期",
+            "项目待定案",
+            "[告警] T+21 数据已逾期",
+            "达人待发布",
+            "[告警] T+21 数据已逾期",
+            "[告警] T+7 数据已逾期",
+            "[告警] T+21 数据已逾期",
+            "[告警] T+21 数据已逾期",
+            "达人表现数据待更新",
+            "[告警] T+7 数据已逾期",
+            "项目待定案"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "type",
+      "path": [
+        "type"
+      ],
+      "count": 58,
+      "type": "String",
+      "probability": 1.183673469387755,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "type"
+          ],
+          "count": 58,
+          "probability": 1.183673469387755,
+          "unique": 6,
+          "hasDuplicates": true,
+          "values": [
+            "PROJECT_DATA_OVERDUE_T7",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_DATA_OVERDUE_T7",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_DATA_OVERDUE_T7",
+            "PROJECT_DATA_OVERDUE_T7",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_DATA_OVERDUE_T21",
+            "PROJECT_FINALIZE_REMINDER",
+            "PROJECT_DATA_OVERDUE_T7",
+            "PROJECT_DATA_OVERDUE_T21",
+            "PROJECT_DATA_OVERDUE_T7",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_DATA_OVERDUE_T7",
+            "PROJECT_DATA_OVERDUE_T7",
+            "PROJECT_DATA_OVERDUE_T21",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_FINALIZE_REMINDER",
+            "PROJECT_DATA_OVERDUE_T7",
+            "PROJECT_DATA_OVERDUE_T21",
+            "PROJECT_DATA_OVERDUE_T7",
+            "PROJECT_DATA_OVERDUE_T21",
+            "PROJECT_DATA_OVERDUE_T21",
+            "PROJECT_DATA_OVERDUE_T21",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_DATA_OVERDUE_T21",
+            "PROJECT_DATA_OVERDUE_T21",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_DATA_OVERDUE_T7",
+            "PROJECT_FINALIZE_REMINDER",
+            "PROJECT_DATA_OVERDUE_T7",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_DATA_OVERDUE_T7",
+            "TALENT_PRICE_UPDATE_REMINDER",
+            "PROJECT_DATA_OVERDUE_T21",
+            "PROJECT_FINALIZE_REMINDER",
+            "PROJECT_PENDING_PUBLISH",
+            "PROJECT_DATA_OVERDUE_T21",
+            "PROJECT_DATA_OVERDUE_T7",
+            "PROJECT_DATA_OVERDUE_T21",
+            "PROJECT_DATA_OVERDUE_T21",
+            "PROJECT_DATA_OVERDUE_T7",
+            "TALENT_PERFORMANCE_UPDATE_REMINDER",
+            "PROJECT_FINALIZE_REMINDER",
+            "PROJECT_DATA_OVERDUE_T21",
+            "PROJECT_DATA_OVERDUE_T7",
+            "PROJECT_DATA_OVERDUE_T21",
+            "PROJECT_DATA_OVERDUE_T21",
+            "PROJECT_DATA_OVERDUE_T7",
+            "PROJECT_PENDING_PUBLISH"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "updatedAt",
+      "path": [
+        "updatedAt"
+      ],
+      "count": 51,
+      "type": "Date",
+      "probability": 1.0408163265306123,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Date",
+          "path": [
+            "updatedAt"
+          ],
+          "count": 51,
+          "probability": 1.0408163265306123,
+          "unique": 35,
+          "hasDuplicates": true,
+          "values": [
+            {
+              "$date": "2025-10-20T04:10:44.281Z"
+            },
+            {
+              "$date": "2025-10-23T14:08:29.047Z"
+            },
+            {
+              "$date": "2025-11-01T04:10:12.479Z"
+            },
+            {
+              "$date": "2025-09-28T01:13:25.099Z"
+            },
+            {
+              "$date": "2025-10-06T12:01:09.855Z"
+            },
+            {
+              "$date": "2025-09-17T10:14:57.742Z"
+            },
+            {
+              "$date": "2025-09-22T01:00:09.196Z"
+            },
+            {
+              "$date": "2025-10-01T16:15:13.413Z"
+            },
+            {
+              "$date": "2025-09-17T06:21:58.765Z"
+            },
+            {
+              "$date": "2025-09-17T06:14:30.253Z"
+            },
+            {
+              "$date": "2025-10-23T14:26:02.096Z"
+            },
+            {
+              "$date": "2025-09-17T10:21:40.031Z"
+            },
+            {
+              "$date": "2025-11-10T01:00:11.106Z"
+            },
+            {
+              "$date": "2025-10-20T04:15:00.527Z"
+            },
+            {
+              "$date": "2025-10-23T16:27:30.504Z"
+            },
+            {
+              "$date": "2025-10-18T02:45:43.277Z"
+            },
+            {
+              "$date": "2025-10-03T02:05:13.331Z"
+            },
+            {
+              "$date": "2025-11-10T01:00:11.122Z"
+            },
+            {
+              "$date": "2025-10-23T16:08:30.642Z"
+            },
+            {
+              "$date": "2025-10-29T01:00:10.483Z"
+            },
+            {
+              "$date": "2025-10-20T04:15:00.529Z"
+            },
+            {
+              "$date": "2025-10-27T01:00:10.488Z"
+            },
+            {
+              "$date": "2025-09-17T06:21:58.768Z"
+            },
+            {
+              "$date": "2025-10-23T16:27:30.502Z"
+            },
+            {
+              "$date": "2025-09-19T05:22:32.235Z"
+            },
+            {
+              "$date": "2025-11-10T01:00:11.102Z"
+            },
+            {
+              "$date": "2025-11-10T01:00:11.111Z"
+            },
+            {
+              "$date": "2025-10-13T01:06:15.711Z"
+            },
+            {
+              "$date": "2025-10-29T01:00:10.478Z"
+            },
+            {
+              "$date": "2025-10-20T01:12:34.757Z"
+            },
+            {
+              "$date": "2025-09-26T01:08:35.274Z"
+            },
+            {
+              "$date": "2025-10-23T14:44:32.858Z"
+            },
+            {
+              "$date": "2025-09-17T10:15:15.277Z"
+            },
+            {
+              "$date": "2025-10-06T12:01:09.850Z"
+            },
+            {
+              "$date": "2025-11-03T01:00:10.538Z"
+            },
+            {
+              "$date": "2025-10-20T04:15:00.530Z"
+            },
+            {
+              "$date": "2025-10-23T13:47:59.164Z"
+            },
+            {
+              "$date": "2025-09-15T04:52:22.278Z"
+            },
+            {
+              "$date": "2025-10-23T16:31:49.059Z"
+            },
+            {
+              "$date": "2025-10-31T01:00:10.510Z"
+            },
+            {
+              "$date": "2025-11-02T01:00:12.501Z"
+            },
+            {
+              "$date": "2025-09-22T01:00:09.187Z"
+            },
+            {
+              "$date": "2025-10-23T14:08:29.049Z"
+            },
+            {
+              "$date": "2025-09-25T02:10:12.223Z"
+            },
+            {
+              "$date": "2025-09-17T06:03:31.345Z"
+            },
+            {
+              "$date": "2025-10-23T14:26:02.098Z"
+            },
+            {
+              "$date": "2025-09-28T01:35:13.048Z"
+            },
+            {
+              "$date": "2025-09-17T06:21:58.767Z"
+            },
+            {
+              "$date": "2025-10-23T16:31:49.061Z"
+            },
+            {
+              "$date": "2025-11-10T01:00:11.231Z"
+            },
+            {
+              "$date": "2025-11-10T01:00:11.109Z"
+            }
+          ],
+          "bsonType": "Date"
+        }
+      ]
     }
-  }
+  ]
+}
+[
+  [ '_id' ],
+  [ 'completedBy' ],
+  [ 'createdAt' ],
+  [ 'description' ],
+  [ 'dueDate' ],
+  [ 'relatedProjectId' ],
+  [ 'status' ],
+  [ 'title' ],
+  [ 'type' ],
+  [ 'updatedAt' ]
+]
+[Object: null prototype] {
+  _id: { types: [ { bsonType: 'ObjectId' } ] },
+  relatedProjectId: { types: [ { bsonType: 'String' } ] },
+  type: { types: [ { bsonType: 'String' } ] },
+  createdAt: { types: [ { bsonType: 'Date' } ] },
+  description: { types: [ { bsonType: 'String' } ] },
+  dueDate: { types: [ { bsonType: 'Date' } ] },
+  status: { types: [ { bsonType: 'String' } ] },
+  title: { types: [ { bsonType: 'String' } ] },
+  updatedAt: { types: [ { bsonType: 'Date' } ] },
+  completedBy: { types: [ { bsonType: 'String' } ] }
 }

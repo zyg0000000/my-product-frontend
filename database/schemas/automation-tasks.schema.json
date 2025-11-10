@@ -1,170 +1,3682 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "required": [
-    "_id",
-    "agentId",
-    "completedAt",
-    "createdAt",
-    "errorMessage",
-    "jobId",
-    "metadata",
-    "processingAt",
-    "projectId",
-    "result",
-    "status",
-    "updatedAt",
-    "workflowId"
-  ],
-  "properties": {
-    "_id": {
-      "$ref": "#/$defs/ObjectId"
-    },
-    "agentId": {
-      "type": "string"
-    },
-    "completedAt": {
-      "$ref": "#/$defs/Date"
-    },
-    "createdAt": {
-      "$ref": "#/$defs/Date"
-    },
-    "errorMessage": {
-      "type": "null"
-    },
-    "failedAt": {
-      "type": "null"
-    },
-    "jobId": {
-      "anyOf": [
+  "count": 72,
+  "fields": [
+    {
+      "name": "_id",
+      "path": [
+        "_id"
+      ],
+      "count": 100,
+      "type": "ObjectId",
+      "probability": 1.3888888888888888,
+      "hasDuplicates": false,
+      "types": [
         {
-          "$ref": "#/$defs/ObjectId"
-        },
-        {
-          "type": "null"
+          "name": "ObjectId",
+          "path": [
+            "_id"
+          ],
+          "count": 99,
+          "probability": 1.375,
+          "unique": 99,
+          "hasDuplicates": false,
+          "values": [
+            {
+              "$oid": "68f7ac2ed5aa012350f3ed91"
+            },
+            {
+              "$oid": "69113ba2e117015cfc4d5e07"
+            },
+            {
+              "$oid": "690bf4adbde734bd0e93a5ba"
+            },
+            {
+              "$oid": "68f58a3a983d6de62fe7f4d8"
+            },
+            {
+              "$oid": "690410338ffb9492c0c464b0"
+            },
+            {
+              "$oid": "690cb878158457db5f73655a"
+            },
+            {
+              "$oid": "6902bd18a777d5af8509d839"
+            },
+            {
+              "$oid": "68fdabd0685b0532e6aac856"
+            },
+            {
+              "$oid": "690bf4adbde734bd0e93a5bb"
+            },
+            {
+              "$oid": "68f4b427c2a029feaf701093"
+            },
+            {
+              "$oid": "68fc4ac9d75c63d2f3ab2c01"
+            },
+            {
+              "$oid": "690412628ffb9492c0c464ca"
+            },
+            {
+              "$oid": "690ff981db88e601938a7d0f"
+            },
+            {
+              "$oid": "68f4b427c2a029feaf70109a"
+            },
+            {
+              "$oid": "69095637ab3549f2a58193f6"
+            },
+            {
+              "$oid": "690a42c6ecfe955c7d347aff"
+            },
+            {
+              "$oid": "68fad167655476fa9d455461"
+            },
+            {
+              "$oid": "6902be1ea777d5af8509d844"
+            },
+            {
+              "$oid": "690bf769bde734bd0e93a5e6"
+            },
+            {
+              "$oid": "69017afabb20eba241d30e62"
+            },
+            {
+              "$oid": "690410d78ffb9492c0c464b4"
+            },
+            {
+              "$oid": "68f58936983d6de62fe7f4d4"
+            },
+            {
+              "$oid": "68f9806ae6b72f840a8e64c1"
+            },
+            {
+              "$oid": "69113ba2e117015cfc4d5e06"
+            },
+            {
+              "$oid": "690952caab3549f2a58193d9"
+            },
+            {
+              "$oid": "690bf584bde734bd0e93a5c0"
+            },
+            {
+              "$oid": "690b24c2e22419ed57cb454e"
+            },
+            {
+              "$oid": "68fad012655476fa9d455456"
+            },
+            {
+              "$oid": "690aa6db264e7624583a1a8a"
+            },
+            {
+              "$oid": "69017817bb20eba241d30e43"
+            },
+            {
+              "$oid": "6905982a4cc9dce0c52c41da"
+            },
+            {
+              "$oid": "68ea16f911f67aa2e6bafe7a"
+            },
+            {
+              "$oid": "68fec3b247b87e48b0c218d4"
+            },
+            {
+              "$oid": "690ffc18db88e601938a7d2f"
+            },
+            {
+              "$oid": "690803ea7a1beb389d2002ba"
+            },
+            {
+              "$oid": "68fb27e22cdee8cde9576475"
+            },
+            {
+              "$oid": "68ffae4d0ab3906885dfe8a8"
+            },
+            {
+              "$oid": "6908017c7a1beb389d2002a8"
+            },
+            {
+              "$oid": "690b244ee22419ed57cb454c"
+            },
+            {
+              "$oid": "690ff981db88e601938a7d09"
+            },
+            {
+              "$oid": "69017afabb20eba241d30e60"
+            },
+            {
+              "$oid": "690a397decfe955c7d347ae2"
+            },
+            {
+              "$oid": "69007f1e6008d066b1750f7a"
+            },
+            {
+              "$oid": "690cb95c158457db5f736565"
+            },
+            {
+              "$oid": "68fc42ded75c63d2f3ab2bdd"
+            },
+            {
+              "$oid": "690a3b6cecfe955c7d347ae9"
+            },
+            {
+              "$oid": "690d462b63b03b51f960cf2b"
+            },
+            {
+              "$oid": "69113ba2e117015cfc4d5e0d"
+            },
+            {
+              "$oid": "6906ccd6a06288d7b5eddea7"
+            },
+            {
+              "$oid": "68f4430c549103b56814a893"
+            },
+            {
+              "$oid": "68f58936983d6de62fe7f4d1"
+            },
+            {
+              "$oid": "68fec63947b87e48b0c218e6"
+            },
+            {
+              "$oid": "690ffa1ddb88e601938a7d15"
+            },
+            {
+              "$oid": "6902b859a777d5af8509d830"
+            },
+            {
+              "$oid": "69113caae117015cfc4d5e19"
+            },
+            {
+              "$oid": "68f6dc39afeb47c65c7c889f"
+            },
+            {
+              "$oid": "690bf584bde734bd0e93a5c4"
+            },
+            {
+              "$oid": "68f6db36afeb47c65c7c8898"
+            },
+            {
+              "$oid": "69007f1e6008d066b1750f7c"
+            },
+            {
+              "$oid": "690594514cc9dce0c52c41bd"
+            },
+            {
+              "$oid": "69114ef8f7b5c200ceafd323"
+            },
+            {
+              "$oid": "690599d84cc9dce0c52c41e6"
+            },
+            {
+              "$oid": "690803ea7a1beb389d2002bc"
+            },
+            {
+              "$oid": "68f4b427c2a029feaf701098"
+            },
+            {
+              "$oid": "69113c21e117015cfc4d5e12"
+            },
+            {
+              "$oid": "690d462b63b03b51f960cf2d"
+            },
+            {
+              "$oid": "69017afabb20eba241d30e65"
+            },
+            {
+              "$oid": "690802377a1beb389d2002ab"
+            },
+            {
+              "$oid": "690954bcab3549f2a58193e6"
+            },
+            {
+              "$oid": "6906d18ea06288d7b5eddec6"
+            },
+            {
+              "$oid": "690bf695bde734bd0e93a5d8"
+            },
+            {
+              "$oid": "68f58936983d6de62fe7f4cd"
+            },
+            {
+              "$oid": "690ffa1ddb88e601938a7d14"
+            },
+            {
+              "$oid": "690410d78ffb9492c0c464b5"
+            },
+            {
+              "$oid": "68fec63947b87e48b0c218e4"
+            },
+            {
+              "$oid": "6911ad9d172f59cb8e3874b0"
+            },
+            {
+              "$oid": "690d455763b03b51f960cf1b"
+            },
+            {
+              "$oid": "690b253ae22419ed57cb4554"
+            },
+            {
+              "$oid": "68fc42ded75c63d2f3ab2bde"
+            },
+            {
+              "$oid": "6905982a4cc9dce0c52c41de"
+            },
+            {
+              "$oid": "68f58a3a983d6de62fe7f4d7"
+            },
+            {
+              "$oid": "690596804cc9dce0c52c41cf"
+            },
+            {
+              "$oid": "69114c7df7b5c200ceafd306"
+            },
+            {
+              "$oid": "690ff981db88e601938a7d0a"
+            },
+            {
+              "$oid": "6906d18ea06288d7b5eddec5"
+            },
+            {
+              "$oid": "68ee669bdefc85c3796bd80e"
+            },
+            {
+              "$oid": "6902b859a777d5af8509d82e"
+            },
+            {
+              "$oid": "68fad012655476fa9d455459"
+            },
+            {
+              "$oid": "68fad3b8655476fa9d45546c"
+            },
+            {
+              "$oid": "68f7ab39d5aa012350f3ed85"
+            },
+            {
+              "$oid": "68fec4f347b87e48b0c218e0"
+            },
+            {
+              "$oid": "690411748ffb9492c0c464bd"
+            },
+            {
+              "$oid": "69113ba2e117015cfc4d5e0c"
+            },
+            {
+              "$oid": "6909527dab3549f2a58193d2"
+            },
+            {
+              "$oid": "68f9ca3520e5b4993c5ba1e6"
+            },
+            {
+              "$oid": "690800087a1beb389d200291"
+            },
+            {
+              "$oid": "690800677a1beb389d200297"
+            },
+            {
+              "$oid": "690804837a1beb389d2002c5"
+            },
+            {
+              "$oid": "690a3923ecfe955c7d347ad6"
+            }
+          ],
+          "bsonType": "ObjectId"
         }
       ]
     },
-    "metadata": {
-      "type": "object",
-      "required": [],
-      "properties": {
-        "collaborationId": {
-          "type": "string"
-        },
-        "talentNickname": {
-          "type": "string"
+    {
+      "name": "agentId",
+      "path": [
+        "agentId"
+      ],
+      "count": 75,
+      "type": "String",
+      "probability": 1.0416666666666667,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "agentId"
+          ],
+          "count": 75,
+          "probability": 1.0416666666666667,
+          "unique": 30,
+          "hasDuplicates": true,
+          "values": [
+            "agent-2a572b75-bf82-4648-8b2f-b6391c6a7360",
+            "agent-67077f7c-23d1-4b20-85ce-989d6f67ab0b",
+            "agent-868fcfd5-a125-49bc-ade1-3005a41ad1ec",
+            "agent-ea5e47b3-402d-4449-adb9-d4c474d5803c",
+            "agent-503d82d2-dbda-4e6e-baeb-cdf157c32c80",
+            "agent-a01c6182-d7a9-4f0a-aabf-d8271ee6ed71",
+            "agent-93078309-08af-4f5b-87cb-fb3d71998089",
+            "agent-1e792840-647d-4853-a117-ce40917c3e9f",
+            "agent-868fcfd5-a125-49bc-ade1-3005a41ad1ec",
+            "agent-b2ab1491-591c-478c-9890-f4227ac09859",
+            "agent-d9a4f734-35db-4015-adf4-186df92d9ed3",
+            "agent-503d82d2-dbda-4e6e-baeb-cdf157c32c80",
+            "agent-ee53f32a-e5ff-476f-8265-5eebc4fe1ae1",
+            "agent-b2ab1491-591c-478c-9890-f4227ac09859",
+            "agent-881cd2bc-dff2-40bd-a1c1-217fc3996bd4",
+            "agent-22c224b9-b89b-45b4-aec8-722d45cf0bc1",
+            "agent-8ccdf9e0-9ce4-4b83-ad7e-9fc9b7ebcb35",
+            "agent-93078309-08af-4f5b-87cb-fb3d71998089",
+            "agent-868fcfd5-a125-49bc-ade1-3005a41ad1ec",
+            "agent-cc9b2034-6060-4ec3-ae8d-c294e2b93257",
+            "agent-503d82d2-dbda-4e6e-baeb-cdf157c32c80",
+            "agent-ea5e47b3-402d-4449-adb9-d4c474d5803c",
+            "agent-2040bc4f-6103-4c76-a975-a7cc11b652a0",
+            "agent-67077f7c-23d1-4b20-85ce-989d6f67ab0b",
+            "agent-881cd2bc-dff2-40bd-a1c1-217fc3996bd4",
+            "agent-868fcfd5-a125-49bc-ade1-3005a41ad1ec",
+            "agent-a77e82eb-54db-4349-81ea-db672e2e5494",
+            "agent-8ccdf9e0-9ce4-4b83-ad7e-9fc9b7ebcb35",
+            "agent-3a36232d-9597-44ae-a92c-23d39b526e8d",
+            "agent-cc9b2034-6060-4ec3-ae8d-c294e2b93257",
+            "agent-2463ad36-0b4d-424b-9355-b965f96a3453",
+            "agent-c55e0546-c0be-4f6c-9e30-9777f0c27865",
+            "agent-ee53f32a-e5ff-476f-8265-5eebc4fe1ae1",
+            "agent-3f7652c2-1a49-42d4-a309-238e89e50e19",
+            "agent-df105619-3caf-4d5f-baf1-85a4f9cb049d",
+            "agent-3f7652c2-1a49-42d4-a309-238e89e50e19",
+            "agent-a77e82eb-54db-4349-81ea-db672e2e5494",
+            "agent-ee53f32a-e5ff-476f-8265-5eebc4fe1ae1",
+            "agent-cc9b2034-6060-4ec3-ae8d-c294e2b93257",
+            "agent-22c224b9-b89b-45b4-aec8-722d45cf0bc1",
+            "agent-a01c6182-d7a9-4f0a-aabf-d8271ee6ed71",
+            "agent-d9a4f734-35db-4015-adf4-186df92d9ed3",
+            "agent-22c224b9-b89b-45b4-aec8-722d45cf0bc1",
+            "agent-3b2acdef-0a91-476c-8977-d2f93881d6ae",
+            "agent-67077f7c-23d1-4b20-85ce-989d6f67ab0b",
+            "agent-0a20ca4c-0fc4-48e0-b86d-aa5705ac0ff1",
+            "agent-447694fe-cb64-4a7a-91ef-36e838df6421",
+            "agent-ea5e47b3-402d-4449-adb9-d4c474d5803c",
+            "agent-c55e0546-c0be-4f6c-9e30-9777f0c27865",
+            "agent-ee53f32a-e5ff-476f-8265-5eebc4fe1ae1",
+            "agent-93078309-08af-4f5b-87cb-fb3d71998089",
+            "agent-67077f7c-23d1-4b20-85ce-989d6f67ab0b",
+            "agent-0ad8efb4-3dd8-4c3f-80e7-e4117c86f34f",
+            "agent-868fcfd5-a125-49bc-ade1-3005a41ad1ec",
+            "agent-0ad8efb4-3dd8-4c3f-80e7-e4117c86f34f",
+            "agent-2463ad36-0b4d-424b-9355-b965f96a3453",
+            "agent-fe434b40-e178-4d48-8b34-dd9ef5965d3b",
+            "agent-56cc6127-5652-4b25-80f2-254532fb87c4",
+            "agent-2463ad36-0b4d-424b-9355-b965f96a3453",
+            "agent-3f7652c2-1a49-42d4-a309-238e89e50e19",
+            "agent-b2ab1491-591c-478c-9890-f4227ac09859",
+            "agent-67077f7c-23d1-4b20-85ce-989d6f67ab0b",
+            "agent-d087f2f5-f93c-43a7-9ab1-33793973bc04",
+            "agent-3b2acdef-0a91-476c-8977-d2f93881d6ae",
+            "agent-cc9b2034-6060-4ec3-ae8d-c294e2b93257",
+            "agent-3f7652c2-1a49-42d4-a309-238e89e50e19",
+            "agent-881cd2bc-dff2-40bd-a1c1-217fc3996bd4",
+            "agent-0a20ca4c-0fc4-48e0-b86d-aa5705ac0ff1",
+            "agent-868fcfd5-a125-49bc-ade1-3005a41ad1ec",
+            "agent-ea5e47b3-402d-4449-adb9-d4c474d5803c",
+            "agent-cf3f89d4-8a97-408c-9320-0c102fe413e4",
+            "agent-ee53f32a-e5ff-476f-8265-5eebc4fe1ae1",
+            "agent-503d82d2-dbda-4e6e-baeb-cdf157c32c80",
+            "agent-c55e0546-c0be-4f6c-9e30-9777f0c27865",
+            "agent-3b2acdef-0a91-476c-8977-d2f93881d6ae"
+          ],
+          "bsonType": "String"
         }
-      }
+      ]
     },
-    "processingAt": {
-      "$ref": "#/$defs/Date"
+    {
+      "name": "completedAt",
+      "path": [
+        "completedAt"
+      ],
+      "count": 73,
+      "type": "Date",
+      "probability": 1.0138888888888888,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "Date",
+          "path": [
+            "completedAt"
+          ],
+          "count": 73,
+          "probability": 1.0138888888888888,
+          "unique": 73,
+          "hasDuplicates": false,
+          "values": [
+            {
+              "$date": "2025-10-21T15:53:23.849Z"
+            },
+            {
+              "$date": "2025-11-10T01:11:26.894Z"
+            },
+            {
+              "$date": "2025-11-06T01:07:27.165Z"
+            },
+            {
+              "$date": "2025-10-20T01:03:10.408Z"
+            },
+            {
+              "$date": "2025-10-31T01:26:17.834Z"
+            },
+            {
+              "$date": "2025-11-06T15:02:26.363Z"
+            },
+            {
+              "$date": "2025-10-30T01:19:53.442Z"
+            },
+            {
+              "$date": "2025-10-26T05:04:47.219Z"
+            },
+            {
+              "$date": "2025-11-06T01:07:35.776Z"
+            },
+            {
+              "$date": "2025-10-19T09:49:51.087Z"
+            },
+            {
+              "$date": "2025-10-25T03:58:46.525Z"
+            },
+            {
+              "$date": "2025-10-31T01:36:03.143Z"
+            },
+            {
+              "$date": "2025-11-09T02:17:47.874Z"
+            },
+            {
+              "$date": "2025-10-19T09:51:15.355Z"
+            },
+            {
+              "$date": "2025-11-04T01:28:59.798Z"
+            },
+            {
+              "$date": "2025-11-04T18:15:49.866Z"
+            },
+            {
+              "$date": "2025-10-24T01:09:02.057Z"
+            },
+            {
+              "$date": "2025-10-30T01:24:52.528Z"
+            },
+            {
+              "$date": "2025-11-06T01:18:44.704Z"
+            },
+            {
+              "$date": "2025-10-29T02:25:31.732Z"
+            },
+            {
+              "$date": "2025-10-31T01:29:04.463Z"
+            },
+            {
+              "$date": "2025-10-20T01:00:10.035Z"
+            },
+            {
+              "$date": "2025-10-23T01:11:38.852Z"
+            },
+            {
+              "$date": "2025-11-10T01:11:16.522Z"
+            },
+            {
+              "$date": "2025-11-04T01:12:58.968Z"
+            },
+            {
+              "$date": "2025-11-06T01:10:24.949Z"
+            },
+            {
+              "$date": "2025-11-05T10:19:54.861Z"
+            },
+            {
+              "$date": "2025-10-24T01:03:12.430Z"
+            },
+            {
+              "$date": "2025-11-05T01:22:57.853Z"
+            },
+            {
+              "$date": "2025-10-29T02:14:03.538Z"
+            },
+            {
+              "$date": "2025-11-01T05:18:42.160Z"
+            },
+            {
+              "$date": "2025-10-27T00:59:45.240Z"
+            },
+            {
+              "$date": "2025-11-09T02:27:59.953Z"
+            },
+            {
+              "$date": "2025-11-03T01:22:57.866Z"
+            },
+            {
+              "$date": "2025-10-27T17:40:36.051Z"
+            },
+            {
+              "$date": "2025-11-03T01:13:17.796Z"
+            },
+            {
+              "$date": "2025-11-05T10:19:11.473Z"
+            },
+            {
+              "$date": "2025-11-09T02:16:54.851Z"
+            },
+            {
+              "$date": "2025-10-29T02:25:07.593Z"
+            },
+            {
+              "$date": "2025-11-04T17:36:32.280Z"
+            },
+            {
+              "$date": "2025-11-06T15:06:10.705Z"
+            },
+            {
+              "$date": "2025-10-25T03:24:59.633Z"
+            },
+            {
+              "$date": "2025-11-04T17:44:17.265Z"
+            },
+            {
+              "$date": "2025-11-07T01:07:49.515Z"
+            },
+            {
+              "$date": "2025-11-10T01:12:19.953Z"
+            },
+            {
+              "$date": "2025-11-02T03:17:05.261Z"
+            },
+            {
+              "$date": "2025-10-19T01:46:58.701Z"
+            },
+            {
+              "$date": "2025-10-20T00:59:31.500Z"
+            },
+            {
+              "$date": "2025-10-27T01:09:46.699Z"
+            },
+            {
+              "$date": "2025-11-09T02:19:42.061Z"
+            },
+            {
+              "$date": "2025-10-30T00:59:29.618Z"
+            },
+            {
+              "$date": "2025-11-10T01:15:45.384Z"
+            },
+            {
+              "$date": "2025-10-21T01:05:20.683Z"
+            },
+            {
+              "$date": "2025-11-06T01:11:01.867Z"
+            },
+            {
+              "$date": "2025-10-21T01:01:41.769Z"
+            },
+            {
+              "$date": "2025-11-01T05:02:58.363Z"
+            },
+            {
+              "$date": "2025-10-11T08:38:09.461Z"
+            },
+            {
+              "$date": "2025-11-10T02:33:35.197Z"
+            },
+            {
+              "$date": "2025-11-01T05:26:40.612Z"
+            },
+            {
+              "$date": "2025-11-03T01:23:23.654Z"
+            },
+            {
+              "$date": "2025-10-19T09:50:49.903Z"
+            },
+            {
+              "$date": "2025-11-10T01:13:39.266Z"
+            },
+            {
+              "$date": "2025-10-24T07:21:51.027Z"
+            },
+            {
+              "$date": "2025-11-07T01:08:12.774Z"
+            },
+            {
+              "$date": "2025-10-29T02:26:09.625Z"
+            },
+            {
+              "$date": "2025-11-03T01:15:53.347Z"
+            },
+            {
+              "$date": "2025-11-04T01:20:20.433Z"
+            },
+            {
+              "$date": "2025-11-02T03:37:14.886Z"
+            },
+            {
+              "$date": "2025-11-06T01:15:25.076Z"
+            },
+            {
+              "$date": "2025-10-20T00:58:39.903Z"
+            },
+            {
+              "$date": "2025-10-28T08:31:41.991Z"
+            },
+            {
+              "$date": "2025-11-09T02:19:33.928Z"
+            },
+            {
+              "$date": "2025-10-31T01:29:12.804Z"
+            }
+          ],
+          "bsonType": "Date"
+        }
+      ]
     },
-    "projectId": {
+    {
+      "name": "createdAt",
+      "path": [
+        "createdAt"
+      ],
+      "count": 86,
+      "type": "Date",
+      "probability": 1.1944444444444444,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Date",
+          "path": [
+            "createdAt"
+          ],
+          "count": 86,
+          "probability": 1.1944444444444444,
+          "unique": 64,
+          "hasDuplicates": true,
+          "values": [
+            {
+              "$date": "2025-10-21T15:52:14.057Z"
+            },
+            {
+              "$date": "2025-11-10T01:10:58.123Z"
+            },
+            {
+              "$date": "2025-11-06T01:06:53.764Z"
+            },
+            {
+              "$date": "2025-10-20T01:02:50.833Z"
+            },
+            {
+              "$date": "2025-10-31T01:26:11.286Z"
+            },
+            {
+              "$date": "2025-11-06T15:02:16.366Z"
+            },
+            {
+              "$date": "2025-10-30T01:19:20.542Z"
+            },
+            {
+              "$date": "2025-10-26T05:04:16.200Z"
+            },
+            {
+              "$date": "2025-11-06T01:06:53.764Z"
+            },
+            {
+              "$date": "2025-10-19T09:49:27.286Z"
+            },
+            {
+              "$date": "2025-10-25T03:58:01.713Z"
+            },
+            {
+              "$date": "2025-10-31T01:35:30.740Z"
+            },
+            {
+              "$date": "2025-11-09T02:16:33.965Z"
+            },
+            {
+              "$date": "2025-10-19T09:49:27.286Z"
+            },
+            {
+              "$date": "2025-11-04T01:26:15.304Z"
+            },
+            {
+              "$date": "2025-11-04T18:15:34.404Z"
+            },
+            {
+              "$date": "2025-10-24T01:07:51.847Z"
+            },
+            {
+              "$date": "2025-10-30T01:23:42.710Z"
+            },
+            {
+              "$date": "2025-11-06T01:18:33.349Z"
+            },
+            {
+              "$date": "2025-10-29T02:24:58.701Z"
+            },
+            {
+              "$date": "2025-10-31T01:28:55.476Z"
+            },
+            {
+              "$date": "2025-10-20T00:58:30.473Z"
+            },
+            {
+              "$date": "2025-10-23T01:10:02.233Z"
+            },
+            {
+              "$date": "2025-11-10T01:10:58.123Z"
+            },
+            {
+              "$date": "2025-11-04T01:11:38.821Z"
+            },
+            {
+              "$date": "2025-11-06T01:10:28.660Z"
+            },
+            {
+              "$date": "2025-11-05T10:19:46.594Z"
+            },
+            {
+              "$date": "2025-10-24T01:02:10.635Z"
+            },
+            {
+              "$date": "2025-11-05T01:22:35.850Z"
+            },
+            {
+              "$date": "2025-10-29T02:12:39.129Z"
+            },
+            {
+              "$date": "2025-10-11T08:36:09.197Z"
+            },
+            {
+              "$date": "2025-11-01T05:18:34.872Z"
+            },
+            {
+              "$date": "2025-10-27T00:58:26.519Z"
+            },
+            {
+              "$date": "2025-11-09T02:27:36.161Z"
+            },
+            {
+              "$date": "2025-11-03T01:22:50.422Z"
+            },
+            {
+              "$date": "2025-10-24T07:16:50.981Z"
+            },
+            {
+              "$date": "2025-10-27T17:39:25.387Z"
+            },
+            {
+              "$date": "2025-11-03T01:12:28.888Z"
+            },
+            {
+              "$date": "2025-11-05T10:17:50.677Z"
+            },
+            {
+              "$date": "2025-11-09T02:16:33.965Z"
+            },
+            {
+              "$date": "2025-10-29T02:24:58.701Z"
+            },
+            {
+              "$date": "2025-11-04T17:35:57.963Z"
+            },
+            {
+              "$date": "2025-10-28T08:30:22.337Z"
+            },
+            {
+              "$date": "2025-11-06T15:06:04.984Z"
+            },
+            {
+              "$date": "2025-10-25T03:24:14.083Z"
+            },
+            {
+              "$date": "2025-11-04T17:44:12.180Z"
+            },
+            {
+              "$date": "2025-11-07T01:06:51.114Z"
+            },
+            {
+              "$date": "2025-11-10T01:10:58.123Z"
+            },
+            {
+              "$date": "2025-11-02T03:15:34.888Z"
+            },
+            {
+              "$date": "2025-10-19T01:46:52.434Z"
+            },
+            {
+              "$date": "2025-10-20T00:58:30.473Z"
+            },
+            {
+              "$date": "2025-10-27T01:09:13.155Z"
+            },
+            {
+              "$date": "2025-11-09T02:19:09.046Z"
+            },
+            {
+              "$date": "2025-10-30T00:59:05.673Z"
+            },
+            {
+              "$date": "2025-11-10T01:15:22.774Z"
+            },
+            {
+              "$date": "2025-10-21T01:04:57.867Z"
+            },
+            {
+              "$date": "2025-11-06T01:10:28.660Z"
+            },
+            {
+              "$date": "2025-10-21T01:00:38.005Z"
+            },
+            {
+              "$date": "2025-10-28T08:30:22.337Z"
+            },
+            {
+              "$date": "2025-11-01T05:02:09.462Z"
+            },
+            {
+              "$date": "2025-11-10T02:33:28.771Z"
+            },
+            {
+              "$date": "2025-11-01T05:25:44.883Z"
+            },
+            {
+              "$date": "2025-11-03T01:22:50.422Z"
+            },
+            {
+              "$date": "2025-10-19T09:49:27.286Z"
+            },
+            {
+              "$date": "2025-11-10T01:13:05.322Z"
+            },
+            {
+              "$date": "2025-11-07T01:06:51.114Z"
+            },
+            {
+              "$date": "2025-10-29T02:24:58.701Z"
+            },
+            {
+              "$date": "2025-11-03T01:15:35.366Z"
+            },
+            {
+              "$date": "2025-11-04T01:19:56.382Z"
+            },
+            {
+              "$date": "2025-11-02T03:35:42.794Z"
+            },
+            {
+              "$date": "2025-11-06T01:15:01.523Z"
+            },
+            {
+              "$date": "2025-10-20T00:58:30.473Z"
+            },
+            {
+              "$date": "2025-11-09T02:19:09.046Z"
+            },
+            {
+              "$date": "2025-10-31T01:28:55.476Z"
+            },
+            {
+              "$date": "2025-10-27T01:09:13.155Z"
+            },
+            {
+              "$date": "2025-11-10T09:17:17.731Z"
+            },
+            {
+              "$date": "2025-11-07T01:03:19.870Z"
+            },
+            {
+              "$date": "2025-11-05T10:21:46.274Z"
+            },
+            {
+              "$date": "2025-10-25T03:24:14.083Z"
+            },
+            {
+              "$date": "2025-11-01T05:18:34.872Z"
+            },
+            {
+              "$date": "2025-10-20T01:02:50.833Z"
+            },
+            {
+              "$date": "2025-11-01T05:11:28.190Z"
+            },
+            {
+              "$date": "2025-11-10T02:22:53.717Z"
+            },
+            {
+              "$date": "2025-11-09T02:16:33.965Z"
+            },
+            {
+              "$date": "2025-10-14T15:04:59.479Z"
+            },
+            {
+              "$date": "2025-11-02T03:35:42.794Z"
+            }
+          ],
+          "bsonType": "Date"
+        }
+      ]
+    },
+    {
+      "name": "errorMessage",
+      "path": [
+        "errorMessage"
+      ],
+      "count": 76,
+      "type": "Null",
+      "probability": 1.0555555555555556,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Null",
+          "path": [
+            "errorMessage"
+          ],
+          "count": 76,
+          "probability": 1.0555555555555556,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": null,
+          "bsonType": "Null"
+        }
+      ]
+    },
+    {
+      "name": "failedAt",
+      "path": [
+        "failedAt"
+      ],
+      "count": 1,
       "type": [
-        "string",
-        "null"
+        "Null",
+        "Undefined"
+      ],
+      "probability": 0.013888888888888888,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Null",
+          "path": [
+            "failedAt"
+          ],
+          "count": 1,
+          "probability": 0.013888888888888888,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": null,
+          "bsonType": "Null"
+        },
+        {
+          "name": "Undefined",
+          "bsonType": "Undefined",
+          "unique": 0,
+          "hasDuplicates": true,
+          "path": [
+            "failedAt"
+          ],
+          "count": 71,
+          "probability": 0.9861111111111112
+        }
       ]
     },
-    "result": {
-      "type": "object",
-      "required": [
-        "data",
-        "screenshots"
+    {
+      "name": "jobId",
+      "path": [
+        "jobId"
       ],
-      "properties": {
-        "data": {
-          "type": "object",
-          "required": [],
-          "properties": {
-            "个人视频播放量均值": {
-              "type": "string"
+      "count": 98,
+      "type": "ObjectId",
+      "probability": 1.3611111111111112,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "ObjectId",
+          "path": [
+            "jobId"
+          ],
+          "count": 98,
+          "probability": 1.3611111111111112,
+          "unique": 73,
+          "hasDuplicates": true,
+          "values": [
+            {
+              "$oid": "68f7ac2ed5aa012350f3ed8b"
             },
-            "完播率": {
-              "type": "string"
+            {
+              "$oid": "69113ba2e117015cfc4d5e04"
             },
-            "播放量": {
-              "type": "string"
+            {
+              "$oid": "690bf4adbde734bd0e93a5b5"
             },
-            "星图频播放量均值": {
-              "type": "string"
+            {
+              "$oid": "68f58a3a983d6de62fe7f4d6"
             },
-            "爆文率": {
-              "type": "string"
+            {
+              "$oid": "690410338ffb9492c0c464af"
             },
-            "用户画像总结": {
-              "type": "string"
+            {
+              "$oid": "690cb878158457db5f736559"
             },
-            "预期CPM": {
-              "type": "string"
+            {
+              "$oid": "6902bd18a777d5af8509d836"
+            },
+            {
+              "$oid": "68fdabd0685b0532e6aac853"
+            },
+            {
+              "$oid": "690bf4adbde734bd0e93a5b5"
+            },
+            {
+              "$oid": "68f4b427c2a029feaf701091"
+            },
+            {
+              "$oid": "68fc4ac9d75c63d2f3ab2bfd"
+            },
+            {
+              "$oid": "690412628ffb9492c0c464c7"
+            },
+            {
+              "$oid": "690ff981db88e601938a7d06"
+            },
+            {
+              "$oid": "68f4b427c2a029feaf701091"
+            },
+            {
+              "$oid": "69095637ab3549f2a58193f2"
+            },
+            {
+              "$oid": "690a42c6ecfe955c7d347afd"
+            },
+            {
+              "$oid": "68fad167655476fa9d45545b"
+            },
+            {
+              "$oid": "6902be1ea777d5af8509d83e"
+            },
+            {
+              "$oid": "690bf769bde734bd0e93a5e4"
+            },
+            {
+              "$oid": "69017afabb20eba241d30e5f"
+            },
+            {
+              "$oid": "690410d78ffb9492c0c464b3"
+            },
+            {
+              "$oid": "68f58936983d6de62fe7f4cc"
+            },
+            {
+              "$oid": "68f9806ae6b72f840a8e64ba"
+            },
+            {
+              "$oid": "69113ba2e117015cfc4d5e04"
+            },
+            {
+              "$oid": "690952caab3549f2a58193d3"
+            },
+            {
+              "$oid": "690bf584bde734bd0e93a5bf"
+            },
+            {
+              "$oid": "690b24c2e22419ed57cb454d"
+            },
+            {
+              "$oid": "68fad012655476fa9d455451"
+            },
+            {
+              "$oid": "690aa6db264e7624583a1a88"
+            },
+            {
+              "$oid": "69017817bb20eba241d30e42"
+            },
+            {
+              "$oid": "6905982a4cc9dce0c52c41d9"
+            },
+            {
+              "$oid": "68ea16f911f67aa2e6bafe77"
+            },
+            {
+              "$oid": "68fec3b247b87e48b0c218cd"
+            },
+            {
+              "$oid": "690ffc18db88e601938a7d2d"
+            },
+            {
+              "$oid": "690803ea7a1beb389d2002b9"
+            },
+            {
+              "$oid": "68fb27e22cdee8cde957646e"
+            },
+            {
+              "$oid": "68ffae4d0ab3906885dfe8a2"
+            },
+            {
+              "$oid": "6908017c7a1beb389d2002a5"
+            },
+            {
+              "$oid": "690b244ee22419ed57cb4543"
+            },
+            {
+              "$oid": "690ff981db88e601938a7d06"
+            },
+            {
+              "$oid": "69017afabb20eba241d30e5f"
+            },
+            {
+              "$oid": "690a397decfe955c7d347adf"
+            },
+            {
+              "$oid": "69007f1e6008d066b1750f78"
+            },
+            {
+              "$oid": "690cb95c158457db5f736564"
+            },
+            {
+              "$oid": "68fc42ded75c63d2f3ab2bd9"
+            },
+            {
+              "$oid": "690a3b6cecfe955c7d347ae8"
+            },
+            {
+              "$oid": "690d462b63b03b51f960cf26"
+            },
+            {
+              "$oid": "69113ba2e117015cfc4d5e04"
+            },
+            {
+              "$oid": "6906ccd6a06288d7b5edde9f"
+            },
+            {
+              "$oid": "68f4430c549103b56814a892"
+            },
+            {
+              "$oid": "68f58936983d6de62fe7f4cc"
+            },
+            {
+              "$oid": "68fec63947b87e48b0c218e3"
+            },
+            {
+              "$oid": "690ffa1ddb88e601938a7d11"
+            },
+            {
+              "$oid": "6902b859a777d5af8509d82d"
+            },
+            {
+              "$oid": "69113caae117015cfc4d5e17"
+            },
+            {
+              "$oid": "68f6dc39afeb47c65c7c889d"
+            },
+            {
+              "$oid": "690bf584bde734bd0e93a5bf"
+            },
+            {
+              "$oid": "68f6db36afeb47c65c7c8893"
+            },
+            {
+              "$oid": "69007f1e6008d066b1750f78"
+            },
+            {
+              "$oid": "690594514cc9dce0c52c41b9"
+            },
+            {
+              "$oid": "69114ef8f7b5c200ceafd322"
+            },
+            {
+              "$oid": "690599d84cc9dce0c52c41df"
+            },
+            {
+              "$oid": "690803ea7a1beb389d2002b9"
+            },
+            {
+              "$oid": "68f4b427c2a029feaf701091"
+            },
+            {
+              "$oid": "69113c21e117015cfc4d5e0f"
+            },
+            {
+              "$oid": "690d462b63b03b51f960cf26"
+            },
+            {
+              "$oid": "69017afabb20eba241d30e5f"
+            },
+            {
+              "$oid": "690802377a1beb389d2002aa"
+            },
+            {
+              "$oid": "690954bcab3549f2a58193e5"
+            },
+            {
+              "$oid": "6906d18ea06288d7b5eddec0"
+            },
+            {
+              "$oid": "690bf695bde734bd0e93a5d5"
+            },
+            {
+              "$oid": "68f58936983d6de62fe7f4cc"
+            },
+            {
+              "$oid": "690ffa1ddb88e601938a7d11"
+            },
+            {
+              "$oid": "690410d78ffb9492c0c464b3"
+            },
+            {
+              "$oid": "68fec63947b87e48b0c218e3"
+            },
+            {
+              "$oid": "6911ad9d172f59cb8e3874af"
+            },
+            {
+              "$oid": "690d455763b03b51f960cf18"
+            },
+            {
+              "$oid": "690b253ae22419ed57cb4552"
+            },
+            {
+              "$oid": "68fc42ded75c63d2f3ab2bd9"
+            },
+            {
+              "$oid": "6905982a4cc9dce0c52c41d9"
+            },
+            {
+              "$oid": "68f58a3a983d6de62fe7f4d6"
+            },
+            {
+              "$oid": "690596804cc9dce0c52c41ce"
+            },
+            {
+              "$oid": "69114c7df7b5c200ceafd2fe"
+            },
+            {
+              "$oid": "690ff981db88e601938a7d06"
+            },
+            {
+              "$oid": "6906d18ea06288d7b5eddec0"
+            },
+            {
+              "$oid": "68ee669bdefc85c3796bd80d"
+            },
+            {
+              "$oid": "6902b859a777d5af8509d82d"
+            },
+            {
+              "$oid": "68fad012655476fa9d455451"
+            },
+            {
+              "$oid": "68fad3b8655476fa9d45546b"
+            },
+            {
+              "$oid": "68f7ab39d5aa012350f3ed81"
+            },
+            {
+              "$oid": "68fec4f347b87e48b0c218dc"
+            },
+            {
+              "$oid": "690411748ffb9492c0c464bb"
+            },
+            {
+              "$oid": "69113ba2e117015cfc4d5e04"
+            },
+            {
+              "$oid": "6909527dab3549f2a58193d0"
+            },
+            {
+              "$oid": "68f9ca3520e5b4993c5ba1e4"
+            },
+            {
+              "$oid": "690800087a1beb389d20028c"
+            },
+            {
+              "$oid": "690800677a1beb389d200296"
+            },
+            {
+              "$oid": "690804837a1beb389d2002c4"
             }
-          }
+          ],
+          "bsonType": "ObjectId"
+        }
+      ]
+    },
+    {
+      "name": "metadata",
+      "path": [
+        "metadata"
+      ],
+      "count": 92,
+      "type": "Document",
+      "probability": 1.2777777777777777,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "Document",
+          "path": [
+            "metadata"
+          ],
+          "count": 91,
+          "probability": 1.2638888888888888,
+          "unique": null,
+          "hasDuplicates": null,
+          "values": null,
+          "bsonType": "Document",
+          "fields": [
+            {
+              "name": "collaborationId",
+              "path": [
+                "metadata",
+                "collaborationId"
+              ],
+              "count": 90,
+              "type": [
+                "String",
+                "Undefined"
+              ],
+              "probability": 0.989010989010989,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "String",
+                  "path": [
+                    "metadata",
+                    "collaborationId"
+                  ],
+                  "count": 89,
+                  "probability": 0.978021978021978,
+                  "unique": 46,
+                  "hasDuplicates": true,
+                  "values": [
+                    "collab_1759045239690_qdjlcjm",
+                    "collab_1759045147930_6l5bg1y",
+                    "collab_1759045224613_h83onwv",
+                    "collab_1759045147930_6l5bg1y",
+                    "collab_1759043877490_tvet40g",
+                    "collab_1759046265626_zz4e5sq",
+                    "collab_1760678533839_t6bs39w",
+                    "collab_1760678585555_yx8pz9d",
+                    "collab_1759045239690_qdjlcjm",
+                    "collab_1759044005703_ritkybv",
+                    "collab_1761009858866_u8wsuph",
+                    "collab_1759045286158_i2lllp9",
+                    "collab_1759045319717_uogui78",
+                    "collab_1759044226491_54pih1t",
+                    "collab_1760343429039_xd80haw",
+                    "collab_1760170814730_9ne808q",
+                    "collab_1759045239690_qdjlcjm",
+                    "collab_1761009858866_u8wsuph",
+                    "collab_1760171481372_0kw4h47",
+                    "collab_1760170814730_9ne808q",
+                    "collab_1759043983101_4y8ybdb",
+                    "collab_1759044166117_7lp2tvb",
+                    "collab_1759045268386_85a0hiu",
+                    "collab_1759045117939_o9c0s1l",
+                    "collab_1759045239690_qdjlcjm",
+                    "collab_1759043877490_tvet40g",
+                    "collab_1759045101752_nhahp08",
+                    "collab_1759044076562_jdqahya",
+                    "collab_1759045132225_iefy0ns",
+                    "collab_1759044005703_ritkybv",
+                    "collab_1760170780017_f068dze",
+                    "collab_1759045007660_1959eu4",
+                    "collab_1759045286158_i2lllp9",
+                    "collab_1761820178414_d166fsr",
+                    "collab_1760165821079_l4wa0px",
+                    "collab_1761280653676_nstw6q8",
+                    "collab_1761009858866_u8wsuph",
+                    "collab_1759045286158_i2lllp9",
+                    "collab_1760206356173_37lc9hj",
+                    "collab_1759045147930_6l5bg1y",
+                    "collab_1760165821079_l4wa0px",
+                    "collab_1759045186544_bguhdi3",
+                    "collab_1761639952926_k3voyju",
+                    "collab_1759045007660_1959eu4",
+                    "collab_1759044050531_d5zfhk6",
+                    "collab_1759046056503_t6hwjav",
+                    "collab_1760206133168_74ywdj6",
+                    "collab_1759045319717_uogui78",
+                    "collab_1759044226491_54pih1t",
+                    "collab_1759046056503_t6hwjav",
+                    "collab_1759044093139_vl3r6fz",
+                    "collab_1760170814730_9ne808q",
+                    "collab_1759045167371_z55ylfv",
+                    "collab_1759045268386_85a0hiu",
+                    "collab_1761820178414_d166fsr",
+                    "collab_1759045147930_6l5bg1y",
+                    "collab_1759044076562_jdqahya",
+                    "collab_1759044093139_vl3r6fz",
+                    "collab_1761561396463_x8ac07a",
+                    "collab_1760171462516_ipbal66",
+                    "collab_1760165821079_l4wa0px",
+                    "collab_1759044166117_7lp2tvb",
+                    "collab_1760171462516_ipbal66",
+                    "collab_1759044148673_gtejwx9",
+                    "collab_1759045186544_bguhdi3",
+                    "collab_1761623399253_u6sh8hy",
+                    "collab_1761009858866_u8wsuph",
+                    "collab_1759046044199_xebaak6",
+                    "collab_1759046237102_mbhryrv",
+                    "collab_1760343429039_xd80haw",
+                    "collab_1760678561874_4bs9b8h",
+                    "collab_1759043983101_4y8ybdb",
+                    "collab_1759045147930_6l5bg1y",
+                    "collab_1759044005703_ritkybv",
+                    "collab_1760165821079_l4wa0px",
+                    "collab_1762766208131_lxxsxta",
+                    "collab_1761638647204_jieq9ov",
+                    "collab_1759046069815_4ofczw4",
+                    "collab_1759044076562_jdqahya",
+                    "collab_1759045268386_85a0hiu",
+                    "collab_1759045007660_1959eu4",
+                    "collab_1759046044199_xebaak6",
+                    "collab_1759044148673_gtejwx9",
+                    "collab_1759045167371_z55ylfv",
+                    "collab_1760206536400_rphwdiv",
+                    "collab_1760171481372_0kw4h47",
+                    "collab_1759045147930_6l5bg1y",
+                    "collab_1759044148673_gtejwx9",
+                    "collab_1760206536400_rphwdiv"
+                  ],
+                  "bsonType": "String"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 1,
+                  "hasDuplicates": false,
+                  "path": [
+                    "metadata",
+                    "collaborationId"
+                  ],
+                  "count": 1,
+                  "probability": 0.01098901098901099
+                }
+              ]
+            },
+            {
+              "name": "talentNickname",
+              "path": [
+                "metadata",
+                "talentNickname"
+              ],
+              "count": 91,
+              "type": "String",
+              "probability": 1,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "String",
+                  "path": [
+                    "metadata",
+                    "talentNickname"
+                  ],
+                  "count": 91,
+                  "probability": 1,
+                  "unique": 24,
+                  "hasDuplicates": true,
+                  "values": [
+                    "邢三狗🐶",
+                    "萍萍和哥哥",
+                    "任志达",
+                    "萍萍和哥哥",
+                    "八零徐姥姥",
+                    "郭仙人",
+                    "周周的周",
+                    "小珍来咯…",
+                    "邢三狗🐶",
+                    "脱缰凯✨",
+                    "房东的肥四",
+                    "牛小豪",
+                    "大小姐夫",
+                    "巨爱吃的周嘉伟",
+                    "我真是枫哥🍀",
+                    "大小姐夫",
+                    "邢三狗🐶",
+                    "房东的肥四",
+                    "卡车小啊妹",
+                    "大小姐夫",
+                    "郭仙人",
+                    "源子很酷",
+                    "小珍来咯…",
+                    "胡阿坤",
+                    "邢三狗🐶",
+                    "八零徐姥姥",
+                    "郑丽芬er",
+                    "牛小豪",
+                    "郭仙人",
+                    "脱缰凯✨",
+                    "大脸哥",
+                    "巨爱吃的周嘉伟",
+                    "牛小豪",
+                    "任志达",
+                    "脱缰凯✨",
+                    "许主任",
+                    "房东的肥四",
+                    "牛小豪",
+                    "源子很酷",
+                    "萍萍和哥哥",
+                    "脱缰凯✨",
+                    "脱缰凯✨",
+                    "呲牙乐",
+                    "巨爱吃的周嘉伟",
+                    "邢三狗🐶",
+                    "胡阿坤",
+                    "房东的肥四",
+                    "大小姐夫",
+                    "巨爱吃的周嘉伟",
+                    "胡阿坤",
+                    "周周的周",
+                    "大小姐夫",
+                    "八零徐姥姥",
+                    "小珍来咯…",
+                    "任志达",
+                    "萍萍和哥哥",
+                    "牛小豪",
+                    "周周的周",
+                    "倔犟哥(倔总)",
+                    "呲牙乐",
+                    "脱缰凯✨",
+                    "源子很酷",
+                    "呲牙乐",
+                    "毛驴的",
+                    "脱缰凯✨",
+                    "刘一朵",
+                    "房东的肥四",
+                    "郑丽芬er",
+                    "房东的肥四",
+                    "我真是枫哥🍀",
+                    "任志达",
+                    "郭仙人",
+                    "萍萍和哥哥",
+                    "脱缰凯✨",
+                    "脱缰凯✨",
+                    "大兵",
+                    "八零徐姥姥",
+                    "萍萍和哥哥",
+                    "牛小豪",
+                    "小珍来咯…",
+                    "巨爱吃的周嘉伟",
+                    "郑丽芬er",
+                    "毛驴的",
+                    "八零徐姥姥",
+                    "郑丽芬er",
+                    "卡车小啊妹",
+                    "萍萍和哥哥",
+                    "毛驴的",
+                    "郑丽芬er",
+                    "牛小豪",
+                    "小珍来咯…"
+                  ],
+                  "bsonType": "String"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "processingAt",
+      "path": [
+        "processingAt"
+      ],
+      "count": 74,
+      "type": "Date",
+      "probability": 1.0277777777777777,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "Date",
+          "path": [
+            "processingAt"
+          ],
+          "count": 74,
+          "probability": 1.0277777777777777,
+          "unique": 74,
+          "hasDuplicates": false,
+          "values": [
+            {
+              "$date": "2025-10-21T15:53:17.244Z"
+            },
+            {
+              "$date": "2025-11-10T01:11:21.589Z"
+            },
+            {
+              "$date": "2025-11-06T01:07:22.485Z"
+            },
+            {
+              "$date": "2025-10-20T01:03:04.108Z"
+            },
+            {
+              "$date": "2025-10-31T01:26:11.560Z"
+            },
+            {
+              "$date": "2025-11-06T15:02:18.564Z"
+            },
+            {
+              "$date": "2025-10-30T01:19:47.223Z"
+            },
+            {
+              "$date": "2025-10-26T05:04:40.984Z"
+            },
+            {
+              "$date": "2025-11-06T01:07:32.227Z"
+            },
+            {
+              "$date": "2025-10-19T09:49:43.903Z"
+            },
+            {
+              "$date": "2025-10-25T03:58:40.314Z"
+            },
+            {
+              "$date": "2025-10-31T01:35:56.330Z"
+            },
+            {
+              "$date": "2025-11-09T02:17:44.247Z"
+            },
+            {
+              "$date": "2025-10-19T09:51:07.338Z"
+            },
+            {
+              "$date": "2025-11-04T01:28:26.765Z"
+            },
+            {
+              "$date": "2025-11-04T18:15:46.255Z"
+            },
+            {
+              "$date": "2025-10-24T01:08:53.569Z"
+            },
+            {
+              "$date": "2025-10-30T01:24:45.899Z"
+            },
+            {
+              "$date": "2025-11-06T01:18:37.219Z"
+            },
+            {
+              "$date": "2025-10-29T02:25:24.179Z"
+            },
+            {
+              "$date": "2025-10-31T01:29:00.381Z"
+            },
+            {
+              "$date": "2025-10-20T01:00:03.472Z"
+            },
+            {
+              "$date": "2025-10-23T01:11:31.172Z"
+            },
+            {
+              "$date": "2025-11-10T01:11:12.753Z"
+            },
+            {
+              "$date": "2025-11-04T01:12:53.131Z"
+            },
+            {
+              "$date": "2025-11-06T01:10:20.358Z"
+            },
+            {
+              "$date": "2025-11-05T10:19:46.660Z"
+            },
+            {
+              "$date": "2025-10-24T01:03:04.582Z"
+            },
+            {
+              "$date": "2025-11-05T01:22:51.578Z"
+            },
+            {
+              "$date": "2025-10-29T02:14:00.068Z"
+            },
+            {
+              "$date": "2025-11-01T05:18:38.578Z"
+            },
+            {
+              "$date": "2025-10-27T00:59:37.945Z"
+            },
+            {
+              "$date": "2025-11-09T02:27:52.359Z"
+            },
+            {
+              "$date": "2025-11-03T01:22:51.092Z"
+            },
+            {
+              "$date": "2025-10-27T17:40:29.320Z"
+            },
+            {
+              "$date": "2025-11-03T01:12:56.070Z"
+            },
+            {
+              "$date": "2025-11-05T10:19:07.108Z"
+            },
+            {
+              "$date": "2025-11-09T02:16:51.460Z"
+            },
+            {
+              "$date": "2025-10-29T02:24:59.353Z"
+            },
+            {
+              "$date": "2025-11-04T17:36:25.241Z"
+            },
+            {
+              "$date": "2025-11-06T15:06:07.350Z"
+            },
+            {
+              "$date": "2025-10-25T03:24:53.319Z"
+            },
+            {
+              "$date": "2025-11-04T17:44:13.926Z"
+            },
+            {
+              "$date": "2025-11-07T01:07:42.912Z"
+            },
+            {
+              "$date": "2025-11-10T01:12:16.552Z"
+            },
+            {
+              "$date": "2025-11-02T03:16:59.730Z"
+            },
+            {
+              "$date": "2025-10-19T01:46:52.356Z"
+            },
+            {
+              "$date": "2025-10-20T00:59:23.116Z"
+            },
+            {
+              "$date": "2025-10-27T01:09:40.306Z"
+            },
+            {
+              "$date": "2025-11-09T02:19:38.977Z"
+            },
+            {
+              "$date": "2025-10-30T00:59:26.409Z"
+            },
+            {
+              "$date": "2025-11-10T01:15:37.977Z"
+            },
+            {
+              "$date": "2025-10-21T01:05:13.149Z"
+            },
+            {
+              "$date": "2025-11-06T01:10:58.592Z"
+            },
+            {
+              "$date": "2025-10-21T01:01:33.820Z"
+            },
+            {
+              "$date": "2025-11-01T05:02:50.781Z"
+            },
+            {
+              "$date": "2025-10-11T08:37:33.084Z"
+            },
+            {
+              "$date": "2025-11-10T02:33:30.548Z"
+            },
+            {
+              "$date": "2025-11-01T05:26:36.471Z"
+            },
+            {
+              "$date": "2025-11-03T01:23:15.618Z"
+            },
+            {
+              "$date": "2025-10-19T09:50:43.804Z"
+            },
+            {
+              "$date": "2025-11-10T01:13:31.745Z"
+            },
+            {
+              "$date": "2025-10-24T07:21:13.120Z"
+            },
+            {
+              "$date": "2025-11-07T01:08:05.874Z"
+            },
+            {
+              "$date": "2025-10-29T02:26:03.230Z"
+            },
+            {
+              "$date": "2025-11-03T01:15:36.413Z"
+            },
+            {
+              "$date": "2025-11-04T01:19:59.757Z"
+            },
+            {
+              "$date": "2025-11-02T03:37:06.880Z"
+            },
+            {
+              "$date": "2025-11-06T01:15:18.420Z"
+            },
+            {
+              "$date": "2025-10-20T00:58:33.633Z"
+            },
+            {
+              "$date": "2025-10-28T08:31:04.330Z"
+            },
+            {
+              "$date": "2025-11-09T02:19:29.799Z"
+            },
+            {
+              "$date": "2025-10-31T01:29:09.529Z"
+            },
+            {
+              "$date": "2025-10-27T01:09:16.114Z"
+            }
+          ],
+          "bsonType": "Date"
+        }
+      ]
+    },
+    {
+      "name": "projectId",
+      "path": [
+        "projectId"
+      ],
+      "count": 97,
+      "type": "String",
+      "probability": 1.3472222222222223,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "projectId"
+          ],
+          "count": 97,
+          "probability": 1.3472222222222223,
+          "unique": 10,
+          "hasDuplicates": true,
+          "values": [
+            "proj_1759044917192_py5qvc6",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759043847530_ciykak2",
+            "proj_1759046219254_b56x498",
+            "proj_1759046219254_b56x498",
+            "proj_1759046219254_b56x498",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759043847530_ciykak2",
+            "proj_1760165794890_t4bag3c",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759043847530_ciykak2",
+            "proj_1760165794890_t4bag3c",
+            "proj_1760165794890_t4bag3c",
+            "proj_1759044917192_py5qvc6",
+            "proj_1760165794890_t4bag3c",
+            "proj_1760165794890_t4bag3c",
+            "proj_1760165794890_t4bag3c",
+            "proj_1759043847530_ciykak2",
+            "proj_1759043847530_ciykak2",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759043847530_ciykak2",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759043847530_ciykak2",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759043847530_ciykak2",
+            "proj_1759044917192_py5qvc6",
+            "proj_1760165794890_t4bag3c",
+            "proj_1759044917192_py5qvc6",
+            "proj_1760679902672_xg6hhl9",
+            "proj_1760165794890_t4bag3c",
+            "proj_1761157653643_qfm8v5y",
+            "proj_1760165794890_t4bag3c",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759044917192_py5qvc6",
+            "proj_1760165794890_t4bag3c",
+            "proj_1759044917192_py5qvc6",
+            "proj_1761157653643_qfm8v5y",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759043847530_ciykak2",
+            "proj_1759045961033_3ts94j4",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759043847530_ciykak2",
+            "proj_1759045961033_3ts94j4",
+            "proj_1759043847530_ciykak2",
+            "proj_1760165794890_t4bag3c",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759044917192_py5qvc6",
+            "proj_1760679902672_xg6hhl9",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759043847530_ciykak2",
+            "proj_1759043847530_ciykak2",
+            "proj_1761157653643_qfm8v5y",
+            "proj_1760165794890_t4bag3c",
+            "proj_1760165794890_t4bag3c",
+            "proj_1759043847530_ciykak2",
+            "proj_1760165794890_t4bag3c",
+            "proj_1759043847530_ciykak2",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759044917192_py5qvc6",
+            "proj_1760165794890_t4bag3c",
+            "proj_1759045961033_3ts94j4",
+            "proj_1759046219254_b56x498",
+            "proj_1760165794890_t4bag3c",
+            "proj_1759046219254_b56x498",
+            "proj_1759043847530_ciykak2",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759043847530_ciykak2",
+            "proj_1760165794890_t4bag3c",
+            "proj_1762505247498_o86pcpb",
+            "proj_1759081012348_2ksox4h",
+            "proj_1759045961033_3ts94j4",
+            "proj_1759043847530_ciykak2",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759045961033_3ts94j4",
+            "proj_1759043847530_ciykak2",
+            "proj_1759044917192_py5qvc6",
+            "proj_1760165794890_t4bag3c",
+            "proj_1759080934701_d684asv",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759043847530_ciykak2",
+            "proj_1759080934701_d684asv",
+            "proj_1759043847530_ciykak2",
+            "proj_1759046219254_b56x498",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759044917192_py5qvc6",
+            "proj_1759043847530_ciykak2",
+            "proj_1759081012348_2ksox4h",
+            "proj_1759043847530_ciykak2",
+            "proj_1759043847530_ciykak2"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "result",
+      "path": [
+        "result"
+      ],
+      "count": 84,
+      "type": "Document",
+      "probability": 1.1666666666666667,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "Document",
+          "path": [
+            "result"
+          ],
+          "count": 83,
+          "probability": 1.1527777777777777,
+          "unique": null,
+          "hasDuplicates": null,
+          "values": null,
+          "bsonType": "Document",
+          "fields": [
+            {
+              "name": "data",
+              "path": [
+                "result",
+                "data"
+              ],
+              "count": 80,
+              "type": [
+                "Document",
+                "Undefined"
+              ],
+              "probability": 0.963855421686747,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "Document",
+                  "path": [
+                    "result",
+                    "data"
+                  ],
+                  "count": 79,
+                  "probability": 0.9518072289156626,
+                  "unique": null,
+                  "hasDuplicates": null,
+                  "values": null,
+                  "bsonType": "Document",
+                  "fields": [
+                    {
+                      "name": "个人视频播放量均值",
+                      "path": [
+                        "result",
+                        "data",
+                        "个人视频播放量均值"
+                      ],
+                      "count": 3,
+                      "type": [
+                        "String",
+                        "Undefined"
+                      ],
+                      "probability": 0.0379746835443038,
+                      "hasDuplicates": true,
+                      "types": [
+                        {
+                          "name": "String",
+                          "path": [
+                            "result",
+                            "data",
+                            "个人视频播放量均值"
+                          ],
+                          "count": 3,
+                          "probability": 0.0379746835443038,
+                          "unique": 3,
+                          "hasDuplicates": false,
+                          "values": [
+                            "455.8w",
+                            "1583.6w",
+                            "1399.4w"
+                          ],
+                          "bsonType": "String"
+                        },
+                        {
+                          "name": "Undefined",
+                          "bsonType": "Undefined",
+                          "unique": 0,
+                          "hasDuplicates": true,
+                          "path": [
+                            "result",
+                            "data",
+                            "个人视频播放量均值"
+                          ],
+                          "count": 76,
+                          "probability": 0.9620253164556962
+                        }
+                      ]
+                    },
+                    {
+                      "name": "完播率",
+                      "path": [
+                        "result",
+                        "data",
+                        "完播率"
+                      ],
+                      "count": 3,
+                      "type": [
+                        "String",
+                        "Undefined"
+                      ],
+                      "probability": 0.0379746835443038,
+                      "hasDuplicates": true,
+                      "types": [
+                        {
+                          "name": "String",
+                          "path": [
+                            "result",
+                            "data",
+                            "完播率"
+                          ],
+                          "count": 3,
+                          "probability": 0.0379746835443038,
+                          "unique": 3,
+                          "hasDuplicates": false,
+                          "values": [
+                            "20.8%",
+                            "16%",
+                            "11.8%"
+                          ],
+                          "bsonType": "String"
+                        },
+                        {
+                          "name": "Undefined",
+                          "bsonType": "Undefined",
+                          "unique": 0,
+                          "hasDuplicates": true,
+                          "path": [
+                            "result",
+                            "data",
+                            "完播率"
+                          ],
+                          "count": 76,
+                          "probability": 0.9620253164556962
+                        }
+                      ]
+                    },
+                    {
+                      "name": "播放量",
+                      "path": [
+                        "result",
+                        "data",
+                        "播放量"
+                      ],
+                      "count": 76,
+                      "type": [
+                        "String",
+                        "Undefined"
+                      ],
+                      "probability": 0.9620253164556962,
+                      "hasDuplicates": true,
+                      "types": [
+                        {
+                          "name": "String",
+                          "path": [
+                            "result",
+                            "data",
+                            "播放量"
+                          ],
+                          "count": 76,
+                          "probability": 0.9620253164556962,
+                          "unique": 75,
+                          "hasDuplicates": true,
+                          "values": [
+                            "2,422,505",
+                            "200w",
+                            "1,088.65w",
+                            "1,691,985",
+                            "80,682,219",
+                            "4,730,811",
+                            "2,280,645",
+                            "2,544,951",
+                            "797.05w",
+                            "31,605,023",
+                            "23,063,712",
+                            "14,103,973",
+                            "149.16w",
+                            "17,487,294",
+                            "4,708,335",
+                            "121.04w",
+                            "5,239,248",
+                            "25,313,569",
+                            "1,119,586",
+                            "1,158,938",
+                            "414.09w",
+                            "2,088,942",
+                            "9,359,015",
+                            "781.77w",
+                            "792.38w",
+                            "8,979.86w",
+                            "11,483,291",
+                            "7,527,084",
+                            "2,198,411",
+                            "3,705.42w",
+                            "1,633.21w",
+                            "11,786,437",
+                            "5,854,087",
+                            "38,526,569",
+                            "24,568,445",
+                            "14,186,372",
+                            "245.27w",
+                            "199.47w",
+                            "34,300,970",
+                            "39,865,010",
+                            "1,757.22w",
+                            "12,282,429",
+                            "508.62w",
+                            "12,650,932",
+                            "149.57w",
+                            "1,860.06w",
+                            "4,221,969",
+                            "2,126,665",
+                            "1,136,528",
+                            "3,555.91w",
+                            "994.53w",
+                            "8,477,906",
+                            "1,710,666",
+                            "820.47w",
+                            "2,301,865",
+                            "7,157,861",
+                            "4,279.93w",
+                            "229.38w",
+                            "7,337,247",
+                            "6,473,542",
+                            "61,846,433",
+                            "2,703,968",
+                            "24,999,887",
+                            "18,747,326",
+                            "2,718.77w",
+                            "4,277,850",
+                            "22,732,217",
+                            "3,675,572",
+                            "199.47w",
+                            "3,775.67w",
+                            "31,890,271",
+                            "22,857,972",
+                            "2,162,366",
+                            "7,574,638",
+                            "1,000.48w",
+                            "10,131,228"
+                          ],
+                          "bsonType": "String"
+                        },
+                        {
+                          "name": "Undefined",
+                          "bsonType": "Undefined",
+                          "unique": 0,
+                          "hasDuplicates": true,
+                          "path": [
+                            "result",
+                            "data",
+                            "播放量"
+                          ],
+                          "count": 3,
+                          "probability": 0.0379746835443038
+                        }
+                      ]
+                    },
+                    {
+                      "name": "星图频播放量均值",
+                      "path": [
+                        "result",
+                        "data",
+                        "星图频播放量均值"
+                      ],
+                      "count": 3,
+                      "type": [
+                        "String",
+                        "Undefined"
+                      ],
+                      "probability": 0.0379746835443038,
+                      "hasDuplicates": true,
+                      "types": [
+                        {
+                          "name": "String",
+                          "path": [
+                            "result",
+                            "data",
+                            "星图频播放量均值"
+                          ],
+                          "count": 3,
+                          "probability": 0.0379746835443038,
+                          "unique": 3,
+                          "hasDuplicates": false,
+                          "values": [
+                            "196.9w",
+                            "3839.2w",
+                            "687.7w"
+                          ],
+                          "bsonType": "String"
+                        },
+                        {
+                          "name": "Undefined",
+                          "bsonType": "Undefined",
+                          "unique": 0,
+                          "hasDuplicates": true,
+                          "path": [
+                            "result",
+                            "data",
+                            "星图频播放量均值"
+                          ],
+                          "count": 76,
+                          "probability": 0.9620253164556962
+                        }
+                      ]
+                    },
+                    {
+                      "name": "爆文率",
+                      "path": [
+                        "result",
+                        "data",
+                        "爆文率"
+                      ],
+                      "count": 3,
+                      "type": [
+                        "String",
+                        "Undefined"
+                      ],
+                      "probability": 0.0379746835443038,
+                      "hasDuplicates": true,
+                      "types": [
+                        {
+                          "name": "String",
+                          "path": [
+                            "result",
+                            "data",
+                            "爆文率"
+                          ],
+                          "count": 3,
+                          "probability": 0.0379746835443038,
+                          "unique": 3,
+                          "hasDuplicates": false,
+                          "values": [
+                            "83.3%",
+                            "100%",
+                            "70%"
+                          ],
+                          "bsonType": "String"
+                        },
+                        {
+                          "name": "Undefined",
+                          "bsonType": "Undefined",
+                          "unique": 0,
+                          "hasDuplicates": true,
+                          "path": [
+                            "result",
+                            "data",
+                            "爆文率"
+                          ],
+                          "count": 76,
+                          "probability": 0.9620253164556962
+                        }
+                      ]
+                    },
+                    {
+                      "name": "用户画像总结",
+                      "path": [
+                        "result",
+                        "data",
+                        "用户画像总结"
+                      ],
+                      "count": 3,
+                      "type": [
+                        "String",
+                        "Undefined"
+                      ],
+                      "probability": 0.0379746835443038,
+                      "hasDuplicates": true,
+                      "types": [
+                        {
+                          "name": "String",
+                          "path": [
+                            "result",
+                            "data",
+                            "用户画像总结"
+                          ],
+                          "count": 3,
+                          "probability": 0.0379746835443038,
+                          "unique": 3,
+                          "hasDuplicates": false,
+                          "values": [
+                            "触达用户 31-40岁居多，男性居多\\n集中 31-40岁居多，男性居多",
+                            "触达用户 24-30岁居多，男性居多\\n集中 24-30岁居多，男性居多",
+                            "触达用户 18-23岁居多，男性居多\\n集中 18-23岁居多，男性居多"
+                          ],
+                          "bsonType": "String"
+                        },
+                        {
+                          "name": "Undefined",
+                          "bsonType": "Undefined",
+                          "unique": 0,
+                          "hasDuplicates": true,
+                          "path": [
+                            "result",
+                            "data",
+                            "用户画像总结"
+                          ],
+                          "count": 76,
+                          "probability": 0.9620253164556962
+                        }
+                      ]
+                    },
+                    {
+                      "name": "预期CPM",
+                      "path": [
+                        "result",
+                        "data",
+                        "预期CPM"
+                      ],
+                      "count": 3,
+                      "type": [
+                        "String",
+                        "Undefined"
+                      ],
+                      "probability": 0.0379746835443038,
+                      "hasDuplicates": true,
+                      "types": [
+                        {
+                          "name": "String",
+                          "path": [
+                            "result",
+                            "data",
+                            "预期CPM"
+                          ],
+                          "count": 3,
+                          "probability": 0.0379746835443038,
+                          "unique": 3,
+                          "hasDuplicates": false,
+                          "values": [
+                            "37.8",
+                            "17.1",
+                            "11.7"
+                          ],
+                          "bsonType": "String"
+                        },
+                        {
+                          "name": "Undefined",
+                          "bsonType": "Undefined",
+                          "unique": 0,
+                          "hasDuplicates": true,
+                          "path": [
+                            "result",
+                            "data",
+                            "预期CPM"
+                          ],
+                          "count": 76,
+                          "probability": 0.9620253164556962
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "result",
+                    "data"
+                  ],
+                  "count": 3,
+                  "probability": 0.03614457831325301
+                }
+              ]
+            },
+            {
+              "name": "screenshots",
+              "path": [
+                "result",
+                "screenshots"
+              ],
+              "count": 83,
+              "type": "Array",
+              "probability": 1,
+              "hasDuplicates": false,
+              "types": [
+                {
+                  "name": "Array",
+                  "path": [
+                    "result",
+                    "screenshots"
+                  ],
+                  "count": 83,
+                  "probability": 1,
+                  "unique": null,
+                  "hasDuplicates": null,
+                  "values": null,
+                  "bsonType": "Array",
+                  "types": [
+                    {
+                      "name": "Document",
+                      "path": [
+                        "result",
+                        "screenshots"
+                      ],
+                      "count": 31,
+                      "probability": 1,
+                      "unique": null,
+                      "hasDuplicates": null,
+                      "values": null,
+                      "bsonType": "Document",
+                      "fields": [
+                        {
+                          "name": "name",
+                          "path": [
+                            "result",
+                            "screenshots",
+                            "name"
+                          ],
+                          "count": 30,
+                          "type": [
+                            "String",
+                            "Undefined"
+                          ],
+                          "probability": 0.967741935483871,
+                          "hasDuplicates": true,
+                          "types": [
+                            {
+                              "name": "String",
+                              "path": [
+                                "result",
+                                "screenshots",
+                                "name"
+                              ],
+                              "count": 30,
+                              "probability": 0.967741935483871,
+                              "unique": 7,
+                              "hasDuplicates": true,
+                              "values": [
+                                "达人价格.png",
+                                "星图视频.png",
+                                "达人价格.png",
+                                "男女比例.png",
+                                "星图视频.png",
+                                "年龄分布.png",
+                                "男女比例.png",
+                                "达人价格.png",
+                                "城市等级.png",
+                                "年龄分布.png",
+                                "星图视频.png",
+                                "八大人群.png",
+                                "城市等级.png",
+                                "男女比例.png",
+                                "设备截图.png",
+                                "八大人群.png",
+                                "年龄分布.png",
+                                "设备截图.png",
+                                "城市等级.png",
+                                "达人价格.png",
+                                "八大人群.png",
+                                "星图视频.png",
+                                "设备截图.png",
+                                "男女比例.png",
+                                "年龄分布.png",
+                                "城市等级.png",
+                                "八大人群.png",
+                                "达人价格.png",
+                                "设备截图.png",
+                                "星图视频.png"
+                              ],
+                              "bsonType": "String"
+                            },
+                            {
+                              "name": "Undefined",
+                              "bsonType": "Undefined",
+                              "unique": 1,
+                              "hasDuplicates": false,
+                              "path": [
+                                "result",
+                                "screenshots",
+                                "name"
+                              ],
+                              "count": 1,
+                              "probability": 0.03225806451612903
+                            }
+                          ]
+                        },
+                        {
+                          "name": "url",
+                          "path": [
+                            "result",
+                            "screenshots",
+                            "url"
+                          ],
+                          "count": 30,
+                          "type": [
+                            "String",
+                            "Undefined"
+                          ],
+                          "probability": 0.967741935483871,
+                          "hasDuplicates": false,
+                          "types": [
+                            {
+                              "name": "String",
+                              "path": [
+                                "result",
+                                "screenshots",
+                                "url"
+                              ],
+                              "count": 30,
+                              "probability": 0.967741935483871,
+                              "unique": 30,
+                              "hasDuplicates": false,
+                              "values": [
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/68ea16f911f67aa2e6bafe7a/达人价格.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/68ea16f911f67aa2e6bafe7a/星图视频.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/68fb27e22cdee8cde9576475/达人价格.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/68ea16f911f67aa2e6bafe7a/男女比例.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/68fb27e22cdee8cde9576475/星图视频.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/68ea16f911f67aa2e6bafe7a/年龄分布.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/68fb27e22cdee8cde9576475/男女比例.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/69007f1e6008d066b1750f7a/达人价格.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/68ea16f911f67aa2e6bafe7a/城市等级.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/68fb27e22cdee8cde9576475/年龄分布.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/69007f1e6008d066b1750f7a/星图视频.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/68ea16f911f67aa2e6bafe7a/八大人群.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/68fb27e22cdee8cde9576475/城市等级.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/69007f1e6008d066b1750f7a/男女比例.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/68ea16f911f67aa2e6bafe7a/设备截图.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/68fb27e22cdee8cde9576475/八大人群.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/69007f1e6008d066b1750f7a/年龄分布.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/68fb27e22cdee8cde9576475/设备截图.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/69007f1e6008d066b1750f7a/城市等级.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/69007f1e6008d066b1750f7c/达人价格.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/69007f1e6008d066b1750f7a/八大人群.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/69007f1e6008d066b1750f7c/星图视频.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/69007f1e6008d066b1750f7a/设备截图.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/69007f1e6008d066b1750f7c/男女比例.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/69007f1e6008d066b1750f7c/年龄分布.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/69007f1e6008d066b1750f7c/城市等级.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/69007f1e6008d066b1750f7c/八大人群.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/6911ad9d172f59cb8e3874b0/达人价格.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/69007f1e6008d066b1750f7c/设备截图.png",
+                                "https://automation-suite-screenshots.tos-cn-shanghai.volces.com/automation_screenshots/6911ad9d172f59cb8e3874b0/星图视频.png"
+                              ],
+                              "bsonType": "String"
+                            },
+                            {
+                              "name": "Undefined",
+                              "bsonType": "Undefined",
+                              "unique": 1,
+                              "hasDuplicates": false,
+                              "path": [
+                                "result",
+                                "screenshots",
+                                "url"
+                              ],
+                              "count": 1,
+                              "probability": 0.03225806451612903
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "totalCount": 31,
+                  "lengths": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    7,
+                    0,
+                    0,
+                    0,
+                    0,
+                    7,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    7,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    7,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    7,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "averageLength": 0.37349397590361444
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "status",
+      "path": [
+        "status"
+      ],
+      "count": 88,
+      "type": "String",
+      "probability": 1.2222222222222223,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "status"
+          ],
+          "count": 87,
+          "probability": 1.2083333333333333,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": [
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed",
+            "completed"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "targetId",
+      "path": [
+        "targetId"
+      ],
+      "count": 91,
+      "type": "String",
+      "probability": 1.2638888888888888,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "targetId"
+          ],
+          "count": 91,
+          "probability": 1.2638888888888888,
+          "unique": 60,
+          "hasDuplicates": true,
+          "values": [
+            "7562150220700598310",
+            "7560528845121522998",
+            "7560321691566574883",
+            "7559883828437712950",
+            "7563620863879151654",
+            "7564714388792279066",
+            "7563986450489081882",
+            "7563985637720719370",
+            "7563556197732175162",
+            "7559881594689814537",
+            "7561364229249302538",
+            "7563231999217893426",
+            "7565024840785956155",
+            "7557953299603324966",
+            "7565835182838644746",
+            "7563201342144023866",
+            "7562150220700598310",
+            "7561364229249302538",
+            "7566481256695889958",
+            "7562148057989054514",
+            "7561291435271212346",
+            "7557952503195631654",
+            "7559119622899466286",
+            "7563580846368738569",
+            "7563556197732175162",
+            "7563940038812765440",
+            "7567316426554343451",
+            "7559880500728889394",
+            "7568440939551653942",
+            "7560616205717212450",
+            "7561288758713306428",
+            "7563231999217893426",
+            "7569532042356523046",
+            "7563193577191243803",
+            "7244769462849650745",
+            "7561364229249302538",
+            "7563231999217893426",
+            "7561766641764257060",
+            "7560528845121522998",
+            "7563193577191243803",
+            "7568379475734315058",
+            "7334582542776926227",
+            "7561288758713306428",
+            "7561291707809759282",
+            "7560330861300829476",
+            "7569460331756388406",
+            "7565024840785956155",
+            "7558309012559711546",
+            "7559507693644283913",
+            "7560630713653919782",
+            "7562148057989054514",
+            "7561299584157879604",
+            "7559121752303865114",
+            "7569532042356523046",
+            "7559883828437712950",
+            "7560181951924948275",
+            "7560630713653919782",
+            "7345298134030876722",
+            "7563231154162106418",
+            "7563222396943224116",
+            "7559097542639422729",
+            "7563231154162106418",
+            "7561361956167221257",
+            "7568379475734315058",
+            "7568789291711610889",
+            "7561364229249302538",
+            "7564712581539627062",
+            "7562037416635403546",
+            "7565835182838644746",
+            "7564713414157664262",
+            "7560632594845401134",
+            "7560528845121522998",
+            "7560616205717212450",
+            "7563193577191243803",
+            "7060256610815311913",
+            "7568787683393142830",
+            "7563991480080007206",
+            "7559880500728889394",
+            "7559121752303865114",
+            "7560632876216090650",
+            "7564712581539627062",
+            "7562089483509501242",
+            "7561299584157879604",
+            "7566481256695889958",
+            "7560528845121522998",
+            "7561361956167221257",
+            "7562149300575141926",
+            "7559880500728889394",
+            "7563985637720719370",
+            "7562150220700598310",
+            "7563325196271701286"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "taskId",
+      "path": [
+        "taskId"
+      ],
+      "count": 58,
+      "type": [
+        "String",
+        "Undefined"
+      ],
+      "probability": 0.8055555555555556,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "taskId"
+          ],
+          "count": 58,
+          "probability": 0.8055555555555556,
+          "unique": 36,
+          "hasDuplicates": true,
+          "values": [
+            "7562150220700598310",
+            "7559883828437712950",
+            "7563620863879151654",
+            "7564714388792279066",
+            "7563986450489081882",
+            "7563985637720719370",
+            "7559881594689814537",
+            "7561364229249302538",
+            "7563231999217893426",
+            "7557953299603324966",
+            "7565835182838644746",
+            "7562150220700598310",
+            "7561364229249302538",
+            "7566481256695889958",
+            "7562148057989054514",
+            "7557952503195631654",
+            "7559119622899466286",
+            "7567316426554343451",
+            "7559880500728889394",
+            "7568440939551653942",
+            "7563231999217893426",
+            "7569532042356523046",
+            "7563193577191243803",
+            "7561364229249302538",
+            "7563231999217893426",
+            "7563193577191243803",
+            "7568379475734315058",
+            "7561291707809759282",
+            "7569460331756388406",
+            "7559507693644283913",
+            "7560630713653919782",
+            "7562148057989054514",
+            "7569532042356523046",
+            "7559883828437712950",
+            "7560630713653919782",
+            "7563231154162106418",
+            "7563231154162106418",
+            "7561361956167221257",
+            "7568379475734315058",
+            "7568789291711610889",
+            "7561364229249302538",
+            "7564712581539627062",
+            "7565835182838644746",
+            "7564713414157664262",
+            "7560632594845401134",
+            "7563193577191243803",
+            "7568787683393142830",
+            "7563991480080007206",
+            "7559880500728889394",
+            "7560632876216090650",
+            "7564712581539627062",
+            "7566481256695889958",
+            "7561361956167221257",
+            "7562149300575141926",
+            "7559880500728889394",
+            "7563985637720719370",
+            "7562150220700598310",
+            "7567321366379429897"
+          ],
+          "bsonType": "String"
         },
-        "screenshots": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": [
-              "name",
-              "url"
-            ],
-            "properties": {
-              "name": {
-                "type": "string"
-              },
-              "url": {
-                "type": "string"
-              }
+        {
+          "name": "Undefined",
+          "bsonType": "Undefined",
+          "unique": 0,
+          "hasDuplicates": true,
+          "path": [
+            "taskId"
+          ],
+          "count": 14,
+          "probability": 0.19444444444444445
+        }
+      ]
+    },
+    {
+      "name": "updatedAt",
+      "path": [
+        "updatedAt"
+      ],
+      "count": 86,
+      "type": "Date",
+      "probability": 1.1944444444444444,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Date",
+          "path": [
+            "updatedAt"
+          ],
+          "count": 86,
+          "probability": 1.1944444444444444,
+          "unique": 64,
+          "hasDuplicates": true,
+          "values": [
+            {
+              "$date": "2025-10-21T15:52:14.057Z"
+            },
+            {
+              "$date": "2025-11-10T01:10:58.123Z"
+            },
+            {
+              "$date": "2025-11-06T01:06:53.764Z"
+            },
+            {
+              "$date": "2025-10-20T01:02:50.833Z"
+            },
+            {
+              "$date": "2025-10-31T01:26:11.286Z"
+            },
+            {
+              "$date": "2025-11-06T15:02:16.366Z"
+            },
+            {
+              "$date": "2025-10-30T01:19:20.542Z"
+            },
+            {
+              "$date": "2025-10-26T05:04:16.200Z"
+            },
+            {
+              "$date": "2025-11-06T01:06:53.764Z"
+            },
+            {
+              "$date": "2025-10-19T09:49:27.286Z"
+            },
+            {
+              "$date": "2025-10-25T03:58:01.713Z"
+            },
+            {
+              "$date": "2025-10-31T01:35:30.740Z"
+            },
+            {
+              "$date": "2025-11-09T02:16:33.965Z"
+            },
+            {
+              "$date": "2025-10-19T09:49:27.286Z"
+            },
+            {
+              "$date": "2025-11-04T01:26:15.304Z"
+            },
+            {
+              "$date": "2025-11-04T18:15:34.404Z"
+            },
+            {
+              "$date": "2025-10-24T01:07:51.847Z"
+            },
+            {
+              "$date": "2025-10-30T01:23:42.710Z"
+            },
+            {
+              "$date": "2025-11-06T01:18:33.349Z"
+            },
+            {
+              "$date": "2025-10-29T02:24:58.701Z"
+            },
+            {
+              "$date": "2025-10-31T01:28:55.476Z"
+            },
+            {
+              "$date": "2025-10-20T00:58:30.473Z"
+            },
+            {
+              "$date": "2025-10-23T01:10:02.233Z"
+            },
+            {
+              "$date": "2025-11-10T01:10:58.123Z"
+            },
+            {
+              "$date": "2025-11-04T01:11:38.821Z"
+            },
+            {
+              "$date": "2025-11-06T01:10:28.660Z"
+            },
+            {
+              "$date": "2025-11-05T10:19:46.594Z"
+            },
+            {
+              "$date": "2025-10-24T01:02:10.635Z"
+            },
+            {
+              "$date": "2025-11-05T01:22:35.850Z"
+            },
+            {
+              "$date": "2025-10-29T02:13:58.130Z"
+            },
+            {
+              "$date": "2025-10-11T08:36:09.197Z"
+            },
+            {
+              "$date": "2025-11-01T05:18:34.872Z"
+            },
+            {
+              "$date": "2025-10-27T00:58:26.519Z"
+            },
+            {
+              "$date": "2025-11-09T02:27:36.161Z"
+            },
+            {
+              "$date": "2025-11-03T01:22:50.422Z"
+            },
+            {
+              "$date": "2025-10-24T07:16:50.981Z"
+            },
+            {
+              "$date": "2025-10-27T17:39:25.387Z"
+            },
+            {
+              "$date": "2025-11-03T01:12:28.888Z"
+            },
+            {
+              "$date": "2025-11-05T10:17:50.677Z"
+            },
+            {
+              "$date": "2025-11-09T02:16:33.965Z"
+            },
+            {
+              "$date": "2025-10-29T02:24:58.701Z"
+            },
+            {
+              "$date": "2025-11-04T17:35:57.963Z"
+            },
+            {
+              "$date": "2025-10-28T08:30:22.337Z"
+            },
+            {
+              "$date": "2025-11-06T15:06:04.984Z"
+            },
+            {
+              "$date": "2025-10-25T03:24:14.083Z"
+            },
+            {
+              "$date": "2025-11-04T17:44:12.180Z"
+            },
+            {
+              "$date": "2025-11-07T01:06:51.114Z"
+            },
+            {
+              "$date": "2025-11-10T01:10:58.123Z"
+            },
+            {
+              "$date": "2025-11-02T03:15:34.888Z"
+            },
+            {
+              "$date": "2025-10-19T01:46:52.434Z"
+            },
+            {
+              "$date": "2025-10-20T00:58:30.473Z"
+            },
+            {
+              "$date": "2025-10-27T01:09:13.155Z"
+            },
+            {
+              "$date": "2025-11-09T02:19:09.046Z"
+            },
+            {
+              "$date": "2025-10-30T00:59:05.673Z"
+            },
+            {
+              "$date": "2025-11-10T01:15:22.774Z"
+            },
+            {
+              "$date": "2025-10-21T01:04:57.867Z"
+            },
+            {
+              "$date": "2025-11-06T01:10:28.660Z"
+            },
+            {
+              "$date": "2025-10-21T01:00:38.005Z"
+            },
+            {
+              "$date": "2025-10-28T08:30:22.337Z"
+            },
+            {
+              "$date": "2025-11-01T05:02:09.462Z"
+            },
+            {
+              "$date": "2025-11-10T02:33:28.771Z"
+            },
+            {
+              "$date": "2025-11-01T05:25:44.883Z"
+            },
+            {
+              "$date": "2025-11-03T01:22:50.422Z"
+            },
+            {
+              "$date": "2025-10-19T09:49:27.286Z"
+            },
+            {
+              "$date": "2025-11-10T01:13:05.322Z"
+            },
+            {
+              "$date": "2025-11-07T01:06:51.114Z"
+            },
+            {
+              "$date": "2025-10-29T02:24:58.701Z"
+            },
+            {
+              "$date": "2025-11-03T01:15:35.366Z"
+            },
+            {
+              "$date": "2025-11-04T01:19:56.382Z"
+            },
+            {
+              "$date": "2025-11-02T03:35:42.794Z"
+            },
+            {
+              "$date": "2025-11-06T01:15:01.523Z"
+            },
+            {
+              "$date": "2025-10-20T00:58:30.473Z"
+            },
+            {
+              "$date": "2025-11-09T02:19:09.046Z"
+            },
+            {
+              "$date": "2025-10-31T01:28:55.476Z"
+            },
+            {
+              "$date": "2025-10-27T01:09:13.155Z"
+            },
+            {
+              "$date": "2025-11-10T09:22:56.070Z"
+            },
+            {
+              "$date": "2025-11-07T01:03:19.870Z"
+            },
+            {
+              "$date": "2025-11-05T10:21:46.274Z"
+            },
+            {
+              "$date": "2025-10-25T03:24:14.083Z"
+            },
+            {
+              "$date": "2025-11-01T05:18:34.872Z"
+            },
+            {
+              "$date": "2025-10-20T01:02:50.833Z"
+            },
+            {
+              "$date": "2025-11-01T05:11:28.190Z"
+            },
+            {
+              "$date": "2025-11-10T02:22:53.717Z"
+            },
+            {
+              "$date": "2025-11-09T02:16:33.965Z"
+            },
+            {
+              "$date": "2025-10-14T15:04:59.479Z"
+            },
+            {
+              "$date": "2025-11-02T03:35:42.794Z"
             }
+          ],
+          "bsonType": "Date"
+        }
+      ]
+    },
+    {
+      "name": "videoId",
+      "path": [
+        "videoId"
+      ],
+      "count": 30,
+      "type": [
+        "String",
+        "Undefined"
+      ],
+      "probability": 0.4166666666666667,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "videoId"
+          ],
+          "count": 30,
+          "probability": 0.4166666666666667,
+          "unique": 21,
+          "hasDuplicates": true,
+          "values": [
+            "7560528845121522998",
+            "7560321691566574883",
+            "7563556197732175162",
+            "7565024840785956155",
+            "7563201342144023866",
+            "7561291435271212346",
+            "7563580846368738569",
+            "7563556197732175162",
+            "7563940038812765440",
+            "7560616205717212450",
+            "7561288758713306428",
+            "7561766641764257060",
+            "7560528845121522998",
+            "7561288758713306428",
+            "7560330861300829476",
+            "7565024840785956155",
+            "7558309012559711546",
+            "7561299584157879604",
+            "7559121752303865114",
+            "7560181951924948275",
+            "7563222396943224116",
+            "7559097542639422729",
+            "7562037416635403546",
+            "7560528845121522998",
+            "7560616205717212450",
+            "7559121752303865114",
+            "7562089483509501242",
+            "7561299584157879604",
+            "7560528845121522998",
+            "7563325196271701286"
+          ],
+          "bsonType": "String"
+        },
+        {
+          "name": "Undefined",
+          "bsonType": "Undefined",
+          "unique": 0,
+          "hasDuplicates": true,
+          "path": [
+            "videoId"
+          ],
+          "count": 42,
+          "probability": 0.5833333333333334
+        }
+      ]
+    },
+    {
+      "name": "workflowId",
+      "path": [
+        "workflowId"
+      ],
+      "count": 96,
+      "type": "String",
+      "probability": 1.3333333333333333,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "workflowId"
+          ],
+          "count": 95,
+          "probability": 1.3194444444444444,
+          "unique": 4,
+          "hasDuplicates": true,
+          "values": [
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68fdae01656eacf1bfacb66c",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68fdae01656eacf1bfacb66c",
+            "68d36545195499aaedbaa5f1",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee43b8e16e0c2c942b167f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee43b8e16e0c2c942b167f",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee43b8e16e0c2c942b167f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee43b8e16e0c2c942b167f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee43b8e16e0c2c942b167f",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee679ef3daa8fdc9ea730f",
+            "68fdae01656eacf1bfacb66c",
+            "68ee679ef3daa8fdc9ea730f",
+            "68ee43b8e16e0c2c942b167f"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "xingtuId",
+      "path": [
+        "xingtuId"
+      ],
+      "count": 6,
+      "type": [
+        "String",
+        "Undefined"
+      ],
+      "probability": 0.08333333333333333,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "xingtuId"
+          ],
+          "count": 6,
+          "probability": 0.08333333333333333,
+          "unique": 6,
+          "hasDuplicates": false,
+          "values": [
+            "6777811650595520526",
+            "7244769462849650745",
+            "7334582542776926227",
+            "7345298134030876722",
+            "7060256610815311913",
+            "6790919433234677768"
+          ],
+          "bsonType": "String"
+        },
+        {
+          "name": "Undefined",
+          "bsonType": "Undefined",
+          "unique": 0,
+          "hasDuplicates": true,
+          "path": [
+            "xingtuId"
+          ],
+          "count": 66,
+          "probability": 0.9166666666666666
+        }
+      ]
+    }
+  ]
+}
+[
+  [ '_id' ],
+  [ 'agentId' ],
+  [ 'completedAt' ],
+  [ 'createdAt' ],
+  [ 'errorMessage' ],
+  [ 'failedAt' ],
+  [ 'jobId' ],
+  [ 'metadata' ],
+  [ 'metadata', 'collaborationId' ],
+  [ 'metadata', 'talentNickname' ],
+  [ 'processingAt' ],
+  [ 'projectId' ],
+  [ 'result' ],
+  [ 'result', 'data' ],
+  [ 'result', 'data', '个人视频播放量均值' ],
+  [ 'result', 'data', '完播率' ],
+  [ 'result', 'data', '播放量' ],
+  [ 'result', 'data', '星图频播放量均值' ],
+  [ 'result', 'data', '爆文率' ],
+  [ 'result', 'data', '用户画像总结' ],
+  [ 'result', 'data', '预期CPM' ],
+  [ 'result', 'screenshots' ],
+  [ 'result', 'screenshots', 'name' ],
+  [ 'result', 'screenshots', 'url' ],
+  [ 'status' ],
+  [ 'targetId' ],
+  [ 'taskId' ],
+  [ 'updatedAt' ],
+  [ 'videoId' ],
+  [ 'workflowId' ],
+  [ 'xingtuId' ]
+]
+[Object: null prototype] {
+  _id: { types: [ { bsonType: 'ObjectId' } ] },
+  jobId: { types: [ { bsonType: 'ObjectId' } ] },
+  projectId: { types: [ { bsonType: 'String' } ] },
+  workflowId: { types: [ { bsonType: 'String' } ] },
+  taskId: { types: [ { bsonType: 'String' } ] },
+  videoId: { types: [ { bsonType: 'String' } ] },
+  targetId: { types: [ { bsonType: 'String' } ] },
+  metadata: {
+    types: [
+      {
+        bsonType: 'Document',
+        fields: [Object: null prototype] {
+          talentNickname: { types: [ { bsonType: 'String' } ] },
+          collaborationId: { types: [ { bsonType: 'String' } ] }
+        }
+      }
+    ]
+  },
+  status: { types: [ { bsonType: 'String' } ] },
+  createdAt: { types: [ { bsonType: 'Date' } ] },
+  updatedAt: { types: [ { bsonType: 'Date' } ] },
+  result: {
+    types: [
+      {
+        bsonType: 'Document',
+        fields: [Object: null prototype] {
+          screenshots: {
+            types: [
+              {
+                bsonType: 'Array',
+                types: [
+                  {
+                    bsonType: 'Document',
+                    fields: [Object: null prototype] {
+                      name: { types: [ { bsonType: 'String' } ] },
+                      url: { types: [ { bsonType: 'String' } ] }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          data: {
+            types: [
+              {
+                bsonType: 'Document',
+                fields: [Object: null prototype] {
+                  '播放量': { types: [ { bsonType: 'String' } ] },
+                  '预期CPM': { types: [ { bsonType: 'String' } ] },
+                  '完播率': { types: [ { bsonType: 'String' } ] },
+                  '爆文率': { types: [ { bsonType: 'String' } ] },
+                  '个人视频播放量均值': { types: [ { bsonType: 'String' } ] },
+                  '星图频播放量均值': { types: [ { bsonType: 'String' } ] },
+                  '用户画像总结': { types: [ { bsonType: 'String' } ] }
+                }
+              }
+            ]
           }
         }
       }
-    },
-    "status": {
-      "type": "string"
-    },
-    "targetId": {
-      "type": "string"
-    },
-    "taskId": {
-      "type": "string"
-    },
-    "updatedAt": {
-      "$ref": "#/$defs/Date"
-    },
-    "workflowId": {
-      "type": "string"
-    },
-    "xingtuId": {
-      "type": "string"
-    }
+    ]
   },
-  "$defs": {
-    "ObjectId": {
-      "type": "object",
-      "properties": {
-        "$oid": {
-          "type": "string",
-          "pattern": "^[0-9a-fA-F]{24}$"
-        }
-      },
-      "required": [
-        "$oid"
-      ],
-      "additionalProperties": false
-    },
-    "Date": {
-      "type": "object",
-      "properties": {
-        "$date": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "$date"
-      ],
-      "additionalProperties": false
-    }
-  }
+  errorMessage: { types: [ { bsonType: 'Null' } ] },
+  agentId: { types: [ { bsonType: 'String' } ] },
+  processingAt: { types: [ { bsonType: 'Date' } ] },
+  completedAt: { types: [ { bsonType: 'Date' } ] },
+  xingtuId: { types: [ { bsonType: 'String' } ] },
+  failedAt: { types: [ { bsonType: 'Null' } ] }
 }

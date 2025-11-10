@@ -1,70 +1,1411 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "required": [
-    "_id",
-    "completedTasks",
-    "createdTasks",
-    "status",
-    "summary",
-    "timestamp",
-    "triggerType"
-  ],
-  "properties": {
-    "_id": {
-      "$ref": "#/$defs/ObjectId"
-    },
-    "completedTasks": {
-      "type": "integer"
-    },
-    "createdTasks": {
-      "type": "integer"
-    },
-    "details": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "status": {
-      "type": "string"
-    },
-    "summary": {
-      "type": "string"
-    },
-    "timestamp": {
-      "$ref": "#/$defs/Date"
-    },
-    "triggerType": {
-      "type": "string"
-    }
-  },
-  "$defs": {
-    "ObjectId": {
-      "type": "object",
-      "properties": {
-        "$oid": {
-          "type": "string",
-          "pattern": "^[0-9a-fA-F]{24}$"
-        }
-      },
-      "required": [
-        "$oid"
+  "count": 90,
+  "fields": [
+    {
+      "name": "_id",
+      "path": [
+        "_id"
       ],
-      "additionalProperties": false
-    },
-    "Date": {
-      "type": "object",
-      "properties": {
-        "$date": {
-          "type": "string",
-          "format": "date-time"
+      "count": 100,
+      "type": "ObjectId",
+      "probability": 1.1111111111111112,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "ObjectId",
+          "path": [
+            "_id"
+          ],
+          "count": 99,
+          "probability": 1.1,
+          "unique": 99,
+          "hasDuplicates": false,
+          "values": [
+            {
+              "$oid": "69055b9a6489a46d9d8f241f"
+            },
+            {
+              "$oid": "68db2b9a3abe1bd97ed6ae37"
+            },
+            {
+              "$oid": "68f5ddc1d2cbfeecc8d504cc"
+            },
+            {
+              "$oid": "68d09f995f322bb9efd31b57"
+            },
+            {
+              "$oid": "68ce1d1744b0d1c5f7af066d"
+            },
+            {
+              "$oid": "68f5899b6b45ae639bc89da9"
+            },
+            {
+              "$oid": "6900159b4870d997565a5160"
+            },
+            {
+              "$oid": "68c7ac4e2ff2304593fc1676"
+            },
+            {
+              "$oid": "68ca8a33caae7f3dd447e816"
+            },
+            {
+              "$oid": "68e5d131567f6a09b140d089"
+            },
+            {
+              "$oid": "68cf4e1a150df2b2f819724d"
+            },
+            {
+              "$oid": "68d0a20a5f322bb9efd31b58"
+            },
+            {
+              "$oid": "68ca51c6caae7f3dd447e80f"
+            },
+            {
+              "$oid": "6906ad1c9500fe89a997e95f"
+            },
+            {
+              "$oid": "68fa3f79d211a7464e499270"
+            },
+            {
+              "$oid": "68ec4f026ee306729c93b228"
+            },
+            {
+              "$oid": "68eda09ab982b522e25e885b"
+            },
+            {
+              "$oid": "68ca8a21caae7f3dd447e815"
+            },
+            {
+              "$oid": "68c79b862ff2304593fc1672"
+            },
+            {
+              "$oid": "68ccec33f486db19072e6170"
+            },
+            {
+              "$oid": "68e4661a29ff3eed9c4c08eb"
+            },
+            {
+              "$oid": "68f6db1de3c9d64fcbfe1196"
+            },
+            {
+              "$oid": "68fa52fed211a7464e499274"
+            },
+            {
+              "$oid": "68d3429a72665afd41ca039f"
+            },
+            {
+              "$oid": "68ca7b57caae7f3dd447e812"
+            },
+            {
+              "$oid": "68d90527673afce448f703ad"
+            },
+            {
+              "$oid": "68fa4f88d211a7464e499273"
+            },
+            {
+              "$oid": "68c79a402ff2304593fc1671"
+            },
+            {
+              "$oid": "68d9da1a82cb14f5e41be2c5"
+            },
+            {
+              "$oid": "68cb599ada495255138ecff1"
+            },
+            {
+              "$oid": "68c8b69aee9e5edee6ed75df"
+            },
+            {
+              "$oid": "68fa3fd1d211a7464e499271"
+            },
+            {
+              "$oid": "68ca5386caae7f3dd447e810"
+            },
+            {
+              "$oid": "68dd5391b8febb24a5569b14"
+            },
+            {
+              "$oid": "68e3af850bfed77a2697f15f"
+            },
+            {
+              "$oid": "68f82c9a926be282e55ca18a"
+            },
+            {
+              "$oid": "6902b89a2d77abe314178496"
+            },
+            {
+              "$oid": "68facf9ade718c635908bc45"
+            },
+            {
+              "$oid": "68c6e5eab9baff58052343f4"
+            },
+            {
+              "$oid": "68ec4f196ee306729c93b229"
+            },
+            {
+              "$oid": "68fa320fd211a7464e499269"
+            },
+            {
+              "$oid": "690bf31a14fc0880e9c75c43"
+            },
+            {
+              "$oid": "68eafd9abfb5fbc97cb04457"
+            },
+            {
+              "$oid": "68fa3acfd211a7464e49926c"
+            },
+            {
+              "$oid": "68ca8b6ecaae7f3dd447e817"
+            },
+            {
+              "$oid": "68ce1d4844b0d1c5f7af066e"
+            },
+            {
+              "$oid": "68e653b705b87dab52a8924f"
+            },
+            {
+              "$oid": "68ccab1a2adf202b7b5c6b6e"
+            },
+            {
+              "$oid": "68d4b4c5edd1a4171d9064d5"
+            },
+            {
+              "$oid": "68d90504673afce448f703ac"
+            },
+            {
+              "$oid": "68f4382010fd39f717b5ff46"
+            },
+            {
+              "$oid": "68ca8a0acaae7f3dd447e814"
+            },
+            {
+              "$oid": "68f6e080e3c9d64fcbfe1197"
+            },
+            {
+              "$oid": "68d5e79333ce64dad2a496ff"
+            },
+            {
+              "$oid": "68e5b79a46952feb66548484"
+            },
+            {
+              "$oid": "68da2847dfe38fd23a434c29"
+            },
+            {
+              "$oid": "68f0439aab1ee78ecff982c3"
+            },
+            {
+              "$oid": "68fa3f50d211a7464e49926f"
+            },
+            {
+              "$oid": "68e85a9a861a0f0e162a3404"
+            },
+            {
+              "$oid": "68e7091aee9e7806c7cce7de"
+            },
+            {
+              "$oid": "68d7371a4a65dc9d4e831109"
+            },
+            {
+              "$oid": "68fd729aa3c850efe0fe950a"
+            },
+            {
+              "$oid": "68df2f5912a04dd68ee1ebe8"
+            },
+            {
+              "$oid": "68cce944f486db19072e616f"
+            },
+            {
+              "$oid": "68ca4f33caae7f3dd447e80e"
+            },
+            {
+              "$oid": "68f5b74450c0ba3412454145"
+            },
+            {
+              "$oid": "68e9ac1b90a0c1aed50c1a04"
+            },
+            {
+              "$oid": "68ca89edcaae7f3dd447e813"
+            },
+            {
+              "$oid": "68f58cb86b45ae639bc89dab"
+            },
+            {
+              "$oid": "68c7ab032ff2304593fc1675"
+            },
+            {
+              "$oid": "68ebbcec6e46c06e324550ad"
+            },
+            {
+              "$oid": "68c6eac1b9baff58052343f6"
+            },
+            {
+              "$oid": "68c7a6aa2ff2304593fc1673"
+            },
+            {
+              "$oid": "68fc211a4ef6d297d5440787"
+            },
+            {
+              "$oid": "68fa5875d211a7464e499276"
+            },
+            {
+              "$oid": "68d890d15d737ae70d50b613"
+            },
+            {
+              "$oid": "69058824d388fdcce68be0df"
+            },
+            {
+              "$oid": "68f1951c7821cd4b106f766f"
+            },
+            {
+              "$oid": "68fa3d5dd211a7464e49926e"
+            },
+            {
+              "$oid": "68df201a12a04dd68ee1ebe7"
+            },
+            {
+              "$oid": "6909501a65952b11821c4424"
+            },
+            {
+              "$oid": "69040a1adef2c7b650d1f5c2"
+            },
+            {
+              "$oid": "68c6e665b9baff58052343f5"
+            },
+            {
+              "$oid": "68eef21a74cfb84f96815d9d"
+            },
+            {
+              "$oid": "68c7a9352ff2304593fc1674"
+            },
+            {
+              "$oid": "6901671a7305e5f39ec2ebdb"
+            },
+            {
+              "$oid": "68d25180af51f9434967814a"
+            },
+            {
+              "$oid": "68c98dcc9dbb3ee81945b42e"
+            },
+            {
+              "$oid": "68e0719a30582d09ee2a6808"
+            },
+            {
+              "$oid": "68c7651ae7f5b1827667679a"
+            },
+            {
+              "$oid": "68fa36ded211a7464e49926a"
+            },
+            {
+              "$oid": "68fa3afad211a7464e49926d"
+            },
+            {
+              "$oid": "68d1f11a536e008136cadd29"
+            },
+            {
+              "$oid": "690d449cb533d537c60df6cd"
+            },
+            {
+              "$oid": "6901e36c64a92f1be3360672"
+            },
+            {
+              "$oid": "68d0a2165f322bb9efd31b59"
+            },
+            {
+              "$oid": "68e8ad55978125a118cf603c"
+            },
+            {
+              "$oid": "68f58c826b45ae639bc89daa"
+            },
+            {
+              "$oid": "68d88bb55d737ae70d50b612"
+            }
+          ],
+          "bsonType": "ObjectId"
         }
-      },
-      "required": [
-        "$date"
+      ]
+    },
+    {
+      "name": "completedTasks",
+      "path": [
+        "completedTasks"
       ],
-      "additionalProperties": false
+      "count": 92,
+      "type": "Number",
+      "probability": 1.0222222222222221,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Number",
+          "path": [
+            "completedTasks"
+          ],
+          "count": 91,
+          "probability": 1.011111111111111,
+          "unique": 30,
+          "hasDuplicates": true,
+          "values": [
+            119,
+            77,
+            119,
+            57,
+            57,
+            115,
+            113,
+            42,
+            62,
+            78,
+            55,
+            57,
+            48,
+            119,
+            115,
+            80,
+            82,
+            60,
+            42,
+            58,
+            77,
+            114,
+            116,
+            55,
+            65,
+            70,
+            115,
+            41,
+            78,
+            60,
+            43,
+            115,
+            51,
+            78,
+            78,
+            120,
+            114,
+            120,
+            43,
+            80,
+            127,
+            120,
+            82,
+            118,
+            60,
+            57,
+            78,
+            60,
+            58,
+            70,
+            117,
+            58,
+            115,
+            58,
+            76,
+            78,
+            81,
+            115,
+            76,
+            78,
+            58,
+            118,
+            78,
+            58,
+            50,
+            118,
+            78,
+            58,
+            117,
+            41,
+            82,
+            43,
+            42,
+            119,
+            120,
+            58,
+            120,
+            117,
+            117,
+            77,
+            120,
+            115,
+            42,
+            81,
+            40,
+            115,
+            55,
+            42,
+            78,
+            42,
+            123
+          ],
+          "bsonType": "Number"
+        }
+      ]
+    },
+    {
+      "name": "createdTasks",
+      "path": [
+        "createdTasks"
+      ],
+      "count": 93,
+      "type": "Number",
+      "probability": 1.0333333333333334,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Number",
+          "path": [
+            "createdTasks"
+          ],
+          "count": 93,
+          "probability": 1.0333333333333334,
+          "unique": 17,
+          "hasDuplicates": true,
+          "values": [
+            5,
+            7,
+            14,
+            8,
+            7,
+            18,
+            7,
+            2,
+            6,
+            6,
+            9,
+            8,
+            4,
+            6,
+            9,
+            9,
+            6,
+            4,
+            2,
+            6,
+            7,
+            18,
+            8,
+            9,
+            3,
+            6,
+            9,
+            3,
+            7,
+            8,
+            1,
+            9,
+            1,
+            7,
+            7,
+            16,
+            6,
+            4,
+            1,
+            9,
+            13,
+            4,
+            6,
+            10,
+            8,
+            7,
+            6,
+            8,
+            6,
+            6,
+            15,
+            2,
+            17,
+            6,
+            8,
+            7,
+            7,
+            9,
+            8,
+            6,
+            6,
+            6,
+            6,
+            6,
+            2,
+            15,
+            6,
+            2,
+            16,
+            3,
+            6,
+            1,
+            2,
+            5,
+            4,
+            6,
+            4,
+            7,
+            11,
+            7,
+            4,
+            5,
+            2,
+            7,
+            4,
+            5,
+            9,
+            2,
+            6,
+            2,
+            13,
+            10,
+            10
+          ],
+          "bsonType": "Number"
+        }
+      ]
+    },
+    {
+      "name": "details",
+      "path": [
+        "details"
+      ],
+      "count": 79,
+      "type": [
+        "Array",
+        "Undefined"
+      ],
+      "probability": 0.8777777777777778,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "Array",
+          "path": [
+            "details"
+          ],
+          "count": 79,
+          "probability": 0.8777777777777778,
+          "unique": null,
+          "hasDuplicates": null,
+          "values": null,
+          "bsonType": "Array",
+          "types": [
+            {
+              "name": "String",
+              "path": [
+                "details"
+              ],
+              "count": 10,
+              "probability": 1,
+              "unique": 6,
+              "hasDuplicates": true,
+              "values": [
+                "Created performance update task for 16 talents.",
+                "Created performance update task for 394 talents.",
+                "Created performance update task for 16 talents.",
+                "Created price update task for 400 talents.",
+                "Created performance update task for 3 talents.",
+                "Created price update task for 381 talents.",
+                "Created performance update task for 381 talents.",
+                "Created performance update task for 3 talents.",
+                "Created performance update task for 394 talents.",
+                "Created performance update task for 394 talents."
+              ],
+              "bsonType": "String"
+            }
+          ],
+          "totalCount": 10,
+          "lengths": [
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "averageLength": 0.12658227848101267
+        },
+        {
+          "name": "Undefined",
+          "bsonType": "Undefined",
+          "unique": 0,
+          "hasDuplicates": true,
+          "path": [
+            "details"
+          ],
+          "count": 11,
+          "probability": 0.12222222222222222
+        }
+      ]
+    },
+    {
+      "name": "status",
+      "path": [
+        "status"
+      ],
+      "count": 96,
+      "type": "String",
+      "probability": 1.0666666666666667,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "status"
+          ],
+          "count": 95,
+          "probability": 1.0555555555555556,
+          "unique": 1,
+          "hasDuplicates": true,
+          "values": [
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS",
+            "SUCCESS"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "summary",
+      "path": [
+        "summary"
+      ],
+      "count": 94,
+      "type": "String",
+      "probability": 1.0444444444444445,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "summary"
+          ],
+          "count": 94,
+          "probability": 1.0444444444444445,
+          "unique": 56,
+          "hasDuplicates": true,
+          "values": [
+            "处理了 31 个项目及 404 位达人，创建/更新 5，完成 119。",
+            "处理了 21 个项目及 381 位达人，创建/更新 7，完成 77。",
+            "处理了 33 个项目及 395 位达人，创建/更新 14，完成 119。",
+            "处理了 16 个项目及 378 位达人，创建/更新 8，完成 57。",
+            "处理了 16 个项目及 378 位达人，创建/更新 7，完成 57。",
+            "处理了 33 个项目及 394 位达人，创建/更新 18，完成 115。",
+            "处理了 30 个项目及 402 位达人，创建/更新 7，完成 113。",
+            "处理了 11 个项目，创建/更新 2，完成 42。",
+            "处理了 17 个项目及 368 位达人，创建/更新 6，完成 62。",
+            "处理了 21 个项目及 381 位达人，创建/更新 6，完成 78。",
+            "处理了 16 个项目及 378 位达人，创建/更新 9，完成 55。",
+            "处理了 16 个项目及 378 位达人，创建/更新 8，完成 57。",
+            "处理了 13 个项目及 362 位达人，创建/更新 4，完成 48。",
+            "处理了 31 个项目及 404 位达人，创建/更新 6，完成 119。",
+            "处理了 31 个项目及 396 位达人，创建/更新 9，完成 115。",
+            "处理了 22 个项目及 381 位达人，创建/更新 9，完成 80。",
+            "处理了 22 个项目及 383 位达人，创建/更新 6，完成 82。",
+            "处理了 16 个项目及 368 位达人，创建/更新 4，完成 60。",
+            "处理了 11 个项目，创建/更新 2，完成 42。",
+            "处理了 16 个项目及 373 位达人，创建/更新 6，完成 58。",
+            "处理了 21 个项目及 381 位达人，创建/更新 7，完成 77。",
+            "处理了 33 个项目及 395 位达人，创建/更新 18，完成 114。",
+            "处理了 31 个项目及 396 位达人，创建/更新 8，完成 116。",
+            "处理了 16 个项目及 378 位达人，创建/更新 9，完成 55。",
+            "处理了 17 个项目及 367 位达人，创建/更新 3，完成 65。",
+            "处理了 19 个项目及 378 位达人，创建/更新 6，完成 70。",
+            "处理了 31 个项目及 396 位达人，创建/更新 9，完成 115。",
+            "处理了 11 个项目，创建/更新 3，完成 41。",
+            "处理了 21 个项目及 381 位达人，创建/更新 7，完成 78。",
+            "处理了 17 个项目及 368 位达人，创建/更新 8，完成 60。",
+            "处理了 11 个项目，创建/更新 1，完成 43。",
+            "处理了 31 个项目及 396 位达人，创建/更新 9，完成 115。",
+            "处理了 13 个项目及 362 位达人，创建/更新 1，完成 51。",
+            "处理了 21 个项目及 381 位达人，创建/更新 7，完成 78。",
+            "处理了 21 个项目及 381 位达人，创建/更新 7，完成 78。",
+            "处理了 34 个项目及 396 位达人，创建/更新 16，完成 120。",
+            "处理了 30 个项目及 404 位达人，创建/更新 6，完成 114。",
+            "处理了 31 个项目及 396 位达人，创建/更新 4，完成 120。",
+            "处理了 11 个项目，创建/更新 1，完成 43。",
+            "处理了 22 个项目及 381 位达人，创建/更新 9，完成 80。",
+            "处理了 35 个项目及 396 位达人，创建/更新 13，完成 127。",
+            "处理了 31 个项目及 407 位达人，创建/更新 4，完成 120。",
+            "处理了 22 个项目及 381 位达人，创建/更新 6，完成 82。",
+            "处理了 32 个项目及 396 位达人，创建/更新 10，完成 118。",
+            "处理了 17 个项目及 368 位达人，创建/更新 8，完成 60。",
+            "处理了 16 个项目及 378 位达人，创建/更新 7，完成 57。",
+            "处理了 21 个项目及 381 位达人，创建/更新 6，完成 78。",
+            "处理了 17 个项目及 373 位达人，创建/更新 8，完成 60。",
+            "处理了 16 个项目及 378 位达人，创建/更新 6，完成 58。",
+            "处理了 19 个项目及 378 位达人，创建/更新 6，完成 70。",
+            "处理了 33 个项目及 394 位达人，创建/更新 15，完成 117。",
+            "处理了 15 个项目及 368 位达人，创建/更新 2，完成 58。",
+            "处理了 33 个项目及 395 位达人，创建/更新 17，完成 115。",
+            "处理了 16 个项目及 378 位达人，创建/更新 6，完成 58。",
+            "处理了 21 个项目及 381 位达人，创建/更新 8，完成 76。",
+            "处理了 21 个项目及 381 位达人，创建/更新 7，完成 78。",
+            "处理了 22 个项目及 383 位达人，创建/更新 7，完成 81。",
+            "处理了 31 个项目及 396 位达人，创建/更新 9，完成 115。",
+            "处理了 21 个项目及 381 位达人，创建/更新 8，完成 76。",
+            "处理了 21 个项目及 381 位达人，创建/更新 6，完成 78。",
+            "处理了 16 个项目及 378 位达人，创建/更新 6，完成 58。",
+            "处理了 31 个项目及 402 位达人，创建/更新 6，完成 118。",
+            "处理了 21 个项目及 381 位达人，创建/更新 6，完成 78。",
+            "处理了 16 个项目及 373 位达人，创建/更新 6，完成 58。",
+            "处理了 13 个项目及 362 位达人，创建/更新 2，完成 50。",
+            "处理了 33 个项目及 394 位达人，创建/更新 15，完成 118。",
+            "处理了 21 个项目及 381 位达人，创建/更新 6，完成 78。",
+            "处理了 15 个项目及 368 位达人，创建/更新 2，完成 58。",
+            "处理了 33 个项目及 394 位达人，创建/更新 16，完成 117。",
+            "处理了 11 个项目，创建/更新 3，完成 41。",
+            "处理了 22 个项目及 381 位达人，创建/更新 6，完成 82。",
+            "处理了 11 个项目，创建/更新 1，完成 43。",
+            "处理了 11 个项目，创建/更新 2，完成 42。",
+            "处理了 31 个项目及 402 位达人，创建/更新 5，完成 119。",
+            "处理了 31 个项目及 396 位达人，创建/更新 4，完成 120。",
+            "处理了 16 个项目及 378 位达人，创建/更新 6，完成 58。",
+            "处理了 31 个项目及 404 位达人，创建/更新 4，完成 120。",
+            "处理了 31 个项目及 384 位达人，创建/更新 7，完成 117。",
+            "处理了 32 个项目及 396 位达人，创建/更新 11，完成 117。",
+            "处理了 21 个项目及 381 位达人，创建/更新 7，完成 77。",
+            "处理了 31 个项目及 404 位达人，创建/更新 4，完成 120。",
+            "处理了 30 个项目及 404 位达人，创建/更新 5，完成 115。",
+            "处理了 11 个项目，创建/更新 2，完成 42。",
+            "处理了 22 个项目及 383 位达人，创建/更新 7，完成 81。",
+            "处理了 11 个项目，创建/更新 4，完成 40。",
+            "处理了 30 个项目及 404 位达人，创建/更新 5，完成 115。",
+            "处理了 16 个项目及 378 位达人，创建/更新 9，完成 55。",
+            "处理了 11 个项目及 362 位达人，创建/更新 2，完成 42。",
+            "处理了 21 个项目及 381 位达人，创建/更新 6，完成 78。",
+            "处理了 11 个项目，创建/更新 2，完成 42。",
+            "处理了 34 个项目及 396 位达人，创建/更新 13，完成 123。",
+            "处理了 33 个项目及 396 位达人，创建/更新 10，完成 122。",
+            "处理了 16 个项目及 378 位达人，创建/更新 10，完成 54。",
+            "处理了 31 个项目及 408 位达人，创建/更新 6，完成 118。"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "timestamp",
+      "path": [
+        "timestamp"
+      ],
+      "count": 98,
+      "type": "Date",
+      "probability": 1.0888888888888888,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "Date",
+          "path": [
+            "timestamp"
+          ],
+          "count": 98,
+          "probability": 1.0888888888888888,
+          "unique": 98,
+          "hasDuplicates": false,
+          "values": [
+            {
+              "$date": "2025-11-01T01:00:10.402Z"
+            },
+            {
+              "$date": "2025-09-30T01:00:10.402Z"
+            },
+            {
+              "$date": "2025-10-20T06:59:13.480Z"
+            },
+            {
+              "$date": "2025-09-22T01:00:09.167Z"
+            },
+            {
+              "$date": "2025-09-20T03:18:47.373Z"
+            },
+            {
+              "$date": "2025-10-20T01:00:09.168Z"
+            },
+            {
+              "$date": "2025-10-28T01:00:10.921Z"
+            },
+            {
+              "$date": "2025-09-15T06:03:58.494Z"
+            },
+            {
+              "$date": "2025-09-17T10:15:15.228Z"
+            },
+            {
+              "$date": "2025-10-08T02:49:21.486Z"
+            },
+            {
+              "$date": "2025-09-21T01:00:10.271Z"
+            },
+            {
+              "$date": "2025-09-22T01:10:34.727Z"
+            },
+            {
+              "$date": "2025-09-17T06:14:30.203Z"
+            },
+            {
+              "$date": "2025-11-02T01:00:10.438Z"
+            },
+            {
+              "$date": "2025-10-23T14:45:13.521Z"
+            },
+            {
+              "$date": "2025-10-13T00:59:44.465Z"
+            },
+            {
+              "$date": "2025-10-14T01:00:10.298Z"
+            },
+            {
+              "$date": "2025-09-17T10:14:57.703Z"
+            },
+            {
+              "$date": "2025-09-15T04:52:22.246Z"
+            },
+            {
+              "$date": "2025-09-19T05:37:55.607Z"
+            },
+            {
+              "$date": "2025-10-07T01:00:10.180Z"
+            },
+            {
+              "$date": "2025-10-21T01:00:10.324Z"
+            },
+            {
+              "$date": "2025-10-23T16:08:30.539Z"
+            },
+            {
+              "$date": "2025-09-24T01:00:10.567Z"
+            },
+            {
+              "$date": "2025-09-17T09:11:51.296Z"
+            },
+            {
+              "$date": "2025-09-28T09:51:35.085Z"
+            },
+            {
+              "$date": "2025-10-23T15:53:43.969Z"
+            },
+            {
+              "$date": "2025-09-15T04:46:56.680Z"
+            },
+            {
+              "$date": "2025-09-29T01:00:10.132Z"
+            },
+            {
+              "$date": "2025-09-18T01:00:10.168Z"
+            },
+            {
+              "$date": "2025-09-16T01:00:10.154Z"
+            },
+            {
+              "$date": "2025-10-23T14:46:41.377Z"
+            },
+            {
+              "$date": "2025-09-17T06:21:58.710Z"
+            },
+            {
+              "$date": "2025-10-01T16:15:13.376Z"
+            },
+            {
+              "$date": "2025-10-06T12:01:09.811Z"
+            },
+            {
+              "$date": "2025-10-22T01:00:10.376Z"
+            },
+            {
+              "$date": "2025-10-30T01:00:10.408Z"
+            },
+            {
+              "$date": "2025-10-24T01:00:10.315Z"
+            },
+            {
+              "$date": "2025-09-14T15:57:30.475Z"
+            },
+            {
+              "$date": "2025-10-13T01:00:09.167Z"
+            },
+            {
+              "$date": "2025-10-23T13:47:59.011Z"
+            },
+            {
+              "$date": "2025-11-06T01:00:10.297Z"
+            },
+            {
+              "$date": "2025-10-12T01:00:10.250Z"
+            },
+            {
+              "$date": "2025-10-23T14:25:19.441Z"
+            },
+            {
+              "$date": "2025-09-17T10:20:30.677Z"
+            },
+            {
+              "$date": "2025-09-20T03:19:36.533Z"
+            },
+            {
+              "$date": "2025-10-08T12:06:15.225Z"
+            },
+            {
+              "$date": "2025-09-19T01:00:10.169Z"
+            },
+            {
+              "$date": "2025-09-25T03:19:33.032Z"
+            },
+            {
+              "$date": "2025-09-28T09:51:00.253Z"
+            },
+            {
+              "$date": "2025-10-19T01:00:10.325Z"
+            },
+            {
+              "$date": "2025-09-17T10:14:34.192Z"
+            },
+            {
+              "$date": "2025-10-21T01:23:12.605Z"
+            },
+            {
+              "$date": "2025-09-26T01:08:35.218Z"
+            },
+            {
+              "$date": "2025-10-08T01:00:10.185Z"
+            },
+            {
+              "$date": "2025-09-29T06:33:43.284Z"
+            },
+            {
+              "$date": "2025-10-16T01:00:10.275Z"
+            },
+            {
+              "$date": "2025-10-23T14:44:32.759Z"
+            },
+            {
+              "$date": "2025-10-10T01:00:10.304Z"
+            },
+            {
+              "$date": "2025-10-09T01:00:10.161Z"
+            },
+            {
+              "$date": "2025-09-27T01:00:10.176Z"
+            },
+            {
+              "$date": "2025-10-26T01:00:10.363Z"
+            },
+            {
+              "$date": "2025-10-03T02:05:13.293Z"
+            },
+            {
+              "$date": "2025-09-19T05:25:23.928Z"
+            },
+            {
+              "$date": "2025-09-17T06:03:31.259Z"
+            },
+            {
+              "$date": "2025-10-20T04:15:00.380Z"
+            },
+            {
+              "$date": "2025-10-11T01:00:10.774Z"
+            },
+            {
+              "$date": "2025-09-17T10:14:05.558Z"
+            },
+            {
+              "$date": "2025-10-20T01:13:28.271Z"
+            },
+            {
+              "$date": "2025-09-15T05:58:27.615Z"
+            },
+            {
+              "$date": "2025-10-12T14:36:28.298Z"
+            },
+            {
+              "$date": "2025-09-14T16:18:09.062Z"
+            },
+            {
+              "$date": "2025-09-15T05:39:54.847Z"
+            },
+            {
+              "$date": "2025-10-25T01:00:10.300Z"
+            },
+            {
+              "$date": "2025-10-23T16:31:49.002Z"
+            },
+            {
+              "$date": "2025-09-28T01:35:13.021Z"
+            },
+            {
+              "$date": "2025-11-01T04:10:12.306Z"
+            },
+            {
+              "$date": "2025-10-17T01:00:10.284Z"
+            },
+            {
+              "$date": "2025-10-23T14:36:12.615Z"
+            },
+            {
+              "$date": "2025-10-03T01:00:10.181Z"
+            },
+            {
+              "$date": "2025-11-04T01:00:10.324Z"
+            },
+            {
+              "$date": "2025-10-31T01:00:10.292Z"
+            },
+            {
+              "$date": "2025-09-14T15:59:33.118Z"
+            },
+            {
+              "$date": "2025-10-15T01:00:10.285Z"
+            },
+            {
+              "$date": "2025-09-15T05:50:45.888Z"
+            },
+            {
+              "$date": "2025-10-29T01:00:10.258Z"
+            },
+            {
+              "$date": "2025-09-23T07:51:28.362Z"
+            },
+            {
+              "$date": "2025-09-16T16:18:20.330Z"
+            },
+            {
+              "$date": "2025-10-04T01:00:10.133Z"
+            },
+            {
+              "$date": "2025-09-15T01:00:10.783Z"
+            },
+            {
+              "$date": "2025-10-23T14:08:28.945Z"
+            },
+            {
+              "$date": "2025-10-23T14:26:01.999Z"
+            },
+            {
+              "$date": "2025-09-23T01:00:10.119Z"
+            },
+            {
+              "$date": "2025-11-07T01:00:10.288Z"
+            },
+            {
+              "$date": "2025-10-29T09:50:36.023Z"
+            },
+            {
+              "$date": "2025-09-22T01:10:46.809Z"
+            },
+            {
+              "$date": "2025-10-10T06:53:08.997Z"
+            },
+            {
+              "$date": "2025-10-20T01:12:34.729Z"
+            }
+          ],
+          "bsonType": "Date"
+        }
+      ]
+    },
+    {
+      "name": "triggerType",
+      "path": [
+        "triggerType"
+      ],
+      "count": 97,
+      "type": "String",
+      "probability": 1.0777777777777777,
+      "hasDuplicates": true,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "triggerType"
+          ],
+          "count": 97,
+          "probability": 1.0777777777777777,
+          "unique": 2,
+          "hasDuplicates": true,
+          "values": [
+            "SCHEDULED",
+            "SCHEDULED",
+            "MANUAL",
+            "SCHEDULED",
+            "MANUAL",
+            "SCHEDULED",
+            "SCHEDULED",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL",
+            "SCHEDULED",
+            "MANUAL",
+            "MANUAL",
+            "SCHEDULED",
+            "MANUAL",
+            "MANUAL",
+            "SCHEDULED",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL",
+            "SCHEDULED",
+            "SCHEDULED",
+            "MANUAL",
+            "SCHEDULED",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL",
+            "SCHEDULED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL",
+            "SCHEDULED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "MANUAL",
+            "SCHEDULED",
+            "MANUAL",
+            "SCHEDULED",
+            "SCHEDULED",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL",
+            "SCHEDULED",
+            "MANUAL",
+            "MANUAL",
+            "SCHEDULED",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL",
+            "SCHEDULED",
+            "MANUAL",
+            "SCHEDULED",
+            "MANUAL",
+            "SCHEDULED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL",
+            "SCHEDULED",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL",
+            "SCHEDULED",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL",
+            "SCHEDULED",
+            "MANUAL",
+            "SCHEDULED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "MANUAL",
+            "SCHEDULED",
+            "MANUAL",
+            "SCHEDULED",
+            "MANUAL",
+            "MANUAL",
+            "SCHEDULED",
+            "SCHEDULED",
+            "MANUAL",
+            "MANUAL",
+            "SCHEDULED",
+            "SCHEDULED",
+            "MANUAL",
+            "MANUAL",
+            "MANUAL"
+          ],
+          "bsonType": "String"
+        }
+      ]
     }
+  ]
+}
+[
+  [ '_id' ],
+  [ 'completedTasks' ],
+  [ 'createdTasks' ],
+  [ 'details' ],
+  [ 'status' ],
+  [ 'summary' ],
+  [ 'timestamp' ],
+  [ 'triggerType' ]
+]
+[Object: null prototype] {
+  _id: { types: [ { bsonType: 'ObjectId' } ] },
+  timestamp: { types: [ { bsonType: 'Date' } ] },
+  triggerType: { types: [ { bsonType: 'String' } ] },
+  status: { types: [ { bsonType: 'String' } ] },
+  summary: { types: [ { bsonType: 'String' } ] },
+  createdTasks: { types: [ { bsonType: 'Number' } ] },
+  completedTasks: { types: [ { bsonType: 'Number' } ] },
+  details: {
+    types: [
+      { bsonType: 'Array', types: [ { bsonType: 'String' } ] }
+    ]
   }
 }

@@ -1,132 +1,221 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "required": [
-    "_id",
-    "description",
-    "name",
-    "requiredInput",
-    "steps",
-    "type",
-    "updatedAt"
-  ],
-  "properties": {
-    "_id": {
-      "$ref": "#/$defs/ObjectId"
-    },
-    "createdAt": {
-      "$ref": "#/$defs/Date"
-    },
-    "description": {
-      "type": "string"
-    },
-    "name": {
-      "type": "string"
-    },
-    "requiredInput": {
-      "type": "object",
-      "required": [
-        "key",
-        "label"
+  "count": 0,
+  "fields": [
+    {
+      "name": "_id",
+      "path": [
+        "_id"
       ],
-      "properties": {
-        "key": {
-          "type": "string"
-        },
-        "label": {
-          "type": "string"
-        }
-      }
-    },
-    "steps": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "action"
-        ],
-        "properties": {
-          "action": {
-            "type": "string"
+      "count": 6,
+      "type": "ObjectId",
+      "probability": {
+        "$numberDouble": "Infinity"
+      },
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "ObjectId",
+          "path": [
+            "_id"
+          ],
+          "count": 5,
+          "probability": {
+            "$numberDouble": "Infinity"
           },
-          "dataName": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "milliseconds": {
-            "type": "integer"
-          },
-          "saveAs": {
-            "type": "string"
-          },
-          "selector": {
-            "type": "string"
-          },
-          "sources": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "name",
-                "selector"
-              ],
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "selector": {
-                  "type": "string"
-                }
-              }
+          "unique": 5,
+          "hasDuplicates": false,
+          "values": [
+            {
+              "$oid": "68d279e10f622888a9f10a7b"
+            },
+            {
+              "$oid": "68d36545195499aaedbaa5f1"
+            },
+            {
+              "$oid": "68ee43b8e16e0c2c942b167f"
+            },
+            {
+              "$oid": "68fdae01656eacf1bfacb66c"
+            },
+            {
+              "$oid": "68d18979e9a8190f3a256450"
             }
+          ],
+          "bsonType": "ObjectId"
+        }
+      ]
+    },
+    {
+      "name": "name",
+      "path": [
+        "name"
+      ],
+      "count": 4,
+      "type": "String",
+      "probability": {
+        "$numberDouble": "Infinity"
+      },
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "String",
+          "path": [
+            "name"
+          ],
+          "count": 4,
+          "probability": {
+            "$numberDouble": "Infinity"
           },
-          "stitched": {
-            "type": "boolean"
+          "unique": 4,
+          "hasDuplicates": false,
+          "values": [
+            "达人数据获取",
+            "达人主页全面报告",
+            "达人主页全面报告最新版",
+            "获取合作视频14天后当日播放量"
+          ],
+          "bsonType": "String"
+        }
+      ]
+    },
+    {
+      "name": "requiredInput",
+      "path": [
+        "requiredInput"
+      ],
+      "count": 3,
+      "type": "Document",
+      "probability": {
+        "$numberDouble": "Infinity"
+      },
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "Document",
+          "path": [
+            "requiredInput"
+          ],
+          "count": 3,
+          "probability": {
+            "$numberDouble": "Infinity"
           },
-          "template": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string"
-          }
+          "unique": null,
+          "hasDuplicates": null,
+          "values": null,
+          "bsonType": "Document",
+          "fields": [
+            {
+              "name": "key",
+              "path": [
+                "requiredInput",
+                "key"
+              ],
+              "count": 2,
+              "type": [
+                "String",
+                "Undefined"
+              ],
+              "probability": 0.6666666666666666,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "String",
+                  "path": [
+                    "requiredInput",
+                    "key"
+                  ],
+                  "count": 2,
+                  "probability": 0.6666666666666666,
+                  "unique": 1,
+                  "hasDuplicates": true,
+                  "values": [
+                    "xingtuId",
+                    "xingtuId"
+                  ],
+                  "bsonType": "String"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 1,
+                  "hasDuplicates": false,
+                  "path": [
+                    "requiredInput",
+                    "key"
+                  ],
+                  "count": 1,
+                  "probability": 0.3333333333333333
+                }
+              ]
+            },
+            {
+              "name": "label",
+              "path": [
+                "requiredInput",
+                "label"
+              ],
+              "count": 1,
+              "type": [
+                "String",
+                "Undefined"
+              ],
+              "probability": 0.3333333333333333,
+              "hasDuplicates": true,
+              "types": [
+                {
+                  "name": "String",
+                  "path": [
+                    "requiredInput",
+                    "label"
+                  ],
+                  "count": 1,
+                  "probability": 0.3333333333333333,
+                  "unique": 1,
+                  "hasDuplicates": false,
+                  "values": [
+                    "达人星图ID"
+                  ],
+                  "bsonType": "String"
+                },
+                {
+                  "name": "Undefined",
+                  "bsonType": "Undefined",
+                  "unique": 0,
+                  "hasDuplicates": true,
+                  "path": [
+                    "requiredInput",
+                    "label"
+                  ],
+                  "count": 2,
+                  "probability": 0.6666666666666666
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+[
+  [ '_id' ],
+  [ 'name' ],
+  [ 'requiredInput' ],
+  [ 'requiredInput', 'key' ],
+  [ 'requiredInput', 'label' ]
+]
+[Object: null prototype] {
+  _id: { types: [ { bsonType: 'ObjectId' } ] },
+  name: { types: [ { bsonType: 'String' } ] },
+  requiredInput: {
+    types: [
+      {
+        bsonType: 'Document',
+        fields: [Object: null prototype] {
+          key: { types: [ { bsonType: 'String' } ] },
+          label: { types: [ { bsonType: 'String' } ] }
         }
       }
-    },
-    "type": {
-      "type": "string"
-    },
-    "updatedAt": {
-      "$ref": "#/$defs/Date"
-    }
-  },
-  "$defs": {
-    "ObjectId": {
-      "type": "object",
-      "properties": {
-        "$oid": {
-          "type": "string",
-          "pattern": "^[0-9a-fA-F]{24}$"
-        }
-      },
-      "required": [
-        "$oid"
-      ],
-      "additionalProperties": false
-    },
-    "Date": {
-      "type": "object",
-      "properties": {
-        "$date": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "$date"
-      ],
-      "additionalProperties": false
-    }
+    ]
   }
 }
