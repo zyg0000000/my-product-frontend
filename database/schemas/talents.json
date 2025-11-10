@@ -1,0 +1,229 @@
+{
+    "collection": "talents",
+    "description": "达人档案集合，存储达人基本信息、价格体系、返点配置等",
+    "database": "kol_data",
+    "fields": {
+        "_id": {
+            "type": "ObjectId",
+            "description": "MongoDB 文档 ID",
+            "required": true,
+            "auto": true
+        },
+        "id": {
+            "type": "String",
+            "description": "达人唯一标识",
+            "required": true,
+            "unique": true,
+            "pattern": "^talent_[a-zA-Z0-9]+$"
+        },
+        "uid": {
+            "type": "String",
+            "description": "抖音用户 ID",
+            "required": true
+        },
+        "xingtuId": {
+            "type": "String",
+            "description": "星图平台 ID",
+            "required": true
+        },
+        "nickname": {
+            "type": "String",
+            "description": "达人昵称",
+            "required": true
+        },
+        "talentType": {
+            "type": "Array",
+            "description": "达人类型分类标签",
+            "required": true,
+            "itemType": "String",
+            "example": ["美妆", "时尚"]
+        },
+        "talentTier": {
+            "type": "String",
+            "description": "达人等级",
+            "required": true,
+            "enum": ["头部", "腰部", "尾部"],
+            "comment": "根据粉丝量和影响力划分"
+        },
+        "talentSource": {
+            "type": "String",
+            "description": "达人来源渠道",
+            "required": true,
+            "example": "星图"
+        },
+        "prices": {
+            "type": "Array",
+            "description": "价格体系数组，支持多价格类型（v2.9+）",
+            "required": true,
+            "default": [],
+            "itemType": "Object",
+            "itemSchema": {
+                "year": {
+                    "type": "Integer",
+                    "description": "价格年份",
+                    "required": true,
+                    "example": 2025
+                },
+                "month": {
+                    "type": "Integer",
+                    "description": "价格月份",
+                    "required": true,
+                    "min": 1,
+                    "max": 12
+                },
+                "type": {
+                    "type": "String",
+                    "description": "价格类型（v2.9+ 新增）",
+                    "required": true,
+                    "enum": ["60s_plus", "20_to_60s", "1_to_20s"],
+                    "comment": "60s_plus=60s+长视频, 20_to_60s=20-60s中等视频, 1_to_20s=1-20s短视频"
+                },
+                "price": {
+                    "type": "Integer",
+                    "description": "价格金额（单位：分）",
+                    "required": true,
+                    "min": 0,
+                    "example": 11000000
+                },
+                "status": {
+                    "type": "String",
+                    "description": "价格状态",
+                    "required": true,
+                    "enum": ["confirmed", "provisional"],
+                    "comment": "confirmed=正式价格, provisional=临时价格"
+                }
+            },
+            "comment": "唯一键：year + month + type"
+        },
+        "rebates": {
+            "type": "Array",
+            "description": "返点率配置数组",
+            "required": false,
+            "default": [],
+            "itemType": "Object",
+            "itemSchema": {
+                "year": {
+                    "type": "Integer",
+                    "description": "返点年份"
+                },
+                "month": {
+                    "type": "Integer",
+                    "description": "返点月份"
+                },
+                "rate": {
+                    "type": "Double",
+                    "description": "返点率（百分比）",
+                    "min": 0,
+                    "max": 100,
+                    "example": 15.5
+                }
+            }
+        },
+        "performanceData": {
+            "type": "Object",
+            "description": "达人性能数据",
+            "required": false,
+            "properties": {
+                "audienceAge": {
+                    "type": "Object",
+                    "description": "受众年龄分布",
+                    "properties": {
+                        "18_23": { "type": "Double", "description": "18-23岁占比" },
+                        "24_30": { "type": "Double", "description": "24-30岁占比" },
+                        "31_40": { "type": "Double", "description": "31-40岁占比" },
+                        "40_plus": { "type": "Double", "description": "40岁以上占比" }
+                    }
+                },
+                "audienceGender": {
+                    "type": "Object",
+                    "description": "受众性别分布",
+                    "properties": {
+                        "male": { "type": "Double", "description": "男性占比" },
+                        "female": { "type": "Double", "description": "女性占比" }
+                    }
+                },
+                "cpm": {
+                    "type": "Integer",
+                    "description": "CPM 费率（千次播放成本）"
+                },
+                "socialClass": {
+                    "type": "Array",
+                    "description": "社会阶层标签",
+                    "itemType": "String",
+                    "example": ["白领", "中产"]
+                }
+            }
+        },
+        "schedules": {
+            "type": "Array",
+            "description": "档期安排数组",
+            "required": false,
+            "default": [],
+            "itemType": "Object"
+        },
+        "remarks": {
+            "type": "Object",
+            "description": "备注信息（按月份）",
+            "required": false,
+            "comment": "键为年月字符串，值为备注内容"
+        },
+        "createdAt": {
+            "type": "Date",
+            "description": "创建时间",
+            "required": true,
+            "default": "now"
+        },
+        "updatedAt": {
+            "type": "Date",
+            "description": "更新时间",
+            "required": true,
+            "default": "now"
+        }
+    },
+    "indexes": [
+        {
+            "name": "idx_talent_id",
+            "fields": { "id": 1 },
+            "unique": true
+        },
+        {
+            "name": "idx_talent_xingtu",
+            "fields": { "xingtuId": 1 },
+            "comment": "星图 ID 索引"
+        },
+        {
+            "name": "idx_talent_tier",
+            "fields": { "talentTier": 1 },
+            "comment": "达人等级索引"
+        },
+        {
+            "name": "idx_talent_nickname",
+            "fields": { "nickname": 1 },
+            "comment": "昵称索引，用于搜索"
+        }
+    ],
+    "relations": [
+        {
+            "collection": "collaborations",
+            "type": "one-to-many",
+            "foreignKey": "talentId",
+            "description": "一个达人可以有多个合作订单"
+        }
+    ],
+    "migrations": [
+        {
+            "version": "v2.9",
+            "date": "2025-10",
+            "description": "添加多价格类型支持（prices.type 字段）",
+            "script": "../migrations/001_add_price_type.js"
+        }
+    ],
+    "version": "2.9",
+    "lastUpdated": "2025-11-10",
+    "author": "开发团队",
+    "notes": [
+        "v2.9 升级：支持三种价格类型（60s_plus, 20_to_60s, 1_to_20s）",
+        "prices 数组的唯一键为 year + month + type 组合",
+        "旧数据的 prices 默认 type 为 '60s_plus'"
+    ]
+}
