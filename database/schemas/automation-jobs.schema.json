@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "_id",
+    "createdAt",
+    "failedTasks",
+    "projectId",
+    "status",
+    "successTasks",
+    "totalTasks",
+    "updatedAt",
+    "workflowId"
+  ],
+  "properties": {
+    "_id": {
+      "$ref": "#/$defs/ObjectId"
+    },
+    "createdAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "failedTasks": {
+      "type": "integer"
+    },
+    "projectId": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "successTasks": {
+      "type": "integer"
+    },
+    "totalTasks": {
+      "type": "integer"
+    },
+    "updatedAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "workflowId": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "ObjectId": {
+      "type": "object",
+      "properties": {
+        "$oid": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{24}$"
+        }
+      },
+      "required": [
+        "$oid"
+      ],
+      "additionalProperties": false
+    },
+    "Date": {
+      "type": "object",
+      "properties": {
+        "$date": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "$date"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

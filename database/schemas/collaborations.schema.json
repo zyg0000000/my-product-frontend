@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "_id",
+    "actualRebate",
+    "amount",
+    "createdAt",
+    "id",
+    "orderDate",
+    "orderType",
+    "paymentDate",
+    "priceInfo",
+    "projectId",
+    "rebate",
+    "recoveryDate",
+    "status",
+    "talentId",
+    "talentSource",
+    "updatedAt"
+  ],
+  "properties": {
+    "_id": {
+      "$ref": "#/$defs/ObjectId"
+    },
+    "actualRebate": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "$ref": "#/$defs/Double"
+        }
+      ]
+    },
+    "amount": {
+      "type": "integer"
+    },
+    "contentFile": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "createdAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "discrepancyReason": {
+      "type": "null"
+    },
+    "discrepancyReasonUpdatedAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "id": {
+      "type": "string"
+    },
+    "orderDate": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "orderType": {
+      "type": "string"
+    },
+    "paymentDate": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "plannedReleaseDate": {
+      "type": "string"
+    },
+    "priceInfo": {
+      "type": "string"
+    },
+    "projectId": {
+      "type": "string"
+    },
+    "publishDate": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "rebate": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "$ref": "#/$defs/Double"
+        }
+      ]
+    },
+    "rebateScreenshots": {
+      "type": "array",
+      "items": {
+        "type": []
+      }
+    },
+    "recoveryDate": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "status": {
+      "type": "string"
+    },
+    "talentId": {
+      "type": "string"
+    },
+    "talentSource": {
+      "type": "string"
+    },
+    "taskId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "updatedAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "videoId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "$defs": {
+    "ObjectId": {
+      "type": "object",
+      "properties": {
+        "$oid": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{24}$"
+        }
+      },
+      "required": [
+        "$oid"
+      ],
+      "additionalProperties": false
+    },
+    "Double": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "$numberDouble": {
+              "enum": [
+                "Infinity",
+                "-Infinity",
+                "NaN"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "Date": {
+      "type": "object",
+      "properties": {
+        "$date": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "$date"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

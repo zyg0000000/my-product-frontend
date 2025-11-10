@@ -1,0 +1,58 @@
+{
+  "collection": "collaborations",
+  "description": "collaborations 集合索引定义",
+  "indexes": [
+    {
+      "name": "idx_collaboration_id",
+      "keys": { "id": 1 },
+      "unique": true,
+      "comment": "合作订单 ID 唯一索引"
+    },
+    {
+      "name": "idx_collaboration_project",
+      "keys": { "projectId": 1 },
+      "comment": "项目 ID 索引，用于查询项目的所有合作"
+    },
+    {
+      "name": "idx_collaboration_talent",
+      "keys": { "talentId": 1 },
+      "comment": "达人 ID 索引，用于查询达人的所有合作"
+    },
+    {
+      "name": "idx_collaboration_status",
+      "keys": { "status": 1 },
+      "comment": "订单状态索引"
+    },
+    {
+      "name": "idx_collaboration_publish_date",
+      "keys": { "publishDate": -1 },
+      "comment": "发布日期倒序索引"
+    },
+    {
+      "name": "idx_collaboration_project_status",
+      "keys": {
+        "projectId": 1,
+        "status": 1
+      },
+      "comment": "项目和状态复合索引"
+    },
+    {
+      "name": "idx_collaboration_task",
+      "keys": { "taskId": 1 },
+      "sparse": true,
+      "comment": "星图任务 ID 索引（稀疏索引，因为不是所有合作都有 taskId）"
+    },
+    {
+      "name": "idx_collaboration_video",
+      "keys": { "videoId": 1 },
+      "sparse": true,
+      "comment": "视频 ID 索引（稀疏索引）"
+    }
+  ],
+  "notes": [
+    "id 字段必须有唯一索引",
+    "projectId 和 talentId 是外键，需要索引",
+    "经常需要按项目或达人查询所有合作订单",
+    "taskId 和 videoId 使用稀疏索引，节省空间"
+  ]
+}

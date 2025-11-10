@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "_id",
+    "adjustments",
+    "auditLog",
+    "benchmarkCPM",
+    "budget",
+    "capitalRateId",
+    "createdAt",
+    "discount",
+    "financialMonth",
+    "financialYear",
+    "id",
+    "month",
+    "name",
+    "status",
+    "type",
+    "updatedAt",
+    "year"
+  ],
+  "properties": {
+    "_id": {
+      "$ref": "#/$defs/ObjectId"
+    },
+    "adjustments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "amount",
+          "date",
+          "description",
+          "id",
+          "type"
+        ],
+        "properties": {
+          "amount": {
+            "type": "integer"
+          },
+          "date": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "auditLog": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "action",
+          "timestamp",
+          "user"
+        ],
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "timestamp": {
+            "$ref": "#/$defs/Date"
+          },
+          "user": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "benchmarkCPM": {
+      "type": "integer"
+    },
+    "budget": {
+      "type": "string"
+    },
+    "capitalRateId": {
+      "type": "string"
+    },
+    "createdAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "discount": {
+      "type": "string"
+    },
+    "financialMonth": {
+      "type": "string"
+    },
+    "financialYear": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "month": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "qianchuanId": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "updatedAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "year": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "ObjectId": {
+      "type": "object",
+      "properties": {
+        "$oid": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{24}$"
+        }
+      },
+      "required": [
+        "$oid"
+      ],
+      "additionalProperties": false
+    },
+    "Date": {
+      "type": "object",
+      "properties": {
+        "$date": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "$date"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

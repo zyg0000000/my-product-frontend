@@ -1,0 +1,279 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "_id",
+    "createdAt",
+    "id",
+    "nickname",
+    "prices",
+    "talentSource",
+    "talentTier",
+    "talentType",
+    "uid",
+    "updatedAt",
+    "xingtuId"
+  ],
+  "properties": {
+    "_id": {
+      "$ref": "#/$defs/ObjectId"
+    },
+    "__EMPTY": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/Double"
+        },
+        {
+          "type": "integer"
+        }
+      ]
+    },
+    "createdAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "id": {
+      "type": "string"
+    },
+    "nickname": {
+      "type": "string"
+    },
+    "performanceData": {
+      "type": "object",
+      "required": [
+        "audience_18_40_ratio",
+        "audience_40_plus_ratio",
+        "cpm60s",
+        "femaleAudienceRatio",
+        "lastUpdated",
+        "maleAudienceRatio"
+      ],
+      "properties": {
+        "audience_18_40_ratio": {
+          "$ref": "#/$defs/Double"
+        },
+        "audience_40_plus_ratio": {
+          "$ref": "#/$defs/Double"
+        },
+        "cpm60s": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Double"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "femaleAudienceRatio": {
+          "$ref": "#/$defs/Double"
+        },
+        "lastUpdated": {
+          "type": "string"
+        },
+        "maleAudienceRatio": {
+          "$ref": "#/$defs/Double"
+        },
+        "ratio_18_23": {
+          "$ref": "#/$defs/Double"
+        },
+        "ratio_24_30": {
+          "$ref": "#/$defs/Double"
+        },
+        "ratio_31_40": {
+          "$ref": "#/$defs/Double"
+        },
+        "ratio_41_50": {
+          "$ref": "#/$defs/Double"
+        },
+        "ratio_50_plus": {
+          "$ref": "#/$defs/Double"
+        },
+        "ratio_exquisite_mom": {
+          "$ref": "#/$defs/Double"
+        },
+        "ratio_new_white_collar": {
+          "$ref": "#/$defs/Double"
+        },
+        "ratio_senior_middle_class": {
+          "$ref": "#/$defs/Double"
+        },
+        "ratio_town_middle_aged": {
+          "$ref": "#/$defs/Double"
+        },
+        "ratio_town_youth": {
+          "$ref": "#/$defs/Double"
+        },
+        "ratio_urban_blue_collar": {
+          "$ref": "#/$defs/Double"
+        },
+        "ratio_urban_silver": {
+          "$ref": "#/$defs/Double"
+        },
+        "ratio_z_era": {
+          "type": "integer"
+        }
+      }
+    },
+    "prices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "month",
+          "price",
+          "status",
+          "type",
+          "year"
+        ],
+        "properties": {
+          "month": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "price": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "status": {
+            "type": "string",
+            "enum": ["confirmed", "provisional"]
+          },
+          "type": {
+            "type": "string",
+            "enum": ["60s_plus", "20_to_60s", "1_to_20s"],
+            "description": "价格类型：60s_plus=60s+长视频, 20_to_60s=20-60s中等视频, 1_to_20s=1-20s短视频"
+          },
+          "year": {
+            "type": "integer",
+            "minimum": 2020,
+            "maximum": 2100
+          }
+        }
+      }
+    },
+    "rebates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "rate"
+        ],
+        "properties": {
+          "rate": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "$ref": "#/$defs/Double"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "remarks": {
+      "type": "object",
+      "required": [
+        "2025-10"
+      ],
+      "properties": {
+        "2025-10": {
+          "type": "string"
+        }
+      }
+    },
+    "schedules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "talentSource": {
+      "type": "string"
+    },
+    "talentTier": {
+      "type": "string"
+    },
+    "talentType": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "uid": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/Double"
+        }
+      ]
+    },
+    "updatedAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "xingtuId": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "ObjectId": {
+      "type": "object",
+      "properties": {
+        "$oid": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{24}$"
+        }
+      },
+      "required": [
+        "$oid"
+      ],
+      "additionalProperties": false
+    },
+    "Double": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "$numberDouble": {
+              "enum": [
+                "Infinity",
+                "-Infinity",
+                "NaN"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "Date": {
+      "type": "object",
+      "properties": {
+        "$date": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "$date"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

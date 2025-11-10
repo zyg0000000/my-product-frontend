@@ -1,0 +1,52 @@
+{
+  "collection": "talents",
+  "description": "talents 集合索引定义",
+  "indexes": [
+    {
+      "name": "idx_talent_id",
+      "keys": { "id": 1 },
+      "unique": true,
+      "comment": "达人 ID 唯一索引"
+    },
+    {
+      "name": "idx_talent_xingtu",
+      "keys": { "xingtuId": 1 },
+      "comment": "星图 ID 索引，用于关联星图数据"
+    },
+    {
+      "name": "idx_talent_uid",
+      "keys": { "uid": 1 },
+      "comment": "抖音用户 ID 索引"
+    },
+    {
+      "name": "idx_talent_tier",
+      "keys": { "talentTier": 1 },
+      "comment": "达人等级索引（头部/腰部/尾部）"
+    },
+    {
+      "name": "idx_talent_nickname",
+      "keys": { "nickname": 1 },
+      "comment": "昵称索引，用于搜索"
+    },
+    {
+      "name": "idx_talent_source",
+      "keys": { "talentSource": 1 },
+      "comment": "达人来源渠道索引"
+    },
+    {
+      "name": "idx_talent_prices_yearmonth",
+      "keys": {
+        "prices.year": 1,
+        "prices.month": 1,
+        "prices.type": 1
+      },
+      "comment": "价格年月类型复合索引（v2.9+，支持多价格类型）"
+    }
+  ],
+  "notes": [
+    "id 字段必须有唯一索引",
+    "xingtuId 用于关联星图平台数据，需要索引",
+    "nickname 用于搜索达人，需要索引",
+    "prices 数组的年月类型组合经常用于查询特定价格"
+  ]
+}

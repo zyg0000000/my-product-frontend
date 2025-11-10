@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "_id",
+    "createdAt",
+    "description",
+    "feishuSheetHeaders",
+    "mappingRules",
+    "name",
+    "primaryCollection",
+    "spreadsheetToken",
+    "updatedAt"
+  ],
+  "properties": {
+    "_id": {
+      "$ref": "#/$defs/ObjectId"
+    },
+    "createdAt": {
+      "$ref": "#/$defs/Date"
+    },
+    "description": {
+      "type": "string"
+    },
+    "feishuSheetHeaders": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "mappingRules": {
+      "type": "object",
+      "required": [
+        "代理报价",
+        "商单爆发率\n（近15条商单vv均值/近15条自然视频vv均值）",
+        "完播率",
+        "星图id（必填，不能有空行）",
+        "星图主页链接\n（不要抖音主页链接）",
+        "星图价格截图",
+        "星图报价",
+        "星图预估CPM",
+        "爆文率",
+        "观众画像\n（一句话总结 举例：年轻xx岁-xx岁占比50%以上，\n城市集中一二三四五线，手机价格xx元以上占比xx%）",
+        "观众画像截图-人群",
+        "观众画像截图-城市等级",
+        "观众画像截图-年龄",
+        "观众画像截图-性别",
+        "观众画像截图-设备",
+        "达人UID",
+        "达人昵称",
+        "近15条个人视频播放vv均值cpm",
+        "近15条个人视频播放vv均值（w）\n（去掉最高一条爆款数据计算）",
+        "近15条星图商单的cpm均值",
+        "近15条星图商单的vv均值（w）\n（去掉最高一条爆款数据计算）",
+        "近三十天达人商单vv中位数截图"
+      ],
+      "properties": {
+        "代理报价": {
+          "type": "object",
+          "required": [
+            "formula",
+            "output"
+          ],
+          "properties": {
+            "formula": {
+              "type": "string"
+            },
+            "output": {
+              "type": "string"
+            }
+          }
+        },
+        "商单爆发率\n（近15条商单vv均值/近15条自然视频vv均值）": {
+          "type": "object",
+          "required": [
+            "formula",
+            "output"
+          ],
+          "properties": {
+            "formula": {
+              "type": "string"
+            },
+            "output": {
+              "type": "string"
+            }
+          }
+        },
+        "完播率": {
+          "type": "string"
+        },
+        "星图id（必填，不能有空行）": {
+          "type": "string"
+        },
+        "星图主页链接\n（不要抖音主页链接）": {
+          "type": "object",
+          "required": [
+            "formula",
+            "output"
+          ],
+          "properties": {
+            "formula": {
+              "type": "string"
+            },
+            "output": {
+              "type": "string"
+            }
+          }
+        },
+        "星图价格截图": {
+          "type": "string"
+        },
+        "星图报价": {
+          "type": "string"
+        },
+        "星图预估CPM": {
+          "type": "string"
+        },
+        "爆文率": {
+          "type": "string"
+        },
+        "观众画像\n（一句话总结 举例：年轻xx岁-xx岁占比50%以上，\n城市集中一二三四五线，手机价格xx元以上占比xx%）": {
+          "type": "string"
+        },
+        "观众画像截图-人群": {
+          "type": "string"
+        },
+        "观众画像截图-城市等级": {
+          "type": "string"
+        },
+        "观众画像截图-年龄": {
+          "type": "string"
+        },
+        "观众画像截图-性别": {
+          "type": "string"
+        },
+        "观众画像截图-设备": {
+          "type": "string"
+        },
+        "达人UID": {
+          "type": "string"
+        },
+        "达人昵称": {
+          "type": "string"
+        },
+        "近15条个人视频播放vv均值cpm": {
+          "type": "object",
+          "required": [
+            "formula",
+            "output"
+          ],
+          "properties": {
+            "formula": {
+              "type": "string"
+            },
+            "output": {
+              "type": "string"
+            }
+          }
+        },
+        "近15条个人视频播放vv均值（w）\n（去掉最高一条爆款数据计算）": {
+          "type": "object",
+          "required": [
+            "formula",
+            "output"
+          ],
+          "properties": {
+            "formula": {
+              "type": "string"
+            },
+            "output": {
+              "type": "string"
+            }
+          }
+        },
+        "近15条星图商单的cpm均值": {
+          "type": "object",
+          "required": [
+            "formula",
+            "output"
+          ],
+          "properties": {
+            "formula": {
+              "type": "string"
+            },
+            "output": {
+              "type": "string"
+            }
+          }
+        },
+        "近15条星图商单的vv均值（w）\n（去掉最高一条爆款数据计算）": {
+          "type": "object",
+          "required": [
+            "formula",
+            "output"
+          ],
+          "properties": {
+            "formula": {
+              "type": "string"
+            },
+            "output": {
+              "type": "string"
+            }
+          }
+        },
+        "近三十天达人商单vv中位数截图": {
+          "type": "string"
+        }
+      }
+    },
+    "name": {
+      "type": "string"
+    },
+    "primaryCollection": {
+      "type": "string"
+    },
+    "spreadsheetToken": {
+      "type": "string"
+    },
+    "updatedAt": {
+      "$ref": "#/$defs/Date"
+    }
+  },
+  "$defs": {
+    "ObjectId": {
+      "type": "object",
+      "properties": {
+        "$oid": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{24}$"
+        }
+      },
+      "required": [
+        "$oid"
+      ],
+      "additionalProperties": false
+    },
+    "Date": {
+      "type": "object",
+      "properties": {
+        "$date": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "$date"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
