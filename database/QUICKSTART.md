@@ -2,6 +2,15 @@
 
 > ⚡ 5分钟快速上手
 
+## 📍 在哪里执行这些操作？
+
+**在你的本地 Mac 电脑的「终端」应用中执行**
+
+如果你是第一次使用，或者不确定如何准备环境，请先阅读：
+👉 **[Mac 用户完整设置指南](./MAC_SETUP.md)** - 从零开始的详细教程
+
+---
+
 ## 🎯 快速检查清单
 
 在开始之前，确保：
@@ -36,7 +45,8 @@ echo $MONGO_URI
 ### 第 2 步：预览变更（安全）
 
 ```bash
-cd /home/user/my-product-frontend
+# 进入项目目录（替换成你的实际路径）
+cd ~/Documents/my-product-frontend
 
 # 预览单个集合的变更（不会实际写入）
 ./database/scripts/sync-schema.sh --dry-run talents
