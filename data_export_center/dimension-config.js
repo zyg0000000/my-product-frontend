@@ -105,6 +105,8 @@ export const DIMENSION_CONFIG = {
                 { id: 'collaboration_orderType', label: '下单方式' },
                 { id: 'collaboration_plannedReleaseDate', label: '计划发布日期' },
                 { id: 'collaboration_publishDate', label: '实际发布日期' },
+                { id: 'taskId', label: '星图任务ID' },
+                { id: 'videoId', label: '视频ID' },
             ],
             '项目信息': [
                 { id: 'project_name', label: '所属项目' },
@@ -143,6 +145,8 @@ export const DIMENSION_CONFIG = {
                 { id: 'collaboration_orderType', label: '下单方式' },
                 { id: 'collaboration_plannedReleaseDate', label: '计划发布日期' },
                 { id: 'collaboration_publishDate', label: '实际发布日期' },
+                { id: 'taskId', label: '星图任务ID' },
+                { id: 'videoId', label: '视频ID' },
             ],
             '项目信息': [
                 { id: 'project_name', label: '所属项目' },

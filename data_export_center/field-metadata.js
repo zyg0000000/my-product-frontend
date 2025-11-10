@@ -195,6 +195,8 @@ function getFallbackMetadata(entity) {
                 { id: 'collaboration_orderType', label: '下单方式', backendKey: '下单方式', dataType: 'string' },
                 { id: 'collaboration_plannedReleaseDate', label: '计划发布日期', backendKey: '计划发布日期', dataType: 'date' },
                 { id: 'collaboration_publishDate', label: '实际发布日期', backendKey: '实际发布日期', dataType: 'date' },
+                { id: 'taskId', label: '星图任务ID', backendKey: '星图任务ID', dataType: 'string' },
+                { id: 'videoId', label: '视频ID', backendKey: '视频ID', dataType: 'string' },
             ],
             '项目信息': [
                 { id: 'project_name', label: '所属项目', backendKey: '项目名称', dataType: 'string' },
@@ -210,10 +212,27 @@ function getFallbackMetadata(entity) {
             ]
         },
         project: {
+            '合作信息': [
+                { id: 'collaboration_status', label: '合作状态', backendKey: '合作状态', dataType: 'string' },
+                { id: 'collaboration_amount', label: '合作金额', backendKey: '合作金额', dataType: 'number' },
+                { id: 'collaboration_orderType', label: '下单方式', backendKey: '下单方式', dataType: 'string' },
+                { id: 'collaboration_plannedReleaseDate', label: '计划发布日期', backendKey: '计划发布日期', dataType: 'date' },
+                { id: 'collaboration_publishDate', label: '实际发布日期', backendKey: '实际发布日期', dataType: 'date' },
+                { id: 'taskId', label: '星图任务ID', backendKey: '星图任务ID', dataType: 'string' },
+                { id: 'videoId', label: '视频ID', backendKey: '视频ID', dataType: 'string' },
+            ],
             '项目信息': [
                 { id: 'project_name', label: '项目名称', backendKey: '项目名称', dataType: 'string' },
                 { id: 'project_type', label: '项目类型', backendKey: '项目类型', dataType: 'string' },
                 { id: 'project_brand', label: '品牌', backendKey: '品牌', dataType: 'string' },
+            ],
+            '达人信息': [
+                { id: 'nickname', label: '达人昵称', backendKey: '达人昵称', dataType: 'string' },
+                { id: 'talentTier', label: '达人层级', backendKey: '达人层级', dataType: 'string' },
+            ],
+            '作品表现 (T+7)': [
+                { id: 'work_t7_totalViews', label: 'T+7 播放量', backendKey: 'T+7 播放量', dataType: 'number' },
+                { id: 'work_t7_likeCount', label: 'T+7 点赞数', backendKey: 'T+7 点赞数', dataType: 'number' },
             ],
             '合作统计': [
                 { id: 'total_collaborations', label: '合作达人数', backendKey: '合作达人数', dataType: 'number' },
