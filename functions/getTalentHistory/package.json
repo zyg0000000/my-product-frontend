@@ -1,0 +1,14 @@
+{
+  "name": "get-talent-history-function",
+  "version": "1.0.0",
+  "description": "Cloud function to get talent collaboration history",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "mongodb": "^4.1.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
