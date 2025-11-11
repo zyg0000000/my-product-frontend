@@ -1,0 +1,363 @@
+{
+    "collection": "talents",
+    "description": "达人档案集合（v2.0 多平台版本）- 每个达人+平台组合是一条记录",
+    "database": "agentworks_db",
+    "version": "2.0",
+    "lastUpdated": "2025-11-11",
+    "author": "产品团队",
+    "fields": {
+        "_id": {
+            "type": "ObjectId",
+            "description": "MongoDB 文档 ID",
+            "required": true,
+            "auto": true
+        },
+        "oneId": {
+            "type": "String",
+            "description": "达人统一标识（跨平台唯一ID）",
+            "required": true,
+            "pattern": "^talent_[0-9]{8}$",
+            "example": "talent_00000001",
+            "comment": "同一个真实达人在不同平台共享同一个 oneId"
+        },
+        "platform": {
+            "type": "String",
+            "description": "平台类型",
+            "required": true,
+            "enum": ["douyin", "xiaohongshu", "bilibili", "kuaishou"],
+            "comment": "douyin=抖音, xiaohongshu=小红书, bilibili=B站, kuaishou=快手"
+        },
+        "platformAccountId": {
+            "type": "String",
+            "description": "该平台的账号唯一标识",
+            "required": true,
+            "comment": "如抖音 UID、小红书用户ID等，平台内唯一"
+        },
+        "name": {
+            "type": "String",
+            "description": "达人在该平台的昵称",
+            "required": true,
+            "example": "张三的美食日记"
+        },
+        "avatar": {
+            "type": "String",
+            "description": "头像 URL",
+            "required": false
+        },
+        "fansCount": {
+            "type": "Integer",
+            "description": "粉丝数",
+            "required": false,
+            "min": 0,
+            "example": 1000000
+        },
+        "talentType": {
+            "type": "Array",
+            "description": "达人类型分类标签",
+            "required": false,
+            "itemType": "String",
+            "example": ["美妆", "时尚", "美食"],
+            "comment": "根据该平台的内容类型标注"
+        },
+        "talentTier": {
+            "type": "String",
+            "description": "达人等级（该平台）",
+            "required": false,
+            "enum": ["头部", "腰部", "尾部"],
+            "comment": "根据该平台的粉丝量和影响力划分"
+        },
+        "prices": {
+            "type": "Object",
+            "description": "价格体系（支持多价格类型）",
+            "required": false,
+            "properties": {
+                "video_60plus": {
+                    "type": "Integer",
+                    "description": "60s+ 长视频价格（单位：分）",
+                    "min": 0,
+                    "example": 5000000
+                },
+                "video_20to60": {
+                    "type": "Integer",
+                    "description": "20-60s 中等视频价格（单位：分）",
+                    "min": 0,
+                    "example": 3000000
+                },
+                "video_1to20": {
+                    "type": "Integer",
+                    "description": "1-20s 短视频价格（单位：分）",
+                    "min": 0,
+                    "example": 1000000
+                },
+                "live": {
+                    "type": "Integer",
+                    "description": "直播价格（单位：分）",
+                    "min": 0,
+                    "example": 8000000
+                },
+                "other": {
+                    "type": "Object",
+                    "description": "其他自定义价格类型",
+                    "comment": "可扩展的价格类型"
+                }
+            },
+            "comment": "价格按平台独立设置，不同平台价格可能不同"
+        },
+        "rebate": {
+            "type": "Double",
+            "description": "返点率（0-1之间的小数）",
+            "required": false,
+            "min": 0,
+            "max": 1,
+            "example": 0.05,
+            "comment": "如 0.05 表示 5% 返点"
+        },
+        "platformSpecific": {
+            "type": "Object",
+            "description": "平台特有字段（动态扩展）",
+            "required": false,
+            "properties": {
+                "xingtuId": {
+                    "type": "String",
+                    "description": "星图平台 ID（仅抖音）",
+                    "platform": "douyin"
+                },
+                "starLevel": {
+                    "type": "Integer",
+                    "description": "星图等级（仅抖音）",
+                    "platform": "douyin",
+                    "min": 1,
+                    "max": 5
+                },
+                "mcnName": {
+                    "type": "String",
+                    "description": "MCN 机构名称（小红书常用）",
+                    "platform": "xiaohongshu"
+                },
+                "contentTags": {
+                    "type": "Array",
+                    "description": "内容标签（小红书特有）",
+                    "itemType": "String",
+                    "platform": "xiaohongshu"
+                },
+                "upLevel": {
+                    "type": "String",
+                    "description": "UP 主等级（仅B站）",
+                    "platform": "bilibili",
+                    "example": "LV6"
+                }
+            },
+            "comment": "各平台特有字段可灵活添加，不影响核心结构"
+        },
+        "performanceData": {
+            "type": "Object",
+            "description": "该平台的表现数据",
+            "required": false,
+            "properties": {
+                "avgPlayCount": {
+                    "type": "Integer",
+                    "description": "平均播放量"
+                },
+                "avgLikeCount": {
+                    "type": "Integer",
+                    "description": "平均点赞数"
+                },
+                "avgCommentCount": {
+                    "type": "Integer",
+                    "description": "平均评论数"
+                },
+                "cpm": {
+                    "type": "Integer",
+                    "description": "CPM 费率（千次播放成本，单位：分）"
+                },
+                "audienceAge": {
+                    "type": "Object",
+                    "description": "受众年龄分布",
+                    "properties": {
+                        "18_23": { "type": "Double", "description": "18-23岁占比" },
+                        "24_30": { "type": "Double", "description": "24-30岁占比" },
+                        "31_40": { "type": "Double", "description": "31-40岁占比" },
+                        "40_plus": { "type": "Double", "description": "40岁以上占比" }
+                    }
+                },
+                "audienceGender": {
+                    "type": "Object",
+                    "description": "受众性别分布",
+                    "properties": {
+                        "male": { "type": "Double", "description": "男性占比" },
+                        "female": { "type": "Double", "description": "女性占比" }
+                    }
+                }
+            }
+        },
+        "schedules": {
+            "type": "Array",
+            "description": "该平台的档期安排",
+            "required": false,
+            "default": [],
+            "itemType": "Object",
+            "itemSchema": {
+                "startDate": { "type": "Date", "description": "开始日期" },
+                "endDate": { "type": "Date", "description": "结束日期" },
+                "status": { "type": "String", "enum": ["available", "booked", "unavailable"] },
+                "projectId": { "type": "String", "description": "关联的项目ID（如已预定）" }
+            }
+        },
+        "remarks": {
+            "type": "Object",
+            "description": "备注信息",
+            "required": false,
+            "comment": "键为备注类型，值为备注内容"
+        },
+        "oneIdHistory": {
+            "type": "Array",
+            "description": "oneId 变更历史（合并操作记录）",
+            "required": false,
+            "default": [],
+            "itemType": "Object",
+            "itemSchema": {
+                "oldOneId": {
+                    "type": "String",
+                    "description": "旧的 oneId",
+                    "required": true
+                },
+                "mergedAt": {
+                    "type": "Date",
+                    "description": "合并时间",
+                    "required": true
+                },
+                "mergedBy": {
+                    "type": "String",
+                    "description": "操作人",
+                    "required": true
+                },
+                "reason": {
+                    "type": "String",
+                    "description": "合并原因",
+                    "required": false
+                }
+            },
+            "comment": "记录达人合并的完整历史，用于追溯"
+        },
+        "status": {
+            "type": "String",
+            "description": "状态",
+            "required": true,
+            "default": "active",
+            "enum": ["active", "inactive", "archived"],
+            "comment": "active=活跃, inactive=暂停合作, archived=已归档"
+        },
+        "createdAt": {
+            "type": "Date",
+            "description": "创建时间",
+            "required": true,
+            "default": "now"
+        },
+        "updatedAt": {
+            "type": "Date",
+            "description": "更新时间",
+            "required": true,
+            "default": "now"
+        }
+    },
+    "indexes": [
+        {
+            "name": "idx_oneId",
+            "fields": { "oneId": 1 },
+            "description": "查询某达人的所有平台账号"
+        },
+        {
+            "name": "idx_platform",
+            "fields": { "platform": 1 },
+            "description": "查询某平台的所有达人"
+        },
+        {
+            "name": "idx_oneId_platform",
+            "fields": { "oneId": 1, "platform": 1 },
+            "unique": true,
+            "description": "联合唯一索引：一个达人在一个平台只能有一条记录"
+        },
+        {
+            "name": "idx_platformAccountId",
+            "fields": { "platformAccountId": 1 },
+            "description": "按平台账号ID查询"
+        },
+        {
+            "name": "idx_name",
+            "fields": { "name": 1 },
+            "description": "昵称索引，用于搜索"
+        },
+        {
+            "name": "idx_status",
+            "fields": { "status": 1 },
+            "description": "状态索引"
+        },
+        {
+            "name": "idx_createdAt",
+            "fields": { "createdAt": -1 },
+            "description": "按创建时间倒序"
+        }
+    ],
+    "relations": [
+        {
+            "collection": "cooperations",
+            "type": "one-to-many",
+            "foreignKey": "talentOneId",
+            "description": "一个达人（oneId）可以有多个合作订单"
+        },
+        {
+            "collection": "talent_merges",
+            "type": "one-to-many",
+            "foreignKey": "primaryOneId",
+            "description": "达人合并历史记录"
+        }
+    ],
+    "notes": [
+        "【核心设计】v2.0 多平台架构：每个"达人+平台"是一条独立记录",
+        "【oneId 系统】同一个真实达人在不同平台共享同一个 oneId",
+        "【唯一约束】(oneId, platform) 联合唯一，确保一个达人在一个平台只有一条记录",
+        "【平台扩展】通过 platformSpecific 字段存储平台特有数据，易于扩展新平台",
+        "【合并追溯】oneIdHistory 记录达人合并历史，支持后期发现重复达人并合并",
+        "【价格独立】不同平台的价格独立存储，互不影响",
+        "【数据隔离】与 v1（kol_data）完全独立，不影响旧系统"
+    ],
+    "examples": [
+        {
+            "description": "示例1：张三的抖音账号",
+            "data": {
+                "oneId": "talent_00000001",
+                "platform": "douyin",
+                "platformAccountId": "dy_123456",
+                "name": "张三的美食日记",
+                "fansCount": 1000000,
+                "prices": {
+                    "video_60plus": 5000000,
+                    "video_20to60": 3000000
+                },
+                "platformSpecific": {
+                    "xingtuId": "123456",
+                    "starLevel": 5
+                },
+                "status": "active"
+            }
+        },
+        {
+            "description": "示例2：张三的小红书账号（同一人）",
+            "data": {
+                "oneId": "talent_00000001",
+                "platform": "xiaohongshu",
+                "platformAccountId": "xhs_789012",
+                "name": "小张爱做菜",
+                "fansCount": 500000,
+                "prices": {
+                    "video_60plus": 3000000
+                },
+                "platformSpecific": {
+                    "mcnName": "某MCN机构",
+                    "contentTags": ["美食", "探店"]
+                },
+                "status": "active"
+            }
+        }
+    ]
+}

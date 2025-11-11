@@ -1,18 +1,35 @@
-# KOL 营销管理平台
+# 广告代理营销管理平台 Monorepo
 
-> 基于抖音星图的智能化达人营销管理系统，致力于通过自动化提升广告营销团队的工作效率
+> 智能化达人营销管理系统，从单平台到多平台的全面升级
 
 [![部署状态](https://img.shields.io/badge/deploy-Cloudflare%20Pages-orange)](https://cloudflare.com)
 [![数据库](https://img.shields.io/badge/database-MongoDB-green)](https://www.mongodb.com/)
 [![云函数](https://img.shields.io/badge/serverless-火山引擎-blue)](https://www.volcengine.com/)
 
-> **🎉 Monorepo 架构 v3.0**: 前端、云函数、数据库 Schema 已完成统一管理！
+> **🎉 Monorepo 架构 v4.0**: 双产品并行开发，v1.0 稳定运行，v2.0 全新起航！
 
 ---
 
 ## 📖 项目概述
 
-本系统是为公司特定客户定制的营销管理平台，专注于**抖音星图广告**场景下的达人合作管理。
+本仓库包含两个产品：
+
+### 📦 产品 1.0（已上线）
+- **名称**: byteproject
+- **定位**: 抖音星图广告达人合作管理平台
+- **状态**: ✅ 稳定运行中
+- **数据库**: `kol_data`
+
+### 📦 产品 2.0（开发中）
+- **名称**: AgentWorks（广告代理项目管理平台）
+- **定位**: 多平台达人营销管理系统
+- **状态**: 🚧 开发中
+- **数据库**: `agentworks_db`
+- **新特性**:
+  - 🚀 支持抖音、小红书、B站、快手等多平台
+  - 🔗 oneId 跨平台达人关联系统
+  - 🔄 智能达人合并和去重
+  - 📈 跨平台数据对比分析
 
 ### 核心价值
 
@@ -20,10 +37,7 @@
 - 🤖 实现业务流程自动化
 - 📊 集中管理项目、合作、达人和财务数据
 - 🔗 与飞书深度集成，实现信息实时同步
-
-### 未来愿景
-
-升级为**多租户 SaaS 平台**，支持多客户、多平台（抖音/快手/小红书/B站）、多合作模式的全流程营销管理。
+- 🌐 多平台统一管理（v2.0 新增）
 
 ---
 
@@ -63,39 +77,49 @@ npx http-server -p 8000
 
 ---
 
-## 🏗️ Monorepo 架构 (v3.0)
+## 🏗️ Monorepo 架构 (v4.0)
 
 ### 项目结构
 
 ```
-my-product-frontend/  (Monorepo v3.0)
-├── frontends/                      # 前端项目
-│   └── byteproject/                # 当前产品
-│       ├── *.html                  # 页面文件
-│       ├── common/app-core.js      # 核心 API
-│       ├── automation_suite/       # 自动化套件
-│       ├── data_export_center/     # 数据导出
-│       ├── order_list/             # 订单列表
-│       ├── performance/            # 性能分析
-│       ├── project_automation/     # 项目自动化
-│       ├── project_report/         # 项目日报
-│       ├── talent_pool/            # 达人池
-│       ├── talent_selection/       # 达人选择
-│       └── [14+ 其他功能模块]/
+my-product-frontend/  (Monorepo v4.0)
+├── frontends/                      # 前端项目（双产品）
+│   ├── byteproject/                # 产品 1.0（已上线）
+│   │   ├── *.html                  # 页面文件
+│   │   ├── common/app-core.js      # 核心 API
+│   │   ├── automation_suite/       # 自动化套件
+│   │   ├── order_list/             # 订单列表
+│   │   ├── talent_pool/            # 达人池
+│   │   └── [14+ 其他功能模块]/
+│   │
+│   └── agentworks/                 # 产品 2.0（开发中）✨ 新增
+│       ├── public/                 # 静态资源
+│       ├── src/                    # 源代码
+│       │   ├── pages/              # 页面组件
+│       │   ├── components/         # 通用组件
+│       │   ├── api/                # API 调用
+│       │   └── utils/              # 工具函数
+│       └── docs/                   # 产品文档
 │
-├── functions/                      # 云函数源码 (51+)
+├── functions/                      # 云函数源码 (51+，需升级支持双库)
 │   ├── INDEX.md                    # 完整索引
 │   ├── DEPLOYMENT_GUIDE.md         # 部署指南
-│   ├── getTalents/
-│   ├── getProjects/
-│   ├── handleProjectReport/
+│   ├── getTalents/                 # 需升级：支持 v1/v2
+│   ├── getProjects/                # 需升级：支持 v1/v2
 │   └── [48+ 其他云函数]/
 │
-├── database/                       # 数据库 Schema (12个集合)
-│   ├── INDEX.md                    # Schema 索引
-│   ├── schemas/                    # Schema 定义
-│   ├── scripts/                    # 同步工具
-│   └── [完整文档体系]/
+├── database/                       # 数据库定义（双数据库）
+│   ├── README.md                   # 总说明
+│   ├── kol_data/                   # v1 数据库（单平台）
+│   │   ├── schemas/                # 12 个集合
+│   │   ├── indexes/                # 索引定义
+│   │   └── scripts/                # 管理脚本
+│   │
+│   └── agentworks_db/              # v2 数据库（多平台）✨ 新增
+│       ├── schemas/                # Schema 定义
+│       ├── indexes/                # 索引定义
+│       ├── migrations/             # 迁移脚本
+│       └── docs/                   # 设计文档
 │
 └── docs/                           # 项目文档
     ├── DEVELOPER_GUIDE.md          # 开发者指南 ⭐
@@ -109,9 +133,11 @@ my-product-frontend/  (Monorepo v3.0)
 
 ### 架构升级历程
 
-- ✅ **阶段 1.5** (2025-11-11): 数据库 Schema 迁移
-- ✅ **阶段 2** (2025-11-11): 云函数代码迁移
-- ✅ **阶段 3** (2025-11-11): 前端重组 (Monorepo v3.0 完成)
+- ✅ **v1.0 → v3.0** (2025-11-11): 数据库 Schema 迁移、云函数代码迁移、前端重组
+- ✅ **v3.0 → v4.0** (2025-11-11): 双产品架构、双数据库设计
+  - 创建 `frontends/agentworks/`（产品 2.0）
+  - 数据库目录重组：`kol_data/` + `agentworks_db/`
+  - 多平台架构设计（oneId 关联系统）
 
 ---
 
@@ -404,7 +430,10 @@ git push
 ---
 
 **最后更新**：2025-11-11
-**当前版本**：v3.0 (Monorepo 架构完成)
+**当前版本**：v4.0 (Dual Product Architecture)
 **维护者**：产品经理 + Claude Code
 
-**📖 立即开始**：阅读 [开发者指南](./docs/DEVELOPER_GUIDE.md) 或 [快速开始](#快速开始)
+**📖 立即开始**：
+- **产品 1.0**: 阅读 [开发者指南](./docs/DEVELOPER_GUIDE.md)
+- **产品 2.0**: 阅读 [AgentWorks 文档](./frontends/agentworks/README.md)
+- **数据库**: 查看 [数据库设计](./database/README.md)

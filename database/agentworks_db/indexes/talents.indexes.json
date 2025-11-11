@@ -1,0 +1,79 @@
+{
+    "collection": "talents",
+    "database": "agentworks_db",
+    "version": "2.0",
+    "indexes": [
+        {
+            "name": "idx_oneId",
+            "keys": { "oneId": 1 },
+            "options": {},
+            "description": "查询某达人的所有平台账号",
+            "usage": "db.talents.find({ oneId: 'talent_00000001' })"
+        },
+        {
+            "name": "idx_platform",
+            "keys": { "platform": 1 },
+            "options": {},
+            "description": "查询某平台的所有达人",
+            "usage": "db.talents.find({ platform: 'douyin' })"
+        },
+        {
+            "name": "idx_oneId_platform",
+            "keys": { "oneId": 1, "platform": 1 },
+            "options": { "unique": true },
+            "description": "【核心】联合唯一索引：一个达人在一个平台只能有一条记录",
+            "usage": "db.talents.findOne({ oneId: 'talent_00000001', platform: 'douyin' })",
+            "important": true
+        },
+        {
+            "name": "idx_platformAccountId",
+            "keys": { "platformAccountId": 1 },
+            "options": {},
+            "description": "按平台账号ID查询（快速查找）",
+            "usage": "db.talents.findOne({ platformAccountId: 'dy_123456' })"
+        },
+        {
+            "name": "idx_name_text",
+            "keys": { "name": "text" },
+            "options": {},
+            "description": "昵称全文搜索索引",
+            "usage": "db.talents.find({ $text: { $search: '张三' } })"
+        },
+        {
+            "name": "idx_status",
+            "keys": { "status": 1 },
+            "options": {},
+            "description": "状态索引（常用于筛选活跃达人）",
+            "usage": "db.talents.find({ status: 'active' })"
+        },
+        {
+            "name": "idx_createdAt",
+            "keys": { "createdAt": -1 },
+            "options": {},
+            "description": "按创建时间倒序（用于最新达人列表）",
+            "usage": "db.talents.find().sort({ createdAt: -1 })"
+        },
+        {
+            "name": "idx_platform_status",
+            "keys": { "platform": 1, "status": 1 },
+            "options": {},
+            "description": "复合索引：平台+状态（常用查询组合）",
+            "usage": "db.talents.find({ platform: 'douyin', status: 'active' })"
+        }
+    ],
+    "notes": [
+        "【重要】idx_oneId_platform 是唯一索引，确保数据一致性",
+        "【性能】对于频繁查询的字段（oneId, platform, status）都已建立索引",
+        "【扩展】如需支持更多查询模式，可添加复合索引"
+    ],
+    "createIndexCommands": [
+        "db.talents.createIndex({ oneId: 1 })",
+        "db.talents.createIndex({ platform: 1 })",
+        "db.talents.createIndex({ oneId: 1, platform: 1 }, { unique: true })",
+        "db.talents.createIndex({ platformAccountId: 1 })",
+        "db.talents.createIndex({ name: 'text' })",
+        "db.talents.createIndex({ status: 1 })",
+        "db.talents.createIndex({ createdAt: -1 })",
+        "db.talents.createIndex({ platform: 1, status: 1 })"
+    ]
+}
