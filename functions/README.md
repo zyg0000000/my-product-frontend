@@ -6,12 +6,15 @@
 
 **想要查找特定的云函数？**
 
-👉 **[functions/INDEX.md](./INDEX.md)** - 所有 51 个云函数的完整索引和分类
+👉 **[docs/INDEX.md](./docs/INDEX.md)** - 所有 51 个云函数的完整索引和分类
 
 | 文档 | 说明 |
 |------|------|
-| 📖 [完整索引](./INDEX.md) | 按功能分类的所有云函数列表 |
-| 📊 本文档 (README.md) | 云函数开发和部署指南 |
+| 📖 [完整索引](./docs/INDEX.md) | 按功能分类的所有云函数列表 |
+| 📚 [文档导航](./docs/INDEX_DOCS.md) | 所有文档的统一入口 |
+| 🚀 [部署指南](./docs/DEPLOYMENT_GUIDE.md) | 云函数部署完整教程 |
+| 🔄 [升级方案](./docs/upgrades/UPGRADE_PLAN.md) | v1 → v2 升级总览 |
+| 📊 本文档 (README.md) | 云函数开发和代码规范 |
 
 ---
 
