@@ -1,5 +1,10 @@
-# GitHub Token (敏感信息)
+# GitHub Token 和敏感配置文件
 .github-token
+.zshrc
+.bashrc
+
+# PR 临时文件
+PR_*.md
 
 # 编辑器配置
 .vscode/
