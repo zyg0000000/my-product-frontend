@@ -6,7 +6,7 @@
 [![数据库](https://img.shields.io/badge/database-MongoDB-green)](https://www.mongodb.com/)
 [![云函数](https://img.shields.io/badge/serverless-火山引擎-blue)](https://www.volcengine.com/)
 
-> **🎉 Monorepo 架构升级 (v2.12)**: 本仓库已整合前端、云函数、数据库 Schema，实现全栈代码统一管理！
+> **🎉 Monorepo 架构升级 (v3.0 - 已完成)**: 本仓库已整合前端、云函数、数据库 Schema，实现全栈代码统一管理！
 
 ---
 
@@ -141,83 +141,79 @@
 
 ---
 
-## 🏗️ Monorepo 架构 (v2.12)
+## 🏗️ Monorepo 架构 (v3.0 - 已完成)
 
 ### 📋 架构升级概述
 
-本项目已从**多仓库**架构升级为 **Monorepo（单一仓库）** 架构，将前端、云函数、数据库 Schema 统一管理。
+本项目已从**多仓库**架构成功升级为 **Monorepo（单一仓库）** 架构，将前端、云函数、数据库 Schema 统一管理。
 
-**升级目标：**
+**已实现目标：**
 - ✅ 统一版本控制，一次提交包含完整功能（前端+后端+数据）
 - ✅ 提升 AI 协作效率（Claude Code 可以看到完整上下文）
 - ✅ 简化开发流程，减少仓库间切换
-- ✅ 为多前端架构做准备，支持未来新业务线
+- ✅ 多前端架构基础已完成，支持未来新业务线
 
-### 📅 分阶段实施计划
+### 📅 升级历程
 
-#### 阶段 1：添加后端代码（当前阶段）✅
+#### 阶段 1.5：数据库 Schema 迁移 ✅ (已完成)
 
-**目标：** 在当前结构基础上添加云函数和数据库 Schema，前端位置不变
+**完成时间：** 2025-11-11
+**内容：**
+- ✅ 迁移 12 个集合的 Schema 定义
+- ✅ 创建 6 个配套文档（README、INDEX、MAC_SETUP、QUICKSTART、TUTORIAL、DEMO、SCHEMA_SYNC_GUIDE）
+- ✅ 开发 Schema 自动同步工具
 
-**变更：**
+**目录结构：**
 ```
-my-product-frontend/
-├── functions/         # 🆕 云函数源码
-├── database/          # 🆕 数据库 Schema
-└── [前端代码保持根目录]
+database/
+├── schemas/           # 12 个 Schema 定义文件
+├── scripts/           # Schema 同步工具
+└── *.md              # 完整文档体系
 ```
-
-**优势：**
-- Cloudflare Pages 自动部署无需任何配置
-- 风险最低，改动最小
-- 快速实现全栈代码统一管理
-
-**状态：** ✅ 已完成目录结构创建，待迁移代码
 
 ---
 
-#### 阶段 2：前端迁移到子目录（计划中）
+#### 阶段 2：云函数代码迁移 ✅ (已完成)
 
-**目标：** 将前端代码移到 `frontends/marketing/` 子目录
+**完成时间：** 2025-11-11
+**内容：**
+- ✅ 迁移 51 个云函数源码
+- ✅ 创建云函数完整索引（INDEX.md）
+- ✅ 创建部署详细教程（DEPLOYMENT_GUIDE.md）
 
-**变更：**
+**目录结构：**
 ```
-kol-platform/  (重命名仓库)
-├── frontends/
-│   └── marketing/     # ⬅️ 前端代码移到这里
-├── functions/         # 保持
-└── database/          # 保持
+functions/
+├── getTalents/        # 51 个云函数
+├── getProjects/
+├── ...
+├── INDEX.md          # 完整索引
+└── DEPLOYMENT_GUIDE.md  # 部署教程
 ```
-
-**优势：**
-- 结构更清晰，职责分明
-- 为多前端架构奠定基础
-- 便于未来添加新业务前端
-
-**需要调整：**
-- Cloudflare Pages 部署配置（构建目录改为 `frontends/marketing/`）
-- 可选择重命名仓库为 `kol-platform`
 
 ---
 
-#### 阶段 3：新前端开发（未来）
+#### 阶段 3：前端重组 ✅ (已完成)
 
-**目标：** 在同一仓库中开发新的前端项目，共享后端 API
+**完成时间：** 2025-11-11
+**内容：**
+- ✅ 前端代码移至 `frontends/byteproject/` 目录
+- ✅ 为多产品架构奠定基础
+- ✅ 创建前端项目文档（frontends/README.md）
 
-**变更：**
+**目录结构：**
 ```
-kol-platform/
-├── frontends/
-│   ├── marketing/         # 现有营销管理前端
-│   └── [new-business]/    # 🆕 新业务前端
-├── functions/             # 共享云函数 API
-└── database/              # 共享数据库 Schema
+frontends/
+├── byteproject/       # 当前产品
+│   ├── *.html        # 所有页面
+│   ├── *.js          # 所有脚本
+│   └── */            # 16 个功能模块目录
+└── [future-product]/  # 未来新产品预留
 ```
 
-**优势：**
-- 一套后端服务多个业务
-- 代码复用，提升开发效率
-- 统一的技术栈和开发规范
+**部署配置：**
+- 需要更新 Cloudflare Pages 设置：根目录改为 `frontends/byteproject`
+- 每个新产品将独立部署，拥有独立域名
 
 ---
 
@@ -225,8 +221,16 @@ kol-platform/
 
 #### 前端部署（Cloudflare Pages）
 
-- **阶段 1**: 自动部署，无需配置（根目录）
-- **阶段 2**: 需调整构建目录为 `frontends/marketing/`
+**byteproject 产品配置：**
+- 项目名称：byteproject
+- 根目录：`frontends/byteproject`
+- 构建命令：(空，纯静态)
+- 输出目录：`/`
+
+**未来新产品：**
+- 每个产品独立 Cloudflare Pages 项目
+- 独立域名和部署配置
+- 共享 functions/ 和 database/
 
 #### 后端部署（火山引擎云函数）
 
@@ -239,162 +243,90 @@ kol-platform/
 3. 使用火山引擎 VSCode 插件部署
 ```
 
-**注意：** 云函数代码仅用于版本管理，不自动部署
+**注意：** 云函数代码仅用于版本管理，需手动部署到火山引擎平台
 
 #### 数据库（MongoDB）
 
-- Schema 定义文件仅供文档和验证使用
+- Schema 定义文件供文档和验证使用
 - 实际数据存储在 MongoDB 云数据库中
-- 数据迁移需手动执行脚本
+- Schema 同步使用 `database/scripts/sync-schema.sh` 工具
 
 ---
 
 ## 📁 项目结构
 
 ```
-my-product-frontend/  (考虑未来重命名为 kol-platform)
+my-product-frontend/  (Monorepo v3.0 - 前端重组完成)
 ├── README.md                          # 项目总览（本文件）
 │
-├── 📁 functions/                      # 🆕 云函数源码（Monorepo 阶段1）
+├── 📁 frontends/                      # ✅ 前端项目（Monorepo 阶段3）
+│   ├── README.md                     # 前端项目说明
+│   │
+│   ├── byteproject/                  # 当前产品：ByteProject
+│   │   ├── index.html               # 项目中心（主页）
+│   │   ├── admin.html               # 后台管理
+│   │   ├── *.html                   # 各功能页面
+│   │   ├── *.js                     # 页面对应的 JS 文件
+│   │   ├── sidebar.js               # 侧边栏公共组件
+│   │   ├── common/                  # 公共代码
+│   │   │   └── app-core.js         # 核心 API 调用
+│   │   ├── automation_suite/        # 自动化套件模块
+│   │   ├── data_export_center/      # 数据导出中心
+│   │   ├── execution_board/         # 执行看板
+│   │   ├── order_list/              # 订单列表模块
+│   │   ├── performance/             # 性能分析
+│   │   ├── project_analysis/        # 项目分析
+│   │   ├── project_automation/      # 项目自动化
+│   │   ├── project_report/          # 项目日报
+│   │   ├── rebate_management/       # 返点管理
+│   │   ├── talent_pool/             # 达人池
+│   │   ├── talent_schedule/         # 达人档期
+│   │   ├── talent_selection/        # 达人选择
+│   │   ├── task_center/             # 任务中心
+│   │   ├── works_management/        # 作品管理
+│   │   └── legacy/                  # 旧版代码（备份）
+│   │
+│   └── [future-product]/             # 未来的新产品（预留）
+│
+├── 📁 functions/                      # ✅ 云函数源码（Monorepo 阶段2）
 │   ├── README.md                     # 云函数开发指南
+│   ├── INDEX.md                      # 51个云函数完整索引
+│   ├── DEPLOYMENT_GUIDE.md           # 部署详细教程
 │   ├── _template/                    # 云函数模板
-│   ├── getProjects/                  # 获取项目列表
 │   ├── getTalents/                   # 获取达人列表
+│   ├── getProjects/                  # 获取项目列表
 │   ├── handleProjectReport/          # 项目日报处理
-│   └── ...                           # 51+ 个云函数（待迁移）
+│   ├── automation-workflows/         # 自动化工作流
+│   └── ...                           # 共51个云函数
 │
-├── 📁 database/                       # 🆕 数据库 Schema（Monorepo 阶段1）
+├── 📁 database/                       # ✅ 数据库 Schema（Monorepo 阶段1.5）
 │   ├── README.md                     # Schema 文档
-│   ├── schemas/                      # Schema 定义文件
-│   │   ├── _template.json           # Schema 模板
-│   │   ├── projects.json            # 项目集合
-│   │   ├── talents.json             # 达人集合
-│   │   └── ...                      # 其他集合（待迁移）
+│   ├── INDEX.md                      # Schema 文件索引
+│   ├── MAC_SETUP.md                  # Mac 环境设置指南
+│   ├── QUICKSTART.md                 # 快速开始
+│   ├── TUTORIAL.md                   # 实战教程
+│   ├── DEMO.md                       # 场景演示
+│   ├── SCHEMA_SYNC_GUIDE.md          # 同步流程指南
+│   ├── .env.example                  # 环境变量模板
+│   ├── schemas/                      # Schema 定义文件（12个集合）
+│   │   ├── projects.schema.json     # 项目集合
+│   │   ├── talents.schema.json      # 达人集合
+│   │   ├── collaborations.schema.json  # 合作订单
+│   │   └── ...                      # 其他9个集合
 │   ├── indexes/                      # 索引定义
-│   └── migrations/                   # 数据迁移脚本
-│       └── _template.js             # 迁移脚本模板
+│   ├── migrations/                   # 数据迁移脚本
+│   └── scripts/                      # Schema 同步工具
+│       └── sync-schema.sh           # 自动同步脚本
 │
-├── common/                            # 前端通用库（跨页面复用）
-│   └── app-core.js                   # 核心工具类（API、Modal、格式化等）
-│
-├── legacy/                            # 🗂️ 旧版单文件代码存档（仅供参考）
-│   ├── README.md                     # Legacy 代码说明文档
-│   ├── automation_suite.js           # 旧版自动化套件（已被 automation_suite/ 替代）
-│   ├── order_list.js                 # 旧版订单列表（已被 order_list/ 替代）
-│   ├── project_automation.js         # 旧版项目自动化（已被 project_automation/ 替代）
-│   ├── project_report.js             # 旧版项目报告（已被 project_report/ 替代）
-│   ├── talent_pool.js                # 旧版达人库（已被 talent_pool/ 替代）
-│   └── talent_selection.js           # 旧版达人选择（已被 talent_selection/ 替代）
-│
-├── automation_suite/                  # 自动化测试套件模块（✅ 已模块化）
-│   ├── main.js                       # 主控制器
-│   ├── jobs.js                       # 任务管理
-│   ├── workflow.js                   # 工作流管理
-│   ├── statistics.js                 # 统计数据
-│   ├── view-switcher.js              # 视图切换
-│   ├── modal-*.js                    # 模态框模块
-│   ├── constants.js                  # 常量定义
-│   └── utils.js                      # 工具函数
-│
-├── order_list/                        # 订单管理页面模块（✅ 已模块化）
-│   ├── main.js                       # 主控制器
-│   ├── tab-basic.js                  # 基础信息Tab
-│   ├── tab-performance.js            # 执行信息Tab
-│   ├── tab-financial.js              # 财务信息Tab
-│   └── tab-effect.js                 # 效果看板Tab
-│
-├── project_automation/                # 项目自动化模块（✅ 已模块化）
-│   ├── main.js                       # 主控制器
-│   ├── tab-jobs.js                   # 任务 Tab
-│   ├── tab-sheets.js                 # 表格 Tab
-│   ├── tab-talents.js                # 达人 Tab
-│   ├── modal-automation.js           # 自动化模态框
-│   ├── modal-sheet-generator.js      # 表格生成器
-│   └── modals.js                     # 其他模态框
-│
-├── project_report/                    # 项目日报模块（✅ 已模块化）
-│   ├── main.js                       # 主控制器（478行）
-│   ├── constants.js                  # API 端点和业务常量（46行）
-│   ├── utils.js                      # 工具函数（140行）
-│   ├── automation-manager.js         # 自动化抓取管理（180行）
-│   ├── tab-daily-report.js           # 日报 Tab（336行）
-│   ├── tab-data-entry.js             # 数据录入 Tab（555行）
-│   └── tab-effect-monitor.js         # 效果监测 Tab（834行）
-│
-├── talent_pool/                       # 达人库模块（✅ 已模块化）
-│   ├── main.js                       # 主控制器（430行）
-│   ├── utils.js                      # 工具函数与常量（50行）
-│   ├── table-manager.js              # 表格渲染与筛选（441行）
-│   ├── modal-crud.js                 # 新增/编辑模块（146行）
-│   ├── modal-price.js                # 价格管理模块（338行）
-│   ├── modal-rebate.js               # 返点管理模块（236行）
-│   ├── modal-history.js              # 合作历史模块（468行）
-│   └── modal-batch.js                # 批量操作模块（468行）
-│
-├── talent_selection/                  # 达人选择模块（✅ 已模块化）
-│   ├── main.js                       # 主控制器
-│   ├── talent-table.js               # 达人表格
-│   ├── filter-panel.js               # 筛选面板
-│   ├── selection-panel.js            # 选择面板
-│   ├── modal-batch-import.js         # 批量导入
-│   ├── modal-columns.js              # 列配置
-│   ├── modals.js                     # 其他模态框
-│   └── utils.js                      # 工具函数
-│
-├── execution_board/                   # 执行看板模块（✅ 已模块化）
-│   └── ...                           # 模块化文件
-│
-├── talent_schedule/                   # 达人档期模块（✅ 已模块化）
-│   └── ...                           # 模块化文件
-│
-├── *.html                            # 各个页面的 HTML 文件
-├── *.js                              # 页面脚本（部分待升级）
-│
-├── docs/                             # 📁 项目文档
-│   ├── architecture/                         # 架构文档
-│   │   └── ARCHITECTURE_UPGRADE_GUIDE.md    # 架构升级指南
-│   ├── api/                                  # API文档
-│   │   ├── API_REFERENCE.md                 # 云函数API参考文档
-│   │   ├── backend-api-v4.0-README.md       # 后端API v4.0快速参考
-│   │   ├── backend-api-v4.0-DEPLOYMENT.md   # 后端API v4.0部署指南
-│   │   └── backend-api-v4.0-CHANGELOG.md    # 后端API v4.0更新日志
-│   ├── features/                             # 功能文档
-│   │   ├── data-entry-optimization-plan.md  # 数据录入优化方案
-│   │   └── BACKEND_API_REQUIREMENTS.md      # 后端API改造需求文档
-│   └── releases/                             # 发布文档
-│       └── PR_INFO.md                        # PR提交记录
-│
-└── assets/                           # 静态资源
-    ├── images/
-    └── styles/
+└── docs/                              # 项目文档
+    ├── api/                          # API 文档
+    ├── architecture/                 # 架构文档
+    ├── features/                     # 功能文档
+    └── releases/                     # 发布说明
 ```
 
-### 📂 Legacy 代码说明
-
-`legacy/` 文件夹存放已完成模块化重构的页面的旧版单文件代码，仅作历史参考。这些文件已不再被项目使用，详细说明请查看 [legacy/README.md](./legacy/README.md)。
-
-### 主要页面
-
-| 页面 | 文件 | 状态 | 说明 |
-|------|------|------|------|
-| 项目列表 | `index.html` | ✅ 运行中 | 项目总览和管理入口 |
-| 订单详情 | `order_list.html` | ✅ 已升级 | 项目内达人合作管理（模块化架构） |
-| 项目日报 | `project_report.html` | ✅ 最新优化 | 视频播放量数据录入与日报查看 |
-| 自动化页面 | `project_automation.html` | ✅ 2025-11优化 | 3-Tab设计：任务发起、批次管理、表格生成 |
-| 模板管理 | `mapping_templates.html` | ✅ 2025-11升级 | 飞书表格模板配置与工作流关联 |
-| 执行看板 | `execution_board.html` | ✅ 运行中 | 跨项目达人发布日历视图 |
-| 达人库 | `talent_pool.html` | ✅ 已升级 | 达人档案管理（8个模块，2577行） |
-| 数据分析 | `analysis.html` | ✅ 运行中 | 数据可视化看板 |
-
-### 达人库功能详解 🆕
-
-`talent_pool.html` 采用模块化架构，包含以下核心功能：
-
-#### 📊 达人列表管理
-- **3档价格展示**：60s+视频 / 20-60s视频 / 1-20s视频
-- **多维度筛选**：层级、标签、返点率范围、价格范围、年月
-- **批量操作**：批量导入、批量更新、导出Excel
-- **快速操作**：编辑、删除、价格管理、返点管理、历史查询
+> 💡 **前端代码位置**：所有前端页面和模块现已移至 `frontends/byteproject/` 目录
+> 详细功能说明请查看：[frontends/README.md](./frontends/README.md)
 
 #### 💰 价格管理模块（紫色主题）
 - **3档价格类型**：根据视频时长区分定价
@@ -1624,6 +1556,6 @@ chore: 构建/工具链相关
 
 ---
 
-**最后更新**：2025-11-10
-**当前版本**：v2.12 (Monorepo 架构升级 - 阶段1完成)
+**最后更新**：2025-11-11
+**当前版本**：v3.0 (Monorepo 架构升级 - 全部完成)
 **维护者**：产品经理 + Claude Code
