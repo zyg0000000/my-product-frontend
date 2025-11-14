@@ -66,7 +66,7 @@ Build output directory: dist
 | 变量名 | 值 | 用途 |
 |--------|-----|------|
 | `VITE_API_BASE_URL` | `https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com` | API 服务器地址 |
-| `NODE_VERSION` | `18` | Node.js 版本（可选） |
+| `NODE_VERSION` | `20` | Node.js 版本（**必需**，Vite 7.x 要求 20.19+） |
 
 ### 步骤 6：开始部署
 
@@ -138,25 +138,51 @@ Cloudflare 会自动为你的域名配置免费 SSL 证书。
 
 ## 🐛 故障排查
 
-### 问题 1：构建失败 - "command not found: npm"
+### 问题 1：构建失败 - "Vite requires Node.js version 20.19+ or 22.12+"
+
+**错误信息**：
+```
+You are using Node.js 18.20.8. Vite requires Node.js version 20.19+ or 22.12+
+npm warn EBADENGINE Unsupported engine
+```
+
+**原因**：Node.js 版本过低
+- Vite 7.x 要求 Node.js 20.19+ 或 22.12+
+- React Router 7.x 同样要求 Node.js 20+
+- Cloudflare Pages 默认使用 Node.js 18.x
+
+**解决方案**：
+1. 在 Cloudflare Pages 项目设置中
+2. 进入 **"Settings"** → **"Environment variables"**
+3. 添加或修改环境变量：
+   ```
+   NODE_VERSION = 20
+   ```
+4. 点击 **"Save"** 保存
+5. 返回 **"Deployments"** 页面
+6. 点击 **"Retry deployment"** 重新部署
+
+**重要**：这是 **必需** 的配置项，不是可选的！
+
+### 问题 2：构建失败 - "command not found: npm"
 
 **原因**：Node.js 环境问题
 
 **解决方案**：
-1. 在环境变量中添加 `NODE_VERSION=18`
+1. 检查 `NODE_VERSION` 环境变量是否正确设置为 `20`
 2. 重新部署
 
-### 问题 2：构建失败 - "cannot find module"
+### 问题 3：构建失败 - "cannot find module"
 
 **原因**：构建命令路径错误
 
 **解决方案**：
-检查构建命令：
+确保 Root directory 设置为 `frontends/agentworks`，构建命令为：
 ```bash
-cd frontends/agentworks && npm install && npm run build
+npm install && npm run build
 ```
 
-### 问题 3：页面显示 404
+### 问题 4：页面显示 404
 
 **原因**：SPA 路由配置问题
 
@@ -175,7 +201,7 @@ cd frontends/agentworks && npm install && npm run build
 }
 ```
 
-### 问题 4：API 请求失败
+### 问题 5：API 请求失败
 
 **原因**：环境变量未设置
 
@@ -183,15 +209,35 @@ cd frontends/agentworks && npm install && npm run build
 1. 检查环境变量 `VITE_API_BASE_URL` 是否正确设置
 2. 重新部署
 
-### 问题 5：Tailwind CSS 样式未生效
+### 问题 6：Tailwind CSS PostCSS 插件错误
 
-**原因**：PostCSS 配置问题
+**错误信息**：
+```
+It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin.
+You'll need to install `@tailwindcss/postcss`
+```
+
+**原因**：Tailwind CSS 4.x 的 PostCSS 配置问题
 
 **解决方案**：
-确保项目中有以下文件：
-- `tailwind.config.js`
-- `postcss.config.js`
-- `src/index.css` 中有 `@tailwind` 指令
+这个警告通常在 Node.js 版本过低时出现。首先确保：
+1. **`NODE_VERSION=20` 已设置**（见问题 1）
+2. 如果设置 Node 20 后仍有问题，检查 `postcss.config.js`：
+```javascript
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+```
+
+3. 确保项目中有以下文件：
+   - `tailwind.config.js`
+   - `postcss.config.js`
+   - `src/index.css` 中有 `@tailwind` 指令
+
+**注意**：大多数情况下，升级到 Node 20 后这个问题会自动解决。
 
 ---
 

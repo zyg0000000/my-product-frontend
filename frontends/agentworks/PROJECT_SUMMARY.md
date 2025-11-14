@@ -287,9 +287,15 @@ Build output directory: dist
 
 ### 环境变量
 
+**必需配置**：
 ```
 VITE_API_BASE_URL=https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com
+NODE_VERSION=20
 ```
+
+**重要说明**：
+- `NODE_VERSION=20` 是必需的，因为 Vite 7.x 和 React Router 7.x 要求 Node.js 20.19+ 或 22.12+
+- Cloudflare Pages 默认使用 Node.js 18.x，必须手动指定升级到 20
 
 ### SPA 路由支持
 
