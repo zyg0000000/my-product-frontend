@@ -5,7 +5,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './components/Layout/MainLayout';
 import { Home } from './pages/Home/Home';
-import { TalentList } from './pages/TalentList/TalentList';
+import { TalentLayout } from './pages/Talents/TalentLayout';
+import { BasicInfo } from './pages/Talents/BasicInfo/BasicInfo';
 import { TalentDetail } from './pages/TalentDetail/TalentDetail';
 
 function App() {
@@ -14,8 +15,17 @@ function App() {
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
-          <Route path="talents" element={<TalentList />} />
+
+          {/* 达人管理模块 - 嵌套路由 */}
+          <Route path="talents" element={<TalentLayout />}>
+            <Route index element={<Navigate to="/talents/basic" replace />} />
+            <Route path="basic" element={<BasicInfo />} />
+          </Route>
+
+          {/* 达人详情页 */}
           <Route path="talents/:oneId/:platform" element={<TalentDetail />} />
+
+          {/* 其他模块 */}
           <Route
             path="projects"
             element={<div className="card">项目管理（开发中）</div>}
