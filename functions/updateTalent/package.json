@@ -1,7 +1,7 @@
 {
   "name": "update-talent",
-  "version": "2.1.0",
-  "description": "云函数：更新指定达人的基础信息。",
+  "version": "3.0.0",
+  "description": "云函数：更新指定达人的基础信息（v1/v2双版本支持，v2按oneId+platform精确更新）。",
   "main": "index.js",
   "dependencies": {
     "mongodb": "^6.5.0"
