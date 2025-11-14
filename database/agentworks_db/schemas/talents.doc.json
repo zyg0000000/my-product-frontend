@@ -67,50 +67,83 @@
             "comment": "根据该平台的粉丝量和影响力划分"
         },
         "prices": {
-            "type": "Object",
-            "description": "价格体系（支持多价格类型）",
-            "required": false,
-            "properties": {
-                "video_60plus": {
+            "type": "Array",
+            "description": "价格历史数组（支持按月记录价格变化）",
+            "required": true,
+            "default": [],
+            "itemType": "Object",
+            "itemSchema": {
+                "year": {
                     "type": "Integer",
-                    "description": "60s+ 长视频价格（单位：分）",
+                    "description": "价格年份",
+                    "required": true,
+                    "example": 2025
+                },
+                "month": {
+                    "type": "Integer",
+                    "description": "价格月份",
+                    "required": true,
+                    "min": 1,
+                    "max": 12,
+                    "example": 1
+                },
+                "type": {
+                    "type": "String",
+                    "description": "价格类型（根据平台不同）",
+                    "required": true,
+                    "comment": "抖音：video_60plus|video_20to60|video_1to20|live, 小红书：video|image"
+                },
+                "price": {
+                    "type": "Integer",
+                    "description": "价格金额（单位：分）",
+                    "required": true,
                     "min": 0,
                     "example": 5000000
                 },
-                "video_20to60": {
-                    "type": "Integer",
-                    "description": "20-60s 中等视频价格（单位：分）",
-                    "min": 0,
-                    "example": 3000000
-                },
-                "video_1to20": {
-                    "type": "Integer",
-                    "description": "1-20s 短视频价格（单位：分）",
-                    "min": 0,
-                    "example": 1000000
-                },
-                "live": {
-                    "type": "Integer",
-                    "description": "直播价格（单位：分）",
-                    "min": 0,
-                    "example": 8000000
-                },
-                "other": {
-                    "type": "Object",
-                    "description": "其他自定义价格类型",
-                    "comment": "可扩展的价格类型"
+                "status": {
+                    "type": "String",
+                    "description": "价格状态",
+                    "required": true,
+                    "enum": ["confirmed", "provisional"],
+                    "default": "confirmed",
+                    "comment": "confirmed=正式价格, provisional=临时价格"
                 }
             },
-            "comment": "价格按平台独立设置，不同平台价格可能不同"
+            "uniqueKey": ["year", "month", "type"],
+            "comment": "价格按平台独立设置，支持历史追溯。唯一键：year + month + type"
         },
-        "rebate": {
-            "type": "Double",
-            "description": "返点率（0-1之间的小数）",
+        "rebates": {
+            "type": "Array",
+            "description": "返点历史数组（支持按月记录返点变化）",
             "required": false,
-            "min": 0,
-            "max": 1,
-            "example": 0.05,
-            "comment": "如 0.05 表示 5% 返点"
+            "default": [],
+            "itemType": "Object",
+            "itemSchema": {
+                "year": {
+                    "type": "Integer",
+                    "description": "返点年份",
+                    "required": true,
+                    "example": 2025
+                },
+                "month": {
+                    "type": "Integer",
+                    "description": "返点月份",
+                    "required": true,
+                    "min": 1,
+                    "max": 12,
+                    "example": 1
+                },
+                "rate": {
+                    "type": "Double",
+                    "description": "返点率（百分比，如 15.5 表示 15.5%）",
+                    "required": true,
+                    "min": 0,
+                    "max": 100,
+                    "example": 15.5
+                }
+            },
+            "uniqueKey": ["year", "month"],
+            "comment": "返点率按月记录，支持历史追溯。唯一键：year + month"
         },
         "platformSpecific": {
             "type": "Object",
@@ -319,21 +352,33 @@
         "【平台扩展】通过 platformSpecific 字段存储平台特有数据，易于扩展新平台",
         "【合并追溯】oneIdHistory 记录达人合并历史，支持后期发现重复达人并合并",
         "【价格独立】不同平台的价格独立存储，互不影响",
+        "【时间序列】prices 和 rebates 采用数组结构，支持按月记录历史变化",
+        "【价格类型】抖音：video_60plus, video_20to60, video_1to20, live；小红书：video, image",
+        "【价格唯一键】prices 数组中 (year, month, type) 联合唯一",
+        "【返点唯一键】rebates 数组中 (year, month) 联合唯一",
         "【数据隔离】与 v1（kol_data）完全独立，不影响旧系统"
     ],
     "examples": [
         {
-            "description": "示例1：张三的抖音账号",
+            "description": "示例1：张三的抖音账号（含价格和返点历史）",
             "data": {
                 "oneId": "talent_00000001",
                 "platform": "douyin",
                 "platformAccountId": "dy_123456",
                 "name": "张三的美食日记",
                 "fansCount": 1000000,
-                "prices": {
-                    "video_60plus": 5000000,
-                    "video_20to60": 3000000
-                },
+                "prices": [
+                    { "year": 2025, "month": 1, "type": "video_60plus", "price": 5000000, "status": "confirmed" },
+                    { "year": 2025, "month": 1, "type": "video_20to60", "price": 3000000, "status": "confirmed" },
+                    { "year": 2025, "month": 1, "type": "video_1to20", "price": 1000000, "status": "confirmed" },
+                    { "year": 2025, "month": 1, "type": "live", "price": 8000000, "status": "confirmed" },
+                    { "year": 2025, "month": 2, "type": "video_60plus", "price": 5500000, "status": "confirmed" },
+                    { "year": 2025, "month": 2, "type": "video_20to60", "price": 3200000, "status": "confirmed" }
+                ],
+                "rebates": [
+                    { "year": 2025, "month": 1, "rate": 15.5 },
+                    { "year": 2025, "month": 2, "rate": 16.0 }
+                ],
                 "platformSpecific": {
                     "xingtuId": "123456",
                     "starLevel": 5
@@ -342,16 +387,23 @@
             }
         },
         {
-            "description": "示例2：张三的小红书账号（同一人）",
+            "description": "示例2：张三的小红书账号（同一人，不同平台）",
             "data": {
                 "oneId": "talent_00000001",
                 "platform": "xiaohongshu",
                 "platformAccountId": "xhs_789012",
                 "name": "小张爱做菜",
                 "fansCount": 500000,
-                "prices": {
-                    "video_60plus": 3000000
-                },
+                "prices": [
+                    { "year": 2025, "month": 1, "type": "video", "price": 3000000, "status": "confirmed" },
+                    { "year": 2025, "month": 1, "type": "image", "price": 2000000, "status": "confirmed" },
+                    { "year": 2025, "month": 2, "type": "video", "price": 3200000, "status": "confirmed" },
+                    { "year": 2025, "month": 2, "type": "image", "price": 2100000, "status": "confirmed" }
+                ],
+                "rebates": [
+                    { "year": 2025, "month": 1, "rate": 18.0 },
+                    { "year": 2025, "month": 2, "rate": 19.0 }
+                ],
                 "platformSpecific": {
                     "mcnName": "某MCN机构",
                     "contentTags": ["美食", "探店"]
