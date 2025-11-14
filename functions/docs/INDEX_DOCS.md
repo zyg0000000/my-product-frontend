@@ -20,19 +20,31 @@
 
 | 文档 | 说明 | 状态 | 路径 |
 |------|------|:----:|------|
-| **整体升级方案** | v1 → v2 双版本支持总体规划 | 📋 规划中 | [upgrades/UPGRADE_PLAN.md](./upgrades/UPGRADE_PLAN.md) |
-| **processTalents v2 升级** | processTalents 云函数 v2 详细方案 | ✅ 已完成 | [upgrades/UPGRADE_PLAN_V2.md](./upgrades/UPGRADE_PLAN_V2.md) |
+| **整体升级方案** | v1 → v2 双版本支持总体规划 | 🔄 进行中 | [upgrades/UPGRADE_PLAN.md](./upgrades/UPGRADE_PLAN.md) |
+| **明日工作计划** | 每日升级进度和计划 | 📋 持续更新 | [upgrades/TOMORROW_PLAN.md](./upgrades/TOMORROW_PLAN.md) |
+
+**已完成的 v2 升级** (4/8):
+- ✅ processTalents v2.0
+- ✅ getTalents v3.0
+- ✅ updateTalent v3.0
+- ✅ deleteTalent v2.0
 
 ---
 
 ### 🔧 单个函数文档
 
-#### processTalents（达人管理）
+#### processTalents（达人创建/更新）
 
 | 文档 | 说明 | 路径 |
 |------|------|------|
 | **v2 升级方案** | 详细的升级设计和实现 | [individual/processTalents/UPGRADE_PLAN_V2.md](./individual/processTalents/UPGRADE_PLAN_V2.md) |
 | **测试指南** | 完整的测试用例和验证步骤 | [individual/processTalents/TEST_GUIDE.md](./individual/processTalents/TEST_GUIDE.md) |
+
+#### getTalents（达人查询）
+
+| 文档 | 说明 | 路径 |
+|------|------|------|
+| **测试指南** | 19 个测试用例（含 v1/v2 兼容性测试） | [individual/getTalents/TEST_GUIDE.md](./individual/getTalents/TEST_GUIDE.md) |
 
 ---
 
@@ -49,18 +61,33 @@ functions/
 │   │
 │   ├── upgrades/                          # 🔄 升级方案
 │   │   ├── UPGRADE_PLAN.md                # 整体升级方案
-│   │   └── UPGRADE_PLAN_V2.md             # processTalents v2 方案
+│   │   ├── UPGRADE_PLAN_V2.md             # processTalents v2 方案
+│   │   └── TOMORROW_PLAN.md               # 每日工作计划
 │   │
 │   └── individual/                        # 🔧 单个函数文档
-│       └── processTalents/
-│           ├── UPGRADE_PLAN_V2.md         # v2 升级方案
-│           └── TEST_GUIDE.md              # 测试指南
+│       ├── processTalents/
+│       │   ├── UPGRADE_PLAN_V2.md         # v2 升级方案
+│       │   └── TEST_GUIDE.md              # 测试指南
+│       └── getTalents/
+│           └── TEST_GUIDE.md              # 测试指南（19 个用例）
 │
 ├── _template/                             # 函数模板
 │   └── README.md
 │
-├── processTalents/                        # 达人管理函数
-│   ├── index.js                           # 函数代码
+├── processTalents/                        # 达人创建/更新（v2.0）
+│   ├── index.js
+│   └── package.json
+│
+├── getTalents/                            # 达人查询（v3.0）
+│   ├── index.js
+│   └── package.json
+│
+├── updateTalent/                          # 达人更新（v3.0）
+│   ├── index.js
+│   └── package.json
+│
+├── deleteTalent/                          # 达人删除（v2.0）
+│   ├── index.js
 │   └── package.json
 │
 └── ...（其他函数）
@@ -75,8 +102,13 @@ functions/
 - **所有云函数列表** → [INDEX.md](./INDEX.md)
 - **如何部署云函数** → [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
 - **v2 升级总览** → [upgrades/UPGRADE_PLAN.md](./upgrades/UPGRADE_PLAN.md)
-- **processTalents 升级详情** → [upgrades/UPGRADE_PLAN_V2.md](./upgrades/UPGRADE_PLAN_V2.md)
-- **测试 processTalents** → [individual/processTalents/TEST_GUIDE.md](./individual/processTalents/TEST_GUIDE.md)
+- **明日工作计划** → [upgrades/TOMORROW_PLAN.md](./upgrades/TOMORROW_PLAN.md)
+
+### 已完成的 v2 函数文档
+
+- **processTalents 升级方案** → [individual/processTalents/UPGRADE_PLAN_V2.md](./individual/processTalents/UPGRADE_PLAN_V2.md)
+- **processTalents 测试指南** → [individual/processTalents/TEST_GUIDE.md](./individual/processTalents/TEST_GUIDE.md)
+- **getTalents 测试指南** → [individual/getTalents/TEST_GUIDE.md](./individual/getTalents/TEST_GUIDE.md)
 
 ---
 
@@ -132,4 +164,5 @@ functions/docs/upgrades/
 ---
 
 **维护者**：产品团队
-**最后更新**：2025-11-11
+**最后更新**：2025-11-14
+**v2 升级进度**：4/8 (50%)
