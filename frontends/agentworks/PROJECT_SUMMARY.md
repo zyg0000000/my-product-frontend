@@ -33,11 +33,11 @@ rebates: [
 
 | 技术 | 版本 | 用途 |
 |------|------|------|
-| **React** | 18 | UI 框架 |
+| **React** | 19 | UI 框架 |
 | **TypeScript** | 5.x | 类型安全 |
-| **Vite** | 6.x | 构建工具 |
-| **Tailwind CSS** | 3.x | 样式框架 |
-| **React Router** | 6.x | 路由管理 |
+| **Vite** | 7.x | 构建工具 |
+| **Tailwind CSS** | 3.4.x | 样式框架（稳定版） |
+| **React Router** | 7.x | 路由管理 |
 | **Zustand** | - | 状态管理（已安装，未使用） |
 | **Heroicons** | 2.x | 图标库 |
 
@@ -287,9 +287,15 @@ Build output directory: dist
 
 ### 环境变量
 
+**必需配置**：
 ```
 VITE_API_BASE_URL=https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com
+NODE_VERSION=20
 ```
+
+**重要说明**：
+- `NODE_VERSION=20` 是必需的，因为 Vite 7.x 和 React Router 7.x 要求 Node.js 20.19+ 或 22.12+
+- Cloudflare Pages 默认使用 Node.js 18.x，必须手动指定升级到 20
 
 ### SPA 路由支持
 
