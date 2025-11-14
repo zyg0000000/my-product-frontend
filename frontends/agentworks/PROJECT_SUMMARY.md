@@ -278,10 +278,12 @@ interface Talent {
 
 ```
 Framework preset: Vite
-Build command: cd frontends/agentworks && npm install && npm run build
-Build output directory: frontends/agentworks/dist
-Root directory: /
+Root directory: frontends/agentworks
+Build command: npm install && npm run build
+Build output directory: dist
 ```
+
+**说明**：由于是 Monorepo 项目，先设置 `Root directory` 为子项目路径，这样构建命令会在正确的目录执行。
 
 ### 环境变量
 

@@ -43,9 +43,9 @@
 #### 构建设置
 ```
 Framework preset: Vite
-Build command: cd frontends/agentworks && npm install && npm run build
-Build output directory: frontends/agentworks/dist
-Root directory: /
+Root directory: frontends/agentworks
+Build command: npm install && npm run build
+Build output directory: dist
 ```
 
 **详细说明**：
@@ -53,9 +53,11 @@ Root directory: /
 | 配置项 | 值 | 说明 |
 |--------|-----|------|
 | **Framework preset** | `Vite` | 选择 Vite 框架 |
-| **Build command** | `cd frontends/agentworks && npm install && npm run build` | 进入子目录，安装依赖，构建项目 |
-| **Build output directory** | `frontends/agentworks/dist` | Vite 构建输出目录 |
-| **Root directory** | `/` | Monorepo 根目录 |
+| **Root directory** | `frontends/agentworks` | 项目根目录（Monorepo 子项目） |
+| **Build command** | `npm install && npm run build` | 安装依赖并构建 |
+| **Build output directory** | `dist` | Vite 构建输出目录 |
+
+**重要**：由于这是 Monorepo 项目，必须先设置 `Root directory` 为子项目路径，这样 Cloudflare 就会在正确的目录执行构建命令。
 
 ### 步骤 5：配置环境变量
 
