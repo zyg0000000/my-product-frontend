@@ -4,166 +4,87 @@
 
 ---
 
-## ✅ 今日完成
+## ✅ 已完成（2025-11-14）
 
-- ✅ **processTalents**（达人创建/更新）- v2.0 升级完成
+### Day 1（11-11）
+- ✅ **processTalents v2.0**（达人创建/更新）
   - oneId 自动生成
   - 多平台支持（douyin, xiaohongshu）
   - v1/v2 双版本兼容
   - 文档和测试指南完善
 
----
+### Day 2（11-14）
+- ✅ **getTalents v3.0**（达人查询）
+  - 支持 platform 筛选
+  - 支持 oneId 分组查询（groupBy=oneId）
+  - 保留 simple/full 视图模式
+  - 19 个测试用例文档
 
-## 🎯 明日重点：Talent 查询和操作函数
+- ✅ **updateTalent v3.0**（达人更新）
+  - 按 (oneId, platform) 精确更新
+  - 安全增强：v2 必须同时提供 oneId 和 platform
+  - 防止误操作批量更新
 
-根据升级方案，**第一优先级**需要升级的核心函数有 8 个，其中专注 Talent 相关的有：
+- ✅ **deleteTalent v2.0**（达人删除）
+  - 支持单平台删除：{ oneId, platform }
+  - 支持全平台删除：{ oneId, deleteAll: true }
+  - 明确的删除确认机制
 
-### 1. ⭐ getTalents（高优先级）
-
-**当前状态**：仅支持 v1（kol_data）
-
-**v2 需求**：
-- 支持 `platform` 筛选（如：只查询抖音达人）
-- 支持 `oneId` 分组（将同一达人的多个平台合并展示）
-- 支持 `groupBy=oneId` 参数
-
-**升级关键点**：
-```javascript
-// v2 查询逻辑
-if (groupBy === 'oneId') {
-  // 按 oneId 分组，返回格式：
-  // { oneId: "talent_00000001", platforms: [douyin数据, xiaohongshu数据] }
-} else {
-  // 普通查询，支持 platform 筛选
-}
-```
-
-**预计时间**：2-3 小时
+**进度**：第一优先级 4/8 (50%)
 
 ---
 
-### 2. ⭐ updateTalent（高优先级）
+## 🎯 下一步工作计划
 
-**当前状态**：仅支持 v1，按 `id` 更新
+### 第一优先级剩余函数（4 个）
 
-**v2 需求**：
-- 支持按 `(oneId, platform)` 更新
-- 识别是更新某平台还是全局更新
+| 函数 | 状态 | v2 需求 | 预计工作量 |
+|------|:----:|---------|----------:|
+| **getProjects** | ⏳ 待升级 | 支持 platforms 数组筛选 | 2 小时 |
+| **addProject** | ⏳ 待升级 | 支持 platforms 字段 | 1 小时 |
+| **getCollaborators** | ⏳ 待升级 | 支持 talentOneId + platform | 2 小时 |
+| **addCollaborator** | ⏳ 待升级 | 支持 talentOneId、platform | 1 小时 |
 
-**升级关键点**：
-```javascript
-// v2 更新逻辑
-filter: { oneId: talent.oneId, platform: talent.platform }
-
-// 如果只传 oneId 不传 platform，需要明确处理：
-// 选项1：报错（推荐）
-// 选项2：更新所有平台
-```
-
-**预计时间**：1-2 小时
+**预计总工作量**：6 小时
 
 ---
 
-### 3. ⭐ deleteTalent（高优先级）
+### 第二优先级函数（可选）
 
-**当前状态**：仅支持 v1，按 `id` 删除
-
-**v2 需求**：
-- 支持删除某平台的达人记录
-- 需确认是删除某平台还是所有平台
-
-**升级关键点**：
-```javascript
-// v2 删除逻辑
-if (platform) {
-  // 删除特定平台：{ oneId, platform }
-  await collection.deleteOne({ oneId, platform });
-} else {
-  // 删除所有平台（需要二次确认）
-  await collection.deleteMany({ oneId });
-}
-```
-
-**预计时间**：1 小时
+| 函数 | 优先级 | 预计工作量 |
+|------|:-----:|----------:|
+| **getTalentsSearch** | 中 | 2 小时 |
+| **getTalentsByIds** | 中 | 1 小时 |
+| **batchUpdateTalents** | 中 | 2 小时 |
+| **bulkCreateTalents** | 中 | 1 小时 |
+| **updateProject** | 中 | 1 小时 |
+| **updateCollaborator** | 中 | 1 小时 |
+| **deleteProject** | 低 | 0.5 小时 |
+| **deleteCollaborator** | 低 | 0.5 小时 |
+| **getProjectPerformance** | 低 | 1 小时 |
+| **exportAllTalents** | 低 | 1 小时 |
+| **exportComprehensiveData** | 低 | 1 小时 |
+| **getTalentHistory** | 低 | 1 小时 |
 
 ---
 
-### 4. 🔄 getTalentsSearch（中优先级）
+### 建议的实施路径
 
-**当前状态**：v1 搜索功能（支持复杂筛选）
+**路径 A**（推荐）：完成第一优先级
+- 先完成剩余 4 个第一优先级函数（Projects + Collaborators）
+- 确保核心业务功能完整
 
-**v2 需求**：
-- 支持 `platform` 筛选
-- 支持 `oneId` 搜索
-- 保持原有的高级筛选功能
+**路径 B**：Talent 功能增强
+- 升级 getTalentsSearch、getTalentsByIds
+- 完善 Talent 模块的查询能力
 
-**升级关键点**：
-- 复用现有的查询构建逻辑
-- 添加 v2 特有的筛选条件
+**路径 C**：批量操作增强
+- 升级 batchUpdateTalents、bulkCreateTalents
+- 提升数据导入效率
 
-**预计时间**：2 小时
+## 💡 设计决策记录
 
----
-
-### 5. 🔄 getTalentsByIds（中优先级）
-
-**当前状态**：批量查询达人（按 `id[]`）
-
-**v2 需求**：
-- 支持按 `oneId[]` 批量查询
-- 返回包含多平台信息
-
-**升级关键点**：
-```javascript
-// v2 查询
-if (dbVersion === 'v2') {
-  const talents = await collection.find({
-    oneId: { $in: oneIds }
-  }).toArray();
-
-  // 可选：按 oneId 分组
-  groupByOneId(talents);
-}
-```
-
-**预计时间**：1 小时
-
----
-
-## 📋 明日任务优先级
-
-### Phase 1: 核心 CRUD（必须完成）
-
-1. ✅ **getTalents** - 达人查询（含分组）
-2. ✅ **updateTalent** - 达人更新
-3. ✅ **deleteTalent** - 达人删除
-
-**预计完成时间**：上午 + 中午
-
----
-
-### Phase 2: 查询增强（尽量完成）
-
-4. 🔄 **getTalentsSearch** - 高级搜索
-5. 🔄 **getTalentsByIds** - 批量查询
-
-**预计完成时间**：下午
-
----
-
-### Phase 3: 测试和验证（必须完成）
-
-- 为每个函数编写测试用例
-- 验证 v1/v2 兼容性
-- 更新文档
-
-**预计完成时间**：下午晚些时候
-
----
-
-## ⚠️ 注意事项
-
-### 1. oneId 分组查询的设计
+### 1. oneId 分组查询的设计（已实施）
 
 **问题**：前端是否需要"按 oneId 分组"的查询结果？
 
@@ -246,21 +167,22 @@ if (dbVersion === 'v2') {
 
 ## 📅 本周目标
 
-**Day 1**（今日）：
-- ✅ processTalents v2 升级
+**Day 1**（2025-11-11）：
+- ✅ processTalents v2.0 升级
 - ✅ 文档整理
 
-**Day 2**（明日）：
-- ✅ getTalents v2 升级
-- ✅ updateTalent v2 升级
-- ✅ deleteTalent v2 升级
-- 🔄 getTalentsSearch v2 升级（尽量）
+**Day 2**（2025-11-14）：
+- ✅ getTalents v3.0 升级
+- ✅ updateTalent v3.0 升级
+- ✅ deleteTalent v2.0 升级
+- ✅ 创建 getTalents 测试指南（19 个测试用例）
 
-**Day 3**（后天）：
-- 剩余 Talent 相关函数
-- Projects 和 Collaborations 相关函数
+**Day 3**（下一步）：
+- ⏳ 完成第一优先级剩余函数（Projects + Collaborators）
+- 或升级第二优先级函数（getTalentsSearch、getTalentsByIds 等）
 
 ---
 
 **创建时间**：2025-11-11
+**最后更新**：2025-11-14
 **维护者**：产品团队
