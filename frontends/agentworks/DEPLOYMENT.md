@@ -217,27 +217,23 @@ It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin.
 You'll need to install `@tailwindcss/postcss`
 ```
 
-**原因**：Tailwind CSS 4.x 的 PostCSS 配置问题
+**原因**：Tailwind CSS 4.x 架构变更
+- Tailwind CSS 4.x 将 PostCSS 插件移到了单独的 `@tailwindcss/postcss` 包
+- 需要额外配置才能使用
 
 **解决方案**：
-这个警告通常在 Node.js 版本过低时出现。首先确保：
-1. **`NODE_VERSION=20` 已设置**（见问题 1）
-2. 如果设置 Node 20 后仍有问题，检查 `postcss.config.js`：
-```javascript
-export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-}
-```
+项目已降级到 Tailwind CSS 3.x（稳定版本），此问题已解决。
 
-3. 确保项目中有以下文件：
-   - `tailwind.config.js`
-   - `postcss.config.js`
-   - `src/index.css` 中有 `@tailwind` 指令
+如果你在本地遇到此问题：
+1. 确保 `package.json` 中 `tailwindcss` 版本为 `^3.4.17`
+2. 运行 `npm install` 重新安装依赖
+3. 运行 `npm run build` 测试构建
 
-**注意**：大多数情况下，升级到 Node 20 后这个问题会自动解决。
+**技术背景**：
+- Tailwind CSS 3.x：成熟稳定，PostCSS 配置简单
+- Tailwind CSS 4.x：新架构，需要 `@tailwindcss/postcss` 或 `@tailwindcss/vite` 插件
+
+当前项目使用 Tailwind 3.x 以确保构建稳定性。
 
 ---
 
