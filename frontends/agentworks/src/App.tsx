@@ -16,9 +16,18 @@ function App() {
           <Route index element={<Home />} />
           <Route path="talents" element={<TalentList />} />
           <Route path="talents/:oneId/:platform" element={<TalentDetail />} />
-          <Route path="projects" element={<div className="card">项目管理（开发中）</div>} />
-          <Route path="analytics" element={<div className="card">数据分析（开发中）</div>} />
-          <Route path="settings" element={<div className="card">系统设置（开发中）</div>} />
+          <Route
+            path="projects"
+            element={<div className="card">项目管理（开发中）</div>}
+          />
+          <Route
+            path="analytics"
+            element={<div className="card">数据分析（开发中）</div>}
+          />
+          <Route
+            path="settings"
+            element={<div className="card">系统设置（开发中）</div>}
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

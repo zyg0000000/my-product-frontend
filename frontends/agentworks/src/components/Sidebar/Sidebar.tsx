@@ -35,7 +35,7 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-3 py-4">
-        {navigation.map((item) => (
+        {navigation.map(item => (
           <NavLink
             key={item.path}
             to={item.path}

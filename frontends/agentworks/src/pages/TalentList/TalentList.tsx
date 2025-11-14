@@ -41,7 +41,12 @@ export function TalentList() {
   };
 
   // 平台Tab配置
-  const platforms: Platform[] = ['douyin', 'xiaohongshu', 'bilibili', 'kuaishou'];
+  const platforms: Platform[] = [
+    'douyin',
+    'xiaohongshu',
+    'bilibili',
+    'kuaishou',
+  ];
 
   // 获取当前平台的价格类型配置
   const priceTypes = PLATFORM_PRICE_TYPES[selectedPlatform];
@@ -52,7 +57,9 @@ export function TalentList() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">达人管理</h1>
-          <p className="mt-1 text-sm text-gray-500">管理多平台达人信息、价格和返点</p>
+          <p className="mt-1 text-sm text-gray-500">
+            管理多平台达人信息、价格和返点
+          </p>
         </div>
         <button
           onClick={() => navigate('/talents/create')}
@@ -65,7 +72,7 @@ export function TalentList() {
       {/* 平台Tab切换 */}
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8">
-          {platforms.map((platform) => (
+          {platforms.map(platform => (
             <button
               key={platform}
               onClick={() => setSelectedPlatform(platform)}
@@ -100,7 +107,7 @@ export function TalentList() {
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     粉丝数
                   </th>
-                  {priceTypes.map((priceType) => (
+                  {priceTypes.map(priceType => (
                     <th
                       key={priceType.key}
                       className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
@@ -120,7 +127,7 @@ export function TalentList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
-                {talents.map((talent) => {
+                {talents.map(talent => {
                   const latestPrices = getLatestPricesMap(talent.prices);
                   const latestRebate = getLatestRebate(talent.rebates);
 
@@ -128,7 +135,9 @@ export function TalentList() {
                     <tr
                       key={talent._id}
                       className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => navigate(`/talents/${talent.oneId}/${talent.platform}`)}
+                      onClick={() =>
+                        navigate(`/talents/${talent.oneId}/${talent.platform}`)
+                      }
                     >
                       <td className="whitespace-nowrap px-6 py-4">
                         <div className="flex items-center">
@@ -140,15 +149,21 @@ export function TalentList() {
                             />
                           )}
                           <div className={talent.avatar ? 'ml-4' : ''}>
-                            <div className="font-medium text-gray-900">{talent.name}</div>
-                            <div className="text-sm text-gray-500">{talent.oneId}</div>
+                            <div className="font-medium text-gray-900">
+                              {talent.name}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {talent.oneId}
+                            </div>
                           </div>
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                        {talent.fansCount ? formatFansCount(talent.fansCount) : '-'}
+                        {talent.fansCount
+                          ? formatFansCount(talent.fansCount)
+                          : '-'}
                       </td>
-                      {priceTypes.map((priceType) => (
+                      {priceTypes.map(priceType => (
                         <td
                           key={priceType.key}
                           className="whitespace-nowrap px-6 py-4 text-sm text-gray-900"
@@ -167,22 +182,24 @@ export function TalentList() {
                             talent.status === 'active'
                               ? 'bg-green-100 text-green-800'
                               : talent.status === 'inactive'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-gray-100 text-gray-800'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-gray-100 text-gray-800'
                           }`}
                         >
                           {talent.status === 'active'
                             ? '活跃'
                             : talent.status === 'inactive'
-                            ? '暂停'
-                            : '归档'}
+                              ? '暂停'
+                              : '归档'}
                         </span>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
                         <button
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
-                            navigate(`/talents/${talent.oneId}/${talent.platform}`);
+                            navigate(
+                              `/talents/${talent.oneId}/${talent.platform}`
+                            );
                           }}
                           className="text-primary-600 hover:text-primary-900"
                         >

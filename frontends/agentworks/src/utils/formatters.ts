@@ -94,12 +94,17 @@ export function getLatestPrices(prices: PriceRecord[]): PriceRecord[] {
  * @param prices 价格数组
  * @returns { video_60plus: 5000000, video_20to60: 3000000, ... }
  */
-export function getLatestPricesMap(prices: PriceRecord[]): Partial<Record<PriceType, number>> {
+export function getLatestPricesMap(
+  prices: PriceRecord[]
+): Partial<Record<PriceType, number>> {
   const latestPrices = getLatestPrices(prices);
-  return latestPrices.reduce((acc, price) => {
-    acc[price.type] = price.price;
-    return acc;
-  }, {} as Partial<Record<PriceType, number>>);
+  return latestPrices.reduce(
+    (acc, price) => {
+      acc[price.type] = price.price;
+      return acc;
+    },
+    {} as Partial<Record<PriceType, number>>
+  );
 }
 
 /**
@@ -150,10 +155,13 @@ export function getPriceHistory(prices: PriceRecord[]): PriceHistory[] {
   // 构建历史记录
   return yearMonths.map((ym, index) => {
     const monthPrices = getPricesByMonth(prices, ym.year, ym.month);
-    const pricesMap = monthPrices.reduce((acc, price) => {
-      acc[price.type] = price.price;
-      return acc;
-    }, {} as Partial<Record<PriceType, number>>);
+    const pricesMap = monthPrices.reduce(
+      (acc, price) => {
+        acc[price.type] = price.price;
+        return acc;
+      },
+      {} as Partial<Record<PriceType, number>>
+    );
 
     return {
       year: ym.year,
