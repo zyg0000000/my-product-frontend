@@ -40,7 +40,9 @@ export function Home() {
     <div className="space-y-8">
       {/* 欢迎信息 */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">欢迎使用 AgentWorks</h1>
+        <h1 className="text-3xl font-bold text-gray-900">
+          欢迎使用 AgentWorks
+        </h1>
         <p className="mt-2 text-lg text-gray-600">多平台广告代理项目管理系统</p>
       </div>
 
@@ -48,7 +50,7 @@ export function Home() {
       <div>
         <h2 className="text-lg font-semibold text-gray-900">快速操作</h2>
         <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {quickActions.map((action) => (
+          {quickActions.map(action => (
             <button
               key={action.path}
               onClick={() => navigate(action.path)}
@@ -57,7 +59,9 @@ export function Home() {
               <div className={`rounded-lg ${action.color} p-3`}>
                 <action.icon className="h-6 w-6 text-white" />
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-gray-900">{action.name}</h3>
+              <h3 className="mt-4 text-lg font-semibold text-gray-900">
+                {action.name}
+              </h3>
               <p className="mt-2 text-sm text-gray-500">{action.description}</p>
             </button>
           ))}
@@ -74,11 +78,15 @@ export function Home() {
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">数据库</span>
-            <span className="font-medium text-gray-900">agentworks_db (v2)</span>
+            <span className="font-medium text-gray-900">
+              agentworks_db (v2)
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">支持平台</span>
-            <span className="font-medium text-gray-900">抖音、小红书、B站、快手</span>
+            <span className="font-medium text-gray-900">
+              抖音、小红书、B站、快手
+            </span>
           </div>
         </div>
       </div>
@@ -93,7 +101,9 @@ export function Home() {
             </span>
             <div>
               <p className="font-medium text-gray-900">多平台统一管理</p>
-              <p className="text-sm text-gray-500">支持抖音、小红书、B站等多个平台</p>
+              <p className="text-sm text-gray-500">
+                支持抖音、小红书、B站等多个平台
+              </p>
             </div>
           </li>
           <li className="flex items-start gap-3">
@@ -102,7 +112,9 @@ export function Home() {
             </span>
             <div>
               <p className="font-medium text-gray-900">价格和返点历史追溯</p>
-              <p className="text-sm text-gray-500">支持按月记录价格和返点变化历史</p>
+              <p className="text-sm text-gray-500">
+                支持按月记录价格和返点变化历史
+              </p>
             </div>
           </li>
           <li className="flex items-start gap-3">
@@ -111,7 +123,9 @@ export function Home() {
             </span>
             <div>
               <p className="font-medium text-gray-900">oneId 跨平台关联</p>
-              <p className="text-sm text-gray-500">同一达人在不同平台自动关联</p>
+              <p className="text-sm text-gray-500">
+                同一达人在不同平台自动关联
+              </p>
             </div>
           </li>
         </ul>

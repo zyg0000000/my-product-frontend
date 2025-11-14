@@ -18,7 +18,10 @@ import {
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export function TalentDetail() {
-  const { oneId, platform } = useParams<{ oneId: string; platform: Platform }>();
+  const { oneId, platform } = useParams<{
+    oneId: string;
+    platform: Platform;
+  }>();
   const navigate = useNavigate();
   const [talent, setTalent] = useState<Talent | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,12 +83,16 @@ export function TalentDetail() {
               />
             )}
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{talent.name}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {talent.name}
+              </h1>
               <div className="mt-2 space-y-1 text-sm text-gray-500">
                 <p>oneId: {talent.oneId}</p>
                 <p>平台: {PLATFORM_NAMES[talent.platform]}</p>
                 <p>平台账号ID: {talent.platformAccountId}</p>
-                {talent.fansCount && <p>粉丝数: {formatFansCount(talent.fansCount)}</p>}
+                {talent.fansCount && (
+                  <p>粉丝数: {formatFansCount(talent.fansCount)}</p>
+                )}
               </div>
             </div>
           </div>
@@ -101,19 +108,25 @@ export function TalentDetail() {
               {talent.platformSpecific.xingtuId && (
                 <div>
                   <p className="text-xs text-gray-500">星图ID</p>
-                  <p className="mt-1 text-sm font-medium">{talent.platformSpecific.xingtuId}</p>
+                  <p className="mt-1 text-sm font-medium">
+                    {talent.platformSpecific.xingtuId}
+                  </p>
                 </div>
               )}
               {talent.platformSpecific.starLevel && (
                 <div>
                   <p className="text-xs text-gray-500">星图等级</p>
-                  <p className="mt-1 text-sm font-medium">{talent.platformSpecific.starLevel}星</p>
+                  <p className="mt-1 text-sm font-medium">
+                    {talent.platformSpecific.starLevel}星
+                  </p>
                 </div>
               )}
               {talent.platformSpecific.mcnName && (
                 <div>
                   <p className="text-xs text-gray-500">MCN机构</p>
-                  <p className="mt-1 text-sm font-medium">{talent.platformSpecific.mcnName}</p>
+                  <p className="mt-1 text-sm font-medium">
+                    {talent.platformSpecific.mcnName}
+                  </p>
                 </div>
               )}
             </div>
@@ -132,7 +145,7 @@ export function TalentDetail() {
           {priceHistory.length === 0 ? (
             <p className="text-center text-gray-500">暂无价格记录</p>
           ) : (
-            priceHistory.map((history) => (
+            priceHistory.map(history => (
               <div
                 key={`${history.year}-${history.month}`}
                 className="border-l-2 border-primary-500 pl-6"
@@ -149,11 +162,13 @@ export function TalentDetail() {
                 </div>
 
                 <div className="mt-3 grid grid-cols-2 gap-4 md:grid-cols-4">
-                  {priceTypes.map((priceType) => {
+                  {priceTypes.map(priceType => {
                     const price = history.prices[priceType.key];
                     return (
                       <div key={priceType.key}>
-                        <p className="text-xs text-gray-500">{priceType.label}</p>
+                        <p className="text-xs text-gray-500">
+                          {priceType.label}
+                        </p>
                         <p className="mt-1 text-base font-semibold text-gray-900">
                           {price ? formatPrice(price) : '-'}
                         </p>

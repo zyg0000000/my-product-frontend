@@ -17,12 +17,12 @@ export const PLATFORM_NAMES: Record<Platform, string> = {
  * 价格类型（根据平台不同）
  */
 export type PriceType =
-  | 'video_60plus'   // 抖音：60s+ 长视频
-  | 'video_20to60'   // 抖音：20-60s 中视频
-  | 'video_1to20'    // 抖音：1-20s 短视频
-  | 'live'           // 抖音：直播
-  | 'video'          // 小红书：视频笔记
-  | 'image';         // 小红书：图文笔记
+  | 'video_60plus' // 抖音：60s+ 长视频
+  | 'video_20to60' // 抖音：20-60s 中视频
+  | 'video_1to20' // 抖音：1-20s 短视频
+  | 'live' // 抖音：直播
+  | 'video' // 小红书：视频笔记
+  | 'image'; // 小红书：图文笔记
 
 /**
  * 价格类型配置
@@ -63,7 +63,7 @@ export interface PriceRecord {
   year: number;
   month: number;
   type: PriceType;
-  price: number;         // 单位：分
+  price: number; // 单位：分
   status: PriceStatus;
 }
 
@@ -73,7 +73,7 @@ export interface PriceRecord {
 export interface RebateRecord {
   year: number;
   month: number;
-  rate: number;          // 百分比，如 15.5 表示 15.5%
+  rate: number; // 百分比，如 15.5 表示 15.5%
 }
 
 /**
@@ -167,8 +167,8 @@ export interface TalentListItem {
   name: string;
   avatar?: string;
   fansCount?: number;
-  latestPrices: Partial<Record<PriceType, number>>;  // 最新月份的价格
-  latestRebate?: number;                              // 最新月份的返点
+  latestPrices: Partial<Record<PriceType, number>>; // 最新月份的价格
+  latestRebate?: number; // 最新月份的返点
   status: TalentStatus;
 }
 
