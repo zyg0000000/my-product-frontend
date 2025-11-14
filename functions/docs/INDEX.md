@@ -25,33 +25,33 @@
 
 ### 查询类（7个）
 
-| 函数名 | 功能 | 请求方式 | 版本 |
-|--------|------|---------|------|
-| **getTalents** | 获取达人列表，支持分页、筛选、排序 | GET | v2.1 |
-| **getTalentsByIds** | 批量查询达人（通过 ID 数组） | POST | v1.0 |
-| **getTalentsSearch** | 达人搜索（支持模糊搜索） | GET | v1.0 |
-| **getTalentHistory** | 查询达人合作历史记录 | GET | v1.0 |
-| **getTalentFilterOptions** | 获取达人筛选选项（等级、分类等） | GET | v1.0 |
-| **getPendingPublishTalents** | 获取待发布的达人列表 | GET | v1.0 |
-| **checkTalentData** | 校验达人数据完整性 | POST | v1.0 |
+| 函数名 | 功能 | 请求方式 | 版本 | v2 支持 |
+|--------|------|---------|------|:-------:|
+| **getTalents** | 获取达人列表，支持分页、筛选、排序 | GET | v3.0 | ✅ |
+| **getTalentsByIds** | 批量查询达人（通过 ID 数组） | POST | v1.0 | ⏳ |
+| **getTalentsSearch** | 达人搜索（支持模糊搜索） | GET | v1.0 | ⏳ |
+| **getTalentHistory** | 查询达人合作历史记录 | GET | v1.0 | - |
+| **getTalentFilterOptions** | 获取达人筛选选项（等级、分类等） | GET | v1.0 | - |
+| **getPendingPublishTalents** | 获取待发布的达人列表 | GET | v1.0 | - |
+| **checkTalentData** | 校验达人数据完整性 | POST | v1.0 | - |
 
 ### 修改类（5个）
 
-| 函数名 | 功能 | 请求方式 | 版本 |
-|--------|------|---------|------|
-| **updateTalent** | 更新单个达人信息 | POST | v1.0 |
-| **deleteTalent** | 删除单个达人 | POST | v1.0 |
-| **batchUpdateTalents** | 批量更新达人（部分字段） | POST | v1.0 |
-| **bulkCreateTalents** | 批量创建达人 | POST | v1.0 |
-| **bulkUpdateTalents** | 批量更新达人（完整替换） | POST | v1.0 |
+| 函数名 | 功能 | 请求方式 | 版本 | v2 支持 |
+|--------|------|---------|------|:-------:|
+| **updateTalent** | 更新单个达人信息 | PUT | v3.0 | ✅ |
+| **deleteTalent** | 删除单个达人 | DELETE | v2.0 | ✅ |
+| **batchUpdateTalents** | 批量更新达人（部分字段） | POST | v1.0 | ⏳ |
+| **bulkCreateTalents** | 批量创建达人 | POST | v1.0 | ⏳ |
+| **bulkUpdateTalents** | 批量更新达人（完整替换） | POST | v1.0 | - |
 
 ### 数据处理类（3个）
 
-| 函数名 | 功能 | 请求方式 | 版本 |
-|--------|------|---------|------|
-| **processTalents** | 处理达人数据（清洗、转换） | POST | v1.0 |
-| **exportAllTalents** | 导出所有达人数据 | GET | v1.0 |
-| **syncFromFeishu** | 从飞书同步达人数据 | POST | v1.0 |
+| 函数名 | 功能 | 请求方式 | 版本 | v2 支持 |
+|--------|------|---------|------|:-------:|
+| **processTalents** | 处理达人数据（创建/更新） | POST | v2.0 | ✅ |
+| **exportAllTalents** | 导出所有达人数据 | GET | v1.0 | ⏳ |
+| **syncFromFeishu** | 从飞书同步达人数据 | POST | v1.0 | - |
 
 **目录位置**：尚未迁移（原仓库根目录）
 
@@ -268,6 +268,7 @@
 
 ---
 
-**最后更新**：2025-11-11
+**最后更新**：2025-11-14
 **总函数数**：51 个
+**v2 升级进度**：4/8 第一优先级函数 (50%)
 **维护者**：开发团队
