@@ -1,7 +1,7 @@
 {
   "name": "get-talents",
-  "version": "2.1.0",
-  "description": "云函数：获取达人列表，支持后端计算合作状态和按ID查询。",
+  "version": "3.0.0",
+  "description": "云函数：获取达人列表（v1/v2双版本支持），支持多平台查询、oneId分组、合作状态计算。",
   "main": "index.js",
   "dependencies": {
     "mongodb": "^6.5.0"

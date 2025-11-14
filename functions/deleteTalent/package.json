@@ -1,7 +1,7 @@
 {
   "name": "kol-delete-talent-function",
-  "version": "1.0.0",
-  "description": "用于删除一个指定的达人及其所有关联数据。",
+  "version": "2.0.0",
+  "description": "用于删除一个指定的达人及其所有关联数据（v1/v2双版本支持，v2支持单平台或全平台删除）。",
   "main": "index.js",
   "dependencies": {
     "mongodb": "^6.5.0"

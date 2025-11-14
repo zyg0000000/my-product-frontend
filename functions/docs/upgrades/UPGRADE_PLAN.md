@@ -19,16 +19,18 @@
 
 直接操作 talents/projects/collaborations 数据的核心函数：
 
-| 函数名 | 原因 | v2 核心变化 |
-|--------|------|------------|
-| **getTalents** | 查询达人 | 需支持 oneId 分组、platform 筛选 |
-| **createTalent** | 创建达人 | 需支持 oneId 生成、platform 选择 |
-| **updateTalent** | 更新达人 | 需识别是更新某平台还是全局 |
-| **deleteTalent** | 删除达人 | 需确认是删除某平台还是所有平台 |
-| **getProjects** | 查询项目 | 需支持 platforms 数组筛选 |
-| **addProject** | 创建项目 | 需支持 platforms 字段 |
-| **getCollaborators** | 查询合作 | 需支持 talentOneId + platform |
-| **addCollaborator** | 创建合作 | 需支持 talentOneId、platform |
+| 函数名 | 状态 | v2 核心变化 | 版本 |
+|--------|:----:|------------|:----:|
+| **processTalents** | ✅ | oneId 自动生成、多平台支持 | v2.0 |
+| **getTalents** | ✅ | 支持 oneId 分组、platform 筛选 | v3.0 |
+| **updateTalent** | ✅ | 按 (oneId, platform) 精确更新 | v3.0 |
+| **deleteTalent** | ✅ | 单平台/全平台删除确认机制 | v2.0 |
+| **getProjects** | ⏳ | 需支持 platforms 数组筛选 | - |
+| **addProject** | ⏳ | 需支持 platforms 字段 | - |
+| **getCollaborators** | ⏳ | 需支持 talentOneId + platform | - |
+| **addCollaborator** | ⏳ | 需支持 talentOneId、platform | - |
+
+**完成进度**：4/8 (50%) ✅
 
 ---
 
