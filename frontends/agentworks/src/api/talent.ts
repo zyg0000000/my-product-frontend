@@ -20,7 +20,7 @@ export interface GetTalentsParams {
 export async function getTalents(
   params?: GetTalentsParams
 ): Promise<ApiResponse<Talent[]>> {
-  return post('/getTalents', params);
+  return post('/talents', params);
 }
 
 /**
@@ -30,7 +30,7 @@ export async function getTalentDetail(
   oneId: string,
   platform: Platform
 ): Promise<ApiResponse<Talent>> {
-  return post('/getTalents', {
+  return post('/talents', {
     oneId,
     platform,
   });
@@ -90,5 +90,5 @@ export interface CreateTalentData {
 export async function createTalent(
   data: CreateTalentData
 ): Promise<ApiResponse<Talent>> {
-  return post('/processTalents', data);
+  return post('/talents', data);
 }
