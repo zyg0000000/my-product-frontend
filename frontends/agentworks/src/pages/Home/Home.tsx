@@ -18,7 +18,7 @@ export function Home() {
       name: '达人管理',
       description: '查看和管理多平台达人信息',
       icon: UsersIcon,
-      path: '/talents/basic',
+      path: '/talents',
       color: 'bg-blue-500',
     },
     {

@@ -5,8 +5,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './components/Layout/MainLayout';
 import { Home } from './pages/Home/Home';
+import { TalentsHome } from './pages/Talents/TalentsHome';
 import { BasicInfo } from './pages/Talents/BasicInfo/BasicInfo';
 import { TalentDetail } from './pages/TalentDetail/TalentDetail';
+import { ClientsHome } from './pages/Clients/ClientsHome';
+import { ProjectsHome } from './pages/Projects/ProjectsHome';
+import { AnalyticsHome } from './pages/Analytics/AnalyticsHome';
+import { SettingsHome } from './pages/Settings/SettingsHome';
 
 function App() {
   return (
@@ -16,31 +21,15 @@ function App() {
           <Route index element={<Home />} />
 
           {/* 达人管理模块 */}
-          <Route
-            path="talents"
-            element={<Navigate to="/talents/basic" replace />}
-          />
+          <Route path="talents" element={<TalentsHome />} />
           <Route path="talents/basic" element={<BasicInfo />} />
-          {/* 达人详情页 */}
           <Route path="talents/:oneId/:platform" element={<TalentDetail />} />
 
           {/* 其他模块 */}
-          <Route
-            path="clients"
-            element={<div className="card">客户管理（开发中）</div>}
-          />
-          <Route
-            path="projects"
-            element={<div className="card">项目管理（开发中）</div>}
-          />
-          <Route
-            path="analytics"
-            element={<div className="card">数据分析（开发中）</div>}
-          />
-          <Route
-            path="settings"
-            element={<div className="card">系统设置（开发中）</div>}
-          />
+          <Route path="clients" element={<ClientsHome />} />
+          <Route path="projects" element={<ProjectsHome />} />
+          <Route path="analytics" element={<AnalyticsHome />} />
+          <Route path="settings" element={<SettingsHome />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

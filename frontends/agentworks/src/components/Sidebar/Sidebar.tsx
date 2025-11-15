@@ -33,6 +33,7 @@ const navigation: NavItem[] = [
   { name: '首页', path: '/', icon: HomeIcon },
   {
     name: '达人管理',
+    path: '/talents',
     icon: UsersIcon,
     children: [
       { name: '基础信息', path: '/talents/basic' },
@@ -85,37 +86,65 @@ export function Sidebar() {
           // 如果有子菜单
           if (item.children) {
             const isExpanded = isMenuExpanded(item.name);
-            const hasActiveChild = item.children.some(
-              child => location.pathname === child.path
-            );
+            const isActive =
+              location.pathname === item.path ||
+              item.children.some(child => location.pathname === child.path);
 
-            return (
-              <div key={item.name}>
-                {/* 父级菜单按钮 */}
-                <button
-                  onClick={() => toggleMenu(item.name)}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                    hasActiveChild
-                      ? 'bg-gray-800 text-white'
-                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                  } ${isCollapsed ? 'justify-center' : ''}`}
-                  title={isCollapsed ? item.name : ''}
+            // 折叠状态：整个区域可点击跳转
+            if (isCollapsed) {
+              return (
+                <NavLink
+                  key={item.name}
+                  to={item.path!}
+                  className={({ isActive }) =>
+                    `flex items-center justify-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-primary-600 text-white'
+                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                    }`
+                  }
+                  title={item.name}
                 >
                   <item.icon className="h-5 w-5 flex-shrink-0" />
-                  {!isCollapsed && (
-                    <>
-                      <span className="flex-1 text-left">{item.name}</span>
-                      {isExpanded ? (
-                        <ChevronUpIcon className="h-4 w-4" />
-                      ) : (
-                        <ChevronDownIcon className="h-4 w-4" />
-                      )}
-                    </>
-                  )}
-                </button>
+                </NavLink>
+              );
+            }
+
+            // 展开状态：分离点击区域
+            return (
+              <div key={item.name}>
+                {/* 父级菜单：左侧跳转，右侧展开/收起 */}
+                <div
+                  className={`flex items-center gap-3 rounded-lg transition-colors ${
+                    isActive
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  }`}
+                >
+                  {/* 左侧：跳转到一级页面 */}
+                  <NavLink
+                    to={item.path!}
+                    className="flex flex-1 items-center gap-3 px-3 py-2.5 text-sm font-medium"
+                  >
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    <span className="flex-1 text-left">{item.name}</span>
+                  </NavLink>
+
+                  {/* 右侧：展开/收起子菜单 */}
+                  <button
+                    onClick={() => toggleMenu(item.name)}
+                    className="px-2 py-2.5"
+                  >
+                    {isExpanded ? (
+                      <ChevronUpIcon className="h-4 w-4" />
+                    ) : (
+                      <ChevronDownIcon className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
 
                 {/* 子菜单 */}
-                {!isCollapsed && isExpanded && (
+                {isExpanded && (
                   <div className="ml-3 mt-1 space-y-1 border-l border-gray-700 pl-3">
                     {item.children.map(child => (
                       <NavLink
