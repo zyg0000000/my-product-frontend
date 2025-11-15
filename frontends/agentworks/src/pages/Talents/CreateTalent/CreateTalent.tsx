@@ -349,41 +349,24 @@ export function CreateTalent() {
           <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
             <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
               <h2 className="text-lg font-semibold text-gray-900">平台特定信息</h2>
-              <p className="mt-1 text-sm text-gray-500">抖音平台的额外ID信息</p>
+              <p className="mt-1 text-sm text-gray-500">抖音平台的辅助ID信息</p>
             </div>
             <div className="p-6">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                {/* 星图ID */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    星图ID
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.platformSpecific.xingtuId || ''}
-                    onChange={e =>
-                      handlePlatformSpecificChange('xingtuId', e.target.value)
-                    }
-                    placeholder="如果主ID不是星图ID，可在此填写"
-                    className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                  />
-                </div>
-
-                {/* 抖音UID */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    抖音UID
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.platformSpecific.uid || ''}
-                    onChange={e =>
-                      handlePlatformSpecificChange('uid', e.target.value)
-                    }
-                    placeholder="抖音用户ID"
-                    className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                  />
-                </div>
+              {/* 抖音UID */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  抖音UID
+                  <span className="ml-1 text-xs text-gray-500">（选填）</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.platformSpecific.uid || ''}
+                  onChange={e =>
+                    handlePlatformSpecificChange('uid', e.target.value)
+                  }
+                  placeholder="输入抖音用户ID（辅助识别）"
+                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                />
               </div>
             </div>
           </div>
