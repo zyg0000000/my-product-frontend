@@ -125,6 +125,8 @@ export interface Talent {
   fansCount?: number;
   talentType?: string[];
   talentTier?: TalentTier;
+  agencyId?: string; // ⭐ 新增：机构ID
+  customRebate?: number; // ⭐ 新增：达人专属返点（%），优先级高于机构返点
   prices: PriceRecord[];
   rebates: RebateRecord[];
   platformSpecific?: PlatformSpecific;
@@ -167,6 +169,10 @@ export interface TalentListItem {
   name: string;
   avatar?: string;
   fansCount?: number;
+  agencyId?: string; // ⭐ 新增：机构ID
+  agencyName?: string; // ⭐ 新增：机构名称（前端展示用）
+  currentRebate?: number; // ⭐ 新增：当前返点（计算后的值）
+  rebateSource?: 'custom' | 'agency' | 'default'; // ⭐ 新增：返点来源
   latestPrices: Partial<Record<PriceType, number>>; // 最新月份的价格
   latestRebate?: number; // 最新月份的返点
   status: TalentStatus;

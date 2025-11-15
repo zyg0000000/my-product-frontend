@@ -37,6 +37,7 @@ const navigation: NavItem[] = [
     icon: UsersIcon,
     children: [
       { name: '基础信息', path: '/talents/basic' },
+      { name: '机构管理', path: '/talents/agencies' },
       // 未来可以添加更多子页面
       // { name: '档期管理', path: '/talents/schedule' },
       // { name: '近期表现', path: '/talents/performance' },

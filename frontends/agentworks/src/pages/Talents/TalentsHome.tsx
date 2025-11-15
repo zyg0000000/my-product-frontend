@@ -8,6 +8,7 @@ import {
   CalendarIcon,
   ChartBarIcon,
   PlusCircleIcon,
+  BuildingOffice2Icon,
 } from '@heroicons/react/24/outline';
 
 export function TalentsHome() {
@@ -20,6 +21,14 @@ export function TalentsHome() {
       icon: InformationCircleIcon,
       path: '/talents/basic',
       color: 'bg-blue-500',
+      available: true,
+    },
+    {
+      name: '机构管理',
+      description: '管理MCN机构和野生达人归属',
+      icon: BuildingOffice2Icon,
+      path: '/talents/agencies',
+      color: 'bg-orange-500',
       available: true,
     },
     {
