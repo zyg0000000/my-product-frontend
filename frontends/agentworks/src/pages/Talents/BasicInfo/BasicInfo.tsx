@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getTalents, updateTalent } from '../../../api/talent';
+import { getTalents, updateTalent, deleteTalent, deleteTalentAll } from '../../../api/talent';
 import type { Talent, Platform, PriceRecord } from '../../../types/talent';
 import { PLATFORM_NAMES, PLATFORM_PRICE_TYPES } from '../../../types/talent';
 import {
@@ -15,6 +15,8 @@ import {
   getLatestRebate,
 } from '../../../utils/formatters';
 import { PriceModal } from '../../../components/PriceModal';
+import { EditTalentModal } from '../../../components/EditTalentModal';
+import { DeleteConfirmModal } from '../../../components/DeleteConfirmModal';
 
 export function BasicInfo() {
   const navigate = useNavigate();
@@ -22,6 +24,8 @@ export function BasicInfo() {
   const [talents, setTalents] = useState<Talent[]>([]);
   const [loading, setLoading] = useState(true);
   const [priceModalOpen, setPriceModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedTalent, setSelectedTalent] = useState<Talent | null>(null);
 
   // 加载达人列表
@@ -64,6 +68,17 @@ export function BasicInfo() {
   // 获取当前平台的价格类型配置
   const priceTypes = PLATFORM_PRICE_TYPES[selectedPlatform];
 
+  // 从所有达人中提取唯一的 talentType 值
+  const getUniqueTalentTypes = (): string[] => {
+    const allTypes = new Set<string>();
+    talents.forEach(talent => {
+      if (talent.talentType && Array.isArray(talent.talentType)) {
+        talent.talentType.forEach(type => allTypes.add(type));
+      }
+    });
+    return Array.from(allTypes).sort();
+  };
+
   // 打开价格管理弹窗
   const handleOpenPriceModal = (talent: Talent) => {
     setSelectedTalent(talent);
@@ -73,6 +88,30 @@ export function BasicInfo() {
   // 关闭价格管理弹窗
   const handleClosePriceModal = () => {
     setPriceModalOpen(false);
+    setSelectedTalent(null);
+  };
+
+  // 打开编辑弹窗
+  const handleOpenEditModal = (talent: Talent) => {
+    setSelectedTalent(talent);
+    setEditModalOpen(true);
+  };
+
+  // 关闭编辑弹窗
+  const handleCloseEditModal = () => {
+    setEditModalOpen(false);
+    setSelectedTalent(null);
+  };
+
+  // 打开删除确认弹窗
+  const handleOpenDeleteModal = (talent: Talent) => {
+    setSelectedTalent(talent);
+    setDeleteModalOpen(true);
+  };
+
+  // 关闭删除确认弹窗
+  const handleCloseDeleteModal = () => {
+    setDeleteModalOpen(false);
     setSelectedTalent(null);
   };
 
@@ -108,6 +147,67 @@ export function BasicInfo() {
     } catch (error) {
       console.error('保存价格失败:', error);
       const errorMessage = error instanceof Error ? error.message : '保存价格失败';
+      alert(errorMessage);
+      throw error;
+    }
+  };
+
+  // 保存编辑
+  const handleSaveEdit = async (oneId: string, platform: Platform, data: Partial<Talent>) => {
+    try {
+      // 调用 API 更新达人信息
+      const response = await updateTalent({
+        oneId,
+        platform,
+        ...data,
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || response.message || '保存失败');
+      }
+
+      // 更新本地状态
+      setTalents((prevTalents) =>
+        prevTalents.map((t) =>
+          t.oneId === oneId && t.platform === platform ? { ...t, ...data } : t
+        )
+      );
+
+      alert('达人信息更新成功');
+
+      // 重新加载列表以确保数据同步
+      await loadTalents();
+    } catch (error) {
+      console.error('保存达人信息失败:', error);
+      const errorMessage = error instanceof Error ? error.message : '保存达人信息失败';
+      alert(errorMessage);
+      throw error;
+    }
+  };
+
+  // 确认删除
+  const handleConfirmDelete = async (oneId: string, platform: Platform, deleteAll: boolean) => {
+    try {
+      let response;
+      if (deleteAll) {
+        // 删除所有平台
+        response = await deleteTalentAll(oneId);
+      } else {
+        // 仅删除当前平台
+        response = await deleteTalent(oneId, platform);
+      }
+
+      if (!response.success) {
+        throw new Error(response.error || response.message || '删除失败');
+      }
+
+      alert(deleteAll ? '已删除该达人的所有平台数据' : `已删除该达人的${PLATFORM_NAMES[platform]}平台数据`);
+
+      // 重新加载列表
+      await loadTalents();
+    } catch (error) {
+      console.error('删除达人失败:', error);
+      const errorMessage = error instanceof Error ? error.message : '删除达人失败';
       alert(errorMessage);
       throw error;
     }
@@ -305,7 +405,7 @@ export function BasicInfo() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate(`/talents/${talent.oneId}/${talent.platform}/edit`);
+                              handleOpenEditModal(talent);
                             }}
                             className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800 hover:bg-blue-200 transition-colors"
                           >
@@ -314,8 +414,7 @@ export function BasicInfo() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              // TODO: 打开删除确认弹窗
-                              console.log('删除达人:', talent.oneId);
+                              handleOpenDeleteModal(talent);
                             }}
                             className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800 hover:bg-red-200 transition-colors"
                           >
@@ -348,6 +447,23 @@ export function BasicInfo() {
         onClose={handleClosePriceModal}
         talent={selectedTalent}
         onSave={handleSavePrice}
+      />
+
+      {/* 编辑达人弹窗 */}
+      <EditTalentModal
+        isOpen={editModalOpen}
+        onClose={handleCloseEditModal}
+        talent={selectedTalent}
+        onSave={handleSaveEdit}
+        availableTags={getUniqueTalentTypes()}
+      />
+
+      {/* 删除确认弹窗 */}
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        talent={selectedTalent}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );
