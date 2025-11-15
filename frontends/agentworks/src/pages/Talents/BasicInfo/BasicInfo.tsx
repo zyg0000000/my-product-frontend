@@ -56,7 +56,7 @@ export function BasicInfo() {
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">达人管理</h1>
+          <h1 className="text-2xl font-bold text-gray-900">基础信息</h1>
           <p className="mt-1 text-sm text-gray-500">
             管理多平台达人信息、价格和返点
           </p>
