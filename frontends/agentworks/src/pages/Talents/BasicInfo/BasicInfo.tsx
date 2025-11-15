@@ -17,6 +17,7 @@ import {
 import { PriceModal } from '../../../components/PriceModal';
 import { EditTalentModal } from '../../../components/EditTalentModal';
 import { DeleteConfirmModal } from '../../../components/DeleteConfirmModal';
+import { RebateManagementModal } from '../../../components/RebateManagementModal';
 
 export function BasicInfo() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export function BasicInfo() {
   const [talents, setTalents] = useState<Talent[]>([]);
   const [loading, setLoading] = useState(true);
   const [priceModalOpen, setPriceModalOpen] = useState(false);
+  const [rebateModalOpen, setRebateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedTalent, setSelectedTalent] = useState<Talent | null>(null);
@@ -100,6 +102,18 @@ export function BasicInfo() {
   // 关闭编辑弹窗
   const handleCloseEditModal = () => {
     setEditModalOpen(false);
+    setSelectedTalent(null);
+  };
+
+  // 打开返点管理弹窗
+  const handleOpenRebateModal = (talent: Talent) => {
+    setSelectedTalent(talent);
+    setRebateModalOpen(true);
+  };
+
+  // 关闭返点管理弹窗
+  const handleCloseRebateModal = () => {
+    setRebateModalOpen(false);
     setSelectedTalent(null);
   };
 
@@ -386,6 +400,15 @@ export function BasicInfo() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
+                              navigate(`/talents/${talent.oneId}/${talent.platform}`);
+                            }}
+                            className="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-800 hover:bg-indigo-200 transition-colors"
+                          >
+                            详情
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
                               handleOpenPriceModal(talent);
                             }}
                             className="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-800 hover:bg-purple-200 transition-colors"
@@ -395,8 +418,7 @@ export function BasicInfo() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              // 导航到达人详情页查看和管理返点
-                              navigate(`/talents/${talent.oneId}/${talent.platform}`);
+                              handleOpenRebateModal(talent);
                             }}
                             className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800 hover:bg-green-200 transition-colors"
                           >
@@ -465,6 +487,17 @@ export function BasicInfo() {
         talent={selectedTalent}
         onConfirm={handleConfirmDelete}
       />
+
+      {/* 返点管理弹窗 */}
+      {selectedTalent && (
+        <RebateManagementModal
+          isOpen={rebateModalOpen}
+          onClose={handleCloseRebateModal}
+          oneId={selectedTalent.oneId}
+          platform={selectedTalent.platform}
+          talentName={selectedTalent.name}
+        />
+      )}
     </div>
   );
 }
