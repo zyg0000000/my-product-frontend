@@ -61,6 +61,17 @@ export function BasicInfo() {
   // 获取当前平台的价格类型配置
   const priceTypes = PLATFORM_PRICE_TYPES[selectedPlatform];
 
+  // 获取平台达人的外链（星图、蒲公英等）
+  const getPlatformLink = (talent: Talent): string | null => {
+    if (talent.platform === 'douyin') {
+      // 抖音：使用星图ID或platformAccountId
+      const xingtuId = talent.platformSpecific?.xingtuId || talent.platformAccountId;
+      return `https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/${xingtuId}`;
+    }
+    // 其他平台后续添加
+    return null;
+  };
+
   return (
     <div className="space-y-6">
       {/* 页面标题 */}
@@ -140,14 +151,12 @@ export function BasicInfo() {
                 {talents.map(talent => {
                   const latestPrices = getLatestPricesMap(talent.prices);
                   const latestRebate = getLatestRebate(talent.rebates);
+                  const platformLink = getPlatformLink(talent);
 
                   return (
                     <tr
                       key={`${talent.oneId}-${talent.platform}`}
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() =>
-                        navigate(`/talents/${talent.oneId}/${talent.platform}`)
-                      }
+                      className="hover:bg-gray-50"
                     >
                       <td className="whitespace-nowrap px-6 py-4">
                         <div className="flex items-center">
@@ -159,12 +168,21 @@ export function BasicInfo() {
                             />
                           )}
                           <div className={talent.avatar ? 'ml-4' : ''}>
-                            <div className="font-medium text-gray-900">
-                              {talent.name}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {talent.oneId}
-                            </div>
+                            {platformLink ? (
+                              <a
+                                href={platformLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-medium text-primary-600 hover:text-primary-900 hover:underline"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {talent.name}
+                              </a>
+                            ) : (
+                              <div className="font-medium text-gray-900">
+                                {talent.name}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -203,17 +221,55 @@ export function BasicInfo() {
                               : '归档'}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium space-x-3">
                         <button
-                          onClick={e => {
+                          onClick={(e) => {
                             e.stopPropagation();
-                            navigate(
-                              `/talents/${talent.oneId}/${talent.platform}`
-                            );
+                            // TODO: 打开价格管理弹窗
+                            console.log('管理价格:', talent.oneId);
                           }}
-                          className="text-primary-600 hover:text-primary-900"
+                          className="text-purple-600 hover:text-purple-900"
                         >
-                          查看详情
+                          价格
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // TODO: 打开返点管理弹窗
+                            console.log('管理返点:', talent.oneId);
+                          }}
+                          className="text-green-600 hover:text-green-900"
+                        >
+                          返点
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/talents/${talent.oneId}/${talent.platform}/edit`);
+                          }}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          编辑
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // TODO: 打开删除确认弹窗
+                            console.log('删除达人:', talent.oneId);
+                          }}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          删除
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // TODO: 打开合作历史弹窗
+                            console.log('查看历史:', talent.oneId);
+                          }}
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          历史
                         </button>
                       </td>
                     </tr>

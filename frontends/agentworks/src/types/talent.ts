@@ -41,7 +41,6 @@ export const PLATFORM_PRICE_TYPES: Record<Platform, PriceTypeConfig[]> = {
     { key: 'video_60plus', label: '60s+ 长视频', required: true },
     { key: 'video_20to60', label: '20-60s 中视频', required: true },
     { key: 'video_1to20', label: '1-20s 短视频', required: true },
-    { key: 'live', label: '直播', required: true },
   ],
   xiaohongshu: [
     { key: 'video', label: '视频笔记', required: true },
