@@ -48,7 +48,7 @@ export interface UpdateTalentData {
 export async function updateTalent(
   data: UpdateTalentData
 ): Promise<ApiResponse<void>> {
-  return put('/updateTalent', data);
+  return put('/update-talent', data);
 }
 
 /**
@@ -58,7 +58,7 @@ export async function deleteTalent(
   oneId: string,
   platform: Platform
 ): Promise<ApiResponse<void>> {
-  return del('/deleteTalent', {
+  return del('/delete-talent', {
     oneId,
     platform,
   });
@@ -70,7 +70,7 @@ export async function deleteTalent(
 export async function deleteTalentAll(
   oneId: string
 ): Promise<ApiResponse<void>> {
-  return del('/deleteTalent', {
+  return del('/delete-talent', {
     oneId,
     deleteAll: true,
   });
