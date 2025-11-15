@@ -67,7 +67,7 @@ function generateConfigId() {
  * 更新达人返点配置
  */
 async function updateTalentRebate(params) {
-  const { oneId, platform, rebateRate, effectType, effectiveDate, reason, createdBy } = params;
+  const { oneId, platform, rebateRate, effectType, effectiveDate, createdBy } = params;
 
   const dbClient = await connectToDatabase();
   const db = dbClient.db(DB_NAME);
@@ -99,7 +99,6 @@ async function updateTalentRebate(params) {
     effectiveDate: finalEffectiveDate,
     expiryDate: null,
     status: effectType === 'immediate' ? 'active' : 'pending',
-    reason: reason || '手动调整',
     createdBy: createdBy || 'system',
     createdAt: now
   };

@@ -194,19 +194,17 @@ export function UpdateRebateModal({
             {/* 生效日期 */}
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                生效日期 {effectType === 'next_cooperation' && <span className="text-red-500">*</span>}
+                生效日期
               </label>
               <input
                 type="date"
                 value={effectiveDate}
                 onChange={(e) => setEffectiveDate(e.target.value)}
-                required={effectType === 'next_cooperation'}
-                className="input mt-1"
+                disabled
+                className="input mt-1 bg-gray-50 cursor-not-allowed"
               />
               <p className="mt-1 text-xs text-gray-500">
-                {effectType === 'immediate'
-                  ? '默认为当天'
-                  : '指定返点率开始生效的日期'}
+                立即生效，默认为当天
               </p>
             </div>
 
