@@ -22,7 +22,6 @@ import {
   formatFansCount,
   formatYearMonth,
   getPriceHistory,
-  getRebateHistory,
 } from '../../utils/formatters';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { UpdateRebateModal } from '../../components/UpdateRebateModal';
@@ -103,7 +102,6 @@ export function TalentDetail() {
   }
 
   const priceHistory = getPriceHistory(talent.prices);
-  const oldRebateHistory = getRebateHistory(talent.rebates);
   const priceTypes = PLATFORM_PRICE_TYPES[talent.platform];
 
   return (
