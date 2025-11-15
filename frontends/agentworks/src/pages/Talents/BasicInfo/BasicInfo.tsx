@@ -68,6 +68,17 @@ export function BasicInfo() {
   // 获取当前平台的价格类型配置
   const priceTypes = PLATFORM_PRICE_TYPES[selectedPlatform];
 
+  // 从所有达人中提取唯一的 talentType 值
+  const getUniqueTalentTypes = (): string[] => {
+    const allTypes = new Set<string>();
+    talents.forEach(talent => {
+      if (talent.talentType && Array.isArray(talent.talentType)) {
+        talent.talentType.forEach(type => allTypes.add(type));
+      }
+    });
+    return Array.from(allTypes).sort();
+  };
+
   // 打开价格管理弹窗
   const handleOpenPriceModal = (talent: Talent) => {
     setSelectedTalent(talent);
@@ -444,6 +455,7 @@ export function BasicInfo() {
         onClose={handleCloseEditModal}
         talent={selectedTalent}
         onSave={handleSaveEdit}
+        availableTags={getUniqueTalentTypes()}
       />
 
       {/* 删除确认弹窗 */}

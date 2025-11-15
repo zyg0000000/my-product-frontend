@@ -117,7 +117,7 @@ export function TalentsHome() {
         <h2 className="text-lg font-semibold text-gray-900 mb-4">快速操作</h2>
         <div className="flex flex-wrap gap-3">
           <button
-            onClick={() => navigate('/talents/basic')}
+            onClick={() => navigate('/talents/create')}
             className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
           >
             <PlusCircleIcon className="h-5 w-5" />

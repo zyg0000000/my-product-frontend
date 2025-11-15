@@ -5,12 +5,14 @@
 import { useState, useEffect } from 'react';
 import type { Talent, Platform, TalentTier, TalentStatus } from '../types/talent';
 import { PLATFORM_NAMES } from '../types/talent';
+import { TagInput } from './TagInput';
 
 interface EditTalentModalProps {
   isOpen: boolean;
   onClose: () => void;
   talent: Talent | null;
   onSave: (oneId: string, platform: Platform, data: Partial<Talent>) => Promise<void>;
+  availableTags: string[];
 }
 
 interface FormData {
@@ -27,7 +29,7 @@ interface FormData {
   };
 }
 
-export function EditTalentModal({ isOpen, onClose, talent, onSave }: EditTalentModalProps) {
+export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags }: EditTalentModalProps) {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     platformAccountId: '',
@@ -38,20 +40,6 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave }: EditTalentM
     status: 'active',
     platformSpecific: {},
   });
-
-  // 达人类型选项
-  const talentTypeOptions = [
-    '美妆',
-    '时尚',
-    '美食',
-    '旅游',
-    '科技',
-    '游戏',
-    '教育',
-    '母婴',
-    '运动',
-    '其他',
-  ];
 
   // 当弹窗打开时，初始化表单数据
   useEffect(() => {
@@ -117,16 +105,6 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave }: EditTalentM
         ...prev.platformSpecific,
         [field]: value || undefined,
       },
-    }));
-  };
-
-  // 处理达人类型多选
-  const handleTalentTypeChange = (type: string) => {
-    setFormData(prev => ({
-      ...prev,
-      talentType: prev.talentType.includes(type)
-        ? prev.talentType.filter(t => t !== type)
-        : [...prev.talentType, type],
     }));
   };
 
@@ -352,22 +330,12 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave }: EditTalentM
               <h4 className="text-base font-semibold text-gray-800 mb-4 pb-3 border-b">
                 达人分类
               </h4>
-              <div className="flex flex-wrap gap-2">
-                {talentTypeOptions.map(type => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => handleTalentTypeChange(type)}
-                    className={`rounded-full px-3 py-1.5 text-sm font-medium transition-all ${
-                      formData.talentType.includes(type)
-                        ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
+              <TagInput
+                selectedTags={formData.talentType}
+                availableTags={availableTags}
+                onChange={(tags) => handleChange('talentType', tags)}
+                placeholder="输入分类标签后按回车，如：美妆、时尚等"
+              />
             </div>
           </div>
 

@@ -2,12 +2,13 @@
  * 新增达人页面 - 标准表单样式
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createTalent } from '../../../api/talent';
-import type { Platform, TalentTier, TalentStatus } from '../../../types/talent';
+import { createTalent, getTalents } from '../../../api/talent';
+import type { Platform, TalentTier, TalentStatus, Talent } from '../../../types/talent';
 import { PLATFORM_NAMES } from '../../../types/talent';
 import { AGENCY_INDIVIDUAL_ID } from '../../../types/agency';
+import { TagInput } from '../../../components/TagInput';
 
 interface FormData {
   platform: Platform;
@@ -29,6 +30,7 @@ interface FormData {
 export function CreateTalent() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [formData, setFormData] = useState<FormData>({
     platform: 'douyin',
     platformAccountId: '',
@@ -41,6 +43,37 @@ export function CreateTalent() {
     status: 'active',
     platformSpecific: {},
   });
+
+  // 加载已有的达人类型标签
+  useEffect(() => {
+    const loadAvailableTags = async () => {
+      try {
+        // 获取所有达人数据
+        const platforms: Platform[] = ['douyin', 'xiaohongshu', 'bilibili', 'kuaishou'];
+        const allTags = new Set<string>();
+
+        for (const platform of platforms) {
+          const response = await getTalents({ platform });
+          if (response.success && response.data) {
+            const talents = Array.isArray(response.data) ? response.data : [response.data];
+            talents.forEach((talent: Talent) => {
+              if (talent.talentType && Array.isArray(talent.talentType)) {
+                talent.talentType.forEach(type => allTags.add(type));
+              }
+            });
+          }
+        }
+
+        setAvailableTags(Array.from(allTags).sort());
+      } catch (error) {
+        console.error('加载标签失败:', error);
+        // 失败时设置一些默认标签
+        setAvailableTags(['美妆', '时尚', '美食', '旅游', '科技', '游戏', '教育', '母婴', '运动', '其他']);
+      }
+    };
+
+    loadAvailableTags();
+  }, []);
 
   // 机构列表（暂时硬编码，后续可以从 API 获取）
   const agencies = [
@@ -95,16 +128,6 @@ export function CreateTalent() {
         ...prev.platformSpecific,
         [field]: value || undefined,
       },
-    }));
-  };
-
-  // 处理达人类型多选
-  const handleTalentTypeChange = (type: string) => {
-    setFormData(prev => ({
-      ...prev,
-      talentType: prev.talentType.includes(type)
-        ? prev.talentType.filter(t => t !== type)
-        : [...prev.talentType, type],
     }));
   };
 
@@ -196,20 +219,6 @@ export function CreateTalent() {
       setLoading(false);
     }
   };
-
-  // 达人类型选项
-  const talentTypeOptions = [
-    '美妆',
-    '时尚',
-    '美食',
-    '旅游',
-    '科技',
-    '游戏',
-    '教育',
-    '母婴',
-    '运动',
-    '其他',
-  ];
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 py-6">
@@ -426,25 +435,15 @@ export function CreateTalent() {
         <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
           <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
             <h2 className="text-lg font-semibold text-gray-900">达人分类</h2>
-            <p className="mt-1 text-sm text-gray-500">选择达人的内容类型标签</p>
+            <p className="mt-1 text-sm text-gray-500">输入自定义标签或从常用标签中选择</p>
           </div>
           <div className="p-6">
-            <div className="flex flex-wrap gap-2">
-              {talentTypeOptions.map(type => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => handleTalentTypeChange(type)}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                    formData.talentType.includes(type)
-                      ? 'bg-primary-600 text-white shadow-md hover:bg-primary-700'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
+            <TagInput
+              selectedTags={formData.talentType}
+              availableTags={availableTags}
+              onChange={(tags) => handleChange('talentType', tags)}
+              placeholder="输入分类标签后按回车，如：美妆、时尚等"
+            />
           </div>
         </div>
 
