@@ -1,5 +1,5 @@
 /**
- * 新增达人页面
+ * 新增达人页面 - 标准表单样式
  */
 
 import { useState } from 'react';
@@ -19,6 +19,11 @@ interface FormData {
   talentTier?: TalentTier;
   talentType: string[];
   status: TalentStatus;
+  // 平台特定字段
+  platformSpecific: {
+    xingtuId?: string;
+    uid?: string;
+  };
 }
 
 export function CreateTalent() {
@@ -29,22 +34,50 @@ export function CreateTalent() {
     platformAccountId: '',
     name: '',
     fansCount: '',
-    agencyId: AGENCY_INDIVIDUAL_ID, // 默认"野生达人"
+    agencyId: AGENCY_INDIVIDUAL_ID,
     defaultRebate: '',
     talentTier: undefined,
     talentType: [],
     status: 'active',
+    platformSpecific: {},
   });
 
   // 机构列表（暂时硬编码，后续可以从 API 获取）
   const agencies = [
     { id: AGENCY_INDIVIDUAL_ID, name: '野生达人', baseRebate: 8 },
-    // 后续可以从 API 加载更多机构
   ];
 
   // 获取选中机构的基础返点
   const selectedAgency = agencies.find(a => a.id === formData.agencyId);
   const agencyBaseRebate = selectedAgency?.baseRebate;
+
+  // 根据平台获取 platformAccountId 的提示文本
+  const getPlatformAccountIdPlaceholder = () => {
+    switch (formData.platform) {
+      case 'douyin':
+        return '星图ID';
+      case 'xiaohongshu':
+        return '蒲公英ID 或 小红书ID';
+      case 'bilibili':
+        return 'B站UID';
+      case 'kuaishou':
+        return '快手ID';
+      default:
+        return '平台账号ID';
+    }
+  };
+
+  // 根据平台获取 platformAccountId 的标签
+  const getPlatformAccountIdLabel = () => {
+    switch (formData.platform) {
+      case 'douyin':
+        return '星图ID';
+      case 'xiaohongshu':
+        return '主要ID';
+      default:
+        return '平台账号ID';
+    }
+  };
 
   // 处理表单字段变化
   const handleChange = (
@@ -52,6 +85,17 @@ export function CreateTalent() {
     value: string | string[] | TalentTier | undefined
   ) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // 处理平台特定字段变化
+  const handlePlatformSpecificChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      platformSpecific: {
+        ...prev.platformSpecific,
+        [field]: value || undefined,
+      },
+    }));
   };
 
   // 处理达人类型多选
@@ -71,7 +115,7 @@ export function CreateTalent() {
       return false;
     }
     if (!formData.platformAccountId.trim()) {
-      alert('请输入平台账号ID');
+      alert(`请输入${getPlatformAccountIdLabel()}`);
       return false;
     }
     if (!formData.name.trim()) {
@@ -105,6 +149,17 @@ export function CreateTalent() {
     try {
       setLoading(true);
 
+      // 清理 platformSpecific 中的空值
+      const cleanedPlatformSpecific = Object.entries(
+        formData.platformSpecific
+      ).reduce(
+        (acc, [key, value]) => {
+          if (value) acc[key] = value;
+          return acc;
+        },
+        {} as Record<string, string>
+      );
+
       // 构建提交数据
       const submitData = {
         platform: formData.platform,
@@ -118,8 +173,12 @@ export function CreateTalent() {
         talentTier: formData.talentTier,
         talentType: formData.talentType.length > 0 ? formData.talentType : undefined,
         status: formData.status,
-        prices: [], // 初始为空数组
-        rebates: [], // 初始为空数组
+        platformSpecific:
+          Object.keys(cleanedPlatformSpecific).length > 0
+            ? cleanedPlatformSpecific
+            : undefined,
+        prices: [],
+        rebates: [],
       };
 
       const response = await createTalent(submitData);
@@ -153,215 +212,272 @@ export function CreateTalent() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6 py-6">
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">新增达人</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            添加新的达人信息到系统
+          <h1 className="text-3xl font-bold text-gray-900">新增达人</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            添加新的达人信息到系统，所有带 <span className="text-red-500">*</span> 的字段为必填项
           </p>
         </div>
         <button
           onClick={() => navigate('/talents/basic')}
-          className="btn btn-secondary"
+          className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
         >
-          返回列表
+          取消
         </button>
       </div>
 
       {/* 表单 */}
-      <form onSubmit={handleSubmit} className="card space-y-6">
-        {/* 基础信息 */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">基础信息</h3>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            {/* 平台 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                平台 <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.platform}
-                onChange={e =>
-                  handleChange('platform', e.target.value as Platform)
-                }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-              >
-                <option value="douyin">{PLATFORM_NAMES.douyin}</option>
-                <option value="xiaohongshu">{PLATFORM_NAMES.xiaohongshu}</option>
-                <option value="bilibili">{PLATFORM_NAMES.bilibili}</option>
-                <option value="kuaishou">{PLATFORM_NAMES.kuaishou}</option>
-              </select>
-            </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* 基础信息卡片 */}
+        <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
+            <h2 className="text-lg font-semibold text-gray-900">基础信息</h2>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              {/* 平台 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  平台 <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.platform}
+                  onChange={e =>
+                    handleChange('platform', e.target.value as Platform)
+                  }
+                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                >
+                  <option value="douyin">{PLATFORM_NAMES.douyin}</option>
+                  <option value="xiaohongshu">{PLATFORM_NAMES.xiaohongshu}</option>
+                  <option value="bilibili">{PLATFORM_NAMES.bilibili}</option>
+                  <option value="kuaishou">{PLATFORM_NAMES.kuaishou}</option>
+                </select>
+              </div>
 
-            {/* 平台账号ID */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                平台账号ID <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.platformAccountId}
-                onChange={e =>
-                  handleChange('platformAccountId', e.target.value)
-                }
-                placeholder="例如：抖音号、小红书ID等"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-              />
-            </div>
+              {/* 平台账号ID */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  {getPlatformAccountIdLabel()} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.platformAccountId}
+                  onChange={e =>
+                    handleChange('platformAccountId', e.target.value)
+                  }
+                  placeholder={getPlatformAccountIdPlaceholder()}
+                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                />
+              </div>
 
-            {/* 达人昵称 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                达人昵称 <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={e => handleChange('name', e.target.value)}
-                placeholder="达人的昵称"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-              />
-            </div>
+              {/* 达人昵称 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  达人昵称 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={e => handleChange('name', e.target.value)}
+                  placeholder="输入达人的昵称"
+                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                />
+              </div>
 
-            {/* 粉丝数 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                粉丝数
-              </label>
-              <input
-                type="text"
-                value={formData.fansCount}
-                onChange={e => handleChange('fansCount', e.target.value)}
-                placeholder="例如：1000000"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-              />
-            </div>
+              {/* 粉丝数 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  粉丝数
+                </label>
+                <input
+                  type="text"
+                  value={formData.fansCount}
+                  onChange={e => handleChange('fansCount', e.target.value)}
+                  placeholder="例如：1000000"
+                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                />
+              </div>
 
-            {/* 达人等级 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                达人等级
-              </label>
-              <select
-                value={formData.talentTier || ''}
-                onChange={e =>
-                  handleChange(
-                    'talentTier',
-                    e.target.value ? (e.target.value as TalentTier) : undefined
-                  )
-                }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-              >
-                <option value="">请选择</option>
-                <option value="头部">头部</option>
-                <option value="腰部">腰部</option>
-                <option value="尾部">尾部</option>
-              </select>
-            </div>
+              {/* 达人等级 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  达人等级
+                </label>
+                <select
+                  value={formData.talentTier || ''}
+                  onChange={e =>
+                    handleChange(
+                      'talentTier',
+                      e.target.value ? (e.target.value as TalentTier) : undefined
+                    )
+                  }
+                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                >
+                  <option value="">请选择</option>
+                  <option value="头部">头部</option>
+                  <option value="腰部">腰部</option>
+                  <option value="尾部">尾部</option>
+                </select>
+              </div>
 
-            {/* 状态 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                状态
-              </label>
-              <select
-                value={formData.status}
-                onChange={e =>
-                  handleChange('status', e.target.value as TalentStatus)
-                }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-              >
-                <option value="active">活跃</option>
-                <option value="inactive">暂停</option>
-                <option value="archived">归档</option>
-              </select>
+              {/* 状态 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  状态
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={e =>
+                    handleChange('status', e.target.value as TalentStatus)
+                  }
+                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                >
+                  <option value="active">活跃</option>
+                  <option value="inactive">暂停</option>
+                  <option value="archived">归档</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* 机构与返点 */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            机构与返点
-          </h3>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            {/* 所属机构 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                所属机构
-              </label>
-              <select
-                value={formData.agencyId}
-                onChange={e => handleChange('agencyId', e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-              >
-                {agencies.map(agency => (
-                  <option key={agency.id} value={agency.id}>
-                    {agency.name} (基础返点 {agency.baseRebate}%)
-                  </option>
-                ))}
-              </select>
+        {/* 平台特定信息卡片 - 仅抖音显示 */}
+        {formData.platform === 'douyin' && (
+          <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+            <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
+              <h2 className="text-lg font-semibold text-gray-900">平台特定信息</h2>
+              <p className="mt-1 text-sm text-gray-500">抖音平台的额外ID信息</p>
             </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                {/* 星图ID */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    星图ID
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.platformSpecific.xingtuId || ''}
+                    onChange={e =>
+                      handlePlatformSpecificChange('xingtuId', e.target.value)
+                    }
+                    placeholder="如果主ID不是星图ID，可在此填写"
+                    className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                  />
+                </div>
 
-            {/* 默认返点 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                默认返点 (%)
-              </label>
-              <input
-                type="text"
-                value={formData.defaultRebate}
-                onChange={e => handleChange('defaultRebate', e.target.value)}
-                placeholder={
-                  agencyBaseRebate
-                    ? `不填写则使用机构返点 ${agencyBaseRebate}%`
-                    : '输入默认返点率'
-                }
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-              />
-              <p className="mt-1 text-sm text-gray-500">
-                设置达人的默认返点率，优先级高于机构返点。新增合作时作为参考值。
-              </p>
+                {/* 抖音UID */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    抖音UID
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.platformSpecific.uid || ''}
+                    onChange={e =>
+                      handlePlatformSpecificChange('uid', e.target.value)
+                    }
+                    placeholder="抖音用户ID"
+                    className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 机构与返点卡片 */}
+        <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
+            <h2 className="text-lg font-semibold text-gray-900">机构与返点</h2>
+            <p className="mt-1 text-sm text-gray-500">设置达人的机构归属和默认返点率</p>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              {/* 所属机构 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  所属机构
+                </label>
+                <select
+                  value={formData.agencyId}
+                  onChange={e => handleChange('agencyId', e.target.value)}
+                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                >
+                  {agencies.map(agency => (
+                    <option key={agency.id} value={agency.id}>
+                      {agency.name} (基础返点 {agency.baseRebate}%)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 默认返点 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  默认返点 (%)
+                </label>
+                <input
+                  type="text"
+                  value={formData.defaultRebate}
+                  onChange={e => handleChange('defaultRebate', e.target.value)}
+                  placeholder={
+                    agencyBaseRebate
+                      ? `不填写则使用机构返点 ${agencyBaseRebate}%`
+                      : '输入默认返点率'
+                  }
+                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                />
+                <p className="mt-1.5 text-xs text-gray-500">
+                  设置达人的默认返点率，优先级高于机构返点，新增合作时作为参考值
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* 达人类型 */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">达人类型</h3>
-          <div className="flex flex-wrap gap-2">
-            {talentTypeOptions.map(type => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => handleTalentTypeChange(type)}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                  formData.talentType.includes(type)
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {type}
-              </button>
-            ))}
+        {/* 达人分类卡片 */}
+        <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
+            <h2 className="text-lg font-semibold text-gray-900">达人分类</h2>
+            <p className="mt-1 text-sm text-gray-500">选择达人的内容类型标签</p>
+          </div>
+          <div className="p-6">
+            <div className="flex flex-wrap gap-2">
+              {talentTypeOptions.map(type => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => handleTalentTypeChange(type)}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                    formData.talentType.includes(type)
+                      ? 'bg-primary-600 text-white shadow-md hover:bg-primary-700'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* 提交按钮 */}
-        <div className="flex justify-end space-x-3 pt-6 border-t">
+        <div className="flex justify-end gap-3 pt-4">
           <button
             type="button"
             onClick={() => navigate('/talents/basic')}
-            className="btn btn-secondary"
+            className="rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
             disabled={loading}
           >
             取消
           </button>
           <button
             type="submit"
-            className="btn btn-primary"
+            className="rounded-lg bg-primary-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
           >
             {loading ? '提交中...' : '创建达人'}

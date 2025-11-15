@@ -101,15 +101,21 @@ export interface OneIdHistoryRecord {
  */
 export interface PlatformSpecific {
   // 抖音特有
-  xingtuId?: string;
-  starLevel?: number;
+  xingtuId?: string;    // 星图ID（也可以作为 platformAccountId）
+  uid?: string;         // 抖音UID
+  starLevel?: number;   // 星图等级
 
-  // 小红书特有
+  // 小红书特有（字段名后续确定）
+  xiaohongshuId?: string;      // 小红书ID（预留）
+  dandelionId?: string;        // 蒲公英ID（预留）
   mcnName?: string;
   contentTags?: string[];
 
   // B站特有
   upLevel?: string;
+
+  // 快手特有
+  kuaishouId?: string;
 }
 
 /**
