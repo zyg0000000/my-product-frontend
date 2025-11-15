@@ -272,7 +272,7 @@ export function TalentDetail() {
               </div>
               <div>
                 <p className="text-xs text-gray-500">当前返点率</p>
-                <p className="mt-1 text-2xl font-bold text-primary-600">
+                <p className="mt-1 text-base font-medium text-gray-900">
                   {formatRebateRate(rebateData.currentRebate.rate)}
                 </p>
               </div>
