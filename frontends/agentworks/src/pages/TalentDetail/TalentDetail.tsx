@@ -19,7 +19,6 @@ import {
 } from '../../types/rebate';
 import {
   formatPrice,
-  formatRebate,
   formatFansCount,
   formatYearMonth,
   getPriceHistory,
@@ -104,7 +103,7 @@ export function TalentDetail() {
   }
 
   const priceHistory = getPriceHistory(talent.prices);
-  const rebateHistory = getRebateHistory(talent.rebates);
+  const oldRebateHistory = getRebateHistory(talent.rebates);
   const priceTypes = PLATFORM_PRICE_TYPES[talent.platform];
 
   return (
@@ -282,7 +281,7 @@ export function TalentDetail() {
                 <p className="mt-4 text-center text-gray-500">暂无调整记录</p>
               ) : (
                 <div className="mt-4 space-y-4">
-                  {rebateHistory.map((record, index) => (
+                  {rebateHistory.map((record) => (
                     <div
                       key={record.configId}
                       className="relative border-l-2 border-gray-200 pl-6 pb-6 last:pb-0"
