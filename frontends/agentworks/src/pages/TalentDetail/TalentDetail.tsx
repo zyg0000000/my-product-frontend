@@ -12,9 +12,6 @@ import type { GetRebateResponse, RebateConfig } from '../../types/rebate';
 import {
   BELONG_TYPE_LABELS,
   REBATE_SOURCE_LABELS,
-  REBATE_STATUS_LABELS,
-  REBATE_STATUS_COLORS,
-  EFFECT_TYPE_LABELS,
   formatRebateRate,
 } from '../../types/rebate';
 import {
@@ -25,6 +22,7 @@ import {
 } from '../../utils/formatters';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { UpdateRebateModal } from '../../components/UpdateRebateModal';
+import { RebateHistoryList } from '../../components/RebateHistoryList';
 
 export function TalentDetail() {
   const { oneId, platform } = useParams<{
@@ -40,6 +38,11 @@ export function TalentDetail() {
   const [rebateHistory, setRebateHistory] = useState<RebateConfig[]>([]);
   const [rebateLoading, setRebateLoading] = useState(false);
   const [showUpdateRebateModal, setShowUpdateRebateModal] = useState(false);
+
+  // 分页状态
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const pageSize = 3; // 每页显示 3 条记录
 
   useEffect(() => {
     if (oneId && platform) {
@@ -64,7 +67,7 @@ export function TalentDetail() {
     }
   };
 
-  const loadRebateData = async () => {
+  const loadRebateData = async (page: number = 1) => {
     if (!oneId || !platform) return;
 
     try {
@@ -76,20 +79,36 @@ export function TalentDetail() {
         setRebateData(rebateResponse.data);
       }
 
-      // 加载返点历史记录
+      // 加载返点历史记录（分页）
+      const offset = (page - 1) * pageSize;
       const historyResponse = await fetchRebateHistory({
         oneId,
         platform: platform as Platform,
-        limit: 20,
-        offset: 0,
+        limit: pageSize,
+        offset,
       });
       if (historyResponse.success && historyResponse.data) {
         setRebateHistory(historyResponse.data.records);
+        setTotalRecords(historyResponse.data.total);
+        setCurrentPage(page);
       }
     } catch (error) {
       console.error('加载返点数据失败:', error);
     } finally {
       setRebateLoading(false);
+    }
+  };
+
+  // 分页处理
+  const totalPages = Math.ceil(totalRecords / pageSize);
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      loadRebateData(currentPage - 1);
+    }
+  };
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      loadRebateData(currentPage + 1);
     }
   };
 
@@ -273,60 +292,18 @@ export function TalentDetail() {
 
             {/* 返点历史时间线 */}
             <div>
-              <h3 className="text-sm font-medium text-gray-900">调整历史</h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-4">调整历史</h3>
 
-              {rebateHistory.length === 0 ? (
-                <p className="mt-4 text-center text-gray-500">暂无调整记录</p>
-              ) : (
-                <div className="mt-4 space-y-4">
-                  {rebateHistory.map((record) => (
-                    <div
-                      key={record.configId}
-                      className="relative border-l-2 border-gray-200 pl-6 pb-6 last:pb-0"
-                    >
-                      {/* 时间线圆点 */}
-                      <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full border-2 border-gray-200 bg-white" />
-
-                      {/* 记录内容 */}
-                      <div className="rounded-lg border border-gray-200 p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                              <span className="text-lg font-semibold text-gray-900">
-                                {formatRebateRate(record.rebateRate)}
-                              </span>
-                              <span className={`rounded px-2 py-0.5 text-xs font-medium ${REBATE_STATUS_COLORS[record.status]}`}>
-                                {REBATE_STATUS_LABELS[record.status]}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                {EFFECT_TYPE_LABELS[record.effectType]}
-                              </span>
-                            </div>
-
-                            <div className="mt-2 space-y-1 text-sm text-gray-500">
-                              <p>生效日期: {record.effectiveDate}</p>
-                              {record.reason && (
-                                <p>调整原因: {record.reason}</p>
-                              )}
-                              <p>操作人: {record.createdBy}</p>
-                            </div>
-                          </div>
-
-                          <div className="text-right text-xs text-gray-400">
-                            {new Date(record.createdAt).toLocaleString('zh-CN', {
-                              year: 'numeric',
-                              month: '2-digit',
-                              day: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <RebateHistoryList
+                records={rebateHistory}
+                loading={rebateLoading}
+                showPagination={true}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalRecords={totalRecords}
+                onPrevPage={handlePrevPage}
+                onNextPage={handleNextPage}
+              />
             </div>
           </div>
         ) : (
