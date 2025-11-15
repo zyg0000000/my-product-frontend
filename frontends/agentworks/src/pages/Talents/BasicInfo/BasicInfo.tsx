@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTalents } from '../../../api/talent';
-import type { Talent, Platform } from '../../../types/talent';
+import type { Talent, Platform, PriceRecord } from '../../../types/talent';
 import { PLATFORM_NAMES, PLATFORM_PRICE_TYPES } from '../../../types/talent';
 import {
   formatPrice,
@@ -14,12 +14,15 @@ import {
   getLatestPricesMap,
   getLatestRebate,
 } from '../../../utils/formatters';
+import { PriceModal } from '../../../components/PriceModal';
 
 export function BasicInfo() {
   const navigate = useNavigate();
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>('douyin');
   const [talents, setTalents] = useState<Talent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [priceModalOpen, setPriceModalOpen] = useState(false);
+  const [selectedTalent, setSelectedTalent] = useState<Talent | null>(null);
 
   // 加载达人列表
   useEffect(() => {
@@ -60,6 +63,38 @@ export function BasicInfo() {
 
   // 获取当前平台的价格类型配置
   const priceTypes = PLATFORM_PRICE_TYPES[selectedPlatform];
+
+  // 打开价格管理弹窗
+  const handleOpenPriceModal = (talent: Talent) => {
+    setSelectedTalent(talent);
+    setPriceModalOpen(true);
+  };
+
+  // 关闭价格管理弹窗
+  const handleClosePriceModal = () => {
+    setPriceModalOpen(false);
+    setSelectedTalent(null);
+  };
+
+  // 保存价格
+  const handleSavePrice = async (talentId: string, prices: PriceRecord[]) => {
+    try {
+      // TODO: 调用 API 更新价格
+      console.log('保存价格:', talentId, prices);
+
+      // 更新本地状态
+      setTalents((prevTalents) =>
+        prevTalents.map((t) =>
+          t.oneId === talentId ? { ...t, prices } : t
+        )
+      );
+
+      alert('价格保存成功');
+    } catch (error) {
+      console.error('保存价格失败:', error);
+      throw error;
+    }
+  };
 
   // 获取平台达人的外链（星图、蒲公英等）
   const getPlatformLink = (talent: Talent): string | null => {
@@ -128,14 +163,9 @@ export function BasicInfo() {
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     粉丝数
                   </th>
-                  {priceTypes.map(priceType => (
-                    <th
-                      key={priceType.key}
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-                    >
-                      {priceType.label}
-                    </th>
-                  ))}
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    当月价格
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     返点
                   </th>
@@ -191,16 +221,29 @@ export function BasicInfo() {
                           ? formatFansCount(talent.fansCount)
                           : '-'}
                       </td>
-                      {priceTypes.map(priceType => (
-                        <td
-                          key={priceType.key}
-                          className="whitespace-nowrap px-6 py-4 text-sm text-gray-900"
-                        >
-                          {latestPrices[priceType.key]
-                            ? formatPrice(latestPrices[priceType.key]!)
-                            : '-'}
-                        </td>
-                      ))}
+                      <td className="px-6 py-4 text-sm">
+                        <div className="flex flex-col gap-1.5">
+                          {priceTypes.map(priceType => {
+                            const price = latestPrices[priceType.key];
+                            return (
+                              <div key={priceType.key} className="flex items-center gap-2">
+                                <span
+                                  className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold"
+                                  style={{
+                                    backgroundColor: priceType.bgColor,
+                                    color: priceType.textColor,
+                                  }}
+                                >
+                                  {priceType.label}
+                                </span>
+                                <span className={price ? 'text-gray-900 font-medium' : 'text-gray-400'}>
+                                  {price ? formatPrice(price) : 'N/A'}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                         {latestRebate ? formatRebate(latestRebate) : '-'}
                       </td>
@@ -221,56 +264,57 @@ export function BasicInfo() {
                               : '归档'}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium space-x-3">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // TODO: 打开价格管理弹窗
-                            console.log('管理价格:', talent.oneId);
-                          }}
-                          className="text-purple-600 hover:text-purple-900"
-                        >
-                          价格
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // TODO: 打开返点管理弹窗
-                            console.log('管理返点:', talent.oneId);
-                          }}
-                          className="text-green-600 hover:text-green-900"
-                        >
-                          返点
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/talents/${talent.oneId}/${talent.platform}/edit`);
-                          }}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          编辑
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // TODO: 打开删除确认弹窗
-                            console.log('删除达人:', talent.oneId);
-                          }}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          删除
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // TODO: 打开合作历史弹窗
-                            console.log('查看历史:', talent.oneId);
-                          }}
-                          className="text-gray-600 hover:text-gray-900"
-                        >
-                          历史
-                        </button>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenPriceModal(talent);
+                            }}
+                            className="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-800 hover:bg-purple-200 transition-colors"
+                          >
+                            价格
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // TODO: 打开返点管理弹窗
+                              console.log('管理返点:', talent.oneId);
+                            }}
+                            className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800 hover:bg-green-200 transition-colors"
+                          >
+                            返点
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/talents/${talent.oneId}/${talent.platform}/edit`);
+                            }}
+                            className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800 hover:bg-blue-200 transition-colors"
+                          >
+                            编辑
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // TODO: 打开删除确认弹窗
+                              console.log('删除达人:', talent.oneId);
+                            }}
+                            className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800 hover:bg-red-200 transition-colors"
+                          >
+                            删除
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // TODO: 打开合作历史弹窗
+                              console.log('查看历史:', talent.oneId);
+                            }}
+                            className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-800 hover:bg-gray-200 transition-colors"
+                          >
+                            历史
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -280,6 +324,14 @@ export function BasicInfo() {
           </div>
         )}
       </div>
+
+      {/* 价格管理弹窗 */}
+      <PriceModal
+        isOpen={priceModalOpen}
+        onClose={handleClosePriceModal}
+        talent={selectedTalent}
+        onSave={handleSavePrice}
+      />
     </div>
   );
 }
