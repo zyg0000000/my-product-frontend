@@ -1,9 +1,15 @@
 /**
  * @file updateTalentRebate.js
- * @version 1.0.0
+ * @version 1.1.0
  * @description 云函数：更新达人返点配置
  *
  * --- 更新日志 ---
+ * [v1.1.0] 2025-11-15
+ * - 修复：effectiveDate 和 expiryDate 使用当前时间戳而不是日期字符串
+ * - 修复：忽略前端传来的 effectiveDate，强制使用当前实际时间
+ * - 优化：实现 expiryDate 自动管理，将旧配置标记为 expired
+ * - 优化：移除 reason 参数
+ *
  * [v1.0.0] 2025-11-15
  * - 初始版本
  * - 支持手动调整野生达人返点
@@ -67,7 +73,7 @@ function generateConfigId() {
  * 更新达人返点配置
  */
 async function updateTalentRebate(params) {
-  const { oneId, platform, rebateRate, effectType, effectiveDate, reason, createdBy } = params;
+  const { oneId, platform, rebateRate, effectType, effectiveDate, createdBy } = params;
 
   const dbClient = await connectToDatabase();
   const db = dbClient.db(DB_NAME);
@@ -83,39 +89,60 @@ async function updateTalentRebate(params) {
     throw new Error(`达人不存在: oneId=${oneId}, platform=${platform}`);
   }
 
-  // 确定生效日期
+  // 确定生效时间（立即生效时始终使用当前时间，忽略前端传值）
   const now = new Date();
-  const finalEffectiveDate = effectiveDate || now.toISOString().split('T')[0];
-
-  // 创建返点配置记录
-  const configId = generateConfigId();
-  const configData = {
-    configId,
-    targetType: 'talent',
-    targetId: oneId,
-    platform,
-    rebateRate: validatedRate,
-    effectType,
-    effectiveDate: finalEffectiveDate,
-    expiryDate: null,
-    status: effectType === 'immediate' ? 'active' : 'pending',
-    reason: reason || '手动调整',
-    createdBy: createdBy || 'system',
-    createdAt: now
-  };
-
-  await rebateConfigsCollection.insertOne(configData);
+  const finalEffectiveDate = now;  // 强制使用当前时间戳，精确到毫秒
 
   // 根据生效类型处理
   if (effectType === 'immediate') {
-    // 立即生效：更新达人的当前返点
+    // 立即生效：先将旧的 active 配置标记为 expired
+    const oldActiveConfig = await rebateConfigsCollection.findOne({
+      targetType: 'talent',
+      targetId: oneId,
+      platform,
+      status: 'active'
+    });
+
+    if (oldActiveConfig) {
+      // 将旧配置标记为 expired，设置失效日期为新配置的生效日期
+      await rebateConfigsCollection.updateOne(
+        { _id: oldActiveConfig._id },
+        {
+          $set: {
+            status: 'expired',
+            expiryDate: finalEffectiveDate,
+            updatedAt: now
+          }
+        }
+      );
+    }
+
+    // 创建新的返点配置记录
+    const configId = generateConfigId();
+    const configData = {
+      configId,
+      targetType: 'talent',
+      targetId: oneId,
+      platform,
+      rebateRate: validatedRate,
+      effectType,
+      effectiveDate: finalEffectiveDate,
+      expiryDate: null,
+      status: 'active',
+      createdBy: createdBy || 'system',
+      createdAt: now
+    };
+
+    await rebateConfigsCollection.insertOne(configData);
+
+    // 更新达人的当前返点
     await talentsCollection.updateOne(
       { oneId, platform },
       {
         $set: {
           'currentRebate.rate': validatedRate,
           'currentRebate.source': 'personal',
-          'currentRebate.effectiveDate': finalEffectiveDate,
+          'currentRebate.effectiveDate': finalEffectiveDate.toISOString().split('T')[0], // talents 集合保持日期格式
           'currentRebate.lastUpdated': now
         }
       }
@@ -126,16 +153,33 @@ async function updateTalentRebate(params) {
       message: '返点率已立即更新',
       newRate: validatedRate,
       effectType: 'immediate',
-      effectiveDate: finalEffectiveDate
+      effectiveDate: finalEffectiveDate.toISOString()
     };
   } else {
+    // 下次合作生效：创建待生效配置
+    const configId = generateConfigId();
+    const configData = {
+      configId,
+      targetType: 'talent',
+      targetId: oneId,
+      platform,
+      rebateRate: validatedRate,
+      effectType,
+      effectiveDate: finalEffectiveDate,
+      expiryDate: null,
+      status: 'pending',
+      createdBy: createdBy || 'system',
+      createdAt: now
+    };
+
+    await rebateConfigsCollection.insertOne(configData);
     // 下次合作生效：创建待生效配置
     return {
       configId,
       message: '返点率将在下次合作时生效',
       newRate: validatedRate,
       effectType: 'next_cooperation',
-      effectiveDate: finalEffectiveDate,
+      effectiveDate: finalEffectiveDate.toISOString(),
       status: 'pending'
     };
   }

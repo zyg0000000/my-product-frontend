@@ -5,6 +5,8 @@
 import { useState, useEffect } from 'react';
 import type { Talent, Platform, TalentTier, TalentStatus } from '../types/talent';
 import { PLATFORM_NAMES } from '../types/talent';
+import type { BelongType } from '../types/rebate';
+import { BELONG_TYPE_LABELS } from '../types/rebate';
 import { TagInput } from './TagInput';
 
 interface EditTalentModalProps {
@@ -19,6 +21,7 @@ interface FormData {
   platformAccountId: string;
   name: string;
   fansCount: string;
+  belongType: BelongType;
   talentTier?: TalentTier;
   talentType: string[];
   status: TalentStatus;
@@ -35,6 +38,7 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
     platformAccountId: '',
     name: '',
     fansCount: '',
+    belongType: 'wild',
     talentTier: undefined,
     talentType: [],
     status: 'active',
@@ -48,6 +52,7 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
         platformAccountId: talent.platformAccountId || '',
         name: talent.name || '',
         fansCount: talent.fansCount ? String(talent.fansCount) : '',
+        belongType: (talent as any).belongType || 'wild',
         talentTier: talent.talentTier,
         talentType: talent.talentType || [],
         status: talent.status || 'active',
@@ -148,10 +153,11 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
       );
 
       // 构建更新数据
-      const updateData: Partial<Talent> = {
+      const updateData: Partial<Talent> & { belongType?: BelongType } = {
         platformAccountId: formData.platformAccountId,
         name: formData.name,
         fansCount: formData.fansCount ? Number(formData.fansCount) : undefined,
+        belongType: formData.belongType,
         talentTier: formData.talentTier,
         talentType: formData.talentType.length > 0 ? formData.talentType : undefined,
         status: formData.status,
@@ -293,6 +299,23 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
                     <option value="active">活跃</option>
                     <option value="inactive">暂停</option>
                     <option value="archived">归档</option>
+                  </select>
+                </div>
+
+                {/* 归属类型 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    归属类型
+                  </label>
+                  <select
+                    value={formData.belongType}
+                    onChange={e =>
+                      handleChange('belongType', e.target.value as BelongType)
+                    }
+                    className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    <option value="wild">{BELONG_TYPE_LABELS.wild}</option>
+                    <option value="agency">{BELONG_TYPE_LABELS.agency}</option>
                   </select>
                 </div>
               </div>

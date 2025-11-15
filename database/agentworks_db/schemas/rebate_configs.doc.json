@@ -59,21 +59,19 @@
             "comment": "immediate=立即生效, next_cooperation=下次合作生效"
         },
         "effectiveDate": {
-            "type": "String",
-            "description": "生效日期（YYYY-MM-DD）",
+            "type": "Date",
+            "description": "生效时间（ISO 8601 时间戳）",
             "required": true,
-            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
-            "example": "2025-01-15",
-            "comment": "返点开始生效的日期"
+            "example": "2025-01-15T10:30:00.000Z",
+            "comment": "返点开始生效的精确时间，使用 ISO 8601 格式"
         },
         "expiryDate": {
-            "type": "String",
-            "description": "失效日期（YYYY-MM-DD）",
+            "type": "Date",
+            "description": "失效时间（ISO 8601 时间戳）",
             "required": false,
             "default": null,
-            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
-            "example": "2025-12-31",
-            "comment": "null 表示永久有效，被新配置替代时会设置失效日期"
+            "example": "2025-01-15T14:20:00.000Z",
+            "comment": "null 表示当前生效中，被新配置替代时自动设置为新配置的 effectiveDate"
         },
         "status": {
             "type": "String",
@@ -154,8 +152,9 @@
         "【设计目的】独立存储返点配置历史，支持完整的审计追溯",
         "【不可变性】所有记录一旦创建不可删除，只能标记为 expired",
         "【状态流转】pending → active → expired",
-        "【立即生效】effectType='immediate' 时，创建记录后立即更新 talents.currentRebate",
+        "【立即生效】effectType='immediate' 时，自动将旧 active 配置标记为 expired 并设置 expiryDate，然后创建新 active 记录并更新 talents.currentRebate",
         "【下次生效】effectType='next_cooperation' 时，创建 pending 记录，等待合作时激活",
+        "【自动管理】创建新 active 配置时，旧 active 配置自动标记为 expired，expiryDate 设置为新配置的 effectiveDate",
         "【唯一约束】configId 全局唯一",
         "【查询优化】targetId + platform + createdAt 复合索引，支持高效的历史查询",
         "【数据完整性】永久保留所有记录，不允许删除",
@@ -174,10 +173,9 @@
                 "platform": "douyin",
                 "rebateRate": 22.50,
                 "effectType": "immediate",
-                "effectiveDate": "2025-01-15",
+                "effectiveDate": "2025-01-15T10:30:00.000Z",
                 "expiryDate": null,
                 "status": "active",
-                "reason": "合作表现优秀，提升返点",
                 "createdBy": "admin_user_id",
                 "createdAt": "2025-01-15T10:30:00.000Z",
                 "updatedAt": null
@@ -192,17 +190,16 @@
                 "platform": "douyin",
                 "rebateRate": 25.00,
                 "effectType": "next_cooperation",
-                "effectiveDate": "2025-02-01",
+                "effectiveDate": "2025-02-01T00:00:00.000Z",
                 "expiryDate": null,
                 "status": "pending",
-                "reason": "长期合作奖励",
                 "createdBy": "admin_user_id",
                 "createdAt": "2025-01-15T10:30:00.000Z",
                 "updatedAt": null
             }
         },
         {
-            "description": "示例3：已失效的返点配置（被新配置替代）",
+            "description": "示例3：已失效的返点配置（被新配置替代，同一天内多次调整）",
             "data": {
                 "configId": "rebate_config_1736928000000_def456",
                 "targetType": "talent",
@@ -210,12 +207,11 @@
                 "platform": "douyin",
                 "rebateRate": 20.00,
                 "effectType": "immediate",
-                "effectiveDate": "2025-01-01",
-                "expiryDate": "2025-01-15",
+                "effectiveDate": "2025-01-15T08:00:00.000Z",
+                "expiryDate": "2025-01-15T10:30:00.000Z",
                 "status": "expired",
-                "reason": "初始配置",
                 "createdBy": "system",
-                "createdAt": "2025-01-01T00:00:00.000Z",
+                "createdAt": "2025-01-15T08:00:00.000Z",
                 "updatedAt": "2025-01-15T10:30:00.000Z"
             }
         }
@@ -223,7 +219,11 @@
     "businessRules": [
         {
             "rule": "同一达人同一平台同一时间只能有一条 active 记录",
-            "implementation": "创建新 active 配置时，将旧的 active 记录标记为 expired"
+            "implementation": "创建新 active 配置时，先查找旧 active 记录，将其 status 改为 expired，expiryDate 设置为新配置的 effectiveDate，updatedAt 设置为当前时间"
+        },
+        {
+            "rule": "expiryDate 自动管理",
+            "implementation": "新配置创建时自动设置，表示配置的生命周期 [effectiveDate, expiryDate)，当前生效中的配置 expiryDate 为 null"
         },
         {
             "rule": "pending 记录在下次合作时自动激活",

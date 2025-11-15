@@ -32,8 +32,6 @@ export function UpdateRebateModal({
 }: UpdateRebateModalProps) {
   const [rebateRate, setRebateRate] = useState<string>('');
   const [effectType, setEffectType] = useState<EffectType>('immediate');
-  const [effectiveDate, setEffectiveDate] = useState<string>('');
-  const [reason, setReason] = useState<string>('');
   const [createdBy, setCreatedBy] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
@@ -43,8 +41,6 @@ export function UpdateRebateModal({
       // 初始化表单
       setRebateRate(currentRate.toString());
       setEffectType('immediate');
-      setEffectiveDate(new Date().toISOString().split('T')[0]);
-      setReason('');
       setCreatedBy('');
       setError('');
     }
@@ -62,12 +58,6 @@ export function UpdateRebateModal({
       return;
     }
 
-    // 验证生效日期（下次合作生效时必填）
-    if (effectType === 'next_cooperation' && !effectiveDate) {
-      setError('下次合作生效时必须指定生效日期');
-      return;
-    }
-
     try {
       setLoading(true);
 
@@ -76,8 +66,6 @@ export function UpdateRebateModal({
         platform,
         rebateRate: rateNum,
         effectType,
-        effectiveDate: effectiveDate || undefined,
-        reason: reason || undefined,
         createdBy: createdBy || undefined,
       };
 
@@ -172,18 +160,19 @@ export function UpdateRebateModal({
                   </div>
                 </label>
 
-                <label className="flex items-center gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50">
+                <label className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 opacity-60 cursor-not-allowed">
                   <input
                     type="radio"
                     name="effectType"
                     value="next_cooperation"
                     checked={effectType === 'next_cooperation'}
                     onChange={(e) => setEffectType(e.target.value as EffectType)}
+                    disabled
                     className="h-4 w-4 text-primary-600"
                   />
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">
-                      {EFFECT_TYPE_LABELS.next_cooperation}
+                      {EFFECT_TYPE_LABELS.next_cooperation} <span className="text-orange-600 text-xs">(暂不支持)</span>
                     </p>
                     <p className="text-xs text-gray-500">
                       创建待生效配置，等待下次合作时激活
@@ -191,39 +180,6 @@ export function UpdateRebateModal({
                   </div>
                 </label>
               </div>
-            </div>
-
-            {/* 生效日期 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                生效日期 {effectType === 'next_cooperation' && <span className="text-red-500">*</span>}
-              </label>
-              <input
-                type="date"
-                value={effectiveDate}
-                onChange={(e) => setEffectiveDate(e.target.value)}
-                required={effectType === 'next_cooperation'}
-                className="input mt-1"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                {effectType === 'immediate'
-                  ? '默认为当天'
-                  : '指定返点率开始生效的日期'}
-              </p>
-            </div>
-
-            {/* 调整原因 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                调整原因
-              </label>
-              <textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                rows={3}
-                className="input mt-1"
-                placeholder="请输入调整原因（选填）"
-              />
             </div>
 
             {/* 操作人 */}
