@@ -1,30 +1,16 @@
 /**
  * @file getTalentStats.js
- * @version 1.0.0
+ * @version 1.0.1
  * @description 云函数：获取达人统计数据（v1/v2 双版本支持）
  *
- * --- 功能说明 ---
- * - 提供高性能的达人统计数据，一次性返回多维度统计
- * - 使用 MongoDB Aggregation Pipeline ($facet) 进行服务端聚合计算
- * - 支持 v1（kol_data）和 v2（agentworks_db）双数据库版本
- *
- * --- v2 统计维度 ---
- * 1. 唯一达人数（按 oneId 去重）
- * 2. 各平台达人数（douyin、xiaohongshu、bilibili、kuaishou）
- * 3. 状态分布（active、inactive、archived）
- * 4. 等级分布（头部、腰部、尾部）
- * 5. 总记录数
- *
- * --- v1 统计维度 ---
- * 1. 总达人数
- * 2. 等级分布
- * 3. 状态分布
- *
  * --- 更新日志 ---
+ * [v1.0.1] 2025-11-15
+ * - 增加详细的调试日志
+ * - 添加原始数据返回（debug 模式）
+ * - 优化错误处理
+ *
  * [v1.0.0] 2025-11-15
  * - 初始版本
- * - 支持 v1/v2 双版本架构
- * - 实现多维度统计
  */
 
 const { MongoClient } = require('mongodb');
@@ -49,7 +35,6 @@ async function connectToDatabase() {
 
 /**
  * ========== v1 统计逻辑 ==========
- * 针对旧版本数据库（kol_data）
  */
 async function getV1Stats(db) {
   const talentsCollection = db.collection(TALENTS_COLLECTION);
@@ -57,19 +42,14 @@ async function getV1Stats(db) {
   const pipeline = [
     {
       $facet: {
-        // 总数统计
         totalCount: [
           { $count: 'count' }
         ],
-
-        // 等级分布
         tierDistribution: [
           { $match: { talentTier: { $exists: true, $ne: null, $ne: '' } }},
           { $group: { _id: '$talentTier', count: { $sum: 1 } }},
           { $project: { _id: 0, tier: '$_id', count: 1 }}
         ],
-
-        // 状态分布（v1 可能没有 status 字段，需要容错）
         statusDistribution: [
           { $match: { status: { $exists: true, $ne: null, $ne: '' } }},
           { $group: { _id: '$status', count: { $sum: 1 } }},
@@ -82,7 +62,6 @@ async function getV1Stats(db) {
   const result = await talentsCollection.aggregate(pipeline).toArray();
   const facetResult = result[0] || {};
 
-  // 格式化返回数据
   const totalCount = facetResult.totalCount?.[0]?.count || 0;
 
   const tierStats = {};
@@ -105,11 +84,19 @@ async function getV1Stats(db) {
 
 /**
  * ========== v2 统计逻辑 ==========
- * 针对新版本数据库（agentworks_db）
- * 支持多平台架构、oneId 去重统计
  */
-async function getV2Stats(db) {
+async function getV2Stats(db, debug = false) {
   const talentsCollection = db.collection(TALENTS_COLLECTION);
+
+  // 【调试】先查询总数
+  const totalCount = await talentsCollection.countDocuments();
+  console.log(`[DEBUG] 数据库中总记录数: ${totalCount}`);
+
+  // 【调试】查询前 3 条记录
+  if (debug) {
+    const sampleDocs = await talentsCollection.find().limit(3).toArray();
+    console.log('[DEBUG] 示例文档:', JSON.stringify(sampleDocs, null, 2));
+  }
 
   const pipeline = [
     {
@@ -145,8 +132,9 @@ async function getV2Stats(db) {
           { $project: { _id: 0, tier: '$_id', count: 1 }}
         ],
 
-        // 达人类型分布（可选，用于扩展）
+        // 达人类型分布
         typeDistribution: [
+          { $match: { talentType: { $exists: true, $ne: null } }},
           { $unwind: '$talentType' },
           { $group: { _id: '$talentType', count: { $sum: 1 } }},
           { $sort: { count: -1 }},
@@ -160,9 +148,13 @@ async function getV2Stats(db) {
   const result = await talentsCollection.aggregate(pipeline).toArray();
   const facetResult = result[0] || {};
 
+  console.log('[DEBUG] Facet 原始结果:', JSON.stringify(facetResult, null, 2));
+
   // 格式化返回数据
   const totalRecords = facetResult.totalRecords?.[0]?.count || 0;
   const uniqueTalents = facetResult.uniqueTalents?.[0]?.count || 0;
+
+  console.log(`[DEBUG] 格式化后 - totalRecords: ${totalRecords}, uniqueTalents: ${uniqueTalents}`);
 
   // 平台统计
   const platformStats = {
@@ -171,11 +163,17 @@ async function getV2Stats(db) {
     bilibili: 0,
     kuaishou: 0
   };
+
+  console.log('[DEBUG] platformDistribution:', facetResult.platformDistribution);
+
   facetResult.platformDistribution?.forEach(item => {
+    console.log(`[DEBUG] 处理平台: ${item.platform}, 数量: ${item.count}`);
     if (item.platform in platformStats) {
       platformStats[item.platform] = item.count;
     }
   });
+
+  console.log('[DEBUG] 最终 platformStats:', platformStats);
 
   // 状态统计
   const statusStats = {};
@@ -195,7 +193,7 @@ async function getV2Stats(db) {
     typeStats.push({ type: item.type, count: item.count });
   });
 
-  return {
+  const stats = {
     totalRecords,
     uniqueTalents,
     platformStats,
@@ -203,6 +201,16 @@ async function getV2Stats(db) {
     tierStats,
     typeStats
   };
+
+  // 【调试模式】返回原始数据
+  if (debug) {
+    stats._debug = {
+      rawFacetResult: facetResult,
+      totalCountFromDB: totalCount
+    };
+  }
+
+  return stats;
 }
 
 /**
@@ -225,6 +233,7 @@ exports.handler = async (event, context) => {
   try {
     // 检查环境变量
     if (!MONGO_URI) {
+      console.error('[ERROR] MONGO_URI 环境变量未设置');
       return {
         statusCode: 500,
         headers,
@@ -238,21 +247,33 @@ exports.handler = async (event, context) => {
     // 获取查询参数
     const queryParams = event.queryStringParameters || {};
     const dbVersion = queryParams.dbVersion || 'v1';
+    const debug = queryParams.debug === 'true';
+
+    console.log(`[INFO] 请求参数 - dbVersion: ${dbVersion}, debug: ${debug}`);
 
     // 确定数据库名称
     const DB_NAME = dbVersion === 'v2' ? 'agentworks_db' : 'kol_data';
+    console.log(`[INFO] 使用数据库: ${DB_NAME}`);
 
     // 连接数据库
     const dbClient = await connectToDatabase();
     const db = dbClient.db(DB_NAME);
 
+    // 【调试】列出所有集合
+    if (debug) {
+      const collections = await db.listCollections().toArray();
+      console.log('[DEBUG] 数据库中的集合:', collections.map(c => c.name));
+    }
+
     // 根据版本调用对应的统计函数
     let stats;
     if (dbVersion === 'v2') {
-      stats = await getV2Stats(db);
+      stats = await getV2Stats(db, debug);
     } else {
       stats = await getV1Stats(db);
     }
+
+    console.log('[INFO] 统计完成，返回结果');
 
     // 返回统计结果
     return {
@@ -267,14 +288,16 @@ exports.handler = async (event, context) => {
     };
 
   } catch (error) {
-    console.error('统计数据时发生错误:', error);
+    console.error('[ERROR] 统计数据时发生错误:', error);
+    console.error('[ERROR] 错误堆栈:', error.stack);
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({
         success: false,
         message: '服务器内部错误',
-        error: error.message
+        error: error.message,
+        stack: error.stack
       })
     };
   }
