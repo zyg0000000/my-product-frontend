@@ -1,9 +1,15 @@
 /**
  * @file updateTalentRebate.js
- * @version 1.0.0
+ * @version 1.1.0
  * @description 云函数：更新达人返点配置
  *
  * --- 更新日志 ---
+ * [v1.1.0] 2025-11-15
+ * - 修复：effectiveDate 和 expiryDate 使用当前时间戳而不是日期字符串
+ * - 修复：忽略前端传来的 effectiveDate，强制使用当前实际时间
+ * - 优化：实现 expiryDate 自动管理，将旧配置标记为 expired
+ * - 优化：移除 reason 参数
+ *
  * [v1.0.0] 2025-11-15
  * - 初始版本
  * - 支持手动调整野生达人返点
@@ -83,9 +89,9 @@ async function updateTalentRebate(params) {
     throw new Error(`达人不存在: oneId=${oneId}, platform=${platform}`);
   }
 
-  // 确定生效时间（使用时间戳，精确到毫秒）
+  // 确定生效时间（立即生效时始终使用当前时间，忽略前端传值）
   const now = new Date();
-  const finalEffectiveDate = effectiveDate ? new Date(effectiveDate) : now;
+  const finalEffectiveDate = now;  // 强制使用当前时间戳，精确到毫秒
 
   // 根据生效类型处理
   if (effectType === 'immediate') {

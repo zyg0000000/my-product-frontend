@@ -32,7 +32,6 @@ export function UpdateRebateModal({
 }: UpdateRebateModalProps) {
   const [rebateRate, setRebateRate] = useState<string>('');
   const [effectType, setEffectType] = useState<EffectType>('immediate');
-  const [effectiveDate, setEffectiveDate] = useState<string>('');
   const [createdBy, setCreatedBy] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
@@ -42,7 +41,6 @@ export function UpdateRebateModal({
       // 初始化表单
       setRebateRate(currentRate.toString());
       setEffectType('immediate');
-      setEffectiveDate(new Date().toISOString().split('T')[0]);
       setCreatedBy('');
       setError('');
     }
@@ -60,12 +58,6 @@ export function UpdateRebateModal({
       return;
     }
 
-    // 验证生效日期（下次合作生效时必填）
-    if (effectType === 'next_cooperation' && !effectiveDate) {
-      setError('下次合作生效时必须指定生效日期');
-      return;
-    }
-
     try {
       setLoading(true);
 
@@ -74,7 +66,6 @@ export function UpdateRebateModal({
         platform,
         rebateRate: rateNum,
         effectType,
-        effectiveDate: effectiveDate || undefined,
         createdBy: createdBy || undefined,
       };
 
@@ -189,23 +180,6 @@ export function UpdateRebateModal({
                   </div>
                 </label>
               </div>
-            </div>
-
-            {/* 生效日期 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                生效日期
-              </label>
-              <input
-                type="date"
-                value={effectiveDate}
-                onChange={(e) => setEffectiveDate(e.target.value)}
-                disabled
-                className="input mt-1 bg-gray-50 cursor-not-allowed"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                立即生效，默认为当天
-              </p>
             </div>
 
             {/* 操作人 */}

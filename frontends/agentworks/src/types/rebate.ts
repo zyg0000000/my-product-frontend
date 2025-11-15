@@ -92,7 +92,6 @@ export interface UpdateRebateRequest {
   platform: Platform;         // 平台名称
   rebateRate: number;         // 新返点率（0-100，最多2位小数）
   effectType: EffectType;     // 生效方式
-  effectiveDate?: string;     // 生效时间（ISO 8601，默认当前时间）
   createdBy?: string;         // 操作人（默认 system）
 }
 
