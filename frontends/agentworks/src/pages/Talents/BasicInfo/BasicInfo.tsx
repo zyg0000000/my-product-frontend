@@ -30,17 +30,20 @@ export function BasicInfo() {
     try {
       setLoading(true);
       const response = await getTalents({ platform: selectedPlatform });
+      console.log('📊 API Response:', response); // 调试日志
       if (response.success && response.data) {
         // 确保 data 总是数组
         const talentsData = Array.isArray(response.data)
           ? response.data
           : [response.data];
+        console.log('✅ Talents Data:', talentsData); // 调试日志
         setTalents(talentsData);
       } else {
+        console.warn('⚠️ No data in response:', response); // 调试日志
         setTalents([]);
       }
     } catch (error) {
-      console.error('加载达人列表失败:', error);
+      console.error('❌ 加载达人列表失败:', error);
       setTalents([]);
     } finally {
       setLoading(false);
@@ -140,7 +143,7 @@ export function BasicInfo() {
 
                   return (
                     <tr
-                      key={talent._id}
+                      key={`${talent.oneId}-${talent.platform}`}
                       className="hover:bg-gray-50 cursor-pointer"
                       onClick={() =>
                         navigate(`/talents/${talent.oneId}/${talent.platform}`)

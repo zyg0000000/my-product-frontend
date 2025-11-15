@@ -140,7 +140,7 @@ export function TalentList() {
 
                   return (
                     <tr
-                      key={talent._id}
+                      key={`${talent.oneId}-${talent.platform}`}
                       className="hover:bg-gray-50 cursor-pointer"
                       onClick={() =>
                         navigate(`/talents/${talent.oneId}/${talent.platform}`)
