@@ -196,12 +196,6 @@ export function RebateManagementModal({
                                       </>
                                     )}
                                   </p>
-                                  {record.reason && (
-                                    <p className="text-gray-600">
-                                      <span className="font-medium">调整原因：</span>
-                                      {record.reason}
-                                    </p>
-                                  )}
                                   <p className="text-gray-500 text-xs">
                                     操作人：{record.createdBy} · 创建时间：
                                     {new Date(record.createdAt).toLocaleString('zh-CN')}
