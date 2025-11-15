@@ -65,7 +65,7 @@ Build output directory: dist
 
 | 变量名 | 值 | 用途 |
 |--------|-----|------|
-| `VITE_API_BASE_URL` | `https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com` | API 服务器地址 |
+| `VITE_API_BASE_URL` | `https://sd4c5lst6qlgb4inv1glg.apigateway-cn-shanghai.volceapi.com` | API 服务器地址 |
 | `NODE_VERSION` | `20` | Node.js 版本（**必需**，Vite 7.x 要求 20.19+） |
 
 ### 步骤 6：开始部署
