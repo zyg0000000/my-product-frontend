@@ -192,9 +192,9 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
                         {priceTypes.map((pt) => {
                           const price = history.prices[pt.key];
                           return (
-                            <div key={pt.key} className="flex items-center justify-between text-xs">
+                            <div key={pt.key} className="flex items-center gap-2 text-xs">
                               <span
-                                className="inline-flex items-center rounded-md px-2 py-0.5 font-semibold"
+                                className="inline-flex items-center justify-center rounded-md px-2 py-0.5 font-semibold w-16"
                                 style={{
                                   backgroundColor: pt.bgColor,
                                   color: pt.textColor,
