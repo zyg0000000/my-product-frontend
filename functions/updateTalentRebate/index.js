@@ -87,27 +87,49 @@ async function updateTalentRebate(params) {
   const now = new Date();
   const finalEffectiveDate = effectiveDate || now.toISOString().split('T')[0];
 
-  // 创建返点配置记录
-  const configId = generateConfigId();
-  const configData = {
-    configId,
-    targetType: 'talent',
-    targetId: oneId,
-    platform,
-    rebateRate: validatedRate,
-    effectType,
-    effectiveDate: finalEffectiveDate,
-    expiryDate: null,
-    status: effectType === 'immediate' ? 'active' : 'pending',
-    createdBy: createdBy || 'system',
-    createdAt: now
-  };
-
-  await rebateConfigsCollection.insertOne(configData);
-
   // 根据生效类型处理
   if (effectType === 'immediate') {
-    // 立即生效：更新达人的当前返点
+    // 立即生效：先将旧的 active 配置标记为 expired
+    const oldActiveConfig = await rebateConfigsCollection.findOne({
+      targetType: 'talent',
+      targetId: oneId,
+      platform,
+      status: 'active'
+    });
+
+    if (oldActiveConfig) {
+      // 将旧配置标记为 expired，设置失效日期为新配置的生效日期
+      await rebateConfigsCollection.updateOne(
+        { _id: oldActiveConfig._id },
+        {
+          $set: {
+            status: 'expired',
+            expiryDate: finalEffectiveDate,
+            updatedAt: now
+          }
+        }
+      );
+    }
+
+    // 创建新的返点配置记录
+    const configId = generateConfigId();
+    const configData = {
+      configId,
+      targetType: 'talent',
+      targetId: oneId,
+      platform,
+      rebateRate: validatedRate,
+      effectType,
+      effectiveDate: finalEffectiveDate,
+      expiryDate: null,
+      status: 'active',
+      createdBy: createdBy || 'system',
+      createdAt: now
+    };
+
+    await rebateConfigsCollection.insertOne(configData);
+
+    // 更新达人的当前返点
     await talentsCollection.updateOne(
       { oneId, platform },
       {
@@ -128,6 +150,23 @@ async function updateTalentRebate(params) {
       effectiveDate: finalEffectiveDate
     };
   } else {
+    // 下次合作生效：创建待生效配置
+    const configId = generateConfigId();
+    const configData = {
+      configId,
+      targetType: 'talent',
+      targetId: oneId,
+      platform,
+      rebateRate: validatedRate,
+      effectType,
+      effectiveDate: finalEffectiveDate,
+      expiryDate: null,
+      status: 'pending',
+      createdBy: createdBy || 'system',
+      createdAt: now
+    };
+
+    await rebateConfigsCollection.insertOne(configData);
     // 下次合作生效：创建待生效配置
     return {
       configId,
