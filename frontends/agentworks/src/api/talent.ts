@@ -2,7 +2,7 @@
  * 达人相关 API
  */
 
-import { post, put, del } from './client';
+import { get, post, put, del } from './client';
 import type { Talent, Platform, ApiResponse } from '../types/talent';
 
 /**
@@ -20,7 +20,7 @@ export interface GetTalentsParams {
 export async function getTalents(
   params?: GetTalentsParams
 ): Promise<ApiResponse<Talent[]>> {
-  return post('/getTalents', params);
+  return get('/talents', params);
 }
 
 /**
@@ -30,7 +30,7 @@ export async function getTalentDetail(
   oneId: string,
   platform: Platform
 ): Promise<ApiResponse<Talent>> {
-  return post('/getTalents', {
+  return get('/talents', {
     oneId,
     platform,
   });
@@ -48,7 +48,7 @@ export interface UpdateTalentData {
 export async function updateTalent(
   data: UpdateTalentData
 ): Promise<ApiResponse<void>> {
-  return put('/updateTalent', data);
+  return put('/update-talent', data);
 }
 
 /**
@@ -58,7 +58,7 @@ export async function deleteTalent(
   oneId: string,
   platform: Platform
 ): Promise<ApiResponse<void>> {
-  return del('/deleteTalent', {
+  return del('/delete-talent', {
     oneId,
     platform,
   });
@@ -70,7 +70,7 @@ export async function deleteTalent(
 export async function deleteTalentAll(
   oneId: string
 ): Promise<ApiResponse<void>> {
-  return del('/deleteTalent', {
+  return del('/delete-talent', {
     oneId,
     deleteAll: true,
   });
@@ -90,5 +90,5 @@ export interface CreateTalentData {
 export async function createTalent(
   data: CreateTalentData
 ): Promise<ApiResponse<Talent>> {
-  return post('/processTalents', data);
+  return post('/talents', data);
 }

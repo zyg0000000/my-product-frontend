@@ -31,10 +31,17 @@ export function TalentList() {
       setLoading(true);
       const response = await getTalents({ platform: selectedPlatform });
       if (response.success && response.data) {
-        setTalents(response.data);
+        // 确保 data 总是数组
+        const talentsData = Array.isArray(response.data)
+          ? response.data
+          : [response.data];
+        setTalents(talentsData);
+      } else {
+        setTalents([]);
       }
     } catch (error) {
       console.error('加载达人列表失败:', error);
+      setTalents([]);
     } finally {
       setLoading(false);
     }
@@ -133,7 +140,7 @@ export function TalentList() {
 
                   return (
                     <tr
-                      key={talent._id}
+                      key={`${talent.oneId}-${talent.platform}`}
                       className="hover:bg-gray-50 cursor-pointer"
                       onClick={() =>
                         navigate(`/talents/${talent.oneId}/${talent.platform}`)

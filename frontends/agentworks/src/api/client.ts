@@ -59,22 +59,26 @@ export async function get<T>(
 ): Promise<T> {
   let url = endpoint;
 
-  if (params) {
-    const queryString = new URLSearchParams(
-      Object.entries(params).reduce(
-        (acc, [key, value]) => {
-          if (value !== undefined && value !== null && value !== '') {
-            acc[key] = String(value);
-          }
-          return acc;
-        },
-        {} as Record<string, string>
-      )
-    ).toString();
+  // 合并 dbVersion 到参数中
+  const allParams = {
+    dbVersion: DB_VERSION,
+    ...params,
+  };
 
-    if (queryString) {
-      url += `?${queryString}`;
-    }
+  const queryString = new URLSearchParams(
+    Object.entries(allParams).reduce(
+      (acc, [key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          acc[key] = String(value);
+        }
+        return acc;
+      },
+      {} as Record<string, string>
+    )
+  ).toString();
+
+  if (queryString) {
+    url += `?${queryString}`;
   }
 
   return apiRequest<T>(url, {

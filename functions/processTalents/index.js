@@ -47,6 +47,14 @@ async function generateNextOneId(db) {
     }
   );
 
+  // 处理首次插入或 result.value 为 null 的情况
+  if (!result.value || !result.value.sequence_value) {
+    // 如果 findOneAndUpdate 没有返回值，手动查询
+    const counter = await db.collection('counters').findOne({ _id: 'talent_oneId' });
+    const seqValue = counter ? counter.sequence_value : 1;
+    return `talent_${String(seqValue).padStart(8, '0')}`;
+  }
+
   const seqValue = result.value.sequence_value;
   return `talent_${String(seqValue).padStart(8, '0')}`;
 }
@@ -158,8 +166,10 @@ async function handleV2Process(db, talentsToProcess, headers) {
         fansCount: talent.fansCount,
         talentType: talent.talentType || [],
         talentTier: talent.talentTier,
-        prices: talent.prices || {},
-        rebate: talent.rebate,
+        agencyId: talent.agencyId,
+        defaultRebate: talent.defaultRebate,
+        prices: talent.prices || [],
+        rebates: talent.rebates || [],
         platformSpecific: talent.platformSpecific || {},
         performanceData: talent.performanceData || {},
         schedules: talent.schedules || [],
@@ -215,13 +225,14 @@ async function handleV2Process(db, talentsToProcess, headers) {
 exports.handler = async (event, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Cache-Control, Pragma, Authorization, X-Requested-With',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Max-Age': '86400',
     'Content-Type': 'application/json'
   };
 
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 204, headers, body: '' };
+    return { statusCode: 200, headers, body: '' };
   }
 
   try {

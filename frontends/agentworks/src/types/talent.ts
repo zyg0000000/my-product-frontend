@@ -31,6 +31,8 @@ export interface PriceTypeConfig {
   key: PriceType;
   label: string;
   required: boolean;
+  bgColor: string;
+  textColor: string;
 }
 
 /**
@@ -38,14 +40,13 @@ export interface PriceTypeConfig {
  */
 export const PLATFORM_PRICE_TYPES: Record<Platform, PriceTypeConfig[]> = {
   douyin: [
-    { key: 'video_60plus', label: '60s+ 长视频', required: true },
-    { key: 'video_20to60', label: '20-60s 中视频', required: true },
-    { key: 'video_1to20', label: '1-20s 短视频', required: true },
-    { key: 'live', label: '直播', required: true },
+    { key: 'video_60plus', label: '60s+', required: true, bgColor: '#dbeafe', textColor: '#1e40af' },
+    { key: 'video_20to60', label: '20-60s', required: true, bgColor: '#e0e7ff', textColor: '#4338ca' },
+    { key: 'video_1to20', label: '1-20s', required: true, bgColor: '#ddd6fe', textColor: '#6b21a8' },
   ],
   xiaohongshu: [
-    { key: 'video', label: '视频笔记', required: true },
-    { key: 'image', label: '图文笔记', required: true },
+    { key: 'video', label: '视频笔记', required: true, bgColor: '#fce7f3', textColor: '#9f1239' },
+    { key: 'image', label: '图文笔记', required: true, bgColor: '#fee2e2', textColor: '#991b1b' },
   ],
   bilibili: [],
   kuaishou: [],
@@ -101,15 +102,21 @@ export interface OneIdHistoryRecord {
  */
 export interface PlatformSpecific {
   // 抖音特有
-  xingtuId?: string;
-  starLevel?: number;
+  xingtuId?: string;    // 星图ID（也可以作为 platformAccountId）
+  uid?: string;         // 抖音UID
+  starLevel?: number;   // 星图等级
 
-  // 小红书特有
+  // 小红书特有（字段名后续确定）
+  xiaohongshuId?: string;      // 小红书ID（预留）
+  dandelionId?: string;        // 蒲公英ID（预留）
   mcnName?: string;
   contentTags?: string[];
 
   // B站特有
   upLevel?: string;
+
+  // 快手特有
+  kuaishouId?: string;
 }
 
 /**
@@ -125,6 +132,8 @@ export interface Talent {
   fansCount?: number;
   talentType?: string[];
   talentTier?: TalentTier;
+  agencyId?: string; // ⭐ 新增：机构ID
+  defaultRebate?: number; // ⭐ 新增：达人默认返点（%），优先级高于机构返点，作为新增合作时的参考值
   prices: PriceRecord[];
   rebates: RebateRecord[];
   platformSpecific?: PlatformSpecific;
@@ -167,6 +176,11 @@ export interface TalentListItem {
   name: string;
   avatar?: string;
   fansCount?: number;
+  agencyId?: string; // ⭐ 新增：机构ID
+  agencyName?: string; // ⭐ 新增：机构名称（前端展示用）
+  defaultRebate?: number; // ⭐ 新增：达人默认返点
+  currentRebate?: number; // ⭐ 新增：当前返点（计算后的值）
+  rebateSource?: 'default' | 'agency' | 'system'; // ⭐ 新增：返点来源
   latestPrices: Partial<Record<PriceType, number>>; // 最新月份的价格
   latestRebate?: number; // 最新月份的返点
   status: TalentStatus;

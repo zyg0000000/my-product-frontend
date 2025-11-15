@@ -7,6 +7,7 @@ import {
   UsersIcon,
   FolderIcon,
   ChartBarIcon,
+  BuildingOfficeIcon,
 } from '@heroicons/react/24/outline';
 
 export function Home() {
@@ -19,6 +20,13 @@ export function Home() {
       icon: UsersIcon,
       path: '/talents',
       color: 'bg-blue-500',
+    },
+    {
+      name: '客户管理',
+      description: '管理客户信息和合作关系',
+      icon: BuildingOfficeIcon,
+      path: '/clients',
+      color: 'bg-orange-500',
     },
     {
       name: '项目管理',
@@ -49,7 +57,7 @@ export function Home() {
       {/* 快速操作 */}
       <div>
         <h2 className="text-lg font-semibold text-gray-900">快速操作</h2>
-        <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid gap-6 grid-cols-1 sm:grid-cols-2">
           {quickActions.map(action => (
             <button
               key={action.path}
@@ -68,67 +76,78 @@ export function Home() {
         </div>
       </div>
 
-      {/* 系统信息 */}
+      {/* 近期功能更新 */}
       <div className="card">
-        <h2 className="text-lg font-semibold text-gray-900">系统信息</h2>
-        <div className="mt-4 space-y-3">
-          <div className="flex justify-between">
-            <span className="text-gray-600">版本</span>
-            <span className="font-medium text-gray-900">v2.0</span>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">近期功能更新</h2>
+          <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
+            v2.0
+          </span>
+        </div>
+        <div className="mt-6 space-y-4">
+          <div className="border-l-4 border-blue-500 bg-blue-50 p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-white">
+                  <span className="text-xs font-bold">新</span>
+                </div>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-900">
+                    侧边栏折叠功能
+                  </h3>
+                  <span className="text-xs text-gray-500">2025-11-14</span>
+                </div>
+                <p className="mt-1 text-sm text-gray-600">
+                  新增侧边栏折叠按钮，优化页面空间利用，提升用户体验
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">数据库</span>
-            <span className="font-medium text-gray-900">
-              agentworks_db (v2)
-            </span>
+
+          <div className="border-l-4 border-green-500 bg-green-50 p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white">
+                  <span className="text-xs font-bold">优</span>
+                </div>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-900">
+                    达人管理模块重构
+                  </h3>
+                  <span className="text-xs text-gray-500">2025-11-14</span>
+                </div>
+                <p className="mt-1 text-sm text-gray-600">
+                  优化达人管理结构，新增基础信息二级页面，提供更清晰的信息层级
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">支持平台</span>
-            <span className="font-medium text-gray-900">
-              抖音、小红书、B站、快手
-            </span>
+
+          <div className="border-l-4 border-purple-500 bg-purple-50 p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-500 text-white">
+                  <span className="text-xs font-bold">✓</span>
+                </div>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-900">
+                    多平台达人统一管理
+                  </h3>
+                  <span className="text-xs text-gray-500">2025-11-11</span>
+                </div>
+                <p className="mt-1 text-sm text-gray-600">
+                  支持抖音、小红书、B站、快手等多平台，oneId跨平台关联功能上线
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* 功能特性 */}
-      <div className="card">
-        <h2 className="text-lg font-semibold text-gray-900">核心特性</h2>
-        <ul className="mt-4 space-y-3">
-          <li className="flex items-start gap-3">
-            <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-600">
-              ✓
-            </span>
-            <div>
-              <p className="font-medium text-gray-900">多平台统一管理</p>
-              <p className="text-sm text-gray-500">
-                支持抖音、小红书、B站等多个平台
-              </p>
-            </div>
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-600">
-              ✓
-            </span>
-            <div>
-              <p className="font-medium text-gray-900">价格和返点历史追溯</p>
-              <p className="text-sm text-gray-500">
-                支持按月记录价格和返点变化历史
-              </p>
-            </div>
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-600">
-              ✓
-            </span>
-            <div>
-              <p className="font-medium text-gray-900">oneId 跨平台关联</p>
-              <p className="text-sm text-gray-500">
-                同一达人在不同平台自动关联
-              </p>
-            </div>
-          </li>
-        </ul>
       </div>
     </div>
   );

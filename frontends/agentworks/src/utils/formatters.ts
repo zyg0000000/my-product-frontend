@@ -68,6 +68,7 @@ export function getPricesByMonth(
   year: number,
   month: number
 ): PriceRecord[] {
+  if (!prices) return [];
   return prices.filter(p => p.year === year && p.month === month);
 }
 
@@ -77,7 +78,7 @@ export function getPricesByMonth(
  * @returns 最新月份的价格记录数组
  */
 export function getLatestPrices(prices: PriceRecord[]): PriceRecord[] {
-  if (prices.length === 0) return [];
+  if (!prices || prices.length === 0) return [];
 
   // 按 year 和 month 降序排序
   const sorted = [...prices].sort((a, b) => {
@@ -113,7 +114,7 @@ export function getLatestPricesMap(
  * @returns 最新返点率，如果没有则返回 undefined
  */
 export function getLatestRebate(rebates: RebateRecord[]): number | undefined {
-  if (rebates.length === 0) return undefined;
+  if (!rebates || rebates.length === 0) return undefined;
 
   const sorted = [...rebates].sort((a, b) => {
     if (a.year !== b.year) return b.year - a.year;
@@ -136,7 +137,7 @@ export interface PriceHistory {
 }
 
 export function getPriceHistory(prices: PriceRecord[]): PriceHistory[] {
-  if (prices.length === 0) return [];
+  if (!prices || prices.length === 0) return [];
 
   // 获取所有唯一的年月组合
   const yearMonths = Array.from(
@@ -178,6 +179,7 @@ export function getPriceHistory(prices: PriceRecord[]): PriceHistory[] {
  * @returns 按月份排序的返点历史（最新在前）
  */
 export function getRebateHistory(rebates: RebateRecord[]): RebateRecord[] {
+  if (!rebates) return [];
   return [...rebates].sort((a, b) => {
     if (a.year !== b.year) return b.year - a.year;
     return b.month - a.month;
