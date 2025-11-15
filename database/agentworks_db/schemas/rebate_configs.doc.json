@@ -59,20 +59,18 @@
             "comment": "immediate=立即生效, next_cooperation=下次合作生效"
         },
         "effectiveDate": {
-            "type": "String",
-            "description": "生效日期（YYYY-MM-DD）",
+            "type": "Date",
+            "description": "生效时间（ISO 8601 时间戳）",
             "required": true,
-            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
-            "example": "2025-01-15",
-            "comment": "返点开始生效的日期"
+            "example": "2025-01-15T10:30:00.000Z",
+            "comment": "返点开始生效的精确时间，使用 ISO 8601 格式"
         },
         "expiryDate": {
-            "type": "String",
-            "description": "失效日期（YYYY-MM-DD）",
+            "type": "Date",
+            "description": "失效时间（ISO 8601 时间戳）",
             "required": false,
             "default": null,
-            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
-            "example": "2025-12-31",
+            "example": "2025-01-15T14:20:00.000Z",
             "comment": "null 表示当前生效中，被新配置替代时自动设置为新配置的 effectiveDate"
         },
         "status": {
@@ -175,10 +173,9 @@
                 "platform": "douyin",
                 "rebateRate": 22.50,
                 "effectType": "immediate",
-                "effectiveDate": "2025-01-15",
+                "effectiveDate": "2025-01-15T10:30:00.000Z",
                 "expiryDate": null,
                 "status": "active",
-                "reason": "合作表现优秀，提升返点",
                 "createdBy": "admin_user_id",
                 "createdAt": "2025-01-15T10:30:00.000Z",
                 "updatedAt": null
@@ -193,17 +190,16 @@
                 "platform": "douyin",
                 "rebateRate": 25.00,
                 "effectType": "next_cooperation",
-                "effectiveDate": "2025-02-01",
+                "effectiveDate": "2025-02-01T00:00:00.000Z",
                 "expiryDate": null,
                 "status": "pending",
-                "reason": "长期合作奖励",
                 "createdBy": "admin_user_id",
                 "createdAt": "2025-01-15T10:30:00.000Z",
                 "updatedAt": null
             }
         },
         {
-            "description": "示例3：已失效的返点配置（被新配置替代）",
+            "description": "示例3：已失效的返点配置（被新配置替代，同一天内多次调整）",
             "data": {
                 "configId": "rebate_config_1736928000000_def456",
                 "targetType": "talent",
@@ -211,12 +207,11 @@
                 "platform": "douyin",
                 "rebateRate": 20.00,
                 "effectType": "immediate",
-                "effectiveDate": "2025-01-01",
-                "expiryDate": "2025-01-15",
+                "effectiveDate": "2025-01-15T08:00:00.000Z",
+                "expiryDate": "2025-01-15T10:30:00.000Z",
                 "status": "expired",
-                "reason": "初始配置",
                 "createdBy": "system",
-                "createdAt": "2025-01-01T00:00:00.000Z",
+                "createdAt": "2025-01-15T08:00:00.000Z",
                 "updatedAt": "2025-01-15T10:30:00.000Z"
             }
         }

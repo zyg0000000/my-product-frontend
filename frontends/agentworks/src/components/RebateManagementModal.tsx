@@ -186,13 +186,13 @@ export function RebateManagementModal({
 
                                 <div className="mt-2 space-y-1 text-sm">
                                   <p className="text-gray-600">
-                                    <span className="font-medium">生效日期：</span>
-                                    {record.effectiveDate}
+                                    <span className="font-medium">生效时间：</span>
+                                    {new Date(record.effectiveDate).toLocaleString('zh-CN')}
                                     {record.expiryDate && (
                                       <>
                                         {' → '}
-                                        <span className="font-medium">失效日期：</span>
-                                        {record.expiryDate}
+                                        <span className="font-medium">失效时间：</span>
+                                        {new Date(record.expiryDate).toLocaleString('zh-CN')}
                                       </>
                                     )}
                                   </p>

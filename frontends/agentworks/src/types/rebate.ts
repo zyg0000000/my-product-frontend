@@ -59,8 +59,8 @@ export interface RebateConfig {
   platform: Platform;        // 平台
   rebateRate: number;        // 返点率（百分比，2位小数）
   effectType: EffectType;    // 生效方式
-  effectiveDate: string;     // 生效日期 (YYYY-MM-DD)
-  expiryDate: string | null; // 失效日期 (YYYY-MM-DD)，null 表示永久
+  effectiveDate: string;     // 生效时间 (ISO 8601 时间戳)
+  expiryDate: string | null; // 失效时间 (ISO 8601 时间戳)，null 表示当前生效中
   status: RebateStatus;      // 状态
   reason?: string;           // 调整原因
   createdBy: string;         // 操作人
@@ -92,8 +92,7 @@ export interface UpdateRebateRequest {
   platform: Platform;         // 平台名称
   rebateRate: number;         // 新返点率（0-100，最多2位小数）
   effectType: EffectType;     // 生效方式
-  effectiveDate?: string;     // 生效日期（YYYY-MM-DD，默认当天）
-  reason?: string;            // 调整原因
+  effectiveDate?: string;     // 生效时间（ISO 8601，默认当前时间）
   createdBy?: string;         // 操作人（默认 system）
 }
 

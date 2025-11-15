@@ -83,9 +83,9 @@ async function updateTalentRebate(params) {
     throw new Error(`达人不存在: oneId=${oneId}, platform=${platform}`);
   }
 
-  // 确定生效日期
+  // 确定生效时间（使用时间戳，精确到毫秒）
   const now = new Date();
-  const finalEffectiveDate = effectiveDate || now.toISOString().split('T')[0];
+  const finalEffectiveDate = effectiveDate ? new Date(effectiveDate) : now;
 
   // 根据生效类型处理
   if (effectType === 'immediate') {
@@ -136,7 +136,7 @@ async function updateTalentRebate(params) {
         $set: {
           'currentRebate.rate': validatedRate,
           'currentRebate.source': 'personal',
-          'currentRebate.effectiveDate': finalEffectiveDate,
+          'currentRebate.effectiveDate': finalEffectiveDate.toISOString().split('T')[0], // talents 集合保持日期格式
           'currentRebate.lastUpdated': now
         }
       }
@@ -147,7 +147,7 @@ async function updateTalentRebate(params) {
       message: '返点率已立即更新',
       newRate: validatedRate,
       effectType: 'immediate',
-      effectiveDate: finalEffectiveDate
+      effectiveDate: finalEffectiveDate.toISOString()
     };
   } else {
     // 下次合作生效：创建待生效配置
@@ -173,7 +173,7 @@ async function updateTalentRebate(params) {
       message: '返点率将在下次合作时生效',
       newRate: validatedRate,
       effectType: 'next_cooperation',
-      effectiveDate: finalEffectiveDate,
+      effectiveDate: finalEffectiveDate.toISOString(),
       status: 'pending'
     };
   }
