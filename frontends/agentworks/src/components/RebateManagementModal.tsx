@@ -248,6 +248,7 @@ export function RebateManagementModal({
                     </div>
                   )}
                 </div>
+                )}
               </div>
             ) : (
               <div className="py-12 text-center text-gray-500">
