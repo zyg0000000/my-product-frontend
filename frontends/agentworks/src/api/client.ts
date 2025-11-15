@@ -2,31 +2,11 @@
  * API 客户端配置
  */
 
-// 旧 API Gateway（大部分函数）
-const LEGACY_API_BASE_URL = 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com';
-
-// 新 API Gateway（新函数）
-const NEW_API_BASE_URL = 'https://sd4c5lst6qlgb4inv1glg.apigateway-cn-shanghai.volceapi.com';
-
-// 新 Gateway 上的接口列表
-const NEW_GATEWAY_ENDPOINTS = [
-  '/getTalentStats',
-  // 未来迁移的接口逐步添加到这里
-];
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com';
 
 const DB_VERSION = 'v2'; // 使用 v2 数据库（agentworks_db）
-
-/**
- * 根据 endpoint 选择合适的 API Gateway
- */
-function getApiBaseUrl(endpoint: string): string {
-  // 检查是否在新 Gateway 的接口列表中
-  if (NEW_GATEWAY_ENDPOINTS.some(e => endpoint.startsWith(e))) {
-    return NEW_API_BASE_URL;
-  }
-  // 默认使用旧 Gateway
-  return LEGACY_API_BASE_URL;
-}
 
 /**
  * 通用请求函数
@@ -35,8 +15,7 @@ export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const baseUrl = getApiBaseUrl(endpoint);
-  const url = `${baseUrl}${endpoint}`;
+  const url = `${API_BASE_URL}${endpoint}`;
 
   const defaultHeaders = {
     'Content-Type': 'application/json',
