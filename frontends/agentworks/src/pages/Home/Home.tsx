@@ -7,6 +7,7 @@ import {
   UsersIcon,
   FolderIcon,
   ChartBarIcon,
+  BuildingOfficeIcon,
 } from '@heroicons/react/24/outline';
 
 export function Home() {
@@ -19,6 +20,13 @@ export function Home() {
       icon: UsersIcon,
       path: '/talents/basic',
       color: 'bg-blue-500',
+    },
+    {
+      name: '客户管理',
+      description: '管理客户信息和合作关系',
+      icon: BuildingOfficeIcon,
+      path: '/clients',
+      color: 'bg-orange-500',
     },
     {
       name: '项目管理',
@@ -49,7 +57,7 @@ export function Home() {
       {/* 快速操作 */}
       <div>
         <h2 className="text-lg font-semibold text-gray-900">快速操作</h2>
-        <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid gap-6 grid-cols-1 sm:grid-cols-2">
           {quickActions.map(action => (
             <button
               key={action.path}

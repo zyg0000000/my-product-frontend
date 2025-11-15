@@ -26,6 +26,10 @@ function App() {
 
           {/* 其他模块 */}
           <Route
+            path="clients"
+            element={<div className="card">客户管理（开发中）</div>}
+          />
+          <Route
             path="projects"
             element={<div className="card">项目管理（开发中）</div>}
           />
