@@ -395,8 +395,8 @@ export function BasicInfo() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              // TODO: 打开返点管理弹窗
-                              console.log('管理返点:', talent.oneId);
+                              // 导航到达人详情页查看和管理返点
+                              navigate(`/talents/${talent.oneId}/${talent.platform}`);
                             }}
                             className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800 hover:bg-green-200 transition-colors"
                           >
