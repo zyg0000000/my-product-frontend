@@ -2,6 +2,7 @@
  * 达人管理模块首页
  */
 
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   InformationCircleIcon,
@@ -10,9 +11,43 @@ import {
   PlusCircleIcon,
   BuildingOffice2Icon,
 } from '@heroicons/react/24/outline';
+import { getTalentStats } from '../../api/stats';
 
 export function TalentsHome() {
   const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    totalTalents: 0,
+    douyin: 0,
+    xiaohongshu: 0,
+    bilibili: 0,
+    kuaishou: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  // 加载统计数据
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      setLoading(true);
+      const response = await getTalentStats();
+      if (response.success) {
+        setStats({
+          totalTalents: response.data.uniqueTalents,
+          douyin: response.data.platformStats.douyin,
+          xiaohongshu: response.data.platformStats.xiaohongshu,
+          bilibili: response.data.platformStats.bilibili,
+          kuaishou: response.data.platformStats.kuaishou,
+        });
+      }
+    } catch (error) {
+      console.error('加载统计数据失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const modules = [
     {
@@ -92,24 +127,33 @@ export function TalentsHome() {
       {/* 快速统计 */}
       <div className="card">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">快速统计</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-2xl font-bold text-gray-900">-</p>
-            <p className="text-sm text-gray-600 mt-1">总达人数</p>
+        {loading ? (
+          <div className="text-center py-8 text-gray-500">加载中...</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+              <p className="text-3xl font-bold text-blue-900">{stats.totalTalents}</p>
+              <p className="text-sm text-blue-700 mt-1 font-medium">总达人数</p>
+              <p className="text-xs text-blue-600 mt-0.5">按 OneID 去重</p>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+              <p className="text-2xl font-bold text-gray-900">{stats.douyin}</p>
+              <p className="text-sm text-gray-600 mt-1">抖音</p>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+              <p className="text-2xl font-bold text-gray-900">{stats.xiaohongshu}</p>
+              <p className="text-sm text-gray-600 mt-1">小红书</p>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+              <p className="text-2xl font-bold text-gray-900">{stats.bilibili}</p>
+              <p className="text-sm text-gray-600 mt-1">B站</p>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+              <p className="text-2xl font-bold text-gray-900">{stats.kuaishou}</p>
+              <p className="text-sm text-gray-600 mt-1">快手</p>
+            </div>
           </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-2xl font-bold text-gray-900">-</p>
-            <p className="text-sm text-gray-600 mt-1">抖音</p>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-2xl font-bold text-gray-900">-</p>
-            <p className="text-sm text-gray-600 mt-1">小红书</p>
-          </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-2xl font-bold text-gray-900">-</p>
-            <p className="text-sm text-gray-600 mt-1">B站</p>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* 快速操作 */}

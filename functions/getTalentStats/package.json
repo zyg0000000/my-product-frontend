@@ -1,0 +1,9 @@
+{
+  "name": "get-talent-stats",
+  "version": "1.0.0",
+  "description": "云函数：获取达人统计数据（v1/v2双版本支持），提供平台分布、状态分布、等级分布等多维度统计。",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^6.5.0"
+  }
+}
