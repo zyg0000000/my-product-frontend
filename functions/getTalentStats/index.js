@@ -220,7 +220,7 @@ exports.handler = async (event, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Cache-Control, Pragma, Authorization, X-Requested-With',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Max-Age': '86400',
     'Content-Type': 'application/json'
   };
@@ -244,10 +244,26 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // 获取查询参数
-    const queryParams = event.queryStringParameters || {};
-    const dbVersion = queryParams.dbVersion || 'v1';
-    const debug = queryParams.debug === 'true';
+    // 【兼容性】从多个来源读取参数
+    let params = {};
+
+    // 1. 从查询参数读取（GET 请求）
+    if (event.queryStringParameters) {
+      params = { ...params, ...event.queryStringParameters };
+    }
+
+    // 2. 从请求体读取（POST 请求）
+    if (event.body) {
+      try {
+        const bodyParams = JSON.parse(event.body);
+        params = { ...params, ...bodyParams };
+      } catch (e) {
+        console.log('[WARN] 解析 body 失败:', e.message);
+      }
+    }
+
+    const dbVersion = params.dbVersion || 'v2'; // 默认使用 v2
+    const debug = params.debug === 'true' || params.debug === true;
 
     console.log(`[INFO] 请求参数 - dbVersion: ${dbVersion}, debug: ${debug}`);
 

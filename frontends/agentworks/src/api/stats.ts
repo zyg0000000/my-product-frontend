@@ -2,7 +2,7 @@
  * 统计数据相关 API
  */
 
-import { get } from './client';
+import { post } from './client';
 
 /**
  * 统计数据响应类型
@@ -41,7 +41,8 @@ export interface TalentStatsResponse {
 
 /**
  * 获取达人统计数据
+ * 使用 POST 请求以避免 GET 查询参数限制
  */
 export async function getTalentStats(): Promise<TalentStatsResponse> {
-  return get('/getTalentStats');
+  return post('/getTalentStats', {});
 }
