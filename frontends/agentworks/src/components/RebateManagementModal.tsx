@@ -3,7 +3,6 @@
  */
 
 import { useState, useEffect } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
 import { getTalentRebate, getRebateHistory as fetchRebateHistory } from '../api/rebate';
 import type { Platform } from '../types/talent';
 import type { GetRebateResponse, RebateConfig } from '../types/rebate';
