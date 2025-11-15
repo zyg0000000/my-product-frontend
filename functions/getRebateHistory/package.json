@@ -1,0 +1,9 @@
+{
+  "name": "get-rebate-history",
+  "version": "1.0.0",
+  "description": "获取返点配置历史记录",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^6.5.0"
+  }
+}

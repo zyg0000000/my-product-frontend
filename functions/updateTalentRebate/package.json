@@ -1,0 +1,9 @@
+{
+  "name": "update-talent-rebate",
+  "version": "1.0.0",
+  "description": "更新达人返点配置",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^6.5.0"
+  }
+}
