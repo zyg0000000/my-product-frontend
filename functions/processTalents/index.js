@@ -47,6 +47,14 @@ async function generateNextOneId(db) {
     }
   );
 
+  // 处理首次插入或 result.value 为 null 的情况
+  if (!result.value || !result.value.sequence_value) {
+    // 如果 findOneAndUpdate 没有返回值，手动查询
+    const counter = await db.collection('counters').findOne({ _id: 'talent_oneId' });
+    const seqValue = counter ? counter.sequence_value : 1;
+    return `talent_${String(seqValue).padStart(8, '0')}`;
+  }
+
   const seqValue = result.value.sequence_value;
   return `talent_${String(seqValue).padStart(8, '0')}`;
 }
