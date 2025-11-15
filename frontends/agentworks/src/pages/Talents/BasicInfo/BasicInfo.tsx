@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getTalents } from '../../../api/talent';
+import { getTalents, updateTalent } from '../../../api/talent';
 import type { Talent, Platform, PriceRecord } from '../../../types/talent';
 import { PLATFORM_NAMES, PLATFORM_PRICE_TYPES } from '../../../types/talent';
 import {
@@ -78,9 +78,19 @@ export function BasicInfo() {
 
   // 保存价格
   const handleSavePrice = async (talentId: string, prices: PriceRecord[]) => {
+    if (!selectedTalent) return;
+
     try {
-      // TODO: 调用 API 更新价格
-      console.log('保存价格:', talentId, prices);
+      // 调用 API 更新价格
+      const response = await updateTalent({
+        oneId: talentId,
+        platform: selectedTalent.platform,
+        prices: prices,
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || response.message || '保存失败');
+      }
 
       // 更新本地状态
       setTalents((prevTalents) =>
@@ -92,6 +102,8 @@ export function BasicInfo() {
       alert('价格保存成功');
     } catch (error) {
       console.error('保存价格失败:', error);
+      const errorMessage = error instanceof Error ? error.message : '保存价格失败';
+      alert(errorMessage);
       throw error;
     }
   };
