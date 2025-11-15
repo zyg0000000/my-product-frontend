@@ -37,15 +37,19 @@ MONGO_URI=mongodb://your-mongodb-connection-string
 **查询参数**:
 | 参数名 | 类型 | 必填 | 默认值 | 说明 |
 |--------|------|------|--------|------|
-| dbVersion | string | 否 | v1 | 数据库版本，可选 `v1` 或 `v2` |
+| dbVersion | string | 否 | v2 | 数据库版本，可选 `v1` 或 `v2` |
+| debug | boolean | 否 | false | 调试模式，启用后输出详细日志 |
 
 **请求示例**:
 ```bash
 # v1 数据库统计（byteproject）
 GET https://your-api-gateway.com/getTalentStats?dbVersion=v1
 
-# v2 数据库统计（agentworks）
+# v2 数据库统计（agentworks，默认）
 GET https://your-api-gateway.com/getTalentStats?dbVersion=v2
+
+# 启用调试模式（排查问题时使用）
+GET https://your-api-gateway.com/getTalentStats?dbVersion=v2&debug=true
 ```
 
 ### 响应
@@ -144,7 +148,34 @@ if (response.success) {
 
 - mongodb: ^6.5.0
 
+## 日志说明
+
+### 正常模式（默认）
+- **最小日志输出**：正常请求不输出日志，减少云函数日志量
+- **仅记录错误**：只在发生错误时输出错误信息
+- **适用场景**：生产环境，频繁调用的接口
+
+### 调试模式（debug=true）
+- **详细日志**：输出完整的数据库查询过程和中间结果
+- **原始数据**：返回聚合管道的原始结果
+- **适用场景**：开发调试、问题排查
+
+**启用调试模式**：
+```bash
+GET /getTalentStats?debug=true
+```
+
 ## 版本历史
+
+### v1.0.2 (2025-11-15)
+- 精简日志输出，减少云函数日志量
+- 只在 debug 模式下输出详细日志
+- 生产环境不返回错误堆栈信息
+
+### v1.0.1 (2025-11-15)
+- 增加详细的调试日志
+- 添加原始数据返回（debug 模式）
+- 优化错误处理
 
 ### v1.0.0 (2025-11-15)
 - 初始版本

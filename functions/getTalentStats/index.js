@@ -1,9 +1,13 @@
 /**
  * @file getTalentStats.js
- * @version 1.0.1
+ * @version 1.0.2
  * @description 云函数：获取达人统计数据（v1/v2 双版本支持）
  *
  * --- 更新日志 ---
+ * [v1.0.2] 2025-11-15
+ * - 精简日志输出，减少云函数日志量
+ * - 只在 debug 模式下输出详细日志
+ *
  * [v1.0.1] 2025-11-15
  * - 增加详细的调试日志
  * - 添加原始数据返回（debug 模式）
@@ -88,12 +92,11 @@ async function getV1Stats(db) {
 async function getV2Stats(db, debug = false) {
   const talentsCollection = db.collection(TALENTS_COLLECTION);
 
-  // 【调试】先查询总数
-  const totalCount = await talentsCollection.countDocuments();
-  console.log(`[DEBUG] 数据库中总记录数: ${totalCount}`);
-
-  // 【调试】查询前 3 条记录
+  // 只在 debug 模式下输出详细日志
   if (debug) {
+    const totalCount = await talentsCollection.countDocuments();
+    console.log(`[DEBUG] 数据库中总记录数: ${totalCount}`);
+
     const sampleDocs = await talentsCollection.find().limit(3).toArray();
     console.log('[DEBUG] 示例文档:', JSON.stringify(sampleDocs, null, 2));
   }
@@ -148,13 +151,17 @@ async function getV2Stats(db, debug = false) {
   const result = await talentsCollection.aggregate(pipeline).toArray();
   const facetResult = result[0] || {};
 
-  console.log('[DEBUG] Facet 原始结果:', JSON.stringify(facetResult, null, 2));
+  if (debug) {
+    console.log('[DEBUG] Facet 原始结果:', JSON.stringify(facetResult, null, 2));
+  }
 
   // 格式化返回数据
   const totalRecords = facetResult.totalRecords?.[0]?.count || 0;
   const uniqueTalents = facetResult.uniqueTalents?.[0]?.count || 0;
 
-  console.log(`[DEBUG] 格式化后 - totalRecords: ${totalRecords}, uniqueTalents: ${uniqueTalents}`);
+  if (debug) {
+    console.log(`[DEBUG] 格式化后 - totalRecords: ${totalRecords}, uniqueTalents: ${uniqueTalents}`);
+  }
 
   // 平台统计
   const platformStats = {
@@ -164,16 +171,22 @@ async function getV2Stats(db, debug = false) {
     kuaishou: 0
   };
 
-  console.log('[DEBUG] platformDistribution:', facetResult.platformDistribution);
+  if (debug) {
+    console.log('[DEBUG] platformDistribution:', facetResult.platformDistribution);
+  }
 
   facetResult.platformDistribution?.forEach(item => {
-    console.log(`[DEBUG] 处理平台: ${item.platform}, 数量: ${item.count}`);
+    if (debug) {
+      console.log(`[DEBUG] 处理平台: ${item.platform}, 数量: ${item.count}`);
+    }
     if (item.platform in platformStats) {
       platformStats[item.platform] = item.count;
     }
   });
 
-  console.log('[DEBUG] 最终 platformStats:', platformStats);
+  if (debug) {
+    console.log('[DEBUG] 最终 platformStats:', platformStats);
+  }
 
   // 状态统计
   const statusStats = {};
@@ -204,6 +217,7 @@ async function getV2Stats(db, debug = false) {
 
   // 【调试模式】返回原始数据
   if (debug) {
+    const totalCount = await talentsCollection.countDocuments();
     stats._debug = {
       rawFacetResult: facetResult,
       totalCountFromDB: totalCount
@@ -258,18 +272,19 @@ exports.handler = async (event, context) => {
         const bodyParams = JSON.parse(event.body);
         params = { ...params, ...bodyParams };
       } catch (e) {
-        console.log('[WARN] 解析 body 失败:', e.message);
+        // 静默处理 body 解析失败，不输出日志
       }
     }
 
     const dbVersion = params.dbVersion || 'v2'; // 默认使用 v2
     const debug = params.debug === 'true' || params.debug === true;
 
-    console.log(`[INFO] 请求参数 - dbVersion: ${dbVersion}, debug: ${debug}`);
+    if (debug) {
+      console.log(`[INFO] 请求参数 - dbVersion: ${dbVersion}, debug: ${debug}`);
+    }
 
     // 确定数据库名称
     const DB_NAME = dbVersion === 'v2' ? 'agentworks_db' : 'kol_data';
-    console.log(`[INFO] 使用数据库: ${DB_NAME}`);
 
     // 连接数据库
     const dbClient = await connectToDatabase();
@@ -289,8 +304,6 @@ exports.handler = async (event, context) => {
       stats = await getV1Stats(db);
     }
 
-    console.log('[INFO] 统计完成，返回结果');
-
     // 返回统计结果
     return {
       statusCode: 200,
@@ -304,16 +317,21 @@ exports.handler = async (event, context) => {
     };
 
   } catch (error) {
-    console.error('[ERROR] 统计数据时发生错误:', error);
-    console.error('[ERROR] 错误堆栈:', error.stack);
+    console.error('[ERROR] 统计数据时发生错误:', error.message);
+
+    // 生产环境不返回详细错误信息
+    const isProduction = process.env.NODE_ENV === 'production';
+
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({
         success: false,
         message: '服务器内部错误',
-        error: error.message,
-        stack: error.stack
+        ...(isProduction ? {} : {
+          error: error.message,
+          stack: error.stack
+        })
       })
     };
   }

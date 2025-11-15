@@ -4,7 +4,7 @@
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
-  'https://sd4c5lst6qlgb4inv1glg.apigateway-cn-shanghai.volceapi.com';
+  'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com';
 
 const DB_VERSION = 'v2'; // 使用 v2 数据库（agentworks_db）
 
