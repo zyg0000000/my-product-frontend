@@ -8,7 +8,9 @@
 
 | 集合名 | 说明 | 状态 | Schema 文件 | 版本 |
 |--------|------|------|------------|------|
-| `talents` | 达人档案（多平台） | ✅ 已完成 | [talents.doc.json](./talents.doc.json) | v2.0 |
+| `talents` | 达人档案（多平台） | ✅ 已完成 | [talents.doc.json](./talents.doc.json) | v2.1 |
+| `rebate_configs` | 返点配置历史记录 | ✅ 已完成 | [rebate_configs.doc.json](./rebate_configs.doc.json) | v2.1 |
+| `rebate_rules` | 返点跃迁规则 | 📝 Phase 2 | - | - |
 | `talent_merges` | 达人合并历史 | 📝 待设计 | - | - |
 | `projects` | 项目信息（多平台） | 📝 待设计 | - | - |
 | `cooperations` | 合作订单（多平台） | 📝 待设计 | - | - |
@@ -44,6 +46,43 @@
 **文件**：
 - 详细文档：[talents.doc.json](./talents.doc.json)
 - 索引定义：[../indexes/talents.indexes.json](../indexes/talents.indexes.json)
+
+---
+
+## 🗄️ rebate_configs（返点配置历史记录）
+
+### 核心设计
+
+**用途**：独立存储返点配置历史，支持完整的审计追溯
+
+**核心字段**：
+- `configId`: 配置唯一标识（全局唯一）
+- `targetType`: 目标类型（talent/agency）
+- `targetId`: 目标ID（oneId 或 agencyId）
+- `platform`: 平台类型
+- `rebateRate`: 返点率（百分比，2位小数）
+- `effectType`: 生效方式（immediate/next_cooperation）
+- `effectiveDate`: 生效日期
+- `status`: 配置状态（pending/active/expired）
+
+**关键特性**：
+- ✅ 完整的审计追溯（所有记录不可删除）
+- ✅ 状态流转：pending → active → expired
+- ✅ 支持立即生效和下次合作生效
+- ✅ 返点率精度：2位小数（0-100%）
+- ✅ 记录调整原因和操作人
+
+**索引**：
+- `idx_configId` (unique) - 配置ID唯一索引
+- `idx_target_platform_createdAt` - 核心查询索引（历史记录）
+- `idx_target_platform_status` - 查找当前生效配置
+- 其他 3 个索引
+
+**文件**：
+- 详细文档：[rebate_configs.doc.json](./rebate_configs.doc.json)
+- 索引定义：[../indexes/rebate_configs.indexes.json](../indexes/rebate_configs.indexes.json)
+
+**版本**: v2.1 (2025-11-15)
 
 ---
 

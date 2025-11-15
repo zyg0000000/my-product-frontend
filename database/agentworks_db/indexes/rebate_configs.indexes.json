@@ -1,0 +1,65 @@
+{
+    "collection": "rebate_configs",
+    "database": "agentworks_db",
+    "version": "2.1",
+    "indexes": [
+        {
+            "name": "idx_configId",
+            "keys": { "configId": 1 },
+            "options": { "unique": true },
+            "description": "【核心】配置ID唯一索引，确保每个配置ID全局唯一",
+            "usage": "db.rebate_configs.findOne({ configId: 'rebate_config_1737024000000_abc123' })",
+            "important": true
+        },
+        {
+            "name": "idx_target_platform_createdAt",
+            "keys": { "targetId": 1, "platform": 1, "createdAt": -1 },
+            "options": {},
+            "description": "【核心】查询某达人某平台的返点历史（按时间倒序），最常用查询",
+            "usage": "db.rebate_configs.find({ targetId: 'talent_00000005', platform: 'douyin' }).sort({ createdAt: -1 })",
+            "important": true
+        },
+        {
+            "name": "idx_status",
+            "keys": { "status": 1 },
+            "options": {},
+            "description": "按状态查询（查询所有待生效或已生效的配置）",
+            "usage": "db.rebate_configs.find({ status: 'active' })"
+        },
+        {
+            "name": "idx_effectiveDate",
+            "keys": { "effectiveDate": 1 },
+            "options": {},
+            "description": "按生效日期查询（用于定时任务激活待生效配置）",
+            "usage": "db.rebate_configs.find({ effectiveDate: { $lte: '2025-01-15' }, status: 'pending' })"
+        },
+        {
+            "name": "idx_createdBy",
+            "keys": { "createdBy": 1 },
+            "options": {},
+            "description": "查询某操作人的所有配置记录（用于审计）",
+            "usage": "db.rebate_configs.find({ createdBy: 'admin_user_id' })"
+        },
+        {
+            "name": "idx_target_platform_status",
+            "keys": { "targetId": 1, "platform": 1, "status": 1 },
+            "options": {},
+            "description": "复合索引：查询某达人某平台的特定状态配置（如查找当前 active 配置）",
+            "usage": "db.rebate_configs.findOne({ targetId: 'talent_00000005', platform: 'douyin', status: 'active' })"
+        }
+    ],
+    "notes": [
+        "【重要】idx_configId 是唯一索引，确保数据一致性",
+        "【性能】idx_target_platform_createdAt 是最常用索引，支持历史记录查询",
+        "【业务】idx_target_platform_status 用于快速查找当前生效配置",
+        "【扩展】如需支持更多查询模式，可添加复合索引"
+    ],
+    "createIndexCommands": [
+        "db.rebate_configs.createIndex({ configId: 1 }, { unique: true })",
+        "db.rebate_configs.createIndex({ targetId: 1, platform: 1, createdAt: -1 })",
+        "db.rebate_configs.createIndex({ status: 1 })",
+        "db.rebate_configs.createIndex({ effectiveDate: 1 })",
+        "db.rebate_configs.createIndex({ createdBy: 1 })",
+        "db.rebate_configs.createIndex({ targetId: 1, platform: 1, status: 1 })"
+    ]
+}

@@ -1,9 +1,9 @@
 {
     "collection": "talents",
-    "description": "达人档案集合（v2.0 多平台版本）- 每个达人+平台组合是一条记录",
+    "description": "达人档案集合（v2.1 多平台版本）- 每个达人+平台组合是一条记录",
     "database": "agentworks_db",
-    "version": "2.0",
-    "lastUpdated": "2025-11-11",
+    "version": "2.1",
+    "lastUpdated": "2025-11-15",
     "author": "产品团队",
     "fields": {
         "_id": {
@@ -65,6 +65,66 @@
             "required": false,
             "enum": ["头部", "腰部", "尾部"],
             "comment": "根据该平台的粉丝量和影响力划分"
+        },
+        "belongType": {
+            "type": "String",
+            "description": "归属类型（野生达人 or 机构达人）",
+            "required": true,
+            "default": "wild",
+            "enum": ["wild", "agency"],
+            "comment": "wild=野生达人（独立），agency=机构达人（签约机构）",
+            "addedIn": "v2.1 (2025-11-15)"
+        },
+        "agencyId": {
+            "type": "String",
+            "description": "所属机构ID（仅机构达人有值）",
+            "required": false,
+            "default": null,
+            "comment": "如果 belongType='agency'，则此字段指向 agencies 集合的某条记录",
+            "addedIn": "v2.1 (2025-11-15)"
+        },
+        "currentRebate": {
+            "type": "Object",
+            "description": "当前返点配置（v2.1 新返点管理系统）",
+            "required": false,
+            "default": {
+                "rate": 10.0,
+                "source": "default",
+                "effectiveDate": "current_date",
+                "lastUpdated": "current_datetime"
+            },
+            "properties": {
+                "rate": {
+                    "type": "Double",
+                    "description": "返点率（百分比，2位小数）",
+                    "required": true,
+                    "min": 0,
+                    "max": 100,
+                    "example": 22.50,
+                    "comment": "精度：小数点后2位"
+                },
+                "source": {
+                    "type": "String",
+                    "description": "返点来源",
+                    "required": true,
+                    "enum": ["default", "personal", "rule", "agency"],
+                    "comment": "default=系统默认, personal=个人配置, rule=规则触发, agency=机构统一"
+                },
+                "effectiveDate": {
+                    "type": "String",
+                    "description": "生效日期（YYYY-MM-DD）",
+                    "required": true,
+                    "example": "2025-01-15"
+                },
+                "lastUpdated": {
+                    "type": "Date",
+                    "description": "最后更新时间（ISO 8601）",
+                    "required": true,
+                    "example": "2025-01-15T10:30:00Z"
+                }
+            },
+            "comment": "替代旧的 rebates 数组，提供实时返点配置。历史记录存储在 rebate_configs 集合",
+            "addedIn": "v2.1 (2025-11-15)"
         },
         "prices": {
             "type": "Array",
@@ -346,7 +406,7 @@
         }
     ],
     "notes": [
-        "【核心设计】v2.0 多平台架构：每个"达人+平台"是一条独立记录",
+        "【核心设计】v2.1 多平台架构：每个"达人+平台"是一条独立记录",
         "【oneId 系统】同一个真实达人在不同平台共享同一个 oneId",
         "【唯一约束】(oneId, platform) 联合唯一，确保一个达人在一个平台只有一条记录",
         "【平台扩展】通过 platformSpecific 字段存储平台特有数据，易于扩展新平台",
@@ -356,7 +416,12 @@
         "【价格类型】抖音：video_60plus, video_20to60, video_1to20, live；小红书：video, image",
         "【价格唯一键】prices 数组中 (year, month, type) 联合唯一",
         "【返点唯一键】rebates 数组中 (year, month) 联合唯一",
-        "【数据隔离】与 v1（kol_data）完全独立，不影响旧系统"
+        "【数据隔离】与 v1（kol_data）完全独立，不影响旧系统",
+        "【v2.1 新增】belongType 字段：区分野生达人和机构达人",
+        "【v2.1 新增】currentRebate 字段：实时返点配置，精度2位小数（0-100%）",
+        "【v2.1 新增】返点历史记录迁移至独立集合 rebate_configs，支持完整审计追溯",
+        "【返点管理】支持立即生效和下次合作生效两种模式",
+        "【返点来源】default=系统默认10%, personal=个人配置, rule=规则触发, agency=机构统一"
     ],
     "examples": [
         {
