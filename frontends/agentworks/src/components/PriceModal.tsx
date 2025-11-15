@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import type { Talent, PriceRecord, PriceType, PriceStatus } from '../types/talent';
 import { PLATFORM_PRICE_TYPES } from '../types/talent';
-import { formatPrice } from '../utils/formatters';
+import { formatPrice, getPriceHistory, formatYearMonth } from '../utils/formatters';
 
 interface PriceModalProps {
   isOpen: boolean;
@@ -16,11 +16,13 @@ interface PriceModalProps {
 
 export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps) {
   const [saving, setSaving] = useState(false);
+  const [selectedYear, setSelectedYear] = useState<number | ''>(''); // 历史价格筛选年份
+  const [selectedMonth, setSelectedMonth] = useState<number | ''>(''); // 历史价格筛选月份
   const [newPrice, setNewPrice] = useState({
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
     type: '' as PriceType,
-    price: 0,
+    price: 0, // 以万元为单位
     status: 'confirmed' as PriceStatus,
   });
 
@@ -38,6 +40,8 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
         price: 0,
         status: 'confirmed',
       });
+      setSelectedYear('');
+      setSelectedMonth('');
     }
   }, [isOpen, talent, currentYear, currentMonth]);
 
@@ -45,15 +49,15 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
 
   const priceTypes = PLATFORM_PRICE_TYPES[talent.platform] || [];
 
-  // 获取指定月份的价格记录
-  const getPricesForMonth = (year: number, month: number) => {
-    return (talent.prices || []).filter(
-      (p) => p.year === year && p.month === month
-    );
-  };
+  // 获取价格历史
+  const priceHistory = getPriceHistory(talent.prices);
 
-  // 获取当前月份的价格
-  const currentPrices = getPricesForMonth(currentYear, currentMonth);
+  // 筛选后的历史价格
+  const filteredHistory = priceHistory.filter((h) => {
+    if (selectedYear && h.year !== selectedYear) return false;
+    if (selectedMonth && h.month !== selectedMonth) return false;
+    return true;
+  });
 
   // 处理新增/更新价格
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,13 +84,13 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
         // 更新现有价格
         updatedPrices[existingIndex] = {
           ...newPrice,
-          price: Math.round(newPrice.price * 100), // 转换为分
+          price: Math.round(newPrice.price * 10000 * 100), // 万元转换为分
         };
       } else {
         // 新增价格
         updatedPrices.push({
           ...newPrice,
-          price: Math.round(newPrice.price * 100), // 转换为分
+          price: Math.round(newPrice.price * 10000 * 100), // 万元转换为分
         });
       }
 
@@ -139,59 +143,80 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
 
         {/* Content */}
         <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* 左侧：当前月份价格 */}
-            <div className="flex flex-col border rounded-md bg-gray-50 p-4 shadow-sm" style={{ height: '400px' }}>
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                当前价格 ({currentYear}年{currentMonth}月)
-              </h4>
+          {/* 上部：左右两栏布局 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* 左侧：历史价格记录 */}
+            <div className="flex flex-col border rounded-md bg-gray-50 p-4 shadow-sm" style={{ height: '350px' }}>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-semibold text-gray-700">历史价格记录</h4>
+                <div className="flex gap-2">
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value ? Number(e.target.value) : '')}
+                    className="text-xs rounded-md border-gray-300 shadow-sm px-2 py-1"
+                  >
+                    <option value="">全部年份</option>
+                    {Array.from(new Set(priceHistory.map(h => h.year))).map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value ? Number(e.target.value) : '')}
+                    className="text-xs rounded-md border-gray-300 shadow-sm px-2 py-1"
+                  >
+                    <option value="">全部月份</option>
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                      <option key={m} value={m}>{m}月</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               <div className="flex-1 overflow-y-auto space-y-2">
-                {priceTypes.length === 0 ? (
-                  <p className="text-gray-500 text-sm">该平台暂无价格配置</p>
+                {filteredHistory.length === 0 ? (
+                  <p className="text-center text-gray-500 text-sm py-8">暂无价格记录</p>
                 ) : (
-                  priceTypes.map((priceType) => {
-                    const price = currentPrices.find((p) => p.type === priceType.key);
-                    return (
-                      <div
-                        key={priceType.key}
-                        className="flex items-center justify-between p-3 bg-white rounded-md border"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold"
-                            style={{
-                              backgroundColor: priceType.bgColor,
-                              color: priceType.textColor,
-                            }}
-                          >
-                            {priceType.label}
+                  filteredHistory.map((history, index) => (
+                    <div key={index} className="bg-white rounded-md border p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-900">
+                          {formatYearMonth(history.year, history.month)}
+                        </span>
+                        {history.isLatest && (
+                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                            当前
                           </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {price ? (
-                            <>
-                              <span className="text-gray-900 font-medium">
-                                {formatPrice(price.price)}
-                              </span>
-                              {price.status === 'provisional' && (
-                                <span className="text-xs text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded">
-                                  暂定
-                                </span>
-                              )}
-                            </>
-                          ) : (
-                            <span className="text-gray-400 text-sm">未设置</span>
-                          )}
-                        </div>
+                        )}
                       </div>
-                    );
-                  })
+                      <div className="space-y-1">
+                        {priceTypes.map((pt) => {
+                          const price = history.prices[pt.key];
+                          return (
+                            <div key={pt.key} className="flex items-center justify-between text-xs">
+                              <span
+                                className="inline-flex items-center rounded-md px-2 py-0.5 font-semibold"
+                                style={{
+                                  backgroundColor: pt.bgColor,
+                                  color: pt.textColor,
+                                }}
+                              >
+                                {pt.label}
+                              </span>
+                              <span className={price ? 'text-gray-900 font-medium' : 'text-gray-400'}>
+                                {price ? formatPrice(price) : 'N/A'}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))
                 )}
               </div>
             </div>
 
             {/* 右侧：新增/更新价格 */}
-            <div className="flex flex-col border rounded-md bg-white p-4 shadow-sm" style={{ height: '400px' }}>
+            <div className="flex flex-col border rounded-md bg-white p-4 shadow-sm" style={{ height: '350px' }}>
               <h4 className="font-semibold text-gray-800 text-sm mb-3">
                 新增/更新价格
               </h4>
@@ -256,7 +281,7 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    金额 (¥) <span className="text-red-500">*</span>
+                    金额（万元） <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -265,11 +290,12 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
                       setNewPrice({ ...newPrice, price: parseFloat(e.target.value) || 0 })
                     }
                     className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
-                    placeholder="输入金额"
+                    placeholder="例如: 5 表示5万元"
                     min="0"
                     step="0.01"
                     required
                   />
+                  <p className="mt-1 text-xs text-gray-500">请输入万元为单位的金额，例如：5 = 5万元</p>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">

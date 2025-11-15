@@ -99,6 +99,11 @@ export function BasicInfo() {
         )
       );
 
+      // 同步更新 selectedTalent，使弹窗中的价格实时刷新
+      setSelectedTalent((prev) =>
+        prev ? { ...prev, prices } : prev
+      );
+
       alert('价格保存成功');
     } catch (error) {
       console.error('保存价格失败:', error);
@@ -240,7 +245,7 @@ export function BasicInfo() {
                             return (
                               <div key={priceType.key} className="flex items-center gap-2">
                                 <span
-                                  className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold"
+                                  className="inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-semibold w-16"
                                   style={{
                                     backgroundColor: priceType.bgColor,
                                     color: priceType.textColor,
