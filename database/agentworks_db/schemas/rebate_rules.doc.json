@@ -1,0 +1,282 @@
+{
+    "collection": "rebate_rules",
+    "description": "返点跃迁规则集合 - 定义达人返点自动调整的触发条件和目标返点率",
+    "database": "agentworks_db",
+    "version": "2.0",
+    "status": "Phase 2 - 待开发",
+    "lastUpdated": "2025-11-15",
+    "author": "产品团队",
+    "dependencies": ["cooperations 集合（合作订单）", "projects 集合（项目信息）"],
+    "fields": {
+        "_id": {
+            "type": "ObjectId",
+            "description": "MongoDB 文档 ID",
+            "required": true,
+            "auto": true
+        },
+        "ruleId": {
+            "type": "String",
+            "description": "规则唯一标识",
+            "required": true,
+            "pattern": "^rule_[0-9]{13}_[a-z0-9]{6}$",
+            "example": "rule_1737024000000_abc123",
+            "comment": "格式：rule_{timestamp}_{random6}"
+        },
+        "targetType": {
+            "type": "String",
+            "description": "目标类型",
+            "required": true,
+            "enum": ["talent", "agency"],
+            "default": "talent",
+            "comment": "talent=达人规则, agency=机构规则（预留）"
+        },
+        "targetId": {
+            "type": "String",
+            "description": "目标ID（对应 talents.oneId 或 agencies.agencyId）",
+            "required": true,
+            "example": "talent_00000005",
+            "comment": "如果 targetType='talent'，则为 oneId"
+        },
+        "platform": {
+            "type": "String",
+            "description": "平台类型",
+            "required": true,
+            "enum": ["douyin", "xiaohongshu", "bilibili", "kuaishou"],
+            "comment": "规则适用的平台"
+        },
+        "triggerType": {
+            "type": "String",
+            "description": "触发类型",
+            "required": true,
+            "enum": ["cooperation_count", "cooperation_amount", "time_based"],
+            "comment": "cooperation_count=合作次数, cooperation_amount=合作金额累计, time_based=基于时间（如年度调整）"
+        },
+        "triggerCondition": {
+            "type": "Object",
+            "description": "触发条件配置",
+            "required": true,
+            "properties": {
+                "threshold": {
+                    "type": "Number",
+                    "description": "阈值（次数或金额）",
+                    "example": 5,
+                    "comment": "例如：5次合作 或 50000元累计金额"
+                },
+                "operator": {
+                    "type": "String",
+                    "enum": [">=", ">", "="],
+                    "default": ">=",
+                    "comment": "比较运算符"
+                },
+                "timeRange": {
+                    "type": "String",
+                    "description": "时间范围（可选）",
+                    "example": "2025-01-01 to 2025-12-31",
+                    "comment": "用于time_based类型，或限定统计范围"
+                }
+            },
+            "example": {
+                "threshold": 5,
+                "operator": ">=",
+                "timeRange": null
+            }
+        },
+        "targetRebateRate": {
+            "type": "Double",
+            "description": "目标返点率（百分比，2位小数）",
+            "required": true,
+            "min": 0,
+            "max": 100,
+            "example": 12.50,
+            "comment": "达到条件后自动调整到的返点率"
+        },
+        "status": {
+            "type": "String",
+            "description": "规则状态",
+            "required": true,
+            "enum": ["active", "inactive", "expired"],
+            "default": "active",
+            "comment": "active=启用中, inactive=已停用, expired=已过期（被新规则替代）"
+        },
+        "priority": {
+            "type": "Number",
+            "description": "优先级（数字越小优先级越高）",
+            "required": false,
+            "default": 100,
+            "min": 1,
+            "max": 999,
+            "comment": "当多个规则同时满足时，按优先级执行"
+        },
+        "notes": {
+            "type": "String",
+            "description": "规则说明/备注",
+            "required": false,
+            "maxLength": 500,
+            "example": "与达人签订的年度协议：合作5次后返点提升至12%",
+            "comment": "记录规则来源、业务背景等信息"
+        },
+        "lastTriggered": {
+            "type": "Date",
+            "description": "最后触发时间",
+            "required": false,
+            "example": "2025-01-15T10:30:00.000Z",
+            "comment": "记录规则最后一次被触发的时间"
+        },
+        "triggeredCount": {
+            "type": "Number",
+            "description": "触发次数统计",
+            "required": false,
+            "default": 0,
+            "comment": "统计规则被触发的总次数"
+        },
+        "createdBy": {
+            "type": "String",
+            "description": "创建人",
+            "required": true,
+            "default": "system",
+            "example": "admin_user_id",
+            "comment": "记录是谁创建的规则"
+        },
+        "createdAt": {
+            "type": "Date",
+            "description": "创建时间（ISO 8601）",
+            "required": true,
+            "default": "now",
+            "example": "2025-01-15T10:30:00.000Z"
+        },
+        "updatedAt": {
+            "type": "Date",
+            "description": "更新时间（ISO 8601）",
+            "required": false,
+            "example": "2025-01-15T10:30:00.000Z",
+            "comment": "规则修改时更新"
+        }
+    },
+    "indexes": [
+        {
+            "name": "idx_ruleId",
+            "fields": { "ruleId": 1 },
+            "unique": true,
+            "description": "规则ID唯一索引"
+        },
+        {
+            "name": "idx_target_platform_status",
+            "fields": { "targetId": 1, "platform": 1, "status": 1 },
+            "description": "查询某达人某平台的启用规则"
+        },
+        {
+            "name": "idx_status",
+            "fields": { "status": 1 },
+            "description": "按状态查询"
+        }
+    ],
+    "relations": [
+        {
+            "collection": "talents",
+            "type": "many-to-one",
+            "foreignKey": "targetId",
+            "description": "多条规则对应一个达人（通过 oneId）"
+        },
+        {
+            "collection": "rebate_configs",
+            "type": "one-to-many",
+            "description": "规则触发时创建 rebate_configs 记录"
+        }
+    ],
+    "notes": [
+        "【Phase 2】本集合为 Phase 2 功能，依赖 cooperations 集合，暂不开发",
+        "【设计目的】定义返点自动调整规则，实现协议约定的返点跃迁",
+        "【触发机制】定时任务或合作创建时检查规则，满足条件自动调整返点",
+        "【规则执行】触发时创建 rebate_configs 记录，source='rule_trigger'，triggeredByRuleId=本规则ID",
+        "【优先级】多个规则同时满足时，按 priority 字段排序，执行优先级最高的",
+        "【规则管理】支持增删改查，可暂停/启用规则",
+        "【审计追溯】记录触发次数和最后触发时间",
+        "【扩展性】triggerType 可扩展为其他类型（如粉丝数达标、季度考核等）"
+    ],
+    "examples": [
+        {
+            "description": "示例1：合作次数达标规则",
+            "data": {
+                "ruleId": "rule_1737024000000_abc123",
+                "targetType": "talent",
+                "targetId": "talent_00000005",
+                "platform": "douyin",
+                "triggerType": "cooperation_count",
+                "triggerCondition": {
+                    "threshold": 5,
+                    "operator": ">=",
+                    "timeRange": null
+                },
+                "targetRebateRate": 12.00,
+                "status": "active",
+                "priority": 10,
+                "notes": "年度协议：合作5次后返点提升至12%",
+                "lastTriggered": null,
+                "triggeredCount": 0,
+                "createdBy": "admin_user_id",
+                "createdAt": "2025-01-15T10:30:00.000Z",
+                "updatedAt": null
+            }
+        },
+        {
+            "description": "示例2：合作金额累计规则",
+            "data": {
+                "ruleId": "rule_1737024000000_xyz789",
+                "targetType": "talent",
+                "targetId": "talent_00000005",
+                "platform": "douyin",
+                "triggerType": "cooperation_amount",
+                "triggerCondition": {
+                    "threshold": 100000,
+                    "operator": ">=",
+                    "timeRange": "2025-01-01 to 2025-12-31"
+                },
+                "targetRebateRate": 15.00,
+                "status": "active",
+                "priority": 5,
+                "notes": "年度协议：累计合作金额超过10万后返点提升至15%",
+                "lastTriggered": null,
+                "triggeredCount": 0,
+                "createdBy": "admin_user_id",
+                "createdAt": "2025-01-15T10:30:00.000Z",
+                "updatedAt": null
+            }
+        }
+    ],
+    "businessRules": [
+        {
+            "rule": "一个达人一个平台可以有多条规则",
+            "implementation": "不同阈值对应不同返点率，优先级高的优先执行"
+        },
+        {
+            "rule": "规则触发后创建 rebate_configs 记录",
+            "implementation": "source='rule_trigger'，triggeredByRuleId 记录规则ID"
+        },
+        {
+            "rule": "规则可以被暂停或删除",
+            "implementation": "设置 status='inactive' 暂停，或标记为 expired"
+        },
+        {
+            "rule": "触发条件基于 cooperations 集合统计",
+            "implementation": "定时任务或合作创建时查询 cooperations 集合，统计次数/金额"
+        }
+    ],
+    "migrations": [
+        {
+            "version": "v2.0",
+            "date": "待定",
+            "description": "Phase 2 - 创建 rebate_rules 集合",
+            "prerequisites": [
+                "cooperations 集合已创建",
+                "projects 集合已创建",
+                "定时任务框架已搭建"
+            ],
+            "operations": [
+                "创建集合",
+                "创建索引",
+                "开发规则管理界面",
+                "开发规则触发云函数"
+            ]
+        }
+    ]
+}

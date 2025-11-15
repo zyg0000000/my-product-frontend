@@ -19,10 +19,10 @@ export type BelongType = 'wild' | 'agency';
  * 返点来源
  */
 export type RebateSource =
-  | 'default'    // 系统默认
-  | 'personal'   // 个人配置
-  | 'rule'       // 规则触发
-  | 'agency';    // 机构统一
+  | 'default'       // 系统默认
+  | 'personal'      // 个人配置
+  | 'rule_trigger'  // 规则触发
+  | 'agency';       // 机构统一
 
 /**
  * 生效方式
@@ -177,7 +177,7 @@ export const EFFECT_TYPE_LABELS: Record<EffectType, string> = {
 export const REBATE_SOURCE_LABELS: Record<RebateSource, string> = {
   default: '系统默认',
   personal: '个人配置',
-  rule: '规则触发',
+  rule_trigger: '规则触发',
   agency: '机构统一',
 };
 
@@ -277,4 +277,57 @@ export function toRebateConfigItem(config: RebateConfig): RebateConfigItem {
       minute: '2-digit',
     }),
   };
+}
+
+// ==================== Phase 2: 阶梯返点规则（预留） ====================
+
+/**
+ * 触发类型
+ */
+export type TriggerType =
+  | 'cooperation_count'  // 合作次数
+  | 'cooperation_amount' // 合作金额累计
+  | 'time_based';        // 基于时间
+
+/**
+ * 触发条件
+ */
+export interface TriggerCondition {
+  threshold: number;           // 阈值（次数或金额）
+  operator: '>=' | '>' | '=';  // 比较运算符
+  timeRange?: string;          // 时间范围（可选）
+}
+
+/**
+ * 规则状态
+ */
+export type RuleStatus = 'active' | 'inactive' | 'expired';
+
+/**
+ * 返点跃迁规则（rebate_rules 集合）
+ * @status Phase 2 - 待开发，依赖 cooperations 集合
+ */
+export interface RebateRule {
+  ruleId: string;                  // 规则ID
+  targetType: 'talent' | 'agency'; // 目标类型
+  targetId: string;                // 目标ID（oneId）
+  platform: Platform;              // 平台
+  triggerType: TriggerType;        // 触发类型
+  triggerCondition: TriggerCondition; // 触发条件
+  targetRebateRate: number;        // 目标返点率
+  status: RuleStatus;              // 规则状态
+  priority?: number;               // 优先级
+  notes?: string;                  // 规则说明
+  lastTriggered?: string;          // 最后触发时间（ISO 8601）
+  triggeredCount?: number;         // 触发次数统计
+  createdBy: string;               // 创建人
+  createdAt: string;               // 创建时间（ISO 8601）
+  updatedAt?: string;              // 更新时间（ISO 8601）
+}
+
+/**
+ * 扩展 RebateConfig 以支持规则触发
+ */
+export interface RebateConfigWithRule extends RebateConfig {
+  triggeredByRuleId?: string;  // 如果是规则触发，记录规则ID
 }

@@ -24,6 +24,8 @@ interface RebateManagementModalProps {
   talentName: string;
 }
 
+type TabType = 'current' | 'history' | 'rules';
+
 export function RebateManagementModal({
   isOpen,
   onClose,
@@ -31,6 +33,7 @@ export function RebateManagementModal({
   platform,
   talentName,
 }: RebateManagementModalProps) {
+  const [activeTab, setActiveTab] = useState<TabType>('current');
   const [rebateData, setRebateData] = useState<GetRebateResponse['data'] | null>(null);
   const [rebateHistory, setRebateHistory] = useState<RebateConfig[]>([]);
   const [rebateLoading, setRebateLoading] = useState(false);
@@ -101,14 +104,48 @@ export function RebateManagementModal({
             </div>
           </div>
 
+          {/* Tabs */}
+          <div className="border-b border-gray-200">
+            <nav className="flex px-6" aria-label="Tabs">
+              <button
+                onClick={() => setActiveTab('current')}
+                className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'current'
+                    ? 'border-green-600 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                当前配置
+              </button>
+              <button
+                onClick={() => setActiveTab('history')}
+                className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'history'
+                    ? 'border-green-600 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                调整历史
+              </button>
+              <button
+                disabled
+                className="py-4 px-6 text-sm font-medium border-b-2 border-transparent text-gray-400 cursor-not-allowed flex items-center gap-2"
+              >
+                协议规则
+                <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded">Phase 2</span>
+              </button>
+            </nav>
+          </div>
+
           {/* Content */}
           <div className="p-6">
             {rebateLoading ? (
               <div className="py-12 text-center text-gray-500">加载中...</div>
             ) : rebateData ? (
               <div className="space-y-6">
-                {/* 当前返点配置卡片 */}
-                <div className="border rounded-lg bg-white p-5 shadow-sm">
+                {/* Tab: 当前配置 */}
+                {activeTab === 'current' && (
+                  <div className="border rounded-lg bg-white p-5 shadow-sm">
                   <div className="flex items-center justify-between mb-4 pb-3 border-b">
                     <h4 className="text-base font-semibold text-gray-800">
                       当前返点配置
@@ -147,13 +184,15 @@ export function RebateManagementModal({
                       </p>
                     </div>
                   </div>
-                </div>
+                  </div>
+                )}
 
-                {/* 返点历史时间线卡片 */}
-                <div className="border rounded-lg bg-white p-5 shadow-sm">
-                  <h4 className="text-base font-semibold text-gray-800 mb-4 pb-3 border-b">
-                    调整历史
-                  </h4>
+                {/* Tab: 调整历史 */}
+                {activeTab === 'history' && (
+                  <div className="border rounded-lg bg-white p-5 shadow-sm">
+                    <h4 className="text-base font-semibold text-gray-800 mb-4 pb-3 border-b">
+                      调整历史
+                    </h4>
 
                   {rebateHistory.length === 0 ? (
                     <p className="py-8 text-center text-gray-500">暂无调整记录</p>
