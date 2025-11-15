@@ -2,7 +2,7 @@
  * 达人相关 API
  */
 
-import { post, put, del } from './client';
+import { get, post, put, del } from './client';
 import type { Talent, Platform, ApiResponse } from '../types/talent';
 
 /**
@@ -20,7 +20,7 @@ export interface GetTalentsParams {
 export async function getTalents(
   params?: GetTalentsParams
 ): Promise<ApiResponse<Talent[]>> {
-  return post('/talents', params);
+  return get('/talents', params);
 }
 
 /**
@@ -30,7 +30,7 @@ export async function getTalentDetail(
   oneId: string,
   platform: Platform
 ): Promise<ApiResponse<Talent>> {
-  return post('/talents', {
+  return get('/talents', {
     oneId,
     platform,
   });
