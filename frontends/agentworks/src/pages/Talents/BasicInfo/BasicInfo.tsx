@@ -12,7 +12,6 @@ import {
   formatRebate,
   formatFansCount,
   getLatestPricesMap,
-  getLatestRebate,
 } from '../../../utils/formatters';
 import { PriceModal } from '../../../components/PriceModal';
 import { EditTalentModal } from '../../../components/EditTalentModal';
@@ -46,6 +45,14 @@ export function BasicInfo() {
           ? response.data
           : [response.data];
         console.log('✅ Talents Data:', talentsData); // 调试日志
+        // 检查 currentRebate 字段
+        talentsData.forEach((talent, index) => {
+          console.log(`👤 Talent ${index + 1} - ${talent.name}:`, {
+            currentRebate: talent.currentRebate,
+            defaultRebate: talent.defaultRebate,
+            rebates: talent.rebates
+          });
+        });
         setTalents(talentsData);
       } else {
         console.warn('⚠️ No data in response:', response); // 调试日志
@@ -311,7 +318,6 @@ export function BasicInfo() {
               <tbody className="divide-y divide-gray-200 bg-white">
                 {talents.map(talent => {
                   const latestPrices = getLatestPricesMap(talent.prices);
-                  const latestRebate = getLatestRebate(talent.rebates);
                   const platformLink = getPlatformLink(talent);
 
                   return (
@@ -376,7 +382,7 @@ export function BasicInfo() {
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                        {latestRebate ? formatRebate(latestRebate) : '-'}
+                        {talent.currentRebate?.rate !== undefined ? formatRebate(talent.currentRebate.rate) : '-'}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
                         <span

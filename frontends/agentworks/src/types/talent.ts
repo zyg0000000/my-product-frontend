@@ -134,6 +134,12 @@ export interface Talent {
   talentTier?: TalentTier;
   agencyId?: string; // ⭐ 新增：机构ID
   defaultRebate?: number; // ⭐ 新增：达人默认返点（%），优先级高于机构返点，作为新增合作时的参考值
+  currentRebate?: { // ⭐ 新增：当前返点配置（从后端talents集合读取）
+    rate: number; // 返点率（百分比，如 22.5）
+    source: 'default' | 'personal' | 'rule' | 'agency'; // 返点来源
+    effectiveDate: string; // 生效日期 (YYYY-MM-DD)
+    lastUpdated: string; // 最后更新时间
+  };
   prices: PriceRecord[];
   rebates: RebateRecord[];
   platformSpecific?: PlatformSpecific;
@@ -179,7 +185,12 @@ export interface TalentListItem {
   agencyId?: string; // ⭐ 新增：机构ID
   agencyName?: string; // ⭐ 新增：机构名称（前端展示用）
   defaultRebate?: number; // ⭐ 新增：达人默认返点
-  currentRebate?: number; // ⭐ 新增：当前返点（计算后的值）
+  currentRebate?: { // ⭐ 新增：当前返点配置
+    rate: number;
+    source: 'default' | 'personal' | 'rule' | 'agency';
+    effectiveDate: string;
+    lastUpdated: string;
+  };
   rebateSource?: 'default' | 'agency' | 'system'; // ⭐ 新增：返点来源
   latestPrices: Partial<Record<PriceType, number>>; // 最新月份的价格
   latestRebate?: number; // 最新月份的返点

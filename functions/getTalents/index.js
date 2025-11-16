@@ -1,7 +1,10 @@
 /**
- * [生产版 v3.0 - v1/v2 双版本架构支持]
+ * [生产版 v3.1 - v1/v2 双版本架构支持]
  * 云函数：getTalents
  * 描述：获取达人列表，并在后端完成"合作次数"和"是否合作中"状态的聚合计算。
+ *
+ * --- v3.1 更新日志 (2025-11-16) ---
+ * - [字段新增] v2 模式下返回 currentRebate 字段（当前返点率）
  *
  * --- v3.0 更新日志 (2025-11-14) ---
  * - [架构升级] 支持 v1/v2 双数据库版本
@@ -132,7 +135,7 @@ async function handleV2Query(db, queryParams, headers) {
       projection: { _id: 0, oneId: 1, platform: 1, nickname: 1, platformAccountId: 1 }
     }).toArray();
   } else {
-    // 完整视图：查询所有字段（暂不关联 collaborations，因为 v2 可能还没有该表）
+    // 完整视图：查询所有字段，包括 currentRebate 对象
     talentsData = await talentsCollection.find(baseMatch, {
       projection: { _id: 0 }
     }).toArray();

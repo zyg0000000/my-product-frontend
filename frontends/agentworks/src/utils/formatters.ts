@@ -27,11 +27,19 @@ export function formatPriceInYuan(cents: number): string {
 
 /**
  * 格式化返点率
- * @param rate 返点率（如 15.5）
- * @returns 格式化后的字符串，如 "15.5%"
+ * @param rate 返点率（如 15.5），可能是数字或字符串
+ * @returns 格式化后的字符串，如 "15.50%"（保留2位小数）
  */
-export function formatRebate(rate: number): string {
-  return `${rate.toFixed(1)}%`;
+export function formatRebate(rate: number | string): string {
+  // 确保 rate 是数字类型
+  const numRate = typeof rate === 'string' ? parseFloat(rate) : rate;
+
+  // 检查是否是有效数字
+  if (isNaN(numRate)) {
+    return '-';
+  }
+
+  return `${numRate.toFixed(2)}%`;
 }
 
 /**
