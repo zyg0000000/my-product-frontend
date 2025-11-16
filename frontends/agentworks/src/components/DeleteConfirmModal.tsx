@@ -59,7 +59,7 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-5">
+        <div className="bg-gradient-to-r from-red-600 to-red-700 px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-white bg-opacity-20">
               <svg
@@ -77,7 +77,7 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
               </svg>
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-white">
+              <h3 className="text-xl font-bold text-white">
                 删除确认
               </h3>
               <p className="text-red-100 text-sm mt-1">
@@ -88,7 +88,7 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-5">
           {/* 达人信息 */}
           <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <h4 className="text-sm font-semibold text-gray-900 mb-2">即将删除的达人</h4>

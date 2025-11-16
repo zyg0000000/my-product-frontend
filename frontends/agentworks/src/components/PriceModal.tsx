@@ -60,8 +60,10 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
   });
 
   // 处理新增/更新价格
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
     if (!newPrice.type || newPrice.price <= 0) {
       alert('请填写完整的价格信息');
       return;
@@ -122,10 +124,10 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-5">
+        <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-5 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-2xl font-bold text-white">
+              <h3 className="text-xl font-bold text-white">
                 价格管理: <span className="text-purple-100">{talent.name}</span>
               </h3>
               <p className="text-purple-100 text-sm mt-1">
@@ -142,11 +144,11 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-5">
           {/* 上部：左右两栏布局 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
             {/* 左侧：历史价格记录 */}
-            <div className="flex flex-col border rounded-md bg-gray-50 p-4 shadow-sm" style={{ height: '350px' }}>
+            <div className="flex flex-col border rounded-md bg-gray-50 p-4 shadow-sm" style={{ height: '300px' }}>
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-sm font-semibold text-gray-700">历史价格记录</h4>
                 <div className="flex gap-2">
@@ -216,11 +218,11 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
             </div>
 
             {/* 右侧：新增/更新价格 */}
-            <div className="flex flex-col border rounded-md bg-white p-4 shadow-sm" style={{ height: '350px' }}>
+            <div className="flex flex-col border rounded-md bg-white p-4 shadow-sm" style={{ height: '300px' }}>
               <h4 className="font-semibold text-gray-800 text-sm mb-3">
                 新增/更新价格
               </h4>
-              <form onSubmit={handleSubmit} className="space-y-3 flex-1 overflow-y-auto">
+              <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="space-y-3 flex-1 overflow-y-auto">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -312,18 +314,29 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
                     <option value="provisional">暂定价</option>
                   </select>
                 </div>
-                <div className="text-right pt-2">
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {saving ? '保存中...' : '保存价格'}
-                  </button>
-                </div>
               </form>
             </div>
           </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end gap-3 px-5 py-3 bg-gray-50 border-t">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+            disabled={saving}
+          >
+            取消
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={saving || !newPrice.type || newPrice.price <= 0}
+            className="px-5 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+          >
+            {saving ? '保存中...' : '保存价格'}
+          </button>
         </div>
       </div>
     </div>

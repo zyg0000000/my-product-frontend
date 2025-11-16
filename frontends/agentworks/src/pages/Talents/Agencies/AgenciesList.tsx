@@ -347,13 +347,13 @@ export function AgenciesList() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* 渐变色头部 */}
-            <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-5">
+            <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-4">
               <div className="flex justify-between items-center">
                 <div>
-                  <h3 className="text-2xl font-bold text-white">
+                  <h3 className="text-xl font-bold text-white">
                     {editingAgency ? '编辑机构' : '新增机构'}
                   </h3>
-                  <p className="text-primary-100 text-sm mt-1">
+                  <p className="text-primary-100 text-xs mt-0.5">
                     {editingAgency
                       ? `更新机构信息：${editingAgency.name}`
                       : '创建新的机构并配置当前返点'}
@@ -369,11 +369,11 @@ export function AgenciesList() {
             </div>
 
             {/* 表单内容区 */}
-            <form className="p-6">
-              <div className="space-y-6">
+            <form className="p-5">
+              <div className="space-y-4">
                 {/* 基础信息卡片 */}
-                <div className="border rounded-lg bg-white p-5 shadow-sm">
-                  <h4 className="text-base font-semibold text-gray-800 mb-4 pb-3 border-b">
+                <div className="border rounded-lg bg-white p-4 shadow-sm">
+                  <h4 className="text-sm font-semibold text-gray-800 mb-3 pb-2 border-b">
                     基础信息
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -466,8 +466,8 @@ export function AgenciesList() {
                 </div>
 
                 {/* 联系信息卡片 */}
-                <div className="border rounded-lg bg-white p-5 shadow-sm">
-                  <h4 className="text-base font-semibold text-gray-800 mb-4 pb-3 border-b">
+                <div className="border rounded-lg bg-white p-4 shadow-sm">
+                  <h4 className="text-sm font-semibold text-gray-800 mb-3 pb-2 border-b">
                     联系信息
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -555,7 +555,7 @@ export function AgenciesList() {
                       onChange={e =>
                         setFormData({ ...formData, description: e.target.value })
                       }
-                      rows={4}
+                      rows={3}
                       className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                       placeholder="可以记录机构特点、合作方式、特殊要求等信息"
                     />
@@ -565,7 +565,7 @@ export function AgenciesList() {
             </form>
 
             {/* 底部按钮区 */}
-            <div className="bg-gray-50 px-6 py-4 border-t">
+            <div className="bg-gray-50 px-6 py-3 border-t">
               <div className="flex items-center justify-between">
                 <p className="text-xs text-gray-500">
                   {editingAgency ? '更新后将立即生效' : '创建后可在列表中查看和管理'}

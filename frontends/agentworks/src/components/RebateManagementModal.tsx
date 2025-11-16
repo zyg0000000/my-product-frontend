@@ -127,10 +127,10 @@ export function RebateManagementModal({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-5">
+          <div className="bg-gradient-to-r from-green-600 to-green-700 px-5 py-4">
             <div className="flex justify-between items-center">
               <div>
-                <h3 className="text-2xl font-bold text-white">
+                <h3 className="text-xl font-bold text-white">
                   返点管理: <span className="text-green-100">{talentName}</span>
                 </h3>
                 <p className="text-green-100 text-sm mt-1">
@@ -148,7 +148,7 @@ export function RebateManagementModal({
 
           {/* Tabs */}
           <div className="border-b border-gray-200">
-            <nav className="flex px-6" aria-label="Tabs">
+            <nav className="flex px-5" aria-label="Tabs">
               <button
                 onClick={() => setActiveTab('current')}
                 className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${
@@ -180,15 +180,15 @@ export function RebateManagementModal({
           </div>
 
           {/* Content */}
-          <div className="p-6">
+          <div className="p-5">
             {rebateLoading ? (
               <div className="py-12 text-center text-gray-500">加载中...</div>
             ) : rebateData ? (
               <div className="space-y-6">
                 {/* Tab: 当前配置 */}
                 {activeTab === 'current' && (
-                  <div className="border rounded-lg bg-white p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4 pb-3 border-b">
+                  <div className="border rounded-lg bg-white p-4 shadow-sm">
+                  <div className="flex items-center justify-between mb-3 pb-2 border-b">
                     <h4 className="text-base font-semibold text-gray-800">
                       当前返点配置
                     </h4>
@@ -231,8 +231,8 @@ export function RebateManagementModal({
 
                 {/* Tab: 调整历史 */}
                 {activeTab === 'history' && (
-                  <div className="border rounded-lg bg-white p-5 shadow-sm">
-                    <h4 className="text-base font-semibold text-gray-800 mb-4 pb-3 border-b">
+                  <div className="border rounded-lg bg-white p-4 shadow-sm">
+                    <h4 className="text-base font-semibold text-gray-800 mb-3 pb-2 border-b">
                       调整历史
                     </h4>
 
@@ -257,7 +257,7 @@ export function RebateManagementModal({
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-3 px-6 py-4 bg-gray-50 border-t">
+          <div className="flex justify-end gap-3 px-5 py-3 bg-gray-50 border-t">
             <button
               onClick={onClose}
               className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"

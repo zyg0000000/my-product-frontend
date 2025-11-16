@@ -20,7 +20,6 @@ interface EditTalentModalProps {
 interface FormData {
   platformAccountId: string;
   name: string;
-  fansCount: string;
   agencyId: string;
   talentTier?: TalentTier;
   talentType: string[];
@@ -37,7 +36,6 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
   const [formData, setFormData] = useState<FormData>({
     platformAccountId: '',
     name: '',
-    fansCount: '',
     agencyId: AGENCY_INDIVIDUAL_ID, // 默认为野生达人
     talentTier: undefined,
     talentType: [],
@@ -51,7 +49,6 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
       setFormData({
         platformAccountId: talent.platformAccountId || '',
         name: talent.name || '',
-        fansCount: talent.fansCount ? String(talent.fansCount) : '',
         agencyId: talent.agencyId || AGENCY_INDIVIDUAL_ID, // 默认野生达人
         talentTier: talent.talentTier,
         talentType: talent.talentType || [],
@@ -123,10 +120,6 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
       alert('请输入达人昵称');
       return false;
     }
-    if (formData.fansCount && isNaN(Number(formData.fansCount))) {
-      alert('粉丝数必须是数字');
-      return false;
-    }
     return true;
   };
 
@@ -156,7 +149,6 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
       const updateData: Partial<Talent> = {
         platformAccountId: formData.platformAccountId,
         name: formData.name,
-        fansCount: formData.fansCount ? Number(formData.fansCount) : undefined,
         agencyId: formData.agencyId,
         talentTier: formData.talentTier,
         talentType: formData.talentType.length > 0 ? formData.talentType : undefined,
@@ -187,10 +179,10 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-2xl font-bold text-white">
+              <h3 className="text-xl font-bold text-white">
                 编辑达人: <span className="text-blue-100">{talent.name}</span>
               </h3>
               <p className="text-blue-100 text-sm mt-1">
@@ -207,16 +199,31 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
         </div>
 
         {/* Content */}
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit} className="p-5">
           {/* 单栏布局 */}
-          <div className="space-y-6">
+          <div className="space-y-5">
             {/* 基础信息卡片 */}
-            <div className="border rounded-lg bg-white p-5 shadow-sm">
-              <h4 className="text-base font-semibold text-gray-800 mb-4 pb-3 border-b">
+            <div className="border rounded-lg bg-white p-4 shadow-sm">
+              <h4 className="text-base font-semibold text-gray-800 mb-3 pb-2 border-b">
                 基础信息
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* 平台账号ID */}
+                {/* 左列：达人昵称 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    达人昵称 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={e => handleChange('name', e.target.value)}
+                    placeholder="输入达人的昵称"
+                    className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                {/* 右列：平台账号ID（星图ID） */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     {getPlatformAccountIdLabel()} <span className="text-red-500">*</span>
@@ -233,79 +240,11 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
                   />
                 </div>
 
-                {/* 达人昵称 */}
+                {/* 左列：商业属性（原归属机构） */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    达人昵称 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={e => handleChange('name', e.target.value)}
-                    placeholder="输入达人的昵称"
-                    className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-
-                {/* 粉丝数 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    粉丝数
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.fansCount}
-                    onChange={e => handleChange('fansCount', e.target.value)}
-                    placeholder="例如：1000000"
-                    className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-
-                {/* 达人等级 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    达人等级
-                  </label>
-                  <select
-                    value={formData.talentTier || ''}
-                    onChange={e =>
-                      handleChange(
-                        'talentTier',
-                        e.target.value ? (e.target.value as TalentTier) : undefined
-                      )
-                    }
-                    className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  >
-                    <option value="">请选择</option>
-                    <option value="头部">头部</option>
-                    <option value="腰部">腰部</option>
-                    <option value="尾部">尾部</option>
-                  </select>
-                </div>
-
-                {/* 状态 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    状态
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={e =>
-                      handleChange('status', e.target.value as TalentStatus)
-                    }
-                    className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  >
-                    <option value="active">活跃</option>
-                    <option value="inactive">暂停</option>
-                    <option value="archived">归档</option>
-                  </select>
-                </div>
-
-                {/* 归属机构 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    归属机构
+                    商业属性
+                    <span className="ml-1 text-xs text-gray-500">（机构归属）</span>
                   </label>
                   <AgencySelector
                     value={formData.agencyId}
@@ -314,20 +253,12 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
                     placeholder="选择归属机构"
                   />
                 </div>
-              </div>
-            </div>
 
-            {/* 平台特定信息卡片 */}
-            {talent.platform === 'douyin' && (
-              <div className="border rounded-lg bg-gray-50 p-5 shadow-sm">
-                <h4 className="text-base font-semibold text-gray-800 mb-4 pb-3 border-b">
-                  平台特定信息
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* 抖音UID */}
+                {/* 右列：平台特定信息（如果有） */}
+                {talent.platform === 'douyin' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      抖音UID
+                      平台特定信息
                       <span className="ml-1 text-xs text-gray-500">（选填）</span>
                     </label>
                     <input
@@ -336,30 +267,105 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
                       onChange={e =>
                         handlePlatformSpecificChange('uid', e.target.value)
                       }
-                      placeholder="输入抖音用户ID（辅助识别）"
+                      placeholder="抖音UID（辅助识别）"
                       className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     />
                   </div>
+                )}
+              </div>
+            </div>
+
+            {/* 达人分类与属性卡片 */}
+            <div className="border rounded-lg bg-white p-4 shadow-sm">
+              <h4 className="text-base font-semibold text-gray-800 mb-3 pb-2 border-b">
+                达人分类与属性
+              </h4>
+              <div className="space-y-4">
+                {/* 第一行：达人等级和状态 - 双列布局 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* 左列：达人等级 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      达人等级
+                    </label>
+                    <div className="space-y-2">
+                      {['头部', '腰部', '尾部'].map((tier) => (
+                        <label key={tier} className="flex items-center cursor-pointer">
+                          <input
+                            type="radio"
+                            name="talentTier"
+                            value={tier}
+                            checked={formData.talentTier === tier}
+                            onChange={() => handleChange('talentTier', tier as TalentTier)}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{tier}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 右列：状态 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      状态
+                    </label>
+                    <div className="space-y-2">
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name="status"
+                          value="active"
+                          checked={formData.status === 'active'}
+                          onChange={() => handleChange('status', 'active')}
+                          className="h-4 w-4 text-green-600 focus:ring-green-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">活跃</span>
+                      </label>
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name="status"
+                          value="inactive"
+                          checked={formData.status === 'inactive'}
+                          onChange={() => handleChange('status', 'inactive')}
+                          className="h-4 w-4 text-yellow-600 focus:ring-yellow-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">暂停</span>
+                      </label>
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name="status"
+                          value="archived"
+                          checked={formData.status === 'archived'}
+                          onChange={() => handleChange('status', 'archived')}
+                          className="h-4 w-4 text-gray-600 focus:ring-gray-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">归档</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 第二行：达人分类标签 - 全宽 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    分类标签
+                  </label>
+                  <TagInput
+                    selectedTags={formData.talentType}
+                    availableTags={availableTags}
+                    onChange={(tags) => handleChange('talentType', tags)}
+                    placeholder="输入分类标签后按回车，如：美妆、时尚等"
+                  />
                 </div>
               </div>
-            )}
-
-            {/* 达人分类卡片 */}
-            <div className="border rounded-lg bg-white p-5 shadow-sm">
-              <h4 className="text-base font-semibold text-gray-800 mb-4 pb-3 border-b">
-                达人分类
-              </h4>
-              <TagInput
-                selectedTags={formData.talentType}
-                availableTags={availableTags}
-                onChange={(tags) => handleChange('talentType', tags)}
-                placeholder="输入分类标签后按回车，如：美妆、时尚等"
-              />
             </div>
           </div>
 
           {/* Footer: 操作按钮 */}
-          <div className="flex justify-end gap-3 pt-6 mt-6 border-t">
+          <div className="flex justify-end gap-3 pt-4 mt-4 border-t">
             <button
               type="button"
               onClick={onClose}

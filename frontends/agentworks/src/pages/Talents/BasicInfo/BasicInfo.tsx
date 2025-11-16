@@ -16,6 +16,7 @@ import { PriceModal } from '../../../components/PriceModal';
 import { EditTalentModal } from '../../../components/EditTalentModal';
 import { DeleteConfirmModal } from '../../../components/DeleteConfirmModal';
 import { RebateManagementModal } from '../../../components/RebateManagementModal';
+import { Pagination } from '../../../components/Pagination';
 import { getAgencies } from '../../../api/agency';
 import type { Agency } from '../../../types/agency';
 import { AGENCY_INDIVIDUAL_ID } from '../../../types/agency';
@@ -32,8 +33,13 @@ export function BasicInfo() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedTalent, setSelectedTalent] = useState<Talent | null>(null);
 
+  // 分页状态
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 15; // 每页显示15个达人
+
   // 加载达人列表
   useEffect(() => {
+    setCurrentPage(1); // 切换平台时重置到第一页
     loadTalents();
   }, [selectedPlatform]);
 
@@ -272,6 +278,18 @@ export function BasicInfo() {
     return null;
   };
 
+  // 计算分页数据
+  const totalRecords = talents.length;
+  const totalPages = Math.ceil(totalRecords / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedTalents = talents.slice(startIndex, endIndex);
+
+  // 处理页码变化
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div className="space-y-6">
       {/* 页面标题 */}
@@ -318,15 +336,16 @@ export function BasicInfo() {
             暂无{PLATFORM_NAMES[selectedPlatform]}平台的达人数据
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     达人名称
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    归属
+                    商业属性
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     当月价格
@@ -343,7 +362,7 @@ export function BasicInfo() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
-                {talents.map(talent => {
+                {paginatedTalents.map(talent => {
                   const latestPrices = getLatestPricesMap(talent.prices);
                   const platformLink = getPlatformLink(talent);
 
@@ -482,6 +501,20 @@ export function BasicInfo() {
               </tbody>
             </table>
           </div>
+
+          {/* 分页组件 */}
+          {totalPages > 0 && (
+            <div className="mt-4 border-t pt-4 px-4">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalRecords={totalRecords}
+                pageSize={pageSize}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
+          </>
         )}
       </div>
 
