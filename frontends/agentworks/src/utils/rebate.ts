@@ -2,7 +2,7 @@
  * 返点相关工具函数
  */
 
-import { Talent, RebateMode, RebateSource } from '../types/talent';
+import type { Talent, RebateMode, RebateSource } from '../types/talent';
 import { AGENCY_INDIVIDUAL_ID } from '../types/agency';
 
 /**

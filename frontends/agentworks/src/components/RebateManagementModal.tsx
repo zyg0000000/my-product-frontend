@@ -20,7 +20,8 @@ import {
   getRebateTabs,
   getTabDisplayName,
   isPhaseTab,
-  getBusinessAttribute
+  getBusinessAttribute,
+  getRebateAttribute
 } from '../utils/rebate';
 
 interface RebateManagementModalProps {
