@@ -9,6 +9,7 @@ import type { Platform, TalentTier, TalentStatus, Talent } from '../../../types/
 import { PLATFORM_NAMES } from '../../../types/talent';
 import { AGENCY_INDIVIDUAL_ID } from '../../../types/agency';
 import { TagInput } from '../../../components/TagInput';
+import { AgencySelector } from '../../../components/AgencySelector';
 
 interface FormData {
   platform: Platform;
@@ -16,7 +17,6 @@ interface FormData {
   name: string;
   fansCount: string;
   agencyId: string;
-  defaultRebate: string;
   talentTier?: TalentTier;
   talentType: string[];
   status: TalentStatus;
@@ -37,7 +37,6 @@ export function CreateTalent() {
     name: '',
     fansCount: '',
     agencyId: AGENCY_INDIVIDUAL_ID,
-    defaultRebate: '',
     talentTier: undefined,
     talentType: [],
     status: 'active',
@@ -74,15 +73,6 @@ export function CreateTalent() {
 
     loadAvailableTags();
   }, []);
-
-  // 机构列表（暂时硬编码，后续可以从 API 获取）
-  const agencies = [
-    { id: AGENCY_INDIVIDUAL_ID, name: '野生达人', baseRebate: 8 },
-  ];
-
-  // 获取选中机构的基础返点
-  const selectedAgency = agencies.find(a => a.id === formData.agencyId);
-  const agencyBaseRebate = selectedAgency?.baseRebate;
 
   // 根据平台获取 platformAccountId 的提示文本
   const getPlatformAccountIdPlaceholder = () => {
@@ -149,15 +139,6 @@ export function CreateTalent() {
       alert('粉丝数必须是数字');
       return false;
     }
-    if (
-      formData.defaultRebate &&
-      (isNaN(Number(formData.defaultRebate)) ||
-        Number(formData.defaultRebate) < 0 ||
-        Number(formData.defaultRebate) > 100)
-    ) {
-      alert('默认返点必须是 0-100 之间的数字');
-      return false;
-    }
     return true;
   };
 
@@ -190,9 +171,6 @@ export function CreateTalent() {
         name: formData.name,
         fansCount: formData.fansCount ? Number(formData.fansCount) : undefined,
         agencyId: formData.agencyId,
-        defaultRebate: formData.defaultRebate
-          ? Number(formData.defaultRebate)
-          : undefined,
         talentTier: formData.talentTier,
         talentType: formData.talentType.length > 0 ? formData.talentType : undefined,
         status: formData.status,
@@ -201,7 +179,6 @@ export function CreateTalent() {
             ? cleanedPlatformSpecific
             : undefined,
         prices: [],
-        rebates: [],
       };
 
       const response = await createTalent(submitData);
@@ -381,50 +358,28 @@ export function CreateTalent() {
           </div>
         )}
 
-        {/* 机构与返点卡片 */}
+        {/* 机构归属卡片 */}
         <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
           <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
-            <h2 className="text-lg font-semibold text-gray-900">机构与返点</h2>
-            <p className="mt-1 text-sm text-gray-500">设置达人的机构归属和默认返点率</p>
+            <h2 className="text-lg font-semibold text-gray-900">机构归属</h2>
+            <p className="mt-1 text-sm text-gray-500">设置达人的机构归属</p>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6">
               {/* 所属机构 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   所属机构
                 </label>
-                <select
+                <AgencySelector
                   value={formData.agencyId}
-                  onChange={e => handleChange('agencyId', e.target.value)}
-                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                >
-                  {agencies.map(agency => (
-                    <option key={agency.id} value={agency.id}>
-                      {agency.name} (基础返点 {agency.baseRebate}%)
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* 默认返点 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  默认返点 (%)
-                </label>
-                <input
-                  type="text"
-                  value={formData.defaultRebate}
-                  onChange={e => handleChange('defaultRebate', e.target.value)}
-                  placeholder={
-                    agencyBaseRebate
-                      ? `不填写则使用机构返点 ${agencyBaseRebate}%`
-                      : '输入默认返点率'
-                  }
-                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                  onChange={(value) => handleChange('agencyId', value)}
+                  disabled={false}
+                  placeholder="选择归属机构"
+                  className="w-full"
                 />
                 <p className="mt-1.5 text-xs text-gray-500">
-                  设置达人的默认返点率，优先级高于机构返点，新增合作时作为参考值
+                  选择达人所属的机构，野生达人为独立达人
                 </p>
               </div>
             </div>

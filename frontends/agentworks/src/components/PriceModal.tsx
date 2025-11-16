@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import type { Talent, PriceRecord, PriceType, PriceStatus } from '../types/talent';
 import { PLATFORM_PRICE_TYPES } from '../types/talent';
-import { formatPrice, getPriceHistory, formatYearMonth } from '../utils/formatters';
+import { formatPrice, getPriceHistory, formatYearMonth, yuanToCents } from '../utils/formatters';
 
 interface PriceModalProps {
   isOpen: boolean;
@@ -22,7 +22,7 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
     type: '' as PriceType,
-    price: 0, // 以万元为单位
+    price: 0, // 以元为单位
     status: 'confirmed' as PriceStatus,
   });
 
@@ -84,13 +84,13 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
         // 更新现有价格
         updatedPrices[existingIndex] = {
           ...newPrice,
-          price: Math.round(newPrice.price * 10000 * 100), // 万元转换为分
+          price: yuanToCents(newPrice.price), // 元转换为分
         };
       } else {
         // 新增价格
         updatedPrices.push({
           ...newPrice,
-          price: Math.round(newPrice.price * 10000 * 100), // 万元转换为分
+          price: yuanToCents(newPrice.price), // 元转换为分
         });
       }
 
@@ -281,7 +281,7 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    金额（万元） <span className="text-red-500">*</span>
+                    金额（元） <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -290,12 +290,12 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
                       setNewPrice({ ...newPrice, price: parseFloat(e.target.value) || 0 })
                     }
                     className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
-                    placeholder="例如: 5 表示5万元"
+                    placeholder="例如: 318888 或 50000"
                     min="0"
-                    step="0.01"
+                    step="1"
                     required
                   />
-                  <p className="mt-1 text-xs text-gray-500">请输入万元为单位的金额，例如：5 = 5万元</p>
+                  <p className="mt-1 text-xs text-gray-500">请输入精确金额，例如：318888元 或 50000元</p>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">

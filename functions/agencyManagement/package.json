@@ -1,0 +1,9 @@
+{
+  "name": "agency-management",
+  "version": "1.0.0",
+  "description": "Agency management CRUD operations",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^4.5.0"
+  }
+}

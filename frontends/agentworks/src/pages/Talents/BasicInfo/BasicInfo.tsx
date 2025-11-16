@@ -17,11 +17,15 @@ import { PriceModal } from '../../../components/PriceModal';
 import { EditTalentModal } from '../../../components/EditTalentModal';
 import { DeleteConfirmModal } from '../../../components/DeleteConfirmModal';
 import { RebateManagementModal } from '../../../components/RebateManagementModal';
+import { getAgencies } from '../../../api/agency';
+import type { Agency } from '../../../types/agency';
+import { AGENCY_INDIVIDUAL_ID } from '../../../types/agency';
 
 export function BasicInfo() {
   const navigate = useNavigate();
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>('douyin');
   const [talents, setTalents] = useState<Talent[]>([]);
+  const [agencies, setAgencies] = useState<Agency[]>([]);
   const [loading, setLoading] = useState(true);
   const [priceModalOpen, setPriceModalOpen] = useState(false);
   const [rebateModalOpen, setRebateModalOpen] = useState(false);
@@ -33,6 +37,11 @@ export function BasicInfo() {
   useEffect(() => {
     loadTalents();
   }, [selectedPlatform]);
+
+  // 加载机构列表
+  useEffect(() => {
+    loadAgencies();
+  }, []);
 
   const loadTalents = async () => {
     try {
@@ -48,9 +57,7 @@ export function BasicInfo() {
         // 检查 currentRebate 字段
         talentsData.forEach((talent, index) => {
           console.log(`👤 Talent ${index + 1} - ${talent.name}:`, {
-            currentRebate: talent.currentRebate,
-            defaultRebate: talent.defaultRebate,
-            rebates: talent.rebates
+            currentRebate: talent.currentRebate
           });
         });
         setTalents(talentsData);
@@ -63,6 +70,18 @@ export function BasicInfo() {
       setTalents([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 加载机构列表
+  const loadAgencies = async () => {
+    try {
+      const response = await getAgencies();
+      if (response.success && response.data) {
+        setAgencies(response.data);
+      }
+    } catch (error) {
+      console.error('加载机构列表失败:', error);
     }
   };
 
@@ -86,6 +105,15 @@ export function BasicInfo() {
       }
     });
     return Array.from(allTypes).sort();
+  };
+
+  // 根据机构ID获取机构名称
+  const getAgencyName = (agencyId: string | undefined): string => {
+    if (!agencyId || agencyId === AGENCY_INDIVIDUAL_ID) {
+      return '野生达人';
+    }
+    const agency = agencies.find(a => a.id === agencyId);
+    return agency?.name || agencyId;
   };
 
   // 打开价格管理弹窗
@@ -299,7 +327,7 @@ export function BasicInfo() {
                     达人名称
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    粉丝数
+                    归属
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     当月价格
@@ -326,37 +354,26 @@ export function BasicInfo() {
                       className="hover:bg-gray-50"
                     >
                       <td className="whitespace-nowrap px-6 py-4">
-                        <div className="flex items-center">
-                          {talent.avatar && (
-                            <img
-                              src={talent.avatar}
-                              alt={talent.name}
-                              className="h-10 w-10 rounded-full"
-                            />
-                          )}
-                          <div className={talent.avatar ? 'ml-4' : ''}>
-                            {platformLink ? (
-                              <a
-                                href={platformLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-medium text-primary-600 hover:text-primary-900 hover:underline"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {talent.name}
-                              </a>
-                            ) : (
-                              <div className="font-medium text-gray-900">
-                                {talent.name}
-                              </div>
-                            )}
+                        {platformLink ? (
+                          <a
+                            href={platformLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-medium text-primary-600 hover:text-primary-900 hover:underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {talent.name}
+                          </a>
+                        ) : (
+                          <div className="font-medium text-gray-900">
+                            {talent.name}
                           </div>
-                        </div>
+                        )}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                        {talent.fansCount
-                          ? formatFansCount(talent.fansCount)
-                          : '-'}
+                        <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-800">
+                          {getAgencyName(talent.agencyId)}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <div className="flex flex-col gap-1.5">

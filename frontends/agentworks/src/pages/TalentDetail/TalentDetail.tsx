@@ -6,11 +6,13 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTalentDetail } from '../../api/talent';
 import { getTalentRebate, getRebateHistory as fetchRebateHistory } from '../../api/rebate';
+import { getAgencies } from '../../api/agency';
 import type { Talent, Platform } from '../../types/talent';
 import { PLATFORM_NAMES, PLATFORM_PRICE_TYPES } from '../../types/talent';
+import type { Agency } from '../../types/agency';
+import { AGENCY_INDIVIDUAL_ID } from '../../types/agency';
 import type { GetRebateResponse, RebateConfig } from '../../types/rebate';
 import {
-  BELONG_TYPE_LABELS,
   REBATE_SOURCE_LABELS,
   formatRebateRate,
 } from '../../types/rebate';
@@ -38,6 +40,7 @@ export function TalentDetail() {
   const [rebateHistory, setRebateHistory] = useState<RebateConfig[]>([]);
   const [rebateLoading, setRebateLoading] = useState(false);
   const [showUpdateRebateModal, setShowUpdateRebateModal] = useState(false);
+  const [agencies, setAgencies] = useState<Agency[]>([]);
 
   // 分页状态
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,6 +51,7 @@ export function TalentDetail() {
     if (oneId && platform) {
       loadTalentDetail();
       loadRebateData();
+      loadAgencies();
     }
   }, [oneId, platform]);
 
@@ -97,6 +101,25 @@ export function TalentDetail() {
     } finally {
       setRebateLoading(false);
     }
+  };
+
+  const loadAgencies = async () => {
+    try {
+      const response = await getAgencies({ status: 'active' });
+      if (response.success && response.data) {
+        setAgencies(response.data);
+      }
+    } catch (error) {
+      console.error('加载机构列表失败:', error);
+    }
+  };
+
+  const getAgencyName = (agencyId: string | null | undefined): string => {
+    if (!agencyId || agencyId === AGENCY_INDIVIDUAL_ID) {
+      return '野生达人';
+    }
+    const agency = agencies.find(a => a.id === agencyId);
+    return agency?.name || agencyId;
   };
 
   // 分页处理
@@ -265,9 +288,9 @@ export function TalentDetail() {
             {/* 当前返点信息 */}
             <div className="grid grid-cols-2 gap-6 rounded-lg border border-gray-200 p-6 md:grid-cols-4">
               <div>
-                <p className="text-xs text-gray-500">归属类型</p>
+                <p className="text-xs text-gray-500">归属机构</p>
                 <p className="mt-1 text-base font-medium text-gray-900">
-                  {BELONG_TYPE_LABELS[rebateData.belongType]}
+                  {getAgencyName(rebateData.agencyId)}
                 </p>
               </div>
               <div>

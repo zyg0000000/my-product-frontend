@@ -1,139 +1,114 @@
-# AgentWorks 返点管理系统完善 (v2.2.0)
+# PR: AgentWorks v2.3.0 - 字段统一与价格系统优化
 
-## 概述
+## 🎯 概述
+本次更新主要解决了两个关键问题：
+1. 统一达人机构归属字段，提升代码一致性
+2. 优化价格显示系统，支持精确金额录入和智能显示
 
-完善返点管理系统，新增独立返点管理弹窗、优化云函数、升级数据库 Schema，并为 Phase 2 阶梯返点规则做好框架预留。
+## 🐛 修复的问题
 
-## 主要改进
+### 1. 字段不一致问题 ✅
+**问题描述**：
+- 新建达人时使用 `agencyId` 字段
+- 编辑弹窗中使用 `belongType` 字段
+- 导致数据不一致和维护困难
 
-### ✨ 新功能
+**解决方案**：
+- 全面统一使用 `agencyId` 字段
+- 删除所有 `belongType` 相关代码
+- 野生达人统一使用 `"individual"` 作为特殊ID
 
-#### 1. 返点管理弹窗
-- 新增 `RebateManagementModal` 独立弹窗（替代跳转方案）
-- Tab 结构：当前配置 / 调整历史（分页 3 条/页）/ 协议规则（Phase 2）
-- 列表页点击"返点"按钮即可打开
+### 2. 价格显示局限性 ✅
+**问题描述**：
+- 原系统只能显示"X万"格式
+- 无法精确显示如 ¥318,888 这样的金额
+- 价格录入以万元为单位，不够直观
 
-#### 2. 返点调整优化
-- 移除"下次合作生效"选项（标记为暂不支持）
-- 移除"调整原因"字段
-- 生效时间自动使用服务器当前时间（不再手动输入）
+**解决方案**：
+- 智能价格格式化：整万显示"X万"，非整万显示精确金额
+- 价格录入改为元为单位，更直观
+- 保持数据库分为单位存储，确保精度
 
-#### 3. 云函数升级 (v1.1.0)
-- **expiryDate 自动管理**：旧配置自动标记为 expired
-- **时间戳迁移**：effectiveDate/expiryDate 从 String 改为 Date（精确到毫秒）
-- **服务器时间**：强制使用当前时间，避免时区问题
-- **版本管理**：添加版本号和更新日志
+## ✨ 主要改动
 
-#### 4. 达人详情页优化
-- 调整历史添加分页（每页 3 条）
-- 使用共用组件统一展示格式
+### 前端组件优化
+| 文件 | 改动内容 |
+|------|----------|
+| `EditTalentModal.tsx` | 使用 agencyId 替代 belongType |
+| `PriceModal.tsx` | 价格输入单位从"万元"改为"元" |
+| `RebateManagementModal.tsx` | 添加机构名称动态获取逻辑 |
+| `TalentDetail.tsx` | 添加机构名称动态获取逻辑 |
+| `BasicInfo.tsx` | 价格显示使用新的格式化函数 |
 
-#### 5. 基础功能修复
-- 修复列表页返点按钮无响应
-- 编辑达人弹窗添加归属类型字段（野生达人/机构达人）
+### 工具函数升级
+| 函数 | 功能 |
+|------|------|
+| `formatPrice()` | 智能格式化：50000→"5万"，318888→"¥318,888" |
+| `yuanToCents()` | 元转分工具函数 |
+| `formatPriceInYuan()` | 带千分位符格式化 |
 
-### 🏗️ 架构优化
+### 类型定义清理
+- 删除 `BelongType` 类型定义
+- 删除 `BELONG_TYPE_LABELS` 常量
+- 统一 `GetRebateResponse` 接口定义
 
-- **提取共用组件** `RebateHistoryList`（详情页和弹窗复用，减少 138 行重复代码）
-- **Phase 2 类型预留**：TriggerType, RebateRule, RebateConfigWithRule
-- **类型调整**：RebateSource 'rule' → 'rule_trigger'
+### 云函数更新
+- `getTalentRebate`: 返回 agencyId 而非 belongType
 
-### 🐛 Bug 修复
+### 数据库文档
+- 更新价格字段说明，明确支持精确价格录入
 
-- 修复同一天多次调整时间冲突（时间戳精确到毫秒）
-- 修复时间显示全是零（使用服务器时间而非前端输入）
-- 修复历史 tab 条件判断缺少闭合括号
+## 📊 测试结果
 
-### 🎨 样式改进
-
-- 返点率字号统一为 text-base（移除过大的 text-2xl）
-- 弹窗中保持绿色加粗突出显示
-- 详情页使用普通灰色样式
-
-## 文件变更
-
-### 新增文件 (3)
-- `frontends/agentworks/src/components/RebateHistoryList.tsx` - 共用历史记录组件
-- `database/agentworks_db/schemas/rebate_rules.doc.json` - Phase 2 规则 schema
-- `docs/releases/PR_v2.2.0_REBATE_MANAGEMENT.md` - 详细 PR 文档
-
-### 修改文件 (9)
-- `frontends/agentworks/src/components/RebateManagementModal.tsx`
-- `frontends/agentworks/src/components/UpdateRebateModal.tsx`
-- `frontends/agentworks/src/pages/TalentDetail/TalentDetail.tsx`
-- `frontends/agentworks/src/pages/Talents/BasicInfo/BasicInfo.tsx`
-- `frontends/agentworks/src/components/EditTalentModal.tsx`
-- `frontends/agentworks/src/types/rebate.ts`
-- `functions/updateTalentRebate/index.js` (v1.0.0 → v1.1.0)
-- `database/agentworks_db/schemas/rebate_configs.doc.json`
-- `frontends/agentworks/CHANGELOG.md`
-
-## 技术亮点
-
-1. **expiryDate 自动管理**：无需手动设置失效时间，系统自动维护配置生命周期
-2. **时间戳精度**：精确到毫秒，解决同一天多次调整冲突
-3. **组件复用**：RebateHistoryList 统一两处展示，减少 138 行重复代码
-4. **版本管理**：云函数添加版本号和更新日志，便于追溯
-5. **Phase 2 准备**：完整的阶梯返点规则类型系统和 schema 设计
-
-## 测试建议
-
-### 核心功能
-- [ ] 列表页点击"返点"打开弹窗
-- [ ] 三个 tab 切换正常
-- [ ] 调整历史分页功能正常（每页 3 条）
-- [ ] 调整返点后数据自动刷新
-- [ ] 编辑达人显示归属类型字段
-
-### 数据验证
-- [ ] 新返点配置的 effectiveDate 是 ISO 8601 时间戳格式
-- [ ] 时间精确到毫秒（非全是零）
-- [ ] 旧配置的 expiryDate 自动设置
-- [ ] 同一天多次调整时间戳不冲突
-
-### 边界测试
-- [ ] 无历史记录时显示空状态
-- [ ] 分页边界按钮状态正确
-- [ ] 协议规则 tab 显示 Phase 2 标记且禁用
-
-## 部署注意事项
-
-### 云函数部署
-需要部署 `updateTalentRebate` v1.1.0 到火山引擎。
-
-### 数据库迁移（可选）
-现有数据可保持 String 类型（兼容），新数据自动使用 Date 类型。
-
-如需迁移：
-```javascript
-db.rebate_configs.find({ effectiveDate: { $type: "string" } }).forEach(doc => {
-  db.rebate_configs.updateOne(
-    { _id: doc._id },
-    {
-      $set: {
-        effectiveDate: new Date(doc.effectiveDate),
-        expiryDate: doc.expiryDate ? new Date(doc.expiryDate) : null
-      }
-    }
-  );
-});
+### 价格格式化测试 ✅
+```
+50000元 → "5万"
+100000元 → "10万"
+318888元 → "¥318,888"
+88888元 → "¥88,888"
+1000000元 → "100万"
 ```
 
-## 未来规划
+### 字段统一性测试 ✅
+- 新建达人：正常使用 agencyId
+- 编辑达人：正常使用 agencyId
+- 返点管理：正常显示机构名称
+- 详情页面：正常显示机构名称
 
-### Phase 2: 阶梯返点规则管理
-**依赖**: cooperations 集合、projects 集合
+## 🚀 部署说明
 
-**功能**:
-- 规则管理界面（创建/编辑/列表）
-- 自动触发机制（合作创建时检查、定时扫描）
-- 规则执行日志和效果分析
+1. **前端部署**：代码合并后自动通过 Cloudflare Pages 部署
+2. **云函数部署**：需要手动部署 `getTalentRebate` 函数
+3. **数据库**：无需迁移，向后兼容
+
+## 📝 备注
+
+- 所有改动均向后兼容，不影响现有数据
+- 价格存储依然使用分为单位，确保精度
+- 机构ID使用 `"individual"` 表示野生达人
+
+## 📸 效果预览
+
+### 价格显示优化
+- **之前**：所有价格都显示为"X.XX万"
+- **现在**：
+  - 整万数：简洁显示如"5万"
+  - 非整万：精确显示如"¥318,888"
+
+### 价格录入优化
+- **之前**：输入5表示5万元
+- **现在**：直接输入精确金额如318888
+
+## ✅ Checklist
+
+- [x] 代码测试通过
+- [x] 价格格式化功能正常
+- [x] 字段统一完成
+- [x] 文档更新完成
+- [x] 向后兼容性确认
 
 ---
 
-**详细文档**: 查看 `docs/releases/PR_v2.2.0_REBATE_MANAGEMENT.md`
-
-**Commits**: 15 commits
-**Branch**: `claude/agentworks-updates-01XBibSEcNm4h8SXaKnU4dhb`
-**Version**: v2.2.0
-**Date**: 2025-11-15
+**Version**: v2.3.0
+**Date**: 2025-11-16
+**Author**: Claude Code + Product Manager

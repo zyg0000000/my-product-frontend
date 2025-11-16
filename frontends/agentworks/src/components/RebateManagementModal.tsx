@@ -4,13 +4,15 @@
 
 import { useState, useEffect } from 'react';
 import { getTalentRebate, getRebateHistory as fetchRebateHistory } from '../api/rebate';
+import { getAgencies } from '../api/agency';
 import type { Platform } from '../types/talent';
+import type { Agency } from '../types/agency';
 import type { GetRebateResponse, RebateConfig } from '../types/rebate';
 import {
-  BELONG_TYPE_LABELS,
   REBATE_SOURCE_LABELS,
   formatRebateRate,
 } from '../types/rebate';
+import { AGENCY_INDIVIDUAL_ID } from '../types/agency';
 import { UpdateRebateModal } from './UpdateRebateModal';
 import { RebateHistoryList } from './RebateHistoryList';
 
@@ -36,6 +38,7 @@ export function RebateManagementModal({
   const [rebateHistory, setRebateHistory] = useState<RebateConfig[]>([]);
   const [rebateLoading, setRebateLoading] = useState(false);
   const [showUpdateRebateModal, setShowUpdateRebateModal] = useState(false);
+  const [agencies, setAgencies] = useState<Agency[]>([]);
 
   // 分页状态
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,6 +48,7 @@ export function RebateManagementModal({
   useEffect(() => {
     if (isOpen) {
       loadRebateData();
+      loadAgencies();
     }
   }, [isOpen, oneId, platform]);
 
@@ -76,6 +80,25 @@ export function RebateManagementModal({
     } finally {
       setRebateLoading(false);
     }
+  };
+
+  const loadAgencies = async () => {
+    try {
+      const response = await getAgencies({ status: 'active' });
+      if (response.success && response.data) {
+        setAgencies(response.data);
+      }
+    } catch (error) {
+      console.error('加载机构列表失败:', error);
+    }
+  };
+
+  const getAgencyName = (agencyId: string | null | undefined): string => {
+    if (!agencyId || agencyId === AGENCY_INDIVIDUAL_ID) {
+      return '野生达人';
+    }
+    const agency = agencies.find(a => a.id === agencyId);
+    return agency?.name || agencyId;
   };
 
   // 分页处理
@@ -179,9 +202,9 @@ export function RebateManagementModal({
 
                   <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                     <div>
-                      <p className="text-xs text-gray-500">归属类型</p>
+                      <p className="text-xs text-gray-500">归属机构</p>
                       <p className="mt-1 text-base font-medium text-gray-900">
-                        {BELONG_TYPE_LABELS[rebateData.belongType]}
+                        {getAgencyName(rebateData.agencyId)}
                       </p>
                     </div>
                     <div>

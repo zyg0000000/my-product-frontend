@@ -128,12 +128,10 @@ export interface Talent {
   platform: Platform;
   platformAccountId: string;
   name: string;
-  avatar?: string;
   fansCount?: number;
   talentType?: string[];
   talentTier?: TalentTier;
   agencyId?: string; // ⭐ 新增：机构ID
-  defaultRebate?: number; // ⭐ 新增：达人默认返点（%），优先级高于机构返点，作为新增合作时的参考值
   currentRebate?: { // ⭐ 新增：当前返点配置（从后端talents集合读取）
     rate: number; // 返点率（百分比，如 22.5）
     source: 'default' | 'personal' | 'rule' | 'agency'; // 返点来源
@@ -141,7 +139,6 @@ export interface Talent {
     lastUpdated: string; // 最后更新时间
   };
   prices: PriceRecord[];
-  rebates: RebateRecord[];
   platformSpecific?: PlatformSpecific;
   performanceData?: {
     avgPlayCount?: number;
@@ -180,11 +177,9 @@ export interface TalentListItem {
   oneId: string;
   platform: Platform;
   name: string;
-  avatar?: string;
   fansCount?: number;
   agencyId?: string; // ⭐ 新增：机构ID
   agencyName?: string; // ⭐ 新增：机构名称（前端展示用）
-  defaultRebate?: number; // ⭐ 新增：达人默认返点
   currentRebate?: { // ⭐ 新增：当前返点配置
     rate: number;
     source: 'default' | 'personal' | 'rule' | 'agency';

@@ -54,8 +54,7 @@ async function getTalentRebate(oneId, platform) {
     oneId: talent.oneId,
     platform: talent.platform,
     name: talent.name,
-    belongType: talent.belongType || 'wild',  // 默认为野生达人
-    agencyId: talent.agencyId || null,
+    agencyId: talent.agencyId || 'individual',  // 默认为野生达人
     currentRebate: talent.currentRebate || {
       rate: DEFAULT_REBATE_RATE,
       source: 'default',

@@ -5,24 +5,53 @@
 import type { PriceRecord, RebateRecord, PriceType } from '../types/talent';
 
 /**
- * 将分转换为万元
+ * 格式化价格显示（智能选择显示方式）
  * @param cents 价格（单位：分）
- * @returns 格式化后的字符串，如 "5.00万"
+ * @returns 格式化后的字符串
+ * - 如果价格是整万，显示为 "X万" 或 "X.X万"
+ * - 否则显示精确金额，如 "¥318,888"
  */
 export function formatPrice(cents: number): string {
   const yuan = cents / 100;
-  const wan = yuan / 10000;
-  return `${wan.toFixed(2)}万`;
+
+  // 检查是否可以用万元简洁表示（整万或者整千万）
+  if (yuan >= 10000 && yuan % 10000 === 0) {
+    const wan = yuan / 10000;
+    // 如果是整万，不显示小数点
+    if (wan % 1 === 0) {
+      return `${wan}万`;
+    }
+    // 如果有小数，显示一位小数
+    return `${wan.toFixed(1)}万`;
+  }
+
+  // 否则显示精确的元金额，带千分位符
+  return `¥${yuan.toLocaleString('zh-CN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  })}`;
 }
 
 /**
- * 将分转换为元
+ * 将分转换为元（带千分位符）
  * @param cents 价格（单位：分）
- * @returns 格式化后的字符串，如 "50,000"
+ * @returns 格式化后的字符串，如 "318,888"
  */
 export function formatPriceInYuan(cents: number): string {
   const yuan = cents / 100;
-  return yuan.toLocaleString('zh-CN');
+  return yuan.toLocaleString('zh-CN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  });
+}
+
+/**
+ * 将元转换为分（用于存储到数据库）
+ * @param yuan 价格（单位：元）
+ * @returns 价格（单位：分）
+ */
+export function yuanToCents(yuan: number): number {
+  return Math.round(yuan * 100);
 }
 
 /**

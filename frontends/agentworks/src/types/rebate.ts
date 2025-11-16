@@ -11,11 +11,6 @@
 import type { Platform } from './talent';
 
 /**
- * 归属类型
- */
-export type BelongType = 'wild' | 'agency';
-
-/**
  * 返点来源
  */
 export type RebateSource =
@@ -76,8 +71,7 @@ export interface GetRebateResponse {
     oneId: string;
     platform: Platform;
     name: string;
-    belongType: BelongType;
-    agencyId: string | null;
+    agencyId: string;  // 'individual' for wild talents, agency ID for agency talents
     currentRebate: CurrentRebate;
   };
   message?: string;
@@ -179,14 +173,6 @@ export const REBATE_SOURCE_LABELS: Record<RebateSource, string> = {
   personal: '个人配置',
   rule_trigger: '规则触发',
   agency: '机构统一',
-};
-
-/**
- * 归属类型标签映射
- */
-export const BELONG_TYPE_LABELS: Record<BelongType, string> = {
-  wild: '野生达人',
-  agency: '机构达人',
 };
 
 /**

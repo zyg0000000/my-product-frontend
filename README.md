@@ -205,6 +205,7 @@ my-product-frontend/  (Monorepo v4.0)
 - 达人库维护与档案管理
 - 合作历史查询
 - **多价格类型系统** (v2.9)：支持 60s+/20-60s/1-20s 三档价格
+- **智能价格格式化** (v2.3)：自动识别整万/精确金额显示
 - 📖 [多价格系统详解](./docs/features/MULTI_PRICE_SYSTEM.md)
 
 ### 5. 返点管理
@@ -470,8 +471,8 @@ git push
 
 ---
 
-**最后更新**：2025-11-11
-**当前版本**：v4.0 (Dual Product Architecture)
+**最后更新**：2025-11-16
+**当前版本**：v4.1 (Dual Product Architecture)
 **维护者**：产品经理 + Claude Code
 
 **📖 立即开始**：

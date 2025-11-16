@@ -5,9 +5,9 @@
 import { useState, useEffect } from 'react';
 import type { Talent, Platform, TalentTier, TalentStatus } from '../types/talent';
 import { PLATFORM_NAMES } from '../types/talent';
-import type { BelongType } from '../types/rebate';
-import { BELONG_TYPE_LABELS } from '../types/rebate';
+import { AGENCY_INDIVIDUAL_ID } from '../types/agency';
 import { TagInput } from './TagInput';
+import { AgencySelector } from './AgencySelector';
 
 interface EditTalentModalProps {
   isOpen: boolean;
@@ -21,7 +21,7 @@ interface FormData {
   platformAccountId: string;
   name: string;
   fansCount: string;
-  belongType: BelongType;
+  agencyId: string;
   talentTier?: TalentTier;
   talentType: string[];
   status: TalentStatus;
@@ -38,7 +38,7 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
     platformAccountId: '',
     name: '',
     fansCount: '',
-    belongType: 'wild',
+    agencyId: AGENCY_INDIVIDUAL_ID, // 默认为野生达人
     talentTier: undefined,
     talentType: [],
     status: 'active',
@@ -52,7 +52,7 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
         platformAccountId: talent.platformAccountId || '',
         name: talent.name || '',
         fansCount: talent.fansCount ? String(talent.fansCount) : '',
-        belongType: (talent as any).belongType || 'wild',
+        agencyId: talent.agencyId || AGENCY_INDIVIDUAL_ID, // 默认野生达人
         talentTier: talent.talentTier,
         talentType: talent.talentType || [],
         status: talent.status || 'active',
@@ -153,11 +153,11 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
       );
 
       // 构建更新数据
-      const updateData: Partial<Talent> & { belongType?: BelongType } = {
+      const updateData: Partial<Talent> = {
         platformAccountId: formData.platformAccountId,
         name: formData.name,
         fansCount: formData.fansCount ? Number(formData.fansCount) : undefined,
-        belongType: formData.belongType,
+        agencyId: formData.agencyId,
         talentTier: formData.talentTier,
         talentType: formData.talentType.length > 0 ? formData.talentType : undefined,
         status: formData.status,
@@ -302,21 +302,17 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
                   </select>
                 </div>
 
-                {/* 归属类型 */}
+                {/* 归属机构 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    归属类型
+                    归属机构
                   </label>
-                  <select
-                    value={formData.belongType}
-                    onChange={e =>
-                      handleChange('belongType', e.target.value as BelongType)
-                    }
-                    className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  >
-                    <option value="wild">{BELONG_TYPE_LABELS.wild}</option>
-                    <option value="agency">{BELONG_TYPE_LABELS.agency}</option>
-                  </select>
+                  <AgencySelector
+                    value={formData.agencyId}
+                    onChange={(value) => handleChange('agencyId', value)}
+                    disabled={false}
+                    placeholder="选择归属机构"
+                  />
                 </div>
               </div>
             </div>

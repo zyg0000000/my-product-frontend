@@ -55,8 +55,7 @@ GET https://your-api-gateway.com/getTalentRebate?oneId=talent_00000005&platform=
     "oneId": "talent_00000005",
     "platform": "douyin",
     "name": "张三",
-    "belongType": "wild",
-    "agencyId": null,
+    "agencyId": "individual",
     "currentRebate": {
       "rate": 20.00,
       "source": "personal",
@@ -69,9 +68,9 @@ GET https://your-api-gateway.com/getTalentRebate?oneId=talent_00000005&platform=
 ```
 
 **字段说明**:
-- `belongType`: 归属类型
-  - `wild` - 野生达人
-  - `agency` - 机构达人
+- `agencyId`: 机构ID
+  - `individual` - 野生达人/独立达人
+  - 其他值 - 所属机构的ID
 - `currentRebate.rate`: 当前返点率（百分比，精度2位小数）
 - `currentRebate.source`: 返点来源
   - `default` - 系统默认
@@ -115,11 +114,8 @@ GET https://your-api-gateway.com/getTalentRebate?oneId=talent_00000005&platform=
 {
   // 原有字段...
 
-  // 归属类型（新增）
-  belongType: "wild" | "agency",
-
-  // 机构ID（新增，野生达人为 null）
-  agencyId: String | null,
+  // 机构ID（野生达人为 "individual"）
+  agencyId: String,
 
   // 当前返点配置（新增）
   currentRebate: {

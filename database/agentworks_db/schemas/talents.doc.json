@@ -39,11 +39,6 @@
             "required": true,
             "example": "张三的美食日记"
         },
-        "avatar": {
-            "type": "String",
-            "description": "头像 URL",
-            "required": false
-        },
         "fansCount": {
             "type": "Integer",
             "description": "粉丝数",
@@ -66,22 +61,14 @@
             "enum": ["头部", "腰部", "尾部"],
             "comment": "根据该平台的粉丝量和影响力划分"
         },
-        "belongType": {
-            "type": "String",
-            "description": "归属类型（野生达人 or 机构达人）",
-            "required": true,
-            "default": "wild",
-            "enum": ["wild", "agency"],
-            "comment": "wild=野生达人（独立），agency=机构达人（签约机构）",
-            "addedIn": "v2.1 (2025-11-15)"
-        },
         "agencyId": {
             "type": "String",
-            "description": "所属机构ID（仅机构达人有值）",
+            "description": "所属机构ID",
             "required": false,
-            "default": null,
-            "comment": "如果 belongType='agency'，则此字段指向 agencies 集合的某条记录",
-            "addedIn": "v2.1 (2025-11-15)"
+            "default": "individual",
+            "comment": "individual=野生达人（独立），其他值为机构ID（指向 agencies 集合的某条记录）",
+            "addedIn": "v2.1 (2025-11-15)",
+            "updatedIn": "v2.2 (2025-11-16) - 移除 belongType 字段，统一使用 agencyId"
         },
         "currentRebate": {
             "type": "Object",
@@ -123,7 +110,7 @@
                     "example": "2025-01-15T10:30:00Z"
                 }
             },
-            "comment": "替代旧的 rebates 数组，提供实时返点配置。历史记录存储在 rebate_configs 集合",
+            "comment": "提供实时返点配置。历史记录存储在 rebate_configs 集合",
             "addedIn": "v2.1 (2025-11-15)"
         },
         "prices": {
@@ -155,10 +142,11 @@
                 },
                 "price": {
                     "type": "Integer",
-                    "description": "价格金额（单位：分）",
+                    "description": "价格金额（单位：分，精确到分）",
                     "required": true,
                     "min": 0,
-                    "example": 5000000
+                    "example": 31888800,
+                    "comment": "支持精确价格录入，如 318888元 = 31888800分"
                 },
                 "status": {
                     "type": "String",
@@ -171,39 +159,6 @@
             },
             "uniqueKey": ["year", "month", "type"],
             "comment": "价格按平台独立设置，支持历史追溯。唯一键：year + month + type"
-        },
-        "rebates": {
-            "type": "Array",
-            "description": "返点历史数组（支持按月记录返点变化）",
-            "required": false,
-            "default": [],
-            "itemType": "Object",
-            "itemSchema": {
-                "year": {
-                    "type": "Integer",
-                    "description": "返点年份",
-                    "required": true,
-                    "example": 2025
-                },
-                "month": {
-                    "type": "Integer",
-                    "description": "返点月份",
-                    "required": true,
-                    "min": 1,
-                    "max": 12,
-                    "example": 1
-                },
-                "rate": {
-                    "type": "Double",
-                    "description": "返点率（百分比，如 15.5 表示 15.5%）",
-                    "required": true,
-                    "min": 0,
-                    "max": 100,
-                    "example": 15.5
-                }
-            },
-            "uniqueKey": ["year", "month"],
-            "comment": "返点率按月记录，支持历史追溯。唯一键：year + month"
         },
         "platformSpecific": {
             "type": "Object",
@@ -412,10 +367,9 @@
         "【平台扩展】通过 platformSpecific 字段存储平台特有数据，易于扩展新平台",
         "【合并追溯】oneIdHistory 记录达人合并历史，支持后期发现重复达人并合并",
         "【价格独立】不同平台的价格独立存储，互不影响",
-        "【时间序列】prices 和 rebates 采用数组结构，支持按月记录历史变化",
+        "【时间序列】prices 采用数组结构，支持按月记录历史变化",
         "【价格类型】抖音：video_60plus, video_20to60, video_1to20, live；小红书：video, image",
         "【价格唯一键】prices 数组中 (year, month, type) 联合唯一",
-        "【返点唯一键】rebates 数组中 (year, month) 联合唯一",
         "【数据隔离】与 v1（kol_data）完全独立，不影响旧系统",
         "【v2.1 新增】belongType 字段：区分野生达人和机构达人",
         "【v2.1 新增】currentRebate 字段：实时返点配置，精度2位小数（0-100%）",
@@ -440,10 +394,6 @@
                     { "year": 2025, "month": 2, "type": "video_60plus", "price": 5500000, "status": "confirmed" },
                     { "year": 2025, "month": 2, "type": "video_20to60", "price": 3200000, "status": "confirmed" }
                 ],
-                "rebates": [
-                    { "year": 2025, "month": 1, "rate": 15.5 },
-                    { "year": 2025, "month": 2, "rate": 16.0 }
-                ],
                 "platformSpecific": {
                     "xingtuId": "123456",
                     "starLevel": 5
@@ -464,10 +414,6 @@
                     { "year": 2025, "month": 1, "type": "image", "price": 2000000, "status": "confirmed" },
                     { "year": 2025, "month": 2, "type": "video", "price": 3200000, "status": "confirmed" },
                     { "year": 2025, "month": 2, "type": "image", "price": 2100000, "status": "confirmed" }
-                ],
-                "rebates": [
-                    { "year": 2025, "month": 1, "rate": 18.0 },
-                    { "year": 2025, "month": 2, "rate": 19.0 }
                 ],
                 "platformSpecific": {
                     "mcnName": "某MCN机构",
