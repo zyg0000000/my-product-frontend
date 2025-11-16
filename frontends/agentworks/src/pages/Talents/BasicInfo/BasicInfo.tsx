@@ -10,7 +10,6 @@ import { PLATFORM_NAMES, PLATFORM_PRICE_TYPES } from '../../../types/talent';
 import {
   formatPrice,
   formatRebate,
-  formatFansCount,
   getLatestPricesMap,
 } from '../../../utils/formatters';
 import { PriceModal } from '../../../components/PriceModal';

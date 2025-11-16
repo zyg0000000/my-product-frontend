@@ -85,7 +85,7 @@ export function AgenciesList() {
       return;
     }
     setEditingAgency(agency);
-    const rebateValue = agency.rebateConfig?.baseRebate || agency.baseRebate || 10;
+    const rebateValue = agency.rebateConfig?.baseRebate || 10;
     setFormData({
       name: agency.name,
       type: agency.type,
@@ -283,10 +283,7 @@ export function AgenciesList() {
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                       <span className="font-medium text-green-600">
-                        {agency.rebateConfig?.baseRebate ||
-                          agency.baseRebate ||
-                          0}
-                        %
+                        {agency.rebateConfig?.baseRebate || 0}%
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">

@@ -3,7 +3,7 @@
  * 支持搜索和选择机构
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import type { Agency } from '../types/agency';
 import { AGENCY_INDIVIDUAL_ID } from '../types/agency';

@@ -161,13 +161,6 @@ export function TalentDetail() {
       <div className="card">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-6">
-            {talent.avatar && (
-              <img
-                src={talent.avatar}
-                alt={talent.name}
-                className="h-20 w-20 rounded-full"
-              />
-            )}
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
                 {talent.name}

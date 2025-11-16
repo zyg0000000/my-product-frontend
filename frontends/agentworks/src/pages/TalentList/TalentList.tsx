@@ -12,7 +12,6 @@ import {
   formatRebate,
   formatFansCount,
   getLatestPricesMap,
-  getLatestRebate,
 } from '../../utils/formatters';
 
 export function TalentList() {
@@ -136,7 +135,8 @@ export function TalentList() {
               <tbody className="divide-y divide-gray-200 bg-white">
                 {talents.map(talent => {
                   const latestPrices = getLatestPricesMap(talent.prices);
-                  const latestRebate = getLatestRebate(talent.rebates);
+                  // 使用 currentRebate 而不是 rebates
+                  const latestRebate = talent.currentRebate?.rate;
 
                   return (
                     <tr
@@ -148,14 +148,7 @@ export function TalentList() {
                     >
                       <td className="whitespace-nowrap px-6 py-4">
                         <div className="flex items-center">
-                          {talent.avatar && (
-                            <img
-                              src={talent.avatar}
-                              alt={talent.name}
-                              className="h-10 w-10 rounded-full"
-                            />
-                          )}
-                          <div className={talent.avatar ? 'ml-4' : ''}>
+                          <div>
                             <div className="font-medium text-gray-900">
                               {talent.name}
                             </div>
