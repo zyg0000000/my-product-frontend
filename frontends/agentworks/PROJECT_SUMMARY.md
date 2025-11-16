@@ -2,6 +2,19 @@
 
 > React + TypeScript + Vite 实现的多平台达人管理系统
 
+## 📅 最新更新 (v2.3.0 - 2025-11-16)
+
+### ✨ 新增功能
+- **返点显示优化**：达人列表从 talents 集合读取 `currentRebate` 字段
+- **类型系统增强**：支持 currentRebate 对象结构（rate/source/effectiveDate/lastUpdated）
+- **格式化改进**：返点率统一保留 2 位小数（如 40.00%）
+- **云函数升级**：getTalents v3.1 自动返回 currentRebate 数据
+
+### 📚 新增文档
+- **DEVELOPMENT.md**：完整的本地开发指南
+- **Git 工作流程**：VS Code 集成和命令行操作说明
+- **提交规范**：语义化提交信息指南
+
 ---
 
 ## ✅ 已完成的工作
@@ -188,10 +201,15 @@ createTalent(data)              // 创建达人
 ```typescript
 formatPrice(cents)              // 分 → 万元（5.00万）
 formatPriceInYuan(cents)        // 分 → 元（50,000）
-formatRebate(rate)              // 15.5 → 15.5%
+formatRebate(rate)              // 15.5 → 15.50%（v2.3 支持2位小数）
 formatFansCount(count)          // 100000 → 10.0万
 formatYearMonth(year, month)    // 2025年1月
 ```
+
+**v2.3 更新**：
+- `formatRebate` 支持字符串和数字输入
+- 统一保留 2 位小数（40.00%）
+- 自动处理无效值返回 "-"
 
 #### 6.2 数据处理函数
 
@@ -239,6 +257,12 @@ interface Talent {
   name: string;
   prices: PriceRecord[];
   rebates: RebateRecord[];
+  currentRebate?: {              // v2.3 新增
+    rate: number;
+    source: 'default' | 'personal' | 'rule' | 'agency';
+    effectiveDate: string;
+    lastUpdated: string;
+  };
   // ... 其他字段
 }
 ```

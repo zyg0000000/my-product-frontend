@@ -51,6 +51,7 @@
 
 ### 5 分钟启动
 
+#### 产品 1.0 (byteproject)
 ```bash
 # 1. 克隆仓库
 git clone https://github.com/zyg0000000/my-product-frontend.git
@@ -68,12 +69,52 @@ npx http-server -p 8000
 # http://localhost:8000/index.html
 ```
 
+#### 产品 2.0 (AgentWorks) - React + Vite
+```bash
+# 1. 进入 AgentWorks 目录
+cd frontends/agentworks
+
+# 2. 安装依赖（首次运行）
+npm install
+
+# 3. 启动开发服务器
+npm run dev
+
+# 4. 打开浏览器
+# http://localhost:5173/
+# 支持热更新（HMR），代码更改自动刷新
+```
+
+### Git 工作流程
+
+#### 本地开发到 GitHub
+```bash
+# 1. 查看更改状态
+git status
+
+# 2. 添加更改
+git add .
+
+# 3. 提交更改（使用语义化提交信息）
+git commit -m "feat: 添加新功能"
+# 提交类型：feat(新功能)、fix(修复)、docs(文档)、style(样式)、refactor(重构)
+
+# 4. 推送到 GitHub
+git push origin main
+```
+
+#### VS Code 集成（推荐）
+1. 打开源代码管理面板（`Ctrl+Shift+G` / `Cmd+Shift+G`）
+2. 查看文件更改
+3. 输入提交信息
+4. 点击提交并同步
+
 ### 部署说明
 
 - **Cloudflare Pages** 自动部署
-- **主分支** → 生产环境
+- **主分支** → 生产环境（推送后 1-2 分钟自动部署）
 - **功能分支** → 预览环境
-- **部署时间** 2-3 分钟
+- **云函数部署** → 需要单独在火山引擎控制台部署
 
 ---
 
