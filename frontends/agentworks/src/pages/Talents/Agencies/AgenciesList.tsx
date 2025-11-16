@@ -8,6 +8,7 @@ import {
   PencilIcon,
   TrashIcon,
   BuildingOffice2Icon,
+  CurrencyDollarIcon,
 } from '@heroicons/react/24/outline';
 import type { Agency, AgencyFormData, AgencyType, AgencyStatus } from '../../../types/agency';
 import { AGENCY_TYPE_NAMES, AGENCY_STATUS_NAMES, AGENCY_INDIVIDUAL_ID } from '../../../types/agency';
@@ -17,6 +18,7 @@ import {
   updateAgency,
   deleteAgency,
 } from '../../../api/agency';
+import { AgencyRebateModal } from '../../../components/AgencyRebateModal';
 
 export function AgenciesList() {
   const [agencies, setAgencies] = useState<Agency[]>([]);
@@ -25,10 +27,11 @@ export function AgenciesList() {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAgency, setEditingAgency] = useState<Agency | null>(null);
+  const [isRebateModalOpen, setIsRebateModalOpen] = useState(false);
+  const [rebateAgency, setRebateAgency] = useState<Agency | null>(null);
   const [formData, setFormData] = useState<AgencyFormData>({
     name: '',
     type: 'agency',
-    baseRebate: 10,
     contactPerson: '',
     wechatId: '',
     phoneNumber: '',
@@ -36,7 +39,6 @@ export function AgenciesList() {
     description: '',
     status: 'active',
   });
-  const [baseRebateInput, setBaseRebateInput] = useState<string>('10');
 
   // 加载机构列表
   useEffect(() => {
@@ -66,7 +68,6 @@ export function AgenciesList() {
     setFormData({
       name: '',
       type: 'agency',
-      baseRebate: 10,
       contactPerson: '',
       wechatId: '',
       phoneNumber: '',
@@ -74,7 +75,6 @@ export function AgenciesList() {
       description: '',
       status: 'active',
     });
-    setBaseRebateInput('10');
     setIsModalOpen(true);
   };
 
@@ -85,11 +85,9 @@ export function AgenciesList() {
       return;
     }
     setEditingAgency(agency);
-    const rebateValue = agency.rebateConfig?.baseRebate || 10;
     setFormData({
       name: agency.name,
       type: agency.type,
-      baseRebate: rebateValue,
       contactPerson: agency.contactInfo?.contactPerson || '',
       wechatId: agency.contactInfo?.wechatId || '',
       phoneNumber: agency.contactInfo?.phoneNumber || '',
@@ -97,8 +95,17 @@ export function AgenciesList() {
       description: agency.description || '',
       status: agency.status || 'active',
     });
-    setBaseRebateInput(rebateValue.toString());
     setIsModalOpen(true);
+  };
+
+  // 打开返点管理弹窗
+  const handleRebateManagement = (agency: Agency) => {
+    if (agency.id === AGENCY_INDIVIDUAL_ID) {
+      alert('野生达人是系统预设机构，不需要设置返点');
+      return;
+    }
+    setRebateAgency(agency);
+    setIsRebateModalOpen(true);
   };
 
   // 删除机构
@@ -126,10 +133,6 @@ export function AgenciesList() {
   const handleSave = async () => {
     if (!formData.name.trim()) {
       alert('请输入机构名称');
-      return;
-    }
-    if (formData.baseRebate < 0 || formData.baseRebate > 100) {
-      alert('返点比例应在 0-100 之间');
       return;
     }
 
@@ -312,9 +315,19 @@ export function AgenciesList() {
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
                       <div className="flex gap-2">
+                        {agency.id !== AGENCY_INDIVIDUAL_ID && (
+                          <button
+                            onClick={() => handleRebateManagement(agency)}
+                            className="text-green-600 hover:text-green-900"
+                            title="返点管理"
+                          >
+                            <CurrencyDollarIcon className="h-5 w-5" />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleEdit(agency)}
                           className="text-primary-600 hover:text-primary-900"
+                          title="编辑机构"
                         >
                           <PencilIcon className="h-5 w-5" />
                         </button>
@@ -322,6 +335,7 @@ export function AgenciesList() {
                           <button
                             onClick={() => handleDelete(agency)}
                             className="text-red-600 hover:text-red-900"
+                            title="删除机构"
                           >
                             <TrashIcon className="h-5 w-5" />
                           </button>
@@ -356,7 +370,7 @@ export function AgenciesList() {
                   <p className="text-primary-100 text-xs mt-0.5">
                     {editingAgency
                       ? `更新机构信息：${editingAgency.name}`
-                      : '创建新的机构并配置当前返点'}
+                      : '创建新的机构'}
                   </p>
                 </div>
                 <button
@@ -413,34 +427,6 @@ export function AgenciesList() {
                       </select>
                     </div>
 
-                    {/* 当前返点 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        当前返点 <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.1"
-                          value={baseRebateInput}
-                          onChange={e => {
-                            const value = e.target.value;
-                            setBaseRebateInput(value);
-                            setFormData({
-                              ...formData,
-                              baseRebate: parseFloat(value) || 0,
-                            });
-                          }}
-                          className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 pr-10"
-                          placeholder="10"
-                        />
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                          <span className="text-gray-500 sm:text-sm">%</span>
-                        </div>
-                      </div>
-                    </div>
 
                     {/* 机构状态 */}
                     <div>
@@ -603,6 +589,16 @@ export function AgenciesList() {
           </div>
         </div>
       )}
+
+      {/* 返点管理弹窗 */}
+      <AgencyRebateModal
+        isOpen={isRebateModalOpen}
+        onClose={() => setIsRebateModalOpen(false)}
+        agency={rebateAgency}
+        onSuccess={() => {
+          loadAgencies();
+        }}
+      />
     </div>
   );
 }

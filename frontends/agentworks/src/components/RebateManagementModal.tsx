@@ -3,17 +3,19 @@
  */
 
 import { useState, useEffect } from 'react';
-import { getTalentRebate, getRebateHistory as fetchRebateHistory } from '../api/rebate';
+import { getTalentRebate, getRebateHistory as fetchRebateHistory, updateTalentRebate } from '../api/rebate';
 import { getAgencies } from '../api/agency';
 import type { Talent } from '../types/talent';
 import type { Agency } from '../types/agency';
-import type { GetRebateResponse, RebateConfig } from '../types/rebate';
+import type { GetRebateResponse, RebateConfig, EffectType, UpdateRebateRequest } from '../types/rebate';
 import {
   REBATE_SOURCE_LABELS,
   formatRebateRate,
+  EFFECT_TYPE_LABELS,
+  validateRebateRate,
+  REBATE_VALIDATION,
 } from '../types/rebate';
 import { AGENCY_INDIVIDUAL_ID } from '../types/agency';
-import { UpdateRebateModal } from './UpdateRebateModal';
 import { RebateHistoryList } from './RebateHistoryList';
 import {
   isWildTalent,
@@ -41,8 +43,14 @@ export function RebateManagementModal({
   const [rebateData, setRebateData] = useState<GetRebateResponse['data'] | null>(null);
   const [rebateHistory, setRebateHistory] = useState<RebateConfig[]>([]);
   const [rebateLoading, setRebateLoading] = useState(false);
-  const [showUpdateRebateModal, setShowUpdateRebateModal] = useState(false);
   const [agencies, setAgencies] = useState<Agency[]>([]);
+
+  // 手动调整Tab的状态
+  const [manualRebateRate, setManualRebateRate] = useState<string>('');
+  const [manualEffectType, setManualEffectType] = useState<EffectType>('immediate');
+  const [manualCreatedBy, setManualCreatedBy] = useState<string>('');
+  const [manualLoading, setManualLoading] = useState(false);
+  const [manualError, setManualError] = useState<string>('');
 
   // 分页状态
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,8 +61,17 @@ export function RebateManagementModal({
     if (isOpen) {
       loadRebateData();
       loadAgencies();
+      // 初始化手动调整表单
+      setManualError('');
     }
   }, [isOpen, talent.oneId, talent.platform]);
+
+  // 当rebateData更新时，初始化手动调整的返点率
+  useEffect(() => {
+    if (rebateData?.currentRebate?.rate !== undefined) {
+      setManualRebateRate(rebateData.currentRebate.rate.toString());
+    }
+  }, [rebateData]);
 
   const loadRebateData = async (page: number = 1) => {
     try {
@@ -115,6 +132,50 @@ export function RebateManagementModal({
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       loadRebateData(currentPage + 1);
+    }
+  };
+
+  // 手动调整返点的提交处理
+  const handleManualSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setManualError('');
+
+    // 验证返点率
+    const rateNum = parseFloat(manualRebateRate);
+    const validation = validateRebateRate(rateNum);
+    if (!validation.valid) {
+      setManualError(validation.error || '返点率格式错误');
+      return;
+    }
+
+    try {
+      setManualLoading(true);
+
+      const request: UpdateRebateRequest = {
+        oneId: talent.oneId,
+        platform: talent.platform,
+        rebateRate: rateNum,
+        effectType: manualEffectType,
+        createdBy: manualCreatedBy || undefined,
+      };
+
+      const response = await updateTalentRebate(request);
+
+      if (response.success) {
+        // 重新加载数据
+        await loadRebateData(currentPage);
+        // 显示成功提示（可以用更优雅的提示组件替代）
+        alert('返点调整成功');
+        // 重置表单
+        setManualCreatedBy('');
+        setManualEffectType('immediate');
+      } else {
+        setManualError(response.message || '更新失败');
+      }
+    } catch (err: any) {
+      setManualError(err.message || '更新返点失败');
+    } finally {
+      setManualLoading(false);
     }
   };
 
@@ -190,8 +251,8 @@ export function RebateManagementModal({
                     <h4 className="text-base font-semibold text-gray-800">
                       当前返点配置
                     </h4>
-                    <div className="flex items-center gap-2">
-                      {!isWildTalent(talent) && (
+                    {!isWildTalent(talent) && (
+                      <div className="flex items-center gap-2">
                         <button
                           onClick={() => {
                             // TODO: 实现模式切换功能
@@ -201,14 +262,17 @@ export function RebateManagementModal({
                         >
                           切换模式
                         </button>
-                      )}
-                      <button
-                        onClick={() => setShowUpdateRebateModal(true)}
-                        className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                      >
-                        调整返点
-                      </button>
-                    </div>
+                        <button
+                          onClick={() => {
+                            // 机构达人切换到手动调整Tab
+                            setActiveTab('manual');
+                          }}
+                          className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                        >
+                          调整返点
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-4">
@@ -274,15 +338,146 @@ export function RebateManagementModal({
                     <h4 className="text-base font-semibold text-gray-800 mb-3 pb-2 border-b">
                       手动调整返点
                     </h4>
-                    <div className="py-8 text-center text-gray-500">
-                      <p className="mb-4">可以直接设置达人的返点率</p>
-                      <button
-                        onClick={() => setShowUpdateRebateModal(true)}
-                        className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 font-medium"
-                      >
-                        调整返点率
-                      </button>
-                    </div>
+
+                    <form onSubmit={handleManualSubmit} className="space-y-5">
+                      {/* 当前返点率展示 */}
+                      <div className="rounded-lg bg-gray-50 p-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-xs text-gray-500">当前返点率</p>
+                            <p className="mt-1 text-2xl font-bold text-gray-900">
+                              {rebateData?.currentRebate?.rate?.toFixed(2) || '0.00'}%
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">当前生效日期</p>
+                            <p className="mt-1 text-base font-medium text-gray-700">
+                              {rebateData?.currentRebate?.effectiveDate || '-'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 新返点率输入 */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          新返点率 <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            value={manualRebateRate}
+                            onChange={(e) => setManualRebateRate(e.target.value)}
+                            min={REBATE_VALIDATION.min}
+                            max={REBATE_VALIDATION.max}
+                            step={REBATE_VALIDATION.step}
+                            required
+                            disabled={manualLoading}
+                            className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            placeholder="请输入返点率"
+                          />
+                          <span className="text-gray-500">%</span>
+                        </div>
+                        <p className="mt-1 text-xs text-gray-500">
+                          范围: {REBATE_VALIDATION.min}-{REBATE_VALIDATION.max}%，最多{REBATE_VALIDATION.precision}位小数
+                        </p>
+                      </div>
+
+                      {/* 生效方式 */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          生效方式 <span className="text-red-500">*</span>
+                        </label>
+                        <div className="space-y-2">
+                          <label className="flex items-center gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50 cursor-pointer">
+                            <input
+                              type="radio"
+                              name="effectType"
+                              value="immediate"
+                              checked={manualEffectType === 'immediate'}
+                              onChange={(e) => setManualEffectType(e.target.value as EffectType)}
+                              disabled={manualLoading}
+                              className="h-4 w-4 text-green-600 focus:ring-green-500"
+                            />
+                            <div className="flex-1">
+                              <p className="font-medium text-gray-900 text-sm">
+                                {EFFECT_TYPE_LABELS.immediate}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                更新后立即生效，下次合作使用新返点率
+                              </p>
+                            </div>
+                          </label>
+
+                          <label className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 opacity-60 cursor-not-allowed">
+                            <input
+                              type="radio"
+                              name="effectType"
+                              value="next_cooperation"
+                              disabled
+                              className="h-4 w-4 text-green-600"
+                            />
+                            <div className="flex-1">
+                              <p className="font-medium text-gray-900 text-sm">
+                                {EFFECT_TYPE_LABELS.next_cooperation}
+                                <span className="text-orange-600 text-xs ml-2">(暂不支持)</span>
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                创建待生效配置，等待下次合作时激活
+                              </p>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* 操作人 */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          操作人
+                          <span className="ml-1 text-xs text-gray-500">(选填)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={manualCreatedBy}
+                          onChange={(e) => setManualCreatedBy(e.target.value)}
+                          disabled={manualLoading}
+                          className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          placeholder="默认为 system"
+                        />
+                      </div>
+
+                      {/* 错误提示 */}
+                      {manualError && (
+                        <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                          {manualError}
+                        </div>
+                      )}
+
+                      {/* 提交按钮 */}
+                      <div className="flex justify-end gap-3 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // 重置表单
+                            setManualRebateRate(rebateData?.currentRebate?.rate?.toString() || '0');
+                            setManualEffectType('immediate');
+                            setManualCreatedBy('');
+                            setManualError('');
+                          }}
+                          disabled={manualLoading}
+                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          重置
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={manualLoading}
+                          className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {manualLoading ? '提交中...' : '确认调整'}
+                        </button>
+                      </div>
+                    </form>
                   </div>
                 )}
 
@@ -366,20 +561,6 @@ export function RebateManagementModal({
           </div>
         </div>
       </div>
-
-      {/* 调整返点子弹窗 */}
-      {rebateData && (
-        <UpdateRebateModal
-          isOpen={showUpdateRebateModal}
-          onClose={() => setShowUpdateRebateModal(false)}
-          onSuccess={() => {
-            loadRebateData();
-          }}
-          oneId={talent.oneId}
-          platform={talent.platform}
-          currentRate={rebateData.currentRebate.rate}
-        />
-      )}
     </>
   );
 }

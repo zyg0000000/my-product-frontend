@@ -44,6 +44,9 @@ export interface ContactInfo {
  */
 export interface RebateConfig {
   baseRebate: number;        // 基础返点率（%）
+  effectiveDate?: string;    // 生效日期
+  lastUpdatedAt?: string;    // 最后更新时间
+  updatedBy?: string;        // 更新人
   tieredRules?: Array<{      // 阶梯返点规则（预留）
     minAmount: number;
     maxAmount: number;
@@ -84,7 +87,6 @@ export interface Agency {
 export interface AgencyFormData {
   name: string;
   type: AgencyType;
-  baseRebate: number;
   contactPerson?: string;
   wechatId?: string;
   phoneNumber?: string;

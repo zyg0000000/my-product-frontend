@@ -1,0 +1,9 @@
+{
+  "name": "agency-rebate-config",
+  "version": "1.0.0",
+  "description": "Agency rebate configuration management function",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  }
+}

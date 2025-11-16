@@ -47,3 +47,22 @@ export async function updateAgency(
 export async function deleteAgency(id: string): Promise<ApiResponse<void>> {
   return del('/agencyManagement', { id });
 }
+
+/**
+ * 更新机构返点配置
+ */
+export interface UpdateAgencyRebateRequest {
+  agencyId?: string;
+  rebateConfig: {
+    baseRebate: number;
+    effectiveDate?: string;
+    updatedBy?: string;
+  };
+  syncToTalents?: boolean;  // 是否立即同步到达人
+}
+
+export async function updateAgencyRebate(
+  request: UpdateAgencyRebateRequest
+): Promise<ApiResponse<Agency>> {
+  return put('/agencyRebateConfig', request);
+}
