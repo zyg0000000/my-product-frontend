@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { getTalentRebate, getRebateHistory as fetchRebateHistory } from '../api/rebate';
 import { getAgencies } from '../api/agency';
-import type { Platform } from '../types/talent';
+import type { Talent } from '../types/talent';
 import type { Agency } from '../types/agency';
 import type { GetRebateResponse, RebateConfig } from '../types/rebate';
 import {
@@ -15,23 +15,26 @@ import {
 import { AGENCY_INDIVIDUAL_ID } from '../types/agency';
 import { UpdateRebateModal } from './UpdateRebateModal';
 import { RebateHistoryList } from './RebateHistoryList';
+import {
+  isWildTalent,
+  getRebateTabs,
+  getTabDisplayName,
+  isPhaseTab,
+  getBusinessAttribute
+} from '../utils/rebate';
 
 interface RebateManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
-  oneId: string;
-  platform: Platform;
-  talentName: string;
+  talent: Talent;
 }
 
-type TabType = 'current' | 'history' | 'rules';
+type TabType = 'current' | 'manual' | 'agencySync' | 'stepRule' | 'history';
 
 export function RebateManagementModal({
   isOpen,
   onClose,
-  oneId,
-  platform,
-  talentName,
+  talent,
 }: RebateManagementModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('current');
   const [rebateData, setRebateData] = useState<GetRebateResponse['data'] | null>(null);
@@ -50,14 +53,14 @@ export function RebateManagementModal({
       loadRebateData();
       loadAgencies();
     }
-  }, [isOpen, oneId, platform]);
+  }, [isOpen, talent.oneId, talent.platform]);
 
   const loadRebateData = async (page: number = 1) => {
     try {
       setRebateLoading(true);
 
       // 加载当前返点配置
-      const rebateResponse = await getTalentRebate(oneId, platform);
+      const rebateResponse = await getTalentRebate(talent.oneId, talent.platform);
       if (rebateResponse.success && rebateResponse.data) {
         setRebateData(rebateResponse.data);
       }
@@ -65,8 +68,8 @@ export function RebateManagementModal({
       // 加载返点历史记录（分页）
       const offset = (page - 1) * pageSize;
       const historyResponse = await fetchRebateHistory({
-        oneId,
-        platform,
+        oneId: talent.oneId,
+        platform: talent.platform,
         limit: pageSize,
         offset,
       });
@@ -131,10 +134,10 @@ export function RebateManagementModal({
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-xl font-bold text-white">
-                  返点管理: <span className="text-green-100">{talentName}</span>
+                  返点管理: <span className="text-green-100">{talent.name}</span>
                 </h3>
                 <p className="text-green-100 text-sm mt-1">
-                  查看和调整达人的返点配置
+                  {isWildTalent(talent) ? '野生达人' : '机构达人'} · 查看和调整达人的返点配置
                 </p>
               </div>
               <button
@@ -149,33 +152,27 @@ export function RebateManagementModal({
           {/* Tabs */}
           <div className="border-b border-gray-200">
             <nav className="flex px-5" aria-label="Tabs">
-              <button
-                onClick={() => setActiveTab('current')}
-                className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'current'
-                    ? 'border-green-600 text-green-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                当前配置
-              </button>
-              <button
-                onClick={() => setActiveTab('history')}
-                className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'history'
-                    ? 'border-green-600 text-green-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                调整历史
-              </button>
-              <button
-                disabled
-                className="py-4 px-6 text-sm font-medium border-b-2 border-transparent text-gray-400 cursor-not-allowed flex items-center gap-2"
-              >
-                协议规则
-                <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded">Phase 2</span>
-              </button>
+              {getRebateTabs(talent).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab as TabType)}
+                  disabled={isPhaseTab(tab)}
+                  className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+                    activeTab === tab
+                      ? 'border-green-600 text-green-600'
+                      : isPhaseTab(tab)
+                      ? 'border-transparent text-gray-400 cursor-not-allowed'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {getTabDisplayName(tab)}
+                  {isPhaseTab(tab) && (
+                    <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded">
+                      Phase 2
+                    </span>
+                  )}
+                </button>
+              ))}
             </nav>
           </div>
 
@@ -192,40 +189,141 @@ export function RebateManagementModal({
                     <h4 className="text-base font-semibold text-gray-800">
                       当前返点配置
                     </h4>
-                    <button
-                      onClick={() => setShowUpdateRebateModal(true)}
-                      className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                    >
-                      调整返点
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {!isWildTalent(talent) && (
+                        <button
+                          onClick={() => {
+                            // TODO: 实现模式切换功能
+                            console.log('切换返点模式');
+                          }}
+                          className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        >
+                          切换模式
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setShowUpdateRebateModal(true)}
+                        className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                      >
+                        调整返点
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                    <div>
-                      <p className="text-xs text-gray-500">归属机构</p>
-                      <p className="mt-1 text-base font-medium text-gray-900">
-                        {getAgencyName(rebateData.agencyId)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">当前返点率</p>
-                      <p className="mt-1 text-base font-bold text-green-600">
-                        {formatRebateRate(rebateData.currentRebate.rate)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">返点来源</p>
-                      <p className="mt-1 text-base font-medium text-gray-900">
-                        {REBATE_SOURCE_LABELS[rebateData.currentRebate.source]}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">生效日期</p>
-                      <p className="mt-1 text-base font-medium text-gray-900">
-                        {rebateData.currentRebate.effectiveDate}
-                      </p>
+                  <div className="space-y-4">
+                    {/* 返点模式提示（仅机构达人） */}
+                    {!isWildTalent(talent) && (
+                      <div className={`border rounded-lg p-3 ${
+                        (talent.rebateMode || 'sync') === 'sync'
+                          ? 'bg-blue-50 border-blue-200'
+                          : 'bg-amber-50 border-amber-200'
+                      }`}>
+                        <p className={`text-sm font-medium ${
+                          (talent.rebateMode || 'sync') === 'sync'
+                            ? 'text-blue-800'
+                            : 'text-amber-800'
+                        }`}>
+                          返点模式: {getRebateAttribute(talent)}
+                        </p>
+                        <p className={`text-xs mt-1 ${
+                          (talent.rebateMode || 'sync') === 'sync'
+                            ? 'text-blue-600'
+                            : 'text-amber-600'
+                        }`}>
+                          {(talent.rebateMode || 'sync') === 'sync'
+                            ? '返点率将自动跟随机构设置变化'
+                            : '返点率独立设置，不受机构设置影响'}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                      <div>
+                        <p className="text-xs text-gray-500">商业属性</p>
+                        <p className="mt-1 text-base font-medium text-gray-900">
+                          {getBusinessAttribute(talent, getAgencyName(rebateData.agencyId))}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">当前返点率</p>
+                        <p className="mt-1 text-base font-bold text-green-600">
+                          {formatRebateRate(rebateData.currentRebate.rate)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">返点来源</p>
+                        <p className="mt-1 text-base font-medium text-gray-900">
+                          {REBATE_SOURCE_LABELS[rebateData.currentRebate.source]}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">生效日期</p>
+                        <p className="mt-1 text-base font-medium text-gray-900">
+                          {rebateData.currentRebate.effectiveDate}
+                        </p>
+                      </div>
                     </div>
                   </div>
+                  </div>
+                )}
+
+                {/* Tab: 手动调整 */}
+                {activeTab === 'manual' && (
+                  <div className="border rounded-lg bg-white p-4 shadow-sm">
+                    <h4 className="text-base font-semibold text-gray-800 mb-3 pb-2 border-b">
+                      手动调整返点
+                    </h4>
+                    <div className="py-8 text-center text-gray-500">
+                      <p className="mb-4">可以直接设置达人的返点率</p>
+                      <button
+                        onClick={() => setShowUpdateRebateModal(true)}
+                        className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 font-medium"
+                      >
+                        调整返点率
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab: 机构同步 */}
+                {activeTab === 'agencySync' && (
+                  <div className="border rounded-lg bg-white p-4 shadow-sm">
+                    <h4 className="text-base font-semibold text-gray-800 mb-3 pb-2 border-b">
+                      机构同步配置
+                    </h4>
+                    <div className="space-y-4">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p className="text-sm text-blue-800">
+                          当前为同步模式，返点率将自动跟随机构设置
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-gray-500">同步机构</p>
+                          <p className="mt-1 text-base font-medium text-gray-900">
+                            {getAgencyName(talent.agencyId)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">机构返点率</p>
+                          <p className="mt-1 text-base font-bold text-green-600">
+                            {rebateData ? formatRebateRate(rebateData.currentRebate.rate) : '0%'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab: 阶梯规则 (Phase 2) */}
+                {activeTab === 'stepRule' && (
+                  <div className="border rounded-lg bg-white p-4 shadow-sm">
+                    <h4 className="text-base font-semibold text-gray-800 mb-3 pb-2 border-b">
+                      阶梯规则配置
+                    </h4>
+                    <div className="py-8 text-center text-gray-400">
+                      <p>阶梯规则功能将在 Phase 2 开放</p>
+                    </div>
                   </div>
                 )}
 
@@ -276,8 +374,8 @@ export function RebateManagementModal({
           onSuccess={() => {
             loadRebateData();
           }}
-          oneId={oneId}
-          platform={platform}
+          oneId={talent.oneId}
+          platform={talent.platform}
           currentRate={rebateData.currentRebate.rate}
         />
       )}

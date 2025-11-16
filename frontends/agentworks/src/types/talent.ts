@@ -120,6 +120,25 @@ export interface PlatformSpecific {
 }
 
 /**
+ * 返点模式
+ */
+export type RebateMode = 'independent' | 'sync';
+
+/**
+ * 返点来源
+ */
+export type RebateSource = 'manual' | 'agency_sync';
+
+/**
+ * 当前返点配置
+ */
+export interface CurrentRebate {
+  rate: number;                      // 当前返点率 (0-100)
+  effectiveDate: string;              // 生效日期 (YYYY-MM-DD)
+  source: RebateSource;               // 数据来源
+}
+
+/**
  * 达人档案（完整）
  */
 export interface Talent {
@@ -131,13 +150,10 @@ export interface Talent {
   fansCount?: number;
   talentType?: string[];
   talentTier?: TalentTier;
-  agencyId?: string; // ⭐ 新增：机构ID
-  currentRebate?: { // ⭐ 新增：当前返点配置（从后端talents集合读取）
-    rate: number; // 返点率（百分比，如 22.5）
-    source: 'default' | 'personal' | 'rule' | 'agency'; // 返点来源
-    effectiveDate: string; // 生效日期 (YYYY-MM-DD)
-    lastUpdated: string; // 最后更新时间
-  };
+  agencyId?: string;                   // 机构ID（AGENCY_INDIVIDUAL_ID表示野生达人）
+  rebateMode?: RebateMode;             // 返点模式（野生达人永远是independent）
+  currentRebate?: CurrentRebate;       // 当前返点配置
+  lastRebateSyncAt?: string;           // 最后同步时间（仅机构达人同步模式使用）
   prices: PriceRecord[];
   platformSpecific?: PlatformSpecific;
   performanceData?: {

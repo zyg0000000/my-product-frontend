@@ -548,9 +548,7 @@ export function BasicInfo() {
         <RebateManagementModal
           isOpen={rebateModalOpen}
           onClose={handleCloseRebateModal}
-          oneId={selectedTalent.oneId}
-          platform={selectedTalent.platform}
-          talentName={selectedTalent.name}
+          talent={selectedTalent}
         />
       )}
     </div>
