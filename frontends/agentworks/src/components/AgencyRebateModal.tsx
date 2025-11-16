@@ -69,7 +69,7 @@ export function AgencyRebateModal({
       setError('');
 
       const response = await updateAgencyRebate({
-        agencyId: agency._id,
+        agencyId: agency.id,
         rebateConfig: {
           baseRebate: rateNum,
           effectiveDate,
