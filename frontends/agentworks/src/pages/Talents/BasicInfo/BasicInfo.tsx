@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTalents, updateTalent, deleteTalent, deleteTalentAll } from '../../../api/talent';
-import type { Talent, Platform, PriceRecord } from '../../../types/talent';
+import type { Talent, Platform, PriceRecord, PriceType } from '../../../types/talent';
 import { PLATFORM_NAMES, PLATFORM_PRICE_TYPES } from '../../../types/talent';
 import {
   formatPrice,
@@ -36,6 +36,18 @@ export function BasicInfo() {
   // 分页状态
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 15; // 每页显示15个达人
+
+  // 价格档位选择状态 (持久化到 localStorage)
+  const [selectedPriceTier, setSelectedPriceTier] = useState<string>(() => {
+    const saved = localStorage.getItem('selectedPriceTier');
+    return saved || '60s+';
+  });
+
+  // 当档位变化时保存到 localStorage
+  const handlePriceTierChange = (tier: string) => {
+    setSelectedPriceTier(tier);
+    localStorage.setItem('selectedPriceTier', tier);
+  };
 
   // 加载达人列表
   useEffect(() => {
@@ -348,7 +360,20 @@ export function BasicInfo() {
                     商业属性
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    当月价格
+                    <div className="flex items-center gap-2">
+                      <span>当月价格</span>
+                      <select
+                        value={selectedPriceTier}
+                        onChange={(e) => handlePriceTierChange(e.target.value)}
+                        className="text-xs font-normal border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 py-1 px-2 bg-white"
+                      >
+                        {priceTypes.map(type => (
+                          <option key={type.key} value={type.key}>
+                            {type.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     返点
@@ -393,28 +418,15 @@ export function BasicInfo() {
                           {getAgencyName(talent.agencyId)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm">
-                        <div className="flex flex-col gap-1.5">
-                          {priceTypes.map(priceType => {
-                            const price = latestPrices[priceType.key];
-                            return (
-                              <div key={priceType.key} className="flex items-center gap-2">
-                                <span
-                                  className="inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-semibold w-16"
-                                  style={{
-                                    backgroundColor: priceType.bgColor,
-                                    color: priceType.textColor,
-                                  }}
-                                >
-                                  {priceType.label}
-                                </span>
-                                <span className={price ? 'text-gray-900 font-medium' : 'text-gray-400'}>
-                                  {price ? formatPrice(price) : 'N/A'}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm">
+                        {(() => {
+                          const price = latestPrices[selectedPriceTier as PriceType];
+                          return (
+                            <span className={price ? 'text-gray-900 font-medium' : 'text-gray-400'}>
+                              {price ? formatPrice(price) : 'N/A'}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                         {talent.currentRebate?.rate !== undefined ? formatRebate(talent.currentRebate.rate) : '-'}

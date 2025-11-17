@@ -5,27 +5,14 @@
 import type { PriceRecord, RebateRecord, PriceType } from '../types/talent';
 
 /**
- * 格式化价格显示（智能选择显示方式）
+ * 格式化价格显示（统一显示精确金额）
  * @param cents 价格（单位：分）
- * @returns 格式化后的字符串
- * - 如果价格是整万，显示为 "X万" 或 "X.X万"
- * - 否则显示精确金额，如 "¥318,888"
+ * @returns 格式化后的字符串，如 "¥318,888"
  */
 export function formatPrice(cents: number): string {
   const yuan = cents / 100;
 
-  // 检查是否可以用万元简洁表示（整万或者整千万）
-  if (yuan >= 10000 && yuan % 10000 === 0) {
-    const wan = yuan / 10000;
-    // 如果是整万，不显示小数点
-    if (wan % 1 === 0) {
-      return `${wan}万`;
-    }
-    // 如果有小数，显示一位小数
-    return `${wan.toFixed(1)}万`;
-  }
-
-  // 否则显示精确的元金额，带千分位符
+  // 统一显示精确的元金额，带千分位符
   return `¥${yuan.toLocaleString('zh-CN', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
