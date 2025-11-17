@@ -1,0 +1,9 @@
+{
+  "name": "get-current-agency-rebate",
+  "version": "1.0.0",
+  "description": "Get current active agency rebate configuration by platform",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  }
+}

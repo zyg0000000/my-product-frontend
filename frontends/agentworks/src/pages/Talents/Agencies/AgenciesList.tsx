@@ -5,10 +5,7 @@
 import { useState, useEffect } from 'react';
 import {
   PlusIcon,
-  PencilIcon,
-  TrashIcon,
   BuildingOffice2Icon,
-  CurrencyDollarIcon,
 } from '@heroicons/react/24/outline';
 import type { Agency, AgencyFormData, AgencyType, AgencyStatus } from '../../../types/agency';
 import { AGENCY_TYPE_NAMES, AGENCY_STATUS_NAMES, AGENCY_INDIVIDUAL_ID } from '../../../types/agency';
@@ -18,6 +15,7 @@ import {
   updateAgency,
   deleteAgency,
 } from '../../../api/agency';
+import { getTalents } from '../../../api/talent';
 import { AgencyRebateModal } from '../../../components/AgencyRebateModal';
 
 export function AgenciesList() {
@@ -29,6 +27,7 @@ export function AgenciesList() {
   const [editingAgency, setEditingAgency] = useState<Agency | null>(null);
   const [isRebateModalOpen, setIsRebateModalOpen] = useState(false);
   const [rebateAgency, setRebateAgency] = useState<Agency | null>(null);
+  const [talentCounts, setTalentCounts] = useState<Record<string, number>>({});
   const [formData, setFormData] = useState<AgencyFormData>({
     name: '',
     type: 'agency',
@@ -52,6 +51,8 @@ export function AgenciesList() {
       const response = await getAgencies();
       if (response.success && response.data) {
         setAgencies(response.data);
+        // 加载每个机构的达人数量
+        await loadTalentCounts(response.data);
       } else {
         setError(response.message || '加载机构列表失败');
       }
@@ -59,6 +60,34 @@ export function AgenciesList() {
       setError(err instanceof Error ? err.message : '加载机构列表失败');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 加载各机构的达人数量
+  const loadTalentCounts = async (agenciesList: Agency[]) => {
+    const counts: Record<string, number> = {};
+
+    try {
+      // 为每个机构获取达人数量
+      await Promise.all(
+        agenciesList.map(async (agency) => {
+          try {
+            const response = await getTalents({ agencyId: agency.id, view: 'simple' });
+            if (response.success && response.data) {
+              counts[agency.id] = response.count || response.data.length;
+            } else {
+              counts[agency.id] = 0;
+            }
+          } catch (err) {
+            console.error(`Failed to load talent count for agency ${agency.id}:`, err);
+            counts[agency.id] = 0;
+          }
+        })
+      );
+
+      setTalentCounts(counts);
+    } catch (err) {
+      console.error('Failed to load talent counts:', err);
     }
   };
 
@@ -168,10 +197,9 @@ export function AgenciesList() {
     }
   };
 
-  // 统计达人数（模拟数据）
+  // 获取达人数
   const getTalentCount = (agencyId: string) => {
-    // TODO: 后续从实际数据计算
-    return agencyId === AGENCY_INDIVIDUAL_ID ? 0 : 0;
+    return talentCounts[agencyId] || 0;
   };
 
   return (
@@ -314,30 +342,30 @@ export function AgenciesList() {
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
+                        {/* 返点管理按钮 */}
                         {agency.id !== AGENCY_INDIVIDUAL_ID && (
                           <button
                             onClick={() => handleRebateManagement(agency)}
-                            className="text-green-600 hover:text-green-900"
-                            title="返点管理"
+                            className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800 hover:bg-green-200 transition-colors"
                           >
-                            <CurrencyDollarIcon className="h-5 w-5" />
+                            返点
                           </button>
                         )}
+                        {/* 编辑按钮 */}
                         <button
                           onClick={() => handleEdit(agency)}
-                          className="text-primary-600 hover:text-primary-900"
-                          title="编辑机构"
+                          className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800 hover:bg-blue-200 transition-colors"
                         >
-                          <PencilIcon className="h-5 w-5" />
+                          编辑
                         </button>
+                        {/* 删除按钮 */}
                         {agency.id !== AGENCY_INDIVIDUAL_ID && (
                           <button
                             onClick={() => handleDelete(agency)}
-                            className="text-red-600 hover:text-red-900"
-                            title="删除机构"
+                            className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800 hover:bg-red-200 transition-colors"
                           >
-                            <TrashIcon className="h-5 w-5" />
+                            删除
                           </button>
                         )}
                       </div>

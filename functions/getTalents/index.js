@@ -1,7 +1,11 @@
 /**
- * [生产版 v3.1 - v1/v2 双版本架构支持]
+ * [生产版 v3.2 - v1/v2 双版本架构支持]
  * 云函数：getTalents
  * 描述：获取达人列表，并在后端完成"合作次数"和"是否合作中"状态的聚合计算。
+ *
+ * --- v3.2 更新日志 (2025-11-17) ---
+ * - [参数新增] v2 模式支持 agencyId 参数，用于按机构筛选达人
+ * - [功能支持] 支持机构管理页面统计各机构的达人数量
  *
  * --- v3.1 更新日志 (2025-11-16) ---
  * - [字段新增] v2 模式下返回 currentRebate 字段（当前返点率）
@@ -119,13 +123,14 @@ async function handleV1Query(db, queryParams, headers) {
  * 支持多平台架构、oneId 分组查询
  */
 async function handleV2Query(db, queryParams, headers) {
-  const { oneId, platform, groupBy, view } = queryParams;
+  const { oneId, platform, agencyId, groupBy, view } = queryParams;
   const talentsCollection = db.collection(TALENTS_COLLECTION);
 
   // 构造基础筛选条件
   const baseMatch = {};
   if (oneId) baseMatch.oneId = oneId;
   if (platform) baseMatch.platform = platform;
+  if (agencyId) baseMatch.agencyId = agencyId;
 
   let talentsData;
 

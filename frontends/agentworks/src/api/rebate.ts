@@ -89,3 +89,41 @@ export async function loadMoreRebateHistory(
     offset,
   });
 }
+
+/**
+ * 同步机构返点到达人参数
+ */
+export interface SyncAgencyRebateRequest {
+  oneId: string;           // 达人唯一标识
+  platform: Platform;      // 平台名称
+  changeMode?: boolean;    // 是否同时切换模式到sync（可选）
+  createdBy?: string;      // 操作人（可选）
+}
+
+/**
+ * 同步机构返点到达人响应
+ */
+export interface SyncAgencyRebateResponse {
+  success: boolean;
+  data?: {
+    configId: string;
+    message: string;
+    syncedRate: number;
+    effectiveDate: string;
+    previousRate: number | null;
+  };
+  message?: string;
+  timestamp?: string;
+}
+
+/**
+ * 同步机构返点到达人
+ *
+ * @param request - 同步请求参数
+ * @returns 同步结果
+ */
+export async function syncAgencyRebateToTalent(
+  request: SyncAgencyRebateRequest
+): Promise<SyncAgencyRebateResponse> {
+  return post<SyncAgencyRebateResponse>('/syncAgencyRebateToTalent', request);
+}

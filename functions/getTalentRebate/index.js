@@ -1,9 +1,14 @@
 /**
  * @file getTalentRebate.js
- * @version 1.0.0
+ * @version 2.0.0
  * @description 云函数：获取达人返点配置
  *
  * --- 更新日志 ---
+ * [v2.0.0] 2025-11-17
+ * - 新增返回 rebateMode 字段（sync/independent）
+ * - 新增返回 agencyName 字段
+ * - 机构达人默认使用 sync 模式
+ *
  * [v1.0.0] 2025-11-15
  * - 初始版本
  * - 支持获取野生达人返点配置
@@ -16,6 +21,7 @@ const { MongoClient } = require('mongodb');
 const MONGO_URI = process.env.MONGO_URI;
 const DB_NAME = 'agentworks_db';
 const TALENTS_COLLECTION = 'talents';
+const AGENCIES_COLLECTION = 'agencies';
 
 // 默认返点率
 const DEFAULT_REBATE_RATE = 10.00;
@@ -41,6 +47,7 @@ async function getTalentRebate(oneId, platform) {
   const dbClient = await connectToDatabase();
   const db = dbClient.db(DB_NAME);
   const talentsCollection = db.collection(TALENTS_COLLECTION);
+  const agenciesCollection = db.collection(AGENCIES_COLLECTION);
 
   // 查询达人
   const talent = await talentsCollection.findOne({ oneId, platform });
@@ -49,12 +56,29 @@ async function getTalentRebate(oneId, platform) {
     throw new Error(`达人不存在: oneId=${oneId}, platform=${platform}`);
   }
 
+  const agencyId = talent.agencyId || 'individual';
+  const isAgencyTalent = agencyId !== 'individual';
+
+  // 获取机构信息
+  let agencyName = '野生达人';
+  if (isAgencyTalent) {
+    const agency = await agenciesCollection.findOne({ id: agencyId });
+    agencyName = agency ? agency.name : agencyId;
+  }
+
+  // 确定返点模式：野生达人永远是 independent，机构达人默认是 sync
+  const rebateMode = isAgencyTalent
+    ? (talent.rebateMode || 'sync')
+    : 'independent';
+
   // 返回返点配置
   return {
     oneId: talent.oneId,
     platform: talent.platform,
     name: talent.name,
-    agencyId: talent.agencyId || 'individual',  // 默认为野生达人
+    agencyId: agencyId,
+    agencyName: agencyName,
+    rebateMode: rebateMode,  // 新增：返点模式
     currentRebate: talent.currentRebate || {
       rate: DEFAULT_REBATE_RATE,
       source: 'default',

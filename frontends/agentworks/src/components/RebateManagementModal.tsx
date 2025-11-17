@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { getTalentRebate, getRebateHistory as fetchRebateHistory, updateTalentRebate } from '../api/rebate';
+import { getTalentRebate, getRebateHistory as fetchRebateHistory, updateTalentRebate, syncAgencyRebateToTalent } from '../api/rebate';
 import { getAgencies } from '../api/agency';
 import type { Talent } from '../types/talent';
 import type { Agency } from '../types/agency';
@@ -25,6 +25,7 @@ import {
   getBusinessAttribute,
   getRebateAttribute
 } from '../utils/rebate';
+import { ArrowPathIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 
 interface RebateManagementModalProps {
   isOpen: boolean;
@@ -45,12 +46,17 @@ export function RebateManagementModal({
   const [rebateLoading, setRebateLoading] = useState(false);
   const [agencies, setAgencies] = useState<Agency[]>([]);
 
+  // 返点模式状态
+  const [rebateMode, setRebateMode] = useState<'sync' | 'independent'>('sync');
+  const [syncLoading, setSyncLoading] = useState(false);
+
   // 手动调整Tab的状态
   const [manualRebateRate, setManualRebateRate] = useState<string>('');
   const [manualEffectType, setManualEffectType] = useState<EffectType>('immediate');
   const [manualCreatedBy, setManualCreatedBy] = useState<string>('');
   const [manualLoading, setManualLoading] = useState(false);
   const [manualError, setManualError] = useState<string>('');
+  const [successMessage, setSuccessMessage] = useState<string>('');
 
   // 分页状态
   const [currentPage, setCurrentPage] = useState(1);
@@ -63,6 +69,7 @@ export function RebateManagementModal({
       loadAgencies();
       // 初始化手动调整表单
       setManualError('');
+      setSuccessMessage('');
     }
   }, [isOpen, talent.oneId, talent.platform]);
 
@@ -81,6 +88,8 @@ export function RebateManagementModal({
       const rebateResponse = await getTalentRebate(talent.oneId, talent.platform);
       if (rebateResponse.success && rebateResponse.data) {
         setRebateData(rebateResponse.data);
+        // 更新返点模式
+        setRebateMode(rebateResponse.data.rebateMode);
       }
 
       // 加载返点历史记录（分页）
@@ -135,10 +144,51 @@ export function RebateManagementModal({
     }
   };
 
+  // 切换返点模式
+  const handleToggleMode = () => {
+    setRebateMode(prev => prev === 'sync' ? 'independent' : 'sync');
+    setManualError('');
+  };
+
+  // 同步机构返点
+  const handleSyncFromAgency = async () => {
+    try {
+      setSyncLoading(true);
+      setManualError('');
+      setSuccessMessage('');
+
+      const response = await syncAgencyRebateToTalent({
+        oneId: talent.oneId,
+        platform: talent.platform,
+        changeMode: rebateMode !== 'sync', // 如果当前不是sync模式，同步时切换到sync
+        createdBy: manualCreatedBy || undefined,
+      });
+
+      if (response.success) {
+        // 如果切换了模式，更新本地状态
+        if (rebateMode !== 'sync') {
+          setRebateMode('sync');
+        }
+        // 重新加载数据
+        await loadRebateData(currentPage);
+        setSuccessMessage('同步成功！返点率已更新');
+        // 3秒后自动清除成功消息
+        setTimeout(() => setSuccessMessage(''), 3000);
+      } else {
+        setManualError(response.message || '同步失败');
+      }
+    } catch (err: any) {
+      setManualError(err.message || '同步机构返点失败');
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
   // 手动调整返点的提交处理
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setManualError('');
+    setSuccessMessage('');
 
     // 验证返点率
     const rateNum = parseFloat(manualRebateRate);
@@ -162,10 +212,15 @@ export function RebateManagementModal({
       const response = await updateTalentRebate(request);
 
       if (response.success) {
+        // 手动调整后，如果原来是sync模式，自动切换到independent
+        if (rebateMode === 'sync') {
+          setRebateMode('independent');
+        }
         // 重新加载数据
         await loadRebateData(currentPage);
-        // 显示成功提示（可以用更优雅的提示组件替代）
-        alert('返点调整成功');
+        setSuccessMessage('返点调整成功！新返点率已生效');
+        // 3秒后自动清除成功消息
+        setTimeout(() => setSuccessMessage(''), 3000);
         // 重置表单
         setManualCreatedBy('');
         setManualEffectType('immediate');
@@ -211,10 +266,10 @@ export function RebateManagementModal({
             </div>
           </div>
 
-          {/* Tabs */}
+          {/* Tabs - 使用本地 rebateMode 状态而不是 talent.rebateMode */}
           <div className="border-b border-gray-200">
             <nav className="flex px-5" aria-label="Tabs">
-              {getRebateTabs(talent).map((tab) => (
+              {getRebateTabs({ ...talent, rebateMode }).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab as TabType)}
@@ -246,89 +301,86 @@ export function RebateManagementModal({
               <div className="space-y-6">
                 {/* Tab: 当前配置 */}
                 {activeTab === 'current' && (
-                  <div className="border rounded-lg bg-white p-4 shadow-sm">
-                  <div className="flex items-center justify-between mb-3 pb-2 border-b">
-                    <h4 className="text-base font-semibold text-gray-800">
-                      当前返点配置
-                    </h4>
-                    {!isWildTalent(talent) && (
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            // TODO: 实现模式切换功能
-                            console.log('切换返点模式');
-                          }}
-                          className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                        >
-                          切换模式
-                        </button>
-                        <button
-                          onClick={() => {
-                            // 机构达人切换到手动调整Tab
-                            setActiveTab('manual');
-                          }}
-                          className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                        >
-                          调整返点
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  <div className="space-y-5">
+                    {/* 当前返点信息 */}
+                    <div className="border rounded-lg bg-white p-4 shadow-sm">
+                      <h4 className="text-base font-semibold text-gray-800 mb-3 pb-2 border-b">
+                        当前返点配置
+                      </h4>
 
-                  <div className="space-y-4">
-                    {/* 返点模式提示（仅机构达人） */}
-                    {!isWildTalent(talent) && (
-                      <div className={`border rounded-lg p-3 ${
-                        (talent.rebateMode || 'sync') === 'sync'
-                          ? 'bg-blue-50 border-blue-200'
-                          : 'bg-amber-50 border-amber-200'
-                      }`}>
-                        <p className={`text-sm font-medium ${
-                          (talent.rebateMode || 'sync') === 'sync'
-                            ? 'text-blue-800'
-                            : 'text-amber-800'
-                        }`}>
-                          返点模式: {getRebateAttribute(talent)}
-                        </p>
-                        <p className={`text-xs mt-1 ${
-                          (talent.rebateMode || 'sync') === 'sync'
-                            ? 'text-blue-600'
-                            : 'text-amber-600'
-                        }`}>
-                          {(talent.rebateMode || 'sync') === 'sync'
-                            ? '返点率将自动跟随机构设置变化'
-                            : '返点率独立设置，不受机构设置影响'}
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                      <div>
-                        <p className="text-xs text-gray-500">商业属性</p>
-                        <p className="mt-1 text-base font-medium text-gray-900">
-                          {getBusinessAttribute(talent, getAgencyName(rebateData.agencyId))}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">当前返点率</p>
-                        <p className="mt-1 text-base font-bold text-green-600">
-                          {formatRebateRate(rebateData.currentRebate.rate)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">返点来源</p>
-                        <p className="mt-1 text-base font-medium text-gray-900">
-                          {REBATE_SOURCE_LABELS[rebateData.currentRebate.source]}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">生效日期</p>
-                        <p className="mt-1 text-base font-medium text-gray-900">
-                          {rebateData.currentRebate.effectiveDate}
-                        </p>
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                        <div>
+                          <p className="text-xs text-gray-500">商业属性</p>
+                          <p className="mt-1 text-base font-medium text-gray-900">
+                            {getBusinessAttribute(talent, getAgencyName(rebateData.agencyId))}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">当前返点率</p>
+                          <p className="mt-1 text-base font-bold text-green-600">
+                            {formatRebateRate(rebateData.currentRebate.rate)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">返点来源</p>
+                          <p className="mt-1 text-base font-medium text-gray-900">
+                            {rebateMode === 'sync' && !isWildTalent(talent)
+                              ? '机构同步'
+                              : REBATE_SOURCE_LABELS[rebateData.currentRebate.source]}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500">生效日期</p>
+                          <p className="mt-1 text-base font-medium text-gray-900">
+                            {rebateData.currentRebate.effectiveDate}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+
+                    {/* 机构达人：返点模式切换 */}
+                    {!isWildTalent(talent) && (
+                      <div className="border rounded-lg bg-white p-4 shadow-sm">
+                        <div className="border rounded-lg p-4 bg-gray-50">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                                返点模式
+                              </h3>
+                              <p className="text-xs text-gray-600">
+                                {rebateMode === 'sync'
+                                  ? `当前绑定机构"${rebateData?.agencyName}"的返点配置，机构调整时自动同步`
+                                  : '当前使用独立设置，不跟随机构返点变化'}
+                              </p>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer ml-4">
+                              <input
+                                type="checkbox"
+                                checked={rebateMode === 'sync'}
+                                onChange={handleToggleMode}
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                              <span className="ml-3 text-sm font-medium text-gray-700">
+                                {rebateMode === 'sync' ? '绑定机构返点' : '独立设置返点'}
+                              </span>
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* 说明信息 */}
+                        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+                          <InformationCircleIcon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-blue-900">关于返点模式</p>
+                            <ul className="text-xs text-blue-700 mt-2 space-y-1 list-disc list-inside">
+                              <li><strong>绑定机构返点：</strong>返点率跟随机构配置，机构调整时自动同步。切换后请前往"机构同步" Tab进行同步操作</li>
+                              <li><strong>独立设置返点：</strong>使用自定义返点率，不受机构变化影响。切换后请前往"手动调整" Tab进行配置</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -338,6 +390,16 @@ export function RebateManagementModal({
                     <h4 className="text-base font-semibold text-gray-800 mb-3 pb-2 border-b">
                       手动调整返点
                     </h4>
+
+                    {/* 成功提示 */}
+                    {successMessage && (
+                      <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-3 text-sm text-green-600 flex items-center gap-2">
+                        <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        {successMessage}
+                      </div>
+                    )}
 
                     <form onSubmit={handleManualSubmit} className="space-y-5">
                       {/* 当前返点率展示 */}
@@ -458,7 +520,6 @@ export function RebateManagementModal({
                         <button
                           type="button"
                           onClick={() => {
-                            // 重置表单
                             setManualRebateRate(rebateData?.currentRebate?.rate?.toString() || '0');
                             setManualEffectType('immediate');
                             setManualCreatedBy('');
@@ -482,28 +543,68 @@ export function RebateManagementModal({
                 )}
 
                 {/* Tab: 机构同步 */}
-                {activeTab === 'agencySync' && (
+                {activeTab === 'agencySync' && !isWildTalent(talent) && (
                   <div className="border rounded-lg bg-white p-4 shadow-sm">
                     <h4 className="text-base font-semibold text-gray-800 mb-3 pb-2 border-b">
                       机构同步配置
                     </h4>
-                    <div className="space-y-4">
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <p className="text-sm text-blue-800">
-                          当前为同步模式，返点率将自动跟随机构设置
-                        </p>
+
+                    {/* 成功提示 */}
+                    {successMessage && (
+                      <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-3 text-sm text-green-600 flex items-center gap-2">
+                        <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        {successMessage}
                       </div>
+                    )}
+
+                    <div className="space-y-5">
+                      {/* 机构信息展示 */}
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-xs text-gray-500">同步机构</p>
+                          <p className="text-xs text-gray-500">归属机构</p>
                           <p className="mt-1 text-base font-medium text-gray-900">
                             {getAgencyName(talent.agencyId)}
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-gray-500">机构返点率</p>
+                          <p className="text-xs text-gray-500">当前返点率</p>
                           <p className="mt-1 text-base font-bold text-green-600">
                             {rebateData ? formatRebateRate(rebateData.currentRebate.rate) : '0%'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* 同步按钮 */}
+                      <div className="border-t pt-4">
+                        <button
+                          onClick={handleSyncFromAgency}
+                          disabled={syncLoading}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <ArrowPathIcon className={`h-5 w-5 ${syncLoading ? 'animate-spin' : ''}`} />
+                          {syncLoading ? '同步中...' : `从机构"${rebateData?.agencyName}"同步返点`}
+                        </button>
+                        <p className="mt-2 text-xs text-gray-500 text-center">
+                          点击后将使用机构在该平台的当前返点配置
+                        </p>
+                      </div>
+
+                      {/* 错误提示 */}
+                      {manualError && (
+                        <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-600">
+                          {manualError}
+                        </div>
+                      )}
+
+                      {/* 说明信息 */}
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+                        <InformationCircleIcon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-blue-900">关于机构同步</p>
+                          <p className="text-xs text-blue-700 mt-2">
+                            同步操作将从机构在该平台的当前返点配置中获取返点率，并立即应用到当前达人。同步后，该达人将保持在"绑定机构返点"模式，后续机构返点变更时会自动同步。
                           </p>
                         </div>
                       </div>

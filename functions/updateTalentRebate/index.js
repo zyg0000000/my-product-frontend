@@ -135,7 +135,7 @@ async function updateTalentRebate(params) {
 
     await rebateConfigsCollection.insertOne(configData);
 
-    // 更新达人的当前返点
+    // 更新达人的当前返点，同时将 rebateMode 设置为 independent
     await talentsCollection.updateOne(
       { oneId, platform },
       {
@@ -143,7 +143,8 @@ async function updateTalentRebate(params) {
           'currentRebate.rate': validatedRate,
           'currentRebate.source': 'personal',
           'currentRebate.effectiveDate': finalEffectiveDate.toISOString().split('T')[0], // talents 集合保持日期格式
-          'currentRebate.lastUpdated': now
+          'currentRebate.lastUpdated': now,
+          'rebateMode': 'independent'  // 手动调整时设置为独立模式
         }
       }
     );

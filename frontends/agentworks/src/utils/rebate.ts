@@ -121,19 +121,18 @@ export function getRebateTabs(talent: Talent): string[] {
   const isWild = isWildTalent(talent);
 
   if (isWild) {
-    // 野生达人的Tab
+    // 野生达人：当前配置 + 手动调整 + 阶梯规则 + 调整历史
     return ['current', 'manual', 'stepRule', 'history'];
   }
 
   // 机构达人根据模式显示不同Tab
-  // 如果没有设置rebateMode，默认为sync
   const mode = talent.rebateMode || 'sync';
 
   if (mode === 'sync') {
-    // 同步模式
-    return ['current', 'agencySync', 'history'];
+    // 绑定模式：当前配置 + 机构同步 + 阶梯规则 + 调整历史
+    return ['current', 'agencySync', 'stepRule', 'history'];
   } else {
-    // 独立模式
+    // 独立模式：当前配置 + 手动调整 + 阶梯规则 + 调整历史
     return ['current', 'manual', 'stepRule', 'history'];
   }
 }

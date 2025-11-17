@@ -10,6 +10,7 @@ import type { Talent, Platform, ApiResponse } from '../types/talent';
  */
 export interface GetTalentsParams {
   platform?: Platform;
+  agencyId?: string; // 按机构ID筛选
   groupBy?: 'oneId'; // 按 oneId 分组
   view?: 'simple';
 }

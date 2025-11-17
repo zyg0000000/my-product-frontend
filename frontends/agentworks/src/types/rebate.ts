@@ -71,7 +71,9 @@ export interface GetRebateResponse {
     oneId: string;
     platform: Platform;
     name: string;
-    agencyId: string;  // 'individual' for wild talents, agency ID for agency talents
+    agencyId: string;        // 'individual' for wild talents, agency ID for agency talents
+    agencyName: string;      // 机构名称（野生达人为"野生达人"）
+    rebateMode: 'sync' | 'independent';  // 返点模式：sync=绑定机构，independent=独立设置
     currentRebate: CurrentRebate;
   };
   message?: string;

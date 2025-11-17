@@ -1,0 +1,9 @@
+{
+  "name": "sync-agency-rebate-to-talent",
+  "version": "1.0.0",
+  "description": "Sync agency rebate rate to a specific talent",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  }
+}

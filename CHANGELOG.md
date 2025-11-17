@@ -2,6 +2,54 @@
 
 所有重要的更改都将记录在此文件中。
 
+## [2.4.0] - 2025-11-17
+
+### ✨ 新功能 (Features)
+
+#### 机构管理增强
+- **达人数量统计**：机构管理页面现在可以显示每个机构的实际达人数量
+- **实时数据加载**：使用并行 API 调用动态获取各机构的达人统计
+
+#### 返点系统完善
+- **机构返点绑定**：机构达人支持绑定/解绑机构返点模式
+- **返点模式切换**：支持在"绑定机构返点"和"独立设置返点"之间切换
+- **机构同步功能**：新增"机构同步" Tab，支持从机构同步返点配置
+- **动态 Tab 显示**：根据返点模式动态显示不同的功能 Tab
+
+### 🔧 技术改进 (Technical Improvements)
+
+#### 后端云函数
+- **getTalents v3.2**：新增 `agencyId` 参数支持，用于按机构筛选达人
+- **getTalentRebate v2.0**：新增返回 `rebateMode` 和 `agencyName` 字段
+- **syncAgencyRebateToTalent v1.0**：新增机构返点同步云函数
+- **updateTalentRebate v1.1**：手动调整时自动切换到独立模式
+
+#### 前端优化
+- **返点模式管理**：完整的返点模式状态管理和 UI 反馈
+- **成功提示优化**：使用内联绿色横幅替代 alert() 弹窗
+- **Tab 动态管理**：基于 rebateMode 状态动态渲染 Tab 列表
+
+### 🐛 修复 (Bug Fixes)
+- 修复返点模式切换后状态不持久的问题
+- 修复手动调整后模式未切换到 independent 的问题
+- 修复 Tab 显示不随模式更新的问题
+- 修复返点来源显示逻辑错误
+
+### 📝 受影响的文件
+
+#### 云函数
+- `getTalents/index.js` (v3.1 → v3.2)
+- `getTalentRebate/index.js` (v1.0 → v2.0)
+- `syncAgencyRebateToTalent/index.js` (新增 v1.0)
+- `updateTalentRebate/index.js` (v1.0 → v1.1)
+
+#### 前端组件
+- `AgenciesList.tsx` - 添加达人数量统计功能
+- `RebateManagementModal.tsx` - 重构返点模式管理
+- `rebate.ts` (utils) - 优化 Tab 显示逻辑
+- `rebate.ts` (api) - 添加机构同步 API
+- `talent.ts` (api) - 添加 agencyId 筛选参数
+
 ## [2.3.0] - 2025-11-16
 
 ### 🐛 修复 (Bug Fixes)

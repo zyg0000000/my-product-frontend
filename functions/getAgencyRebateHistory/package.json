@@ -1,0 +1,9 @@
+{
+  "name": "get-agency-rebate-history",
+  "version": "1.0.0",
+  "description": "Get agency rebate adjustment history",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  }
+}

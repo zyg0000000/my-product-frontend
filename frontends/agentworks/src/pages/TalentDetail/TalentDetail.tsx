@@ -340,6 +340,9 @@ export function TalentDetail() {
           oneId={oneId!}
           platform={platform as Platform}
           currentRate={rebateData.currentRebate.rate}
+          rebateMode={rebateData.rebateMode}
+          agencyId={rebateData.agencyId}
+          agencyName={rebateData.agencyName}
         />
       )}
     </div>
