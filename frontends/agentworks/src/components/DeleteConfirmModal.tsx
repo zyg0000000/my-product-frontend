@@ -5,6 +5,8 @@
 import { useState } from 'react';
 import type { Talent, Platform } from '../types/talent';
 import { PLATFORM_NAMES } from '../types/talent';
+import { Toast } from './Toast';
+import { useToast } from '../hooks/useToast';
 
 interface DeleteConfirmModalProps {
   isOpen: boolean;
@@ -17,12 +19,13 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
   const [deleting, setDeleting] = useState(false);
   const [deleteAll, setDeleteAll] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const { toast, hideToast, warning, error: showError } = useToast();
 
   if (!isOpen || !talent) return null;
 
   const handleConfirm = async () => {
     if (!confirmed) {
-      alert('请先勾选确认框');
+      warning('请先勾选确认框');
       return;
     }
 
@@ -33,9 +36,9 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
       setConfirmed(false);
       setDeleteAll(false);
       onClose();
-    } catch (error) {
-      console.error('删除失败:', error);
-      alert('删除失败，请重试');
+    } catch (err) {
+      console.error('删除失败:', err);
+      showError('删除失败，请重试');
     } finally {
       setDeleting(false);
     }
@@ -213,6 +216,15 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
           </div>
         </div>
       </div>
+
+      {/* Toast 通知 */}
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
     </div>
   );
 }

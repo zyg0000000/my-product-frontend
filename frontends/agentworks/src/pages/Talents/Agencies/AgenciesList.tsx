@@ -17,6 +17,8 @@ import {
 } from '../../../api/agency';
 import { getTalents } from '../../../api/talent';
 import { AgencyRebateModal } from '../../../components/AgencyRebateModal';
+import { Toast } from '../../../components/Toast';
+import { useToast } from '../../../hooks/useToast';
 
 export function AgenciesList() {
   const [agencies, setAgencies] = useState<Agency[]>([]);
@@ -28,6 +30,8 @@ export function AgenciesList() {
   const [isRebateModalOpen, setIsRebateModalOpen] = useState(false);
   const [rebateAgency, setRebateAgency] = useState<Agency | null>(null);
   const [talentCounts, setTalentCounts] = useState<Record<string, number>>({});
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [agencyToDelete, setAgencyToDelete] = useState<Agency | null>(null);
   const [formData, setFormData] = useState<AgencyFormData>({
     name: '',
     type: 'agency',
@@ -38,6 +42,7 @@ export function AgenciesList() {
     description: '',
     status: 'active',
   });
+  const { toast, hideToast, success, error: showError, warning } = useToast();
 
   // 加载机构列表
   useEffect(() => {
@@ -110,7 +115,7 @@ export function AgenciesList() {
   // 打开编辑弹窗
   const handleEdit = (agency: Agency) => {
     if (agency.id === AGENCY_INDIVIDUAL_ID) {
-      alert('野生达人是系统预设机构，不可编辑');
+      warning('野生达人是系统预设机构，不可编辑');
       return;
     }
     setEditingAgency(agency);
@@ -130,7 +135,7 @@ export function AgenciesList() {
   // 打开返点管理弹窗
   const handleRebateManagement = (agency: Agency) => {
     if (agency.id === AGENCY_INDIVIDUAL_ID) {
-      alert('野生达人是系统预设机构，不需要设置返点');
+      warning('野生达人是系统预设机构，不需要设置返点');
       return;
     }
     setRebateAgency(agency);
@@ -140,34 +145,44 @@ export function AgenciesList() {
   // 删除机构
   const handleDelete = async (agency: Agency) => {
     if (agency.id === AGENCY_INDIVIDUAL_ID) {
-      alert('野生达人是系统预设机构，不可删除');
+      warning('野生达人是系统预设机构，不可删除');
       return;
     }
-    if (confirm(`确定要删除机构「${agency.name}」吗？`)) {
-      try {
-        const response = await deleteAgency(agency.id);
-        if (response.success) {
-          // 重新加载列表
-          await loadAgencies();
-        } else {
-          alert(response.message || '删除失败');
-        }
-      } catch (err) {
-        alert(err instanceof Error ? err.message : '删除失败');
+    setAgencyToDelete(agency);
+    setShowDeleteConfirm(true);
+  };
+
+  // 确认删除机构
+  const confirmDelete = async () => {
+    if (!agencyToDelete) return;
+
+    try {
+      const response = await deleteAgency(agencyToDelete.id);
+      if (response.success) {
+        success('机构删除成功');
+        // 重新加载列表
+        await loadAgencies();
+      } else {
+        showError(response.message || '删除失败');
       }
+    } catch (err) {
+      showError(err instanceof Error ? err.message : '删除失败');
+    } finally {
+      setShowDeleteConfirm(false);
+      setAgencyToDelete(null);
     }
   };
 
   // 保存机构
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      alert('请输入机构名称');
+      showError('请输入机构名称');
       return;
     }
 
     // 验证手机号格式（如果填写了）
     if (formData.phoneNumber && !/^1[3-9]\d{9}$/.test(formData.phoneNumber)) {
-      alert('请输入正确的手机号格式');
+      showError('请输入正确的手机号格式');
       return;
     }
 
@@ -184,14 +199,15 @@ export function AgenciesList() {
       }
 
       if (response.success) {
+        success(editingAgency ? '机构更新成功' : '机构创建成功');
         // 重新加载列表
         await loadAgencies();
         setIsModalOpen(false);
       } else {
-        alert(response.message || '保存失败');
+        showError(response.message || '保存失败');
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : '保存失败');
+      showError(err instanceof Error ? err.message : '保存失败');
     } finally {
       setSaving(false);
     }
@@ -627,6 +643,85 @@ export function AgenciesList() {
           loadAgencies();
         }}
       />
+
+      {/* 删除确认弹窗 */}
+      {showDeleteConfirm && agencyToDelete && (
+        <div
+          className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+          onClick={() => setShowDeleteConfirm(false)}
+        >
+          <div
+            className="relative top-20 mx-auto p-0 border-0 w-full max-w-md shadow-2xl rounded-xl bg-white overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-red-600 to-red-700 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-white bg-opacity-20">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">删除确认</h3>
+                  <p className="text-red-100 text-sm mt-1">此操作不可逆，请谨慎确认</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-5">
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-gray-900">
+                  确定要删除机构 <span className="font-semibold text-red-600">「{agencyToDelete.name}」</span> 吗？
+                </p>
+                {getTalentCount(agencyToDelete.id) > 0 && (
+                  <p className="text-xs text-red-800 mt-2">
+                    注意：该机构下还有 <span className="font-semibold">{getTalentCount(agencyToDelete.id)}</span> 位达人
+                  </p>
+                )}
+              </div>
+
+              {/* 操作按钮 */}
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                >
+                  取消
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDelete}
+                  className="px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 font-medium focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                >
+                  确认删除
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast 通知 */}
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
     </div>
   );
 }

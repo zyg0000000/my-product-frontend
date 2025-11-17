@@ -11,6 +11,7 @@ interface TagInputProps {
   onChange: (tags: string[]) => void;
   placeholder?: string;
   maxTags?: number;
+  onError?: (message: string) => void; // 添加错误回调
 }
 
 export function TagInput({
@@ -19,6 +20,7 @@ export function TagInput({
   onChange,
   placeholder = '输入标签后按回车',
   maxTags,
+  onError,
 }: TagInputProps) {
   const [inputValue, setInputValue] = useState('');
 
@@ -32,7 +34,7 @@ export function TagInput({
       if (!selectedTags.includes(newTag)) {
         // 检查最大数量限制
         if (maxTags && selectedTags.length >= maxTags) {
-          alert(`最多只能添加 ${maxTags} 个标签`);
+          onError?.(`最多只能添加 ${maxTags} 个标签`);
           return;
         }
         onChange([...selectedTags, newTag]);
@@ -51,7 +53,7 @@ export function TagInput({
     } else {
       // 检查最大数量限制
       if (maxTags && selectedTags.length >= maxTags) {
-        alert(`最多只能添加 ${maxTags} 个标签`);
+        onError?.(`最多只能添加 ${maxTags} 个标签`);
         return;
       }
       onChange([...selectedTags, tag]);

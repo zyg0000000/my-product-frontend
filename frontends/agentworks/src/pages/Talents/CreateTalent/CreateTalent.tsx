@@ -10,6 +10,8 @@ import { PLATFORM_NAMES } from '../../../types/talent';
 import { AGENCY_INDIVIDUAL_ID } from '../../../types/agency';
 import { TagInput } from '../../../components/TagInput';
 import { AgencySelector } from '../../../components/AgencySelector';
+import { Toast } from '../../../components/Toast';
+import { useToast } from '../../../hooks/useToast';
 
 interface FormData {
   platform: Platform;
@@ -31,6 +33,7 @@ export function CreateTalent() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const { toast, hideToast, success, error: showError } = useToast();
   const [formData, setFormData] = useState<FormData>({
     platform: 'douyin',
     platformAccountId: '',
@@ -124,19 +127,19 @@ export function CreateTalent() {
   // 表单验证
   const validateForm = (): boolean => {
     if (!formData.platform) {
-      alert('请选择平台');
+      showError('请选择平台');
       return false;
     }
     if (!formData.platformAccountId.trim()) {
-      alert(`请输入${getPlatformAccountIdLabel()}`);
+      showError(`请输入${getPlatformAccountIdLabel()}`);
       return false;
     }
     if (!formData.name.trim()) {
-      alert('请输入达人昵称');
+      showError('请输入达人昵称');
       return false;
     }
     if (formData.fansCount && isNaN(Number(formData.fansCount))) {
-      alert('粉丝数必须是数字');
+      showError('粉丝数必须是数字');
       return false;
     }
     return true;
@@ -184,14 +187,14 @@ export function CreateTalent() {
       const response = await createTalent(submitData);
 
       if (response.success) {
-        alert('达人创建成功！');
+        success('达人创建成功');
         navigate('/talents/basic');
       } else {
-        alert(`创建失败：${response.message || '未知错误'}`);
+        showError(`创建失败：${response.message || '未知错误'}`);
       }
-    } catch (error) {
-      console.error('创建达人失败:', error);
-      alert('创建失败，请检查网络连接或稍后重试');
+    } catch (err) {
+      console.error('创建达人失败:', err);
+      showError('创建失败，请检查网络连接或稍后重试');
     } finally {
       setLoading(false);
     }
@@ -398,6 +401,7 @@ export function CreateTalent() {
               availableTags={availableTags}
               onChange={(tags) => handleChange('talentType', tags)}
               placeholder="输入分类标签后按回车，如：美妆、时尚等"
+              onError={showError}
             />
           </div>
         </div>
@@ -421,6 +425,15 @@ export function CreateTalent() {
           </button>
         </div>
       </form>
+
+      {/* Toast 通知 */}
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
     </div>
   );
 }

@@ -23,13 +23,16 @@
 ### 📦 产品 2.0（开发中）
 - **名称**: AgentWorks（广告代理项目管理平台）
 - **定位**: 多平台达人营销管理系统
-- **状态**: 🚧 开发中
+- **状态**: 🚧 开发中 - v2.5.0 (2025-11-18)
 - **数据库**: `agentworks_db`
 - **新特性**:
   - 🚀 支持抖音、小红书、B站、快手等多平台
   - 🔗 oneId 跨平台达人关联系统
   - 🔄 智能达人合并和去重
   - 📈 跨平台数据对比分析
+  - 🔍 综合搜索筛选系统
+  - 💰 时间序列化价格管理
+  - 🎯 返点系统（机构/独立模式）
 
 ### 核心价值
 
@@ -268,6 +271,8 @@ my-product-frontend/  (Monorepo v4.0)
 
 | 文档 | 说明 |
 |------|------|
+| **[📖 主文档索引中心](./MASTER_DOCS_INDEX.md)** | **统一文档导航系统 - 支持双产品线 🔥** |
+| **[AgentWorks 文档索引](./docs/AGENTWORKS_DOCS_INDEX.md)** | **AgentWorks 完整文档导航 🆕** |
 | [开发者指南](./docs/DEVELOPER_GUIDE.md) | 环境搭建、开发流程、代码规范 ⭐ |
 | [故障排查手册](./docs/TROUBLESHOOTING.md) | 常见问题快速解决 ⭐ |
 | [FAQ](./docs/FAQ.md) | 常见问题汇总 |
@@ -471,11 +476,19 @@ git push
 
 ---
 
-**最后更新**：2025-11-16
+**最后更新**：2025-11-18
 **当前版本**：v4.1 (Dual Product Architecture)
 **维护者**：产品经理 + Claude Code
 
 **📖 立即开始**：
-- **产品 1.0**: 阅读 [开发者指南](./docs/DEVELOPER_GUIDE.md)
-- **产品 2.0**: 阅读 [AgentWorks 文档](./frontends/agentworks/README.md)
-- **数据库**: 查看 [数据库设计](./database/README.md)
+- **📚 全局导航**: 查看 [主文档索引中心](./MASTER_DOCS_INDEX.md) - 65个文档的统一导航
+- **产品 1.0 (ByteProject)**:
+  - [前端说明](./frontends/byteproject/README.md) - 18个功能模块
+  - [数据库v1.0](./database/kol_data/README.md) - 单平台架构
+- **产品 2.0 (AgentWorks)**:
+  - [本地开发指南](./frontends/agentworks/本地开发指南.md) - 快速上手
+  - [项目架构](./PROJECT_ARCHITECTURE.md) - 系统架构详解
+  - [开发规范](./DEVELOPMENT_GUIDELINES.md) - 代码规范
+  - [UI/UX规范](./UI_UX_GUIDELINES.md) - 界面设计
+  - [数据库v2.0](./database/agentworks_db/README.md) - 多平台架构
+- **云函数**: 查看 [函数索引](./functions/docs/INDEX.md) - 51个云函数

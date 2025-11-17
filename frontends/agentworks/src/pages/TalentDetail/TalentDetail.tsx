@@ -150,7 +150,12 @@ export function TalentDetail() {
     <div className="space-y-6">
       {/* 返回按钮 */}
       <button
-        onClick={() => navigate('/talents')}
+        onClick={() => {
+          // 返回到对应平台的基础信息页面，并保持平台选中状态
+          navigate('/talents/basic', {
+            state: { selectedPlatform: platform }
+          });
+        }}
         className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
       >
         <ArrowLeftIcon className="h-4 w-4" />

@@ -8,6 +8,8 @@ import { PLATFORM_NAMES } from '../types/talent';
 import { AGENCY_INDIVIDUAL_ID } from '../types/agency';
 import { TagInput } from './TagInput';
 import { AgencySelector } from './AgencySelector';
+import { Toast } from './Toast';
+import { useToast } from '../hooks/useToast';
 
 interface EditTalentModalProps {
   isOpen: boolean;
@@ -33,6 +35,7 @@ interface FormData {
 
 export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags }: EditTalentModalProps) {
   const [saving, setSaving] = useState(false);
+  const { toast, hideToast, error: showError } = useToast();
   const [formData, setFormData] = useState<FormData>({
     platformAccountId: '',
     name: '',
@@ -113,11 +116,11 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
   // 表单验证
   const validateForm = (): boolean => {
     if (!formData.platformAccountId.trim()) {
-      alert(`请输入${getPlatformAccountIdLabel()}`);
+      showError(`请输入${getPlatformAccountIdLabel()}`);
       return false;
     }
     if (!formData.name.trim()) {
-      alert('请输入达人昵称');
+      showError('请输入达人昵称');
       return false;
     }
     return true;
@@ -161,9 +164,9 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
 
       await onSave(talent.oneId, talent.platform, updateData);
       onClose();
-    } catch (error) {
-      console.error('保存达人信息失败:', error);
-      alert('保存失败，请重试');
+    } catch (err) {
+      console.error('保存达人信息失败:', err);
+      showError('保存失败，请重试');
     } finally {
       setSaving(false);
     }
@@ -358,6 +361,7 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
                     availableTags={availableTags}
                     onChange={(tags) => handleChange('talentType', tags)}
                     placeholder="输入分类标签后按回车，如：美妆、时尚等"
+                    onError={showError}
                   />
                 </div>
               </div>
@@ -384,6 +388,15 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
           </div>
         </form>
       </div>
+
+      {/* Toast 通知 */}
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
     </div>
   );
 }

@@ -6,6 +6,8 @@ import { useState, useEffect } from 'react';
 import type { Talent, PriceRecord, PriceType, PriceStatus } from '../types/talent';
 import { PLATFORM_PRICE_TYPES } from '../types/talent';
 import { formatPrice, getPriceHistory, formatYearMonth, yuanToCents } from '../utils/formatters';
+import { Toast } from './Toast';
+import { useToast } from '../hooks/useToast';
 
 interface PriceModalProps {
   isOpen: boolean;
@@ -16,6 +18,7 @@ interface PriceModalProps {
 
 export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps) {
   const [saving, setSaving] = useState(false);
+  const { toast, hideToast, error: showError } = useToast();
   const [selectedYear, setSelectedYear] = useState<number | ''>(''); // 历史价格筛选年份
   const [selectedMonth, setSelectedMonth] = useState<number | ''>(''); // 历史价格筛选月份
   const [newPrice, setNewPrice] = useState({
@@ -65,7 +68,7 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
       e.preventDefault();
     }
     if (!newPrice.type || newPrice.price <= 0) {
-      alert('请填写完整的价格信息');
+      showError('请填写完整的价格信息');
       return;
     }
 
@@ -106,9 +109,9 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
         price: 0,
         status: 'confirmed',
       });
-    } catch (error) {
-      console.error('保存价格失败:', error);
-      alert('保存价格失败，请重试');
+    } catch (err) {
+      console.error('保存价格失败:', err);
+      showError('保存价格失败，请重试');
     } finally {
       setSaving(false);
     }
@@ -339,6 +342,15 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
           </button>
         </div>
       </div>
+
+      {/* Toast 通知 */}
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
     </div>
   );
 }
