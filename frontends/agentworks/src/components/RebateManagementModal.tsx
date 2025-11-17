@@ -22,8 +22,7 @@ import {
   getRebateTabs,
   getTabDisplayName,
   isPhaseTab,
-  getBusinessAttribute,
-  getRebateAttribute
+  getBusinessAttribute
 } from '../utils/rebate';
 import { ArrowPathIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 

@@ -214,6 +214,7 @@ export interface TalentListItem {
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
+  count?: number; // 列表查询时返回的记录总数
   message?: string;
   error?: string;
 }
