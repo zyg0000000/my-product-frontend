@@ -33,6 +33,7 @@ export function BasicInfo() {
   const [talents, setTalents] = useState<Talent[]>([]);
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalTalents, setTotalTalents] = useState(0); // 总记录数（后端返回）
   const [priceModalOpen, setPriceModalOpen] = useState(false);
   const [rebateModalOpen, setRebateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -96,14 +97,29 @@ export function BasicInfo() {
     }
   }, []);
 
-  // 加载达人列表
+  // 加载达人列表（切换平台时）
   useEffect(() => {
     setCurrentPage(1); // 切换平台时重置到第一页
     // 切换平台时更新价格档位
     const saved = localStorage.getItem(`selectedPriceTier_${selectedPlatform}`);
     setSelectedPriceTier(saved || getDefaultPriceTier(selectedPlatform));
-    loadTalents();
   }, [selectedPlatform]);
+
+  // 筛选条件或分页变化时重新加载
+  useEffect(() => {
+    loadTalents();
+  }, [
+    selectedPlatform,
+    currentPage,
+    searchTerm,
+    selectedTiers,
+    selectedTags,
+    rebateMin,
+    rebateMax,
+    priceMin,
+    priceMax,
+    filterPriceTiers
+  ]);
 
   // 加载机构列表
   useEffect(() => {
@@ -113,28 +129,54 @@ export function BasicInfo() {
   const loadTalents = async () => {
     try {
       setLoading(true);
-      const response = await getTalents({ platform: selectedPlatform });
-      console.log('📊 API Response:', response); // 调试日志
+
+      // 构建查询参数（使用后端分页和筛选）
+      const params: any = {
+        platform: selectedPlatform,
+        page: currentPage,
+        limit: pageSize,
+        sortBy: 'updatedAt',
+        order: 'desc'
+      };
+
+      // 添加搜索条件
+      if (searchTerm) params.searchTerm = searchTerm;
+
+      // 添加筛选条件
+      if (selectedTiers.length > 0) params.tiers = selectedTiers;
+      if (selectedTags.length > 0) params.tags = selectedTags;
+      if (rebateMin) params.rebateMin = parseFloat(rebateMin);
+      if (rebateMax) params.rebateMax = parseFloat(rebateMax);
+      if (priceMin) params.priceMin = parseFloat(priceMin);
+      if (priceMax) params.priceMax = parseFloat(priceMax);
+      if (filterPriceTiers.length > 0) params.priceTiers = filterPriceTiers;
+
+      const response = await getTalents(params);
+
       if (response.success && response.data) {
         // 确保 data 总是数组
         const talentsData = Array.isArray(response.data)
           ? response.data
           : [response.data];
-        console.log('✅ Talents Data:', talentsData); // 调试日志
-        // 检查 currentRebate 字段
-        talentsData.forEach((talent, index) => {
-          console.log(`👤 Talent ${index + 1} - ${talent.name}:`, {
-            currentRebate: talent.currentRebate
-          });
-        });
+
         setTalents(talentsData);
+
+        // 更新总记录数（用于分页）
+        if (response.total !== undefined) {
+          setTotalTalents(response.total);
+        } else if (response.count !== undefined) {
+          // 兼容旧版本返回格式
+          setTotalTalents(response.count);
+        }
       } else {
-        console.warn('⚠️ No data in response:', response); // 调试日志
         setTalents([]);
+        setTotalTalents(0);
       }
-    } catch (error) {
-      console.error('❌ 加载达人列表失败:', error);
+    } catch (err) {
+      console.error('加载达人列表失败:', err);
+      error('加载达人列表失败');
       setTalents([]);
+      setTotalTalents(0);
     } finally {
       setLoading(false);
     }
@@ -203,7 +245,7 @@ export function BasicInfo() {
     setSelectedTiers(prev =>
       prev.includes(tier) ? prev.filter(t => t !== tier) : [...prev, tier]
     );
-    setCurrentPage(1); // 重置到第一页
+    setCurrentPage(1); // 重置到第一页（useEffect 会自动触发 loadTalents）
   };
 
   // 处理标签复选框变化
@@ -211,7 +253,7 @@ export function BasicInfo() {
     setSelectedTags(prev =>
       prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
     );
-    setCurrentPage(1); // 重置到第一页
+    setCurrentPage(1); // 重置到第一页（useEffect 会自动触发 loadTalents）
   };
 
   // 根据机构ID获取机构名称
@@ -408,105 +450,14 @@ export function BasicInfo() {
     return null;
   };
 
-  // 应用搜索和筛选
-  const filteredTalents = talents.filter(talent => {
-    // 基础搜索（按名称或OneID）
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      const nameMatch = talent.name?.toLowerCase().includes(searchLower);
-      const oneIdMatch = talent.oneId?.toLowerCase().includes(searchLower);
-      if (!nameMatch && !oneIdMatch) return false;
-    }
+  // [v3.3 优化] 移除前端筛选和分页逻辑
+  // 筛选和分页现在由后端 getTalents v3.3 处理
+  // 前端直接使用后端返回的数据
 
-    // 层级筛选
-    if (selectedTiers.length > 0 && !selectedTiers.includes(talent.talentTier || '')) {
-      return false;
-    }
-
-    // 标签筛选（只要talent的任意一个标签在selectedTags中即可）
-    if (selectedTags.length > 0) {
-      if (!talent.talentType || !Array.isArray(talent.talentType)) return false;
-      const hasMatchingTag = talent.talentType.some(tag => selectedTags.includes(tag));
-      if (!hasMatchingTag) return false;
-    }
-
-    // 返点筛选
-    if (rebateMin || rebateMax) {
-      const currentRebate = talent.currentRebate?.rate;
-
-      // 如果达人没有返点数据，则不符合筛选条件
-      if (currentRebate === undefined || currentRebate === null) return false;
-
-      // 数据库中已经存储的是百分比（如 30 表示 30%），无需再乘以 100
-      const rebateValue = currentRebate;
-
-      // 调试日志
-      console.log(`[返点筛选] 达人: ${talent.name}, 返点率: ${rebateValue}%, 最低: ${rebateMin}, 最高: ${rebateMax}`);
-
-      if (rebateMin && rebateValue < parseFloat(rebateMin)) {
-        console.log(`  ❌ 不符合：${rebateValue} < ${rebateMin}`);
-        return false;
-      }
-      if (rebateMax && rebateValue > parseFloat(rebateMax)) {
-        console.log(`  ❌ 不符合：${rebateValue} > ${rebateMax}`);
-        return false;
-      }
-
-      console.log(`  ✅ 符合条件`);
-    }
-
-    // 价格筛选
-    if (priceMin || priceMax) {
-      const latestPrices = getLatestPricesMap(talent.prices);
-
-      // 如果选择了特定档位，则只筛选这些档位
-      // 如果没有选择档位，则使用表格显示的档位
-      const tiersToCheck = filterPriceTiers.length > 0
-        ? filterPriceTiers
-        : [selectedPriceTier];
-
-      // 调试日志
-      console.log(`[价格筛选] 达人: ${talent.name}`);
-      console.log(`  检查档位: ${tiersToCheck.join(', ')}`);
-      console.log(`  价格区间: ¥${priceMin || '0'} - ¥${priceMax || '∞'}`);
-
-      // 检查是否有任何一个选中的档位符合价格区间
-      const hasMatchingPrice = tiersToCheck.some(tier => {
-        const currentPrice = latestPrices[tier as PriceType];
-        if (!currentPrice) {
-          console.log(`  档位 ${tier}: 无价格数据`);
-          return false;
-        }
-
-        // 将用户输入的元转换为分进行比较
-        const minInCents = priceMin ? parseFloat(priceMin) * 100 : 0;
-        const maxInCents = priceMax ? parseFloat(priceMax) * 100 : Number.MAX_SAFE_INTEGER;
-
-        const priceInYuan = currentPrice / 100;
-        const inRange = currentPrice >= minInCents && currentPrice <= maxInCents;
-
-        console.log(`  档位 ${tier}: ¥${priceInYuan} ${inRange ? '✅ 符合' : '❌ 不符合'}`);
-
-        return inRange;
-      });
-
-      if (!hasMatchingPrice) {
-        console.log(`  ❌ 最终结果: 不符合条件`);
-        return false;
-      } else {
-        console.log(`  ✅ 最终结果: 符合条件`);
-      }
-    }
-
-    return true;
-  });
-
-  // 计算分页数据
-  const totalRecords = filteredTalents.length;
+  // 计算分页数据（使用后端返回的总数）
+  const totalRecords = totalTalents;
   const totalPages = Math.ceil(totalRecords / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedTalents = filteredTalents.slice(startIndex, endIndex);
+  const paginatedTalents = talents; // 直接使用后端返回的分页数据
 
   // 处理页码变化
   const handlePageChange = (page: number) => {
@@ -776,7 +727,7 @@ export function BasicInfo() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-sm font-medium text-blue-900">
-                找到 {totalRecords} 个符合条件的达人（共 {talents.length} 个）
+                找到 {totalRecords} 个符合条件的达人（第 {currentPage} 页，共 {totalPages} 页）
               </span>
             </div>
             <button
@@ -1085,7 +1036,6 @@ export function BasicInfo() {
             <button
               onClick={() => {
                 // TODO: 打开合作历史弹窗
-                console.log('查看历史:', actionMenuTalent.oneId);
                 handleCloseActionMenu();
               }}
               className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"

@@ -1,7 +1,20 @@
 /**
- * [生产版 v3.2 - v1/v2 双版本架构支持]
+ * [生产版 v3.3 - 分页与筛选支持]
  * 云函数：getTalents
- * 描述：获取达人列表，并在后端完成"合作次数"和"是否合作中"状态的聚合计算。
+ * 描述：获取达人列表，支持分页、多维度筛选、排序。
+ *
+ * --- v3.3 更新日志 (2025-11-18) ---
+ * - [性能优化] 添加分页支持（page, limit），避免大数据量全量加载
+ * - [功能增强] 支持多维度筛选：
+ *   - searchTerm: 名称/OneID搜索
+ *   - tiers: 达人层级筛选
+ *   - tags: 内容标签筛选
+ *   - rebateMin/rebateMax: 返点率区间筛选
+ *   - priceMin/priceMax/priceTiers: 价格筛选
+ * - [排序支持] 支持按任意字段排序（sortBy, order）
+ * - [向后兼容] 不传分页参数时保持原有行为（全量返回）
+ * - [代码规范] 参考 getCollaborators v6.2 成熟实现
+ * - [稳定性增强] 排序添加二级键（_id），防止分页重复
  *
  * --- v3.2 更新日志 (2025-11-17) ---
  * - [参数新增] v2 模式支持 agencyId 参数，用于按机构筛选达人
@@ -39,6 +52,16 @@ async function connectToDatabase() {
   client = new MongoClient(MONGO_URI);
   await client.connect();
   return client;
+}
+
+/**
+ * 获取当前年月（YYYY-MM格式）
+ */
+function getCurrentMonth() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
 }
 
 /**
@@ -119,10 +142,10 @@ async function handleV1Query(db, queryParams, headers) {
 }
 
 /**
- * ========== v2 处理逻辑 ==========
- * 支持多平台架构、oneId 分组查询
+ * ========== v2 处理逻辑（传统模式）==========
+ * 保持原有逻辑，用于向后兼容
  */
-async function handleV2Query(db, queryParams, headers) {
+async function handleV2QueryLegacy(db, queryParams, headers) {
   const { oneId, platform, agencyId, groupBy, view } = queryParams;
   const talentsCollection = db.collection(TALENTS_COLLECTION);
 
@@ -137,7 +160,7 @@ async function handleV2Query(db, queryParams, headers) {
   if (view === 'simple') {
     // 简单视图：直接查询基础字段
     talentsData = await talentsCollection.find(baseMatch, {
-      projection: { _id: 0, oneId: 1, platform: 1, nickname: 1, platformAccountId: 1 }
+      projection: { _id: 0, oneId: 1, platform: 1, name: 1, platformAccountId: 1 }
     }).toArray();
   } else {
     // 完整视图：查询所有字段，包括 currentRebate 对象
@@ -211,6 +234,217 @@ async function handleV2Query(db, queryParams, headers) {
       view: view || 'full'
     }),
   };
+}
+
+/**
+ * ========== v2 分页查询逻辑（v3.3 新增）==========
+ * 支持分页、筛选、排序
+ */
+async function handleV2QueryWithPagination(db, queryParams, headers) {
+  const {
+    oneId, platform, agencyId,
+    page = '1',
+    limit = '15',
+    sortBy = 'updatedAt',
+    order = 'desc',
+    searchTerm,
+    tiers,
+    tags,
+    rebateMin,
+    rebateMax,
+    priceMin,
+    priceMax,
+    priceTiers,
+    priceMonth
+  } = queryParams;
+
+  // 参数验证和解析
+  const pageNum = parseInt(page, 10);
+  let limitNum = parseInt(limit, 10);
+
+  // 参数验证
+  if (isNaN(pageNum) || pageNum < 1) {
+    return {
+      statusCode: 400,
+      headers,
+      body: JSON.stringify({
+        success: false,
+        message: 'page 参数必须是大于 0 的整数'
+      })
+    };
+  }
+
+  if (isNaN(limitNum) || limitNum < 1) {
+    return {
+      statusCode: 400,
+      headers,
+      body: JSON.stringify({
+        success: false,
+        message: 'limit 参数必须是大于 0 的整数'
+      })
+    };
+  }
+
+  // 限制每页最大数量为 100
+  limitNum = Math.min(limitNum, 100);
+
+  const skipNum = (pageNum - 1) * limitNum;
+  const sortOrder = order === 'asc' ? 1 : -1;
+
+  // 构建基础筛选条件
+  const matchStage = {};
+  if (platform) matchStage.platform = platform;
+  if (agencyId) matchStage.agencyId = agencyId;
+  if (oneId) matchStage.oneId = oneId;
+
+  // 搜索词筛选（名称或 OneID）
+  if (searchTerm) {
+    matchStage.$or = [
+      { name: { $regex: searchTerm, $options: 'i' } },
+      { oneId: { $regex: searchTerm, $options: 'i' } }
+    ];
+  }
+
+  // 层级筛选
+  if (tiers) {
+    const tierArray = tiers.split(',').map(s => s.trim()).filter(Boolean);
+    if (tierArray.length > 0) {
+      matchStage.talentTier = { $in: tierArray };
+    }
+  }
+
+  // 标签筛选
+  if (tags) {
+    const tagArray = tags.split(',').map(s => s.trim()).filter(Boolean);
+    if (tagArray.length > 0) {
+      matchStage.talentType = { $in: tagArray };
+    }
+  }
+
+  // 返点率筛选
+  if (rebateMin || rebateMax) {
+    matchStage['currentRebate.rate'] = {};
+    if (rebateMin) {
+      matchStage['currentRebate.rate'].$gte = parseFloat(rebateMin);
+    }
+    if (rebateMax) {
+      matchStage['currentRebate.rate'].$lte = parseFloat(rebateMax);
+    }
+  }
+
+  // 构建聚合管道
+  const pipeline = [];
+
+  // 添加基础匹配条件
+  if (Object.keys(matchStage).length > 0) {
+    pipeline.push({ $match: matchStage });
+  }
+
+  // 价格筛选（需要特殊处理）
+  if (priceMin || priceMax || priceTiers) {
+    const targetMonth = priceMonth || getCurrentMonth();
+    const [year, month] = targetMonth.split('-').map(Number);
+
+    // 添加最新价格字段
+    pipeline.push({
+      $addFields: {
+        latestPrices: {
+          $filter: {
+            input: '$prices',
+            as: 'price',
+            cond: {
+              $and: [
+                { $eq: ['$$price.year', year] },
+                { $eq: ['$$price.month', month] }
+              ]
+            }
+          }
+        }
+      }
+    });
+
+    // 价格档位筛选
+    if (priceTiers) {
+      const tierArray = priceTiers.split(',').map(s => s.trim()).filter(Boolean);
+      if (tierArray.length > 0) {
+        pipeline.push({
+          $match: {
+            'latestPrices.type': { $in: tierArray }
+          }
+        });
+      }
+    }
+
+    // 价格区间筛选（单位：元 → 分）
+    if (priceMin || priceMax) {
+      const minCents = priceMin ? parseFloat(priceMin) * 100 : 0;
+      const maxCents = priceMax ? parseFloat(priceMax) * 100 : Number.MAX_SAFE_INTEGER;
+
+      pipeline.push({
+        $match: {
+          'latestPrices.price': {
+            $gte: minCents,
+            $lte: maxCents
+          }
+        }
+      });
+    }
+  }
+
+  // 分页和排序（参考 getCollaborators v6.2）
+  const facetStage = {
+    $facet: {
+      paginatedResults: [
+        // 添加二级排序键确保稳定性
+        { $sort: { [sortBy]: sortOrder, _id: 1 } },
+        { $skip: skipNum },
+        { $limit: limitNum },
+        { $project: { _id: 0 } } // 移除 _id 字段
+      ],
+      totalCount: [
+        { $count: 'count' }
+      ]
+    }
+  };
+
+  pipeline.push(facetStage);
+
+  // 执行聚合查询
+  const talentsCollection = db.collection(TALENTS_COLLECTION);
+  const results = await talentsCollection.aggregate(pipeline).toArray();
+
+  const talents = results[0].paginatedResults;
+  const total = results[0].totalCount[0]?.count || 0;
+  const totalPages = Math.ceil(total / limitNum);
+
+  return {
+    statusCode: 200,
+    headers,
+    body: JSON.stringify({
+      success: true,
+      data: talents,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages
+    })
+  };
+}
+
+/**
+ * ========== v2 处理逻辑主入口 ==========
+ * 根据参数判断使用分页模式还是传统模式
+ */
+async function handleV2Query(db, queryParams, headers) {
+  const { page, limit } = queryParams;
+
+  // 向后兼容：如果提供了分页参数，使用新的分页逻辑
+  if (page || limit) {
+    return await handleV2QueryWithPagination(db, queryParams, headers);
+  }
+
+  // 否则使用传统逻辑（完全兼容原有功能）
+  return await handleV2QueryLegacy(db, queryParams, headers);
 }
 
 /**
