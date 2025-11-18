@@ -414,7 +414,14 @@
                         </table>
                     </div>
                     <div id="no-data-message" class="hidden text-center py-12 px-6"><p class="text-gray-500">暂无合作达人信息，请先 <a id="add-collaborator-link" href="#" class="text-blue-600 font-semibold hover:underline">录入合作达人</a>。</p></div>
-                    <div id="pagination-controls-basic" class="px-6 py-4 border-t flex justify-between items-center"></div>
+                    <div class="px-6 py-4 border-t flex justify-between items-center">
+                        <div>
+                            <button id="toggle-show-all-btn" class="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-300 rounded-md hover:bg-blue-100 transition-colors">
+                                全部显示
+                            </button>
+                        </div>
+                        <div id="pagination-controls-basic" class="flex-1 flex justify-end"></div>
+                    </div>
                 </div>
 
                 <!-- #################################### -->

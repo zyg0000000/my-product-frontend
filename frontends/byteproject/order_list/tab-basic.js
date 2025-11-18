@@ -1,7 +1,7 @@
 /**
  * @file order_list/tab-basic.js
  * @description 基础信息 Tab 模块
- * @version 1.0.0
+ * @version 1.1.0
  *
  * 功能:
  * - 基础信息列表渲染
@@ -11,6 +11,10 @@
  * - 查看合作历史
  * - 删除合作达人
  * - 分页控制
+ * - 全部显示/分页显示切换 (v1.1.0 新增)
+ *
+ * 更新日志:
+ * - v1.1.0: 新增"全部显示"按钮功能，允许用户一次性查看所有合作记录，或切换回分页模式
  */
 
 import { AppCore } from '../common/app-core.js';
@@ -34,6 +38,7 @@ export class BasicInfoTab {
         this.totalItems = 0;
         this.currentPage = 1;
         this.itemsPerPage = 10;
+        this.showAll = false;  // 是否显示全部
 
         // 状态
         this.openDetails = new Set(); // 展开的详情行
@@ -44,12 +49,19 @@ export class BasicInfoTab {
             listBody: document.getElementById('collaborator-list-body'),
             noDataMessage: document.getElementById('no-data-message'),
             paginationControls: document.getElementById('pagination-controls-basic'),
-            addCollaboratorLink: document.getElementById('add-collaborator-link')
+            addCollaboratorLink: document.getElementById('add-collaborator-link'),
+            toggleShowAllBtn: document.getElementById('toggle-show-all-btn')
         };
 
         // 绑定事件处理器 (保持 this 上下文)
         this.handleClick = this.handleClick.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handleToggleShowAll = this.handleToggleShowAll.bind(this);
+
+        // 绑定"全部显示"按钮事件
+        if (this.elements.toggleShowAllBtn) {
+            this.elements.toggleShowAllBtn.addEventListener('click', this.handleToggleShowAll);
+        }
     }
 
     /**
@@ -62,11 +74,18 @@ export class BasicInfoTab {
         try {
             const params = {
                 projectId: this.projectId,
-                page: this.currentPage,
-                limit: this.itemsPerPage,
                 sortBy: 'createdAt',
                 order: 'desc'
             };
+
+            // 根据显示模式设置分页参数
+            if (this.showAll) {
+                params.page = 1;
+                params.limit = 9999;  // 超大值以获取所有数据
+            } else {
+                params.page = this.currentPage;
+                params.limit = this.itemsPerPage;
+            }
 
             if (statuses) {
                 params.statuses = statuses;
@@ -108,13 +127,24 @@ export class BasicInfoTab {
      * 渲染列表
      */
     render() {
-        const { listBody, noDataMessage, paginationControls, addCollaboratorLink } = this.elements;
+        const { listBody, noDataMessage, paginationControls, addCollaboratorLink, toggleShowAllBtn } = this.elements;
 
         if (!listBody || !noDataMessage) return;
 
         // 更新添加链接
         if (addCollaboratorLink) {
             addCollaboratorLink.href = `order_form.html?projectId=${this.projectId}`;
+        }
+
+        // 更新"全部显示"按钮文本和样式
+        if (toggleShowAllBtn) {
+            if (this.showAll) {
+                toggleShowAllBtn.textContent = '分页显示';
+                toggleShowAllBtn.className = 'px-4 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors';
+            } else {
+                toggleShowAllBtn.textContent = '全部显示';
+                toggleShowAllBtn.className = 'px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-300 rounded-md hover:bg-blue-100 transition-colors';
+            }
         }
 
         // 无数据时显示提示
@@ -140,7 +170,7 @@ export class BasicInfoTab {
         listBody.innerHTML = '';
         listBody.appendChild(fragment);
 
-        // 渲染分页
+        // 渲染分页（全部显示模式下隐藏分页控件）
         this.renderPagination();
 
         // 绑定事件
@@ -343,6 +373,17 @@ export class BasicInfoTab {
         const { paginationControls } = this.elements;
         if (!paginationControls) return;
 
+        // 全部显示模式下，隐藏分页控件并显示总数
+        if (this.showAll) {
+            paginationControls.innerHTML = `
+                <div class="text-sm text-gray-700">
+                    共 <span class="font-medium">${this.totalItems}</span> 条合作记录
+                </div>
+            `;
+            return;
+        }
+
+        // 分页显示模式下，正常渲染分页控件
         Pagination.render(
             paginationControls,
             this.currentPage,
@@ -532,6 +573,15 @@ export class BasicInfoTab {
             loading.close();
             Modal.showAlert('保存失败，请重试。', '错误');
         }
+    }
+
+    /**
+     * 切换全部显示/分页显示
+     */
+    handleToggleShowAll() {
+        this.showAll = !this.showAll;
+        this.currentPage = 1;  // 切换模式时重置到第一页
+        this.load();
     }
 
     /**

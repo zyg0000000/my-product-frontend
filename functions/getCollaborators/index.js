@@ -1,7 +1,9 @@
 /**
  * @file getcollaborators.js
- * @version 6.1-status-filtering
+ * @version 6.2-sorting-fix
  * @description [架构升级] 增加按合作状态筛选的功能，同时保持向后兼容。
+ * * --- 更新日志 (v6.2) ---
+ * - [Bug修复] 修复分页排序稳定性问题：在排序中添加 id 作为二级排序键，防止 createdAt 相同时出现跨页重复显示。
  * * --- 更新日志 (v6.1) ---
  * - [核心功能] 新增了对 `statuses` 查询参数的支持。前端可以传递一个以逗号分隔的状态列表 (如: "客户已定档,视频已发布")。
  * - [动态查询] 如果 `statuses` 参数存在，函数会在数据库查询的 `$match` 阶段动态加入 `$in` 过滤器。
@@ -192,7 +194,7 @@ exports.handler = async (event, context) => {
     const facetStage = {
       $facet: {
         paginatedResults: [
-          { $sort: { [sortBy]: sortOrder } },
+          { $sort: { [sortBy]: sortOrder, id: 1 } }, // 添加 id 作为二级排序键，确保排序稳定性
           { $skip: skipNum },
           { $limit: limitNum },
           { $project: finalProjection }
