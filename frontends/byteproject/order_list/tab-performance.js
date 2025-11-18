@@ -1,9 +1,14 @@
 /**
  * @file order_list/tab-performance.js
  * @description 执行信息 Tab 模块 (优化版 - 包含日历和列表视图)
- * @version 2.1.0 (Status Filter Fix)
+ * @version 2.1.1 (Date Validation Fix)
  *
  * 变更日志:
+ * - v2.1.1:
+ * - [Bug修复] 修复了当合作记录缺少 plannedReleaseDate 时导致的 TypeError
+ * - 增强了数据过滤逻辑：状态为"客户已定档"时必须有计划发布日期，否则不在执行信息中展示
+ * - 在 createTalentCard 中添加了防御性检查，安全处理 plannedReleaseDate 为空的情况
+ *
  * - v2.1.0:
  * - [核心修复] 增加了对合作状态的过滤。
  * - `load()` 方法现在会从 `this.allCollaborations` 过滤出 '客户已定档' 和 '视频已发布' 状态的数据到 `this.filteredCollaborations` 中。
@@ -145,9 +150,18 @@ export class PerformanceTab {
             // 过滤出此 Tab 关心的数据
             const executionStatuses = ['客户已定档', '视频已发布'];
 
-            this.filteredCollaborations = (this.allCollaborations || []).filter(c =>
-                executionStatuses.includes(c.status)
-            );
+            this.filteredCollaborations = (this.allCollaborations || []).filter(c => {
+                // 必须满足状态条件
+                if (!executionStatuses.includes(c.status)) return false;
+
+                // 如果是"客户已定档"状态，必须有计划发布日期
+                if (c.status === '客户已定档' && !c.plannedReleaseDate) return false;
+
+                // 如果是"视频已发布"状态，至少要有发布日期或计划发布日期之一
+                if (c.status === '视频已发布' && !c.publishDate && !c.plannedReleaseDate) return false;
+
+                return true;
+            });
 
             // 计算项目周期 (现在使用过滤后的数据)
             this.calculateProjectCycle();
@@ -488,7 +502,13 @@ export class PerformanceTab {
         const card = document.createElement('div');
         const talentName = collab.talentInfo?.nickname || '(未知达人)';
         const today = new Date(); today.setHours(0,0,0,0);
-        const plannedDate = new Date(collab.plannedReleaseDate.split('T')[0]); plannedDate.setHours(0,0,0,0);
+
+        // 安全获取计划发布日期
+        let plannedDate = null;
+        if (collab.plannedReleaseDate) {
+            plannedDate = new Date(collab.plannedReleaseDate.split('T')[0]);
+            plannedDate.setHours(0,0,0,0);
+        }
 
         // 检查项目是否可编辑（项目状态为'执行中'）
         const isReadOnly = this.project.status !== '执行中';
@@ -499,7 +519,7 @@ export class PerformanceTab {
             statusClass = 'status-published';
             statusText = '已发布';
         } else if (collab.status === '客户已定档') {
-            if (plannedDate < today) {
+            if (plannedDate && plannedDate < today) {
                 statusClass = 'status-delayed';
                 statusText = '延期';
             } else {
