@@ -117,7 +117,26 @@ AgentWorks 文档体系
 
 **适用读者**: 产品经理、开发人员
 
-### 2. API文档（待完善）
+### 2. 代码优化方案 🆕
+**文件**: [`docs/features/AGENTWORKS_CODE_OPTIMIZATION_MASTER_PLAN.md`](../docs/features/AGENTWORKS_CODE_OPTIMIZATION_MASTER_PLAN.md)
+**内容概览**:
+- 7 个优化方案总览
+- Phase 0: 性能优化（已完成）
+- Phase 1: 基础设施（已完成）
+- Phase 2: 组件重构（待规划）
+
+**适用读者**: 开发人员
+
+### 3. 性能优化详细方案 🆕
+**文件**: [`docs/features/TALENT_PAGINATION_OPTIMIZATION_PLAN.md`](../docs/features/TALENT_PAGINATION_OPTIMIZATION_PLAN.md)
+**内容概览**:
+- 后端分页实施细节
+- 数据库索引创建
+- 测试清单（20+ 用例）
+
+**适用读者**: 开发人员
+
+### 4. API文档（待完善）
 **文件**: `API_DOCUMENTATION.md`
 **状态**: 计划中
 **预期内容**:
@@ -229,5 +248,7 @@ AgentWorks 文档体系
 **文档索引维护者**: Claude Code
 **创建日期**: 2025-11-18
 **最后更新**: 2025-11-18
+**当前版本**: AgentWorks v2.6.0
+**优化进度**: Phase 0 & Phase 1 已完成 ✅
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

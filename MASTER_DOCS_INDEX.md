@@ -183,6 +183,8 @@
 | **项目日报** | [docs/features/PROJECT_REPORT.md](./docs/features/PROJECT_REPORT.md) | 日报数据功能 | - |
 | **后端需求** | [docs/features/BACKEND_API_REQUIREMENTS.md](./docs/features/BACKEND_API_REQUIREMENTS.md) | API对接需求 | - |
 | **数据优化** | [docs/features/data-entry-optimization-plan.md](./docs/features/data-entry-optimization-plan.md) | 输入优化 | - |
+| **代码优化总方案** 🆕 | [docs/features/AGENTWORKS_CODE_OPTIMIZATION_MASTER_PLAN.md](./docs/features/AGENTWORKS_CODE_OPTIMIZATION_MASTER_PLAN.md) | 7个优化方案总览 | v2.6.0 |
+| **分页优化详细** 🆕 | [docs/features/TALENT_PAGINATION_OPTIMIZATION_PLAN.md](./docs/features/TALENT_PAGINATION_OPTIMIZATION_PLAN.md) | 后端分页实施方案 | v2.6.0 |
 
 ### 版本发布文档
 
@@ -191,6 +193,9 @@
 | **PR信息** | [docs/releases/PR_INFO.md](./docs/releases/PR_INFO.md) | PR规范 |
 | **v2.2.0** | [docs/releases/PR_v2.2.0_REBATE_MANAGEMENT.md](./docs/releases/PR_v2.2.0_REBATE_MANAGEMENT.md) | 返点管理 |
 | **v2.4.0** | [docs/releases/PR_v2.4.0_AGENCY_REBATE_BINDING.md](./docs/releases/PR_v2.4.0_AGENCY_REBATE_BINDING.md) | 机构返点绑定 |
+| **v2.5.0** | [docs/releases/PR_v2.5.0_SEARCH_AND_DOCS.md](./docs/releases/PR_v2.5.0_SEARCH_AND_DOCS.md) | 搜索筛选系统 |
+| **v2.6.0** 🆕 | [docs/features/PHASE_0_COMPLETION_SUMMARY.md](./docs/features/PHASE_0_COMPLETION_SUMMARY.md) | 性能优化 Phase 0 |
+| **v2.6.0** 🆕 | [docs/features/PHASE_1_COMPLETION_SUMMARY.md](./docs/features/PHASE_1_COMPLETION_SUMMARY.md) | 基础设施 Phase 1 |
 
 ### 归档文档
 
