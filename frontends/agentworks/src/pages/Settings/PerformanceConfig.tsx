@@ -1,11 +1,13 @@
 /**
- * 达人表现配置管理页面（简化版）
- * Phase 3 核心功能：查看和管理字段映射、维度配置
+ * 达人表现配置管理页面（完整CRUD版本）
+ * Phase 7: 支持完整的配置编辑功能
  */
 
 import { useState } from 'react';
 import { useFieldMapping } from '../../hooks/useFieldMapping';
 import { useDimensionConfig } from '../../hooks/useDimensionConfig';
+import { FieldMappingManager } from '../../components/Performance/FieldMappingManager';
+import { DimensionManager } from '../../components/Performance/DimensionManager';
 import type { Platform } from '../../types/talent';
 import { PLATFORM_NAMES } from '../../types/talent';
 
@@ -74,22 +76,18 @@ export function PerformanceConfig() {
       </div>
 
       {/* 内容区域 */}
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white rounded-lg shadow p-6">
         {activeTab === 'mapping' && (
           <MappingConfigPanel
             platform={selectedPlatform}
-            config={fieldMapping.activeConfig}
-            loading={fieldMapping.loading}
-            onReload={fieldMapping.loadConfigs}
+            fieldMapping={fieldMapping}
           />
         )}
 
         {activeTab === 'dimension' && (
           <DimensionConfigPanel
             platform={selectedPlatform}
-            config={dimensionConfig.activeConfig}
-            loading={dimensionConfig.loading}
-            onReload={dimensionConfig.loadConfigs}
+            dimensionConfig={dimensionConfig}
           />
         )}
       </div>
@@ -98,209 +96,135 @@ export function PerformanceConfig() {
 }
 
 /**
- * 字段映射配置面板（简化版）
+ * 字段映射配置面板（完整CRUD版本）
  */
 function MappingConfigPanel({
   platform,
-  config,
-  loading,
-  onReload
+  fieldMapping
 }: {
   platform: Platform;
-  config: any;
-  loading: boolean;
-  onReload: () => void;
+  fieldMapping: ReturnType<typeof useFieldMapping>;
 }) {
-  if (loading) {
+  if (fieldMapping.loading) {
     return <div className="p-8 text-center text-gray-500">加载中...</div>;
   }
 
-  if (!config) {
+  if (!fieldMapping.activeConfig) {
     return (
       <div className="p-8 text-center">
         <p className="text-gray-500 mb-4">未找到 {PLATFORM_NAMES[platform]} 的配置</p>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        <button
+          onClick={() => {
+            // 创建默认配置的逻辑可以在这里添加
+            alert('创建默认配置功能待实现');
+          }}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
           创建默认配置
         </button>
       </div>
     );
   }
 
+  const config = fieldMapping.activeConfig;
+
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
+    <div className="space-y-4">
+      {/* 配置信息 */}
+      <div className="flex justify-between items-center pb-4 border-b">
         <div>
-          <h3 className="text-lg font-medium">
+          <h3 className="text-lg font-medium text-gray-900">
             {config.configName} (v{config.version})
           </h3>
-          <p className="text-sm text-gray-500">{config.description}</p>
+          <p className="text-sm text-gray-500 mt-1">{config.description}</p>
         </div>
         <button
-          onClick={onReload}
-          className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded"
+          onClick={fieldMapping.loadConfigs}
+          className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded flex items-center gap-2"
         >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
           刷新
         </button>
       </div>
 
-      {/* 映射规则列表 */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-2 text-left">#</th>
-              <th className="px-4 py-2 text-left">Excel列名</th>
-              <th className="px-4 py-2 text-left">目标字段路径</th>
-              <th className="px-4 py-2 text-left">格式</th>
-              <th className="px-4 py-2 text-center">必需</th>
-            </tr>
-          </thead>
-          <tbody>
-            {config.mappings.map((rule: any, index: number) => (
-              <tr key={index} className="border-t">
-                <td className="px-4 py-2 text-gray-500">{index + 1}</td>
-                <td className="px-4 py-2 font-medium">{rule.excelHeader}</td>
-                <td className="px-4 py-2 text-gray-600 font-mono text-xs">{rule.targetPath}</td>
-                <td className="px-4 py-2">
-                  <span className={`px-2 py-1 rounded text-xs ${
-                    rule.format === 'percentage' ? 'bg-purple-100 text-purple-700' :
-                    rule.format === 'number' ? 'bg-green-100 text-green-700' :
-                    rule.format === 'date' ? 'bg-blue-100 text-blue-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
-                    {rule.format}
-                  </span>
-                </td>
-                <td className="px-4 py-2 text-center">
-                  {rule.required ? '✅' : '-'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="mt-4 text-sm text-gray-600">
-        总计 {config.totalMappings || config.mappings.length} 个映射规则
-      </div>
+      {/* 字段映射管理器 */}
+      <FieldMappingManager
+        mappings={config.mappings}
+        onAdd={fieldMapping.addMappingRule}
+        onUpdate={fieldMapping.updateMappingRule}
+        onDelete={fieldMapping.deleteMappingRule}
+      />
     </div>
   );
 }
 
 /**
- * 维度配置面板（简化版）
+ * 维度配置面板（完整CRUD版本 + 拖拽排序）
  */
 function DimensionConfigPanel({
   platform,
-  config,
-  loading,
-  onReload
+  dimensionConfig
 }: {
   platform: Platform;
-  config: any;
-  loading: boolean;
-  onReload: () => void;
+  dimensionConfig: ReturnType<typeof useDimensionConfig>;
 }) {
-  if (loading) {
+  if (dimensionConfig.loading) {
     return <div className="p-8 text-center text-gray-500">加载中...</div>;
   }
 
-  if (!config) {
+  if (!dimensionConfig.activeConfig) {
     return (
       <div className="p-8 text-center">
         <p className="text-gray-500 mb-4">未找到 {PLATFORM_NAMES[platform]} 的配置</p>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        <button
+          onClick={() => {
+            // 创建默认配置的逻辑可以在这里添加
+            alert('创建默认配置功能待实现');
+          }}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
           创建默认配置
         </button>
       </div>
     );
   }
 
+  const config = dimensionConfig.activeConfig;
+
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
+    <div className="space-y-4">
+      {/* 配置信息 */}
+      <div className="flex justify-between items-center pb-4 border-b">
         <div>
-          <h3 className="text-lg font-medium">
-            {config.configName} (v{config.version})
+          <h3 className="text-lg font-medium text-gray-900">
+            {config.configName} (v{config.version || '1.0'})
           </h3>
-          <p className="text-sm text-gray-500">
-            共 {config.totalDimensions} 个维度，默认显示 {config.defaultVisibleIds?.length || 0} 个
+          <p className="text-sm text-gray-500 mt-1">
+            {PLATFORM_NAMES[platform]}达人表现数据维度配置（基于ByteProject performance页面）
           </p>
         </div>
         <button
-          onClick={onReload}
-          className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded"
+          onClick={dimensionConfig.loadConfigs}
+          className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded flex items-center gap-2"
         >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
           刷新
         </button>
       </div>
 
-      {/* 维度列表（表格形式）*/}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-2 text-left">#</th>
-              <th className="px-4 py-2 text-left">维度名称</th>
-              <th className="px-4 py-2 text-left">分类</th>
-              <th className="px-4 py-2 text-left">目标字段路径</th>
-              <th className="px-4 py-2 text-left">类型</th>
-              <th className="px-4 py-2 text-center">默认显示</th>
-              <th className="px-4 py-2 text-center">可排序</th>
-              <th className="px-4 py-2 text-center">列宽</th>
-            </tr>
-          </thead>
-          <tbody>
-            {config.dimensions
-              .sort((a: any, b: any) => a.order - b.order)
-              .map((dim: any, index: number) => (
-                <tr key={dim.id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2 text-gray-500">{index + 1}</td>
-                  <td className="px-4 py-2 font-medium">{dim.name}</td>
-                  <td className="px-4 py-2 text-gray-600">{dim.category}</td>
-                  <td className="px-4 py-2 text-gray-600 font-mono text-xs">{dim.targetPath}</td>
-                  <td className="px-4 py-2">
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      dim.type === 'percentage' ? 'bg-purple-100 text-purple-700' :
-                      dim.type === 'number' ? 'bg-green-100 text-green-700' :
-                      dim.type === 'date' ? 'bg-blue-100 text-blue-700' :
-                      'bg-gray-100 text-gray-700'
-                    }`}>
-                      {dim.type}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 text-center">
-                    {dim.defaultVisible ? (
-                      <span className="text-green-600">✓</span>
-                    ) : (
-                      <span className="text-gray-300">-</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2 text-center">
-                    {dim.sortable ? (
-                      <span className="text-blue-600">✓</span>
-                    ) : (
-                      <span className="text-gray-300">-</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2 text-center text-gray-600">{dim.width}px</td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
-        <div>总计 {config.totalDimensions || config.dimensions.length} 个维度</div>
-        <div>
-          默认显示:
-          {config.dimensions.filter((d: any) => d.defaultVisible).map((d: any) => (
-            <span key={d.id} className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
-              {d.name}
-            </span>
-          ))}
-        </div>
-      </div>
+      {/* 维度管理器 */}
+      <DimensionManager
+        dimensions={config.dimensions}
+        onAdd={dimensionConfig.addDimension}
+        onUpdate={dimensionConfig.updateDimension}
+        onDelete={dimensionConfig.deleteDimension}
+        onReorder={dimensionConfig.reorderDimensions}
+        onToggleVisibility={dimensionConfig.toggleDimensionVisibility}
+      />
     </div>
   );
 }

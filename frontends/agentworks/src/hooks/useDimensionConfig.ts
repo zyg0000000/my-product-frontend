@@ -5,8 +5,11 @@
 import { useState, useEffect } from 'react';
 import {
   getDimensionConfigs,
+  createDimensionConfig,
   updateDimensionConfig,
-  type DimensionConfigDoc
+  deleteDimensionConfig,
+  type DimensionConfigDoc,
+  type DimensionConfig
 } from '../api/performance';
 import type { Platform } from '../types/talent';
 import { useToast } from './useToast';
@@ -41,6 +44,24 @@ export function useDimensionConfig(platform: Platform) {
     }
   };
 
+  // 创建新配置
+  const createConfig = async (config: Partial<DimensionConfigDoc>) => {
+    try {
+      setLoading(true);
+      const response: any = await createDimensionConfig(config);
+      if (response.success) {
+        success('配置创建成功');
+        await loadConfigs();
+        return response.data;
+      }
+    } catch (err) {
+      error('创建配置失败');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 更新配置
   const updateConfig = async (config: DimensionConfigDoc) => {
     try {
@@ -49,6 +70,7 @@ export function useDimensionConfig(platform: Platform) {
       if (response.success) {
         success('配置更新成功');
         await loadConfigs();
+        return response.data;
       }
     } catch (err) {
       error('更新配置失败');
@@ -58,10 +80,125 @@ export function useDimensionConfig(platform: Platform) {
     }
   };
 
-  // 更新显示的维度ID列表
+  // 删除配置
+  const deleteConfig = async (id: string) => {
+    try {
+      setLoading(true);
+      const response: any = await deleteDimensionConfig(id);
+      if (response.success) {
+        success('配置删除成功');
+        await loadConfigs();
+        return true;
+      }
+    } catch (err) {
+      error('删除配置失败');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 添加维度
+  const addDimension = async (dimension: DimensionConfig) => {
+    if (!activeConfig) {
+      error('没有激活的配置');
+      return;
+    }
+
+    const updatedConfig = {
+      ...activeConfig,
+      dimensions: [...activeConfig.dimensions, dimension]
+    };
+
+    await updateConfig(updatedConfig);
+  };
+
+  // 更新维度
+  const updateDimension = async (index: number, dimension: DimensionConfig) => {
+    if (!activeConfig) {
+      error('没有激活的配置');
+      return;
+    }
+
+    const updatedDimensions = [...activeConfig.dimensions];
+    updatedDimensions[index] = dimension;
+
+    const updatedConfig = {
+      ...activeConfig,
+      dimensions: updatedDimensions
+    };
+
+    await updateConfig(updatedConfig);
+  };
+
+  // 删除维度
+  const deleteDimension = async (index: number) => {
+    if (!activeConfig) {
+      error('没有激活的配置');
+      return;
+    }
+
+    const updatedDimensions = activeConfig.dimensions.filter((_, i) => i !== index);
+
+    const updatedConfig = {
+      ...activeConfig,
+      dimensions: updatedDimensions
+    };
+
+    await updateConfig(updatedConfig);
+  };
+
+  // 重新排序维度
+  const reorderDimensions = async (dimensions: DimensionConfig[]) => {
+    if (!activeConfig) {
+      error('没有激活的配置');
+      return;
+    }
+
+    // 更新order字段
+    const reorderedDimensions = dimensions.map((dim, index) => ({
+      ...dim,
+      order: index
+    }));
+
+    const updatedConfig = {
+      ...activeConfig,
+      dimensions: reorderedDimensions
+    };
+
+    await updateConfig(updatedConfig);
+  };
+
+  // 切换维度可见性
+  const toggleDimensionVisibility = async (dimensionId: string) => {
+    if (!activeConfig) {
+      error('没有激活的配置');
+      return;
+    }
+
+    const dimension = activeConfig.dimensions.find(d => d.id === dimensionId);
+    if (!dimension) return;
+
+    const updatedDimensions = activeConfig.dimensions.map(d =>
+      d.id === dimensionId ? { ...d, defaultVisible: !d.defaultVisible } : d
+    );
+
+    const updatedDefaultVisibleIds = updatedDimensions
+      .filter(d => d.defaultVisible)
+      .map(d => d.id);
+
+    const updatedConfig = {
+      ...activeConfig,
+      dimensions: updatedDimensions,
+      defaultVisibleIds: updatedDefaultVisibleIds
+    };
+
+    await updateConfig(updatedConfig);
+  };
+
+  // 更新显示的维度ID列表（用户偏好，仅保存在localStorage）
   const updateVisibleIds = (ids: string[]) => {
     setVisibleDimensionIds(ids);
-    // 可选：保存到用户偏好（localStorage或数据库）
     localStorage.setItem(`performance_visible_dimensions_${platform}`, JSON.stringify(ids));
   };
 
@@ -86,7 +223,14 @@ export function useDimensionConfig(platform: Platform) {
     visibleDimensionIds,
     loading,
     loadConfigs,
+    createConfig,
     updateConfig,
+    deleteConfig,
+    addDimension,
+    updateDimension,
+    deleteDimension,
+    reorderDimensions,
+    toggleDimensionVisibility,
     updateVisibleIds
   };
 }

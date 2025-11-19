@@ -6,6 +6,23 @@
 import type { Talent } from '../../types/talent';
 import type { DimensionConfig } from '../../api/performance';
 
+/**
+ * 获取平台达人的外链（星图、蒲公英等）
+ */
+function getPlatformLink(talent: Talent): string | null {
+  if (talent.platform === 'douyin') {
+    // 抖音：使用星图ID或platformAccountId
+    const xingtuId = talent.platformSpecific?.xingtuId || talent.platformAccountId;
+    if (!xingtuId) return null;
+    return `https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/${xingtuId}`;
+  }
+  // 其他平台后续添加
+  // xiaohongshu: 蒲公英
+  // bilibili: 花火
+  // kuaishou: 磁力聚星
+  return null;
+}
+
 interface PerformanceTableProps {
   talents: Talent[];
   dimensions: DimensionConfig[];
@@ -53,7 +70,7 @@ export function PerformanceTable({
             <tr key={talent.oneId || index} className="border-t hover:bg-gray-50">
               {visibleDimensions.map(dim => (
                 <td key={dim.id} className="px-4 py-3">
-                  {formatCellValue(talent, dim)}
+                  {renderCellContent(talent, dim)}
                 </td>
               ))}
             </tr>
@@ -62,6 +79,36 @@ export function PerformanceTable({
       </table>
     </div>
   );
+}
+
+/**
+ * 渲染单元格内容（支持达人名称链接）
+ */
+function renderCellContent(talent: Talent, dimension: DimensionConfig): React.ReactNode {
+  // 如果是达人名称列（targetPath 为 'name'），渲染为可点击链接
+  if (dimension.targetPath === 'name') {
+    const platformLink = getPlatformLink(talent);
+    const name = talent.name || 'N/A';
+
+    if (platformLink) {
+      return (
+        <a
+          href={platformLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {name}
+        </a>
+      );
+    } else {
+      return <span className="font-medium text-gray-900">{name}</span>;
+    }
+  }
+
+  // 其他列使用格式化函数
+  return formatCellValue(talent, dimension);
 }
 
 /**
