@@ -1,6 +1,7 @@
 /**
  * 维度配置管理组件（完整CRUD版本 + 拖拽排序）
  * Phase 7: 支持添加、编辑、删除、拖拽排序、切换可见性
+ * Phase 9: 批量可见性修改（减少刷新次数）- 可复用设计
  */
 
 import { useState } from 'react';
@@ -25,6 +26,8 @@ import { CSS } from '@dnd-kit/utilities';
 import type { DimensionConfig } from '../../api/performance';
 import { Modal } from './Modal';
 import { ConfirmDialog } from './ConfirmDialog';
+import { useBatchEdit } from '../../hooks/useBatchEdit';
+import { BatchEditToolbar } from '../BatchEditToolbar';
 
 interface DimensionManagerProps {
   dimensions: DimensionConfig[];
@@ -47,6 +50,34 @@ export function DimensionManager({
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [editingDimension, setEditingDimension] = useState<DimensionConfig | null>(null);
+
+  // 使用批量编辑 Hook
+  const {
+    localData: localDimensions,
+    hasChanges,
+    saving,
+    updateItems,
+    saveChanges,
+    cancelChanges
+  } = useBatchEdit({
+    initialData: dimensions,
+    onSave: async (updatedDimensions) => {
+      // 找出所有可见性变化的维度并批量更新
+      for (let i = 0; i < updatedDimensions.length; i++) {
+        if (updatedDimensions[i].defaultVisible !== dimensions[i].defaultVisible) {
+          await onToggleVisibility(updatedDimensions[i].id);
+        }
+      }
+    }
+  });
+
+  // 切换单个维度可见性（仅本地状态）
+  const handleToggleVisibilityLocal = (dimensionId: string) => {
+    updateItems(
+      (d) => d.id === dimensionId,
+      (d) => ({ ...d, defaultVisible: !d.defaultVisible })
+    );
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -131,20 +162,30 @@ export function DimensionManager({
       {/* 操作按钮 */}
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-600">
-          总计 {dimensions.length} 个维度
+          总计 {localDimensions.length} 个维度
           <span className="ml-3 text-blue-600">
-            默认显示 {dimensions.filter(d => d.defaultVisible).length} 个
+            默认显示 {localDimensions.filter(d => d.defaultVisible).length} 个
           </span>
         </div>
-        <button
-          onClick={handleAdd}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          添加维度
-        </button>
+        <div className="flex gap-2">
+          {/* 批量编辑工具栏（可复用组件）*/}
+          <BatchEditToolbar
+            hasChanges={hasChanges}
+            saving={saving}
+            onSave={saveChanges}
+            onCancel={cancelChanges}
+          />
+
+          <button
+            onClick={handleAdd}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            添加维度
+          </button>
+        </div>
       </div>
 
       {/* 提示 */}
@@ -160,33 +201,33 @@ export function DimensionManager({
           onDragEnd={handleDragEnd}
         >
           <SortableContext
-            items={dimensions.map(d => d.id)}
+            items={localDimensions.map(d => d.id)}
             strategy={verticalListSortingStrategy}
           >
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700 w-12"></th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">维度名称</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">分类</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">目标路径</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-700">类型</th>
-                  <th className="px-4 py-3 text-center font-medium text-gray-700">默认显示</th>
-                  <th className="px-4 py-3 text-center font-medium text-gray-700">固定列</th>
-                  <th className="px-4 py-3 text-center font-medium text-gray-700">可排序</th>
-                  <th className="px-4 py-3 text-center font-medium text-gray-700">宽度</th>
-                  <th className="px-4 py-3 text-center font-medium text-gray-700">操作</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 w-12 whitespace-nowrap"></th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">维度名称</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">分类</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">目标路径</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-700 whitespace-nowrap">类型</th>
+                  <th className="px-4 py-3 text-center font-medium text-gray-700 whitespace-nowrap">默认显示</th>
+                  <th className="px-4 py-3 text-center font-medium text-gray-700 whitespace-nowrap">固定列</th>
+                  <th className="px-4 py-3 text-center font-medium text-gray-700 whitespace-nowrap">可排序</th>
+                  <th className="px-4 py-3 text-center font-medium text-gray-700 whitespace-nowrap">宽度</th>
+                  <th className="px-4 py-3 text-center font-medium text-gray-700 whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {dimensions.map((dimension, index) => (
+                {localDimensions.map((dimension, index) => (
                   <SortableDimensionRow
                     key={dimension.id}
                     dimension={dimension}
                     index={index}
                     onEdit={handleEdit}
                     onDelete={setDeletingIndex}
-                    onToggleVisibility={onToggleVisibility}
+                    onToggleVisibility={handleToggleVisibilityLocal}
                   />
                 ))}
               </tbody>
@@ -452,29 +493,25 @@ function SortableDimensionRow({
         </span>
       </td>
 
-      {/* 默认显示切换 */}
+      {/* 默认显示勾选框 */}
       <td className="px-4 py-3 text-center">
-        <button
-          onClick={() => onToggleVisibility(dimension.id)}
-          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-            dimension.defaultVisible
-              ? 'bg-green-100 text-green-700 hover:bg-green-200'
-              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-          }`}
-        >
-          {dimension.defaultVisible ? '显示' : '隐藏'}
-        </button>
+        <input
+          type="checkbox"
+          checked={dimension.defaultVisible || false}
+          onChange={() => onToggleVisibility(dimension.id)}
+          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+        />
       </td>
 
-      {/* 固定列标识 */}
+      {/* 固定列勾选框（仅显示，需通过编辑修改） */}
       <td className="px-4 py-3 text-center">
-        {dimension.pinned ? (
-          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-700">
-            📌 固定
-          </span>
-        ) : (
-          <span className="text-gray-300">-</span>
-        )}
+        <input
+          type="checkbox"
+          checked={dimension.pinned || false}
+          readOnly
+          className="w-4 h-4 text-orange-600 border-gray-300 rounded cursor-default"
+          title="需要通过编辑维度来修改固定列设置"
+        />
       </td>
 
       <td className="px-4 py-3 text-center">

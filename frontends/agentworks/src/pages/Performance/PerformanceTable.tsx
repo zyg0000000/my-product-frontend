@@ -1,11 +1,14 @@
 /**
  * 达人表现数据表格（配置驱动）
  * 完全基于维度配置动态渲染，支持所有平台复用
- * Phase 9: 支持固定列（sticky）+ 横向滚动
+ * Phase 9: 支持固定列（sticky）+ 横向滚动 + 列排序
  */
 
+import { useState } from 'react';
 import type { Talent } from '../../types/talent';
 import type { DimensionConfig } from '../../api/performance';
+
+type SortDirection = 'asc' | 'desc' | null;
 
 /**
  * 获取平台达人的外链（星图、蒲公英等）
@@ -37,6 +40,10 @@ export function PerformanceTable({
   visibleDimensionIds,
   loading
 }: PerformanceTableProps) {
+  // 排序状态
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
   // 获取显示的维度（按 order 排序）
   const visibleDimensions = dimensions
     .filter(dim => visibleDimensionIds.includes(dim.id))
@@ -45,6 +52,50 @@ export function PerformanceTable({
   // 分离固定列和滚动列
   const pinnedDimensions = visibleDimensions.filter(dim => dim.pinned);
   const scrollableDimensions = visibleDimensions.filter(dim => !dim.pinned);
+
+  // 处理列头点击排序
+  const handleSort = (dimension: DimensionConfig) => {
+    if (!dimension.sortable) return;
+
+    if (sortColumn === dimension.id) {
+      // 同一列：切换排序方向 (升序 → 降序 → 无排序)
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortDirection(null);
+        setSortColumn(null);
+      }
+    } else {
+      // 新列：设置为升序
+      setSortColumn(dimension.id);
+      setSortDirection('asc');
+    }
+  };
+
+  // 排序数据
+  const sortedTalents = [...talents].sort((a, b) => {
+    if (!sortColumn || !sortDirection) return 0;
+
+    const dimension = visibleDimensions.find(d => d.id === sortColumn);
+    if (!dimension) return 0;
+
+    const aValue = getNestedValue(a, dimension.targetPath);
+    const bValue = getNestedValue(b, dimension.targetPath);
+
+    // 处理 null/undefined
+    if (aValue === null || aValue === undefined) return 1;
+    if (bValue === null || bValue === undefined) return -1;
+
+    // 根据类型排序
+    let comparison = 0;
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      comparison = aValue - bValue;
+    } else {
+      comparison = String(aValue).localeCompare(String(bValue));
+    }
+
+    return sortDirection === 'asc' ? comparison : -comparison;
+  });
 
   if (loading) {
     return <div className="p-8 text-center text-gray-500">加载中...</div>;
@@ -55,55 +106,96 @@ export function PerformanceTable({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm border-collapse">
+    <div className="overflow-x-auto overflow-y-visible">
+      <table className="text-xs" style={{ minWidth: '100%', width: 'max-content', tableLayout: 'fixed' }}>
         <thead className="bg-gray-50">
           <tr>
             {/* 固定列表头 */}
-            {pinnedDimensions.map((dim, index) => (
-              <th
-                key={dim.id}
-                className="sticky bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase border-r border-gray-200"
-                style={{
-                  left: pinnedDimensions.slice(0, index).reduce((acc, d) => acc + (d.width || 120), 0),
-                  width: dim.width || 120,
-                  zIndex: 20
-                }}
-              >
-                {dim.name}
-              </th>
-            ))}
+            {pinnedDimensions.map((dim, index) => {
+              // 计算left位置：累加前面所有列的宽度
+              let leftPosition = 0;
+              for (let i = 0; i < index; i++) {
+                leftPosition += (pinnedDimensions[i].width || 120);
+              }
+
+              return (
+                <th
+                  key={dim.id}
+                  onClick={() => handleSort(dim)}
+                  className={`sticky bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase border-r-2 border-gray-300 whitespace-nowrap ${
+                    dim.sortable ? 'cursor-pointer hover:bg-gray-100' : ''
+                  }`}
+                  style={{
+                    left: `${leftPosition}px`,
+                    width: `${dim.width || 120}px`,
+                    minWidth: `${dim.width || 120}px`,
+                    zIndex: 20
+                  }}
+                >
+                  <div className="flex items-center gap-1">
+                    {dim.name}
+                    {dim.sortable && <SortIcon columnId={dim.id} sortColumn={sortColumn} sortDirection={sortDirection} />}
+                  </div>
+                </th>
+              );
+            })}
             {/* 可滚动列表头 */}
             {scrollableDimensions.map(dim => (
               <th
                 key={dim.id}
-                className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase"
-                style={{ width: dim.width || 120 }}
+                onClick={() => handleSort(dim)}
+                className={`px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap ${
+                  dim.sortable ? 'cursor-pointer hover:bg-gray-100' : ''
+                }`}
+                style={{
+                  width: `${dim.width || 120}px`,
+                  minWidth: `${dim.width || 120}px`
+                }}
               >
-                {dim.name}
+                <div className="flex items-center gap-1">
+                  {dim.name}
+                  {dim.sortable && <SortIcon columnId={dim.id} sortColumn={sortColumn} sortDirection={sortDirection} />}
+                </div>
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {talents.map((talent, index) => (
+          {sortedTalents.map((talent, index) => (
             <tr key={talent.oneId || index} className="border-t hover:bg-gray-50">
               {/* 固定列单元格 */}
-              {pinnedDimensions.map((dim, colIndex) => (
-                <td
-                  key={dim.id}
-                  className="sticky bg-white px-4 py-3 border-r border-gray-200"
-                  style={{
-                    left: pinnedDimensions.slice(0, colIndex).reduce((acc, d) => acc + (d.width || 120), 0),
-                    zIndex: 10
-                  }}
-                >
-                  {renderCellContent(talent, dim)}
-                </td>
-              ))}
+              {pinnedDimensions.map((dim, colIndex) => {
+                // 计算left位置：累加前面所有列的宽度
+                let leftPosition = 0;
+                for (let i = 0; i < colIndex; i++) {
+                  leftPosition += (pinnedDimensions[i].width || 120);
+                }
+
+                return (
+                  <td
+                    key={dim.id}
+                    className="sticky bg-white px-4 py-3 border-r-2 border-gray-300 whitespace-nowrap text-xs"
+                    style={{
+                      left: `${leftPosition}px`,
+                      width: `${dim.width || 120}px`,
+                      minWidth: `${dim.width || 120}px`,
+                      zIndex: 10
+                    }}
+                  >
+                    {renderCellContent(talent, dim)}
+                  </td>
+                );
+              })}
               {/* 可滚动列单元格 */}
               {scrollableDimensions.map(dim => (
-                <td key={dim.id} className="px-4 py-3">
+                <td
+                  key={dim.id}
+                  className="px-4 py-3 whitespace-nowrap text-xs"
+                  style={{
+                    width: `${dim.width || 120}px`,
+                    minWidth: `${dim.width || 120}px`
+                  }}
+                >
                   {renderCellContent(talent, dim)}
                 </td>
               ))}
@@ -190,4 +282,44 @@ function getNestedValue(obj: any, path: string): any {
   }
 
   return current;
+}
+
+/**
+ * 排序图标组件
+ */
+function SortIcon({
+  columnId,
+  sortColumn,
+  sortDirection
+}: {
+  columnId: string;
+  sortColumn: string | null;
+  sortDirection: SortDirection;
+}) {
+  const isActive = sortColumn === columnId;
+
+  if (!isActive) {
+    // 未激活：显示灰色双箭头
+    return (
+      <svg className="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+      </svg>
+    );
+  }
+
+  if (sortDirection === 'asc') {
+    // 升序：向上箭头
+    return (
+      <svg className="w-3 h-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+      </svg>
+    );
+  }
+
+  // 降序：向下箭头
+  return (
+    <svg className="w-3 h-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+    </svg>
+  );
 }

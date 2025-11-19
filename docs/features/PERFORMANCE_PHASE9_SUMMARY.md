@@ -1,22 +1,24 @@
-# AgentWorks - Phase 9 固定列优化总结
+# AgentWorks - Phase 9 表格体验优化总结
 
 > **完成日期**: 2025-11-19
-> **Phase**: Phase 9 - 表格固定列优化
+> **Phase**: Phase 9 - 表格固定列 + 排序 + UX优化
 > **状态**: ✅ 已完成
 
 ---
 
 ## 🎯 Phase 9 目标
 
-解决达人表现列表在显示多个维度时的布局问题：
-- **问题**: 维度过多（14/21个）时表格列被挤压变形
-- **解决**: 实现固定列 + 横向滚动
+解决达人表现列表的多个体验问题：
+- **问题1**: 维度过多（14/21个）时表格列被挤压变形
+- **问题2**: 每次修改可见性都刷新页面，效率低
+- **问题3**: 列表无排序功能
+- **解决**: 固定列 + 横向滚动 + 批量编辑 + 列排序
 
 ---
 
 ## ✅ 实现的功能
 
-### 9.1 固定列配置 ✅
+### 9.1 表格固定列 ✅
 
 **类型定义更新**:
 ```typescript
@@ -39,7 +41,68 @@ export interface DimensionConfig {
 
 ---
 
-### 9.2 表格固定列实现 ✅
+### 9.2 批量可见性编辑 ✅
+
+**问题**: 每次勾选/取消维度可见性都要刷新页面
+
+**解决方案**:
+- 创建可复用 `useBatchEdit` Hook
+- 创建可复用 `BatchEditToolbar` 组件
+- 本地状态管理 + 批量保存
+
+**效果**:
+- ✅ 勾选多个维度 → 只更新本地状态
+- ✅ 顶部显示"有未保存的更改"提示
+- ✅ 点击"保存更改" → 批量保存 → 只刷新1次
+- ✅ 修改10个维度 = 刷新1次（Before: 刷新10次）
+
+**可复用性**:
+- `useBatchEdit<T>` - 泛型Hook，适用于任何批量编辑场景
+- `BatchEditToolbar` - 通用工具栏，可用于其他批量操作
+
+---
+
+### 9.3 列排序功能 ✅
+
+**功能**:
+- 点击可排序列头 → 升序排列（↑ 蓝色箭头）
+- 再次点击 → 降序排列（↓ 蓝色箭头）
+- 第3次点击 → 取消排序（恢复原序）
+
+**排序逻辑**:
+- 数字类型：数值大小
+- 文本类型：字母顺序
+- null/undefined：排到最后
+- 配置驱动：只有 `sortable: true` 的列可排序
+
+**视觉设计**:
+- 可排序列：灰色双箭头图标
+- 激活升序：蓝色向上箭头
+- 激活降序：蓝色向下箭头
+- 不可排序：无图标
+
+---
+
+### 9.4 UI细节优化 ✅
+
+1. **配置页面列头** - 添加 `whitespace-nowrap`，防止换行
+2. **固定列图标** - 从大emoji改为小勾选框
+3. **表格字号** - 统一使用 `text-xs`，与列头一致
+4. **列宽控制** - `tableLayout: fixed` + `min/max-width` 强制列宽
+
+---
+
+## 📦 新增可复用资源
+
+### Hooks (1个)
+- **useBatchEdit** - 通用批量编辑Hook ⭐⭐⭐⭐⭐
+
+### Components (1个)
+- **BatchEditToolbar** - 批量编辑工具栏 ⭐⭐⭐⭐⭐
+
+---
+
+### 9.2 技术实现细节 ✅
 
 **核心技术**:
 ```typescript
@@ -167,21 +230,27 @@ pinnedDimensions.map((dim, index) => {
 
 ---
 
-## 📊 修改文件
+## 📊 修改/新增文件
+
+### 新增文件 (2个)
+1. `src/hooks/useBatchEdit.ts` - 通用批量编辑Hook
+2. `src/components/BatchEditToolbar.tsx` - 批量编辑工具栏组件
 
 ### 类型定义 (1个)
-1. `src/api/performance.ts`
-   - 添加 `pinned?: boolean` 到 DimensionConfig
+1. `src/api/performance.ts` - 添加 `pinned?: boolean`
 
-### 组件 (2个)
+### 组件修改 (2个)
 1. `src/components/Performance/DimensionManager.tsx`
-   - 添加"固定在左侧"配置选项
-   - 在列表中显示固定状态
+   - 集成 useBatchEdit Hook
+   - 集成 BatchEditToolbar 组件
+   - 将按钮改为勾选框
+   - 添加"固定列"配置和显示
 
 2. `src/pages/Performance/PerformanceTable.tsx`
    - 实现固定列 + 横向滚动
-   - 动态计算固定列位置
-   - 添加固定列样式
+   - 实现列排序功能
+   - 添加排序图标组件
+   - 优化表格字号和布局
 
 ---
 
@@ -276,34 +345,36 @@ pinnedDimensions.map((dim, index) => {
 ## 🎉 Phase 9 总结
 
 ### 完成情况
-- ✅ 类型定义更新
-- ✅ 配置界面完善
-- ✅ 表格固定列实现
+- ✅ 固定列功能（配置+实现）
+- ✅ 批量编辑模式（可复用）
+- ✅ 列排序功能
+- ✅ UI细节优化
 - ✅ 编译构建成功
 
 ### 解决的问题
-- ✅ 列太多时布局变形 → 横向滚动
-- ✅ 关键列看不见 → 固定在左侧
-- ✅ 配置不灵活 → 用户可自定义
+- ✅ 列太多时布局变形 → 固定列 + 横向滚动
+- ✅ 频繁刷新页面 → 批量编辑模式
+- ✅ 无法排序数据 → 点击列头排序
+- ✅ 视觉不统一 → 勾选框 + 统一字号
 
 ### 技术亮点
 - ✅ CSS sticky 实现简洁高效
-- ✅ 动态位置计算准确
-- ✅ 完全配置驱动
-- ✅ 无需数据库Schema变更（动态字段）
+- ✅ 可复用的批量编辑模式（Hook + 组件）
+- ✅ 配置驱动排序
+- ✅ 完全类型安全
 
 ---
 
 ## 📖 相关文档
 
-- [performance.ts](../../frontends/agentworks/src/api/performance.ts#L77) - pinned 属性定义
-- [DimensionManager.tsx](../../frontends/agentworks/src/components/Performance/DimensionManager.tsx#L175) - 固定列配置
-- [PerformanceTable.tsx](../../frontends/agentworks/src/pages/Performance/PerformanceTable.tsx#L46) - 固定列实现
+- [useBatchEdit.ts](../../frontends/agentworks/src/hooks/useBatchEdit.ts) - 批量编辑Hook
+- [BatchEditToolbar.tsx](../../frontends/agentworks/src/components/BatchEditToolbar.tsx) - 批量编辑工具栏
+- [PerformanceTable.tsx](../../frontends/agentworks/src/pages/Performance/PerformanceTable.tsx) - 表格实现
 
 ---
 
 **Phase 9 状态**: ✅ **完成**
 
-**下一步**: 更新数据库中的默认配置，将达人昵称设置为 `pinned: true`
+**工作量**: 0.5天
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
