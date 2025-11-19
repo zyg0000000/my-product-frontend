@@ -5,9 +5,7 @@
 import { useState, useEffect } from 'react';
 import {
   getDimensionConfigs,
-  createDimensionConfig,
   updateDimensionConfig,
-  deleteDimensionConfig,
   type DimensionConfigDoc
 } from '../api/performance';
 import type { Platform } from '../types/talent';
@@ -24,7 +22,7 @@ export function useDimensionConfig(platform: Platform) {
   const loadConfigs = async () => {
     try {
       setLoading(true);
-      const response = await getDimensionConfigs(platform);
+      const response: any = await getDimensionConfigs(platform);
       if (response.success && response.data) {
         setConfigs(response.data);
         const active = response.data.find((c: DimensionConfigDoc) => c.isActive);
@@ -47,7 +45,7 @@ export function useDimensionConfig(platform: Platform) {
   const updateConfig = async (config: DimensionConfigDoc) => {
     try {
       setLoading(true);
-      const response = await updateDimensionConfig(config);
+      const response: any = await updateDimensionConfig(config);
       if (response.success) {
         success('配置更新成功');
         await loadConfigs();
