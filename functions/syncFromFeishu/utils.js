@@ -1,18 +1,30 @@
 /**
  * @file utils.js
- * @version 11.4.3 - Percentage Field Fix
+ * @version 12.0 - Modular Architecture Upgrade
  * @description
- * - [BUG 修复] 修复百分比字段值被错误除以100的问题（只有包含%符号时才除以100）
- * - [兼容性] 保留 V11.4.2 的统计逻辑修复和多价格类型支持
- * - [兼容性] 保留 V11.4.1 的字段映射修复和lastUpdated功能
- * - [兼容性] 保留 V11.4 的数据库批量更新功能
- * - [兼容性] 保留 V11.3 的 Null Safety Fix 和 parseFlexibleNumber 函数
- * - [兼容性] 保留 V11.2 的 Sheet Generation Fix
- * - [兼容性] 保留 V11.1 的 manualDailyUpdate 日志优化
- * - [兼容性] 保留 V11.0 的 manualDailyUpdate 核心功能
+ * [重大升级] 模块化重构 + AgentWorks v2.0 支持
+ *
+ * --- v12.0 更新日志 (2025-11-18) ---
+ * - [模块化重构] 拆分为独立模块：
+ *   - feishu-api.js: 飞书API层
+ *   - mapping-engine.js: 映射引擎
+ *   - talent-performance-processor.js: 性能数据处理器
+ * - [配置驱动] 达人表现数据导入支持从数据库读取映射配置
+ * - [多平台支持] 支持 platform 参数
+ * - [v2数据库] 支持 agentworks_db
+ * - [向后兼容] 100% 兼容 v1 调用（ByteProject）
+ * - [可剥离性] 详细的剥离文档，剥离成本 < 2天
+ *
+ * --- v11.4.3 更新日志 ---
+ * - [BUG 修复] 修复百分比字段值被错误除以100的问题
+ * - ... (历史日志省略)
  */
 const axios = require('axios');
 const { MongoClient, ObjectId } = require('mongodb');
+
+// 导入新的模块化架构
+const feishuApi = require('./feishu-api');
+const { processTalentPerformance, processTalentPerformanceLegacy } = require('./talent-performance-processor');
 
 // --- 安全配置 ---
 const APP_ID = process.env.FEISHU_APP_ID;
@@ -476,22 +488,49 @@ async function generateAutomationSheet(payload) {
 // --- 业务逻辑：导入功能 ---
 
 /**
- * [V11.4.2 新增] 处理达人数据导入 - 支持多价格类型
+ * [V12.0 升级] 处理达人数据导入
+ * 支持 v1/v2 数据库 + 配置驱动
  */
-async function handleTalentImport(spreadsheetToken) {
+async function handleTalentImport(spreadsheetToken, platform, dbVersion, mappingConfigId) {
     console.log(`[导入] 开始从表格 ${spreadsheetToken} 导入达人数据...`);
-    const token = await getTenantAccessToken();
-    const rows = await readFeishuSheet(spreadsheetToken, token);
+    console.log(`[导入] 平台: ${platform || 'douyin'}, 数据库版本: ${dbVersion || 'v1'}`);
+
+    // 使用新的飞书API模块
+    const rows = await feishuApi.readFeishuSheet(spreadsheetToken);
     if (!rows || rows.length < 2) return { data: [], updated: 0, failed: 0 };
-    
+
+    // 判断使用新逻辑还是旧逻辑
+    const effectiveDbVersion = dbVersion || 'v1';
+    const effectivePlatform = platform || 'douyin';
+
+    const targetDbName = effectiveDbVersion === 'v2' ? 'agentworks_db' : 'kol_data';
+    const client = await getDbConnection();
+    const db = client.db(targetDbName);
+
+    if (effectiveDbVersion === 'v2') {
+      // v2: 使用新的配置驱动处理器
+      return await processTalentPerformance(
+        db,
+        rows,
+        effectivePlatform,
+        'v2',
+        mappingConfigId || 'default'
+      );
+    }
+
+    // v1: 使用原有逻辑（以下代码保持不变，保证兼容）
+    const token = await getTenantAccessToken();
+    // const rows = await readFeishuSheet(spreadsheetToken, token); // 已在上面读取
+    if (!rows || rows.length < 2) return { data: [], updated: 0, failed: 0 };
+
     const header = rows[0];
     const dataRows = rows.slice(1);
     const processedData = [];
 
-    // 获取数据库连接
-    const client = await getDbConnection();
-    const db = client.db(DB_NAME);
-    const talentsCollection = db.collection(TALENTS_COLLECTION);
+    // 获取数据库连接（v1 使用顶部常量 DB_NAME = 'kol_data'）
+    const v1Client = await getDbConnection();
+    const v1Db = v1Client.db(DB_NAME);
+    const talentsCollection = v1Db.collection(TALENTS_COLLECTION);
 
     // 统计计数器
     let stats = {
@@ -540,13 +579,14 @@ async function handleTalentImport(spreadsheetToken) {
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
 
+    // 定义 getValue 辅助函数（在循环外）
+    const getValue = (row, colName, isPercentage = false) => {
+        const index = headerMap.get(colName);
+        return (index !== undefined && row[index] !== null && row[index] !== '') ? parseFlexibleNumber(row[index], isPercentage) : 0;
+    };
+
     // 收集所有需要更新的数据
     for (const row of dataRows) {
-        const getValue = (colName, isPercentage = false) => {
-            const index = headerMap.get(colName);
-            return (index !== undefined && row[index] !== null && row[index] !== '') ? parseFlexibleNumber(row[index], isPercentage) : 0;
-        };
-
         const xingtuIdIndex = headerMap.get('达人id') ?? headerMap.get('星图ID');
         const xingtuId = (xingtuIdIndex !== undefined && row[xingtuIdIndex]) ? String(row[xingtuIdIndex]).trim() : null;
 
@@ -580,7 +620,7 @@ async function handleTalentImport(spreadsheetToken) {
         ];
 
         mappings.forEach(m => {
-             const value = getValue(m.header, m.isPercentage);
+             const value = getValue(row, m.header, m.isPercentage);
              if (value !== 0 || (headerMap.has(m.header) && row[headerMap.get(m.header)] !== null)) {
                  talentData.performanceData[m.key] = value;
              }
@@ -601,7 +641,7 @@ async function handleTalentImport(spreadsheetToken) {
 
         const newPrices = [];
         for (const field of priceFields) {
-            const priceValue = getValue(field.header, false);
+            const priceValue = getValue(row, field.header, false);
             if (priceValue > 0) {
                 newPrices.push({
                     year: currentYear,
@@ -958,15 +998,15 @@ async function performProjectSync(spreadsheetToken, dataType) {
 }
 
 
-// --- 总调度函数 ---
+// --- 总调度函数（v12.0 升级） ---
 async function handleFeishuRequest(requestBody) {
-    const { dataType, payload, ...legacyParams } = requestBody;
+    const { dataType, payload, platform, dbVersion, mappingConfigId, ...legacyParams } = requestBody;
     if (!dataType) throw new AppError('Missing required parameter: dataType.', 400);
 
     const extractToken = (data) => {
         if (!data) return null;
         const tokenSource = data.spreadsheetToken || data.feishuUrl;
-        return getSpreadsheetTokenFromUrl(tokenSource);
+        return feishuApi.getSpreadsheetTokenFromUrl(tokenSource);
     };
 
     switch (dataType) {
@@ -990,7 +1030,8 @@ async function handleFeishuRequest(requestBody) {
             if (!token) throw new AppError(`Missing spreadsheetToken or a valid feishuUrl for ${dataType}.`, 400);
 
             if (dataType === 'talentPerformance') {
-                const result = await handleTalentImport(token);
+                // v12.0 升级：传递新参数
+                const result = await handleTalentImport(token, platform, dbVersion, mappingConfigId);
                 return result;
             } else {
                 const result = await performProjectSync(token, dataType);

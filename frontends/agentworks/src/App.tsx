@@ -14,6 +14,8 @@ import { ClientsHome } from './pages/Clients/ClientsHome';
 import { ProjectsHome } from './pages/Projects/ProjectsHome';
 import { AnalyticsHome } from './pages/Analytics/AnalyticsHome';
 import { SettingsHome } from './pages/Settings/SettingsHome';
+import { PerformanceHome } from './pages/Performance/PerformanceHome';
+import { PerformanceConfig } from './pages/Settings/PerformanceConfig';
 
 function App() {
   return (
@@ -33,7 +35,14 @@ function App() {
           <Route path="clients" element={<ClientsHome />} />
           <Route path="projects" element={<ProjectsHome />} />
           <Route path="analytics" element={<AnalyticsHome />} />
+
+          {/* 达人表现模块 */}
+          <Route path="performance" element={<PerformanceHome />} />
+
+          {/* 设置模块 */}
           <Route path="settings" element={<SettingsHome />} />
+          <Route path="settings/performance-config" element={<PerformanceConfig />} />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

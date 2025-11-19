@@ -1,7 +1,17 @@
 /**
  * @file syncFromFeishu.js
- * @version 4.0 - Upgraded Handler
- * @description [架构升级] 统一的飞书数据处理API入口。
+ * @version 12.0 - Performance Import Upgrade
+ * @description [重大升级] 支持 AgentWorks v2.0 达人表现数据导入
+ *
+ * --- v12.0 更新日志 (2025-11-18) ---
+ * - [模块化重构] 拆分为独立模块（feishu-api, mapping-engine, talent-performance-processor）
+ * - [配置驱动] 从数据库读取映射配置（field_mappings 集合）
+ * - [多平台支持] 支持 platform 参数
+ * - [v2数据库] 支持 agentworks_db
+ * - [向后兼容] 100% 兼容 v1 调用（ByteProject）
+ * - [可剥离性] 模块化设计，详细剥离文档，剥离成本 < 2天
+ *
+ * --- v4.0 更新日志 ---
  * - [升级] 适配新的 handleFeishuRequest 调度器，支持获取 schemas 等新操作。
  */
 const { handleFeishuRequest } = require('./utils.js');

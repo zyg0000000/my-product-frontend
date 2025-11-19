@@ -1,0 +1,189 @@
+{
+    "collection": "field_mappings",
+    "description": "字段映射配置集合 - 存储各平台数据导入时的字段映射规则",
+    "database": "agentworks_db",
+    "version": "1.0",
+    "lastUpdated": "2025-11-18",
+    "author": "Claude Code",
+    "fields": {
+        "_id": {
+            "type": "ObjectId",
+            "description": "MongoDB 文档 ID",
+            "required": true,
+            "auto": true
+        },
+        "platform": {
+            "type": "String",
+            "description": "平台类型",
+            "required": true,
+            "enum": ["douyin", "xiaohongshu", "bilibili", "kuaishou"],
+            "indexed": true
+        },
+        "configName": {
+            "type": "String",
+            "description": "配置名称（支持多版本配置）",
+            "required": true,
+            "default": "default",
+            "example": "default, custom_v1, test_config",
+            "indexed": true
+        },
+        "version": {
+            "type": "String",
+            "description": "配置版本号",
+            "required": true,
+            "example": "1.0, 1.1, 2.0"
+        },
+        "isActive": {
+            "type": "Boolean",
+            "description": "是否为当前激活的配置",
+            "required": true,
+            "default": true,
+            "comment": "每个平台只能有一个 isActive=true 的配置",
+            "indexed": true
+        },
+        "description": {
+            "type": "String",
+            "description": "配置说明",
+            "required": false,
+            "example": "抖音达人表现数据默认映射配置"
+        },
+        "mappings": {
+            "type": "Array",
+            "description": "字段映射规则数组",
+            "required": true,
+            "itemType": "Object",
+            "itemSchema": {
+                "excelHeader": {
+                    "type": "String",
+                    "description": "Excel/飞书表格的列名",
+                    "required": true,
+                    "example": "达人昵称, 预期cpm, 男性粉丝占比"
+                },
+                "targetPath": {
+                    "type": "String",
+                    "description": "目标字段路径（支持嵌套，使用点分隔）",
+                    "required": true,
+                    "example": "name, performanceData.cpm, performanceData.audienceGender.male",
+                    "comment": "支持任意嵌套层级"
+                },
+                "format": {
+                    "type": "String",
+                    "description": "数据格式类型",
+                    "required": true,
+                    "enum": ["text", "number", "percentage", "date"],
+                    "default": "text"
+                },
+                "required": {
+                    "type": "Boolean",
+                    "description": "是否为必需字段（用于数据验证）",
+                    "required": false,
+                    "default": false
+                },
+                "defaultValue": {
+                    "type": "Mixed",
+                    "description": "默认值（如果Excel中无此列）",
+                    "required": false
+                },
+                "order": {
+                    "type": "Integer",
+                    "description": "显示顺序（用于管理界面排序）",
+                    "required": false,
+                    "min": 1
+                },
+                "transform": {
+                    "type": "String",
+                    "description": "自定义转换函数名（可选，高级功能）",
+                    "required": false,
+                    "example": "splitByComma, toLowerCase",
+                    "comment": "预留字段，Phase 2 实现"
+                },
+                "validator": {
+                    "type": "String",
+                    "description": "验证规则（可选，高级功能）",
+                    "required": false,
+                    "example": "isPositive, isValidEmail",
+                    "comment": "预留字段，Phase 2 实现"
+                }
+            }
+        },
+        "totalMappings": {
+            "type": "Integer",
+            "description": "映射规则总数（冗余字段，便于统计）",
+            "required": false,
+            "min": 0
+        },
+        "createdAt": {
+            "type": "Date",
+            "description": "创建时间",
+            "required": true,
+            "auto": true
+        },
+        "updatedAt": {
+            "type": "Date",
+            "description": "更新时间",
+            "required": true,
+            "auto": true
+        },
+        "createdBy": {
+            "type": "String",
+            "description": "创建者",
+            "required": false,
+            "default": "system"
+        }
+    },
+    "indexes": [
+        {
+            "name": "idx_platform_configName_active",
+            "keys": { "platform": 1, "configName": 1, "isActive": 1 },
+            "unique": false,
+            "comment": "查询活跃配置的主索引"
+        },
+        {
+            "name": "idx_platform_active",
+            "keys": { "platform": 1, "isActive": 1 },
+            "unique": false,
+            "comment": "查询平台所有活跃配置"
+        }
+    ],
+    "sampleDocument": {
+        "platform": "douyin",
+        "configName": "default",
+        "version": "1.0",
+        "isActive": true,
+        "description": "抖音达人表现数据默认映射配置",
+        "mappings": [
+            {
+                "excelHeader": "达人昵称",
+                "targetPath": "name",
+                "format": "text",
+                "required": true,
+                "order": 1
+            },
+            {
+                "excelHeader": "预期cpm",
+                "targetPath": "performanceData.cpm",
+                "format": "number",
+                "required": false,
+                "order": 10
+            },
+            {
+                "excelHeader": "男性粉丝占比",
+                "targetPath": "performanceData.audienceGender.male",
+                "format": "percentage",
+                "required": false,
+                "order": 11
+            }
+        ],
+        "totalMappings": 20,
+        "createdAt": "2025-11-18T00:00:00Z",
+        "updatedAt": "2025-11-18T00:00:00Z",
+        "createdBy": "system"
+    },
+    "usageNotes": [
+        "每个平台可以有多个配置（通过 configName 区分）",
+        "同一平台同时只能有一个 isActive=true 的配置",
+        "mappings 数组中的 targetPath 支持任意嵌套层级",
+        "format 字段用于数据类型转换（percentage 会自动除以100）",
+        "required 字段用于导入时的数据验证"
+    ]
+}

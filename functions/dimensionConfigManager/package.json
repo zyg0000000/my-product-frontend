@@ -1,0 +1,11 @@
+{
+  "name": "dimension-config-manager",
+  "version": "1.0.0",
+  "description": "维度配置管理云函数（RESTful CRUD）",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^6.8.0"
+  },
+  "author": "Claude Code",
+  "license": "ISC"
+}

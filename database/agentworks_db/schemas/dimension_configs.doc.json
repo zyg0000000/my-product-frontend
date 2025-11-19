@@ -1,0 +1,221 @@
+{
+    "collection": "dimension_configs",
+    "description": "维度配置集合 - 存储各平台表现数据的展示维度配置",
+    "database": "agentworks_db",
+    "version": "1.0",
+    "lastUpdated": "2025-11-18",
+    "author": "Claude Code",
+    "fields": {
+        "_id": {
+            "type": "ObjectId",
+            "description": "MongoDB 文档 ID",
+            "required": true,
+            "auto": true
+        },
+        "platform": {
+            "type": "String",
+            "description": "平台类型",
+            "required": true,
+            "enum": ["douyin", "xiaohongshu", "bilibili", "kuaishou"],
+            "indexed": true
+        },
+        "configName": {
+            "type": "String",
+            "description": "配置名称",
+            "required": true,
+            "default": "default",
+            "indexed": true
+        },
+        "isActive": {
+            "type": "Boolean",
+            "description": "是否为当前激活的配置",
+            "required": true,
+            "default": true,
+            "indexed": true
+        },
+        "description": {
+            "type": "String",
+            "description": "配置说明",
+            "required": false
+        },
+        "dimensions": {
+            "type": "Array",
+            "description": "维度配置数组",
+            "required": true,
+            "itemType": "Object",
+            "itemSchema": {
+                "id": {
+                    "type": "String",
+                    "description": "维度唯一标识",
+                    "required": true,
+                    "example": "name, cpm, maleRatio"
+                },
+                "name": {
+                    "type": "String",
+                    "description": "维度显示名称",
+                    "required": true,
+                    "example": "达人昵称, 60s+ 预期CPM, 男性观众比例"
+                },
+                "type": {
+                    "type": "String",
+                    "description": "数据类型",
+                    "required": true,
+                    "enum": ["text", "number", "percentage", "date"]
+                },
+                "category": {
+                    "type": "String",
+                    "description": "维度分类",
+                    "required": true,
+                    "example": "基础信息, 核心绩效, 受众分析-性别"
+                },
+                "targetPath": {
+                    "type": "String",
+                    "description": "数据源路径（对应 talents 集合字段）",
+                    "required": true,
+                    "example": "name, performanceData.cpm, performanceData.audienceGender.male"
+                },
+                "required": {
+                    "type": "Boolean",
+                    "description": "是否为必需列（不可删除）",
+                    "required": false,
+                    "default": false
+                },
+                "defaultVisible": {
+                    "type": "Boolean",
+                    "description": "默认是否显示",
+                    "required": false,
+                    "default": true
+                },
+                "sortable": {
+                    "type": "Boolean",
+                    "description": "是否可排序",
+                    "required": false,
+                    "default": false
+                },
+                "width": {
+                    "type": "Integer",
+                    "description": "列宽（像素）",
+                    "required": false,
+                    "default": 120,
+                    "min": 80,
+                    "max": 400
+                },
+                "order": {
+                    "type": "Integer",
+                    "description": "显示顺序",
+                    "required": true,
+                    "min": 1
+                }
+            }
+        },
+        "categories": {
+            "type": "Array",
+            "description": "维度分类定义",
+            "required": false,
+            "itemType": "Object",
+            "itemSchema": {
+                "name": {
+                    "type": "String",
+                    "description": "分类名称",
+                    "required": true
+                },
+                "order": {
+                    "type": "Integer",
+                    "description": "分类顺序",
+                    "required": true
+                },
+                "icon": {
+                    "type": "String",
+                    "description": "图标名称（可选）",
+                    "required": false
+                }
+            }
+        },
+        "defaultVisibleIds": {
+            "type": "Array",
+            "description": "默认显示的维度ID列表",
+            "required": false,
+            "itemType": "String",
+            "example": ["name", "cpm", "maleRatio", "femaleRatio"]
+        },
+        "totalDimensions": {
+            "type": "Integer",
+            "description": "维度总数（冗余字段，便于统计）",
+            "required": false,
+            "min": 0
+        },
+        "createdAt": {
+            "type": "Date",
+            "description": "创建时间",
+            "required": true,
+            "auto": true
+        },
+        "updatedAt": {
+            "type": "Date",
+            "description": "更新时间",
+            "required": true,
+            "auto": true
+        }
+    },
+    "indexes": [
+        {
+            "name": "idx_platform_configName_active",
+            "keys": { "platform": 1, "configName": 1, "isActive": 1 },
+            "unique": false,
+            "comment": "查询活跃配置的主索引"
+        },
+        {
+            "name": "idx_platform_active",
+            "keys": { "platform": 1, "isActive": 1 },
+            "unique": false,
+            "comment": "查询平台所有活跃配置"
+        }
+    ],
+    "sampleDocument": {
+        "platform": "douyin",
+        "configName": "default",
+        "version": "1.0",
+        "isActive": true,
+        "description": "抖音达人表现数据维度配置",
+        "dimensions": [
+            {
+                "id": "name",
+                "name": "达人昵称",
+                "type": "text",
+                "category": "基础信息",
+                "targetPath": "name",
+                "required": true,
+                "defaultVisible": true,
+                "sortable": true,
+                "width": 150,
+                "order": 1
+            },
+            {
+                "id": "cpm",
+                "name": "60s+ 预期CPM",
+                "type": "number",
+                "category": "核心绩效",
+                "targetPath": "performanceData.cpm",
+                "defaultVisible": true,
+                "sortable": true,
+                "width": 120,
+                "order": 10
+            }
+        ],
+        "categories": [
+            { "name": "基础信息", "order": 1, "icon": "user" },
+            { "name": "核心绩效", "order": 2, "icon": "chart" }
+        ],
+        "defaultVisibleIds": ["name", "cpm", "maleRatio", "femaleRatio"],
+        "totalDimensions": 20,
+        "createdAt": "2025-11-18T00:00:00Z",
+        "updatedAt": "2025-11-18T00:00:00Z"
+    },
+    "usageNotes": [
+        "每个平台可以有多个配置（通过 configName 区分）",
+        "同一平台同时只能有一个 isActive=true 的配置",
+        "dimensions 数组定义了表格中可显示的所有列",
+        "用户可以通过界面自定义显示哪些列（保存在用户偏好中）",
+        "targetPath 对应 talents 集合中的字段路径"
+    ]
+}

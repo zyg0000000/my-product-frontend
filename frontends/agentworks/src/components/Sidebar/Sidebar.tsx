@@ -38,20 +38,25 @@ const navigation: NavItem[] = [
     children: [
       { name: '基础信息', path: '/talents/basic' },
       { name: '机构管理', path: '/talents/agencies' },
-      // 未来可以添加更多子页面
-      // { name: '档期管理', path: '/talents/schedule' },
-      // { name: '近期表现', path: '/talents/performance' },
+      { name: '近期表现', path: '/performance' },
     ],
   },
   { name: '客户管理', path: '/clients', icon: BuildingOfficeIcon },
   { name: '项目管理', path: '/projects', icon: FolderIcon },
   { name: '数据分析', path: '/analytics', icon: ChartBarIcon },
-  { name: '系统设置', path: '/settings', icon: Cog6ToothIcon },
+  {
+    name: '系统设置',
+    path: '/settings',
+    icon: Cog6ToothIcon,
+    children: [
+      { name: '达人表现配置', path: '/settings/performance-config' },
+    ],
+  },
 ];
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['达人管理']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['达人管理', '系统设置']);
   const location = useLocation();
 
   const toggleMenu = (menuName: string) => {
