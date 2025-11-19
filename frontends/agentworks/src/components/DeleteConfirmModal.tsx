@@ -3,6 +3,7 @@
  */
 
 import { useState } from 'react';
+import { logger } from '../utils/logger';
 import type { Talent, Platform } from '../types/talent';
 import { PLATFORM_NAMES } from '../types/talent';
 import { Toast } from './Toast';
@@ -37,7 +38,7 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
       setDeleteAll(false);
       onClose();
     } catch (err) {
-      console.error('删除失败:', err);
+      logger.error('删除失败:', err);
       showError('删除失败，请重试');
     } finally {
       setDeleting(false);

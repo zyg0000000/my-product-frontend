@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { logger } from '../../../utils/logger';
 import {
   PlusIcon,
   BuildingOffice2Icon,
@@ -84,7 +85,7 @@ export function AgenciesList() {
               counts[agency.id] = 0;
             }
           } catch (err) {
-            console.error(`Failed to load talent count for agency ${agency.id}:`, err);
+            logger.error(`Failed to load talent count for agency ${agency.id}:`, err);
             counts[agency.id] = 0;
           }
         })
@@ -92,7 +93,7 @@ export function AgenciesList() {
 
       setTalentCounts(counts);
     } catch (err) {
-      console.error('Failed to load talent counts:', err);
+      logger.error('Failed to load talent counts:', err);
     }
   };
 

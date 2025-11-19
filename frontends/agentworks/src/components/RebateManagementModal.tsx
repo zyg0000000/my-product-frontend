@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { logger } from '../utils/logger';
 import { getTalentRebate, getRebateHistory as fetchRebateHistory, updateTalentRebate, syncAgencyRebateToTalent } from '../api/rebate';
 import { getAgencies } from '../api/agency';
 import type { Talent } from '../types/talent';
@@ -105,7 +106,7 @@ export function RebateManagementModal({
         setCurrentPage(page);
       }
     } catch (error) {
-      console.error('加载返点数据失败:', error);
+      logger.error('加载返点数据失败:', error);
     } finally {
       setRebateLoading(false);
     }
@@ -118,7 +119,7 @@ export function RebateManagementModal({
         setAgencies(response.data);
       }
     } catch (error) {
-      console.error('加载机构列表失败:', error);
+      logger.error('加载机构列表失败:', error);
     }
   };
 

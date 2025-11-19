@@ -2,6 +2,8 @@
  * API 客户端配置
  */
 
+import { logger } from '../utils/logger';
+
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com';
@@ -45,7 +47,7 @@ export async function apiRequest<T>(
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('API Request Error:', error);
+    logger.error('API Request Error:', error);
     throw error;
   }
 }

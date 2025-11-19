@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react';
+import { logger } from '../utils/logger';
 import { getTalents, type GetTalentsParams, type GetTalentsResponse } from '../api/talent';
 import type { Talent } from '../types/talent';
 import { useApiCall } from './useApiCall';
@@ -59,7 +60,7 @@ export function useTalentData() {
         setTotal(0);
       }
     } catch (error) {
-      console.error('加载达人列表失败:', error);
+      logger.error('加载达人列表失败:', error);
       setTalents([]);
       setTotal(0);
     }

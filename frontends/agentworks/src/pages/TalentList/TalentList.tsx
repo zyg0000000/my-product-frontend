@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '../../utils/logger';
 import { getTalents } from '../../api/talent';
 import type { Talent, Platform } from '../../types/talent';
 import { PLATFORM_NAMES, PLATFORM_PRICE_TYPES } from '../../types/talent';
@@ -39,7 +40,7 @@ export function TalentList() {
         setTalents([]);
       }
     } catch (error) {
-      console.error('加载达人列表失败:', error);
+      logger.error('加载达人列表失败:', error);
       setTalents([]);
     } finally {
       setLoading(false);

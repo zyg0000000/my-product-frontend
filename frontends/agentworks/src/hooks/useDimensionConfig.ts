@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { logger } from '../utils/logger';
 import {
   getDimensionConfigs,
   createDimensionConfig,
@@ -37,7 +38,7 @@ export function useDimensionConfig(platform: Platform) {
         }
       }
     } catch (err) {
-      console.error('加载维度配置失败:', err);
+      logger.error('加载维度配置失败:', err);
       error('加载配置失败');
     } finally {
       setLoading(false);

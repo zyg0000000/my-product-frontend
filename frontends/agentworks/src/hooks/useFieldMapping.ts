@@ -13,6 +13,7 @@ import {
 } from '../api/performance';
 import type { Platform } from '../types/talent';
 import { useToast } from './useToast';
+import { logger } from '../utils/logger';
 
 export function useFieldMapping(platform: Platform) {
   const [configs, setConfigs] = useState<FieldMappingConfig[]>([]);
@@ -31,7 +32,7 @@ export function useFieldMapping(platform: Platform) {
         setActiveConfig(active || null);
       }
     } catch (err) {
-      console.error('加载字段映射配置失败:', err);
+      logger.error('加载字段映射配置失败:', err);
       error('加载配置失败');
     } finally {
       setLoading(false);

@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { logger } from '../utils/logger';
 import type { Talent, PriceRecord, PriceType, PriceStatus } from '../types/talent';
 import { PLATFORM_PRICE_TYPES } from '../types/talent';
 import { formatPrice, getPriceHistory, formatYearMonth, yuanToCents } from '../utils/formatters';
@@ -110,7 +111,7 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
         status: 'confirmed',
       });
     } catch (err) {
-      console.error('保存价格失败:', err);
+      logger.error('保存价格失败:', err);
       showError('保存价格失败，请重试');
     } finally {
       setSaving(false);

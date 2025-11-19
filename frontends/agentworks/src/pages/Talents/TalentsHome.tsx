@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '../../utils/logger';
 import {
   InformationCircleIcon,
   CalendarIcon,
@@ -43,7 +44,7 @@ export function TalentsHome() {
         });
       }
     } catch (error) {
-      console.error('加载统计数据失败:', error);
+      logger.error('加载统计数据失败:', error);
     } finally {
       setLoading(false);
     }

@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { logger } from '../../utils/logger';
 import type { FieldMappingRule } from '../../api/performance';
 import { Modal } from './Modal';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -59,7 +60,7 @@ export function FieldMappingManager({
       }
       handleCloseModal();
     } catch (error) {
-      console.error('保存失败:', error);
+      logger.error('保存失败:', error);
     }
   };
 
@@ -70,7 +71,7 @@ export function FieldMappingManager({
       await onDelete(deletingIndex);
       setDeletingIndex(null);
     } catch (error) {
-      console.error('删除失败:', error);
+      logger.error('删除失败:', error);
     }
   };
 

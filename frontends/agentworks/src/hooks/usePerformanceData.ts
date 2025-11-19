@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { logger } from '../utils/logger';
 import { getTalents, type GetTalentsParams } from '../api/talent';
 import type { Talent, Platform } from '../types/talent';
 
@@ -37,7 +38,7 @@ export function usePerformanceData(platform: Platform) {
         setTotal(0);
       }
     } catch (err) {
-      console.error('加载达人表现数据失败:', err);
+      logger.error('加载达人表现数据失败:', err);
       setTalents([]);
       setTotal(0);
     } finally {

@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '../../../utils/logger';
 import { createTalent, getTalents } from '../../../api/talent';
 import type { Platform, TalentTier, TalentStatus, Talent } from '../../../types/talent';
 import { PLATFORM_NAMES } from '../../../types/talent';
@@ -68,7 +69,7 @@ export function CreateTalent() {
 
         setAvailableTags(Array.from(allTags).sort());
       } catch (error) {
-        console.error('加载标签失败:', error);
+        logger.error('加载标签失败:', error);
         // 失败时设置一些默认标签
         setAvailableTags(['美妆', '时尚', '美食', '旅游', '科技', '游戏', '教育', '母婴', '运动', '其他']);
       }
@@ -193,7 +194,7 @@ export function CreateTalent() {
         showError(`创建失败：${response.message || '未知错误'}`);
       }
     } catch (err) {
-      console.error('创建达人失败:', err);
+      logger.error('创建达人失败:', err);
       showError('创建失败，请检查网络连接或稍后重试');
     } finally {
       setLoading(false);

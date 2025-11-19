@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { logger } from '../../../utils/logger';
 import { getTalents, updateTalent, deleteTalent, deleteTalentAll } from '../../../api/talent';
 import type { Talent, Platform, PriceRecord, PriceType } from '../../../types/talent';
 import { PLATFORM_NAMES, PLATFORM_PRICE_TYPES } from '../../../types/talent';
@@ -173,7 +174,7 @@ export function BasicInfo() {
         setTotalTalents(0);
       }
     } catch (err) {
-      console.error('加载达人列表失败:', err);
+      logger.error('加载达人列表失败:', err);
       error('加载达人列表失败');
       setTalents([]);
       setTotalTalents(0);
@@ -190,7 +191,7 @@ export function BasicInfo() {
         setAgencies(response.data);
       }
     } catch (error) {
-      console.error('加载机构列表失败:', error);
+      logger.error('加载机构列表失败:', error);
     }
   };
 
@@ -371,7 +372,7 @@ export function BasicInfo() {
 
       success('价格保存成功');
     } catch (err) {
-      console.error('保存价格失败:', err);
+      logger.error('保存价格失败:', err);
       const errorMessage = err instanceof Error ? err.message : '保存价格失败';
       error(errorMessage);
       throw err;
@@ -404,7 +405,7 @@ export function BasicInfo() {
       // 重新加载列表以确保数据同步
       await loadTalents();
     } catch (err) {
-      console.error('保存达人信息失败:', err);
+      logger.error('保存达人信息失败:', err);
       const errorMessage = err instanceof Error ? err.message : '保存达人信息失败';
       error(errorMessage);
       throw err;
@@ -432,7 +433,7 @@ export function BasicInfo() {
       // 重新加载列表
       await loadTalents();
     } catch (err) {
-      console.error('删除达人失败:', err);
+      logger.error('删除达人失败:', err);
       const errorMessage = err instanceof Error ? err.message : '删除达人失败';
       error(errorMessage);
       throw err;
@@ -1035,8 +1036,8 @@ export function BasicInfo() {
             </button>
             <button
               onClick={() => {
-                // TODO: 打开合作历史弹窗
                 handleCloseActionMenu();
+                alert('合作历史功能即将上线，敬请期待！');
               }}
               className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             >

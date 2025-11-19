@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { logger } from '../../utils/logger';
 import {
   DndContext,
   closestCenter,
@@ -104,7 +105,7 @@ export function DimensionManager({
       }
       handleCloseModal();
     } catch (error) {
-      console.error('保存失败:', error);
+      logger.error('保存失败:', error);
     }
   };
 
@@ -115,7 +116,7 @@ export function DimensionManager({
       await onDelete(deletingIndex);
       setDeletingIndex(null);
     } catch (error) {
-      console.error('删除失败:', error);
+      logger.error('删除失败:', error);
     }
   };
 

@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { logger } from '../utils/logger';
 import type { Talent, Platform, TalentTier, TalentStatus } from '../types/talent';
 import { PLATFORM_NAMES } from '../types/talent';
 import { AGENCY_INDIVIDUAL_ID } from '../types/agency';
@@ -165,7 +166,7 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
       await onSave(talent.oneId, talent.platform, updateData);
       onClose();
     } catch (err) {
-      console.error('保存达人信息失败:', err);
+      logger.error('保存达人信息失败:', err);
       showError('保存失败，请重试');
     } finally {
       setSaving(false);

@@ -10,6 +10,7 @@
 
 import { useState, useEffect } from 'react';
 import { InformationCircleIcon } from '@heroicons/react/20/solid';
+import { logger } from '../utils/logger';
 import type { Agency } from '../types/agency';
 import type { Platform } from '../types/talent';
 import { PLATFORM_NAMES } from '../types/talent';
@@ -80,7 +81,7 @@ export function AgencyRebateModal({
         setEffectiveDate(response.data.effectiveDate || new Date().toISOString().split('T')[0]);
       }
     } catch (error) {
-      console.error('加载当前配置失败:', error);
+      logger.error('加载当前配置失败:', error);
       // 使用默认值
       setCurrentConfig(null);
       setRebateRate('0');
@@ -110,7 +111,7 @@ export function AgencyRebateModal({
         setCurrentPage(page);
       }
     } catch (error) {
-      console.error('加载历史记录失败:', error);
+      logger.error('加载历史记录失败:', error);
     } finally {
       setHistoryLoading(false);
     }

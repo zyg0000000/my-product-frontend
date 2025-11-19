@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { logger } from '../../utils/logger';
 import { getTalentDetail } from '../../api/talent';
 import { getTalentRebate, getRebateHistory as fetchRebateHistory } from '../../api/rebate';
 import { getAgencies } from '../../api/agency';
@@ -65,7 +66,7 @@ export function TalentDetail() {
         setTalent(response.data);
       }
     } catch (error) {
-      console.error('加载达人详情失败:', error);
+      logger.error('加载达人详情失败:', error);
     } finally {
       setLoading(false);
     }
@@ -97,7 +98,7 @@ export function TalentDetail() {
         setCurrentPage(page);
       }
     } catch (error) {
-      console.error('加载返点数据失败:', error);
+      logger.error('加载返点数据失败:', error);
     } finally {
       setRebateLoading(false);
     }
@@ -110,7 +111,7 @@ export function TalentDetail() {
         setAgencies(response.data);
       }
     } catch (error) {
-      console.error('加载机构列表失败:', error);
+      logger.error('加载机构列表失败:', error);
     }
   };
 

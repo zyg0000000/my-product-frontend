@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
+import { logger } from '../utils/logger';
 import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import type { Agency } from '../types/agency';
 import { AGENCY_INDIVIDUAL_ID } from '../types/agency';
@@ -88,7 +89,7 @@ export function AgencySelector({
         setFilteredAgencies(response.data);
       }
     } catch (error) {
-      console.error('加载机构列表失败:', error);
+      logger.error('加载机构列表失败:', error);
     } finally {
       setLoading(false);
     }
