@@ -74,6 +74,7 @@ export interface DimensionConfig {
   required?: boolean;
   defaultVisible?: boolean;
   sortable?: boolean;
+  pinned?: boolean;  // 是否固定在左侧（不受横向滚动影响）
   width?: number;
   order: number;
 }

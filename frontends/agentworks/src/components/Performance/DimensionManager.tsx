@@ -172,6 +172,7 @@ export function DimensionManager({
                   <th className="px-4 py-3 text-left font-medium text-gray-700">目标路径</th>
                   <th className="px-4 py-3 text-left font-medium text-gray-700">类型</th>
                   <th className="px-4 py-3 text-center font-medium text-gray-700">默认显示</th>
+                  <th className="px-4 py-3 text-center font-medium text-gray-700">固定列</th>
                   <th className="px-4 py-3 text-center font-medium text-gray-700">可排序</th>
                   <th className="px-4 py-3 text-center font-medium text-gray-700">宽度</th>
                   <th className="px-4 py-3 text-center font-medium text-gray-700">操作</th>
@@ -335,6 +336,19 @@ export function DimensionManager({
               <div className="flex items-center">
                 <input
                   type="checkbox"
+                  id="pinned"
+                  checked={editingDimension.pinned || false}
+                  onChange={(e) => setEditingDimension({ ...editingDimension, pinned: e.target.checked })}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="pinned" className="ml-2 text-sm text-gray-700">
+                  固定在左侧（不受横向滚动影响，始终可见）
+                </label>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
                   id="required"
                   checked={editingDimension.required || false}
                   onChange={(e) => setEditingDimension({ ...editingDimension, required: e.target.checked })}
@@ -450,6 +464,17 @@ function SortableDimensionRow({
         >
           {dimension.defaultVisible ? '显示' : '隐藏'}
         </button>
+      </td>
+
+      {/* 固定列标识 */}
+      <td className="px-4 py-3 text-center">
+        {dimension.pinned ? (
+          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-700">
+            📌 固定
+          </span>
+        ) : (
+          <span className="text-gray-300">-</span>
+        )}
       </td>
 
       <td className="px-4 py-3 text-center">

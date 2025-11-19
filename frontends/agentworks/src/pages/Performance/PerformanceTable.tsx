@@ -1,6 +1,7 @@
 /**
  * 达人表现数据表格（配置驱动）
  * 完全基于维度配置动态渲染，支持所有平台复用
+ * Phase 9: 支持固定列（sticky）+ 横向滚动
  */
 
 import type { Talent } from '../../types/talent';
@@ -41,6 +42,10 @@ export function PerformanceTable({
     .filter(dim => visibleDimensionIds.includes(dim.id))
     .sort((a, b) => a.order - b.order);
 
+  // 分离固定列和滚动列
+  const pinnedDimensions = visibleDimensions.filter(dim => dim.pinned);
+  const scrollableDimensions = visibleDimensions.filter(dim => !dim.pinned);
+
   if (loading) {
     return <div className="p-8 text-center text-gray-500">加载中...</div>;
   }
@@ -51,10 +56,25 @@ export function PerformanceTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full text-sm border-collapse">
         <thead className="bg-gray-50">
           <tr>
-            {visibleDimensions.map(dim => (
+            {/* 固定列表头 */}
+            {pinnedDimensions.map((dim, index) => (
+              <th
+                key={dim.id}
+                className="sticky bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase border-r border-gray-200"
+                style={{
+                  left: pinnedDimensions.slice(0, index).reduce((acc, d) => acc + (d.width || 120), 0),
+                  width: dim.width || 120,
+                  zIndex: 20
+                }}
+              >
+                {dim.name}
+              </th>
+            ))}
+            {/* 可滚动列表头 */}
+            {scrollableDimensions.map(dim => (
               <th
                 key={dim.id}
                 className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase"
@@ -68,7 +88,21 @@ export function PerformanceTable({
         <tbody>
           {talents.map((talent, index) => (
             <tr key={talent.oneId || index} className="border-t hover:bg-gray-50">
-              {visibleDimensions.map(dim => (
+              {/* 固定列单元格 */}
+              {pinnedDimensions.map((dim, colIndex) => (
+                <td
+                  key={dim.id}
+                  className="sticky bg-white px-4 py-3 border-r border-gray-200"
+                  style={{
+                    left: pinnedDimensions.slice(0, colIndex).reduce((acc, d) => acc + (d.width || 120), 0),
+                    zIndex: 10
+                  }}
+                >
+                  {renderCellContent(talent, dim)}
+                </td>
+              ))}
+              {/* 可滚动列单元格 */}
+              {scrollableDimensions.map(dim => (
                 <td key={dim.id} className="px-4 py-3">
                   {renderCellContent(talent, dim)}
                 </td>
