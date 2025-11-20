@@ -1,22 +1,17 @@
 /**
  * 返点管理弹窗
+ *
+ * 重构后的纯 UI 组件，业务逻辑已抽离至 useRebateForm hook
  */
 
-import { useState, useEffect } from 'react';
-import { logger } from '../utils/logger';
-import { getTalentRebate, getRebateHistory as fetchRebateHistory, updateTalentRebate, syncAgencyRebateToTalent } from '../api/rebate';
-import { getAgencies } from '../api/agency';
 import type { Talent } from '../types/talent';
-import type { Agency } from '../types/agency';
-import type { GetRebateResponse, RebateConfig, EffectType, UpdateRebateRequest } from '../types/rebate';
+import type { EffectType } from '../types/rebate';
 import {
   REBATE_SOURCE_LABELS,
   formatRebateRate,
   EFFECT_TYPE_LABELS,
-  validateRebateRate,
   REBATE_VALIDATION,
 } from '../types/rebate';
-import { AGENCY_INDIVIDUAL_ID } from '../types/agency';
 import { RebateHistoryList } from './RebateHistoryList';
 import {
   isWildTalent,
@@ -26,6 +21,7 @@ import {
   getBusinessAttribute
 } from '../utils/rebate';
 import { ArrowPathIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { useRebateForm, type TabType } from '../hooks/features/useRebateForm';
 
 interface RebateManagementModalProps {
   isOpen: boolean;
@@ -33,265 +29,111 @@ interface RebateManagementModalProps {
   talent: Talent;
 }
 
-type TabType = 'current' | 'manual' | 'agencySync' | 'stepRule' | 'history';
-
 export function RebateManagementModal({
   isOpen,
   onClose,
   talent,
 }: RebateManagementModalProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('current');
-  const [rebateData, setRebateData] = useState<GetRebateResponse['data'] | null>(null);
-  const [rebateHistory, setRebateHistory] = useState<RebateConfig[]>([]);
-  const [rebateLoading, setRebateLoading] = useState(false);
-  const [agencies, setAgencies] = useState<Agency[]>([]);
+  // 使用 useRebateForm hook 管理所有业务逻辑
+  const {
+    // 数据状态
+    rebateData,
+    rebateHistory,
+    rebateLoading,
 
-  // 返点模式状态
-  const [rebateMode, setRebateMode] = useState<'sync' | 'independent'>('sync');
-  const [syncLoading, setSyncLoading] = useState(false);
+    // UI 状态
+    activeTab,
+    setActiveTab,
+    rebateMode,
 
-  // 手动调整Tab的状态
-  const [manualRebateRate, setManualRebateRate] = useState<string>('');
-  const [manualEffectType, setManualEffectType] = useState<EffectType>('immediate');
-  const [manualCreatedBy, setManualCreatedBy] = useState<string>('');
-  const [manualLoading, setManualLoading] = useState(false);
-  const [manualError, setManualError] = useState<string>('');
-  const [successMessage, setSuccessMessage] = useState<string>('');
+    // 手动调整表单
+    manualRebateRate,
+    setManualRebateRate,
+    manualEffectType,
+    setManualEffectType,
+    manualCreatedBy,
+    setManualCreatedBy,
+    manualLoading,
+    handleManualSubmit,
+    handleManualReset,
 
-  // 分页状态
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalRecords, setTotalRecords] = useState(0);
-  const pageSize = 3; // 每页显示 3 条记录
+    // 机构同步
+    syncLoading,
+    handleSyncFromAgency,
+    handleToggleMode,
 
-  useEffect(() => {
-    if (isOpen) {
-      loadRebateData();
-      loadAgencies();
-      // 初始化手动调整表单
-      setManualError('');
-      setSuccessMessage('');
-    }
-  }, [isOpen, talent.oneId, talent.platform]);
+    // 消息提示
+    manualError,
+    successMessage,
 
-  // 当rebateData更新时，初始化手动调整的返点率
-  useEffect(() => {
-    if (rebateData?.currentRebate?.rate !== undefined) {
-      setManualRebateRate(rebateData.currentRebate.rate.toString());
-    }
-  }, [rebateData]);
+    // 分页
+    currentPage,
+    totalPages,
+    totalRecords,
+    handlePrevPage,
+    handleNextPage,
 
-  const loadRebateData = async (page: number = 1) => {
-    try {
-      setRebateLoading(true);
-
-      // 加载当前返点配置
-      const rebateResponse = await getTalentRebate(talent.oneId, talent.platform);
-      if (rebateResponse.success && rebateResponse.data) {
-        setRebateData(rebateResponse.data);
-        // 更新返点模式
-        setRebateMode(rebateResponse.data.rebateMode);
-      }
-
-      // 加载返点历史记录（分页）
-      const offset = (page - 1) * pageSize;
-      const historyResponse = await fetchRebateHistory({
-        oneId: talent.oneId,
-        platform: talent.platform,
-        limit: pageSize,
-        offset,
-      });
-      if (historyResponse.success && historyResponse.data) {
-        setRebateHistory(historyResponse.data.records);
-        setTotalRecords(historyResponse.data.total);
-        setCurrentPage(page);
-      }
-    } catch (error) {
-      logger.error('加载返点数据失败:', error);
-    } finally {
-      setRebateLoading(false);
-    }
-  };
-
-  const loadAgencies = async () => {
-    try {
-      const response = await getAgencies({ status: 'active' });
-      if (response.success && response.data) {
-        setAgencies(response.data);
-      }
-    } catch (error) {
-      logger.error('加载机构列表失败:', error);
-    }
-  };
-
-  const getAgencyName = (agencyId: string | null | undefined): string => {
-    if (!agencyId || agencyId === AGENCY_INDIVIDUAL_ID) {
-      return '野生达人';
-    }
-    const agency = agencies.find(a => a.id === agencyId);
-    return agency?.name || agencyId;
-  };
-
-  // 分页处理
-  const totalPages = Math.ceil(totalRecords / pageSize);
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      loadRebateData(currentPage - 1);
-    }
-  };
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      loadRebateData(currentPage + 1);
-    }
-  };
-
-  // 切换返点模式
-  const handleToggleMode = () => {
-    setRebateMode(prev => prev === 'sync' ? 'independent' : 'sync');
-    setManualError('');
-  };
-
-  // 同步机构返点
-  const handleSyncFromAgency = async () => {
-    try {
-      setSyncLoading(true);
-      setManualError('');
-      setSuccessMessage('');
-
-      const response = await syncAgencyRebateToTalent({
-        oneId: talent.oneId,
-        platform: talent.platform,
-        changeMode: rebateMode !== 'sync', // 如果当前不是sync模式，同步时切换到sync
-        createdBy: manualCreatedBy || undefined,
-      });
-
-      if (response.success) {
-        // 如果切换了模式，更新本地状态
-        if (rebateMode !== 'sync') {
-          setRebateMode('sync');
-        }
-        // 重新加载数据
-        await loadRebateData(currentPage);
-        setSuccessMessage('同步成功！返点率已更新');
-        // 3秒后自动清除成功消息
-        setTimeout(() => setSuccessMessage(''), 3000);
-      } else {
-        setManualError(response.message || '同步失败');
-      }
-    } catch (err: any) {
-      setManualError(err.message || '同步机构返点失败');
-    } finally {
-      setSyncLoading(false);
-    }
-  };
-
-  // 手动调整返点的提交处理
-  const handleManualSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setManualError('');
-    setSuccessMessage('');
-
-    // 验证返点率
-    const rateNum = parseFloat(manualRebateRate);
-    const validation = validateRebateRate(rateNum);
-    if (!validation.valid) {
-      setManualError(validation.error || '返点率格式错误');
-      return;
-    }
-
-    try {
-      setManualLoading(true);
-
-      const request: UpdateRebateRequest = {
-        oneId: talent.oneId,
-        platform: talent.platform,
-        rebateRate: rateNum,
-        effectType: manualEffectType,
-        createdBy: manualCreatedBy || undefined,
-      };
-
-      const response = await updateTalentRebate(request);
-
-      if (response.success) {
-        // 手动调整后，如果原来是sync模式，自动切换到independent
-        if (rebateMode === 'sync') {
-          setRebateMode('independent');
-        }
-        // 重新加载数据
-        await loadRebateData(currentPage);
-        setSuccessMessage('返点调整成功！新返点率已生效');
-        // 3秒后自动清除成功消息
-        setTimeout(() => setSuccessMessage(''), 3000);
-        // 重置表单
-        setManualCreatedBy('');
-        setManualEffectType('immediate');
-      } else {
-        setManualError(response.message || '更新失败');
-      }
-    } catch (err: any) {
-      setManualError(err.message || '更新返点失败');
-    } finally {
-      setManualLoading(false);
-    }
-  };
+    // 工具函数
+    getAgencyName,
+  } = useRebateForm({ talent, isOpen });
 
   if (!isOpen) return null;
 
   return (
-    <>
+    <div
+      className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+      onClick={onClose}
+    >
       <div
-        className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
-        onClick={onClose}
+        className="relative top-10 mx-auto p-0 border-0 w-full max-w-4xl shadow-2xl rounded-xl bg-white overflow-hidden mb-10"
+        onClick={(e) => e.stopPropagation()}
       >
-        <div
-          className="relative top-10 mx-auto p-0 border-0 w-full max-w-4xl shadow-2xl rounded-xl bg-white overflow-hidden mb-10"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="bg-gradient-to-r from-green-600 to-green-700 px-5 py-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-xl font-bold text-white">
-                  返点管理: <span className="text-green-100">{talent.name}</span>
-                </h3>
-                <p className="text-green-100 text-sm mt-1">
-                  {isWildTalent(talent) ? '野生达人' : '机构达人'} · 查看和调整达人的返点配置
-                </p>
-              </div>
-              <button
-                onClick={onClose}
-                className="text-white hover:text-green-100 text-3xl leading-none transition-colors"
-              >
-                ×
-              </button>
+        {/* Header */}
+        <div className="bg-gradient-to-r from-green-600 to-green-700 px-5 py-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-xl font-bold text-white">
+                返点管理: <span className="text-green-100">{talent.name}</span>
+              </h3>
+              <p className="text-green-100 text-sm mt-1">
+                {isWildTalent(talent) ? '野生达人' : '机构达人'} · 查看和调整达人的返点配置
+              </p>
             </div>
+            <button
+              onClick={onClose}
+              className="text-white hover:text-green-100 text-3xl leading-none transition-colors"
+            >
+              ×
+            </button>
           </div>
+        </div>
 
-          {/* Tabs - 使用本地 rebateMode 状态而不是 talent.rebateMode */}
-          <div className="border-b border-gray-200">
-            <nav className="flex px-5" aria-label="Tabs">
-              {getRebateTabs({ ...talent, rebateMode }).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab as TabType)}
-                  disabled={isPhaseTab(tab)}
-                  className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
-                    activeTab === tab
-                      ? 'border-green-600 text-green-600'
-                      : isPhaseTab(tab)
-                      ? 'border-transparent text-gray-400 cursor-not-allowed'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  {getTabDisplayName(tab)}
-                  {isPhaseTab(tab) && (
-                    <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded">
-                      Phase 2
-                    </span>
-                  )}
-                </button>
-              ))}
-            </nav>
-          </div>
+        {/* Tabs */}
+        <div className="border-b border-gray-200">
+          <nav className="flex px-5" aria-label="Tabs">
+            {getRebateTabs({ ...talent, rebateMode }).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab as TabType)}
+                disabled={isPhaseTab(tab)}
+                className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+                  activeTab === tab
+                    ? 'border-green-600 text-green-600'
+                    : isPhaseTab(tab)
+                    ? 'border-transparent text-gray-400 cursor-not-allowed'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {getTabDisplayName(tab)}
+                {isPhaseTab(tab) && (
+                  <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded">
+                    Phase 2
+                  </span>
+                )}
+              </button>
+            ))}
+          </nav>
+        </div>
 
           {/* Content */}
           <div className="p-5">
@@ -519,12 +361,7 @@ export function RebateManagementModal({
                       <div className="flex justify-end gap-3 pt-2">
                         <button
                           type="button"
-                          onClick={() => {
-                            setManualRebateRate(rebateData?.currentRebate?.rate?.toString() || '0');
-                            setManualEffectType('immediate');
-                            setManualCreatedBy('');
-                            setManualError('');
-                          }}
+                          onClick={handleManualReset}
                           disabled={manualLoading}
                           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
@@ -651,17 +488,16 @@ export function RebateManagementModal({
             )}
           </div>
 
-          {/* Footer */}
-          <div className="flex justify-end gap-3 px-5 py-3 bg-gray-50 border-t">
-            <button
-              onClick={onClose}
-              className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-            >
-              关闭
-            </button>
-          </div>
+        {/* Footer */}
+        <div className="flex justify-end gap-3 px-5 py-3 bg-gray-50 border-t">
+          <button
+            onClick={onClose}
+            className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          >
+            关闭
+          </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }

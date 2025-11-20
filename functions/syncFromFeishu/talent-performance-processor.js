@@ -1,6 +1,11 @@
 /**
  * talent-performance-processor.js - 达人性能数据处理器
- * @version 1.0
+ * @version 1.1 - Price Import Support
+ *
+ * --- v1.1 更新日志 (2025-11-20) ---
+ * - [价格导入] processTalentPerformance 支持 priceYear/priceMonth 参数
+ * - [参数传递] 将价格年月传递给 applyMappingRules 映射引擎
+ * - [调试日志] 添加价格归属时间的日志输出
  *
  * --- v1.0 更新日志 (2025-11-18) ---
  * - [初始版本] 处理达人表现数据导入的业务逻辑
@@ -17,25 +22,28 @@ const { getMappingConfig, applyMappingRules, bulkUpdateTalents } = require('./ma
 
 /**
  * 处理达人表现数据导入（v12.0 新版本）
- * 支持 v2 数据库 + 配置驱动
+ * 支持 v2 数据库 + 配置驱动 + 价格导入
  *
  * @param {Object} db - 数据库连接
  * @param {Array} rows - 飞书/Excel数据行
  * @param {string} platform - 平台（douyin/xiaohongshu/etc）
  * @param {string} dbVersion - 数据库版本（v1/v2）
  * @param {string} mappingConfigId - 映射配置ID
+ * @param {number} priceYear - 价格归属年份
+ * @param {number} priceMonth - 价格归属月份
  * @returns {Object} { validData, invalidRows, stats }
  */
-async function processTalentPerformance(db, rows, platform, dbVersion, mappingConfigId = 'default') {
+async function processTalentPerformance(db, rows, platform, dbVersion, mappingConfigId = 'default', priceYear, priceMonth) {
   console.log(`[性能数据导入] 开始处理 - 平台: ${platform}, 数据库: ${dbVersion}`);
+  console.log(`[性能数据导入] 价格时间: ${priceYear || '未指定'}年${priceMonth || '未指定'}月`);
 
   // 1. 获取映射配置
   const mappingConfig = await getMappingConfig(db, platform, mappingConfigId);
   console.log(`[性能数据导入] 使用映射配置: ${mappingConfig.configName} (v${mappingConfig.version})`);
   console.log(`[性能数据导入] 映射规则数: ${mappingConfig.mappings.length}`);
 
-  // 2. 应用映射引擎
-  const { validData, invalidRows } = applyMappingRules(rows, mappingConfig.mappings, platform);
+  // 2. 应用映射引擎（传递价格年月）
+  const { validData, invalidRows } = applyMappingRules(rows, mappingConfig.mappings, platform, priceYear, priceMonth);
 
   // 3. 批量更新数据库
   const stats = await bulkUpdateTalents(db, validData, dbVersion);

@@ -1,8 +1,14 @@
 /**
  * @file utils.js
- * @version 12.0 - Modular Architecture Upgrade
+ * @version 12.1 - Price Import Support
  * @description
- * [重大升级] 模块化重构 + AgentWorks v2.0 支持
+ * [重大升级] 模块化重构 + AgentWorks v2.0 支持 + 价格导入
+ *
+ * --- v12.1 更新日志 (2025-11-20) ---
+ * - [价格导入] 支持从飞书表格导入达人价格数据到 prices 数组
+ * - [新增参数] handleFeishuRequest 和 handleTalentImport 接受 priceYear/priceMonth 参数
+ * - [参数传递] 将价格年月传递到 processTalentPerformance 和 applyMappingRules
+ * - [调试日志] 添加价格归属时间的日志输出
  *
  * --- v12.0 更新日志 (2025-11-18) ---
  * - [模块化重构] 拆分为独立模块：
@@ -491,9 +497,10 @@ async function generateAutomationSheet(payload) {
  * [V12.0 升级] 处理达人数据导入
  * 支持 v1/v2 数据库 + 配置驱动
  */
-async function handleTalentImport(spreadsheetToken, platform, dbVersion, mappingConfigId) {
+async function handleTalentImport(spreadsheetToken, platform, dbVersion, mappingConfigId, priceYear, priceMonth) {
     console.log(`[导入] 开始从表格 ${spreadsheetToken} 导入达人数据...`);
     console.log(`[导入] 平台: ${platform || 'douyin'}, 数据库版本: ${dbVersion || 'v1'}`);
+    console.log(`[导入] 价格归属时间: ${priceYear || '未指定'}年${priceMonth || '未指定'}月`);
 
     // 使用新的飞书API模块
     const rows = await feishuApi.readFeishuSheet(spreadsheetToken);
@@ -508,13 +515,15 @@ async function handleTalentImport(spreadsheetToken, platform, dbVersion, mapping
     const db = client.db(targetDbName);
 
     if (effectiveDbVersion === 'v2') {
-      // v2: 使用新的配置驱动处理器
+      // v2: 使用新的配置驱动处理器（含价格年月）
       return await processTalentPerformance(
         db,
         rows,
         effectivePlatform,
         'v2',
-        mappingConfigId || 'default'
+        mappingConfigId || 'default',
+        priceYear,
+        priceMonth
       );
     }
 
@@ -1000,7 +1009,7 @@ async function performProjectSync(spreadsheetToken, dataType) {
 
 // --- 总调度函数（v12.0 升级） ---
 async function handleFeishuRequest(requestBody) {
-    const { dataType, payload, platform, dbVersion, mappingConfigId, ...legacyParams } = requestBody;
+    const { dataType, payload, platform, dbVersion, mappingConfigId, priceYear, priceMonth, ...legacyParams } = requestBody;
     if (!dataType) throw new AppError('Missing required parameter: dataType.', 400);
 
     const extractToken = (data) => {
@@ -1030,8 +1039,8 @@ async function handleFeishuRequest(requestBody) {
             if (!token) throw new AppError(`Missing spreadsheetToken or a valid feishuUrl for ${dataType}.`, 400);
 
             if (dataType === 'talentPerformance') {
-                // v12.0 升级：传递新参数
-                const result = await handleTalentImport(token, platform, dbVersion, mappingConfigId);
+                // v12.0 升级：传递新参数（含价格年月）
+                const result = await handleTalentImport(token, platform, dbVersion, mappingConfigId, priceYear, priceMonth);
                 return result;
             } else {
                 const result = await performProjectSync(token, dataType);

@@ -18,7 +18,7 @@ export const PLATFORM_NAMES: Record<Platform, string> = {
  */
 export type PriceType =
   | 'video_60plus' // 抖音：60s+ 长视频
-  | 'video_20to60' // 抖音：20-60s 中视频
+  | 'video_20to60' // 抖音：21-60s 中视频
   | 'video_1to20' // 抖音：1-20s 短视频
   | 'live' // 抖音：直播
   | 'video' // 小红书：视频笔记
@@ -41,7 +41,7 @@ export interface PriceTypeConfig {
 export const PLATFORM_PRICE_TYPES: Record<Platform, PriceTypeConfig[]> = {
   douyin: [
     { key: 'video_60plus', label: '60s+', required: true, bgColor: '#dbeafe', textColor: '#1e40af' },
-    { key: 'video_20to60', label: '20-60s', required: true, bgColor: '#e0e7ff', textColor: '#4338ca' },
+    { key: 'video_20to60', label: '21-60s', required: true, bgColor: '#e0e7ff', textColor: '#4338ca' },
     { key: 'video_1to20', label: '1-20s', required: true, bgColor: '#ddd6fe', textColor: '#6b21a8' },
   ],
   xiaohongshu: [

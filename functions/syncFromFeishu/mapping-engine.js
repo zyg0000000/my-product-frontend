@@ -1,6 +1,17 @@
 /**
  * mapping-engine.js - 通用映射引擎
- * @version 1.1 - Debug Logging
+ * @version 1.2 - Price Import Support
+ *
+ * --- v1.2 更新日志 (2025-11-20) ---
+ * - [价格字段识别] applyMappingRules 支持通过 priceType 元数据识别价格类型
+ * - [PriceRecord 构建] 自动构建价格记录：{ year, month, type, price, status }
+ * - [单位转换] 自动将飞书表格中的元转换为分（× 100）
+ * - [智能合并] bulkUpdateTalents 实现 prices 数组智能合并逻辑
+ *   - 同年月同类型：覆盖旧值
+ *   - 不同时间：追加新值
+ *   - 保留历史数据
+ * - [调试日志] 输出价格识别和合并操作的详细日志
+ * - [平台通用] 价格识别逻辑完全配置驱动，支持所有平台
  *
  * --- v1.1 更新日志 (2025-11-18) ---
  * - [调试优化] 添加详细的调试日志，帮助排查映射失败问题
@@ -93,9 +104,11 @@ async function getMappingConfig(db, platform, configName = 'default') {
  * @param {Array} rows - 原始数据行（第一行为表头）
  * @param {Array} mappingRules - 映射规则数组
  * @param {string} platform - 平台
+ * @param {number} priceYear - 价格归属年份
+ * @param {number} priceMonth - 价格归属月份
  * @returns {Object} { validData, invalidRows }
  */
-function applyMappingRules(rows, mappingRules, platform) {
+function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth) {
   if (!rows || rows.length < 2) {
     return { validData: [], invalidRows: [] };
   }
@@ -197,9 +210,36 @@ function applyMappingRules(rows, mappingRules, platform) {
           // TODO: 执行验证函数
         }
 
-        // 设置到目标路径
-        setNestedValue(processedRow, rule.targetPath, processedValue);
-        processedFieldsCount++;
+        // 🔥 价格字段特殊处理（使用 priceType 元数据识别）
+        if (rule.targetPath === 'prices' && rule.priceType) {
+          // 通过 priceType 元数据识别价格类型（平台通用）
+          if (processedValue > 0) {
+            // 初始化 prices 数组
+            if (!processedRow.prices) {
+              processedRow.prices = [];
+            }
+
+            // 构建 PriceRecord
+            const priceRecord = {
+              year: priceYear || new Date().getFullYear(),
+              month: priceMonth || (new Date().getMonth() + 1),
+              type: rule.priceType,  // ← 直接使用配置中的 priceType
+              price: Math.round(processedValue * 100),  // 元转分
+              status: 'confirmed'
+            };
+
+            processedRow.prices.push(priceRecord);
+            processedFieldsCount++;
+
+            if (rowIndex === 0) {
+              console.log(`[映射引擎] 🏷️ 识别价格字段: ${rule.excelHeader} → ${rule.priceType} (${priceYear}年${priceMonth}月)`);
+            }
+          }
+        } else {
+          // 普通字段，按原逻辑处理
+          setNestedValue(processedRow, rule.targetPath, processedValue);
+          processedFieldsCount++;
+        }
       }
 
       // 验证必需字段
@@ -252,12 +292,18 @@ async function bulkUpdateTalents(db, processedData, dbVersion) {
 
   for (const talent of processedData) {
     const updateFields = {};
+    let hasPriceUpdates = false;
 
     // 提取顶层字段和嵌套字段
     for (const [key, value] of Object.entries(talent)) {
       if (key === 'platform') continue;  // platform 用于 filter，不更新
 
-      if (key === 'performanceData' && typeof value === 'object') {
+      if (key === 'prices' && Array.isArray(value) && value.length > 0) {
+        // 🔥 价格字段特殊处理：需要合并而不是覆盖
+        hasPriceUpdates = true;
+        // 暂存价格数据，稍后处理
+        continue;
+      } else if (key === 'performanceData' && typeof value === 'object') {
         // performanceData 使用点表示法更新
         for (const [perfKey, perfValue] of Object.entries(value)) {
           if (typeof perfValue === 'object' && perfValue !== null && !(perfValue instanceof Date)) {
@@ -284,6 +330,15 @@ async function bulkUpdateTalents(db, processedData, dbVersion) {
     updateFields['performanceData.lastUpdated'] = currentTime;
     updateFields['updatedAt'] = currentTime;
 
+    // 🔥 处理价格更新（合并逻辑）
+    let priceUpdateOperation = null;
+    if (hasPriceUpdates && talent.prices) {
+      // 需要先查询现有达人，获取已有的 prices 数组
+      priceUpdateOperation = {
+        newPrices: talent.prices
+      };
+    }
+
     // 构建查询条件
     let filter;
     if (dbVersion === 'v2') {
@@ -307,13 +362,22 @@ async function bulkUpdateTalents(db, processedData, dbVersion) {
       }
     }
 
-    bulkOps.push({
-      updateOne: {
+    // 🔥 如果有价格更新，需要特殊处理
+    if (priceUpdateOperation) {
+      bulkOps.push({
         filter,
-        update: { $set: updateFields },
-        upsert: false  // 不创建新文档，只更新已存在的
-      }
-    });
+        updateFields,
+        priceUpdateOperation
+      });
+    } else {
+      bulkOps.push({
+        updateOne: {
+          filter,
+          update: { $set: updateFields },
+          upsert: false
+        }
+      });
+    }
   }
 
   // 执行批量更新
@@ -323,7 +387,61 @@ async function bulkUpdateTalents(db, processedData, dbVersion) {
 
   console.log(`[批量更新] 准备更新 ${bulkOps.length} 条记录`);
 
-  const result = await collection.bulkWrite(bulkOps, { ordered: false });
+  // 🔥 分离处理：有价格更新的需要先查询再合并
+  const standardOps = bulkOps.filter(op => !op.priceUpdateOperation);
+  const priceOps = bulkOps.filter(op => op.priceUpdateOperation);
+
+  let matchedCount = 0;
+  let modifiedCount = 0;
+
+  // 1. 执行标准更新
+  if (standardOps.length > 0) {
+    const standardResult = await collection.bulkWrite(standardOps, { ordered: false });
+    matchedCount += standardResult.matchedCount;
+    modifiedCount += standardResult.modifiedCount;
+  }
+
+  // 2. 执行价格合并更新
+  for (const op of priceOps) {
+    try {
+      // 查询现有达人
+      const existingTalent = await collection.findOne(op.filter);
+
+      if (existingTalent) {
+        // 合并 prices 数组
+        const existingPrices = existingTalent.prices || [];
+        const mergedPrices = [...existingPrices];
+
+        // 遍历新价格，覆盖同年月同类型的
+        for (const newPrice of op.priceUpdateOperation.newPrices) {
+          const existingIndex = mergedPrices.findIndex(p =>
+            p.year === newPrice.year &&
+            p.month === newPrice.month &&
+            p.type === newPrice.type
+          );
+
+          if (existingIndex !== -1) {
+            mergedPrices[existingIndex] = newPrice;  // 覆盖
+            console.log(`[价格合并] 覆盖价格: ${newPrice.year}-${newPrice.month} ${newPrice.type}`);
+          } else {
+            mergedPrices.push(newPrice);             // 追加
+            console.log(`[价格合并] 新增价格: ${newPrice.year}-${newPrice.month} ${newPrice.type}`);
+          }
+        }
+
+        // 执行更新
+        op.updateFields.prices = mergedPrices;
+        const updateResult = await collection.updateOne(op.filter, { $set: op.updateFields });
+
+        matchedCount += updateResult.matchedCount;
+        modifiedCount += updateResult.modifiedCount;
+      }
+    } catch (err) {
+      console.error('[价格合并] 更新失败:', err);
+    }
+  }
+
+  const result = { matchedCount, modifiedCount };
 
   console.log(`[批量更新] 完成: Matched=${result.matchedCount}, Modified=${result.modifiedCount}`);
 

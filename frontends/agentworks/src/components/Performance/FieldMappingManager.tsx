@@ -6,11 +6,14 @@
 import { useState } from 'react';
 import { logger } from '../../utils/logger';
 import type { FieldMappingRule } from '../../api/performance';
+import type { Platform } from '../../types/talent';
+import { PLATFORM_PRICE_TYPES } from '../../types/talent';
 import { Modal } from './Modal';
 import { ConfirmDialog } from './ConfirmDialog';
 
 interface FieldMappingManagerProps {
   mappings: FieldMappingRule[];
+  platform: Platform;  // 新增：当前平台
   onAdd: (rule: FieldMappingRule) => Promise<void>;
   onUpdate: (index: number, rule: FieldMappingRule) => Promise<void>;
   onDelete: (index: number) => Promise<void>;
@@ -18,10 +21,13 @@ interface FieldMappingManagerProps {
 
 export function FieldMappingManager({
   mappings,
+  platform,
   onAdd,
   onUpdate,
   onDelete
 }: FieldMappingManagerProps) {
+  // 获取当前平台的价格类型配置
+  const priceTypes = PLATFORM_PRICE_TYPES[platform] || [];
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -108,6 +114,7 @@ export function FieldMappingManager({
               <th className="px-4 py-3 text-left font-medium text-gray-700">Excel列名</th>
               <th className="px-4 py-3 text-left font-medium text-gray-700">目标字段路径</th>
               <th className="px-4 py-3 text-left font-medium text-gray-700">格式</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-700">价格类型</th>
               <th className="px-4 py-3 text-center font-medium text-gray-700">必需</th>
               <th className="px-4 py-3 text-center font-medium text-gray-700">操作</th>
             </tr>
@@ -127,6 +134,15 @@ export function FieldMappingManager({
                   }`}>
                     {rule.format}
                   </span>
+                </td>
+                <td className="px-4 py-3 text-xs text-gray-600">
+                  {rule.priceType ? (
+                    <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded font-mono">
+                      {rule.priceType}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400">-</span>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-center">
                   {rule.required ? (
@@ -202,10 +218,12 @@ export function FieldMappingManager({
                 value={editingRule.targetPath}
                 onChange={(e) => setEditingRule({ ...editingRule, targetPath: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                placeholder="例如: performanceData.cpm"
+                placeholder="例如: performanceData.cpm 或 prices（价格字段）"
               />
               <p className="mt-1 text-xs text-gray-500">
                 使用点表示法，例如：performanceData.cpm 或 performanceData.audienceGender.male
+                <br />
+                <strong>💰 价格字段请输入：prices（会自动显示价格类型选择器）</strong>
               </p>
             </div>
 
@@ -225,6 +243,30 @@ export function FieldMappingManager({
                 <option value="date">日期 (date)</option>
               </select>
             </div>
+
+            {/* 价格类型（仅当 targetPath = "prices" 时显示）*/}
+            {editingRule.targetPath === 'prices' && priceTypes.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  价格类型 <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={editingRule.priceType || ''}
+                  onChange={(e) => setEditingRule({ ...editingRule, priceType: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">请选择价格类型</option>
+                  {priceTypes.map(pt => (
+                    <option key={pt.key} value={pt.key}>
+                      {pt.label} ({pt.key})
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  用于标识 prices 数组中每个元素的 type 字段值
+                </p>
+              </div>
+            )}
 
             {/* 是否必需 */}
             <div className="flex items-center">

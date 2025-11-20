@@ -10,14 +10,14 @@ import { useToast } from './useToast';
 
 export function useDataImport(platform: Platform) {
   const [importing, setImporting] = useState(false);
-  const [previewData, setPreviewData] = useState<ImportResult['data'] | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [showResult, setShowResult] = useState(false);
   const { success, error } = useToast();
 
   /**
    * 从飞书导入
    */
-  const importFromFeishu = async (feishuUrl: string) => {
+  const importFromFeishu = async (feishuUrl: string, priceYear: number, priceMonth: number) => {
     try {
       setImporting(true);
 
@@ -25,15 +25,28 @@ export function useDataImport(platform: Platform) {
         feishuUrl,
         platform,
         dbVersion: 'v2',
-        mappingConfigId: 'default'
+        mappingConfigId: 'default',
+        priceYear,
+        priceMonth
       };
 
       const result = await importPerformanceFromFeishu(request);
 
       if (result.success && result.data) {
-        setPreviewData(result.data);
-        setShowPreview(true);
-        success(`数据处理完成：成功 ${result.data.stats.modified} 条`);
+        // 保存完整的导入结果
+        setImportResult(result);
+        setShowResult(true);
+
+        // Toast 提示
+        const failedCount = result.data.stats?.failed || 0;
+        const successCount = result.data.stats?.modified || result.data.stats?.valid || 0;
+
+        if (failedCount > 0) {
+          error(`导入完成：成功 ${successCount} 条，失败 ${failedCount} 条`);
+        } else {
+          success(`导入成功：${successCount} 条数据已更新`);
+        }
+
         return result.data;
       } else {
         throw new Error(result.error || result.message || '导入失败');
@@ -48,18 +61,18 @@ export function useDataImport(platform: Platform) {
   };
 
   /**
-   * 关闭预览
+   * 关闭结果面板
    */
-  const closePreview = () => {
-    setShowPreview(false);
-    setPreviewData(null);
+  const closeResult = () => {
+    setShowResult(false);
+    setImportResult(null);
   };
 
   return {
     importing,
-    previewData,
-    showPreview,
+    importResult,
+    showResult,
     importFromFeishu,
-    closePreview
+    closeResult
   };
 }

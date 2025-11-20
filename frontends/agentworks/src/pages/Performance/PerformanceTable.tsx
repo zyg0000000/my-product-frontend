@@ -5,10 +5,32 @@
  */
 
 import { useState } from 'react';
-import type { Talent } from '../../types/talent';
+import type { Talent, PriceType } from '../../types/talent';
+import { PLATFORM_PRICE_TYPES } from '../../types/talent';
 import type { DimensionConfig } from '../../api/performance';
+import { formatPrice } from '../../utils/formatters';
 
 type SortDirection = 'asc' | 'desc' | null;
+
+/**
+ * 获取指定类型的最新价格
+ */
+function getLatestPrice(talent: Talent, priceType: PriceType): number | null {
+  const prices = talent.prices || [];
+
+  // 筛选该类型的所有价格
+  const typePrices = prices.filter(p => p.type === priceType);
+
+  if (typePrices.length === 0) return null;
+
+  // 按年月降序排序，取最新的
+  typePrices.sort((a, b) => {
+    if (a.year !== b.year) return b.year - a.year;
+    return b.month - a.month;
+  });
+
+  return typePrices[0].price;  // 返回价格（分）
+}
 
 /**
  * 获取平台达人的外链（星图、蒲公英等）
@@ -27,27 +49,52 @@ function getPlatformLink(talent: Talent): string | null {
   return null;
 }
 
+/**
+ * 获取价格维度的动态表头名称
+ */
+function getPriceDimensionName(dimension: DimensionConfig, selectedPriceType: PriceType | null, platform: string): string {
+  if (dimension.type !== 'price') return dimension.name;
+
+  const priceType = dimension.priceType || selectedPriceType;
+  if (!priceType) return dimension.name;
+
+  // 获取价格类型的标签
+  const allPriceTypes = PLATFORM_PRICE_TYPES[platform as keyof typeof PLATFORM_PRICE_TYPES] || [];
+  const priceTypeConfig = allPriceTypes.find(pt => pt.key === priceType);
+
+  return priceTypeConfig ? `${priceTypeConfig.label}报价` : dimension.name;
+}
+
 interface PerformanceTableProps {
   talents: Talent[];
   dimensions: DimensionConfig[];
   visibleDimensionIds: string[];
   loading?: boolean;
+  selectedPriceType?: PriceType | null;  // 新增：选定的价格类型
 }
 
 export function PerformanceTable({
   talents,
   dimensions,
   visibleDimensionIds,
-  loading
+  loading,
+  selectedPriceType
 }: PerformanceTableProps) {
+  // 获取当前平台（从第一个达人获取）
+  const platform = talents.length > 0 ? talents[0].platform : 'douyin';
   // 排序状态
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
   // 获取显示的维度（按 order 排序）
-  const visibleDimensions = dimensions
+  let visibleDimensions = dimensions
     .filter(dim => visibleDimensionIds.includes(dim.id))
     .sort((a, b) => a.order - b.order);
+
+  // 如果选择"不显示价格"，过滤掉所有 price 类型的维度
+  if (!selectedPriceType) {
+    visibleDimensions = visibleDimensions.filter(dim => dim.type !== 'price');
+  }
 
   // 分离固定列和滚动列
   const pinnedDimensions = visibleDimensions.filter(dim => dim.pinned);
@@ -122,7 +169,7 @@ export function PerformanceTable({
                 <th
                   key={dim.id}
                   onClick={() => handleSort(dim)}
-                  className={`sticky bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase border-r-2 border-gray-300 whitespace-nowrap ${
+                  className={`sticky bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-700 border-r-2 border-gray-300 whitespace-nowrap ${
                     dim.sortable ? 'cursor-pointer hover:bg-gray-100' : ''
                   }`}
                   style={{
@@ -133,7 +180,7 @@ export function PerformanceTable({
                   }}
                 >
                   <div className="flex items-center gap-1">
-                    {dim.name}
+                    {getPriceDimensionName(dim, selectedPriceType, platform)}
                     {dim.sortable && <SortIcon columnId={dim.id} sortColumn={sortColumn} sortDirection={sortDirection} />}
                   </div>
                 </th>
@@ -144,7 +191,7 @@ export function PerformanceTable({
               <th
                 key={dim.id}
                 onClick={() => handleSort(dim)}
-                className={`px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap ${
+                className={`px-4 py-3 text-left text-xs font-medium text-gray-700 whitespace-nowrap ${
                   dim.sortable ? 'cursor-pointer hover:bg-gray-100' : ''
                 }`}
                 style={{
@@ -153,7 +200,7 @@ export function PerformanceTable({
                 }}
               >
                 <div className="flex items-center gap-1">
-                  {dim.name}
+                  {getPriceDimensionName(dim, selectedPriceType, platform)}
                   {dim.sortable && <SortIcon columnId={dim.id} sortColumn={sortColumn} sortDirection={sortDirection} />}
                 </div>
               </th>
@@ -182,7 +229,7 @@ export function PerformanceTable({
                       zIndex: 10
                     }}
                   >
-                    {renderCellContent(talent, dim)}
+                    {renderCellContent(talent, dim, selectedPriceType)}
                   </td>
                 );
               })}
@@ -196,7 +243,7 @@ export function PerformanceTable({
                     minWidth: `${dim.width || 120}px`
                   }}
                 >
-                  {renderCellContent(talent, dim)}
+                  {renderCellContent(talent, dim, selectedPriceType)}
                 </td>
               ))}
             </tr>
@@ -208,9 +255,9 @@ export function PerformanceTable({
 }
 
 /**
- * 渲染单元格内容（支持达人名称链接）
+ * 渲染单元格内容（支持达人名称链接 + 价格类型）
  */
-function renderCellContent(talent: Talent, dimension: DimensionConfig): React.ReactNode {
+function renderCellContent(talent: Talent, dimension: DimensionConfig, selectedPriceType?: PriceType | null): React.ReactNode {
   // 如果是达人名称列（targetPath 为 'name'），渲染为可点击链接
   if (dimension.targetPath === 'name') {
     const platformLink = getPlatformLink(talent);
@@ -234,13 +281,27 @@ function renderCellContent(talent: Talent, dimension: DimensionConfig): React.Re
   }
 
   // 其他列使用格式化函数
-  return formatCellValue(talent, dimension);
+  return formatCellValue(talent, dimension, selectedPriceType);
 }
 
 /**
  * 根据维度配置格式化单元格值
  */
-function formatCellValue(talent: Talent, dimension: DimensionConfig): string {
+function formatCellValue(talent: Talent, dimension: DimensionConfig, selectedPriceType?: PriceType | null): string {
+  // 🔥 特殊处理：price 类型
+  if (dimension.type === 'price') {
+    // 优先使用维度配置中的 priceType，其次使用全局选择的
+    const priceType = dimension.priceType || selectedPriceType;
+
+    if (!priceType) {
+      return 'N/A';
+    }
+
+    const latestPrice = getLatestPrice(talent, priceType as PriceType);
+    return latestPrice ? formatPrice(latestPrice) : 'N/A';
+  }
+
+  // 普通字段处理
   const value = getNestedValue(talent, dimension.targetPath);
 
   if (value === null || value === undefined) {

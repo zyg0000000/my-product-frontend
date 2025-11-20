@@ -11,7 +11,7 @@ interface DataImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   platform: Platform;
-  onImport: (feishuUrl: string) => Promise<void>;
+  onImport: (feishuUrl: string, priceYear: number, priceMonth: number) => Promise<void>;
   loading?: boolean;
 }
 
@@ -24,6 +24,12 @@ export function DataImportModal({
 }: DataImportModalProps) {
   const [feishuUrl, setFeishuUrl] = useState('');
 
+  // 价格归属时间（默认当前年月）
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
+  const [priceYear, setPriceYear] = useState(currentYear);
+  const [priceMonth, setPriceMonth] = useState(currentMonth);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,8 +41,10 @@ export function DataImportModal({
     }
 
     try {
-      await onImport(feishuUrl);
+      await onImport(feishuUrl, priceYear, priceMonth);
       setFeishuUrl('');
+      setPriceYear(currentYear);
+      setPriceMonth(currentMonth);
       onClose();
     } catch (err) {
       // 错误已由 Hook 处理
@@ -66,7 +74,7 @@ export function DataImportModal({
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              飞书表格链接
+              飞书表格链接 <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -78,6 +86,44 @@ export function DataImportModal({
             />
             <p className="text-xs text-gray-500 mt-1">
               提示：需要包含达人UID/星图ID列，以及表现数据列
+            </p>
+          </div>
+
+          {/* 价格归属时间 */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              价格归属时间 <span className="text-red-500">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">年份</label>
+                <select
+                  value={priceYear}
+                  onChange={(e) => setPriceYear(parseInt(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={loading}
+                >
+                  {[currentYear - 1, currentYear, currentYear + 1].map(year => (
+                    <option key={year} value={year}>{year}年</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">月份</label>
+                <select
+                  value={priceMonth}
+                  onChange={(e) => setPriceMonth(parseInt(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={loading}
+                >
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                    <option key={month} value={month}>{month}月</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              💡 表格中的价格将记录为 <strong className="text-blue-600">{priceYear}年{priceMonth}月</strong>，如果已存在该月价格将被覆盖
             </p>
           </div>
 

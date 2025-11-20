@@ -49,7 +49,7 @@ const navigation: NavItem[] = [
     path: '/settings',
     icon: Cog6ToothIcon,
     children: [
-      { name: '达人表现配置', path: '/settings/performance-config' },
+      { name: '达人数据表现配置', path: '/settings/performance-config' },
     ],
   },
 ];

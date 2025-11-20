@@ -24,6 +24,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { DimensionConfig } from '../../api/performance';
+import type { Platform } from '../../types/talent';
+import { PLATFORM_PRICE_TYPES } from '../../types/talent';
 import { Modal } from './Modal';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useBatchEdit } from '../../hooks/useBatchEdit';
@@ -31,6 +33,7 @@ import { BatchEditToolbar } from '../BatchEditToolbar';
 
 interface DimensionManagerProps {
   dimensions: DimensionConfig[];
+  platform: Platform;  // 新增：当前平台
   onAdd: (dimension: DimensionConfig) => Promise<void>;
   onUpdate: (index: number, dimension: DimensionConfig) => Promise<void>;
   onDelete: (index: number) => Promise<void>;
@@ -40,12 +43,15 @@ interface DimensionManagerProps {
 
 export function DimensionManager({
   dimensions,
+  platform,
   onAdd,
   onUpdate,
   onDelete,
   onReorder,
   onToggleVisibility
 }: DimensionManagerProps) {
+  // 获取当前平台的价格类型配置
+  const priceTypes = PLATFORM_PRICE_TYPES[platform] || [];
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -328,8 +334,33 @@ export function DimensionManager({
                 <option value="number">数字</option>
                 <option value="percentage">百分比</option>
                 <option value="date">日期</option>
+                <option value="price">价格</option>
               </select>
             </div>
+
+            {/* 价格类型（仅当 type = "price" 时显示）*/}
+            {editingDimension.type === 'price' && priceTypes.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  价格类型 <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={editingDimension.priceType || ''}
+                  onChange={(e) => setEditingDimension({ ...editingDimension, priceType: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">请选择价格类型</option>
+                  {priceTypes.map(pt => (
+                    <option key={pt.key} value={pt.key}>
+                      {pt.label} ({pt.key})
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  选择要显示的价格类型（自动获取最新月份价格）
+                </p>
+              </div>
+            )}
 
             {/* 列宽 */}
             <div>

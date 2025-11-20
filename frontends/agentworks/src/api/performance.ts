@@ -15,6 +15,7 @@ export interface FieldMappingRule {
   required?: boolean;
   defaultValue?: any;
   order?: number;
+  priceType?: string;  // 价格类型（当 targetPath = "prices" 时使用）
 }
 
 export interface FieldMappingConfig {
@@ -68,7 +69,7 @@ export async function deleteFieldMapping(id: string) {
 export interface DimensionConfig {
   id: string;
   name: string;
-  type: 'text' | 'number' | 'percentage' | 'date';
+  type: 'text' | 'number' | 'percentage' | 'date' | 'price';  // 新增 price 类型
   category: string;
   targetPath: string;
   required?: boolean;
@@ -77,6 +78,7 @@ export interface DimensionConfig {
   pinned?: boolean;  // 是否固定在左侧（不受横向滚动影响）
   width?: number;
   order: number;
+  priceType?: string;  // 价格类型（当 type = "price" 时使用）
 }
 
 export interface DimensionConfigDoc {
@@ -134,6 +136,8 @@ export interface ImportRequest {
   platform: string;
   dbVersion?: string;
   mappingConfigId?: string;
+  priceYear?: number;   // 价格归属年份
+  priceMonth?: number;  // 价格归属月份
 }
 
 export interface ImportResult {
@@ -163,6 +167,8 @@ export async function importPerformanceFromFeishu(request: ImportRequest): Promi
     feishuUrl: request.feishuUrl,
     platform: request.platform,
     dbVersion: request.dbVersion || 'v2',
-    mappingConfigId: request.mappingConfigId || 'default'
+    mappingConfigId: request.mappingConfigId || 'default',
+    priceYear: request.priceYear,
+    priceMonth: request.priceMonth
   });
 }
