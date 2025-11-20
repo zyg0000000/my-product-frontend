@@ -81,26 +81,26 @@ export function Home() {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">近期功能更新</h2>
           <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
-            v2.0
+            v2.8.0
           </span>
         </div>
         <div className="mt-6 space-y-4">
-          <div className="border-l-4 border-blue-500 bg-blue-50 p-4">
+          <div className="border-l-4 border-orange-500 bg-orange-50 p-4">
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-white">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-white">
                   <span className="text-xs font-bold">新</span>
                 </div>
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-gray-900">
-                    侧边栏折叠功能
+                    价格导入与显示功能
                   </h3>
-                  <span className="text-xs text-gray-500">2025-11-14</span>
+                  <span className="text-xs text-gray-500">2025-11-21</span>
                 </div>
                 <p className="mt-1 text-sm text-gray-600">
-                  新增侧边栏折叠按钮，优化页面空间利用，提升用户体验
+                  支持从飞书表格导入达人价格数据（多年月、多类型），Performance 页面新增价格类型切换器，动态表头跟随选择器变化
                 </p>
               </div>
             </div>
@@ -116,12 +116,33 @@ export function Home() {
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-gray-900">
-                    达人管理模块重构
+                    数据导入优化
+                  </h3>
+                  <span className="text-xs text-gray-500">2025-11-21</span>
+                </div>
+                <p className="mt-1 text-sm text-gray-600">
+                  导入功能迁移至配置页面，新增导入结果可视化面板，支持失败记录详情和导出功能
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-l-4 border-blue-500 bg-blue-50 p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-white">
+                  <span className="text-xs font-bold">✓</span>
+                </div>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-900">
+                    侧边栏折叠功能
                   </h3>
                   <span className="text-xs text-gray-500">2025-11-14</span>
                 </div>
                 <p className="mt-1 text-sm text-gray-600">
-                  优化达人管理结构，新增基础信息二级页面，提供更清晰的信息层级
+                  新增侧边栏折叠按钮，优化页面空间利用，提升用户体验
                 </p>
               </div>
             </div>

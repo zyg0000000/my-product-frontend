@@ -68,19 +68,19 @@ export function TalentsHome() {
       available: true,
     },
     {
+      name: '近期表现',
+      description: '查看达人数据和效果分析',
+      icon: ChartBarIcon,
+      path: '/performance',
+      color: 'bg-purple-500',
+      available: true,
+    },
+    {
       name: '档期管理',
       description: '达人档期安排和时间管理',
       icon: CalendarIcon,
       path: '/talents/schedule',
       color: 'bg-green-500',
-      available: false,
-    },
-    {
-      name: '近期表现',
-      description: '查看达人数据和效果分析',
-      icon: ChartBarIcon,
-      path: '/talents/performance',
-      color: 'bg-purple-500',
       available: false,
     },
   ];
@@ -93,36 +93,6 @@ export function TalentsHome() {
         <p className="mt-2 text-lg text-gray-600">
           管理多平台达人信息，查看达人数据和表现
         </p>
-      </div>
-
-      {/* 功能模块 */}
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">功能模块</h2>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map(module => (
-            <button
-              key={module.path}
-              onClick={() => module.available && navigate(module.path)}
-              disabled={!module.available}
-              className={`group relative flex flex-col items-start rounded-lg border-2 bg-white p-6 text-left transition-all ${
-                module.available
-                  ? 'border-gray-200 hover:border-primary-500 hover:shadow-lg cursor-pointer'
-                  : 'border-gray-200 opacity-60 cursor-not-allowed'
-              }`}
-            >
-              <div className={`rounded-lg ${module.color} p-3`}>
-                <module.icon className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="mt-4 text-lg font-semibold text-gray-900">
-                {module.name}
-                {!module.available && (
-                  <span className="ml-2 text-xs text-gray-400">(开发中)</span>
-                )}
-              </h3>
-              <p className="mt-2 text-sm text-gray-500">{module.description}</p>
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* 快速统计 */}
@@ -157,6 +127,36 @@ export function TalentsHome() {
         )}
       </div>
 
+      {/* 功能模块 */}
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">功能模块</h2>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {modules.map(module => (
+            <button
+              key={module.path}
+              onClick={() => module.available && navigate(module.path)}
+              disabled={!module.available}
+              className={`group relative flex flex-col items-start rounded-lg border-2 bg-white p-6 text-left transition-all ${
+                module.available
+                  ? 'border-gray-200 hover:border-primary-500 hover:shadow-lg cursor-pointer'
+                  : 'border-gray-200 opacity-60 cursor-not-allowed'
+              }`}
+            >
+              <div className={`rounded-lg ${module.color} p-3`}>
+                <module.icon className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="mt-4 text-lg font-semibold text-gray-900">
+                {module.name}
+                {!module.available && (
+                  <span className="ml-2 text-xs text-gray-400">(开发中)</span>
+                )}
+              </h3>
+              <p className="mt-2 text-sm text-gray-500">{module.description}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* 快速操作 */}
       <div className="card">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">快速操作</h2>
@@ -167,12 +167,6 @@ export function TalentsHome() {
           >
             <PlusCircleIcon className="h-5 w-5" />
             新增达人
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
-            批量导入
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
-            导出数据
           </button>
         </div>
       </div>
