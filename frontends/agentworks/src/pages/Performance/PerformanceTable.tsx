@@ -52,7 +52,7 @@ function getPlatformLink(talent: Talent): string | null {
 /**
  * 获取价格维度的动态表头名称
  */
-function getPriceDimensionName(dimension: DimensionConfig, selectedPriceType: PriceType | null, platform: string): string {
+function getPriceDimensionName(dimension: DimensionConfig, selectedPriceType: PriceType | null | undefined, platform: string): string {
   if (dimension.type !== 'price') return dimension.name;
 
   const priceType = dimension.priceType || selectedPriceType;
@@ -70,7 +70,7 @@ interface PerformanceTableProps {
   dimensions: DimensionConfig[];
   visibleDimensionIds: string[];
   loading?: boolean;
-  selectedPriceType?: PriceType | null;  // 新增：选定的价格类型
+  selectedPriceType?: PriceType | null | undefined;  // 新增：选定的价格类型
 }
 
 export function PerformanceTable({
