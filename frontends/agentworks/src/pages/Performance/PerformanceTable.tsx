@@ -2,9 +2,10 @@
  * 达人表现数据表格（配置驱动）
  * 完全基于维度配置动态渲染，支持所有平台复用
  * Phase 9: 支持固定列（sticky）+ 横向滚动 + 列排序
+ * Phase 10: 价格列头内置选择器
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { Talent, PriceType } from '../../types/talent';
 import { PLATFORM_PRICE_TYPES } from '../../types/talent';
 import type { DimensionConfig } from '../../api/performance';
@@ -70,7 +71,8 @@ interface PerformanceTableProps {
   dimensions: DimensionConfig[];
   visibleDimensionIds: string[];
   loading?: boolean;
-  selectedPriceType?: PriceType | null | undefined;  // 新增：选定的价格类型
+  selectedPriceType?: PriceType | null | undefined;
+  onPriceTypeChange?: (priceType: PriceType | null) => void;  // 新增：价格类型变更回调
 }
 
 export function PerformanceTable({
@@ -78,13 +80,28 @@ export function PerformanceTable({
   dimensions,
   visibleDimensionIds,
   loading,
-  selectedPriceType
+  selectedPriceType,
+  onPriceTypeChange
 }: PerformanceTableProps) {
   // 获取当前平台（从第一个达人获取）
   const platform = talents.length > 0 ? talents[0].platform : 'douyin';
   // 排序状态
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  // 价格列头下拉状态
+  const [priceDropdownOpen, setPriceDropdownOpen] = useState(false);
+  const priceDropdownRef = useRef<HTMLDivElement>(null);
+
+  // 点击外部关闭下拉框
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (priceDropdownRef.current && !priceDropdownRef.current.contains(event.target as Node)) {
+        setPriceDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // 获取显示的维度（按 order 排序）
   let visibleDimensions = dimensions
@@ -165,12 +182,14 @@ export function PerformanceTable({
                 leftPosition += (pinnedDimensions[i].width || 120);
               }
 
+              const isPriceColumn = dim.type === 'price';
+
               return (
                 <th
                   key={dim.id}
-                  onClick={() => handleSort(dim)}
+                  onClick={!isPriceColumn ? () => handleSort(dim) : undefined}
                   className={`sticky bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-700 border-r-2 border-gray-300 whitespace-nowrap ${
-                    dim.sortable ? 'cursor-pointer hover:bg-gray-100' : ''
+                    !isPriceColumn && dim.sortable ? 'cursor-pointer hover:bg-gray-100' : ''
                   }`}
                   style={{
                     left: `${leftPosition}px`,
@@ -179,32 +198,66 @@ export function PerformanceTable({
                     zIndex: 20
                   }}
                 >
-                  <div className="flex items-center gap-1">
-                    {getPriceDimensionName(dim, selectedPriceType, platform)}
-                    {dim.sortable && <SortIcon columnId={dim.id} sortColumn={sortColumn} sortDirection={sortDirection} />}
-                  </div>
+                  {isPriceColumn ? (
+                    <PriceColumnHeader
+                      platform={platform}
+                      selectedPriceType={selectedPriceType}
+                      onPriceTypeChange={onPriceTypeChange}
+                      isOpen={priceDropdownOpen}
+                      onToggle={() => setPriceDropdownOpen(!priceDropdownOpen)}
+                      dropdownRef={priceDropdownRef}
+                      sortable={dim.sortable}
+                      onSort={() => handleSort(dim)}
+                      sortColumn={sortColumn}
+                      sortDirection={sortDirection}
+                    />
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      {dim.name}
+                      {dim.sortable && <SortIcon columnId={dim.id} sortColumn={sortColumn} sortDirection={sortDirection} />}
+                    </div>
+                  )}
                 </th>
               );
             })}
             {/* 可滚动列表头 */}
-            {scrollableDimensions.map(dim => (
-              <th
-                key={dim.id}
-                onClick={() => handleSort(dim)}
-                className={`px-4 py-3 text-left text-xs font-medium text-gray-700 whitespace-nowrap ${
-                  dim.sortable ? 'cursor-pointer hover:bg-gray-100' : ''
-                }`}
-                style={{
-                  width: `${dim.width || 120}px`,
-                  minWidth: `${dim.width || 120}px`
-                }}
-              >
-                <div className="flex items-center gap-1">
-                  {getPriceDimensionName(dim, selectedPriceType, platform)}
-                  {dim.sortable && <SortIcon columnId={dim.id} sortColumn={sortColumn} sortDirection={sortDirection} />}
-                </div>
-              </th>
-            ))}
+            {scrollableDimensions.map(dim => {
+              const isPriceColumn = dim.type === 'price';
+
+              return (
+                <th
+                  key={dim.id}
+                  onClick={!isPriceColumn ? () => handleSort(dim) : undefined}
+                  className={`px-4 py-3 text-left text-xs font-medium text-gray-700 whitespace-nowrap ${
+                    !isPriceColumn && dim.sortable ? 'cursor-pointer hover:bg-gray-100' : ''
+                  }`}
+                  style={{
+                    width: `${dim.width || 120}px`,
+                    minWidth: `${dim.width || 120}px`
+                  }}
+                >
+                  {isPriceColumn ? (
+                    <PriceColumnHeader
+                      platform={platform}
+                      selectedPriceType={selectedPriceType}
+                      onPriceTypeChange={onPriceTypeChange}
+                      isOpen={priceDropdownOpen}
+                      onToggle={() => setPriceDropdownOpen(!priceDropdownOpen)}
+                      dropdownRef={priceDropdownRef}
+                      sortable={dim.sortable}
+                      onSort={() => handleSort(dim)}
+                      sortColumn={sortColumn}
+                      sortDirection={sortDirection}
+                    />
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      {getPriceDimensionName(dim, selectedPriceType, platform)}
+                      {dim.sortable && <SortIcon columnId={dim.id} sortColumn={sortColumn} sortDirection={sortDirection} />}
+                    </div>
+                  )}
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
@@ -382,5 +435,110 @@ function SortIcon({
     <svg className="w-3 h-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
     </svg>
+  );
+}
+
+/**
+ * 价格列头选择器组件
+ */
+function PriceColumnHeader({
+  platform,
+  selectedPriceType,
+  onPriceTypeChange,
+  isOpen,
+  onToggle,
+  dropdownRef,
+  sortable,
+  onSort,
+  sortColumn,
+  sortDirection
+}: {
+  platform: string;
+  selectedPriceType: PriceType | null | undefined;
+  onPriceTypeChange?: (priceType: PriceType | null) => void;
+  isOpen: boolean;
+  onToggle: () => void;
+  dropdownRef: React.RefObject<HTMLDivElement | null>;
+  sortable?: boolean;
+  onSort?: () => void;
+  sortColumn: string | null;
+  sortDirection: SortDirection;
+}) {
+  const priceTypes = PLATFORM_PRICE_TYPES[platform as keyof typeof PLATFORM_PRICE_TYPES] || [];
+  const currentLabel = selectedPriceType
+    ? priceTypes.find(pt => pt.key === selectedPriceType)?.label || '报价'
+    : '报价';
+
+  const handleSelect = (priceType: PriceType | null) => {
+    onPriceTypeChange?.(priceType);
+    onToggle();
+  };
+
+  return (
+    <div ref={dropdownRef} className="relative">
+      <div className="flex items-center gap-1">
+        {/* 价格类型选择按钮 */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle();
+          }}
+          className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+        >
+          <span>{currentLabel}报价</span>
+          <svg
+            className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {/* 排序图标 */}
+        {sortable && (
+          <button onClick={onSort} className="ml-1">
+            <SortIcon columnId="price" sortColumn={sortColumn} sortDirection={sortDirection} />
+          </button>
+        )}
+      </div>
+
+      {/* 下拉菜单 */}
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-[100px]">
+          {priceTypes.map(pt => (
+            <button
+              key={pt.key}
+              onClick={() => handleSelect(pt.key)}
+              className={`w-full px-3 py-2 text-left text-xs hover:bg-gray-50 flex items-center gap-2 ${
+                selectedPriceType === pt.key ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
+              }`}
+            >
+              {selectedPriceType === pt.key && (
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              )}
+              <span>{pt.label}</span>
+            </button>
+          ))}
+          <div className="border-t border-gray-100">
+            <button
+              onClick={() => handleSelect(null)}
+              className={`w-full px-3 py-2 text-left text-xs hover:bg-gray-50 flex items-center gap-2 ${
+                !selectedPriceType ? 'bg-blue-50 text-blue-600' : 'text-gray-500'
+              }`}
+            >
+              {!selectedPriceType && (
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              )}
+              <span>隐藏</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

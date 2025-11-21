@@ -31,9 +31,16 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { useBatchEdit } from '../../hooks/useBatchEdit';
 import { BatchEditToolbar } from '../BatchEditToolbar';
 
+interface CategoryConfig {
+  name: string;
+  order: number;
+  icon?: string;
+}
+
 interface DimensionManagerProps {
   dimensions: DimensionConfig[];
   platform: Platform;  // 新增：当前平台
+  categories?: CategoryConfig[];  // 新增：分类配置（从数据库读取）
   onAdd: (dimension: DimensionConfig) => Promise<void>;
   onUpdate: (index: number, dimension: DimensionConfig) => Promise<void>;
   onDelete: (index: number) => Promise<void>;
@@ -41,15 +48,28 @@ interface DimensionManagerProps {
   onToggleVisibility: (dimensionId: string) => Promise<void>;
 }
 
+// 默认分类配置（当数据库没有配置时使用）
+const DEFAULT_CATEGORIES: CategoryConfig[] = [
+  { name: '基础信息', order: 1 },
+  { name: '核心绩效', order: 2 },
+  { name: '受众分析', order: 3 },
+  { name: '人群包', order: 4 }
+];
+
 export function DimensionManager({
   dimensions,
   platform,
+  categories,
   onAdd,
   onUpdate,
   onDelete,
   onReorder,
   onToggleVisibility
 }: DimensionManagerProps) {
+  // 使用传入的分类配置，如果没有则使用默认值
+  const categoryOptions = (categories && categories.length > 0)
+    ? [...categories].sort((a, b) => a.order - b.order)
+    : DEFAULT_CATEGORIES;
   // 获取当前平台的价格类型配置
   const priceTypes = PLATFORM_PRICE_TYPES[platform] || [];
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -256,198 +276,15 @@ export function DimensionManager({
         size="lg"
       >
         {editingDimension && (
-          <div className="space-y-4">
-            {/* 维度ID */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                维度ID
-              </label>
-              <input
-                type="text"
-                value={editingDimension.id}
-                onChange={(e) => setEditingDimension({ ...editingDimension, id: e.target.value })}
-                disabled={!isAdding}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                placeholder="例如: cpm"
-              />
-              {!isAdding && (
-                <p className="mt-1 text-xs text-gray-500">ID创建后不可修改</p>
-              )}
-            </div>
-
-            {/* 维度名称 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                维度名称 <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={editingDimension.name}
-                onChange={(e) => setEditingDimension({ ...editingDimension, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="例如: CPM"
-              />
-            </div>
-
-            {/* 分类 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                分类
-              </label>
-              <select
-                value={editingDimension.category}
-                onChange={(e) => setEditingDimension({ ...editingDimension, category: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="基础信息">基础信息</option>
-                <option value="核心指标">核心指标</option>
-                <option value="粉丝画像">粉丝画像</option>
-                <option value="人群包">人群包</option>
-              </select>
-            </div>
-
-            {/* 目标字段路径 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                目标字段路径 <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={editingDimension.targetPath}
-                onChange={(e) => setEditingDimension({ ...editingDimension, targetPath: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                placeholder="例如: performanceData.cpm"
-              />
-            </div>
-
-            {/* 数据类型 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                数据类型
-              </label>
-              <select
-                value={editingDimension.type}
-                onChange={(e) => setEditingDimension({ ...editingDimension, type: e.target.value as any })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="text">文本</option>
-                <option value="number">数字</option>
-                <option value="percentage">百分比</option>
-                <option value="date">日期</option>
-                <option value="price">价格</option>
-              </select>
-            </div>
-
-            {/* 价格类型（仅当 type = "price" 时显示）*/}
-            {editingDimension.type === 'price' && priceTypes.length > 0 && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  价格类型 <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={editingDimension.priceType || ''}
-                  onChange={(e) => setEditingDimension({ ...editingDimension, priceType: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">请选择价格类型</option>
-                  {priceTypes.map(pt => (
-                    <option key={pt.key} value={pt.key}>
-                      {pt.label} ({pt.key})
-                    </option>
-                  ))}
-                </select>
-                <p className="mt-1 text-xs text-gray-500">
-                  选择要显示的价格类型（自动获取最新月份价格）
-                </p>
-              </div>
-            )}
-
-            {/* 列宽 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                列宽（像素）
-              </label>
-              <input
-                type="number"
-                value={editingDimension.width}
-                onChange={(e) => setEditingDimension({ ...editingDimension, width: parseInt(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                min="80"
-                max="400"
-              />
-            </div>
-
-            {/* 配置选项 */}
-            <div className="space-y-2 pt-2">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="defaultVisible"
-                  checked={editingDimension.defaultVisible || false}
-                  onChange={(e) => setEditingDimension({ ...editingDimension, defaultVisible: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="defaultVisible" className="ml-2 text-sm text-gray-700">
-                  默认显示（在列表页面默认显示此维度）
-                </label>
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="sortable"
-                  checked={editingDimension.sortable !== false}
-                  onChange={(e) => setEditingDimension({ ...editingDimension, sortable: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="sortable" className="ml-2 text-sm text-gray-700">
-                  可排序（允许用户点击列头排序）
-                </label>
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="pinned"
-                  checked={editingDimension.pinned || false}
-                  onChange={(e) => setEditingDimension({ ...editingDimension, pinned: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="pinned" className="ml-2 text-sm text-gray-700">
-                  固定在左侧（不受横向滚动影响，始终可见）
-                </label>
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="required"
-                  checked={editingDimension.required || false}
-                  onChange={(e) => setEditingDimension({ ...editingDimension, required: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="required" className="ml-2 text-sm text-gray-700">
-                  必填数据（数据库记录必须包含此字段）
-                </label>
-              </div>
-            </div>
-
-            {/* 按钮 */}
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                onClick={handleCloseModal}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                取消
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                保存
-              </button>
-            </div>
-          </div>
+          <DimensionEditForm
+            dimension={editingDimension}
+            isAdding={isAdding}
+            categoryOptions={categoryOptions}
+            priceTypes={priceTypes}
+            onChange={setEditingDimension}
+            onSave={handleSave}
+            onCancel={handleCloseModal}
+          />
         )}
       </Modal>
 
@@ -578,5 +415,384 @@ function SortableDimensionRow({
         </div>
       </td>
     </tr>
+  );
+}
+
+/**
+ * 维度编辑表单（多 Tab 版本）
+ */
+type EditTab = 'basic' | 'display' | 'filter';
+
+interface PriceTypeConfig {
+  key: string;
+  label: string;
+}
+
+function DimensionEditForm({
+  dimension,
+  isAdding,
+  categoryOptions,
+  priceTypes,
+  onChange,
+  onSave,
+  onCancel
+}: {
+  dimension: DimensionConfig;
+  isAdding: boolean;
+  categoryOptions: CategoryConfig[];
+  priceTypes: PriceTypeConfig[];
+  onChange: (dimension: DimensionConfig) => void;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  const [activeTab, setActiveTab] = useState<EditTab>('basic');
+
+  // Tab 配置
+  const tabs: { key: EditTab; label: string; icon: string }[] = [
+    { key: 'basic', label: '基础信息', icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+    { key: 'display', label: '显示设置', icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' },
+    { key: 'filter', label: '筛选配置', icon: 'M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z' }
+  ];
+
+  // 处理 filterOptions 输入（逗号分隔转数组）
+  const filterOptionsStr = dimension.filterOptions?.join(', ') || '';
+  const handleFilterOptionsChange = (value: string) => {
+    const options = value.split(',').map(s => s.trim()).filter(Boolean);
+    onChange({ ...dimension, filterOptions: options.length > 0 ? options : undefined });
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Tab 导航 */}
+      <div className="border-b border-gray-200">
+        <nav className="flex space-x-4">
+          {tabs.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-2 py-2 px-3 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === tab.key
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={tab.icon} />
+              </svg>
+              {tab.label}
+              {tab.key === 'filter' && dimension.filterable && (
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              )}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Tab 内容 */}
+      <div className="min-h-[300px]">
+        {/* 基础信息 Tab */}
+        {activeTab === 'basic' && (
+          <div className="space-y-4">
+            {/* 维度ID */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                维度ID
+              </label>
+              <input
+                type="text"
+                value={dimension.id}
+                onChange={(e) => onChange({ ...dimension, id: e.target.value })}
+                disabled={!isAdding}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                placeholder="例如: cpm"
+              />
+              {!isAdding && (
+                <p className="mt-1 text-xs text-gray-500">ID创建后不可修改</p>
+              )}
+            </div>
+
+            {/* 维度名称 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                维度名称 <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={dimension.name}
+                onChange={(e) => onChange({ ...dimension, name: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="例如: CPM"
+              />
+            </div>
+
+            {/* 分类 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                分类
+              </label>
+              <select
+                value={dimension.category}
+                onChange={(e) => onChange({ ...dimension, category: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {categoryOptions.map(cat => (
+                  <option key={cat.name} value={cat.name}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* 目标字段路径 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                目标字段路径 <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={dimension.targetPath}
+                onChange={(e) => onChange({ ...dimension, targetPath: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                placeholder="例如: performanceData.cpm"
+              />
+            </div>
+
+            {/* 数据类型 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                数据类型
+              </label>
+              <select
+                value={dimension.type}
+                onChange={(e) => onChange({ ...dimension, type: e.target.value as any })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="text">文本</option>
+                <option value="number">数字</option>
+                <option value="percentage">百分比</option>
+                <option value="date">日期</option>
+                <option value="price">价格</option>
+              </select>
+            </div>
+
+            {/* 价格类型（仅当 type = "price" 时显示）*/}
+            {dimension.type === 'price' && priceTypes.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  价格类型 <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={dimension.priceType || ''}
+                  onChange={(e) => onChange({ ...dimension, priceType: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">请选择价格类型</option>
+                  {priceTypes.map(pt => (
+                    <option key={pt.key} value={pt.key}>
+                      {pt.label} ({pt.key})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 显示设置 Tab */}
+        {activeTab === 'display' && (
+          <div className="space-y-4">
+            {/* 列宽 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                列宽（像素）
+              </label>
+              <input
+                type="number"
+                value={dimension.width}
+                onChange={(e) => onChange({ ...dimension, width: parseInt(e.target.value) })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                min="80"
+                max="400"
+              />
+            </div>
+
+            {/* 配置选项 */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="defaultVisible"
+                  checked={dimension.defaultVisible || false}
+                  onChange={(e) => onChange({ ...dimension, defaultVisible: e.target.checked })}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="defaultVisible" className="ml-2 text-sm text-gray-700">
+                  默认显示（在列表页面默认显示此维度）
+                </label>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="sortable"
+                  checked={dimension.sortable !== false}
+                  onChange={(e) => onChange({ ...dimension, sortable: e.target.checked })}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="sortable" className="ml-2 text-sm text-gray-700">
+                  可排序（允许用户点击列头排序）
+                </label>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="pinned"
+                  checked={dimension.pinned || false}
+                  onChange={(e) => onChange({ ...dimension, pinned: e.target.checked })}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="pinned" className="ml-2 text-sm text-gray-700">
+                  固定在左侧（不受横向滚动影响，始终可见）
+                </label>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="required"
+                  checked={dimension.required || false}
+                  onChange={(e) => onChange({ ...dimension, required: e.target.checked })}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="required" className="ml-2 text-sm text-gray-700">
+                  必填数据（数据库记录必须包含此字段）
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 筛选配置 Tab */}
+        {activeTab === 'filter' && (
+          <div className="space-y-4">
+            {/* 提示信息 */}
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800">
+              <strong>提示：</strong>启用筛选后，此维度将出现在 Performance 页面的筛选面板中
+            </div>
+
+            {/* 启用筛选 */}
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="filterable"
+                checked={dimension.filterable || false}
+                onChange={(e) => onChange({
+                  ...dimension,
+                  filterable: e.target.checked,
+                  // 启用时设置默认值
+                  filterType: e.target.checked ? (dimension.filterType || 'text') : undefined,
+                  filterOrder: e.target.checked ? (dimension.filterOrder || 1) : undefined
+                })}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label htmlFor="filterable" className="ml-2 text-sm font-medium text-gray-700">
+                启用筛选（允许用户通过此维度筛选数据）
+              </label>
+            </div>
+
+            {/* 筛选详细配置（仅当 filterable 为 true 时显示）*/}
+            {dimension.filterable && (
+              <div className="space-y-4 pl-6 border-l-2 border-blue-200">
+                {/* 筛选器类型 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    筛选器类型
+                  </label>
+                  <select
+                    value={dimension.filterType || 'text'}
+                    onChange={(e) => onChange({
+                      ...dimension,
+                      filterType: e.target.value as 'text' | 'range' | 'enum',
+                      // 切换类型时清空选项
+                      filterOptions: e.target.value === 'enum' ? dimension.filterOptions : undefined
+                    })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="text">文本搜索（输入框模糊匹配）</option>
+                    <option value="range">数值区间（最小值-最大值）</option>
+                    <option value="enum">枚举多选（固定选项勾选）</option>
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {dimension.filterType === 'text' && '适用于名称、ID等文本字段'}
+                    {dimension.filterType === 'range' && '适用于数字、百分比等数值字段'}
+                    {dimension.filterType === 'enum' && '适用于层级、状态等固定选项字段'}
+                  </p>
+                </div>
+
+                {/* 筛选排序 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    筛选面板排序
+                  </label>
+                  <input
+                    type="number"
+                    value={dimension.filterOrder || 1}
+                    onChange={(e) => onChange({ ...dimension, filterOrder: parseInt(e.target.value) || 1 })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min="1"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    数字越小，在筛选面板中显示越靠前
+                  </p>
+                </div>
+
+                {/* 枚举选项（仅当 filterType = "enum" 时显示）*/}
+                {dimension.filterType === 'enum' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      枚举选项 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={filterOptionsStr}
+                      onChange={(e) => handleFilterOptionsChange(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="头部, 腰部, 尾部"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      多个选项用逗号分隔，如：头部, 腰部, 尾部
+                    </p>
+                    {dimension.filterOptions && dimension.filterOptions.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {dimension.filterOptions.map((opt, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                            {opt}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 按钮 */}
+      <div className="flex justify-end gap-3 pt-4 border-t">
+        <button
+          onClick={onCancel}
+          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+        >
+          取消
+        </button>
+        <button
+          onClick={onSave}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          保存
+        </button>
+      </div>
+    </div>
   );
 }

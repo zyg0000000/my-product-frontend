@@ -1,5 +1,60 @@
 # AgentWorks 更新日志
 
+## v2.9.0 (2025-11-21)
+
+### 🚀 Performance 页面重大升级
+
+#### 搜索接口统一 (getTalentsSearch v9.0)
+- **双数据库支持**
+  - 新增 `dbVersion` 参数：`v1` (kol_data/byteproject) 或 `v2` (agentworks_db/agentworks)
+  - 自动字段映射：根据版本自动转换字段名和路径
+  - 完全向后兼容 v8.x 所有功能
+
+- **字段映射配置**
+  | 字段 | v1 (byteproject) | v2 (agentworks) |
+  |------|------------------|-----------------|
+  | 名称 | nickname | name |
+  | 账号ID | xingtuId | platformAccountId |
+  | 唯一ID | uid | oneId |
+  | CPM | performanceData.cpm60s | performanceData.cpm |
+  | 男性比例 | performanceData.maleAudienceRatio | performanceData.audienceGender.male |
+  | 女性比例 | performanceData.femaleAudienceRatio | performanceData.audienceGender.female |
+
+- **新增筛选参数**
+  - `cpmMin/cpmMax`: CPM 区间筛选
+  - `maleRatioMin/maleRatioMax`: 男性比例筛选
+  - `femaleRatioMin/femaleRatioMax`: 女性比例筛选
+  - 支持 v2 平台筛选 (`platform` 参数)
+
+#### 前端 API 层升级
+- **新增 `searchTalents` 接口** (talent.ts)
+  - 调用 `/talents/search` 端点
+  - 自动添加 `dbVersion: 'v2'` 标识
+  - 完整的 TypeScript 类型定义
+
+- **usePerformanceData Hook 重构**
+  - 改用 `searchTalents` 替代 `getTalents`
+  - 新增 `dashboardStats` 返回值（层级分布、CPM分布、性别比例分布）
+  - 支持更强大的筛选能力
+
+#### UI/UX 优化
+- **价格选择器集成到列头**
+  - 从右上角独立面板移动到价格列表头
+  - 点击列头展开下拉选择器
+  - 支持"隐藏"选项完全隐藏价格列
+
+- **数据统计优化**
+  - 达人总数显示为平台 Tab 内的 badge
+  - 移除独立的统计卡片区域
+  - 界面更简洁
+
+### 📊 技术细节
+- **后端**: getTalentsSearch v9.0-dual-db
+- **前端**: 新增 searchTalents API、重构 usePerformanceData hook
+- **性能**: 使用 MongoDB $facet 聚合，单次查询返回数据+统计
+
+---
+
 ## v2.8.0 (2025-11-20)
 
 ### 🎯 代码重构与用户体验优化
@@ -377,6 +432,6 @@
 ---
 
 **维护者**: Claude Code
-**最后更新**: 2025-11-18
+**最后更新**: 2025-11-21
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

@@ -246,10 +246,34 @@ FEISHU_APP_SECRET=...              # 飞书应用密钥
 | 函数名 | 功能 | 版本 | 状态 |
 |--------|------|------|------|
 | getProjects | 获取项目列表 | v1.0 | ✅ 运行中 |
-| getTalents | 获取达人列表 | v1.0 | ✅ 运行中 |
+| getTalents | 获取达人列表 | v3.3 | ✅ 运行中 |
+| **getTalentsSearch** | **高级达人搜索（双数据库）** | **v9.0** | ✅ 运行中 |
 | getCollaborators | 获取合作列表 | v1.0 | ✅ 运行中 |
 | handleProjectReport | 项目日报处理 | v2.0 | ✅ 运行中 |
+| syncFromFeishu | 飞书数据同步 | v12.1 | ✅ 运行中 |
+| fieldMappingManager | 字段映射管理 | v1.0 | ✅ 运行中 |
+| dimensionConfigManager | 维度配置管理 | v1.0 | ✅ 运行中 |
 | ... | ... | ... | ... |
+
+### getTalentsSearch v9.0 (双数据库版)
+
+**核心特性**：
+- 支持 `dbVersion` 参数切换数据库：`v1` (kol_data) / `v2` (agentworks_db)
+- 自动字段映射（nickname↔name, xingtuId↔platformAccountId 等）
+- Dashboard 统计（层级分布、CPM分布、性别比例分布）
+- 灵活筛选操作符（>, <, between, contains 等）
+- AND/OR 筛选逻辑
+
+**使用方式**：
+```javascript
+// byteproject (默认 v1)
+POST /talents/search
+{ "search": "达人名", "tiers": ["头部"] }
+
+// agentworks (v2)
+POST /talents/search
+{ "dbVersion": "v2", "platform": "douyin", "search": "达人名" }
+```
 
 > 完整列表参见主 README.md
 
@@ -274,5 +298,5 @@ FEISHU_APP_SECRET=...              # 飞书应用密钥
 
 ---
 
-**最后更新**: 2025-11-10
+**最后更新**: 2025-11-21
 **维护者**: 开发团队

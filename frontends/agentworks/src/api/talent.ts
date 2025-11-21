@@ -156,3 +156,99 @@ export async function createTalent(
 ): Promise<ApiResponse<Talent>> {
   return post('/talents', data);
 }
+
+// ==================== getTalentsSearch 高级搜索接口 ====================
+
+/**
+ * 筛选条件类型
+ */
+export interface SearchFilter {
+  dimension: string;      // 字段名
+  operator: '>' | '>=' | '<' | '<=' | '=' | '!=' | 'contains' | 'notContains' | 'between' | 'isEmpty' | 'isNotEmpty';
+  value: any;             // 值（between 时为 [min, max] 数组）
+}
+
+/**
+ * 高级搜索参数 (getTalentsSearch)
+ */
+export interface SearchTalentsParams {
+  // 平台筛选（v2 必需）
+  platform?: Platform;
+
+  // 分页参数
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+
+  // 基础搜索
+  search?: string;        // 名称/ID 搜索
+  tiers?: string[];       // 达人层级
+  types?: string[];       // 达人类型
+
+  // 高级筛选（灵活操作符）
+  filters?: SearchFilter[];
+  filterLogic?: 'AND' | 'OR';
+
+  // 简化筛选参数（直接值）
+  cpmMin?: number;
+  cpmMax?: number;
+  maleRatioMin?: number;
+  maleRatioMax?: number;
+  femaleRatioMin?: number;
+  femaleRatioMax?: number;
+
+  // 价格/返点筛选
+  rebateMin?: number;
+  rebateMax?: number;
+  priceYear?: number;
+  priceMonth?: number;
+  priceMin?: number;
+  priceMax?: number;
+}
+
+/**
+ * Dashboard 统计数据
+ */
+export interface DashboardStats {
+  tierDistribution: Array<{ tier: string; count: number }>;
+  cpmDistribution: Array<{ _id: number | string; count: number }>;
+  maleAudienceDistribution: Array<{ _id: number | string; count: number }>;
+  femaleAudienceDistribution: Array<{ _id: number | string; count: number }>;
+}
+
+/**
+ * 高级搜索响应
+ */
+export interface SearchTalentsResponse {
+  success: boolean;
+  dbVersion?: string;
+  data?: {
+    pagination: {
+      page: number;
+      pageSize: number;
+      totalItems: number;
+      totalPages: number;
+    };
+    talents: Talent[];
+    dashboardStats: DashboardStats;
+  };
+  message?: string;
+  error?: string;
+}
+
+/**
+ * 高级搜索达人 (使用 getTalentsSearch 接口)
+ * 支持更强大的筛选能力和 Dashboard 统计
+ */
+export async function searchTalents(
+  params: SearchTalentsParams
+): Promise<SearchTalentsResponse> {
+  // 构建请求体，自动添加 dbVersion: 'v2' 标识
+  const requestBody = {
+    dbVersion: 'v2',  // agentworks 使用 v2 数据库
+    ...params,
+  };
+
+  return post('/talents/search', requestBody);
+}

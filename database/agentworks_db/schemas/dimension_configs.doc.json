@@ -2,8 +2,8 @@
     "collection": "dimension_configs",
     "description": "维度配置集合 - 存储各平台表现数据的展示维度配置",
     "database": "agentworks_db",
-    "version": "1.0",
-    "lastUpdated": "2025-11-18",
+    "version": "1.1",
+    "lastUpdated": "2025-11-21",
     "author": "Claude Code",
     "fields": {
         "_id": {
@@ -105,6 +105,32 @@
                     "description": "显示顺序",
                     "required": true,
                     "min": 1
+                },
+                "filterable": {
+                    "type": "Boolean",
+                    "description": "是否可作为筛选条件（v1.1新增）",
+                    "required": false,
+                    "default": false
+                },
+                "filterType": {
+                    "type": "String",
+                    "description": "筛选器类型（v1.1新增）",
+                    "required": false,
+                    "enum": ["text", "range", "enum"],
+                    "note": "text=文本搜索, range=数值区间, enum=枚举多选"
+                },
+                "filterOrder": {
+                    "type": "Integer",
+                    "description": "筛选面板中的显示顺序（v1.1新增）",
+                    "required": false,
+                    "min": 1
+                },
+                "filterOptions": {
+                    "type": "Array",
+                    "description": "枚举筛选的选项列表（v1.1新增，仅filterType=enum时使用）",
+                    "required": false,
+                    "itemType": "String",
+                    "example": ["头部", "腰部", "尾部"]
                 }
             }
         },
@@ -174,7 +200,7 @@
     "sampleDocument": {
         "platform": "douyin",
         "configName": "default",
-        "version": "1.0",
+        "version": "1.1",
         "isActive": true,
         "description": "抖音达人表现数据维度配置",
         "dimensions": [
@@ -188,7 +214,25 @@
                 "defaultVisible": true,
                 "sortable": true,
                 "width": 150,
-                "order": 1
+                "order": 1,
+                "filterable": true,
+                "filterType": "text",
+                "filterOrder": 1
+            },
+            {
+                "id": "talentTier",
+                "name": "达人层级",
+                "type": "text",
+                "category": "基础信息",
+                "targetPath": "talentTier",
+                "defaultVisible": true,
+                "sortable": true,
+                "width": 100,
+                "order": 4,
+                "filterable": true,
+                "filterType": "enum",
+                "filterOrder": 2,
+                "filterOptions": ["头部", "腰部", "尾部"]
             },
             {
                 "id": "cpm",
@@ -199,7 +243,24 @@
                 "defaultVisible": true,
                 "sortable": true,
                 "width": 120,
-                "order": 10
+                "order": 10,
+                "filterable": true,
+                "filterType": "range",
+                "filterOrder": 3
+            },
+            {
+                "id": "maleRatio",
+                "name": "男性观众比例",
+                "type": "percentage",
+                "category": "受众分析-性别",
+                "targetPath": "performanceData.audienceGender.male",
+                "defaultVisible": true,
+                "sortable": true,
+                "width": 120,
+                "order": 20,
+                "filterable": true,
+                "filterType": "range",
+                "filterOrder": 4
             }
         ],
         "categories": [

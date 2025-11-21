@@ -267,6 +267,7 @@ function DimensionConfigPanel({
       <DimensionManager
         dimensions={config.dimensions}
         platform={platform}
+        categories={config.categories}
         onAdd={dimensionConfig.addDimension}
         onUpdate={dimensionConfig.updateDimension}
         onDelete={dimensionConfig.deleteDimension}

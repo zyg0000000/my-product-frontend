@@ -31,11 +31,7 @@ export function useDimensionConfig(platform: Platform) {
         setConfigs(response.data);
         const active = response.data.find((c: DimensionConfigDoc) => c.isActive);
         setActiveConfig(active || null);
-
-        // 设置默认显示的维度
-        if (active) {
-          setVisibleDimensionIds(active.defaultVisibleIds || []);
-        }
+        // visibleDimensionIds 由下方的 useEffect 根据 activeConfig 处理
       }
     } catch (err) {
       logger.error('加载维度配置失败:', err);
@@ -206,17 +202,45 @@ export function useDimensionConfig(platform: Platform) {
   // 初始加载
   useEffect(() => {
     loadConfigs();
+  }, [platform]);
 
-    // 尝试从 localStorage 读取用户偏好
+  // 当 activeConfig 变化时，合并 localStorage 偏好
+  // 优先使用数据库的 defaultVisibleIds，但保留用户之前选中的有效维度
+  useEffect(() => {
+    if (!activeConfig) return;
+
     const saved = localStorage.getItem(`performance_visible_dimensions_${platform}`);
     if (saved) {
       try {
-        setVisibleDimensionIds(JSON.parse(saved));
+        const savedIds = JSON.parse(saved) as string[];
+        // 获取当前配置中所有有效的维度ID
+        const validDimensionIds = new Set(activeConfig.dimensions.map(d => d.id));
+        // 过滤掉不再存在的维度，保留仍然有效的
+        const validSavedIds = savedIds.filter(id => validDimensionIds.has(id));
+
+        // 检查是否有新的默认显示维度需要添加
+        const defaultIds = activeConfig.defaultVisibleIds || [];
+        const newDefaultIds = defaultIds.filter(id =>
+          validDimensionIds.has(id) && !validSavedIds.includes(id)
+        );
+
+        // 如果有新的默认维度（如 price），自动添加
+        if (newDefaultIds.length > 0) {
+          const mergedIds = [...validSavedIds, ...newDefaultIds];
+          setVisibleDimensionIds(mergedIds);
+          localStorage.setItem(`performance_visible_dimensions_${platform}`, JSON.stringify(mergedIds));
+        } else {
+          setVisibleDimensionIds(validSavedIds);
+        }
       } catch (e) {
-        // 忽略解析错误
+        // 解析错误，使用默认配置
+        setVisibleDimensionIds(activeConfig.defaultVisibleIds || []);
       }
+    } else {
+      // 没有保存的偏好，使用默认配置
+      setVisibleDimensionIds(activeConfig.defaultVisibleIds || []);
     }
-  }, [platform]);
+  }, [activeConfig, platform]);
 
   return {
     configs,

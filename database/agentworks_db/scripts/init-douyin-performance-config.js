@@ -37,6 +37,11 @@ const fieldMappingConfig = {
     { excelHeader: '达人UID', targetPath: 'platformSpecific.uid', format: 'text', required: false, order: 3 },
     { excelHeader: '达人层级', targetPath: 'talentTier', format: 'text', required: false, order: 4 },
 
+    // 价格信息（存入 prices 数组）
+    { excelHeader: '60s+报价', targetPath: 'prices', format: 'number', required: false, order: 5, priceType: 'video_60plus' },
+    { excelHeader: '21-60s报价', targetPath: 'prices', format: 'number', required: false, order: 6, priceType: 'video_21_60' },
+    { excelHeader: '1-20s报价', targetPath: 'prices', format: 'number', required: false, order: 7, priceType: 'video_1_20' },
+
     // 核心绩效
     { excelHeader: '预期cpm', targetPath: 'performanceData.cpm', format: 'number', required: false, order: 10 },
     { excelHeader: '更新日期', targetPath: 'performanceData.lastUpdated', format: 'date', required: false, order: 11 },
@@ -62,7 +67,7 @@ const fieldMappingConfig = {
     { excelHeader: '新锐白领粉丝比例', targetPath: 'performanceData.crowdPackage.new_white_collar', format: 'percentage', required: false, order: 46 },
     { excelHeader: '都市蓝领粉丝比例', targetPath: 'performanceData.crowdPackage.urban_blue_collar', format: 'percentage', required: false, order: 47 }
   ],
-  totalMappings: 20,
+  totalMappings: 23,
   createdAt: new Date(),
   updatedAt: new Date(),
   createdBy: 'system'
@@ -84,23 +89,24 @@ print('=== 插入 dimension_configs 配置 ===\n');
 const dimensionConfig = {
   platform: 'douyin',
   configName: 'default',
-  version: '1.0',
+  version: '1.1',
   isActive: true,
-  description: '抖音达人表现数据维度配置',
+  description: '抖音达人表现数据维度配置（v1.1 新增筛选功能）',
   dimensions: [
     // 基础信息
-    { id: 'name', name: '达人昵称', type: 'text', category: '基础信息', targetPath: 'name', required: true, defaultVisible: true, sortable: true, width: 150, order: 1 },
+    { id: 'name', name: '达人昵称', type: 'text', category: '基础信息', targetPath: 'name', required: true, defaultVisible: true, sortable: true, width: 150, order: 1, filterable: true, filterType: 'text', filterOrder: 1 },
     { id: 'xingtuId', name: '星图ID', type: 'text', category: '基础信息', targetPath: 'platformAccountId', defaultVisible: true, sortable: false, width: 120, order: 2 },
     { id: 'platformAccountId', name: '抖音UID', type: 'text', category: '基础信息', targetPath: 'platformSpecific.uid', defaultVisible: false, sortable: false, width: 120, order: 3 },
-    { id: 'talentTier', name: '达人层级', type: 'text', category: '基础信息', targetPath: 'talentTier', defaultVisible: true, sortable: true, width: 100, order: 4 },
+    { id: 'talentTier', name: '达人层级', type: 'text', category: '基础信息', targetPath: 'talentTier', defaultVisible: true, sortable: true, width: 100, order: 4, filterable: true, filterType: 'enum', filterOrder: 2, filterOptions: ['头部', '腰部', '尾部'] },
+    { id: 'price', name: '报价', type: 'price', category: '基础信息', targetPath: 'prices', defaultVisible: true, sortable: true, width: 120, order: 5 },
 
     // 核心绩效
-    { id: 'cpm', name: '60s+ 预期CPM', type: 'number', category: '核心绩效', targetPath: 'performanceData.cpm', defaultVisible: true, sortable: true, width: 120, order: 10 },
+    { id: 'cpm', name: '60s+ 预期CPM', type: 'number', category: '核心绩效', targetPath: 'performanceData.cpm', defaultVisible: true, sortable: true, width: 120, order: 10, filterable: true, filterType: 'range', filterOrder: 3 },
     { id: 'lastUpdated', name: '更新日期', type: 'date', category: '核心绩效', targetPath: 'performanceData.lastUpdated', defaultVisible: true, sortable: true, width: 120, order: 11 },
 
     // 受众分析 - 性别
-    { id: 'maleRatio', name: '男性观众比例', type: 'percentage', category: '受众分析-性别', targetPath: 'performanceData.audienceGender.male', defaultVisible: true, sortable: true, width: 120, order: 20 },
-    { id: 'femaleRatio', name: '女性观众比例', type: 'percentage', category: '受众分析-性别', targetPath: 'performanceData.audienceGender.female', defaultVisible: true, sortable: true, width: 120, order: 21 },
+    { id: 'maleRatio', name: '男性观众比例', type: 'percentage', category: '受众分析-性别', targetPath: 'performanceData.audienceGender.male', defaultVisible: true, sortable: true, width: 120, order: 20, filterable: true, filterType: 'range', filterOrder: 4 },
+    { id: 'femaleRatio', name: '女性观众比例', type: 'percentage', category: '受众分析-性别', targetPath: 'performanceData.audienceGender.female', defaultVisible: true, sortable: true, width: 120, order: 21, filterable: true, filterType: 'range', filterOrder: 5 },
 
     // 受众分析 - 年龄段
     { id: 'age_18_23', name: '18-23岁', type: 'percentage', category: '受众分析-年龄', targetPath: 'performanceData.audienceAge.18_23', defaultVisible: false, sortable: true, width: 100, order: 30 },
@@ -126,8 +132,8 @@ const dimensionConfig = {
     { name: '受众分析-年龄', order: 4, icon: 'calendar' },
     { name: '人群包分析', order: 5, icon: 'group' }
   ],
-  defaultVisibleIds: ['name', 'xingtuId', 'talentTier', 'cpm', 'lastUpdated', 'maleRatio', 'femaleRatio'],
-  totalDimensions: 20,
+  defaultVisibleIds: ['name', 'xingtuId', 'talentTier', 'price', 'cpm', 'lastUpdated', 'maleRatio', 'femaleRatio'],
+  totalDimensions: 21,
   createdAt: new Date(),
   updatedAt: new Date()
 };

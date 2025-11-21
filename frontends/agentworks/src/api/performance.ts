@@ -79,6 +79,11 @@ export interface DimensionConfig {
   width?: number;
   order: number;
   priceType?: string;  // 价格类型（当 type = "price" 时使用）
+  // v1.1 新增：筛选相关字段
+  filterable?: boolean;  // 是否可作为筛选条件
+  filterType?: 'text' | 'range' | 'enum';  // 筛选器类型
+  filterOrder?: number;  // 筛选面板中的显示顺序
+  filterOptions?: string[];  // 枚举筛选的选项列表（仅 filterType=enum 时使用）
 }
 
 export interface DimensionConfigDoc {
