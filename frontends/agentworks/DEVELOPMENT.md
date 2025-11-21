@@ -215,10 +215,37 @@ npm install
 ```bash
 # 检查类型错误
 npm run build
+# 或仅检查类型（不实际构建）
+npx tsc --noEmit
 # 查看具体错误信息并修复
 ```
 
-#### 4. Git 冲突
+#### 4. Cloudflare 部署失败 (TS6133 错误)
+
+**错误类型**: `error TS6133: 'xxx' is declared but its value is never read`
+
+**原因**: TypeScript 严格模式下，声明但未使用的变量会导致编译失败。Cloudflare 使用 `tsc -b && vite build` 命令构建，会触发此类错误。
+
+**解决方案**:
+```bash
+# 1. 推送前本地检查类型
+npx tsc --noEmit
+
+# 2. 或运行完整构建
+npm run build
+
+# 3. 修复未使用变量
+# - 删除未使用的变量
+# - 或在变量前加下划线：const _unused = value
+# - 或使用解构时省略：const { used, ..._ } = obj
+```
+
+**预防措施**:
+- ⚠️ **推送前必须运行** `npx tsc --noEmit` 检查类型
+- ⚠️ 使用 VSCode 时注意 ESLint 警告（灰色/淡色变量表示未使用）
+- ⚠️ 建议在 `.vscode/settings.json` 中启用保存时检查
+
+#### 5. Git 冲突
 ```bash
 # 拉取最新代码
 git pull origin main
