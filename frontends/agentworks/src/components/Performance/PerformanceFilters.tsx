@@ -429,7 +429,6 @@ function RangeFilter({
 }) {
   const isPercentage = dimension.type === 'percentage';
   const suffix = isPercentage ? '%' : '';
-  const placeholder = isPercentage ? '0-100' : '';
 
   return (
     <div className="space-y-1">

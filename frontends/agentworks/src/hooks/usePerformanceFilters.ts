@@ -132,8 +132,6 @@ export function usePerformanceFilters(
       const dim = filterableDimensions.find(d => d.id === dimId);
       if (!dim) return;
 
-      const targetPath = dim.targetPath;
-
       switch (dim.filterType) {
         case 'text':
           if (value.text && value.text.trim()) {
