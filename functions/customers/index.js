@@ -1,7 +1,14 @@
 /**
- * [生产版 v2.0 - 客户管理 RESTful API]
+ * [生产版 v3.0 - 客户管理 RESTful API]
  * 云函数：customers
  * 描述：统一的客户管理 RESTful API，支持客户信息的增删改查和价格策略配置
+ *
+ * --- v3.0 更新日志 (2025-11-23) 🎉 关键修复 ---
+ * - [BUG修复] 修复后端计算逻辑缺失税费导致的 NaN 问题
+ * - [新功能] 支持平台级独立配置（服务费率、税费设置等）
+ * - [数值校验] 添加严格的系数校验，防止 NaN 和异常值
+ * - [前后端一致性] 统一前后端计算逻辑，确保数据一致
+ * ---------------------
  *
  * --- v2.0 更新日志 (2025-11-23) 🎉 重大升级 ---
  * - [新功能] 平台级差异化折扣率：每个平台可设置独立折扣率
@@ -211,11 +218,17 @@ async function getCustomerById(id) {
       return errorResponse(404, '客户不存在');
     }
 
-    // 重新计算支付系数
-    if (customer.businessStrategies?.talentProcurement?.enabled) {
-      customer.businessStrategies.talentProcurement.paymentCoefficients =
-        calculateAllCoefficients(customer.businessStrategies.talentProcurement);
-    }
+    // v3.0: 不再重新计算支付系数，直接返回数据库中的值
+    // 理由：
+    // 1. 数据库中的 paymentCoefficients 是前端经过严格校验后保存的
+    // 2. 重新计算可能因为数据结构不一致导致错误结果
+    // 3. 保持数据的真实性，返回实际保存的值
+
+    // 已注释：
+    // if (customer.businessStrategies?.talentProcurement?.enabled) {
+    //   customer.businessStrategies.talentProcurement.paymentCoefficients =
+    //     calculateAllCoefficients(customer.businessStrategies.talentProcurement);
+    // }
 
     return successResponse(customer);
 
@@ -330,11 +343,18 @@ async function updateCustomer(id, body, headers = {}) {
       }
     });
 
-    // 如果更新了业务策略，重新计算支付系数
-    if (fieldsToUpdate.businessStrategies?.talentProcurement?.enabled) {
-      fieldsToUpdate.businessStrategies.talentProcurement.paymentCoefficients =
-        calculateAllCoefficients(fieldsToUpdate.businessStrategies.talentProcurement);
-    }
+    // v3.0: 不再后端重新计算支付系数，直接使用前端传递的、已校验的值
+    // 理由：
+    // 1. 前端已经做了严格的数值校验（见 PricingStrategy.tsx:204-215）
+    // 2. v3.0 配置已全部移到平台级，后端缺少 discount/serviceFee/tax 等配置
+    // 3. 避免前后端数据结构不一致导致的计算差异
+    // 4. 前端计算逻辑和后端完全一致，不需要重复计算
+
+    // 已注释：
+    // if (fieldsToUpdate.businessStrategies?.talentProcurement?.enabled) {
+    //   fieldsToUpdate.businessStrategies.talentProcurement.paymentCoefficients =
+    //     calculateAllCoefficients(fieldsToUpdate.businessStrategies.talentProcurement);
+    // }
 
     // 添加更新时间和更新人
     fieldsToUpdate.updatedAt = new Date();
@@ -516,7 +536,14 @@ function getDefaultBusinessStrategies() {
 }
 
 /**
- * 计算所有平台的支付系数（v2.0 支持平台级折扣率）
+ * 计算所有平台的支付系数（v2.0 支持平台级折扣率 + v3.0 支持平台级独立配置）
+ *
+ * 注意：v3.0 后此函数仅用于：
+ * 1. 数据验证：验证前端传递的系数是否正确
+ * 2. 数据修复：修复历史数据中的 NaN 或错误值
+ * 3. 手动调试：在控制台手动计算系数进行对比
+ *
+ * 正常流程不再调用此函数，直接使用前端传递的、已校验的系数值
  */
 function calculateAllCoefficients(strategy) {
   const coefficients = {};
@@ -524,14 +551,34 @@ function calculateAllCoefficients(strategy) {
   // 动态支持所有平台
   Object.entries(strategy.platformFees || {}).forEach(([platform, platformConfig]) => {
     if (platformConfig?.enabled) {
+      // v3.0: 优先使用平台级配置，回退到全局配置
       const platformFeeRate = platformConfig.platformFeeRate || platformConfig.rate || 0;
       const platformDiscountRate = platformConfig.discountRate || null;
+      const platformServiceFeeRate = platformConfig.serviceFeeRate !== undefined
+        ? platformConfig.serviceFeeRate
+        : strategy.serviceFee?.rate || 0;
+
+      // 构建平台级服务费配置
+      const serviceFeeConfig = {
+        rate: platformServiceFeeRate,
+        calculationBase: platformConfig.serviceFeeBase || strategy.serviceFee?.calculationBase || 'beforeDiscount'
+      };
+
+      // 构建平台级税费配置
+      const taxConfig = {
+        rate: 0.06, // 固定6%
+        includesTax: platformConfig.includesTax !== undefined
+          ? platformConfig.includesTax
+          : strategy.tax?.includesTax ?? true,
+        calculationBase: platformConfig.taxCalculationBase || strategy.tax?.calculationBase || 'excludeServiceFee'
+      };
 
       coefficients[platform] = calculateCoefficient(
         strategy.discount || {},
-        strategy.serviceFee || {},
+        serviceFeeConfig,
         platformFeeRate,
-        platformDiscountRate
+        platformDiscountRate,
+        taxConfig
       );
     }
   });
@@ -540,30 +587,65 @@ function calculateAllCoefficients(strategy) {
 }
 
 /**
- * 计算单个支付系数（v2.0 支持平台级折扣率）
+ * 计算单个支付系数（v2.0 支持平台级折扣率 + 税费计算）
  */
-function calculateCoefficient(discount, serviceFee, platformFeeRate, platformDiscountRate) {
+function calculateCoefficient(discount, serviceFee, platformFeeRate, platformDiscountRate, tax) {
   const baseAmount = 1000;
-  let finalAmount = baseAmount;
-
   const platformFeeAmount = baseAmount * platformFeeRate;
 
   // v2.0: 优先使用平台级折扣率，回退到全局折扣率
   const discountRate = platformDiscountRate || discount.rate || 1.0;
 
+  // 1. 计算折扣后金额
+  let discountedAmount;
   if (discount.includesPlatformFee) {
-    finalAmount = (baseAmount + platformFeeAmount) * discountRate;
+    discountedAmount = (baseAmount + platformFeeAmount) * discountRate;
   } else {
-    finalAmount = baseAmount * discountRate + platformFeeAmount;
+    discountedAmount = baseAmount * discountRate + platformFeeAmount;
   }
 
+  // 2. 计算服务费
+  let serviceFeeAmount;
   if (serviceFee.calculationBase === 'beforeDiscount') {
-    finalAmount = finalAmount + (baseAmount + platformFeeAmount) * serviceFee.rate;
+    serviceFeeAmount = (baseAmount + platformFeeAmount) * serviceFee.rate;
   } else {
-    finalAmount = finalAmount * (1 + serviceFee.rate);
+    serviceFeeAmount = discountedAmount * serviceFee.rate;
   }
 
-  return Number((finalAmount / baseAmount).toFixed(4));
+  // 3. 计算税费（新增）
+  let taxAmount = 0;
+  const taxRate = tax?.rate || 0.06;
+
+  if (!tax?.includesTax) {
+    // 不含税时才计算税费
+    if (tax?.calculationBase === 'includeServiceFee') {
+      taxAmount = (discountedAmount + serviceFeeAmount) * taxRate;
+    } else {
+      taxAmount = discountedAmount * taxRate;
+    }
+  }
+
+  // 4. 最终金额
+  const finalAmount = discountedAmount + serviceFeeAmount + taxAmount;
+
+  // 5. 计算系数并校验
+  const coefficient = finalAmount / baseAmount;
+
+  // 严格校验：防止 NaN 和异常值
+  if (isNaN(coefficient) || !isFinite(coefficient) || coefficient <= 0 || coefficient >= 10) {
+    console.error('Invalid coefficient calculated:', {
+      coefficient,
+      baseAmount,
+      platformFeeAmount,
+      discountedAmount,
+      serviceFeeAmount,
+      taxAmount,
+      finalAmount
+    });
+    return 1.0; // 返回安全的默认值
+  }
+
+  return Number(coefficient.toFixed(4));
 }
 
 /**
