@@ -6,25 +6,52 @@ import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Space, Popconfirm, message } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, DollarOutlined } from '@ant-design/icons';
+import { Button, Tag, Space, Popconfirm } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, DollarOutlined, UndoOutlined, StopOutlined } from '@ant-design/icons';
 import type { Customer, CustomerLevel, CustomerStatus } from '../../../types/customer';
 import { CUSTOMER_LEVEL_NAMES, CUSTOMER_STATUS_NAMES } from '../../../types/customer';
 import { customerApi } from '../../../services/customerApi';
+import { Toast } from '../../../components/Toast';
+import { useToast } from '../../../hooks/useToast';
 
 export default function CustomerList() {
   const navigate = useNavigate();
   const actionRef = useRef<ActionType>(null);
+  const { toast, hideToast, success, error: showError } = useToast();
 
   const handleDelete = async (id: string) => {
     try {
       const response = await customerApi.deleteCustomer(id);
       if (response.success) {
-        message.success('删除成功');
+        success('删除成功');
         actionRef.current?.reload();
       }
     } catch (error) {
-      message.error('删除失败');
+      showError('删除失败');
+    }
+  };
+
+  const handlePermanentDelete = async (id: string) => {
+    try {
+      const response = await customerApi.permanentDeleteCustomer(id);
+      if (response.success) {
+        success('永久删除成功');
+        actionRef.current?.reload();
+      }
+    } catch (error) {
+      showError('永久删除失败');
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    try {
+      const response = await customerApi.restoreCustomer(id);
+      if (response.success) {
+        success('恢复成功');
+        actionRef.current?.reload();
+      }
+    } catch (error) {
+      showError('恢复失败');
     }
   };
 
@@ -32,7 +59,7 @@ export default function CustomerList() {
     {
       title: '客户编码',
       dataIndex: 'code',
-      width: 120,
+      width: 140,
       fixed: 'left',
       copyable: true,
       hideInSearch: true,
@@ -41,6 +68,7 @@ export default function CustomerList() {
       title: '客户名称',
       dataIndex: 'name',
       width: 200,
+      align: 'center',
       ellipsis: true,
       formItemProps: {
         label: '搜索',
@@ -49,7 +77,8 @@ export default function CustomerList() {
     {
       title: '客户级别',
       dataIndex: 'level',
-      width: 100,
+      width: 110,
+      align: 'center',
       valueType: 'select',
       valueEnum: {
         VIP: { text: 'VIP' },
@@ -68,13 +97,15 @@ export default function CustomerList() {
       },
     },
     {
-      title: '状态',
+      title: '当前状态',
       dataIndex: 'status',
-      width: 90,
+      width: 110,
+      align: 'center',
       valueType: 'select',
       valueEnum: {
         active: { text: '活跃' },
         inactive: { text: '停用' },
+        deleted: { text: '已删除' },
       },
       render: (_, record) => {
         const colorMap: Record<CustomerStatus, string> = {
@@ -87,9 +118,10 @@ export default function CustomerList() {
       },
     },
     {
-      title: '行业',
+      title: '所属行业',
       dataIndex: 'industry',
-      width: 120,
+      width: 110,
+      align: 'center',
       ellipsis: true,
       hideInSearch: true,
     },
@@ -97,6 +129,7 @@ export default function CustomerList() {
       title: '主要联系人',
       dataIndex: 'contacts',
       width: 140,
+      align: 'center',
       hideInSearch: true,
       render: (_, record) => {
         const contact = record.contacts?.find((c) => c.isPrimary) || record.contacts?.[0];
@@ -114,7 +147,8 @@ export default function CustomerList() {
     {
       title: '业务类型',
       dataIndex: 'businessStrategies',
-      width: 180,
+      width: 200,
+      align: 'center',
       hideInSearch: true,
       render: (_, record) => {
         const types = [];
@@ -141,39 +175,69 @@ export default function CustomerList() {
     {
       title: '操作',
       valueType: 'option',
-      width: 180,
+      width: 220,
       fixed: 'right',
-      render: (_, record) => [
-        <Button
-          key="pricing"
-          type="link"
-          size="small"
-          icon={<DollarOutlined />}
-          onClick={() => navigate(`/customers/${record._id || record.code}/pricing`)}
-        >
-          价格
-        </Button>,
-        <Button
-          key="edit"
-          type="link"
-          size="small"
-          icon={<EditOutlined />}
-          onClick={() => navigate(`/customers/edit/${record._id || record.code}`)}
-        >
-          编辑
-        </Button>,
-        <Popconfirm
-          key="delete"
-          title="确定删除？"
-          onConfirm={() => handleDelete(record._id || record.code)}
-          okText="确定"
-          cancelText="取消"
-        >
-          <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-            删除
-          </Button>
-        </Popconfirm>,
-      ],
+      render: (_, record) => {
+        const isDeleted = record.status === 'deleted';
+
+        if (isDeleted) {
+          // 已删除客户：显示恢复和永久删除
+          return (
+            <Space size="small">
+              <Button
+                type="link"
+                size="small"
+                icon={<UndoOutlined />}
+                onClick={() => handleRestore(record._id || record.code)}
+              >
+                恢复
+              </Button>
+              <Popconfirm
+                title="确定永久删除？此操作不可恢复！"
+                onConfirm={() => handlePermanentDelete(record._id || record.code)}
+                okText="确定"
+                cancelText="取消"
+              >
+                <Button type="link" size="small" danger icon={<StopOutlined />}>
+                  永久删除
+                </Button>
+              </Popconfirm>
+            </Space>
+          );
+        }
+
+        // 普通客户：显示价格、编辑、删除
+        return (
+          <Space size="small">
+            <Button
+              type="link"
+              size="small"
+              icon={<DollarOutlined />}
+              onClick={() => navigate(`/customers/${record._id || record.code}/pricing`)}
+            >
+              价格
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => navigate(`/customers/edit/${record._id || record.code}`)}
+            >
+              编辑
+            </Button>
+            <Popconfirm
+              title="确定删除？"
+              onConfirm={() => handleDelete(record._id || record.code)}
+              okText="确定"
+              cancelText="取消"
+            >
+              <Button type="link" size="small" danger icon={<DeleteOutlined />}>
+                删除
+              </Button>
+            </Popconfirm>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -209,7 +273,7 @@ export default function CustomerList() {
             total: response.data.total,
           };
         } catch (error) {
-          message.error('获取客户列表失败');
+          showError('获取客户列表失败');
           return {
             data: [],
             success: false,
@@ -250,6 +314,15 @@ export default function CustomerList() {
         }}
         size="middle"
       />
+
+      {/* Toast 通知 */}
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
     </div>
   );
 }

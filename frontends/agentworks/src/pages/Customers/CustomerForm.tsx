@@ -12,15 +12,18 @@ import {
   ProFormList,
   ProCard,
 } from '@ant-design/pro-components';
-import { Button, message, Space } from 'antd';
-import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
+import { Space } from 'antd';
 import { customerApi } from '../../services/customerApi';
+import { Toast } from '../../components/Toast';
+import { useToast } from '../../hooks/useToast';
+import { PageHeader } from '../../components/PageHeader';
 
 export default function CustomerForm() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [initialValues, setInitialValues] = useState<any>();
   const [loading, setLoading] = useState(false);
+  const { toast, hideToast, success, error: showError } = useToast();
 
   const isEditMode = !!id;
 
@@ -47,7 +50,7 @@ export default function CustomerForm() {
         });
       }
     } catch (error) {
-      message.error('加载客户信息失败');
+      showError('加载客户信息失败');
       console.error('Error loading customer:', error);
     } finally {
       setLoading(false);
@@ -59,19 +62,25 @@ export default function CustomerForm() {
       let response;
       if (isEditMode && id) {
         response = await customerApi.updateCustomer(id, values);
-        message.success('客户信息更新成功');
       } else {
         response = await customerApi.createCustomer(values);
-        message.success('客户创建成功');
       }
 
+      // 检查响应是否成功
       if (response.success) {
+        success(isEditMode ? '客户信息更新成功' : '客户创建成功');
         navigate('/customers/list');
+        return true;
+      } else {
+        // API 返回业务错误
+        showError(response.message || (isEditMode ? '更新失败' : '创建失败'));
+        return false;
       }
-      return true;
     } catch (error) {
-      message.error(isEditMode ? '更新失败' : '创建失败');
+      // 网络错误或其他异常
       console.error('Error submitting customer:', error);
+      const errorMessage = error instanceof Error ? error.message : '未知错误';
+      showError(`${isEditMode ? '更新失败' : '创建失败'}: ${errorMessage}`);
       return false;
     }
   };
@@ -87,16 +96,10 @@ export default function CustomerForm() {
   return (
     <div className="space-y-4">
       {/* 页面头部 */}
-      <ProCard>
-        <Space>
-          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/customers/list')}>
-            返回列表
-          </Button>
-          <h1 className="text-lg font-semibold m-0">
-            {isEditMode ? '编辑客户' : '新增客户'}
-          </h1>
-        </Space>
-      </ProCard>
+      <PageHeader
+        title={isEditMode ? '编辑客户' : '新增客户'}
+        onBack={() => navigate('/customers/list')}
+      />
 
       {/* 表单区域 */}
       <ProCard>
@@ -110,17 +113,13 @@ export default function CustomerForm() {
           }
           onFinish={handleSubmit}
           submitter={{
-            render: (props) => (
+            searchConfig: {
+              submitText: isEditMode ? '保存修改' : '创建客户',
+              resetText: '取消',
+            },
+            render: (_props, doms) => (
               <div className="flex gap-2 pt-4 border-t">
-                <Button
-                  type="primary"
-                  icon={<SaveOutlined />}
-                  onClick={() => props.form?.submit()}
-                  loading={props.form?.isFieldsTouched()}
-                >
-                  {isEditMode ? '保存修改' : '创建客户'}
-                </Button>
-                <Button onClick={() => navigate('/customers/list')}>取消</Button>
+                {doms}
               </div>
             ),
           }}
@@ -248,6 +247,15 @@ export default function CustomerForm() {
           </ProCard>
         </ProForm>
       </ProCard>
+
+      {/* Toast 通知 */}
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
     </div>
   );
 }

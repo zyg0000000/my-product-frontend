@@ -4,12 +4,12 @@
 
 import { useNavigate } from 'react-router-dom';
 import {
-  UsersIcon,
-  DocumentTextIcon,
-  CalculatorIcon,
-  ChartBarIcon,
-  PlusCircleIcon,
-} from '@heroicons/react/24/outline';
+  TeamOutlined,
+  FileTextOutlined,
+  CalculatorOutlined,
+  BarChartOutlined,
+  PlusCircleOutlined,
+} from '@ant-design/icons';
 
 export function CustomersHome() {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ export function CustomersHome() {
     {
       name: '客户列表',
       description: '管理客户基础信息、联系人和业务配置',
-      icon: UsersIcon,
+      icon: TeamOutlined,
       path: '/customers/list',
       color: 'bg-blue-500',
       available: true,
@@ -26,7 +26,7 @@ export function CustomersHome() {
     {
       name: '价格策略',
       description: '配置客户价格策略和支付系数',
-      icon: CalculatorIcon,
+      icon: CalculatorOutlined,
       path: '/customers/pricing',
       color: 'bg-green-500',
       available: false,
@@ -34,7 +34,7 @@ export function CustomersHome() {
     {
       name: '合作记录',
       description: '查看客户合作历史和项目记录',
-      icon: DocumentTextIcon,
+      icon: FileTextOutlined,
       path: '/customers/history',
       color: 'bg-purple-500',
       available: false,
@@ -42,7 +42,7 @@ export function CustomersHome() {
     {
       name: '数据分析',
       description: '客户价值分析和业绩统计',
-      icon: ChartBarIcon,
+      icon: BarChartOutlined,
       path: '/customers/analytics',
       color: 'bg-orange-500',
       available: false,
@@ -97,8 +97,8 @@ export function CustomersHome() {
                   : 'border-gray-200 opacity-60 cursor-not-allowed'
               }`}
             >
-              <div className={`rounded-lg ${module.color} p-3`}>
-                <module.icon className="h-6 w-6 text-white" />
+              <div className={`rounded-lg ${module.color} p-3 flex items-center justify-center`}>
+                <module.icon style={{ fontSize: '24px', color: 'white' }} />
               </div>
               <h3 className="mt-4 text-lg font-semibold text-gray-900">
                 {module.name}
@@ -120,7 +120,7 @@ export function CustomersHome() {
             onClick={() => navigate('/customers/new')}
             className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
           >
-            <PlusCircleIcon className="h-5 w-5" />
+            <PlusCircleOutlined style={{ fontSize: '20px' }} />
             新增客户
           </button>
         </div>

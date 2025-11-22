@@ -24,6 +24,8 @@ export type PricingModel = 'framework' | 'project' | 'hybrid';
 export interface DiscountConfig {
   rate: number;
   includesPlatformFee: boolean;
+  validFrom?: string;  // 有效期开始日期
+  validTo?: string;    // 有效期结束日期
 }
 
 // 服务费配置
@@ -32,10 +34,13 @@ export interface ServiceFeeConfig {
   calculationBase: 'beforeDiscount' | 'afterDiscount';
 }
 
-// 平台费配置
+// 平台费配置（v2.0 支持平台级折扣率）
 export interface PlatformFeeConfig {
   enabled: boolean;
-  rate: number;
+  platformFeeRate: number;     // 平台费率（如抖音5%）
+  discountRate?: number;        // 平台级折扣率（如抖音80%，小红书90%）
+  validFrom?: string;           // 平台级有效期开始
+  validTo?: string;             // 平台级有效期结束
 }
 
 // 达人采买业务策略

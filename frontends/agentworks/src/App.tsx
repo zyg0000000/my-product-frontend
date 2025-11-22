@@ -5,6 +5,7 @@
 
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { App as AntApp } from 'antd';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { MainLayout } from './components/Layout/MainLayout';
 import { Home } from './pages/Home/Home';
@@ -42,10 +43,11 @@ function LoadingFallback() {
 
 function App() {
   return (
-    <ErrorBoundary>
-      <BrowserRouter>
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
+    <AntApp>
+      <ErrorBoundary>
+        <BrowserRouter>
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
             <Route path="/" element={<MainLayout />}>
               <Route index element={<Home />} />
 
@@ -81,6 +83,7 @@ function App() {
         </Suspense>
       </BrowserRouter>
     </ErrorBoundary>
+    </AntApp>
   );
 }
 

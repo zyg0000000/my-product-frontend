@@ -1,17 +1,29 @@
 /**
- * [生产版 v1.0 - 客户管理 RESTful API]
+ * [生产版 v2.0 - 客户管理 RESTful API]
  * 云函数：customers
  * 描述：统一的客户管理 RESTful API，支持客户信息的增删改查和价格策略配置
  *
+ * --- v2.0 更新日志 (2025-11-23) 🎉 重大升级 ---
+ * - [新功能] 平台级差异化折扣率：每个平台可设置独立折扣率
+ * - [架构优化] 计算逻辑重构：优先平台级配置，回退全局配置
+ * - [兼容性] 完全向后兼容 v1.x 数据结构
+ * ---------------------
+ *
+ * --- v1.4 更新日志 (2025-11-23) ---
+ * - [优化] 平台配置统一管理
+ * ---------------------
+ *
+ * --- v1.2 更新日志 (2025-11-22) ---
+ * - [新功能] 永久删除和客户恢复功能
+ * - [优化] 默认过滤已删除客户
+ * ---------------------
+ *
+ * --- v1.1 更新日志 (2025-11-22) ---
+ * - [BUG修复] MongoDB 6.x 兼容性修复
+ * ---------------------
+ *
  * --- v1.0 更新日志 (2024-11-22) ---
- * - [新功能] 实现完整的 RESTful API 设计
- * - [支持操作] GET（列表/详情）、POST（创建）、PUT（更新）、DELETE（软删除）
- * - [双ID支持] 支持 MongoDB ObjectId 和业务编码（CUS20240001）查询
- * - [自动编码] 创建客户时自动生成唯一编码
- * - [支付系数] 自动计算各平台的支付系数
- * - [价格历史] 记录所有价格策略变更历史
- * - [软删除] 删除操作仅更新状态，不物理删除数据
- * - [CORS支持] 完整的跨域请求支持
+ * - [新功能] RESTful API 基础 CRUD、自动编码、支付系数、软删除、CORS
  * ---------------------
  */
 
@@ -20,6 +32,15 @@ const { MongoClient, ObjectId } = require('mongodb');
 // 环境变量
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
 const DB_NAME = process.env.DB_NAME || 'agentworks_db';
+
+// 平台配置（与前端 platforms.ts 保持同步）
+const TALENT_PLATFORMS = [
+  { key: 'douyin', name: '抖音', fee: 0.05, enabled: true },
+  { key: 'xiaohongshu', name: '小红书', fee: 0.10, enabled: true },
+  { key: 'shipinhao', name: '视频号', fee: null, enabled: false },
+  { key: 'bilibili', name: 'B站', fee: null, enabled: false },
+  { key: 'weibo', name: '微博', fee: null, enabled: false },
+];
 
 /**
  * RESTful 客户管理云函数入口
@@ -74,7 +95,7 @@ exports.handler = async function (event) {
         if (!isDetailRequest) {
           return errorResponse(400, '删除操作需要提供客户ID');
         }
-        return await deleteCustomer(customerId);
+        return await deleteCustomer(customerId, event.queryStringParameters);
 
       case 'OPTIONS':
         // 处理 CORS 预检请求
@@ -125,7 +146,13 @@ async function getCustomers(queryParams = {}) {
     }
 
     if (level) query.level = level;
-    if (status) query.status = status;
+
+    // 状态筛选：如果指定状态则使用，否则默认排除已删除的客户
+    if (status) {
+      query.status = status;
+    } else {
+      query.status = { $ne: 'deleted' };
+    }
 
     // 分页和排序
     const skip = (parseInt(page) - 1) * parseInt(pageSize);
@@ -320,7 +347,7 @@ async function updateCustomer(id, body, headers = {}) {
       { returnDocument: 'after' }
     );
 
-    if (!result.value) {
+    if (!result) {
       return errorResponse(404, '更新失败，客户不存在');
     }
 
@@ -334,7 +361,7 @@ async function updateCustomer(id, body, headers = {}) {
       );
     }
 
-    return successResponse(result.value, 200, '客户信息更新成功');
+    return successResponse(result, 200, '客户信息更新成功');
 
   } finally {
     if (client) await client.close();
@@ -342,9 +369,9 @@ async function updateCustomer(id, body, headers = {}) {
 }
 
 /**
- * 删除客户（可选功能）
+ * 删除客户（支持软删除和永久删除）
  */
-async function deleteCustomer(id) {
+async function deleteCustomer(id, queryParams = {}) {
   let client;
 
   try {
@@ -364,23 +391,37 @@ async function deleteCustomer(id) {
       query = { code: id };
     }
 
-    // 软删除：更新状态而不是真正删除
-    const result = await collection.findOneAndUpdate(
-      query,
-      {
-        $set: {
-          status: 'deleted',
-          deletedAt: new Date()
-        }
-      },
-      { returnDocument: 'after' }
-    );
+    // 检查是否永久删除（通过查询参数 permanent=true）
+    const isPermanent = queryParams.permanent === 'true';
 
-    if (!result.value) {
-      return errorResponse(404, '客户不存在');
+    if (isPermanent) {
+      // 永久删除：真正从数据库删除
+      const result = await collection.deleteOne(query);
+
+      if (result.deletedCount === 0) {
+        return errorResponse(404, '客户不存在');
+      }
+
+      return successResponse({ message: '客户已永久删除' });
+    } else {
+      // 软删除：更新状态而不是真正删除
+      const result = await collection.findOneAndUpdate(
+        query,
+        {
+          $set: {
+            status: 'deleted',
+            deletedAt: new Date()
+          }
+        },
+        { returnDocument: 'after' }
+      );
+
+      if (!result) {
+        return errorResponse(404, '客户不存在');
+      }
+
+      return successResponse({ message: '客户已删除' });
     }
-
-    return successResponse({ message: '客户已删除' });
 
   } finally {
     if (client) await client.close();
@@ -430,25 +471,41 @@ async function generateCustomerCode(collection) {
 }
 
 /**
- * 获取默认业务策略
+ * 获取默认业务策略（v2.0 支持平台级折扣率）
  */
 function getDefaultBusinessStrategies() {
+  // 动态生成 platformFees，支持所有已配置的平台
+  const platformFees = {};
+  TALENT_PLATFORMS.forEach(platform => {
+    if (platform.fee !== null) {
+      platformFees[platform.key] = {
+        enabled: false,
+        platformFeeRate: platform.fee,
+        discountRate: 1.0  // v2.0: 默认平台级折扣率100%（无折扣）
+      };
+    }
+  });
+
   return {
     talentProcurement: {
       enabled: false,
       pricingModel: 'framework',
       discount: {
         rate: 1.0,
-        includesPlatformFee: false
+        includesPlatformFee: false,
+        validFrom: null,
+        validTo: null
       },
       serviceFee: {
         rate: 0,
         calculationBase: 'beforeDiscount'
       },
-      platformFees: {
-        douyin: { enabled: false, rate: 0.05 },
-        xiaohongshu: { enabled: false, rate: 0.10 }
+      tax: {
+        rate: 0.06,
+        includesTax: true,
+        calculationBase: 'excludeServiceFee'
       },
+      platformFees,
       dimensions: {
         byPlatform: true,
         byTalentLevel: false,
@@ -459,39 +516,45 @@ function getDefaultBusinessStrategies() {
 }
 
 /**
- * 计算所有平台的支付系数
+ * 计算所有平台的支付系数（v2.0 支持平台级折扣率）
  */
 function calculateAllCoefficients(strategy) {
   const coefficients = {};
-  const platforms = ['douyin', 'xiaohongshu'];
 
-  for (const platform of platforms) {
-    const platformFee = strategy.platformFees?.[platform];
-    if (platformFee?.enabled && platformFee.rate !== null) {
+  // 动态支持所有平台
+  Object.entries(strategy.platformFees || {}).forEach(([platform, platformConfig]) => {
+    if (platformConfig?.enabled) {
+      const platformFeeRate = platformConfig.platformFeeRate || platformConfig.rate || 0;
+      const platformDiscountRate = platformConfig.discountRate || null;
+
       coefficients[platform] = calculateCoefficient(
-        strategy.discount,
-        strategy.serviceFee,
-        platformFee.rate
+        strategy.discount || {},
+        strategy.serviceFee || {},
+        platformFeeRate,
+        platformDiscountRate
       );
     }
-  }
+  });
 
   return coefficients;
 }
 
 /**
- * 计算单个支付系数
+ * 计算单个支付系数（v2.0 支持平台级折扣率）
  */
-function calculateCoefficient(discount, serviceFee, platformFeeRate) {
+function calculateCoefficient(discount, serviceFee, platformFeeRate, platformDiscountRate) {
   const baseAmount = 1000;
   let finalAmount = baseAmount;
 
   const platformFeeAmount = baseAmount * platformFeeRate;
 
+  // v2.0: 优先使用平台级折扣率，回退到全局折扣率
+  const discountRate = platformDiscountRate || discount.rate || 1.0;
+
   if (discount.includesPlatformFee) {
-    finalAmount = (baseAmount + platformFeeAmount) * discount.rate;
+    finalAmount = (baseAmount + platformFeeAmount) * discountRate;
   } else {
-    finalAmount = baseAmount * discount.rate + platformFeeAmount;
+    finalAmount = baseAmount * discountRate + platformFeeAmount;
   }
 
   if (serviceFee.calculationBase === 'beforeDiscount') {

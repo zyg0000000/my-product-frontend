@@ -186,4 +186,52 @@ DELETE /customers?id=:id
 
 ## 版本历史
 
-- v1.0 (2024-11-22) - 初始版本，实现基础 CRUD 功能
+### v2.0 (2025-11-23) 🎉 重大升级
+**核心功能**
+- 平台级差异化折扣率：每个平台可独立设置折扣率（如抖音80%，小红书90%）
+- 向后兼容：自动兼容 v1.x 数据结构，优先使用平台级配置
+
+**数据结构变更**
+```javascript
+platformFees: {
+  douyin: {
+    enabled: true,
+    platformFeeRate: 0.05,    // 平台费率
+    discountRate: 0.80,       // ← 新增：平台级折扣率
+  },
+  xiaohongshu: {
+    enabled: true,
+    platformFeeRate: 0.10,
+    discountRate: 0.90,       // ← 可以不同
+  }
+}
+```
+
+**兼容性策略**
+- 平台级 `discountRate` 存在 → 使用平台级
+- 平台级不存在 → 回退到全局 `discount.rate`
+
+### v1.4 (2025-11-23)
+**架构优化**
+- 平台配置统一管理
+
+### v1.3 (2025-11-23)
+**新功能**
+- 框架折扣有效期、税费配置、平台扩展（视频号、B站、微博）
+
+**数据结构优化**
+- `discount` 新增 `validFrom`、`validTo` 字段
+- `tax` 新增配置：`rate`、`includesTax`、`calculationBase`
+
+### v1.2 (2025-11-22)
+**新功能**
+- 永久删除和客户恢复功能
+- 默认过滤已删除客户
+
+### v1.1 (2025-11-22)
+**Bug 修复**
+- MongoDB 6.x 兼容性修复
+
+### v1.0 (2024-11-22)
+**初始发布**
+- RESTful API 基础功能

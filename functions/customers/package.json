@@ -1,7 +1,7 @@
 {
   "name": "customers",
-  "version": "1.0.0",
-  "description": "云函数：客户管理 RESTful API - 支持客户信息增删改查、价格策略配置、支付系数计算",
+  "version": "2.0.0",
+  "description": "云函数：客户管理 RESTful API - 支持平台级差异化折扣率、客户信息增删改查、价格策略配置、支付系数计算",
   "main": "index.js",
   "dependencies": {
     "mongodb": "^6.5.0"

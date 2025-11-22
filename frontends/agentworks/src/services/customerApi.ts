@@ -97,16 +97,14 @@ class CustomerApi {
    * 更新客户
    */
   async updateCustomer(id: string, data: UpdateCustomerRequest): Promise<ApiResponse<Customer>> {
-    const url = `${API_BASE_URL}/customers`;
+    // 将 ID 添加到查询参数中，以符合火山引擎云函数路由要求
+    const url = `${API_BASE_URL}/customers?id=${encodeURIComponent(id)}`;
     const response = await fetch(url, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        id,
-        ...data,
-      }),
+      body: JSON.stringify(data),
     });
 
     if (!response.ok) {
@@ -133,6 +131,32 @@ class CustomerApi {
     }
 
     return response.json();
+  }
+
+  /**
+   * 永久删除客户（物理删除）
+   */
+  async permanentDeleteCustomer(id: string): Promise<ApiResponse<{ message: string }>> {
+    const url = `${API_BASE_URL}/customers?id=${encodeURIComponent(id)}&permanent=true`;
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * 恢复已删除的客户
+   */
+  async restoreCustomer(id: string): Promise<ApiResponse<Customer>> {
+    return this.updateCustomer(id, { status: 'active' });
   }
 }
 
