@@ -24,6 +24,7 @@ const PerformanceConfig = lazy(() => import('./pages/Settings/PerformanceConfig'
 const CustomersHome = lazy(() => import('./pages/Customers/CustomersHome').then(m => ({ default: m.CustomersHome })));
 const CustomerList = lazy(() => import('./pages/Customers/CustomerList/CustomerList'));
 const CustomerForm = lazy(() => import('./pages/Customers/CustomerForm'));
+const PricingStrategy = lazy(() => import('./pages/Customers/PricingStrategy/PricingStrategy'));
 
 /**
  * 加载中组件
@@ -60,6 +61,7 @@ function App() {
               <Route path="customers/list" element={<CustomerList />} />
               <Route path="customers/new" element={<CustomerForm />} />
               <Route path="customers/edit/:id" element={<CustomerForm />} />
+              <Route path="customers/:id/pricing" element={<PricingStrategy />} />
 
               {/* 其他模块 */}
               <Route path="clients" element={<ClientsHome />} />

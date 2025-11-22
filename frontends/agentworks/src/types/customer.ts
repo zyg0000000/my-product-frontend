@@ -17,6 +17,52 @@ export interface Contact {
   isPrimary?: boolean;
 }
 
+// 定价模式
+export type PricingModel = 'framework' | 'project' | 'hybrid';
+
+// 折扣配置
+export interface DiscountConfig {
+  rate: number;
+  includesPlatformFee: boolean;
+}
+
+// 服务费配置
+export interface ServiceFeeConfig {
+  rate: number;
+  calculationBase: 'beforeDiscount' | 'afterDiscount';
+}
+
+// 平台费配置
+export interface PlatformFeeConfig {
+  enabled: boolean;
+  rate: number;
+}
+
+// 达人采买业务策略
+export interface TalentProcurementStrategy {
+  enabled: boolean;
+  pricingModel: PricingModel;
+  discount: DiscountConfig;
+  serviceFee: ServiceFeeConfig;
+  platformFees: {
+    douyin?: PlatformFeeConfig;
+    xiaohongshu?: PlatformFeeConfig;
+    kuaishou?: PlatformFeeConfig;
+  };
+  paymentCoefficients?: {
+    douyin?: number;
+    xiaohongshu?: number;
+    kuaishou?: number;
+  };
+}
+
+// 业务策略配置
+export interface BusinessStrategies {
+  talentProcurement?: TalentProcurementStrategy;
+  adPlacement?: any;
+  contentProduction?: any;
+}
+
 // 客户主体
 export interface Customer {
   _id?: string;
@@ -26,7 +72,7 @@ export interface Customer {
   status: CustomerStatus;
   industry?: string;
   contacts: Contact[];
-  businessStrategies?: any;
+  businessStrategies?: BusinessStrategies;
   notes?: string;
   createdAt?: Date;
   updatedAt?: Date;

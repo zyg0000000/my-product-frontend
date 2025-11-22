@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
 import { Button, Tag, Space, Popconfirm, message } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, DollarOutlined } from '@ant-design/icons';
 import type { Customer, CustomerLevel, CustomerStatus } from '../../../types/customer';
 import { CUSTOMER_LEVEL_NAMES, CUSTOMER_STATUS_NAMES } from '../../../types/customer';
 import { customerApi } from '../../../services/customerApi';
@@ -141,9 +141,18 @@ export default function CustomerList() {
     {
       title: '操作',
       valueType: 'option',
-      width: 120,
+      width: 180,
       fixed: 'right',
       render: (_, record) => [
+        <Button
+          key="pricing"
+          type="link"
+          size="small"
+          icon={<DollarOutlined />}
+          onClick={() => navigate(`/customers/${record._id || record.code}/pricing`)}
+        >
+          价格
+        </Button>,
         <Button
           key="edit"
           type="link"
