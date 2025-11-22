@@ -41,7 +41,14 @@ const navigation: NavItem[] = [
       { name: '近期表现', path: '/performance' },
     ],
   },
-  { name: '客户管理', path: '/clients', icon: BuildingOfficeIcon },
+  {
+    name: '客户管理',
+    path: '/customers',
+    icon: BuildingOfficeIcon,
+    children: [
+      { name: '客户列表', path: '/customers/list' },
+    ],
+  },
   { name: '项目管理', path: '/projects', icon: FolderIcon },
   { name: '数据分析', path: '/analytics', icon: ChartBarIcon },
   {
@@ -56,7 +63,7 @@ const navigation: NavItem[] = [
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['达人管理', '系统设置']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['达人管理', '客户管理', '系统设置']);
   const location = useLocation();
 
   const toggleMenu = (menuName: string) => {

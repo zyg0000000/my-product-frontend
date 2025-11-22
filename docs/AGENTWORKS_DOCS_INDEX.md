@@ -69,15 +69,22 @@ AgentWorks 文档体系
 
 **适用读者**: 开发人员
 
-### 2. UI/UX规范
-**文件**: [`UI_UX_GUIDELINES.md`](../UI_UX_GUIDELINES.md)
-**内容概览**:
-- 设计原则
-- 组件使用规范
-  - Toast通知系统
-  - 模态框设计
-  - 下拉菜单定位
-- 交互模式
+### 2. UI 开发规范 🆕
+**核心文档**（2024-11-22 更新）:
+
+| 文档 | 用途 | 状态 |
+|------|------|------|
+| [UI 迁移计划](UI_MIGRATION_PLAN.md) | 了解 Pro + Tailwind 方案 | ✅ 最新 |
+| [样式规范指南](STYLE_GUIDE.md) | 字体、间距、颜色标准 | ✅ 最新 |
+| [组件库手册](COMPONENT_LIBRARY.md) | ProTable/ProForm 使用指南 | ✅ 最新 |
+| [UI 测试清单](UI_TESTING_CHECKLIST.md) | 页面质量保证 | ✅ 最新 |
+
+**技术栈**: Ant Design Pro Components + Tailwind CSS
+
+**设计原则**:
+- Pro Components 处理复杂业务（表格、表单）
+- Tailwind CSS 处理布局和样式
+- 统一的视觉规范
   - 搜索筛选系统
   - 表单交互
 - 样式指南

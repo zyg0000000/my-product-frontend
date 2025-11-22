@@ -27,6 +27,19 @@ export default defineConfig([
     },
     rules: {
       'prettier/prettier': 'error',
+
+      // UI 规范强制
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_'
+      }],
+
+      // 禁止console（生产环境）
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+
+      // React Hooks 规则
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
     },
   },
 ]);

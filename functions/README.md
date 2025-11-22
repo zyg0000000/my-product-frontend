@@ -253,7 +253,28 @@ FEISHU_APP_SECRET=...              # 飞书应用密钥
 | syncFromFeishu | 飞书数据同步 | v12.1 | ✅ 运行中 |
 | fieldMappingManager | 字段映射管理 | v1.0 | ✅ 运行中 |
 | dimensionConfigManager | 维度配置管理 | v1.0 | ✅ 运行中 |
+| **customers** | **客户管理 RESTful API** | **v1.0** | 🆕 待部署 |
 | ... | ... | ... | ... |
+
+### customers v1.0 (RESTful API)
+
+**核心特性**：
+- 完整的 RESTful API 设计（GET/POST/PUT/DELETE）
+- 双ID支持：MongoDB ObjectId 和业务编码（CUS20240001）
+- 自动生成客户编码
+- 价格策略管理（支持多业务类型）
+- 支付系数自动计算
+- 价格历史记录
+- 软删除机制
+
+**API 端点**（火山引擎兼容）：
+```bash
+GET    /customers          # 获取客户列表
+GET    /customers?id=xxx   # 获取客户详情
+POST   /customers          # 创建客户
+PUT    /customers          # 更新客户（body含id）
+DELETE /customers?id=xxx   # 删除客户（软删除）
+```
 
 ### getTalentsSearch v9.0 (双数据库版)
 
@@ -298,5 +319,16 @@ POST /talents/search
 
 ---
 
-**最后更新**: 2025-11-21
+**最后更新**: 2024-11-22
 **维护者**: 开发团队
+
+---
+
+## 🆕 最新更新 (2024-11-22)
+
+### customers v1.0 - 客户管理 RESTful API（Phase 1 完成）
+- ✅ 后端：RESTful API 云函数开发完成
+- ✅ 前端：Pro Components + Tailwind 混合方案
+- 🔄 状态：待部署到火山引擎
+
+**详细进度**：[客户管理开发进度](../docs/customer-management/PROGRESS.md)

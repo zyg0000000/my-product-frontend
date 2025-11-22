@@ -21,6 +21,9 @@ const AnalyticsHome = lazy(() => import('./pages/Analytics/AnalyticsHome').then(
 const SettingsHome = lazy(() => import('./pages/Settings/SettingsHome').then(m => ({ default: m.SettingsHome })));
 const PerformanceHome = lazy(() => import('./pages/Performance/PerformanceHome').then(m => ({ default: m.PerformanceHome })));
 const PerformanceConfig = lazy(() => import('./pages/Settings/PerformanceConfig').then(m => ({ default: m.PerformanceConfig })));
+const CustomersHome = lazy(() => import('./pages/Customers/CustomersHome').then(m => ({ default: m.CustomersHome })));
+const CustomerList = lazy(() => import('./pages/Customers/CustomerList/CustomerList'));
+const CustomerForm = lazy(() => import('./pages/Customers/CustomerForm'));
 
 /**
  * 加载中组件
@@ -51,6 +54,12 @@ function App() {
               <Route path="talents/create" element={<CreateTalent />} />
               <Route path="talents/agencies" element={<AgenciesList />} />
               <Route path="talents/:oneId/:platform" element={<TalentDetail />} />
+
+              {/* 客户管理模块 */}
+              <Route path="customers" element={<CustomersHome />} />
+              <Route path="customers/list" element={<CustomerList />} />
+              <Route path="customers/new" element={<CustomerForm />} />
+              <Route path="customers/edit/:id" element={<CustomerForm />} />
 
               {/* 其他模块 */}
               <Route path="clients" element={<ClientsHome />} />

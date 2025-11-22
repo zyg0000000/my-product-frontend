@@ -1,0 +1,24 @@
+{
+  "name": "customers",
+  "version": "1.0.0",
+  "description": "云函数：客户管理 RESTful API - 支持客户信息增删改查、价格策略配置、支付系数计算",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^6.5.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "customers",
+    "customer-management",
+    "pricing-strategy",
+    "payment-coefficient",
+    "restful-api"
+  ],
+  "author": "开发团队",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
