@@ -14,7 +14,6 @@ import {
 } from '@ant-design/pro-components';
 import { Button, message, Space } from 'antd';
 import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
-import type { Customer } from '../../types/customer';
 import { customerApi } from '../../services/customerApi';
 
 export default function CustomerForm() {

@@ -14,7 +14,7 @@ import { customerApi } from '../../../services/customerApi';
 
 export default function CustomerList() {
   const navigate = useNavigate();
-  const actionRef = useRef<ActionType>();
+  const actionRef = useRef<ActionType>(null);
 
   const handleDelete = async (id: string) => {
     try {
@@ -219,7 +219,7 @@ export default function CustomerList() {
         labelWidth: 80,
         span: 6,
         defaultCollapsed: false,
-        optionRender: (searchConfig, formProps, dom) => [...dom.reverse()],
+        optionRender: (_searchConfig, _formProps, dom) => [...dom.reverse()],
       }}
       dateFormatter="string"
       headerTitle="客户列表"
