@@ -34,27 +34,34 @@ export interface ServiceFeeConfig {
   calculationBase: 'beforeDiscount' | 'afterDiscount';
 }
 
-// 平台费配置（v2.0 支持平台级折扣率）
+// 平台费配置（v3.0 支持完全独立的平台级配置）
 export interface PlatformFeeConfig {
   enabled: boolean;
-  platformFeeRate: number;     // 平台费率（如抖音5%）
-  discountRate?: number;        // 平台级折扣率（如抖音80%，小红书90%）
-  validFrom?: string;           // 平台级有效期开始
-  validTo?: string;             // 平台级有效期结束
+  platformFeeRate: number;                                    // 平台费率（如抖音5%）
+  discountRate?: number;                                      // 平台级折扣率（如抖音79.5%，小红书90%）
+  serviceFeeRate?: number;                                    // 平台级服务费率
+  validFrom?: string | null;                                  // 平台级有效期开始
+  validTo?: string | null;                                    // 平台级有效期结束
+  includesPlatformFee?: boolean;                              // 折扣是否包含平台费
+  serviceFeeBase?: 'beforeDiscount' | 'afterDiscount';        // 服务费计算基准
+  includesTax?: boolean;                                      // 是否含税报价
+  taxCalculationBase?: 'excludeServiceFee' | 'includeServiceFee'; // 税费计算基准
 }
 
 // 达人采买业务策略
 export interface TalentProcurementStrategy {
   enabled: boolean;
   pricingModel: PricingModel;
-  discount: DiscountConfig;
-  serviceFee: ServiceFeeConfig;
+  discount?: DiscountConfig;
+  serviceFee?: ServiceFeeConfig;
   platformFees: {
+    [key: string]: PlatformFeeConfig | undefined;
     douyin?: PlatformFeeConfig;
     xiaohongshu?: PlatformFeeConfig;
     kuaishou?: PlatformFeeConfig;
   };
   paymentCoefficients?: {
+    [key: string]: number | undefined;
     douyin?: number;
     xiaohongshu?: number;
     kuaishou?: number;

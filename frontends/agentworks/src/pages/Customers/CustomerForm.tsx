@@ -12,7 +12,6 @@ import {
   ProFormList,
   ProCard,
 } from '@ant-design/pro-components';
-import { Space } from 'antd';
 import { customerApi } from '../../services/customerApi';
 import { Toast } from '../../components/Toast';
 import { useToast } from '../../hooks/useToast';

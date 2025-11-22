@@ -15,11 +15,11 @@ import {
 } from '@ant-design/pro-components';
 import { Table, Tag, Tabs, Select } from 'antd';
 import { CalculatorOutlined } from '@ant-design/icons';
-import type { TalentProcurementStrategy } from '../../../types/customer';
+import dayjs from 'dayjs';
 import { customerApi } from '../../../services/customerApi';
 import { Toast } from '../../../components/Toast';
 import { useToast } from '../../../hooks/useToast';
-import { getEnabledPlatforms, getPlatformName, getPlatformByKey } from '../../../config/platforms';
+import { getPlatformName, getPlatformByKey } from '../../../config/platforms';
 import { PageHeader } from '../../../components/PageHeader';
 
 // 获取所有平台（包括预留的）
@@ -52,16 +52,16 @@ const getDefaultPlatformConfig = (platformKey: string) => {
 
 // 类型定义
 interface PlatformConfig {
-  enabled: boolean;
-  platformFeeRate: number;
-  discountRate: number;
-  serviceFeeRate: number;
-  validFrom: string | null;
-  validTo: string | null;
-  includesPlatformFee: boolean;
-  serviceFeeBase: 'beforeDiscount' | 'afterDiscount';
-  includesTax: boolean;
-  taxCalculationBase: 'excludeServiceFee' | 'includeServiceFee';
+  enabled?: boolean;
+  platformFeeRate?: number;
+  discountRate?: number;
+  serviceFeeRate?: number;
+  validFrom?: string | null;
+  validTo?: string | null;
+  includesPlatformFee?: boolean;
+  serviceFeeBase?: 'beforeDiscount' | 'afterDiscount';
+  includesTax?: boolean;
+  taxCalculationBase?: 'excludeServiceFee' | 'includeServiceFee';
 }
 
 interface PlatformFees {
@@ -139,7 +139,7 @@ export default function PricingStrategy() {
     }
   };
 
-  const calculateCoefficients = (pricingModel: string, fees: PlatformFees) => {
+  const calculateCoefficients = (_pricingModel: string, fees: PlatformFees) => {
     const results: any = {};
 
     Object.entries(fees).forEach(([platform, config]) => {
@@ -157,9 +157,9 @@ export default function PricingStrategy() {
 
         let serviceFeeAmount;
         if (config.serviceFeeBase === 'beforeDiscount') {
-          serviceFeeAmount = (baseAmount + platformFeeAmount) * config.serviceFeeRate;
+          serviceFeeAmount = (baseAmount + platformFeeAmount) * (config.serviceFeeRate || 0);
         } else {
-          serviceFeeAmount = discountedAmount * config.serviceFeeRate;
+          serviceFeeAmount = discountedAmount * (config.serviceFeeRate || 0);
         }
 
         // 税费计算
@@ -299,29 +299,6 @@ export default function PricingStrategy() {
     }
   };
 
-  const coefficientColumns = [
-    { title: '平台', dataIndex: 'platform', key: 'platform',
-      render: (val: string) => getPlatformName(val) },
-    { title: '基础金额', dataIndex: 'baseAmount', key: 'baseAmount',
-      render: (val: number) => `¥${(val / 100).toFixed(2)}` },
-    { title: '平台费', dataIndex: 'platformFeeAmount', key: 'platformFeeAmount',
-      render: (val: number) => `¥${(val / 100).toFixed(2)}` },
-    { title: '折扣后', dataIndex: 'discountedAmount', key: 'discountedAmount',
-      render: (val: number) => `¥${(val / 100).toFixed(2)}` },
-    { title: '服务费', dataIndex: 'serviceFeeAmount', key: 'serviceFeeAmount',
-      render: (val: number) => `¥${(val / 100).toFixed(2)}` },
-    { title: '税费', dataIndex: 'taxAmount', key: 'taxAmount',
-      render: (val: number) => val > 0 ? `¥${(val / 100).toFixed(2)}` : <span className="text-gray-400">已含税</span> },
-    { title: '最终金额', dataIndex: 'finalAmount', key: 'finalAmount',
-      render: (val: number) => <span className="font-bold">¥{(val / 100).toFixed(2)}</span> },
-    {
-      title: '支付系数',
-      dataIndex: 'coefficient',
-      key: 'coefficient',
-      render: (val: number) => <Tag color="blue">{val}</Tag>
-    },
-  ];
-
   if (loading) {
     return <div className="flex items-center justify-center h-96">加载中...</div>;
   }
@@ -369,17 +346,6 @@ export default function PricingStrategy() {
     },
   ];
 
-  // 平台选择下拉选项
-  const platformOptions = ENABLED_PLATFORMS.map(p => ({
-    value: p.key,
-    label: (
-      <span className="flex items-center gap-2">
-        {p.name}
-        {platformFees[p.key]?.enabled && <Tag color="green" className="ml-1">已启用</Tag>}
-      </span>
-    ),
-  }));
-
   return (
     <div className="space-y-4">
       {/* 页面头部 */}
@@ -404,7 +370,7 @@ export default function PricingStrategy() {
               pricingModel: customer?.businessStrategies?.talentProcurement?.pricingModel || 'framework',
             }}
             onFinish={handleSubmit}
-            onValuesChange={(changed, all) => {
+            onValuesChange={(changed) => {
               if (changed.pricingModel) {
                 setCurrentPricingModel(changed.pricingModel);
                 calculateCoefficients(changed.pricingModel, platformFees);
@@ -415,7 +381,7 @@ export default function PricingStrategy() {
                 submitText: '保存配置',
                 resetText: '取消',
               },
-              render: (props, doms) => {
+              render: (_props, doms) => {
                 return (
                   <div className="mt-6 pt-6 border-t border-gray-200">
                     <div className="flex justify-end gap-3 bg-gray-50 p-4 rounded-lg">
@@ -532,7 +498,7 @@ export default function PricingStrategy() {
                       fieldProps={{
                         format: 'YYYY-MM-DD',
                         value: currentConfig.validFrom && currentConfig.validTo
-                          ? [currentConfig.validFrom, currentConfig.validTo]
+                          ? [dayjs(currentConfig.validFrom), dayjs(currentConfig.validTo)]
                           : undefined,
                         onChange: (dates: any) => {
                           if (dates && dates[0] && dates[1]) {
