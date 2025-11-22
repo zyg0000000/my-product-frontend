@@ -1,5 +1,95 @@
 # AgentWorks 更新日志
 
+## v3.0.0 (2025-11-23) 🎉
+
+### 🐛 关键修复 - 客户价格策略
+
+#### 后端修复 (functions/customers/index.js)
+- **NaN 问题根治**
+  - 修复后端计算逻辑缺失税费导致 `paymentCoefficients` 保存为 NaN
+  - 添加完整的税费计算逻辑（支持含税/不含税两种模式）
+  - 严格校验系数有效性，防止 NaN 和异常值 (0 < coefficient < 10)
+
+- **前后端数据一致性**
+  - 禁用后端自动重新计算系数（`getCustomerById` 和 `updateCustomer`）
+  - 直接使用前端经过严格校验后的系数值
+  - 避免因数据结构不一致导致的计算差异
+
+- **平台级独立配置支持** (v3.0 架构)
+  - 完整支持平台级 `serviceFeeRate`、`serviceFeeBase`
+  - 完整支持平台级 `includesTax`、`taxCalculationBase`
+  - 优先使用平台级配置，回退到全局配置
+
+#### 前端优化 (PricingStrategy.tsx)
+- **UI 统一性提升**
+  - 统一4个区域的标题样式（ProCard title + headerBordered）
+    - 定价模式
+    - 平台配置
+    - 配置总览
+    - 支付系数记录
+
+- **用户体验优化**
+  - 优化保存/取消按钮布局（带背景色突出显示）
+  - 折扣率/服务费率显示精度提升至2位小数
+  - 默认值优化：折扣率 100%（无折扣），服务费率 0%
+
+- **数值校验增强**
+  - 前端严格校验：`0 < coefficient < 10`
+  - 保存前阻止异常值写入数据库
+  - 提供清晰的错误提示
+
+### 🏗 架构决策确认
+
+#### UI 技术栈
+- ✅ **Ant Design Pro** + **Tailwind CSS** 混合模式
+  - 使用 ProCard、ProForm、ProFormDigit 等组件
+  - 使用 Tailwind 工具类（flex、gap、text-gray-400、bg-gray-50 等）
+  - 此模式将统一应用到全部前端 UI
+
+#### 数据流向
+```
+前端计算 → 前端校验 → 后端直接保存 → 数据库
+             ↓
+       阻止异常值
+```
+
+#### 职责分工
+- **前端**：负责计算、校验、UI展示
+- **后端**：负责数据持久化、历史记录（pricing_history集合）
+- **一致性**：前后端计算逻辑完全相同（税费、服务费、折扣逻辑）
+
+### 📊 修复效果
+
+| 问题 | 修复前 | 修复后 |
+|------|--------|--------|
+| 支付系数保存 | NaN | 0.8348 ✅ |
+| 数据库读取 | NaN | 0.8348 ✅ |
+| 前后端一致性 | ❌ 不一致 | ✅ 完全一致 |
+| 标题样式 | ❌ 不统一 | ✅ 统一 |
+| 按钮布局 | ❌ 不明显 | ✅ 突出显示 |
+| 数值精度 | 整数 | 2位小数 ✅ |
+
+### 🔧 技术细节
+
+- **修改文件**: 2个
+  - `frontends/agentworks/src/pages/Customers/PricingStrategy/PricingStrategy.tsx` (+532, -332)
+  - `functions/customers/index.js` (+128)
+
+- **删除文件**: 1个
+  - `PricingStrategy.backup.tsx` (清理临时文件)
+
+- **代码质量**
+  - 添加详细注释说明设计决策
+  - 保留 `calculateAllCoefficients` 函数用于数据验证、修复、调试
+  - 统一前后端计算逻辑
+
+### 📝 文档更新
+
+- 云函数 v3.0 CHANGELOG（已内置于 index.js 头部注释）
+- 本 CHANGELOG 更新
+
+---
+
 ## v2.9.1 (2025-11-22)
 
 ### 🐛 修复
