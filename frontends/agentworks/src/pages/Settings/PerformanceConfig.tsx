@@ -1,9 +1,11 @@
 /**
  * 达人表现配置管理页面（完整CRUD版本）
  * Phase 7: 支持完整的配置编辑功能
+ * v2.0: 支持 URL 参数（platform, tab）
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useFieldMapping } from '../../hooks/useFieldMapping';
 import { useDimensionConfig } from '../../hooks/useDimensionConfig';
 import { useDataImport } from '../../hooks/useDataImport';
@@ -15,9 +17,28 @@ import type { Platform } from '../../types/talent';
 import { PLATFORM_NAMES } from '../../types/talent';
 
 export function PerformanceConfig() {
-  const [selectedPlatform, setSelectedPlatform] = useState<Platform>('douyin');
-  const [activeTab, setActiveTab] = useState<'mapping' | 'dimension' | 'import'>('mapping');
+  const [searchParams] = useSearchParams();
+
+  // 从 URL 参数读取初始值
+  const initialPlatform = (searchParams.get('platform') as Platform) || 'douyin';
+  const initialTab = (searchParams.get('tab') as 'mapping' | 'dimension' | 'import') || 'mapping';
+
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform>(initialPlatform);
+  const [activeTab, setActiveTab] = useState<'mapping' | 'dimension' | 'import'>(initialTab);
   const [showImportModal, setShowImportModal] = useState(false);
+
+  // 当 URL 参数变化时，更新状态
+  useEffect(() => {
+    const platform = searchParams.get('platform') as Platform;
+    const tab = searchParams.get('tab') as 'mapping' | 'dimension' | 'import';
+
+    if (platform && ['douyin', 'xiaohongshu', 'bilibili', 'kuaishou'].includes(platform)) {
+      setSelectedPlatform(platform);
+    }
+    if (tab && ['mapping', 'dimension', 'import'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   const fieldMapping = useFieldMapping(selectedPlatform);
   const dimensionConfig = useDimensionConfig(selectedPlatform);
