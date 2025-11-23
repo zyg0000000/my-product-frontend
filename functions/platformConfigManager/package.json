@@ -1,0 +1,9 @@
+{
+  "name": "platform-config-manager",
+  "version": "1.0.0",
+  "description": "Platform configuration management - RESTful API",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  }
+}
