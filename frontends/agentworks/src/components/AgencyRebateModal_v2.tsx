@@ -13,7 +13,7 @@
 
 import { useState, useEffect } from 'react';
 import { Modal, Tabs, Alert, Button, Select, message, Spin, Checkbox, Table } from 'antd';
-import { InfoCircleOutlined, SyncOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { InfoCircleOutlined } from '@ant-design/icons';
 import { ProCard, ProForm, ProFormDigit, ProFormText, ProFormDatePicker } from '@ant-design/pro-components';
 import { logger } from '../utils/logger';
 import type { Agency } from '../types/agency';
@@ -146,8 +146,8 @@ export function AgencyRebateModal({
     if (!agency) return;
 
     const rate = parseFloat(rebateRate);
-    if (isNaN(rate) || rate < REBATE_VALIDATION.MIN || rate > REBATE_VALIDATION.MAX) {
-      message.error(`返点率必须在 ${REBATE_VALIDATION.MIN}-${REBATE_VALIDATION.MAX} 之间`);
+    if (isNaN(rate) || rate < REBATE_VALIDATION.min || rate > REBATE_VALIDATION.max) {
+      message.error(`返点率必须在 ${REBATE_VALIDATION.min}-${REBATE_VALIDATION.max} 之间`);
       return;
     }
 
@@ -309,19 +309,19 @@ export function AgencyRebateModal({
                 name="rebateRate"
                 initialValue={rebateRate}
                 fieldProps={{
-                  value: rebateRate,
+                  value: Number(rebateRate) || 0,
                   onChange: (value) => setRebateRate(value?.toString() || ''),
                   precision: 2,
-                  min: REBATE_VALIDATION.MIN,
-                  max: REBATE_VALIDATION.MAX,
+                  min: REBATE_VALIDATION.min,
+                  max: REBATE_VALIDATION.max,
                   addonAfter: '%',
                 }}
                 rules={[
                   { required: true, message: '请输入返点率' },
                   {
-                    validator: (_, value) => {
-                      if (value < REBATE_VALIDATION.MIN || value > REBATE_VALIDATION.MAX) {
-                        return Promise.reject(`返点率必须在 ${REBATE_VALIDATION.MIN}-${REBATE_VALIDATION.MAX} 之间`);
+                    validator: (_: any, value: any) => {
+                      if (value < REBATE_VALIDATION.min || value > REBATE_VALIDATION.max) {
+                        return Promise.reject(`返点率必须在 ${REBATE_VALIDATION.min}-${REBATE_VALIDATION.max} 之间`);
                       }
                       return Promise.resolve();
                     },
@@ -334,7 +334,7 @@ export function AgencyRebateModal({
                 initialValue={effectiveDate}
                 fieldProps={{
                   value: effectiveDate,
-                  onChange: (_, dateString) => setEffectiveDate(dateString as string),
+                  onChange: (_: any, dateString: any) => setEffectiveDate(dateString as string),
                   format: 'YYYY-MM-DD',
                 }}
                 rules={[{ required: true, message: '请选择生效日期' }]}

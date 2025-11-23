@@ -51,8 +51,8 @@ export function PerformanceFilters({
   onReset,
   onSearch
 }: PerformanceFiltersProps) {
-  // 控制面板展开/折叠
-  const [isExpanded, setIsExpanded] = useState(true);
+  // 控制面板展开/折叠（默认折叠）
+  const [isExpanded, setIsExpanded] = useState(false);
   // 控制各分类展开状态（默认只展开"基础信息"）
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() => {
     // 初始化：只有"基础信息"展开，其他折叠
@@ -277,9 +277,6 @@ export function PerformanceFilters({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                   <span className="text-sm font-medium text-gray-700">{category}</span>
-                  <span className="text-xs text-gray-400">
-                    ({filtersByCategory[category].length})
-                  </span>
                 </div>
 
                 {/* 分类下的筛选器（按 filterOrder 排序）*/}
@@ -294,42 +291,51 @@ export function PerformanceFilters({
             ))}
           </div>
 
-          {/* 右侧：已选条件展示（双列布局） */}
+          {/* 右侧：已选条件展示 */}
           <div className="w-96 p-4 bg-gray-50">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-medium text-gray-700">已选条件</span>
-              {activeFilterCount > 0 && (
-                <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
-                  {activeFilterCount} 个
-                </span>
+              {hasActiveFilters && (
+                <button
+                  onClick={onReset}
+                  className="text-xs text-blue-600 hover:text-blue-800"
+                >
+                  清空全部
+                </button>
               )}
             </div>
 
             {activeFilterTags.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-wrap gap-2">
                 {activeFilterTags.map((tag, index) => (
-                  <div
+                  <span
                     key={`${tag.dimensionId}-${index}`}
-                    className="flex items-center justify-between px-2 py-1.5 bg-white rounded-md border border-gray-200 text-xs"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 rounded-md text-sm"
                   >
-                    <span className="text-gray-700 truncate mr-1" title={tag.label}>
-                      {tag.label}
-                    </span>
+                    <span className="text-gray-700">{tag.label}</span>
                     <button
                       onClick={() => removeFilterTag(tag)}
-                      className="flex-shrink-0 text-gray-400 hover:text-red-500 transition-colors"
-                      title="移除此筛选"
+                      className="ml-1 text-gray-400 hover:text-gray-600"
                     >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
-                  </div>
+                  </span>
                 ))}
               </div>
             ) : (
-              <div className="text-sm text-gray-400 text-center py-8">
-                暂无筛选条件
+              <div className="text-sm text-gray-500">
+                暂无筛选条件，请在左侧选择
+              </div>
+            )}
+
+            {/* 筛选统计信息 */}
+            {hasActiveFilters && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="text-xs text-gray-500">
+                  <div>已选择 {activeFilterCount} 个筛选条件</div>
+                </div>
               </div>
             )}
           </div>

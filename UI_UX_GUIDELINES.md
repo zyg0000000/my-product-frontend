@@ -694,6 +694,13 @@ message.success('操作成功');
 
 ## 📝 更新记录
 
+### v3.1.0 (2025-11-23) - BasicInfo 页面升级
+- ✅ 完成 **BasicInfo** 页面完全重构
+- ✅ ProTable 替代手写表格（代码减少 54%）
+- ✅ Dropdown 替代手写操作菜单
+- ✅ 移除所有 alert() 使用
+- ✅ 统一使用 message API
+
 ### v3.0.0 (2025-11-23) - 重大升级
 - ✅ 采用 **Ant Design Pro + Tailwind** 混合开发模式
 - ✅ 引入 ProTable 替代手写表格

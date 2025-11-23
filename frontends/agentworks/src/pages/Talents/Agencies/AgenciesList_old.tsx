@@ -8,7 +8,7 @@ import {
   PlusIcon,
   BuildingOffice2Icon,
 } from '@heroicons/react/24/outline';
-import type { Agency, AgencyFormData, AgencyType, AgencyStatus } from '../../../types/agency';
+import type { Agency, AgencyFormData } from '../../../types/agency';
 import { AGENCY_TYPE_NAMES, AGENCY_STATUS_NAMES, AGENCY_INDIVIDUAL_ID } from '../../../types/agency';
 import type { Platform } from '../../../types/talent';
 import { PLATFORM_NAMES } from '../../../types/talent';
@@ -36,7 +36,7 @@ export function AgenciesList() {
   const [talentCounts, setTalentCounts] = useState<Record<string, number>>({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [agencyToDelete, setAgencyToDelete] = useState<Agency | null>(null);
-  const { toast, hideToast, success, error: showError, warning } = useToast();
+  const { toast, hideToast, warning } = useToast();
 
   // 添加平台选择器的state，默认选择抖音
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>('douyin');

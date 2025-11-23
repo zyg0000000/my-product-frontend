@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { ProTable, ProCard } from '@ant-design/pro-components';
+import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
 import { Button, Tabs, Space, Tag, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, PercentageOutlined } from '@ant-design/icons';
@@ -185,9 +185,9 @@ export function AgenciesList() {
       dataIndex: 'type',
       key: 'type',
       width: 100,
-      render: (type: string) => (
-        <Tag color={type === 'agency' ? 'blue' : 'default'}>
-          {AGENCY_TYPE_NAMES[type as keyof typeof AGENCY_TYPE_NAMES]}
+      render: (_, record) => (
+        <Tag color={record.type === 'agency' ? 'blue' : 'default'}>
+          {AGENCY_TYPE_NAMES[record.type as keyof typeof AGENCY_TYPE_NAMES]}
         </Tag>
       ),
     },
@@ -230,15 +230,15 @@ export function AgenciesList() {
       dataIndex: 'status',
       key: 'status',
       width: 100,
-      render: (status: string) => {
+      render: (_, record) => {
         const colorMap = {
           active: 'success',
           suspended: 'warning',
           inactive: 'default',
         };
         return (
-          <Tag color={colorMap[status as keyof typeof colorMap]}>
-            {AGENCY_STATUS_NAMES[status as keyof typeof AGENCY_STATUS_NAMES] || status}
+          <Tag color={colorMap[record.status as keyof typeof colorMap]}>
+            {AGENCY_STATUS_NAMES[record.status as keyof typeof AGENCY_STATUS_NAMES] || record.status}
           </Tag>
         );
       },

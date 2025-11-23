@@ -1,6 +1,33 @@
 # AgentWorks 更新日志
 
-## v3.2.0 (2025-11-23) 🚀 - UI 全面升级为 Ant Design Pro 风格
+## v3.3.0 (2025-11-23) 🚀 - BasicInfo 页面全面升级
+
+### ✨ BasicInfo 页面重构（达人基础信息）
+- **完全重写为 ProTable 版本**（代码量减少 54%：1076行 → 495行）
+  - 手写 `<table>` → **ProTable** 组件（内置分页、排序、列设置）
+  - 手写平台切换 → **Tabs** 组件
+  - 手写操作菜单 → **Dropdown** 组件（自动定位）
+  - `alert()` 违规代码 → **message** API
+  - `useToast` hook → **message** API
+  - 手写筛选面板 → **ProCard** 包裹
+
+- **功能增强**
+  - ✅ ProTable 内置刷新按钮
+  - ✅ ProTable 列显示/隐藏设置
+  - ✅ Dropdown 自动定位（替代手写定位逻辑）
+  - ✅ 价格档位选择器集成到表头
+  - ✅ 高级筛选使用 ProCard 折叠面板
+
+- **保留功能**
+  - ✅ 多平台切换（抖音、小红书、B站、快手）
+  - ✅ 搜索和高级筛选（等级、标签、返点、价格范围）
+  - ✅ 价格档位选择（localStorage 持久化）
+  - ✅ 所有弹窗功能（编辑、删除、价格、返点）
+  - ✅ 外链跳转（星图等平台）
+
+---
+
+## v3.2.0 (2025-11-23) - Ant Design Pro 升级
 
 ### 🎨 官方 UI 决策
 ✅ **正式采用 Ant Design Pro + Tailwind CSS 混合开发模式**

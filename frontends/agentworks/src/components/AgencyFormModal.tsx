@@ -12,7 +12,7 @@ import { useEffect } from 'react';
 import { Modal, Form, message } from 'antd';
 import { ProForm, ProFormText, ProFormSelect, ProFormTextArea } from '@ant-design/pro-components';
 import { ProCard } from '@ant-design/pro-components';
-import type { Agency, AgencyFormData, AgencyType, AgencyStatus } from '../types/agency';
+import type { Agency, AgencyFormData } from '../types/agency';
 
 interface AgencyFormModalProps {
   isOpen: boolean;
