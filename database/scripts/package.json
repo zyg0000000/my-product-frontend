@@ -1,0 +1,12 @@
+{
+  "name": "agentworks-scripts",
+  "version": "1.0.0",
+  "description": "AgentWorks database initialization and utility scripts",
+  "scripts": {
+    "init-platform-config": "node init-platform-config.js"
+  },
+  "dependencies": {
+    "mongodb": "^6.3.0",
+    "dotenv": "^16.3.1"
+  }
+}
