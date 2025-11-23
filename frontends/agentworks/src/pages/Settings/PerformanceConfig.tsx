@@ -16,16 +16,21 @@ import { useDimensionConfig } from '../../hooks/useDimensionConfig';
 import { useDataImport } from '../../hooks/useDataImport';
 import { FieldMappingManager } from '../../components/Performance/FieldMappingManager';
 import { DimensionManager } from '../../components/Performance/DimensionManager';
-import { DataImportModal } from '../../components/DataImportModal_v2';
+import { DataImportModal } from '../../components/DataImportModal';
 import { ImportResultPanel } from '../../components/ImportResultPanel';
 import type { Platform } from '../../types/talent';
 import { PLATFORM_NAMES } from '../../types/talent';
+import { usePlatformConfig } from '../../hooks/usePlatformConfig';
 
 export function PerformanceConfig() {
   const [searchParams] = useSearchParams();
 
+  // 使用平台配置 Hook（只获取启用的平台）
+  const { getPlatformList, loading: configLoading } = usePlatformConfig(false);
+  const platforms = getPlatformList();
+
   // 从 URL 参数读取初始值
-  const initialPlatform = (searchParams.get('platform') as Platform) || 'douyin';
+  const initialPlatform = (searchParams.get('platform') as Platform) || platforms[0] || 'douyin';
   const initialTab = (searchParams.get('tab') as 'mapping' | 'dimension' | 'import') || 'mapping';
 
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>(initialPlatform);
@@ -37,19 +42,17 @@ export function PerformanceConfig() {
     const platform = searchParams.get('platform') as Platform;
     const tab = searchParams.get('tab') as 'mapping' | 'dimension' | 'import';
 
-    if (platform && ['douyin', 'xiaohongshu', 'bilibili', 'kuaishou'].includes(platform)) {
+    if (platform && platforms.includes(platform)) {
       setSelectedPlatform(platform);
     }
     if (tab && ['mapping', 'dimension', 'import'].includes(tab)) {
       setActiveTab(tab);
     }
-  }, [searchParams]);
+  }, [searchParams, platforms]);
 
   const fieldMapping = useFieldMapping(selectedPlatform);
   const dimensionConfig = useDimensionConfig(selectedPlatform);
   const { importing, importResult, showResult, importFromFeishu, closeResult } = useDataImport(selectedPlatform);
-
-  const platforms: Platform[] = ['douyin', 'xiaohongshu', 'bilibili', 'kuaishou'];
 
   // 处理数据导入
   const handleImport = async (feishuUrl: string, priceYear: number, priceMonth: number) => {
@@ -57,6 +60,19 @@ export function PerformanceConfig() {
     setShowImportModal(false);
     // showResult 会自动变为 true，显示结果面板
   };
+
+  // 如果平台配置正在加载，显示加载状态
+  if (configLoading) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">达人表现配置管理</h1>
+          <p className="text-gray-600 mt-1 text-sm">管理各平台的字段映射和数据维度配置</p>
+        </div>
+        <div className="p-8 text-center text-gray-500">加载平台配置中...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

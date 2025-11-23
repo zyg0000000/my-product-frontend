@@ -87,23 +87,31 @@ export function usePlatformConfig(includeDisabled = false) {
       if (!forceRefresh) {
         const cached = loadFromCache();
         if (cached && cached.length > 0) {
-          setConfigs(cached);
+          // 根据 includeDisabled 参数过滤缓存数据
+          const filteredConfigs = includeDisabled
+            ? cached
+            : cached.filter(c => c.enabled);
+          setConfigs(filteredConfigs);
           setLoading(false);
           return;
         }
       }
 
-      // 从服务器加载
+      // 从服务器加载（始终获取所有平台配置）
       logger.info('从服务器加载平台配置');
-      // includeDisabled 为 true 时不传 enabled 参数，获取所有平台
-      const response = includeDisabled
-        ? await getPlatformConfigs()
-        : await getPlatformConfigs(true);
+      const response = await getPlatformConfigs();
 
       if (response.success && response.data) {
-        setConfigs(response.data);
+        // 缓存所有平台配置（包括禁用的）
         saveToCache(response.data);
-        logger.info(`平台配置加载成功，共 ${response.data.length} 个平台`);
+
+        // 根据 includeDisabled 参数过滤后返回
+        const filteredConfigs = includeDisabled
+          ? response.data
+          : response.data.filter(c => c.enabled);
+
+        setConfigs(filteredConfigs);
+        logger.info(`平台配置加载成功，共 ${filteredConfigs.length} 个平台（总数 ${response.data.length}）`);
       } else {
         throw new Error(response.message || '加载平台配置失败');
       }

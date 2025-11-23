@@ -18,7 +18,7 @@ import type { Talent, Platform, TalentTier, TalentStatus } from '../types/talent
 import { PLATFORM_NAMES } from '../types/talent';
 import { AGENCY_INDIVIDUAL_ID } from '../types/agency';
 import { TagInput } from './TagInput';
-import { AgencySelector } from './AgencySelector_v2';
+import { AgencySelector } from './AgencySelector';
 
 interface EditTalentModalProps {
   isOpen: boolean;

@@ -1,9 +1,16 @@
 /**
- * 数据导入弹窗
- * 支持飞书URL导入（简化版）
+ * 数据导入弹窗 - v2.0 (Ant Design Pro + Tailwind 升级版)
+ *
+ * 升级要点：
+ * 1. 使用 Modal 替代手写弹窗容器
+ * 2. 使用 ProForm 和 ProFormText 管理表单
+ * 3. 使用 message 替代 alert()
+ * 4. 使用 ProFormDigit 处理数字输入
  */
 
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { Modal, Form, message } from 'antd';
+import { ProForm, ProFormText, ProFormDigit } from '@ant-design/pro-components';
 import type { Platform } from '../types/talent';
 import { PLATFORM_NAMES } from '../types/talent';
 
@@ -22,144 +29,132 @@ export function DataImportModal({
   onImport,
   loading
 }: DataImportModalProps) {
-  const [feishuUrl, setFeishuUrl] = useState('');
+  const [form] = Form.useForm();
 
   // 价格归属时间（默认当前年月）
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
-  const [priceYear, setPriceYear] = useState(currentYear);
-  const [priceMonth, setPriceMonth] = useState(currentMonth);
 
-  if (!isOpen) return null;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!feishuUrl.trim()) {
-      alert('请输入飞书表格链接');
-      return;
+  // 当弹窗打开时，初始化表单数据
+  useEffect(() => {
+    if (isOpen) {
+      form.setFieldsValue({
+        feishuUrl: '',
+        priceYear: currentYear,
+        priceMonth: currentMonth,
+      });
     }
+  }, [isOpen, form, currentYear, currentMonth]);
 
+  // 提交表单
+  const handleSubmit = async (values: {
+    feishuUrl: string;
+    priceYear: number;
+    priceMonth: number;
+  }) => {
     try {
-      await onImport(feishuUrl, priceYear, priceMonth);
-      setFeishuUrl('');
-      setPriceYear(currentYear);
-      setPriceMonth(currentMonth);
+      await onImport(values.feishuUrl, values.priceYear, values.priceMonth);
+      message.success('导入任务已提交');
       onClose();
     } catch (err) {
-      // 错误已由 Hook 处理
+      message.error('导入失败，请重试');
+      throw err; // ProForm 需要抛出错误来停止提交
     }
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
-      onClick={onClose}
-    >
-      <div
-        className="relative top-20 mx-auto p-6 border w-full max-w-md shadow-lg rounded-lg bg-white"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* 标题 */}
-        <div className="mb-4">
-          <h3 className="text-lg font-bold text-gray-900">
+    <Modal
+      title={
+        <div>
+          <div className="text-base font-semibold">
             导入{PLATFORM_NAMES[platform]}表现数据
-          </h3>
-          <p className="text-sm text-gray-600 mt-1">
+          </div>
+          <div className="text-xs font-normal text-gray-500 mt-0.5">
             从飞书表格导入达人表现数据
-          </p>
-        </div>
-
-        {/* 表单 */}
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              飞书表格链接 <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={feishuUrl}
-              onChange={(e) => setFeishuUrl(e.target.value)}
-              placeholder="粘贴飞书表格分享链接"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={loading}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              提示：需要包含达人UID/星图ID列，以及表现数据列
-            </p>
           </div>
-
-          {/* 价格归属时间 */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              价格归属时间 <span className="text-red-500">*</span>
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">年份</label>
-                <select
-                  value={priceYear}
-                  onChange={(e) => setPriceYear(parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={loading}
-                >
-                  {[currentYear - 1, currentYear, currentYear + 1].map(year => (
-                    <option key={year} value={year}>{year}年</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">月份</label>
-                <select
-                  value={priceMonth}
-                  onChange={(e) => setPriceMonth(parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={loading}
-                >
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                    <option key={month} value={month}>{month}月</option>
-                  ))}
-                </select>
-              </div>
+        </div>
+      }
+      open={isOpen}
+      onCancel={onClose}
+      footer={null}
+      width={560}
+      destroyOnClose
+      centered
+    >
+      <ProForm
+        form={form}
+        onFinish={handleSubmit}
+        submitter={{
+          render: (_, dom) => (
+            <div className="flex justify-end gap-2 pt-3 mt-3 border-t">
+              {dom[0]} {/* 重置按钮 */}
+              {dom[1]} {/* 提交按钮 */}
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              💡 表格中的价格将记录为 <strong className="text-blue-600">{priceYear}年{priceMonth}月</strong>，如果已存在该月价格将被覆盖
-            </p>
-          </div>
+          ),
+          submitButtonProps: {
+            type: 'primary',
+            size: 'middle',
+            loading,
+            children: '开始导入',
+          },
+          resetButtonProps: {
+            onClick: onClose,
+            children: '取消',
+            size: 'middle',
+          },
+        }}
+        layout="vertical"
+      >
+        <ProFormText
+          name="feishuUrl"
+          label="飞书表格链接"
+          placeholder="请粘贴飞书表格的分享链接"
+          rules={[
+            { required: true, message: '请输入飞书表格链接' },
+            { type: 'url', message: '请输入有效的URL' },
+          ]}
+          fieldProps={{
+            size: 'middle',
+          }}
+        />
 
-          {/* 按钮 */}
-          <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-              disabled={loading}
-            >
-              取消
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              disabled={loading}
-            >
-              {loading ? '导入中...' : '开始导入'}
-            </button>
-          </div>
-        </form>
+        <div className="grid grid-cols-2 gap-3">
+          <ProFormDigit
+            name="priceYear"
+            label="价格归属年份"
+            placeholder="年份"
+            rules={[{ required: true, message: '请输入年份' }]}
+            fieldProps={{
+              size: 'middle',
+              min: 2020,
+              max: 2099,
+              precision: 0,
+            }}
+          />
 
-        {/* 说明 */}
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-          <p className="text-xs text-blue-900">
-            <strong>导入说明：</strong>
-            <br />
-            1. 表格需要包含"达人UID"或"星图ID"列
-            <br />
-            2. 数据列名需要与字段映射配置一致
-            <br />
-            3. 导入后会自动更新达人的 performanceData 字段
-          </p>
+          <ProFormDigit
+            name="priceMonth"
+            label="价格归属月份"
+            placeholder="月份"
+            rules={[{ required: true, message: '请输入月份' }]}
+            fieldProps={{
+              size: 'middle',
+              min: 1,
+              max: 12,
+              precision: 0,
+            }}
+          />
         </div>
-      </div>
-    </div>
+
+        <div className="mt-4 p-3 bg-blue-50 rounded text-xs text-gray-600">
+          <p className="font-medium text-gray-900 mb-1">📌 导入说明</p>
+          <ul className="space-y-0.5 list-disc list-inside">
+            <li>确保飞书表格已正确配置字段映射</li>
+            <li>价格数据将归属到指定的年月</li>
+            <li>导入过程中请勿关闭此页面</li>
+          </ul>
+        </div>
+      </ProForm>
+    </Modal>
   );
 }

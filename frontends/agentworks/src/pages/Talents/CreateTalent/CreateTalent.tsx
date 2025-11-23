@@ -20,6 +20,7 @@ import type { Platform, TalentTier, TalentStatus, Talent } from '../../../types/
 import { PLATFORM_NAMES } from '../../../types/talent';
 import { AGENCY_INDIVIDUAL_ID } from '../../../types/agency';
 import { AgencySelector } from '../../../components/AgencySelector';
+import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 
 interface FormData {
   platform: Platform;
@@ -41,12 +42,21 @@ export function CreateTalent() {
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>('douyin');
   const [form] = Form.useForm();
 
+  // 使用平台配置 Hook（只获取启用的平台）
+  const { getPlatformList, getPlatformNames, loading: configLoading } = usePlatformConfig(false);
+  const platforms = getPlatformList();
+  const platformNames = getPlatformNames();
+
   // 加载已有的达人类型标签
   useEffect(() => {
     const loadAvailableTags = async () => {
+      // 等待平台配置加载完成
+      if (configLoading || platforms.length === 0) {
+        return;
+      }
+
       try {
         // 获取所有达人数据
-        const platforms: Platform[] = ['douyin', 'xiaohongshu', 'bilibili', 'kuaishou'];
         const allTags = new Set<string>();
 
         for (const platform of platforms) {
@@ -70,7 +80,7 @@ export function CreateTalent() {
     };
 
     loadAvailableTags();
-  }, []);
+  }, [configLoading, platforms]);
 
   // 根据平台获取 platformAccountId 的提示文本
   const getPlatformAccountIdPlaceholder = () => {
@@ -158,9 +168,9 @@ export function CreateTalent() {
       <ProForm<FormData>
         form={form}
         onFinish={handleSubmit}
-        loading={loading}
+        loading={loading || configLoading}
         initialValues={{
-          platform: 'douyin',
+          platform: platforms[0] || 'douyin',
           status: 'active',
           agencyId: AGENCY_INDIVIDUAL_ID,
         }}
@@ -183,12 +193,10 @@ export function CreateTalent() {
               name="platform"
               label="平台"
               rules={[{ required: true, message: '请选择平台' }]}
-              options={[
-                { label: PLATFORM_NAMES.douyin, value: 'douyin' },
-                { label: PLATFORM_NAMES.xiaohongshu, value: 'xiaohongshu' },
-                { label: PLATFORM_NAMES.bilibili, value: 'bilibili' },
-                { label: PLATFORM_NAMES.kuaishou, value: 'kuaishou' },
-              ]}
+              options={platforms.map(platform => ({
+                label: platformNames[platform] || PLATFORM_NAMES[platform],
+                value: platform,
+              }))}
               fieldProps={{
                 onChange: (value: Platform) => {
                   setSelectedPlatform(value);

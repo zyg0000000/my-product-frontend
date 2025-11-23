@@ -16,6 +16,7 @@ import { useDimensionConfig } from '../../hooks/useDimensionConfig';
 import { usePerformanceFilters } from '../../hooks/usePerformanceFilters';
 import { PerformanceFilters } from '../../components/Performance/PerformanceFilters';
 import { formatPrice } from '../../utils/formatters';
+import { usePlatformConfig } from '../../hooks/usePlatformConfig';
 
 /**
  * 获取指定类型的最新价格
@@ -60,7 +61,12 @@ function getPlatformLink(talent: Talent): string | null {
 
 export function PerformanceHome() {
   const navigate = useNavigate();
-  const [selectedPlatform, setSelectedPlatform] = useState<Platform>('douyin');
+
+  // 使用平台配置 Hook（只获取启用的平台）
+  const { getPlatformList, loading: configLoadingPlatform } = usePlatformConfig(false);
+  const platforms = getPlatformList();
+
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform>(platforms[0] || 'douyin');
   const [selectedPriceType, setSelectedPriceType] = useState<PriceType | null>('video_60plus');
   const actionRef = useRef<ActionType>(null);
 
@@ -94,7 +100,6 @@ export function PerformanceHome() {
     search({});
   }, [resetFilters, search]);
 
-  const platforms: Platform[] = ['douyin', 'xiaohongshu', 'bilibili', 'kuaishou'];
   const priceTypes = PLATFORM_PRICE_TYPES[selectedPlatform] || [];
 
   // 处理平台切换
@@ -276,7 +281,7 @@ export function PerformanceHome() {
         actionRef={actionRef}
         dataSource={talents}
         rowKey="oneId"
-        loading={configLoading || loading}
+        loading={configLoadingPlatform || configLoading || loading}
         pagination={{
           current: currentPage,
           pageSize: pageSize,

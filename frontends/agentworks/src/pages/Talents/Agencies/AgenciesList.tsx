@@ -23,15 +23,21 @@ import {
   deleteAgency,
 } from '../../../api/agency';
 import { getTalents } from '../../../api/talent';
-import { AgencyRebateModal } from '../../../components/AgencyRebateModal_v2';
+import { AgencyRebateModal } from '../../../components/AgencyRebateModal';
 import { AgencyFormModal } from '../../../components/AgencyFormModal';
 import { AgencyDeleteModal } from '../../../components/AgencyDeleteModal';
+import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 
 export function AgenciesList() {
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedPlatform, setSelectedPlatform] = useState<Platform>('douyin');
   const [talentCounts, setTalentCounts] = useState<Record<string, number>>({});
+
+  // 使用平台配置 Hook（只获取启用的平台）
+  const { getPlatformList, loading: configLoading } = usePlatformConfig(false);
+  const platforms = getPlatformList();
+
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform>(platforms[0] || 'douyin');
 
   // 弹窗状态
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,8 +48,6 @@ export function AgenciesList() {
   const [agencyToDelete, setAgencyToDelete] = useState<Agency | null>(null);
 
   const actionRef = useRef<ActionType>(null);
-
-  const platforms: Platform[] = ['douyin', 'xiaohongshu', 'bilibili', 'kuaishou'];
 
   // 加载机构列表
   const loadAgencies = async () => {

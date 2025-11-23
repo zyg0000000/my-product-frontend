@@ -18,6 +18,7 @@ import { logger } from '../utils/logger';
 import type { Talent, PriceRecord, PriceType, PriceStatus } from '../types/talent';
 import { PLATFORM_PRICE_TYPES } from '../types/talent';
 import { formatPrice, getPriceHistory, formatYearMonth, yuanToCents } from '../utils/formatters';
+import { usePlatformConfig } from '../hooks/usePlatformConfig';
 
 interface PriceModalProps {
   isOpen: boolean;
@@ -40,6 +41,9 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
   const [selectedMonth, setSelectedMonth] = useState<number | undefined>(undefined);
   const [form] = ProForm.useForm<NewPriceForm>();
 
+  // 使用平台配置 Hook（获取所有平台，包括禁用的）
+  const { getPlatformConfigByKey, loading: configLoading } = usePlatformConfig(true);
+
   // 当前年月
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
@@ -61,7 +65,9 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
 
   if (!talent) return null;
 
-  const priceTypes = PLATFORM_PRICE_TYPES[talent.platform] || [];
+  // 优先使用数据库配置，如果加载中或没有配置则使用硬编码的 fallback
+  const platformConfig = getPlatformConfigByKey(talent.platform);
+  const priceTypes = platformConfig?.priceTypes || PLATFORM_PRICE_TYPES[talent.platform] || [];
 
   // 获取价格历史
   const priceHistory = getPriceHistory(talent.prices);
@@ -267,9 +273,9 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
 
             <ProFormSelect
               name="type"
-              label="视频类型"
+              label={talent.platform === 'xiaohongshu' ? '笔记类型' : '视频类型'}
               placeholder="请选择类型"
-              rules={[{ required: true, message: '请选择视频类型' }]}
+              rules={[{ required: true, message: `请选择${talent.platform === 'xiaohongshu' ? '笔记类型' : '视频类型'}` }]}
               options={priceTypes.map((pt) => ({
                 label: pt.label,
                 value: pt.key,

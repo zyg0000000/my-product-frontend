@@ -33,6 +33,7 @@ import { logger } from '../../../utils/logger';
 import { getTalents, updateTalent, deleteTalent, deleteTalentAll } from '../../../api/talent';
 import type { Talent, Platform, PriceType } from '../../../types/talent';
 import { PLATFORM_NAMES, PLATFORM_PRICE_TYPES } from '../../../types/talent';
+import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 import {
   formatPrice,
   formatRebate,
@@ -51,8 +52,12 @@ export function BasicInfo() {
   const location = useLocation();
   const actionRef = useRef<ActionType>(null);
 
-  // 从路由状态获取平台，如果没有则默认为 'douyin'
-  const initialPlatform = (location.state?.selectedPlatform as Platform) || 'douyin';
+  // 使用平台配置 Hook（只获取启用的平台）
+  const { getPlatformList, loading: configLoading } = usePlatformConfig(false);
+  const platforms = getPlatformList();
+
+  // 从路由状态获取平台，如果没有则默认为第一个平台
+  const initialPlatform = (location.state?.selectedPlatform as Platform) || (platforms[0] || 'douyin');
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>(initialPlatform);
   const [talents, setTalents] = useState<Talent[]>([]);
   const [agencies, setAgencies] = useState<Agency[]>([]);
@@ -97,9 +102,6 @@ export function BasicInfo() {
     return getDefaultPriceTier(selectedPlatform);
   });
 
-  // 平台配置
-  const platforms: Platform[] = ['douyin', 'xiaohongshu', 'bilibili', 'kuaishou'];
-
   // 价格类型配置
   const priceTypes = PLATFORM_PRICE_TYPES[selectedPlatform] || [];
 
@@ -121,6 +123,8 @@ export function BasicInfo() {
   useEffect(() => {
     loadTalents();
   }, [
+    configLoading,
+    platforms.length,
     selectedPlatform,
     currentPage,
     searchTerm,
@@ -138,6 +142,11 @@ export function BasicInfo() {
   }, []);
 
   const loadTalents = async () => {
+    // 等待平台配置加载完成
+    if (configLoading || platforms.length === 0) {
+      return;
+    }
+
     try {
       setLoading(true);
 
