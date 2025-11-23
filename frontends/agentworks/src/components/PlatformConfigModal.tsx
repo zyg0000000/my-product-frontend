@@ -14,12 +14,11 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Modal, Tabs, Form, message, Switch, InputNumber, Tag, Space } from 'antd';
+import { Modal, Tabs, Form, message, Switch, Tag, Space } from 'antd';
 import { ProForm, ProFormText, ProFormDigit, ProFormSelect, ProFormTextArea } from '@ant-design/pro-components';
 import { ProCard } from '@ant-design/pro-components';
 import type { PlatformConfig, PriceTypeConfig } from '../api/platformConfig';
 import { updatePlatformConfig, createPlatformConfig } from '../api/platformConfig';
-import type { Platform } from '../types/talent';
 import { logger } from '../utils/logger';
 
 interface PlatformConfigModalProps {

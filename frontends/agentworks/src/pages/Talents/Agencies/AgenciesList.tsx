@@ -34,7 +34,7 @@ export function AgenciesList() {
   const [talentCounts, setTalentCounts] = useState<Record<string, number>>({});
 
   // 使用平台配置 Hook（只获取启用的平台）
-  const { getPlatformList, loading: configLoading } = usePlatformConfig(false);
+  const { getPlatformList } = usePlatformConfig(false);
   const platforms = getPlatformList();
 
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>(platforms[0] || 'douyin');

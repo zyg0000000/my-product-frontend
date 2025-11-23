@@ -45,7 +45,7 @@ export function AgencyRebateModal({
   onSuccess,
 }: AgencyRebateModalProps) {
   // 使用平台配置 Hook（只获取启用的平台）
-  const { getPlatformList, loading: platformConfigLoading } = usePlatformConfig(false);
+  const { getPlatformList } = usePlatformConfig(false);
   const supportedPlatforms = getPlatformList();
 
   const [activeTab, setActiveTab] = useState<TabType>('current');

@@ -42,7 +42,7 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
   const [form] = ProForm.useForm<NewPriceForm>();
 
   // 使用平台配置 Hook（获取所有平台，包括禁用的）
-  const { getPlatformConfigByKey, loading: configLoading } = usePlatformConfig(true);
+  const { getPlatformConfigByKey } = usePlatformConfig(true);
 
   // 当前年月
   const currentYear = new Date().getFullYear();
