@@ -2,8 +2,9 @@
 
 > **Ant Design Pro Components + Tailwind CSS** 混合方案完整指南
 
-**最后更新**：2024-11-22
-**适用版本**：AgentWorks v2.0+
+**最后更新**：2025-11-23
+**适用版本**：AgentWorks v3.0+
+**UI 模式**：Ant Design Pro + Tailwind 混合开发（官方决策）
 
 ---
 

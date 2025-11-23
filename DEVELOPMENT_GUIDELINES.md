@@ -30,15 +30,17 @@ AgentWorks 是一个多平台达人管理系统，支持抖音、小红书、B�
 ### 前端技术
 - **框架**：React 18 + TypeScript
 - **构建工具**：Vite 5
-- **样式方案**：Tailwind CSS 3
+- **UI 框架**：Ant Design Pro 2.x + Ant Design 5.x（v3.0 新增）
+- **样式方案**：Tailwind CSS 3 + Ant Design（混合模式）
 - **路由管理**：React Router 6
 - **状态管理**：React Hooks + Context API
-- **图标库**：Heroicons
+- **图标库**：Ant Design Icons + Heroicons
 
 ### 后端技术
-- **运行时**：Node.js + Express
-- **数据库**：PostgreSQL
-- **ORM**：Prisma（计划）
+- **运行时**：Node.js
+- **云函数**：Cloudflare Workers
+- **数据库**：MongoDB Atlas
+- **验证库**：自定义验证函数
 
 ### 开发工具
 - **包管理**：npm
@@ -82,16 +84,26 @@ my-product-frontend/
 - `price.ts` - 价格相关接口
 
 #### `/components` - 组件库
-- **通用组件**：Toast, Modal, Pagination
-- **业务组件**：PriceModal, RebateModal, EditTalentModal
-- **布局组件**：Layout, Header, Sidebar
+- **Ant Design 组件**：Modal（弹窗基础）, Toast（兼容保留）
+- **业务弹窗组件**：
+  - AgencyFormModal - 机构表单（ProForm + ProCard）
+  - AgencyDeleteModal - 机构删除确认
+  - AgencyRebateModal_v2 - 机构返点管理（Tabs + ProTable）
+  - EditTalentModal - 达人编辑（ProForm + ProCard）
+  - DeleteConfirmModal - 达人删除确认
+  - RebateManagementModal - 达人返点管理
+  - PriceModal - 价格管理
+- **布局组件**：Layout, ErrorBoundary
 
 #### `/pages` - 页面组件
 - **Talents/** - 达人管理模块
-  - BasicInfo - 基础信息列表
+  - BasicInfo - 基础信息列表（手写表格）
   - CreateTalent - 创建达人
-  - Agencies - 机构管理
-- **TalentDetail/** - 达人详情页
+  - Agencies - 机构管理（ProTable v2.0）
+- **Performance/** - 达人表现模块
+  - PerformanceHome - 表现数据（ProTable v2.0）
+- **Settings/** - 设置模块
+  - PerformanceConfig - 表现配置
 
 #### `/types` - 类型定义
 - `talent.ts` - 达人相关类型
@@ -225,15 +237,68 @@ const handleSave = async () => {
 };
 ```
 
+### UI 开发规范（v3.0）
+
+#### Ant Design Pro + Tailwind 混合模式
+
+**核心原则**：使用 Ant Design Pro 组件构建复杂功能，Tailwind CSS 处理布局和样式
+
+```tsx
+// ✅ 表格页面：使用 ProTable
+import { ProTable } from '@ant-design/pro-components';
+import type { ProColumns } from '@ant-design/pro-components';
+
+<div className="space-y-4">  {/* Tailwind 布局 */}
+  <h1 className="text-2xl font-bold text-gray-900">标题</h1>  {/* Tailwind 文字 */}
+
+  <ProTable  {/* Ant Design Pro 表格 */}
+    columns={columns}
+    dataSource={data}
+    cardBordered
+  />
+</div>
+
+// ✅ 表单弹窗：ProForm + ProCard
+import { Modal, Form } from 'antd';
+import { ProForm, ProCard, ProFormText } from '@ant-design/pro-components';
+
+<Modal width={900}>  {/* Ant Design 弹窗 */}
+  <ProForm>  {/* Ant Design Pro 表单 */}
+    <ProCard title="基础信息" headerBordered bodyStyle={{ padding: '12px 16px' }}>
+      <div className="grid grid-cols-2 gap-3">  {/* Tailwind Grid */}
+        <ProFormText name="name" label="名称" />
+      </div>
+    </ProCard>
+  </ProForm>
+</Modal>
+```
+
+#### 组件选择指南
+| 功能 | 使用组件 | 示例 |
+|------|---------|------|
+| 数据表格 | `ProTable` | [PerformanceHome.tsx](frontends/agentworks/src/pages/Performance/PerformanceHome.tsx) |
+| 复杂表单 | `ProForm` + `ProCard` | [AgencyFormModal.tsx](frontends/agentworks/src/components/AgencyFormModal.tsx) |
+| 弹窗 | `Modal` | 所有 *Modal.tsx 组件 |
+| 标签页 | `Tabs` | 平台切换 |
+| 通知 | `message` API | 替代 alert() 和 Toast |
+| 布局 | Tailwind `flex`, `grid` | 所有页面 |
+| 间距 | Tailwind `space-y-*`, `gap-*` | 所有页面 |
+
+#### 禁止使用
+- ⛔ 手写 `<table>` 标签（使用 ProTable）
+- ⛔ `alert()`, `confirm()`, `prompt()`（使用 message API）
+- ⛔ 手写弹窗容器（使用 Modal）
+- ⛔ 内联样式 `style={{ ... }}`（使用 Tailwind）
+
 ### CSS/Tailwind 规范
 
 #### 类名组织
 ```tsx
-// ✅ 好的实践
+// ✅ 好的实践：Tailwind + Ant Design 组合
 <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md">
-  <button className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700">
+  <Button type="primary" className="custom-tailwind-class">
     保存
-  </button>
+  </Button>
 </div>
 
 // ❌ 避免内联样式

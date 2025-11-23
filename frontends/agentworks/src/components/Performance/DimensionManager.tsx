@@ -5,6 +5,7 @@
  */
 
 import { useState } from 'react';
+import { message } from 'antd';
 import { logger } from '../../utils/logger';
 import {
   DndContext,
@@ -150,7 +151,7 @@ export function DimensionManager({
 
     // 验证
     if (!editingDimension.name || !editingDimension.targetPath) {
-      alert('维度名称和目标字段路径不能为空');
+      message.warning('维度名称和目标字段路径不能为空');
       return;
     }
 

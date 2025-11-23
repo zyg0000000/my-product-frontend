@@ -1,17 +1,22 @@
 /**
- * 达人表现配置管理页面（完整CRUD版本）
- * Phase 7: 支持完整的配置编辑功能
- * v2.0: 支持 URL 参数（platform, tab）
+ * 达人表现配置管理页面 - v3.0 (Ant Design Pro + Tailwind 升级版)
+ *
+ * 升级要点：
+ * 1. 使用 Tabs 组件替代手写 Tab 导航
+ * 2. 使用 ProCard 包裹内容区域
+ * 3. 保持原有业务逻辑不变
  */
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Tabs, Button, message } from 'antd';
+import { ReloadOutlined } from '@ant-design/icons';
 import { useFieldMapping } from '../../hooks/useFieldMapping';
 import { useDimensionConfig } from '../../hooks/useDimensionConfig';
 import { useDataImport } from '../../hooks/useDataImport';
 import { FieldMappingManager } from '../../components/Performance/FieldMappingManager';
 import { DimensionManager } from '../../components/Performance/DimensionManager';
-import { DataImportModal } from '../../components/DataImportModal';
+import { DataImportModal } from '../../components/DataImportModal_v2';
 import { ImportResultPanel } from '../../components/ImportResultPanel';
 import type { Platform } from '../../types/talent';
 import { PLATFORM_NAMES } from '../../types/talent';
@@ -54,93 +59,60 @@ export function PerformanceConfig() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* 页面标题 */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">达人表现配置管理</h1>
-          <p className="text-gray-600 mt-2">管理各平台的字段映射和数据维度配置</p>
-        </div>
+    <div className="space-y-4">
+      {/* 页面标题 - Tailwind */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">达人表现配置管理</h1>
+        <p className="text-gray-600 mt-1 text-sm">管理各平台的字段映射和数据维度配置</p>
       </div>
 
-      {/* 平台 Tabs（与基础信息一致）*/}
-      <div className="border-b border-gray-200">
-        <nav className="flex space-x-8">
-          {platforms.map(platform => (
-            <button
-              key={platform}
-              onClick={() => setSelectedPlatform(platform)}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                selectedPlatform === platform
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              {PLATFORM_NAMES[platform]}
-            </button>
-          ))}
-        </nav>
-      </div>
+      {/* 平台 Tabs - Ant Design */}
+      <Tabs
+        activeKey={selectedPlatform}
+        onChange={(key) => setSelectedPlatform(key as Platform)}
+        items={platforms.map(platform => ({
+          key: platform,
+          label: PLATFORM_NAMES[platform],
+        }))}
+      />
 
-      {/* Tab 切换（二级Tab）*/}
-      <div className="border-b border-gray-200">
-        <nav className="flex space-x-8">
-          <button
-            onClick={() => setActiveTab('mapping')}
-            className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-              activeTab === 'mapping'
-                ? 'border-green-600 text-green-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            字段映射配置
-          </button>
-          <button
-            onClick={() => setActiveTab('dimension')}
-            className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-              activeTab === 'dimension'
-                ? 'border-green-600 text-green-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            数据维度配置
-          </button>
-          <button
-            onClick={() => setActiveTab('import')}
-            className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-              activeTab === 'import'
-                ? 'border-green-600 text-green-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            数据导入管理
-          </button>
-        </nav>
-      </div>
-
-      {/* 内容区域 */}
-      <div className="bg-white rounded-lg shadow p-6">
-        {activeTab === 'mapping' && (
-          <MappingConfigPanel
-            platform={selectedPlatform}
-            fieldMapping={fieldMapping}
-          />
-        )}
-
-        {activeTab === 'dimension' && (
-          <DimensionConfigPanel
-            platform={selectedPlatform}
-            dimensionConfig={dimensionConfig}
-          />
-        )}
-
-        {activeTab === 'import' && (
-          <DataImportPanel
-            platform={selectedPlatform}
-            onOpenImport={() => setShowImportModal(true)}
-          />
-        )}
-      </div>
+      {/* 功能 Tabs（二级）- Ant Design */}
+      <Tabs
+        activeKey={activeTab}
+        onChange={(key) => setActiveTab(key as 'mapping' | 'dimension' | 'import')}
+        items={[
+          {
+            key: 'mapping',
+            label: '字段映射配置',
+            children: (
+              <MappingConfigPanel
+                platform={selectedPlatform}
+                fieldMapping={fieldMapping}
+              />
+            ),
+          },
+          {
+            key: 'dimension',
+            label: '数据维度配置',
+            children: (
+              <DimensionConfigPanel
+                platform={selectedPlatform}
+                dimensionConfig={dimensionConfig}
+              />
+            ),
+          },
+          {
+            key: 'import',
+            label: '数据导入管理',
+            children: (
+              <DataImportPanel
+                platform={selectedPlatform}
+                onOpenImport={() => setShowImportModal(true)}
+              />
+            ),
+          },
+        ]}
+      />
 
       {/* 数据导入弹窗 */}
       <DataImportModal
@@ -180,15 +152,15 @@ function MappingConfigPanel({
     return (
       <div className="p-8 text-center">
         <p className="text-gray-500 mb-4">未找到 {PLATFORM_NAMES[platform]} 的配置</p>
-        <button
+        <Button
+          type="primary"
           onClick={() => {
             // 创建默认配置的逻辑可以在这里添加
-            alert('创建默认配置功能待实现');
+            message.warning('创建默认配置功能待实现');
           }}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           创建默认配置
-        </button>
+        </Button>
       </div>
     );
   }
@@ -205,15 +177,12 @@ function MappingConfigPanel({
           </h3>
           <p className="text-sm text-gray-500 mt-1">{config.description}</p>
         </div>
-        <button
+        <Button
+          icon={<ReloadOutlined />}
           onClick={fieldMapping.loadConfigs}
-          className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded flex items-center gap-2"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
           刷新
-        </button>
+        </Button>
       </div>
 
       {/* 字段映射管理器 */}
@@ -246,15 +215,15 @@ function DimensionConfigPanel({
     return (
       <div className="p-8 text-center">
         <p className="text-gray-500 mb-4">未找到 {PLATFORM_NAMES[platform]} 的配置</p>
-        <button
+        <Button
+          type="primary"
           onClick={() => {
             // 创建默认配置的逻辑可以在这里添加
-            alert('创建默认配置功能待实现');
+            message.warning('创建默认配置功能待实现');
           }}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           创建默认配置
-        </button>
+        </Button>
       </div>
     );
   }
@@ -273,15 +242,12 @@ function DimensionConfigPanel({
             {PLATFORM_NAMES[platform]}达人表现数据维度配置（基于ByteProject performance页面）
           </p>
         </div>
-        <button
+        <Button
+          icon={<ReloadOutlined />}
           onClick={dimensionConfig.loadConfigs}
-          className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded flex items-center gap-2"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
           刷新
-        </button>
+        </Button>
       </div>
 
       {/* 维度管理器 */}
@@ -339,12 +305,12 @@ function DataImportPanel({
             <p className="text-sm text-gray-600 mb-4">
               从飞书表格导入最新的达人表现数据，包括粉丝数、互动率、价格等指标
             </p>
-            <button
+            <Button
+              type="primary"
               onClick={onOpenImport}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
             >
               + 开始导入
-            </button>
+            </Button>
           </div>
         </div>
       </div>

@@ -1,5 +1,77 @@
 # AgentWorks 更新日志
 
+## v3.2.0 (2025-11-23) 🚀 - UI 全面升级为 Ant Design Pro 风格
+
+### 🎨 官方 UI 决策
+✅ **正式采用 Ant Design Pro + Tailwind CSS 混合开发模式**
+
+### ✨ 页面 UI 重构
+
+#### 1. Agencies 页面（机构管理）
+- **AgenciesList** - 完全重写为 ProTable 版本
+  - 手写 `<table>` → **ProTable** 组件
+  - 手写平台按钮 → **Tabs** 组件
+  - 手写操作按钮 → Ant Design **Button** + **Space**
+  - 手写 badge → Ant Design **Tag** 组件
+  - 代码量减少 ~40%
+
+#### 2. PerformanceConfig 页面（表现配置）
+- **两层 Tabs 导航升级**
+  - 手写平台 Tab 导航 → **Tabs** 组件
+  - 手写功能 Tab 导航 → **Tabs** 组件
+  - 代码减少 ~50 行（68%）
+- **UI 规范统一**
+  - ❌ 移除 `alert()` 违规使用 → ✅ `message.warning()`
+  - 手写刷新按钮 → **Button** + `ReloadOutlined` 图标
+  - 手写主要按钮 → **Button** `type="primary"`
+
+#### 弹窗升级（3个弹窗）
+1. **AgencyFormModal**（新增/编辑机构）
+   - Modal + ProForm + ProCard
+   - 紧凑布局：900px 宽度
+   - 3列/2列响应式表单布局
+   - 自动表单验证和状态管理
+
+2. **AgencyDeleteModal**（删除确认）
+   - Modal + Alert + Checkbox + Button
+   - 紧凑布局：560px 宽度
+   - 显示达人数量警告
+   - 强制确认勾选机制
+
+3. **AgencyRebateModal_v2**（返点管理）
+   - Modal + Tabs + ProTable + ProForm
+   - 4个 Tab：当前返点、手动调整、阶梯规则（Phase 2）、调整历史
+   - 平台选择器（Select 组件）
+   - 历史记录表格（Table 组件 + 分页）
+   - 同步达人选项（Checkbox）
+
+#### Bug 修复
+- ✅ 修复返点显示重复百分号问题（`23.00%%` → `23.00%`）
+- ✅ 修复平台返点字段不一致问题（统一使用 `platforms.{platform}.baseRebate`）
+- ✅ 未配置平台显示"未配置"而非旧的 baseRebate 值
+
+#### 云函数优化
+- **agencyManagement** - 移除 `baseRebate` 默认值设置
+- 新机构创建时初始化空的 `platforms: {}` 对象
+- 更新机构时不再允许直接修改 `baseRebate`
+
+#### 弹窗视觉规范统一
+- **大型弹窗**（表单/Tab）：900px
+- **小型弹窗**（删除确认）：560px
+- 统一字体大小：标题 `text-base`，副标题 `text-xs`
+- 统一间距：`space-y-3`, `gap-2`, `p-3`
+- 统一按钮：`size="middle"`
+
+#### 技术栈决策
+✅ **官方确认采用 Ant Design Pro + Tailwind 混合模式**
+- ProTable：数据表格
+- ProForm + ProCard：表单组织
+- Modal, Tabs, Button, Tag：基础组件
+- Tailwind：布局、间距、文字样式
+- message API：替代 alert() 和 Toast
+
+---
+
 ## v3.1.0 (2025-11-23) 🎨
 
 ### ✨ BasicInfo 页面弹窗全面升级

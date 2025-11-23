@@ -43,7 +43,7 @@ export interface ContactInfo {
  * 返点配置
  */
 export interface RebateConfig {
-  baseRebate: number;        // 基础返点率（%）
+  baseRebate: number;        // 基础返点率（%）- v1.0-v2.0 遗留字段，已弃用
   effectiveDate?: string;    // 生效日期
   lastUpdatedAt?: string;    // 最后更新时间
   updatedBy?: string;        // 更新人
@@ -58,6 +58,14 @@ export interface RebateConfig {
     effectiveDate?: Date;
     expiryDate?: Date;
   }>;
+  platforms?: {              // v3.0 新增：按平台设置的返点配置
+    [key: string]: {
+      baseRebate: number;
+      effectiveDate: string;
+      lastUpdatedAt: string;
+      updatedBy: string;
+    };
+  };
 }
 
 /**

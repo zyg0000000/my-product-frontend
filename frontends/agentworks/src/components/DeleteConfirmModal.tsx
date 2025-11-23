@@ -63,11 +63,11 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
   return (
     <Modal
       title={
-        <div className="flex items-center gap-3">
-          <ExclamationCircleFilled className="text-2xl text-red-600" />
+        <div className="flex items-center gap-2">
+          <ExclamationCircleFilled className="text-xl text-red-600" />
           <div>
-            <div className="text-lg font-semibold">删除确认</div>
-            <div className="text-sm font-normal text-gray-500 mt-0.5">
+            <div className="text-base font-semibold">删除确认</div>
+            <div className="text-xs font-normal text-gray-500 mt-0.5">
               此操作不可逆，请谨慎确认
             </div>
           </div>
@@ -76,17 +76,17 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
       open={isOpen}
       onCancel={handleClose}
       footer={null}
-      width={640}
+      width={560}
       destroyOnClose
       centered
       closable={!deleting}
       maskClosable={!deleting}
     >
-      <div className="space-y-4">
+      <div className="space-y-3">
         {/* 达人信息 */}
-        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <h4 className="text-sm font-semibold text-gray-900 mb-2">即将删除的达人</h4>
-          <div className="space-y-1 text-sm">
+        <div className="p-3 bg-gray-50 rounded border border-gray-200">
+          <h4 className="text-xs font-semibold text-gray-900 mb-1.5">即将删除的达人</h4>
+          <div className="space-y-0.5 text-xs">
             <div className="flex items-center gap-2">
               <span className="text-gray-600">达人名称:</span>
               <span className="font-medium text-gray-900">{talent.name}</span>
@@ -106,7 +106,7 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
         <Alert
           message="重要提示"
           description={
-            <ul className="text-xs space-y-1 list-disc list-inside mt-2">
+            <ul className="text-xs space-y-0.5 list-disc list-inside mt-1">
               <li>删除后，该达人的所有信息将永久丢失</li>
               <li>与该达人相关的<strong>合作记录</strong>可能会出现数据异常</li>
               <li>与该达人相关的<strong>项目关联</strong>可能会受到影响</li>
@@ -116,39 +116,40 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
           type="error"
           showIcon
           icon={<ExclamationCircleFilled />}
+          className="compact-alert"
         />
 
         {/* 删除范围选项 */}
         <div>
-          <div className="text-sm font-medium text-gray-700 mb-3">删除范围</div>
+          <div className="text-xs font-medium text-gray-700 mb-2">删除范围</div>
           <Radio.Group
             value={deleteAll}
             onChange={(e) => setDeleteAll(e.target.value)}
             className="w-full"
           >
-            <Space direction="vertical" className="w-full">
+            <Space direction="vertical" className="w-full" size={8}>
               <Radio
                 value={false}
-                className="w-full p-3 border-2 rounded-lg hover:bg-gray-50 transition-colors"
+                className="w-full p-2.5 border-2 rounded hover:bg-gray-50 transition-colors"
               >
-                <div className="ml-2">
-                  <div className="text-sm font-medium text-gray-900">
+                <div className="ml-1">
+                  <div className="text-xs font-medium text-gray-900">
                     仅删除 <span className="text-red-600">{PLATFORM_NAMES[talent.platform]}</span> 平台数据
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-gray-500 mt-0.5">
                     只删除该达人在当前平台的信息，保留其他平台的数据
                   </div>
                 </div>
               </Radio>
               <Radio
                 value={true}
-                className="w-full p-3 border-2 border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+                className="w-full p-2.5 border-2 border-red-200 rounded hover:bg-red-50 transition-colors"
               >
-                <div className="ml-2">
-                  <div className="text-sm font-medium text-red-900">
+                <div className="ml-1">
+                  <div className="text-xs font-medium text-red-900">
                     删除<strong>所有平台</strong>数据
                   </div>
-                  <div className="text-xs text-red-700 mt-1">
+                  <div className="text-xs text-red-700 mt-0.5">
                     删除该达人在所有平台的信息（通过 OneID 关联），这是最彻底的删除
                   </div>
                 </div>
@@ -158,20 +159,20 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
         </div>
 
         {/* 确认勾选 */}
-        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
           <Checkbox
             checked={confirmed}
             onChange={(e) => setConfirmed(e.target.checked)}
           >
-            <span className="text-sm font-medium text-gray-900">
+            <span className="text-xs font-medium text-gray-900">
               我已了解删除的影响，确认要删除该达人
             </span>
           </Checkbox>
         </div>
 
         {/* 操作按钮 */}
-        <div className="flex justify-end gap-3 pt-2">
-          <Button onClick={handleClose} disabled={deleting}>
+        <div className="flex justify-end gap-2 pt-1">
+          <Button onClick={handleClose} disabled={deleting} size="middle">
             取消
           </Button>
           <Button
@@ -180,11 +181,25 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
             onClick={handleConfirm}
             disabled={!confirmed}
             loading={deleting}
+            size="middle"
           >
             {deleteAll ? '删除所有平台' : '删除当前平台'}
           </Button>
         </div>
       </div>
+
+      <style>{`
+        .compact-alert .ant-alert-message {
+          font-size: 13px;
+          margin-bottom: 4px;
+        }
+        .compact-alert .ant-alert-description {
+          font-size: 12px;
+        }
+        .compact-alert {
+          padding: 10px 12px;
+        }
+      `}</style>
     </Modal>
   );
 }

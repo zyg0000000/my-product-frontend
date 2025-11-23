@@ -104,9 +104,11 @@ async function createAgency(db, data) {
       email: data.email
     },
     rebateConfig: {
-      baseRebate: data.baseRebate || 10.0,
+      // baseRebate 字段已弃用，不再设置默认值
+      // 新的返点配置通过 agencyRebateConfig 云函数按平台设置
       tieredRules: [],
-      specialRules: []
+      specialRules: [],
+      platforms: {}  // v3.0: 按平台的返点配置
     },
     description: data.description,
     status: data.status || 'active',
@@ -188,10 +190,11 @@ async function updateAgency(db, data) {
     if (data.email !== undefined) updateData.contactInfo.email = data.email;
   }
 
-  // 更新返点配置
-  if (data.baseRebate !== undefined) {
-    updateData['rebateConfig.baseRebate'] = data.baseRebate;
-  }
+  // 更新返点配置 - v3.0 后不再支持直接更新 baseRebate
+  // 返点配置应通过 agencyRebateConfig 云函数按平台更新
+  // if (data.baseRebate !== undefined) {
+  //   updateData['rebateConfig.baseRebate'] = data.baseRebate;
+  // }
 
   const result = await collection.findOneAndUpdate(
     { id: data.id },

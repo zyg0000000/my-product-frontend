@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { message } from 'antd';
 import { logger } from '../../utils/logger';
 import type { FieldMappingRule } from '../../api/performance';
 import type { Platform } from '../../types/talent';
@@ -54,7 +55,7 @@ export function FieldMappingManager({
 
     // 验证
     if (!editingRule.excelHeader || !editingRule.targetPath) {
-      alert('Excel列名和目标字段路径不能为空');
+      message.warning('Excel列名和目标字段路径不能为空');
       return;
     }
 
