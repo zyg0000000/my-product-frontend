@@ -17,8 +17,8 @@ import { AGENCY_INDIVIDUAL_ID } from '../types/agency';
 import { getAgencies } from '../api/agency';
 
 interface AgencySelectorProps {
-  value: string; // 机构ID
-  onChange: (value: string) => void;
+  value?: string; // 机构ID（可选，支持在 Form.Item 中使用）
+  onChange?: (value: string) => void; // 可选，支持在 Form.Item 中使用
   disabled?: boolean;
   placeholder?: string;
   className?: string;
