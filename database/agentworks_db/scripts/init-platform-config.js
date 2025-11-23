@@ -1,14 +1,12 @@
 /**
- * 平台配置初始化脚本
+ * 平台配置初始化脚本 - MongoDB Shell 版本
  *
  * @version 1.0.0
  * @description 在 MongoDB 中创建 system_config 集合并初始化4个平台的配置数据
  *
- * 使用方法：
- * cd database/scripts && npm install && node init-platform-config.js
- *
- * 环境变量：
- * MONGO_URI - MongoDB 连接字符串
+ * 使用方法（在 MongoDB Shell 中）：
+ * use agentworks_db
+ * load('/path/to/database/agentworks_db/scripts/init-platform-config.js')
  *
  * --- 更新日志 ---
  * [v1.0.0] 2025-11-23
@@ -19,15 +17,14 @@
  * - 完整的日志记录
  */
 
-// 加载环境变量
-require('dotenv').config({ path: '../../.env' });
+// 使用当前数据库
+const db = db.getSiblingDB('agentworks_db');
+const collection = db.getCollection('system_config');
 
-const { MongoClient } = require('mongodb');
-
-// MongoDB 配置
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017';
-const DB_NAME = 'agentworks_db';
-const COLLECTION_NAME = 'system_config';
+print('[INFO] 开始初始化平台配置...');
+print('[INFO] 数据库: agentworks_db');
+print('[INFO] 集合: system_config');
+print('');
 
 // 平台配置数据
 const platformConfigs = [
@@ -245,102 +242,69 @@ const platformConfigs = [
   }
 ];
 
-async function initPlatformConfigs() {
-  let client;
-
-  try {
-    console.log('[INFO] 开始连接 MongoDB...');
-    console.log('[INFO] 数据库:', DB_NAME);
-    console.log('[INFO] 集合:', COLLECTION_NAME);
-
-    // 连接数据库
-    client = new MongoClient(MONGO_URI);
-    await client.connect();
-    console.log('[SUCCESS] MongoDB 连接成功');
-
-    const db = client.db(DB_NAME);
-    const collection = db.collection(COLLECTION_NAME);
-
-    // 创建索引
-    console.log('\n[INFO] 创建索引...');
-    await collection.createIndex(
-      { configType: 1, platform: 1 },
-      { unique: true }
-    );
-    await collection.createIndex(
-      { enabled: 1, order: 1 }
-    );
-    console.log('[SUCCESS] 索引创建成功');
-
-    // 初始化配置数据
-    console.log('\n[INFO] 初始化平台配置数据...');
-
-    for (const config of platformConfigs) {
-      const { platform } = config;
-
-      // 检查是否已存在
-      const existing = await collection.findOne({
-        configType: 'platform',
-        platform: platform
-      });
-
-      if (existing) {
-        console.log(`[INFO] 平台 "${config.name}" (${platform}) 配置已存在，跳过`);
-        continue;
-      }
-
-      // 插入配置
-      await collection.insertOne(config);
-      console.log(`[SUCCESS] 平台 "${config.name}" (${platform}) 配置已创建`);
-    }
-
-    // 输出统计信息
-    console.log('\n[INFO] 初始化完成统计:');
-    const totalCount = await collection.countDocuments({ configType: 'platform' });
-    const enabledCount = await collection.countDocuments({ configType: 'platform', enabled: true });
-    console.log(`- 总平台数: ${totalCount}`);
-    console.log(`- 已启用: ${enabledCount}`);
-    console.log(`- 未启用: ${totalCount - enabledCount}`);
-
-    // 显示所有配置
-    console.log('\n[INFO] 当前平台配置列表:');
-    const allConfigs = await collection
-      .find({ configType: 'platform' })
-      .sort({ order: 1 })
-      .toArray();
-
-    allConfigs.forEach(config => {
-      const status = config.enabled ? '✓ 启用' : '✗ 禁用';
-      const priceTypesCount = config.priceTypes?.length || 0;
-      console.log(`  ${config.order}. ${config.name} (${config.platform}) - ${status} - ${priceTypesCount}个价格类型`);
-    });
-
-    console.log('\n[SUCCESS] 平台配置初始化全部完成！');
-
-  } catch (error) {
-    console.error('\n[ERROR] 初始化失败:', error.message);
-    console.error('错误详情:', error);
-    process.exit(1);
-
-  } finally {
-    if (client) {
-      await client.close();
-      console.log('\n[INFO] MongoDB 连接已关闭');
-    }
+// 创建索引
+print('[INFO] 创建索引...');
+try {
+  collection.createIndex(
+    { configType: 1, platform: 1 },
+    { unique: true, name: 'config_platform_unique' }
+  );
+  collection.createIndex(
+    { enabled: 1, order: 1 },
+    { name: 'enabled_order_idx' }
+  );
+  print('[SUCCESS] 索引创建成功');
+  print('');
+} catch (e) {
+  if (e.codeName === 'IndexOptionsConflict' || e.code === 85) {
+    print('[INFO] 索引已存在，跳过创建');
+    print('');
+  } else {
+    print('[ERROR] 索引创建失败:', e.message);
+    throw e;
   }
 }
 
-// 执行初始化
-if (require.main === module) {
-  initPlatformConfigs()
-    .then(() => {
-      console.log('\n✨ 初始化脚本执行成功');
-      process.exit(0);
-    })
-    .catch(error => {
-      console.error('\n❌ 初始化脚本执行失败:', error);
-      process.exit(1);
-    });
-}
+// 初始化配置数据
+print('[INFO] 初始化平台配置数据...');
+let createdCount = 0;
+let skippedCount = 0;
 
-module.exports = { initPlatformConfigs };
+platformConfigs.forEach(function(config) {
+  const existing = collection.findOne({
+    configType: 'platform',
+    platform: config.platform
+  });
+
+  if (existing) {
+    print(`[INFO] 平台 "${config.name}" (${config.platform}) 配置已存在，跳过`);
+    skippedCount++;
+  } else {
+    collection.insertOne(config);
+    print(`[SUCCESS] 平台 "${config.name}" (${config.platform}) 配置已创建`);
+    createdCount++;
+  }
+});
+
+print('');
+print('[INFO] 初始化完成统计:');
+const totalCount = collection.countDocuments({ configType: 'platform' });
+const enabledCount = collection.countDocuments({ configType: 'platform', enabled: true });
+print(`- 总平台数: ${totalCount}`);
+print(`- 已启用: ${enabledCount}`);
+print(`- 未启用: ${totalCount - enabledCount}`);
+print(`- 本次创建: ${createdCount}`);
+print(`- 跳过已存在: ${skippedCount}`);
+
+print('');
+print('[INFO] 当前平台配置列表:');
+const allConfigs = collection.find({ configType: 'platform' }).sort({ order: 1 }).toArray();
+
+allConfigs.forEach(function(config) {
+  const status = config.enabled ? '✓ 启用' : '✗ 禁用';
+  const priceTypesCount = config.priceTypes ? config.priceTypes.length : 0;
+  print(`  ${config.order}. ${config.name} (${config.platform}) - ${status} - ${priceTypesCount}个价格类型`);
+});
+
+print('');
+print('[SUCCESS] 平台配置初始化全部完成！');

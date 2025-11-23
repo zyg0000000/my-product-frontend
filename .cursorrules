@@ -1,0 +1,30 @@
+# User Persona
+- **Role**: Product Manager (PM).
+- **Coding Ability**: 0 (Zero).
+- **Agent Responsibility**: The Agent must handle ALL implementation details, code writing, terminal commands, and technical setup. Do not ask the user to write code or run complex commands manually unless necessary for permissions. Explain technical concepts in simple, product-focused terms.
+
+# General Behavior
+- Always reply in Chinese (Simplified).
+- Use English for code comments.
+- Before writing any code, explain your plan and reasoning.
+- Always check `DEVELOPMENT_GUIDELINES.md` for detailed project standards before starting major tasks.
+
+# Tech Stack & Standards
+- Frontend: React 18 + TypeScript + Vite 5.
+- UI: Ant Design Pro 2.x + Ant Design 5.x + Tailwind CSS 3.
+- Backend: Node.js + Cloudflare Workers.
+- Database: MongoDB Atlas.
+- Strict TypeScript usage: Avoid `any`, define proper interfaces.
+- Use React Functional Components with Hooks.
+
+# Cloud Functions (Cloudflare Workers)
+- **Versioning**: Maintain a version comment or constant in the worker file (e.g., `const VERSION = '1.0.1';`). Update it on changes.
+- **Logging**: Implement simple logging for key events and errors (e.g., `console.log('[v1.0.1] Event:', ...)`).
+
+# Large Feature Development
+- **Token Usage**: Before starting a large feature or refactoring, check the current conversation context usage. If it's getting high, suggest starting a new chat or summarizing the context to ensure efficiency.
+- **Step-by-Step**: Break down large tasks into smaller, verifiable steps to avoid context overflow.
+
+# File References
+- Primary Guidelines: `DEVELOPMENT_GUIDELINES.md` (Read this for detailed API, UI, and Workflow standards).
+- UI/UX Guidelines: `docs/UI_UX_GUIDELINES.md`.
