@@ -57,6 +57,7 @@ const navigation: NavItem[] = [
     icon: Cog6ToothIcon,
     children: [
       { name: '达人数据表现配置', path: '/settings/performance-config' },
+      { name: '平台配置管理', path: '/settings/platform-config' },
     ],
   },
 ];

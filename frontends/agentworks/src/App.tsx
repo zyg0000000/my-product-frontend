@@ -22,6 +22,7 @@ const AnalyticsHome = lazy(() => import('./pages/Analytics/AnalyticsHome').then(
 const SettingsHome = lazy(() => import('./pages/Settings/SettingsHome').then(m => ({ default: m.SettingsHome })));
 const PerformanceHome = lazy(() => import('./pages/Performance/PerformanceHome').then(m => ({ default: m.PerformanceHome })));
 const PerformanceConfig = lazy(() => import('./pages/Settings/PerformanceConfig').then(m => ({ default: m.PerformanceConfig })));
+const PlatformConfig = lazy(() => import('./pages/Settings/PlatformConfig').then(m => ({ default: m.PlatformConfig })));
 const CustomersHome = lazy(() => import('./pages/Customers/CustomersHome').then(m => ({ default: m.CustomersHome })));
 const CustomerList = lazy(() => import('./pages/Customers/CustomerList/CustomerList'));
 const CustomerForm = lazy(() => import('./pages/Customers/CustomerForm'));
@@ -76,6 +77,7 @@ function App() {
               {/* 设置模块 */}
               <Route path="settings" element={<SettingsHome />} />
               <Route path="settings/performance-config" element={<PerformanceConfig />} />
+              <Route path="settings/platform-config" element={<PlatformConfig />} />
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>

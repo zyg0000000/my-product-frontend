@@ -69,8 +69,10 @@ function saveToCache(configs: PlatformConfig[]): void {
 
 /**
  * 平台配置 Hook
+ *
+ * @param includeDisabled - 是否包含禁用的平台（默认 false）
  */
-export function usePlatformConfig() {
+export function usePlatformConfig(includeDisabled = false) {
   const [configs, setConfigs] = useState<PlatformConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +95,10 @@ export function usePlatformConfig() {
 
       // 从服务器加载
       logger.info('从服务器加载平台配置');
-      const response = await getPlatformConfigs(true); // 只获取启用的平台
+      // includeDisabled 为 true 时不传 enabled 参数，获取所有平台
+      const response = includeDisabled
+        ? await getPlatformConfigs()
+        : await getPlatformConfigs(true);
 
       if (response.success && response.data) {
         setConfigs(response.data);
