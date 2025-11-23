@@ -1,16 +1,24 @@
 /**
- * 编辑达人弹窗
+ * 编辑达人弹窗 - v2.0 (Ant Design Pro + Tailwind 升级版)
+ *
+ * 升级要点：
+ * 1. 使用 Modal 替代手写弹窗容器
+ * 2. 使用 ProForm 和 ProCard 组织表单
+ * 3. 使用 Ant Design message 替代 Toast
+ * 4. 保留自定义组件 (TagInput, AgencySelector)
+ * 5. 简化状态管理，使用 Form.useForm()
  */
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { Modal, Form, Input, Radio, Space, message } from 'antd';
+import { ProForm, ProFormText, ProFormRadio } from '@ant-design/pro-components';
+import { ProCard } from '@ant-design/pro-components';
 import { logger } from '../utils/logger';
 import type { Talent, Platform, TalentTier, TalentStatus } from '../types/talent';
 import { PLATFORM_NAMES } from '../types/talent';
 import { AGENCY_INDIVIDUAL_ID } from '../types/agency';
 import { TagInput } from './TagInput';
-import { AgencySelector } from './AgencySelector';
-import { Toast } from './Toast';
-import { useToast } from '../hooks/useToast';
+import { AgencySelector } from './AgencySelector_v2';
 
 interface EditTalentModalProps {
   isOpen: boolean;
@@ -35,25 +43,15 @@ interface FormData {
 }
 
 export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags }: EditTalentModalProps) {
-  const [saving, setSaving] = useState(false);
-  const { toast, hideToast, error: showError } = useToast();
-  const [formData, setFormData] = useState<FormData>({
-    platformAccountId: '',
-    name: '',
-    agencyId: AGENCY_INDIVIDUAL_ID, // 默认为野生达人
-    talentTier: undefined,
-    talentType: [],
-    status: 'active',
-    platformSpecific: {},
-  });
+  const [form] = Form.useForm<FormData>();
 
   // 当弹窗打开时，初始化表单数据
   useEffect(() => {
     if (isOpen && talent) {
-      setFormData({
+      form.setFieldsValue({
         platformAccountId: talent.platformAccountId || '',
         name: talent.name || '',
-        agencyId: talent.agencyId || AGENCY_INDIVIDUAL_ID, // 默认野生达人
+        agencyId: talent.agencyId || AGENCY_INDIVIDUAL_ID,
         talentTier: talent.talentTier,
         talentType: talent.talentType || [],
         status: talent.status || 'active',
@@ -63,9 +61,9 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
         },
       });
     }
-  }, [isOpen, talent]);
+  }, [isOpen, talent, form]);
 
-  if (!isOpen || !talent) return null;
+  if (!talent) return null;
 
   // 根据平台获取 platformAccountId 的提示文本
   const getPlatformAccountIdPlaceholder = () => {
@@ -95,52 +93,12 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
     }
   };
 
-  // 处理表单字段变化
-  const handleChange = (
-    field: keyof FormData,
-    value: string | string[] | TalentTier | undefined
-  ) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  // 处理平台特定字段变化
-  const handlePlatformSpecificChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      platformSpecific: {
-        ...prev.platformSpecific,
-        [field]: value || undefined,
-      },
-    }));
-  };
-
-  // 表单验证
-  const validateForm = (): boolean => {
-    if (!formData.platformAccountId.trim()) {
-      showError(`请输入${getPlatformAccountIdLabel()}`);
-      return false;
-    }
-    if (!formData.name.trim()) {
-      showError('请输入达人昵称');
-      return false;
-    }
-    return true;
-  };
-
   // 提交表单
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
+  const handleSubmit = async (values: FormData) => {
     try {
-      setSaving(true);
-
       // 清理 platformSpecific 中的空值
       const cleanedPlatformSpecific = Object.entries(
-        formData.platformSpecific
+        values.platformSpecific || {}
       ).reduce(
         (acc, [key, value]) => {
           if (value) acc[key] = value;
@@ -151,12 +109,12 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
 
       // 构建更新数据
       const updateData: Partial<Talent> = {
-        platformAccountId: formData.platformAccountId,
-        name: formData.name,
-        agencyId: formData.agencyId,
-        talentTier: formData.talentTier,
-        talentType: formData.talentType.length > 0 ? formData.talentType : undefined,
-        status: formData.status,
+        platformAccountId: values.platformAccountId,
+        name: values.name,
+        agencyId: values.agencyId,
+        talentTier: values.talentTier,
+        talentType: values.talentType && values.talentType.length > 0 ? values.talentType : undefined,
+        status: values.status,
         platformSpecific:
           Object.keys(cleanedPlatformSpecific).length > 0
             ? cleanedPlatformSpecific
@@ -164,240 +122,167 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
       };
 
       await onSave(talent.oneId, talent.platform, updateData);
+      message.success('达人信息更新成功');
       onClose();
     } catch (err) {
       logger.error('保存达人信息失败:', err);
-      showError('保存失败，请重试');
-    } finally {
-      setSaving(false);
+      message.error('保存失败，请重试');
+      throw err; // ProForm 需要抛出错误来停止提交
     }
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
-      onClick={onClose}
-    >
-      <div
-        className="relative top-10 mx-auto p-0 border-0 w-full max-w-4xl shadow-2xl rounded-xl bg-white overflow-hidden mb-10"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-xl font-bold text-white">
-                编辑达人: <span className="text-blue-100">{talent.name}</span>
-              </h3>
-              <p className="text-blue-100 text-sm mt-1">
-                {PLATFORM_NAMES[talent.platform]} 平台 · 更新达人的基础信息和平台特定字段
-              </p>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-white hover:text-blue-100 text-3xl leading-none transition-colors"
-            >
-              ×
-            </button>
+    <Modal
+      title={
+        <div>
+          <div className="text-lg font-semibold">
+            编辑达人: <span className="text-blue-600">{talent.name}</span>
+          </div>
+          <div className="text-sm font-normal text-gray-500 mt-1">
+            {PLATFORM_NAMES[talent.platform]} 平台 · 更新达人的基础信息和平台特定字段
           </div>
         </div>
+      }
+      open={isOpen}
+      onCancel={onClose}
+      footer={null}
+      width={900}
+      destroyOnClose
+      centered
+    >
+      <ProForm
+        form={form}
+        onFinish={handleSubmit}
+        submitter={{
+          render: (_, dom) => (
+            <div className="flex justify-end gap-3 pt-4 mt-4 border-t">
+              <Space>
+                {dom[0]} {/* 重置按钮 */}
+                {dom[1]} {/* 提交按钮 */}
+              </Space>
+            </div>
+          ),
+          submitButtonProps: {
+            type: 'primary',
+            size: 'middle',
+          },
+          resetButtonProps: {
+            onClick: onClose,
+            children: '取消',
+            size: 'middle',
+          },
+        }}
+        layout="vertical"
+      >
+        {/* 基础信息卡片 */}
+        <ProCard title="基础信息" headerBordered className="mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 达人昵称 */}
+            <ProFormText
+              name="name"
+              label="达人昵称"
+              placeholder="输入达人的昵称"
+              rules={[{ required: true, message: '请输入达人昵称' }]}
+              fieldProps={{
+                size: 'middle',
+              }}
+            />
 
-        {/* Content */}
-        <form onSubmit={handleSubmit} className="p-5">
-          {/* 单栏布局 */}
-          <div className="space-y-5">
-            {/* 基础信息卡片 */}
-            <div className="border rounded-lg bg-white p-4 shadow-sm">
-              <h4 className="text-base font-semibold text-gray-800 mb-3 pb-2 border-b">
-                基础信息
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* 左列：达人昵称 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    达人昵称 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={e => handleChange('name', e.target.value)}
-                    placeholder="输入达人的昵称"
-                    className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    required
-                  />
-                </div>
+            {/* 平台账号ID */}
+            <ProFormText
+              name="platformAccountId"
+              label={getPlatformAccountIdLabel()}
+              placeholder={getPlatformAccountIdPlaceholder()}
+              rules={[{ required: true, message: `请输入${getPlatformAccountIdLabel()}` }]}
+              fieldProps={{
+                size: 'middle',
+              }}
+            />
 
-                {/* 右列：平台账号ID（星图ID） */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    {getPlatformAccountIdLabel()} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.platformAccountId}
-                    onChange={e =>
-                      handleChange('platformAccountId', e.target.value)
-                    }
-                    placeholder={getPlatformAccountIdPlaceholder()}
-                    className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    required
-                  />
-                </div>
+            {/* 商业属性（机构选择器） */}
+            <Form.Item
+              name="agencyId"
+              label={
+                <span>
+                  商业属性
+                  <span className="ml-1 text-xs text-gray-500">（机构归属）</span>
+                </span>
+              }
+              rules={[{ required: true, message: '请选择商业属性' }]}
+            >
+              <AgencySelector placeholder="选择归属机构" />
+            </Form.Item>
 
-                {/* 左列：商业属性（原归属机构） */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    商业属性
-                    <span className="ml-1 text-xs text-gray-500">（机构归属）</span>
-                  </label>
-                  <AgencySelector
-                    value={formData.agencyId}
-                    onChange={(value) => handleChange('agencyId', value)}
-                    disabled={false}
-                    placeholder="选择归属机构"
-                  />
-                </div>
+            {/* 平台特定信息（仅抖音） */}
+            {talent.platform === 'douyin' && (
+              <ProFormText
+                name={['platformSpecific', 'uid']}
+                label={
+                  <span>
+                    平台特定信息
+                    <span className="ml-1 text-xs text-gray-500">（选填）</span>
+                  </span>
+                }
+                placeholder="抖音UID（辅助识别）"
+                fieldProps={{
+                  size: 'middle',
+                }}
+              />
+            )}
+          </div>
+        </ProCard>
 
-                {/* 右列：平台特定信息（如果有） */}
-                {talent.platform === 'douyin' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      平台特定信息
-                      <span className="ml-1 text-xs text-gray-500">（选填）</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.platformSpecific.uid || ''}
-                      onChange={e =>
-                        handlePlatformSpecificChange('uid', e.target.value)
-                      }
-                      placeholder="抖音UID（辅助识别）"
-                      className="block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    />
-                  </div>
-                )}
-              </div>
+        {/* 达人分类与属性卡片 */}
+        <ProCard title="达人分类与属性" headerBordered>
+          <div className="space-y-4">
+            {/* 第一行：达人等级和状态 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* 达人等级 */}
+              <ProFormRadio.Group
+                name="talentTier"
+                label="达人等级"
+                options={[
+                  { label: '头部', value: '头部' },
+                  { label: '腰部', value: '腰部' },
+                  { label: '尾部', value: '尾部' },
+                ]}
+                fieldProps={{
+                  optionType: 'default',
+                }}
+              />
+
+              {/* 状态 */}
+              <ProFormRadio.Group
+                name="status"
+                label="状态"
+                options={[
+                  { label: '活跃', value: 'active' },
+                  { label: '暂停', value: 'inactive' },
+                  { label: '归档', value: 'archived' },
+                ]}
+                fieldProps={{
+                  optionType: 'default',
+                }}
+              />
             </div>
 
-            {/* 达人分类与属性卡片 */}
-            <div className="border rounded-lg bg-white p-4 shadow-sm">
-              <h4 className="text-base font-semibold text-gray-800 mb-3 pb-2 border-b">
-                达人分类与属性
-              </h4>
-              <div className="space-y-4">
-                {/* 第一行：达人等级和状态 - 双列布局 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* 左列：达人等级 */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      达人等级
-                    </label>
-                    <div className="space-y-2">
-                      {['头部', '腰部', '尾部'].map((tier) => (
-                        <label key={tier} className="flex items-center cursor-pointer">
-                          <input
-                            type="radio"
-                            name="talentTier"
-                            value={tier}
-                            checked={formData.talentTier === tier}
-                            onChange={() => handleChange('talentTier', tier as TalentTier)}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{tier}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 右列：状态 */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      状态
-                    </label>
-                    <div className="space-y-2">
-                      <label className="flex items-center cursor-pointer">
-                        <input
-                          type="radio"
-                          name="status"
-                          value="active"
-                          checked={formData.status === 'active'}
-                          onChange={() => handleChange('status', 'active')}
-                          className="h-4 w-4 text-green-600 focus:ring-green-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">活跃</span>
-                      </label>
-                      <label className="flex items-center cursor-pointer">
-                        <input
-                          type="radio"
-                          name="status"
-                          value="inactive"
-                          checked={formData.status === 'inactive'}
-                          onChange={() => handleChange('status', 'inactive')}
-                          className="h-4 w-4 text-yellow-600 focus:ring-yellow-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">暂停</span>
-                      </label>
-                      <label className="flex items-center cursor-pointer">
-                        <input
-                          type="radio"
-                          name="status"
-                          value="archived"
-                          checked={formData.status === 'archived'}
-                          onChange={() => handleChange('status', 'archived')}
-                          className="h-4 w-4 text-gray-600 focus:ring-gray-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">归档</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 第二行：达人分类标签 - 全宽 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    分类标签
-                  </label>
-                  <TagInput
-                    selectedTags={formData.talentType}
-                    availableTags={availableTags}
-                    onChange={(tags) => handleChange('talentType', tags)}
-                    placeholder="输入分类标签后按回车，如：美妆、时尚等"
-                    onError={showError}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer: 操作按钮 */}
-          <div className="flex justify-end gap-3 pt-4 mt-4 border-t">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              disabled={saving}
+            {/* 第二行：分类标签（使用自定义 TagInput 组件） */}
+            <Form.Item
+              name="talentType"
+              label="分类标签"
+              tooltip="输入标签后按回车添加，或点击下方常用标签快速添加"
             >
-              取消
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-5 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              {saving ? '保存中...' : '保存修改'}
-            </button>
+              <TagInput
+                selectedTags={form.getFieldValue('talentType') || []}
+                availableTags={availableTags}
+                onChange={(tags) => form.setFieldValue('talentType', tags)}
+                placeholder="输入分类标签后按回车，如：美妆、时尚等"
+                onError={(msg) => message.warning(msg)}
+              />
+            </Form.Item>
           </div>
-        </form>
-      </div>
-
-      {/* Toast 通知 */}
-      {toast.visible && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-        />
-      )}
-    </div>
+        </ProCard>
+      </ProForm>
+    </Modal>
   );
 }
