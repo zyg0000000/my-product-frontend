@@ -12,7 +12,9 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "analyze": "vite build --mode analyze",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "pre-deploy": "npm run type-check && npm run lint && npm run build",
+    "check": "npm run type-check && npm run lint"
   },
   "dependencies": {
     "@ant-design/pro-components": "^2.8.10",

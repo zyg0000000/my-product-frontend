@@ -309,19 +309,19 @@ Tailwind CSS              →  布局和样式
 
 | 文档 | 说明 |
 |------|------|
-| **[📖 主文档索引中心](./MASTER_DOCS_INDEX.md)** | **统一文档导航系统 - 支持双产品线 🔥** |
-| **[AgentWorks 文档索引](./docs/AGENTWORKS_DOCS_INDEX.md)** | **AgentWorks 完整文档导航 🆕** |
-| [开发者指南](./docs/DEVELOPER_GUIDE.md) | 环境搭建、开发流程、代码规范 ⭐ |
-| [故障排查手册](./docs/TROUBLESHOOTING.md) | 常见问题快速解决 ⭐ |
-| [FAQ](./docs/FAQ.md) | 常见问题汇总 |
+| **[📖 文档中心](./docs/README.md)** | **统一文档导航系统 - 快速找到你需要的文档 🔥** |
+| **[AgentWorks 产品总览](./docs/agentworks/README.md)** | **AgentWorks 完整产品介绍 🆕** |
+| [开发者指南](./docs/general/DEVELOPER_GUIDE.md) | 环境搭建、开发流程、代码规范 ⭐ |
+| [故障排查手册](./docs/general/TROUBLESHOOTING.md) | 常见问题快速解决 ⭐ |
 
 ### 🎯 功能详解
 
 | 文档 | 说明 |
 |------|------|
-| [多价格类型系统](./docs/features/MULTI_PRICE_SYSTEM.md) | v2.9 多价格类型完整实现 |
-| [项目日报功能](./docs/features/PROJECT_REPORT.md) | 3-Tab 架构：日报、录入、效果监测 |
-| [自动化功能](./docs/features/AUTOMATION.md) | 工作流引擎、模板关联、本地代理 |
+| [多价格类型系统](./docs/agentworks/features/MULTI_PRICE_SYSTEM.md) | v2.9 多价格类型完整实现 |
+| [项目日报功能](./docs/agentworks/features/PROJECT_REPORT.md) | 3-Tab 架构：日报、录入、效果监测 |
+| [自动化功能](./docs/agentworks/features/AUTOMATION.md) | 工作流引擎、模板关联、本地代理 |
+| [平台配置系统](./docs/agentworks/features/PLATFORM_CONFIG_FEATURE_GUIDE.md) | 平台动态配置管理 |
 
 ### 🔧 技术文档
 
@@ -332,19 +332,14 @@ Tailwind CSS              →  布局和样式
 | [数据库 Schema 索引](./database/INDEX.md) | 12 个集合定义 |
 | [Schema 同步指南](./database/SCHEMA_SYNC_GUIDE.md) | 自动同步工具使用 |
 
-### 📖 API 文档
+### 📖 架构与 API 文档
 
 | 文档 | 说明 |
 |------|------|
-| [API 参考](./docs/api/API_REFERENCE.md) | 云函数接口完整文档 |
-| [后端 API v4.0](./docs/api/backend-api-v4.0-README.md) | 5 分钟快速部署指南 |
-
-### 🏛️ 架构文档
-
-| 文档 | 说明 |
-|------|------|
-| [架构升级指南](./docs/architecture/ARCHITECTURE_UPGRADE_GUIDE.md) | 页面模块化重构指南 |
-| [页面模块化策略](./docs/architecture/PAGE_MODULARIZATION_STRATEGY.md) | 模块化设计模式 |
+| [系统架构](./docs/agentworks/ARCHITECTURE.md) | AgentWorks 技术架构详解 |
+| [API 文档](./docs/agentworks/api/) | 后端 API 接口文档 |
+| [开发规范](./docs/agentworks/DEVELOPMENT_GUIDELINES.md) | 代码规范和最佳实践 |
+| [UI/UX 规范](./docs/agentworks/UI_UX_GUIDELINES.md) | 界面设计规范 |
 
 ### 🔗 外部仓库
 
@@ -357,6 +352,25 @@ Tailwind CSS              →  布局和样式
 
 ## 🛠️ 开发指南
 
+### ⚠️ 关键开发要求（必读）
+
+#### 1. 云函数开发规范
+- ✅ **必须更新版本号** - 每次修改云函数必须更新 `@version` 和 `CHANGELOG`
+- ✅ **必须添加日志** - 使用 `[v${VERSION}]` 标识版本
+- 📚 [完整规范](./docs/agentworks/DEVELOPMENT_GUIDELINES.md#云函数开发规范)
+
+#### 2. Token 用量控制
+- ⚠️ **Token > 50,000** - 需要提醒并评估
+- 🚨 **Token > 100,000** - 分阶段执行
+- 📚 [详细说明](./docs/agentworks/DEVELOPMENT_GUIDELINES.md#token-用量控制)
+
+#### 3. Cloudflare Pages 部署
+- ✅ **部署前必须检查** - 运行 `./scripts/pre-deploy-check.sh`
+- ✅ **TypeScript 检查** - `npm run type-check` 必须通过
+- ✅ **ESLint 检查** - `npm run lint` 必须通过
+- ✅ **构建测试** - `npm run build` 必须成功
+- 📚 [部署检查清单](./docs/agentworks/DEVELOPMENT_GUIDELINES.md#cloudflare-pages-部署要求)
+
 ### 本地开发流程
 
 ```bash
@@ -364,16 +378,18 @@ Tailwind CSS              →  布局和样式
 git checkout -b feature/your-feature-name
 
 # 2. 开发并测试
-cd frontends/byteproject
-python -m http.server 8000
-# 在浏览器中测试功能
+cd frontends/agentworks
+npm run dev
 
-# 3. 提交代码
+# 3. 部署前检查（重要！）
+../../scripts/pre-deploy-check.sh
+
+# 4. 提交代码
 git add .
 git commit -m "feat: 添加新功能"
 git push origin feature/your-feature-name
 
-# 4. 创建 Pull Request
+# 5. 创建 Pull Request（使用 PR 模板）
 ```
 
 ### AI 协作开发 🤖
@@ -514,21 +530,22 @@ git push
 
 ---
 
-**最后更新**：2025-11-18
+**最后更新**：2025-11-24
 **当前版本**：
 - ByteProject v1.0 (稳定运行)
-- AgentWorks v2.6.0 (开发中 - 性能优化完成)
+- AgentWorks v3.4.0 (开发中 - 平台配置动态化完成)
 **维护者**：产品经理 + Claude Code
 
 **📖 立即开始**：
-- **📚 全局导航**: 查看 [主文档索引中心](./MASTER_DOCS_INDEX.md) - 65个文档的统一导航
+- **📚 文档中心**: 查看 [文档导航系统](./docs/README.md) - 快速找到你需要的文档
 - **产品 1.0 (ByteProject)**:
   - [前端说明](./frontends/byteproject/README.md) - 18个功能模块
   - [数据库v1.0](./database/kol_data/README.md) - 单平台架构
 - **产品 2.0 (AgentWorks)**:
-  - [本地开发指南](./frontends/agentworks/本地开发指南.md) - 快速上手
-  - [项目架构](./PROJECT_ARCHITECTURE.md) - 系统架构详解
-  - [开发规范](./DEVELOPMENT_GUIDELINES.md) - 代码规范
-  - [UI/UX规范](./UI_UX_GUIDELINES.md) - 界面设计
+  - [产品总览](./docs/agentworks/README.md) - 完整产品介绍
+  - [前端快速开始](./frontends/agentworks/README.md) - 5分钟启动
+  - [项目架构](./docs/agentworks/ARCHITECTURE.md) - 系统架构详解
+  - [开发规范](./docs/agentworks/DEVELOPMENT_GUIDELINES.md) - 代码规范
+  - [UI/UX规范](./docs/agentworks/UI_UX_GUIDELINES.md) - 界面设计
   - [数据库v2.0](./database/agentworks_db/README.md) - 多平台架构
 - **云函数**: 查看 [函数索引](./functions/docs/INDEX.md) - 51个云函数
