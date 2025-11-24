@@ -21,7 +21,7 @@ import { useState, useRef } from 'react';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
 import { Button, Tag, Space, message } from 'antd';
-import { PlusOutlined, EditOutlined, ReloadOutlined, SettingOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, ReloadOutlined } from '@ant-design/icons';
 import { usePlatformConfig } from '../../hooks/usePlatformConfig';
 import type { PlatformConfig } from '../../api/platformConfig';
 import { PlatformConfigModal } from '../../components/PlatformConfigModal';
