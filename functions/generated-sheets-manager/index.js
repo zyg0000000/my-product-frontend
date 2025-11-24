@@ -219,10 +219,18 @@ exports.handler = async (event, context) => {
                 if (status === 404) {
                     // 文件不存在，认为已删除，继续删除数据库记录
                     console.warn(`[Feishu API] File with token ${sheetToken} not found on Feishu. Proceeding to delete local record.`);
-                } else if (feishuCode === 1062501) {
-                    // 权限不足：可能是文件已被删除或无权访问
-                    // 这种情况下，我们直接删除数据库记录（因为文件已不可访问）
-                    console.warn(`[Feishu API] Permission denied (Code: 1062501). File may be deleted or inaccessible. Proceeding to delete local record.`);
+                } else if (feishuCode === 1062501 || feishuCode === 1061045) {
+                    // 权限错误处理（宽容策略）
+                    // Code 1062501: operate node no permission - 文件操作权限不足
+                    // Code 1061045: file not found - 文件不存在
+                    // 可能原因：
+                    // 1. 文件已被手动删除
+                    // 2. 文件被移动到其他文件夹导致权限变化
+                    // 3. 文件被共享后所有者改变
+                    // 4. 文件已在回收站中
+                    // 5. 飞书应用权限配置发生变化
+                    // 策略：跳过飞书删除，直接删除数据库记录
+                    console.warn(`[Feishu API] Permission or access denied (Code: ${feishuCode}). File may be deleted, moved, or inaccessible. Proceeding to delete local record.`);
                 } else {
                     // 其他错误：严格遵守约定，中断操作并返回错误
                     console.error('Failed to move Feishu file to recycle bin:', feishuError.response ? feishuError.response.data : feishuError.message);
