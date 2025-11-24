@@ -1,25 +1,26 @@
 /**
  * @file 云函数: generated-sheets-manager
- * @version 2.2.0
+ * @version 2.3.0
  * @date 2025-11-24
  * @changelog
- * - v2.2.0 (2025-11-24): 诊断模式 - 详细日志定位权限问题
- *   - 添加完整的飞书 API 调用日志（Token、URL、请求体、响应）
- *   - 权限错误时返回详细诊断信息（不再跳过，便于定位问题）
- *   - 诊断信息包含：sheetToken、文件名、URL、创建时间、错误类型
- *   - 提供排查建议：文件位置、回收站状态、应用权限
- * - v2.1.0 (2025-11-24): 修复删除飞书文件权限问题
- *   - 将直接删除 API 改为移动到回收站 API
- *   - 针对权限错误 (Code: 1062501) 特殊处理
- *   - 优化错误日志
+ * - v2.3.0 (2025-11-24): 修复 API 端点错误
+ *   - 发现问题：POST /files/{token}/trash 端点不存在（返回 404）
+ *   - 改用正确的删除 API: DELETE /files/{token}?type=sheet
+ *   - 飞书删除 API 会自动将文件移入回收站
+ *   - 保留详细诊断日志用于定位权限问题
+ * - v2.2.0 (2025-11-24): 诊断模式
+ *   - 添加完整日志和诊断信息
+ *   - 发现 trash 端点返回 404
+ * - v2.1.0 (2025-11-24): 错误尝试
+ *   - 尝试使用 trash 端点（端点不存在）
  * - v2.0.0 (之前): Feishu File Deletion
  *   - 新增同步删除飞书云端电子表格功能
- *   - 遵循"先删云端，再删本地"原则
  *
  * @description
  * - [核心功能] 管理飞书表格生成历史记录
- * - [删除策略] 移动文件到回收站，出错时返回详细诊断信息
- * - [诊断模式] 当前版本重点是定位权限问题的根本原因
+ * - [删除策略] 使用 DELETE API 删除文件（自动进入回收站）
+ * - [权限要求] 应用需是文件所有者 + 有父文件夹编辑权限
+ * - [诊断模式] 返回详细错误信息帮助定位权限问题
  * - [依赖] axios
  * - [配置] 需要环境变量: FEISHU_APP_ID, FEISHU_APP_SECRET, MONGODB_URI
  */
@@ -28,7 +29,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 const axios = require('axios');
 
 // --- 版本信息 ---
-const VERSION = '2.2.0';
+const VERSION = '2.3.0';
 
 // --- 配置信息 ---
 const MONGO_URI = process.env.MONGODB_URI;
@@ -187,23 +188,24 @@ exports.handler = async (event, context) => {
                 return createResponse(204, {});
             }
 
-            // 步骤 2: 调用飞书 API 将文件移动到回收站
+            // 步骤 2: 调用飞书 API 删除文件（文件会进入回收站）
             try {
                 const accessToken = await getTenantAccessToken();
                 console.log(`[v${VERSION}] ========== 开始飞书 API 调用 ==========`);
                 console.log(`[v${VERSION}] SheetToken:`, sheetToken);
                 console.log(`[v${VERSION}] AccessToken 前10位:`, accessToken.substring(0, 10) + '...');
-                console.log(`[v${VERSION}] API URL:`, `https://open.feishu.cn/open-apis/drive/v1/files/${sheetToken}/trash`);
+                console.log(`[v${VERSION}] API URL:`, `https://open.feishu.cn/open-apis/drive/v1/files/${sheetToken}?type=sheet`);
 
-                // 使用移动到回收站 API 代替直接删除
-                // https://open.feishu.cn/open-apis/drive/v1/files/{file_token}/trash
-                const response = await axios.post(
-                    `https://open.feishu.cn/open-apis/drive/v1/files/${sheetToken}/trash`,
-                    { type: 'sheet' }, // 请求体指定文件类型
+                // 使用飞书删除文件 API（文件会自动进入回收站）
+                // https://open.feishu.cn/document/server-docs/docs/drive-v1/file/delete
+                const response = await axios.delete(
+                    `https://open.feishu.cn/open-apis/drive/v1/files/${sheetToken}`,
                     {
                         headers: {
-                            'Authorization': `Bearer ${accessToken}`,
-                            'Content-Type': 'application/json'
+                            'Authorization': `Bearer ${accessToken}`
+                        },
+                        params: {
+                            type: 'sheet'  // 指定文件类型
                         }
                     }
                 );
@@ -211,7 +213,7 @@ exports.handler = async (event, context) => {
                 console.log(`[v${VERSION}] 飞书 API 响应:`, JSON.stringify(response.data, null, 2));
 
                 if (response.data.code === 0) {
-                    console.log(`[v${VERSION}] ✅ 成功移动文件到回收站`);
+                    console.log(`[v${VERSION}] ✅ 成功删除文件（已进入回收站）`);
                 } else {
                     console.warn(`[v${VERSION}] ⚠️  飞书 API 返回非零代码: ${response.data.code}, 消息: ${response.data.msg}`);
                 }
