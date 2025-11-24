@@ -25,6 +25,8 @@ import { PlusOutlined, EditOutlined, ReloadOutlined, SettingOutlined } from '@an
 import { usePlatformConfig } from '../../hooks/usePlatformConfig';
 import type { PlatformConfig } from '../../api/platformConfig';
 import { PlatformConfigModal } from '../../components/PlatformConfigModal';
+import { TableSkeleton } from '../../components/Skeletons/TableSkeleton';
+import { PageTransition } from '../../components/PageTransition';
 
 export function PlatformConfig() {
   const actionRef = useRef<ActionType>(null);
@@ -190,79 +192,71 @@ export function PlatformConfig() {
   ];
 
   return (
-    <div className="space-y-4">
-      {/* 页面标题 */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">平台配置管理</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          管理系统支持的平台及其相关配置，配置修改后立即生效
-        </p>
-      </div>
-
-      {/* ProTable */}
-      <ProTable<PlatformConfig>
-        actionRef={actionRef}
-        columns={columns}
-        dataSource={configs}
-        loading={loading}
-        rowKey="platform"
-        search={false}
-        pagination={{
-          defaultPageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total) => `共 ${total} 个平台`,
-        }}
-        options={{
-          reload: false,
-          density: false,
-          setting: true,
-        }}
-        headerTitle={
-          <div className="flex items-center gap-3">
-            <SettingOutlined className="text-lg" />
-            <span className="font-medium">平台列表</span>
-            <div className="h-4 w-px bg-gray-300"></div>
-            <span className="text-sm text-gray-500">共 {configs.length} 个平台</span>
-          </div>
-        }
-        toolbar={{
-          actions: [
-            <Button
-              key="refresh"
-              icon={<ReloadOutlined />}
-              onClick={handleRefresh}
-            >
-              刷新配置
-            </Button>,
-            <Button
-              key="add"
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleCreate}
-            >
-              新增平台
-            </Button>,
-          ],
-        }}
-        dateFormatter="string"
-      />
-
-      {/* 编辑/新增弹窗 */}
-      <PlatformConfigModal
-        isOpen={editModalOpen}
-        onClose={handleCloseModal}
-        config={selectedConfig}
-        isCreating={isCreating}
-        onSave={handleSaveConfig}
-      />
-
-      {/* 错误提示 */}
-      {error && (
-        <div className="fixed bottom-4 right-4 bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg">
-          <div className="text-sm text-red-800">{error}</div>
+    <PageTransition>
+      <div className="space-y-6">
+        {/* 页面标题 */}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">平台配置管理</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            管理系统支持的平台及其相关配置，支持动态调整无需重新部署
+          </p>
         </div>
-      )}
-    </div>
+
+        {/* 表格区域 */}
+        {loading && configs.length === 0 ? (
+          <TableSkeleton columnCount={5} rowCount={5} />
+        ) : (
+          <ProTable<PlatformConfig>
+            actionRef={actionRef}
+            rowKey="id"
+            headerTitle="平台列表"
+            toolBarRender={() => [
+              <Button
+                key="refresh"
+                icon={<ReloadOutlined />}
+                onClick={handleRefresh}
+              >
+                刷新配置
+              </Button>,
+              <Button
+                key="add"
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleCreate}
+              >
+                新增平台
+              </Button>,
+            ]}
+            columns={columns}
+            dataSource={configs}
+            search={false}
+            options={{
+              density: true,
+              fullScreen: true,
+              reload: handleRefresh,
+              setting: true,
+            }}
+            pagination={false}
+            cardBordered
+          />
+        )}
+
+        {/* 编辑/新增弹窗 */}
+        <PlatformConfigModal
+          isOpen={editModalOpen}
+          onClose={handleCloseModal}
+          config={selectedConfig}
+          isCreating={isCreating}
+          onSave={handleSaveConfig}
+        />
+
+        {/* 错误提示 */}
+        {error && (
+          <div className="fixed bottom-4 right-4 bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg">
+            <div className="text-sm text-red-800">{error}</div>
+          </div>
+        )}
+      </div>
+    </PageTransition>
   );
 }

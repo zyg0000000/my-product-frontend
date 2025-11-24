@@ -2,29 +2,78 @@
  * 客户列表页面 - 使用 Ant Design Pro (紧凑布局)
  */
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
 import { Button, Tag, Space, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, DollarOutlined, UndoOutlined, StopOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, DollarOutlined, UndoOutlined, StopOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { Customer, CustomerLevel, CustomerStatus } from '../../../types/customer';
 import { CUSTOMER_LEVEL_NAMES, CUSTOMER_STATUS_NAMES } from '../../../types/customer';
 import { customerApi } from '../../../services/customerApi';
 import { Toast } from '../../../components/Toast';
 import { useToast } from '../../../hooks/useToast';
+import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
+import { PageTransition } from '../../../components/PageTransition';
 
 export default function CustomerList() {
   const navigate = useNavigate();
   const actionRef = useRef<ActionType>(null);
   const { toast, hideToast, success, error: showError } = useToast();
 
+  // Manual data fetching state
+  const [loading, setLoading] = useState(true);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [total, setTotal] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [levelFilter, setLevelFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+
+  const loadCustomers = async () => {
+    try {
+      setLoading(true);
+      const response = await customerApi.getCustomers({
+        page: currentPage,
+        pageSize: pageSize,
+        searchTerm: searchTerm,
+        level: levelFilter,
+        status: statusFilter,
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+      });
+
+      if (response.success) {
+        setCustomers(response.data.customers);
+        setTotal(response.data.total);
+      } else {
+        setCustomers([]);
+        setTotal(0);
+        showError('获取客户列表失败');
+      }
+    } catch (error) {
+      console.error('Error loading customers:', error);
+      showError('获取客户列表失败');
+      setCustomers([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCustomers();
+  }, [currentPage, pageSize, searchTerm, levelFilter, statusFilter]);
+
   const handleDelete = async (id: string) => {
     try {
       const response = await customerApi.deleteCustomer(id);
       if (response.success) {
         success('删除成功');
-        actionRef.current?.reload();
+        loadCustomers();
       }
     } catch (error) {
       showError('删除失败');
@@ -36,7 +85,7 @@ export default function CustomerList() {
       const response = await customerApi.permanentDeleteCustomer(id);
       if (response.success) {
         success('永久删除成功');
-        actionRef.current?.reload();
+        loadCustomers();
       }
     } catch (error) {
       showError('永久删除失败');
@@ -48,7 +97,7 @@ export default function CustomerList() {
       const response = await customerApi.restoreCustomer(id);
       if (response.success) {
         success('恢复成功');
-        actionRef.current?.reload();
+        loadCustomers();
       }
     } catch (error) {
       showError('恢复失败');
@@ -242,87 +291,94 @@ export default function CustomerList() {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* 页面标题 */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">客户列表</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          管理客户基础信息、联系人和业务配置
-        </p>
+    <PageTransition>
+      <div className="space-y-6">
+        {/* 页面标题 */}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">客户列表</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            管理客户基础信息、联系人和业务配置
+          </p>
+        </div>
+
+        {loading && customers.length === 0 ? (
+          <TableSkeleton columnCount={8} rowCount={10} />
+        ) : (
+          <ProTable<Customer>
+            columns={columns}
+            actionRef={actionRef}
+            cardBordered
+            dataSource={customers}
+            loading={loading}
+            rowKey={(record) => record._id || record.code}
+            pagination={{
+              current: currentPage,
+              pageSize: pageSize,
+              total: total,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total) => `共 ${total} 条`,
+              onChange: (page, size) => {
+                setCurrentPage(page);
+                setPageSize(size);
+              },
+            }}
+            search={{
+              labelWidth: 80,
+              span: 6,
+              defaultCollapsed: false,
+              optionRender: (_searchConfig, _formProps, dom) => [...dom.reverse()],
+            }}
+            onSubmit={(params) => {
+              setSearchTerm(params.name || '');
+              setLevelFilter(params.level || '');
+              setStatusFilter(params.status || '');
+              setCurrentPage(1);
+            }}
+            onReset={() => {
+              setSearchTerm('');
+              setLevelFilter('');
+              setStatusFilter('');
+              setCurrentPage(1);
+            }}
+            dateFormatter="string"
+            headerTitle="客户列表"
+            toolBarRender={() => [
+              <Button
+                key="add"
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => navigate('/customers/new')}
+              >
+                新增客户
+              </Button>,
+              <Button
+                key="refresh"
+                icon={<ReloadOutlined />}
+                onClick={() => loadCustomers()}
+              >
+                刷新
+              </Button>,
+            ]}
+            scroll={{ x: 1300 }}
+            options={{
+              reload: false,
+              density: false,
+              setting: true,
+            }}
+            size="middle"
+          />
+        )}
+
+        {/* Toast 通知 */}
+        {toast.visible && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={hideToast}
+          />
+        )}
       </div>
-
-      <ProTable<Customer>
-        columns={columns}
-        actionRef={actionRef}
-        cardBordered
-        request={async (params) => {
-        try {
-          const response = await customerApi.getCustomers({
-            page: params.current || 1,
-            pageSize: params.pageSize || 20,
-            searchTerm: params.name || '',
-            level: params.level || '',
-            status: params.status || '',
-            sortBy: 'createdAt',
-            sortOrder: 'desc',
-          });
-
-          return {
-            data: response.data.customers,
-            success: response.success,
-            total: response.data.total,
-          };
-        } catch (error) {
-          showError('获取客户列表失败');
-          return {
-            data: [],
-            success: false,
-            total: 0,
-          };
-        }
-      }}
-      rowKey={(record) => record._id || record.code}
-      pagination={{
-        pageSize: 20,
-        showSizeChanger: true,
-        showQuickJumper: true,
-        showTotal: (total) => `共 ${total} 条`,
-      }}
-      search={{
-        labelWidth: 80,
-        span: 6,
-        defaultCollapsed: false,
-        optionRender: (_searchConfig, _formProps, dom) => [...dom.reverse()],
-      }}
-      dateFormatter="string"
-      headerTitle="客户列表"
-      toolBarRender={() => [
-        <Button
-          key="add"
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => navigate('/customers/new')}
-        >
-          新增客户
-        </Button>,
-      ]}
-        scroll={{ x: 1300 }}
-        options={{
-          reload: true,
-          density: false,
-          setting: true,
-        }}
-        size="middle"
-      />
-
-      {/* Toast 通知 */}
-      {toast.visible && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-        />
-      )}
-    </div>
+    </PageTransition>
   );
 }

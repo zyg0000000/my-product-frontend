@@ -26,6 +26,8 @@ import {
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { UpdateRebateModal } from '../../components/UpdateRebateModal';
 import { RebateHistoryList } from '../../components/RebateHistoryList';
+import { PageSkeleton } from '../../components/Skeletons/PageSkeleton';
+import { Skeleton } from 'antd';
 
 export function TalentDetail() {
   const { oneId, platform } = useParams<{
@@ -137,7 +139,7 @@ export function TalentDetail() {
   };
 
   if (loading) {
-    return <div className="p-12 text-center text-gray-500">加载中...</div>;
+    return <PageSkeleton />;
   }
 
   if (!talent) {
@@ -281,7 +283,9 @@ export function TalentDetail() {
         </div>
 
         {rebateLoading ? (
-          <div className="mt-6 text-center text-gray-500">加载中...</div>
+          <div className="mt-6 p-4">
+            <Skeleton active paragraph={{ rows: 4 }} />
+          </div>
         ) : rebateData ? (
           <div className="mt-6 space-y-6">
             {/* 当前返点信息 */}

@@ -1,5 +1,95 @@
 # AgentWorks 更新日志
 
+## v3.4.0 (2025-11-24) ✨ - UI/UX 全面优化
+
+### 🎨 骨架屏加载系统 (Skeleton Screens)
+
+**目的**: 改善加载体验，提升感知性能
+
+**实现组件**:
+- `CardSkeleton.tsx` / `StatsGridSkeleton` - 卡片型骨架屏
+- `TableSkeleton.tsx` - 表格型骨架屏
+
+**已覆盖页面** (9个):
+- ✅ `TalentsHome.tsx` - 达人管理首页
+- ✅ `TalentDetail.tsx` - 达人详情页
+- ✅ `BasicInfo.tsx` - 达人列表
+- ✅ `AgenciesList.tsx` - 机构管理列表
+- ✅ `CustomerList.tsx` - 客户列表
+- ✅ `PerformanceHome.tsx` - 达人数据表现
+- ✅ `PerformanceConfig.tsx` - 表现配置管理
+- ✅ `PlatformConfig.tsx` - 平台配置管理
+- ✅ `RebateManagementModal.tsx` - 返点管理弹窗
+
+### 🎬 页面过渡动画 (Page Transitions)
+
+**技术栈**: `framer-motion`
+
+**实现组件**:
+- `PageTransition.tsx` - 淡入上浮动画 (0.4s, cubic-bezier)
+
+**已覆盖所有一级页面** (10个):
+1. ✅ `Home.tsx` - 仪表盘
+2. ✅ `AgenciesList.tsx` - 达人管理（机构列表）
+3. ✅ `CustomersHome.tsx` - 客户管理首页
+4. ✅ `ClientsHome.tsx` - 客户端管理首页
+5. ✅ `ProjectsHome.tsx` - 项目管理首页
+6. ✅ `AnalyticsHome.tsx` - 数据分析首页
+7. ✅ `PerformanceHome.tsx` - 达人数据表现
+8. ✅ `SettingsHome.tsx` - 系统设置首页
+9. ✅ `PerformanceConfig.tsx` - 表现配置管理
+10. ✅ `PlatformConfig.tsx` - 平台配置管理
+
+### ✨ 统一微互动 (Micro-interactions)
+
+**目的**: 统一所有首页的交互体验
+
+**已实现页面** (5个):
+- ✅ `TalentsHome.tsx` - 达人管理首页
+  - 统计卡片交错淡入 + 悬停上浮
+  - 功能模块卡片入场动画 + 悬停缩放
+  - 快速操作按钮悬停/点击缩放
+
+- ✅ `CustomersHome.tsx` - 客户管理首页
+  - 统计卡片交错淡入 + 悬停上浮
+  - 功能模块卡片入场动画 + 悬停缩放
+  - 快速操作按钮悬停/点击缩放
+
+- ✅ `ClientsHome.tsx` - 客户端管理首页
+  - 卡片淡入缩放
+  - 功能列表交错滑入 + 悬停右移
+
+- ✅ `ProjectsHome.tsx` - 项目管理首页
+  - 卡片淡入缩放
+  - 图标旋转弹性入场动画
+
+- ✅ `AnalyticsHome.tsx` - 数据分析首页
+  - 卡片淡入缩放
+  - 图标旋转弹性入场动画
+
+### 🐛 Bug 修复
+
+- ✅ 修复 `BasicInfo.tsx` 中"新增达人"按钮路由错误 (`/talents/new` → `/talents/create`)
+- ✅ 恢复 `PerformanceHome.tsx` 丢失的 ProTable 配置 (columns、dataSource、pagination)
+- ✅ 统一 `PerformanceHome.tsx` 的 Tabs 样式
+- ✅ 修复 `PlatformConfig.tsx` 的 ProTable props 和 Modal props 错误
+
+### 📊 优化成果
+
+| 优化类型 | 覆盖范围 | 完成度 |
+|---------|---------|--------|
+| **骨架屏** | 9个页面/组件 | ✅ 100% |
+| **页面过渡动画** | 10个一级页面 | ✅ 100% |
+| **微互动** | 5个首页 | ✅ 100% 统一 |
+
+**用户体验提升**:
+- ✅ 所有页面切换流畅淡入
+- ✅ 加载时显示骨架屏而非空白
+- ✅ 所有首页交互体验完全统一
+- ✅ 整体应用感知性能显著提升
+
+---
+
 ## v3.3.0 (2025-11-23) 🚀 - BasicInfo 页面全面升级
 
 ### ✨ BasicInfo 页面重构（达人基础信息）

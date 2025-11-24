@@ -11,7 +11,7 @@
  * 7. 使用 message 替代 Toast
  */
 
-import { Modal, Tabs, Switch, Alert, Button } from 'antd';
+import { Modal, Tabs, Switch, Alert, Button, Skeleton } from 'antd';
 import { InfoCircleOutlined, SyncOutlined } from '@ant-design/icons';
 import { ProCard, ProForm, ProFormDigit, ProFormText, ProFormRadio } from '@ant-design/pro-components';
 import type { Talent } from '../types/talent';
@@ -125,7 +125,9 @@ export function RebateManagementModal({
 
       {/* Tab 内容 */}
       {rebateLoading ? (
-        <div className="py-12 text-center text-gray-500">加载中...</div>
+        <ProCard>
+          <Skeleton active paragraph={{ rows: 4 }} />
+        </ProCard>
       ) : rebateData ? (
         <div className="space-y-4">
           {/* Tab: 当前配置 */}
@@ -244,7 +246,7 @@ export function RebateManagementModal({
                   // 适配器：ProForm 传递的是 values，但 handleManualSubmit 期望 event
                   // 由于 handleManualSubmit 从 state 读取值，我们创建一个假的 event 对象
                   const fakeEvent = {
-                    preventDefault: () => {},
+                    preventDefault: () => { },
                   } as React.FormEvent;
                   await handleManualSubmit(fakeEvent);
                 }}

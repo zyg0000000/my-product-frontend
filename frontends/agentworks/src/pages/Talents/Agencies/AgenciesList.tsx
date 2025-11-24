@@ -27,6 +27,8 @@ import { AgencyRebateModal } from '../../../components/AgencyRebateModal';
 import { AgencyFormModal } from '../../../components/AgencyFormModal';
 import { AgencyDeleteModal } from '../../../components/AgencyDeleteModal';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
+import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
+import { PageTransition } from '../../../components/PageTransition';
 
 export function AgenciesList() {
   const [agencies, setAgencies] = useState<Agency[]>([]);
@@ -290,99 +292,107 @@ export function AgenciesList() {
   ], [selectedPlatform, talentCounts]);
 
   return (
-    <div className="space-y-4">
-      {/* 页面标题 - Tailwind */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">机构管理</h1>
-        <p className="text-gray-600 mt-1 text-sm">管理MCN机构和野生达人归属，设置基础返点</p>
+    <PageTransition>
+      <div className="space-y-6">
+        {/* 页面标题 */}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">机构管理</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            管理MCN机构和独立达人，配置各平台返点政策
+          </p>
+        </div>
+
+        {/* 平台 Tabs - Ant Design Tabs */}
+        <Tabs
+          activeKey={selectedPlatform}
+          onChange={(key) => setSelectedPlatform(key as Platform)}
+          items={platforms.map(platform => ({
+            key: platform,
+            label: PLATFORM_NAMES[platform],
+          }))}
+        />
+
+        {/* ProTable - 新版实现 */}
+        {loading && agencies.length === 0 ? (
+          <TableSkeleton columnCount={7} rowCount={10} />
+        ) : (
+          <ProTable<Agency>
+            columns={columns}
+            actionRef={actionRef}
+            dataSource={agencies}
+            rowKey="id"
+            loading={loading}
+            pagination={{
+              pageSize: 20,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total) => `共 ${total} 个机构`,
+            }}
+            search={false}
+            cardBordered
+            headerTitle={
+              <div className="flex items-center gap-3">
+                <span className="font-medium">机构列表</span>
+                <div className="h-4 w-px bg-gray-300"></div>
+                <span className="text-sm text-gray-500">共 {agencies.length} 个机构</span>
+              </div>
+            }
+            toolbar={{
+              actions: [
+                <Button
+                  key="add"
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={handleAdd}
+                >
+                  新增机构
+                </Button>,
+              ],
+            }}
+            options={{
+              reload: async () => {
+                await loadAgencies();
+                message.success('数据已刷新');
+                return true;
+              },
+              density: false,
+              setting: true,
+            }}
+            scroll={{ x: 1200 }}
+            size="middle"
+          />
+        )}
+
+        {/* 新增/编辑机构弹窗 */}
+        <AgencyFormModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          agency={editingAgency}
+          onSave={handleSave}
+        />
+
+        {/* 返点管理弹窗 */}
+        <AgencyRebateModal
+          isOpen={isRebateModalOpen}
+          onClose={() => setIsRebateModalOpen(false)}
+          agency={rebateAgency}
+          onSuccess={() => {
+            loadAgencies();
+          }}
+        />
+
+        {/* 删除确认弹窗 */}
+        <AgencyDeleteModal
+          isOpen={showDeleteConfirm}
+          onClose={() => {
+            setShowDeleteConfirm(false);
+            setAgencyToDelete(null);
+          }}
+          agency={agencyToDelete}
+          onConfirm={confirmDelete}
+          talentCount={agencyToDelete ? getTalentCount(agencyToDelete.id) : 0}
+        />
       </div>
-
-      {/* 平台 Tabs - Ant Design Tabs */}
-      <Tabs
-        activeKey={selectedPlatform}
-        onChange={(key) => setSelectedPlatform(key as Platform)}
-        items={platforms.map(platform => ({
-          key: platform,
-          label: PLATFORM_NAMES[platform],
-        }))}
-      />
-
-      {/* ProTable - 新版实现 */}
-      <ProTable<Agency>
-        columns={columns}
-        actionRef={actionRef}
-        dataSource={agencies}
-        rowKey="id"
-        loading={loading}
-        pagination={{
-          pageSize: 20,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total) => `共 ${total} 个机构`,
-        }}
-        search={false}
-        cardBordered
-        headerTitle={
-          <div className="flex items-center gap-3">
-            <span className="font-medium">机构列表</span>
-            <div className="h-4 w-px bg-gray-300"></div>
-            <span className="text-sm text-gray-500">共 {agencies.length} 个机构</span>
-          </div>
-        }
-        toolbar={{
-          actions: [
-            <Button
-              key="add"
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleAdd}
-            >
-              新增机构
-            </Button>,
-          ],
-        }}
-        options={{
-          reload: async () => {
-            await loadAgencies();
-            message.success('数据已刷新');
-            return true;
-          },
-          density: false,
-          setting: true,
-        }}
-        scroll={{ x: 1200 }}
-        size="middle"
-      />
-
-      {/* 新增/编辑机构弹窗 */}
-      <AgencyFormModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        agency={editingAgency}
-        onSave={handleSave}
-      />
-
-      {/* 返点管理弹窗 */}
-      <AgencyRebateModal
-        isOpen={isRebateModalOpen}
-        onClose={() => setIsRebateModalOpen(false)}
-        agency={rebateAgency}
-        onSuccess={() => {
-          loadAgencies();
-        }}
-      />
-
-      {/* 删除确认弹窗 */}
-      <AgencyDeleteModal
-        isOpen={showDeleteConfirm}
-        onClose={() => {
-          setShowDeleteConfirm(false);
-          setAgencyToDelete(null);
-        }}
-        agency={agencyToDelete}
-        onConfirm={confirmDelete}
-        talentCount={agencyToDelete ? getTalentCount(agencyToDelete.id) : 0}
-      />
-    </div>
+    </PageTransition >
   );
 }

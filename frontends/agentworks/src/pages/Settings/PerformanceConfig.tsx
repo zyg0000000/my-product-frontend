@@ -21,6 +21,8 @@ import { ImportResultPanel } from '../../components/ImportResultPanel';
 import type { Platform } from '../../types/talent';
 import { PLATFORM_NAMES } from '../../types/talent';
 import { usePlatformConfig } from '../../hooks/usePlatformConfig';
+import { TableSkeleton } from '../../components/Skeletons/TableSkeleton';
+import { PageTransition } from '../../components/PageTransition';
 
 export function PerformanceConfig() {
   const [searchParams] = useSearchParams();
@@ -75,78 +77,80 @@ export function PerformanceConfig() {
   }
 
   return (
-    <div className="space-y-4">
-      {/* 页面标题 - Tailwind */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">达人表现配置管理</h1>
-        <p className="text-gray-600 mt-1 text-sm">管理各平台的字段映射和数据维度配置</p>
-      </div>
+    <PageTransition>
+      <div className="space-y-4">
+        {/* 页面标题 - Tailwind */}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">达人表现配置管理</h1>
+          <p className="text-gray-600 mt-1 text-sm">管理各平台的字段映射和数据维度配置</p>
+        </div>
 
-      {/* 平台 Tabs - Ant Design */}
-      <Tabs
-        activeKey={selectedPlatform}
-        onChange={(key) => setSelectedPlatform(key as Platform)}
-        items={platforms.map(platform => ({
-          key: platform,
-          label: PLATFORM_NAMES[platform],
-        }))}
-      />
-
-      {/* 功能 Tabs（二级）- Ant Design */}
-      <Tabs
-        activeKey={activeTab}
-        onChange={(key) => setActiveTab(key as 'mapping' | 'dimension' | 'import')}
-        items={[
-          {
-            key: 'mapping',
-            label: '字段映射配置',
-            children: (
-              <MappingConfigPanel
-                platform={selectedPlatform}
-                fieldMapping={fieldMapping}
-              />
-            ),
-          },
-          {
-            key: 'dimension',
-            label: '数据维度配置',
-            children: (
-              <DimensionConfigPanel
-                platform={selectedPlatform}
-                dimensionConfig={dimensionConfig}
-              />
-            ),
-          },
-          {
-            key: 'import',
-            label: '数据导入管理',
-            children: (
-              <DataImportPanel
-                platform={selectedPlatform}
-                onOpenImport={() => setShowImportModal(true)}
-              />
-            ),
-          },
-        ]}
-      />
-
-      {/* 数据导入弹窗 */}
-      <DataImportModal
-        isOpen={showImportModal}
-        onClose={() => setShowImportModal(false)}
-        platform={selectedPlatform}
-        onImport={handleImport}
-        loading={importing}
-      />
-
-      {/* 导入结果面板 */}
-      {showResult && importResult && (
-        <ImportResultPanel
-          result={importResult}
-          onClose={closeResult}
+        {/* 平台 Tabs - Ant Design */}
+        <Tabs
+          activeKey={selectedPlatform}
+          onChange={(key) => setSelectedPlatform(key as Platform)}
+          items={platforms.map(platform => ({
+            key: platform,
+            label: PLATFORM_NAMES[platform],
+          }))}
         />
-      )}
-    </div>
+
+        {/* 功能 Tabs（二级）- Ant Design */}
+        <Tabs
+          activeKey={activeTab}
+          onChange={(key) => setActiveTab(key as 'mapping' | 'dimension' | 'import')}
+          items={[
+            {
+              key: 'mapping',
+              label: '字段映射',
+              children: (
+                <MappingConfigPanel
+                  platform={selectedPlatform}
+                  fieldMapping={fieldMapping}
+                />
+              ),
+            },
+            {
+              key: 'dimension',
+              label: '维度配置',
+              children: (
+                <DimensionConfigPanel
+                  platform={selectedPlatform}
+                  dimensionConfig={dimensionConfig}
+                />
+              ),
+            },
+            {
+              key: 'import',
+              label: '数据导入',
+              children: (
+                <DataImportPanel
+                  platform={selectedPlatform}
+                  onOpenImport={() => setShowImportModal(true)}
+                />
+              ),
+            },
+          ]}
+        />
+
+        {/* 数据导入弹窗 */}
+        <DataImportModal
+          isOpen={showImportModal}
+          onClose={() => setShowImportModal(false)}
+          platform={selectedPlatform}
+          onImport={handleImport}
+          loading={importing}
+        />
+
+        {/* 导入结果面板 */}
+        {showResult && importResult && (
+          <ImportResultPanel
+            result={importResult}
+            onClose={closeResult}
+          />
+        )}
+      </div>
+    </PageTransition>
   );
 }
 
@@ -161,7 +165,7 @@ function MappingConfigPanel({
   fieldMapping: ReturnType<typeof useFieldMapping>;
 }) {
   if (fieldMapping.loading) {
-    return <div className="p-8 text-center text-gray-500">加载中...</div>;
+    return <TableSkeleton columnCount={4} rowCount={5} />;
   }
 
   if (!fieldMapping.activeConfig) {
@@ -224,7 +228,7 @@ function DimensionConfigPanel({
   dimensionConfig: ReturnType<typeof useDimensionConfig>;
 }) {
   if (dimensionConfig.loading) {
-    return <div className="p-8 text-center text-gray-500">加载中...</div>;
+    return <TableSkeleton columnCount={5} rowCount={8} />;
   }
 
   if (!dimensionConfig.activeConfig) {

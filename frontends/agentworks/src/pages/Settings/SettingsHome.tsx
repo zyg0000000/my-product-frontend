@@ -13,6 +13,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ProCard } from '@ant-design/pro-components';
 import { SettingOutlined, DatabaseOutlined, RightOutlined } from '@ant-design/icons';
+import { PageTransition } from '../../components/PageTransition';
 
 interface SettingItem {
   key: string;
@@ -59,67 +60,69 @@ export function SettingsHome() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* 页面标题 */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">系统设置</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          配置系统参数，管理平台和功能设置
-        </p>
-      </div>
-
-      {/* 设置项卡片网格 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {settingItems.map((item) => (
-          <ProCard
-            key={item.key}
-            hoverable
-            className="cursor-pointer"
-            onClick={() => navigate(item.path)}
-          >
-            <div className="flex items-start gap-4">
-              {/* 图标 */}
-              <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-gray-50 rounded-lg">
-                {item.icon}
-              </div>
-
-              {/* 内容 */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-base font-semibold text-gray-900">
-                    {item.title}
-                  </h3>
-                  {getStatusTag(item.status)}
-                </div>
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {item.description}
-                </p>
-              </div>
-
-              {/* 箭头 */}
-              <div className="flex-shrink-0">
-                <RightOutlined className="text-gray-400" />
-              </div>
-            </div>
-          </ProCard>
-        ))}
-      </div>
-
-      {/* 提示信息 */}
-      <ProCard className="bg-blue-50 border-blue-200">
-        <div className="flex items-start gap-3">
-          <SettingOutlined className="text-blue-600 text-lg mt-0.5" />
-          <div>
-            <h4 className="text-sm font-medium text-blue-900 mb-1">
-              关于系统设置
-            </h4>
-            <p className="text-xs text-blue-700">
-              系统设置模块用于管理 AgentWorks 的全局配置和参数。
-              配置修改后会立即生效，部分配置可能需要刷新页面才能看到效果。
-            </p>
-          </div>
+    <PageTransition>
+      <div className="space-y-6">
+        {/* 页面标题 */}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">系统设置</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            配置系统参数，管理平台和功能设置
+          </p>
         </div>
-      </ProCard>
-    </div>
+
+        {/* 设置项卡片网格 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {settingItems.map((item) => (
+            <ProCard
+              key={item.key}
+              hoverable
+              className="cursor-pointer"
+              onClick={() => navigate(item.path)}
+            >
+              <div className="flex items-start gap-4">
+                {/* 图标 */}
+                <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-gray-50 rounded-lg">
+                  {item.icon}
+                </div>
+
+                {/* 内容 */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-base font-semibold text-gray-900">
+                      {item.title}
+                    </h3>
+                    {getStatusTag(item.status)}
+                  </div>
+                  <p className="text-sm text-gray-600 line-clamp-2">
+                    {item.description}
+                  </p>
+                </div>
+
+                {/* 箭头 */}
+                <div className="flex-shrink-0">
+                  <RightOutlined className="text-gray-400" />
+                </div>
+              </div>
+            </ProCard>
+          ))}
+        </div>
+
+        {/* 提示信息 */}
+        <ProCard className="bg-blue-50 border-blue-200">
+          <div className="flex items-start gap-3">
+            <SettingOutlined className="text-blue-600 text-lg mt-0.5" />
+            <div>
+              <h4 className="text-sm font-medium text-blue-900 mb-1">
+                关于系统设置
+              </h4>
+              <p className="text-xs text-blue-700">
+                系统设置模块用于管理 AgentWorks 的全局配置和参数。
+                配置修改后会立即生效，部分配置可能需要刷新页面才能看到效果。
+              </p>
+            </div>
+          </div>
+        </ProCard>
+      </div>
+    </PageTransition>
   );
 }
