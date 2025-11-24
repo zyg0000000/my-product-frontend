@@ -1,26 +1,28 @@
 /**
  * @file 云函数: generated-sheets-manager
- * @version 2.3.0
+ * @version 2.4.0
  * @date 2025-11-24
  * @changelog
- * - v2.3.0 (2025-11-24): 修复 API 端点错误
- *   - 发现问题：POST /files/{token}/trash 端点不存在（返回 404）
- *   - 改用正确的删除 API: DELETE /files/{token}?type=sheet
- *   - 飞书删除 API 会自动将文件移入回收站
- *   - 保留详细诊断日志用于定位权限问题
- * - v2.2.0 (2025-11-24): 诊断模式
- *   - 添加完整日志和诊断信息
- *   - 发现 trash 端点返回 404
+ * - v2.4.0 (2025-11-24): 严格模式 - 只有飞书删除成功才删数据库
+ *   - 修复严重 BUG：之前版本在 404 时会删除数据库记录，但文件还在
+ *   - 改为严格模式：任何飞书 API 错误都不删除数据库记录
+ *   - 只有收到 code: 0 成功响应后才删除数据库
+ *   - 保留完整诊断信息帮助定位问题
+ * - v2.3.0 (2025-11-24): API 端点修复
+ *   - 改用正确的 DELETE /files/{token}?type=sheet
+ * - v2.2.0 (2025-11-24): 诊断模式（有 BUG）
+ *   - 404 时错误地删除了数据库记录
  * - v2.1.0 (2025-11-24): 错误尝试
- *   - 尝试使用 trash 端点（端点不存在）
- * - v2.0.0 (之前): Feishu File Deletion
- *   - 新增同步删除飞书云端电子表格功能
+ *   - 使用了不存在的 trash 端点
+ * - v2.0.0 (之前): 原始版本
+ *   - 使用 DELETE API，但遇到权限错误
  *
  * @description
  * - [核心功能] 管理飞书表格生成历史记录
- * - [删除策略] 使用 DELETE API 删除文件（自动进入回收站）
+ * - [删除策略] 严格模式 - 只有飞书删除成功才删数据库记录
  * - [权限要求] 应用需是文件所有者 + 有父文件夹编辑权限
- * - [诊断模式] 返回详细错误信息帮助定位权限问题
+ * - [安全保证] 避免数据库和飞书文件不一致
+ * - [诊断模式] 返回详细错误信息
  * - [依赖] axios
  * - [配置] 需要环境变量: FEISHU_APP_ID, FEISHU_APP_SECRET, MONGODB_URI
  */
@@ -29,7 +31,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 const axios = require('axios');
 
 // --- 版本信息 ---
-const VERSION = '2.3.0';
+const VERSION = '2.4.0';
 
 // --- 配置信息 ---
 const MONGO_URI = process.env.MONGODB_URI;
@@ -248,30 +250,19 @@ exports.handler = async (event, context) => {
 
                 console.error(`[v${VERSION}] 诊断信息:`, JSON.stringify(diagnosticInfo, null, 2));
 
-                // 特殊情况处理
-                if (status === 404) {
-                    // 文件不存在，认为已删除，继续删除数据库记录
-                    console.warn(`[v${VERSION}] 文件不存在 (404)，继续删除数据库记录`);
-                    await collection.deleteOne({ _id: new ObjectId(id) });
-                    return createResponse(204, {});
-                } else if (feishuCode === 1062501 || feishuCode === 1061045) {
-                    // 权限错误 - 先返回详细错误，不要跳过
-                    console.error(`[v${VERSION}] ❌ 权限错误，返回详细信息供诊断`);
-                    return createResponse(502, {
-                        error: 'FEISHU_PERMISSION_ERROR',
-                        message: `飞书 API 权限错误 (Code: ${feishuCode})`,
-                        details: diagnosticInfo,
-                        suggestion: '请检查：1. 文件是否被移动 2. 文件是否在回收站 3. 飞书应用权限配置'
-                    });
-                } else {
-                    // 其他错误：返回详细信息
-                    console.error(`[v${VERSION}] ❌ 未知错误，返回详细信息供诊断`);
-                    return createResponse(502, {
-                        error: 'FEISHU_API_ERROR',
-                        message: `飞书 API 调用失败: ${feishuMsg}`,
-                        details: diagnosticInfo
-                    });
-                }
+                // 严格模式：任何飞书 API 错误都不删除数据库记录
+                // 防止出现"数据库记录删除了，但飞书文件还在"的问题
+                console.error(`[v${VERSION}] ❌ 飞书删除失败，不删除数据库记录，返回详细错误`);
+                return createResponse(502, {
+                    error: diagnosticInfo.errorType,
+                    message: `飞书 API 调用失败: ${feishuMsg || 'HTTP ' + status}`,
+                    details: diagnosticInfo,
+                    suggestion: status === 404
+                        ? 'API 端点可能不正确，请检查飞书文档'
+                        : feishuCode === 1062501
+                        ? '权限不足。请检查：1. 文件是否被移动 2. 应用权限配置 3. 文件夹权限'
+                        : '请查看 details 中的详细信息进行诊断'
+                });
             }
             
             // 步骤 3: 飞书文件删除成功（或已不存在）后，删除数据库记录
