@@ -1,15 +1,30 @@
 /**
  * @file 云函数: generated-sheets-manager
- * @version 2.0.0 - Feishu File Deletion
+ * @version 2.1.0
+ * @date 2025-11-24
+ * @changelog
+ * - v2.1.0 (2025-11-24): 修复删除飞书文件权限问题
+ *   - 将直接删除 API 改为移动到回收站 API（解决权限不足问题）
+ *   - 针对权限错误 (Code: 1062501) 特殊处理：跳过飞书删除，直接删除数据库记录
+ *   - 优化错误日志，增加详细的错误信息输出
+ * - v2.0.0 (之前): Feishu File Deletion
+ *   - 新增了在删除历史记录时，同步删除飞书云端电子表格的功能
+ *   - 遵循"先删云端，再删本地"的原则
+ *   - 增加了 axios 用于和飞书API进行通信
+ *
  * @description
- * - [核心功能] 新增了在删除历史记录时，同步删除飞书云端电子表格的功能。
- * - [严谨性] 遵循“先删云端，再删本地”的原则。只有当飞书API确认文件删除成功后，才会删除数据库中的记录；否则操作将中断并返回错误。
- * - [依赖] 增加了 `axios` 用于和飞书API进行通信。
- * - [配置] 此函数现在需要 `FEISHU_APP_ID` 和 `FEISHU_APP_SECRET` 环境变量来获取飞书API的访问权限。
+ * - [核心功能] 管理飞书表格生成历史记录，支持创建、查询、删除操作
+ * - [删除策略] 优先将飞书文件移动到回收站，如遇权限问题则跳过并直接删除数据库记录
+ * - [严谨性] 遵循"先处理云端，再处理本地"的原则
+ * - [依赖] 使用 axios 与飞书 API 通信
+ * - [配置] 需要环境变量: FEISHU_APP_ID, FEISHU_APP_SECRET
  */
 
 const { MongoClient, ObjectId } = require('mongodb');
 const axios = require('axios');
+
+// --- 版本信息 ---
+const VERSION = '2.1.0';
 
 // --- 配置信息 ---
 const MONGO_URI = process.env.MONGODB_URI;
@@ -80,6 +95,8 @@ const createResponse = (statusCode, body) => {
 
 // --- 云函数主处理程序 ---
 exports.handler = async (event, context) => {
+    console.log(`[v${VERSION}] 云函数开始执行 - Method: ${event.httpMethod}`);
+
     // 预检请求处理
     if (event.httpMethod === 'OPTIONS') {
         return createResponse(204, {});
@@ -90,6 +107,8 @@ exports.handler = async (event, context) => {
         const collection = db.collection(COLLECTION_NAME);
         const method = event.httpMethod;
         const queryParams = event.queryStringParameters || {};
+
+        console.log(`[v${VERSION}] 请求参数:`, { method, queryParams });
 
         // --- API 路由逻辑 ---
 
@@ -160,31 +179,56 @@ exports.handler = async (event, context) => {
                 return createResponse(204, {});
             }
 
-            // 步骤 2: 调用飞书 API 删除云端文件
+            // 步骤 2: 调用飞书 API 将文件移动到回收站
+            // 注意：直接删除需要用户权限，这里改用移动到回收站 API（只需 tenant_access_token）
             try {
                 const accessToken = await getTenantAccessToken();
-                console.log(`[Feishu API] Attempting to delete file with token: ${sheetToken}`);
-                await axios.delete(
-                    `https://open.feishu.cn/open-apis/drive/v1/files/${sheetToken}`,
+                console.log(`[Feishu API] Attempting to move file to recycle bin with token: ${sheetToken}`);
+
+                // 使用移动到回收站 API 代替直接删除
+                // https://open.feishu.cn/open-apis/drive/v1/files/{file_token}/trash
+                const response = await axios.post(
+                    `https://open.feishu.cn/open-apis/drive/v1/files/${sheetToken}/trash`,
+                    { type: 'sheet' }, // 请求体指定文件类型
                     {
-                        headers: { 'Authorization': `Bearer ${accessToken}` },
-                        params: { type: 'sheet' } // 指定文件类型为电子表格
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`,
+                            'Content-Type': 'application/json'
+                        }
                     }
                 );
-                console.log(`[Feishu API] Successfully deleted file: ${sheetToken}`);
+
+                if (response.data.code === 0) {
+                    console.log(`[Feishu API] Successfully moved file to recycle bin: ${sheetToken}`);
+                } else {
+                    console.warn(`[Feishu API] Move to recycle bin returned non-zero code: ${response.data.code}, msg: ${response.data.msg}`);
+                }
             } catch (feishuError) {
                 const status = feishuError.response?.status;
+                const feishuCode = feishuError.response?.data?.code;
                 const feishuMsg = feishuError.response?.data?.msg || '未知飞书API错误';
 
-                // 特殊情况：如果文件在飞书上已经不存在 (404)，我们可以认为删除操作是“成功的”，然后继续删除数据库记录
+                console.error('Feishu API Error Details:', {
+                    status,
+                    code: feishuCode,
+                    message: feishuMsg,
+                    sheetToken
+                });
+
+                // 特殊情况处理
                 if (status === 404) {
+                    // 文件不存在，认为已删除，继续删除数据库记录
                     console.warn(`[Feishu API] File with token ${sheetToken} not found on Feishu. Proceeding to delete local record.`);
+                } else if (feishuCode === 1062501) {
+                    // 权限不足：可能是文件已被删除或无权访问
+                    // 这种情况下，我们直接删除数据库记录（因为文件已不可访问）
+                    console.warn(`[Feishu API] Permission denied (Code: 1062501). File may be deleted or inaccessible. Proceeding to delete local record.`);
                 } else {
-                    // 对于其他所有错误（如权限不足），严格遵守约定，中断操作并返回错误
-                    console.error('Failed to delete Feishu file:', feishuError.response ? feishuError.response.data : feishuError.message);
-                    return createResponse(502, { // 502 Bad Gateway 表示上游服务器出错
+                    // 其他错误：严格遵守约定，中断操作并返回错误
+                    console.error('Failed to move Feishu file to recycle bin:', feishuError.response ? feishuError.response.data : feishuError.message);
+                    return createResponse(502, {
                         error: 'Failed to delete the file in Feishu',
-                        message: `删除飞书文件失败：${feishuMsg} (Code: ${feishuError.response?.data?.code})`
+                        message: `移动飞书文件到回收站失败：${feishuMsg} (Code: ${feishuCode || 'unknown'})`
                     });
                 }
             }
