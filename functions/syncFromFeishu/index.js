@@ -1,26 +1,20 @@
 /**
  * @file syncFromFeishu.js
- * @version 12.1 - Price Import Support
+ * @version 12.2.0
+ * @date 2025-11-24
+ * @changelog
+ * - v12.2.0 (2025-11-24): 修复 DATA_SCHEMAS 中 screenshots 索引错误
+ *   - 修正 utils.js 中 DATA_SCHEMAS 的 screenshots 定义
+ *   - 添加缺失的 screenshots[3] (年龄分布)
+ *   - 修正 [4][5][6] 的显示名称
+ *   - 移除不存在的 [7]
+ *   - 仅影响前端下拉框显示，不影响功能逻辑
+ * - v12.1 (2025-11-20): Price Import Support
+ *   - 支持价格数据导入
+ * - v12.0 (2025-11-18): 模块化重构
+ *   - 支持 v2 数据库，100% 向后兼容
+ *
  * @description [重大升级] 支持 AgentWorks v2.0 达人表现数据导入 + 价格导入
- *
- * --- v12.1 更新日志 (2025-11-20) ---
- * - [价格导入] 支持从飞书表格导入达人价格数据（prices 数组）
- * - [新增参数] 接受 priceYear/priceMonth 参数，指定价格归属时间
- * - [智能合并] 价格数据按年月类型智能合并，同时间覆盖、不同时间追加
- * - [单位转换] 自动将元转换为分（× 100）
- * - [字段映射] 支持 targetPath = "prices" + priceType 元数据识别价格类型
- * - [平台通用] 价格导入逻辑完全平台无关，支持抖音/小红书/B站/快手
- *
- * --- v12.0 更新日志 (2025-11-18) ---
- * - [模块化重构] 拆分为独立模块（feishu-api, mapping-engine, talent-performance-processor）
- * - [配置驱动] 从数据库读取映射配置（field_mappings 集合）
- * - [多平台支持] 支持 platform 参数
- * - [v2数据库] 支持 agentworks_db
- * - [向后兼容] 100% 兼容 v1 调用（ByteProject）
- * - [可剥离性] 模块化设计，详细剥离文档，剥离成本 < 2天
- *
- * --- v4.0 更新日志 ---
- * - [升级] 适配新的 handleFeishuRequest 调度器，支持获取 schemas 等新操作。
  */
 const { handleFeishuRequest } = require('./utils.js');
 

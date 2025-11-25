@@ -1,29 +1,23 @@
 /**
  * @file utils.js
- * @version 12.1 - Price Import Support
+ * @version 12.2.0
+ * @date 2025-11-24
+ * @changelog
+ * - v12.2.0 (2025-11-24): 修复 DATA_SCHEMAS 中 screenshots 索引错误
+ *   - 修正 automation-tasks.fields 中 screenshots 的索引和显示名称
+ *   - 添加缺失的 screenshots[3] (年龄分布)
+ *   - 修正 screenshots[4][5][6] 的显示名称（之前错位）
+ *   - 移除不存在的 screenshots[7]
+ *   - 影响范围：仅前端映射模板编辑页面的下拉框选项
+ *   - 不影响任何数据处理逻辑
+ * - v12.1 (2025-11-20): Price Import Support
+ *   - 支持从飞书表格导入达人价格数据到 prices 数组
+ * - v12.0 (2025-11-18): 模块化重构
+ *   - 拆分为独立模块，支持 v2 数据库
+ *   - 100% 向后兼容 v1 调用
+ *
  * @description
  * [重大升级] 模块化重构 + AgentWorks v2.0 支持 + 价格导入
- *
- * --- v12.1 更新日志 (2025-11-20) ---
- * - [价格导入] 支持从飞书表格导入达人价格数据到 prices 数组
- * - [新增参数] handleFeishuRequest 和 handleTalentImport 接受 priceYear/priceMonth 参数
- * - [参数传递] 将价格年月传递到 processTalentPerformance 和 applyMappingRules
- * - [调试日志] 添加价格归属时间的日志输出
- *
- * --- v12.0 更新日志 (2025-11-18) ---
- * - [模块化重构] 拆分为独立模块：
- *   - feishu-api.js: 飞书API层
- *   - mapping-engine.js: 映射引擎
- *   - talent-performance-processor.js: 性能数据处理器
- * - [配置驱动] 达人表现数据导入支持从数据库读取映射配置
- * - [多平台支持] 支持 platform 参数
- * - [v2数据库] 支持 agentworks_db
- * - [向后兼容] 100% 兼容 v1 调用（ByteProject）
- * - [可剥离性] 详细的剥离文档，剥离成本 < 2天
- *
- * --- v11.4.3 更新日志 ---
- * - [BUG 修复] 修复百分比字段值被错误除以100的问题
- * - ... (历史日志省略)
  */
 const axios = require('axios');
 const { MongoClient, ObjectId } = require('mongodb');
@@ -58,7 +52,7 @@ const DATA_SCHEMAS = {
     talents: { displayName: "达人信息", fields: [ { path: "nickname", displayName: "达人昵称" }, { path: "xingtuId", displayName: "星图ID" }, { path: "uid", displayName: "UID" }, { path: "latestPrice", displayName: "最新价格", isSpecial: true }, ] },
     projects: { displayName: "项目信息", fields: [ { path: "name", displayName: "项目名称" }, { path: "qianchuanId", displayName: "仟传项目编号" }, ] },
     collaborations: { displayName: "合作信息", fields: [ { path: "taskId", displayName: "任务ID (星图)" }, { path: "videoId", displayName: "视频ID (平台)" }, { path: "orderType", displayName: "订单类型" }, { path: "status", displayName: "合作状态" }, { path: "amount", displayName: "合作金额" }, { path: "publishDate", displayName: "实际发布日期" }, ] },
-    "automation-tasks": { displayName: "自动化任务", fields: [ { path: "result.data.预期CPM", displayName: "预期CPM" }, { path: "result.data.完播率", displayName: "完播率" }, { path: "result.data.爆文率", displayName: "爆文率" }, { path: "result.data.个人视频播放量均值", displayName: "个人视频播放量均值" }, { path: "result.data.星图频播放量均值", displayName: "星图视频播放量均值" }, { path: "result.data.用户画像总结", displayName: "用户画像总结" }, { path: "result.screenshots.0.url", displayName: "截图1 (达人价格)", isImage: true }, { path: "result.screenshots.1.url", displayName: "截图2 (星图视频)", isImage: true }, { path: "result.screenshots.2.url", displayName: "截图3 (男女比例)", isImage: true }, { path: "result.screenshots.4.url", displayName: "截图4 (年龄分布)", isImage: true }, { path: "result.screenshots.5.url", displayName: "截图5 (城市等级)", isImage: true }, { path: "result.screenshots.6.url", displayName: "截图6 (八大人群)", isImage: true }, { path: "result.screenshots.7.url", displayName: "截图7 (设备截图)", isImage: true }, ] }
+    "automation-tasks": { displayName: "自动化任务", fields: [ { path: "result.data.预期CPM", displayName: "预期CPM" }, { path: "result.data.完播率", displayName: "完播率" }, { path: "result.data.爆文率", displayName: "爆文率" }, { path: "result.data.个人视频播放量均值", displayName: "个人视频播放量均值" }, { path: "result.data.星图频播放量均值", displayName: "星图视频播放量均值" }, { path: "result.data.用户画像总结", displayName: "用户画像总结" }, { path: "result.screenshots.0.url", displayName: "截图0 (达人价格)", isImage: true }, { path: "result.screenshots.1.url", displayName: "截图1 (星图视频)", isImage: true }, { path: "result.screenshots.2.url", displayName: "截图2 (男女比例)", isImage: true }, { path: "result.screenshots.3.url", displayName: "截图3 (年龄分布)", isImage: true }, { path: "result.screenshots.4.url", displayName: "截图4 (城市等级)", isImage: true }, { path: "result.screenshots.5.url", displayName: "截图5 (八大人群)", isImage: true }, { path: "result.screenshots.6.url", displayName: "截图6 (设备截图)", isImage: true }, ] }
 };
 
 // --- 辅助函数 ---
