@@ -77,7 +77,7 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
       onCancel={handleClose}
       footer={null}
       width={560}
-      destroyOnClose
+      destroyOnHidden
       centered
       closable={!deleting}
       maskClosable={!deleting}

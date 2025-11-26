@@ -16,7 +16,6 @@ import { ProForm, ProFormSelect, ProFormDigit } from '@ant-design/pro-components
 import { ProCard } from '@ant-design/pro-components';
 import { logger } from '../utils/logger';
 import type { Talent, PriceRecord, PriceType, PriceStatus } from '../types/talent';
-import { PLATFORM_PRICE_TYPES } from '../types/talent';
 import { formatPrice, getPriceHistory, formatYearMonth, yuanToCents } from '../utils/formatters';
 import { usePlatformConfig } from '../hooks/usePlatformConfig';
 
@@ -42,7 +41,7 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
   const [form] = ProForm.useForm<NewPriceForm>();
 
   // 使用平台配置 Hook（获取所有平台，包括禁用的）
-  const { getPlatformConfigByKey } = usePlatformConfig(true);
+  const { getPlatformPriceTypes } = usePlatformConfig(true);
 
   // 当前年月
   const currentYear = new Date().getFullYear();
@@ -65,9 +64,8 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
 
   if (!talent) return null;
 
-  // 优先使用数据库配置，如果加载中或没有配置则使用硬编码的 fallback
-  const platformConfig = getPlatformConfigByKey(talent.platform);
-  const priceTypes = platformConfig?.priceTypes || PLATFORM_PRICE_TYPES[talent.platform] || [];
+  // 使用动态配置获取价格类型（hook 内部已处理 fallback）
+  const priceTypes = getPlatformPriceTypes(talent.platform);
 
   // 获取价格历史
   const priceHistory = getPriceHistory(talent.prices);
@@ -150,7 +148,7 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
       onCancel={onClose}
       footer={null}
       width={1000}
-      destroyOnClose
+      destroyOnHidden
       centered
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

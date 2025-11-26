@@ -462,7 +462,7 @@ export function AgencyRebateModal({
       onCancel={onClose}
       footer={null}
       width={900}
-      destroyOnClose
+      destroyOnHidden
       centered
     >
       {/* 平台选择器 */}

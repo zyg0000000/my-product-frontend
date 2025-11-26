@@ -28,11 +28,12 @@ import {
   ReloadOutlined,
   CloseOutlined,
   MoreOutlined,
+  UploadOutlined,
 } from '@ant-design/icons';
 import { logger } from '../../../utils/logger';
 import { getTalents, updateTalent, deleteTalent, deleteTalentAll } from '../../../api/talent';
 import type { Talent, Platform, PriceType } from '../../../types/talent';
-import { PLATFORM_NAMES, PLATFORM_PRICE_TYPES } from '../../../types/talent';
+import { PLATFORM_NAMES } from '../../../types/talent';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 import {
   formatPrice,
@@ -43,6 +44,7 @@ import { PriceModal } from '../../../components/PriceModal';
 import { EditTalentModal } from '../../../components/EditTalentModal';
 import { DeleteConfirmModal } from '../../../components/DeleteConfirmModal';
 import { RebateManagementModal } from '../../../components/RebateManagementModal';
+import { BatchCreateTalentModal } from '../../../components/BatchCreateTalentModal';
 import { getAgencies } from '../../../api/agency';
 import type { Agency } from '../../../types/agency';
 import { AGENCY_INDIVIDUAL_ID } from '../../../types/agency';
@@ -55,7 +57,7 @@ export function BasicInfo() {
   const actionRef = useRef<ActionType>(null);
 
   // 使用平台配置 Hook（只获取启用的平台）
-  const { getPlatformList, loading: configLoading } = usePlatformConfig(false);
+  const { getPlatformList, getTalentTiers, getPlatformPriceTypes, loading: configLoading } = usePlatformConfig(false);
   const platforms = getPlatformList();
 
   // 从路由状态获取平台，如果没有则默认为第一个平台
@@ -71,6 +73,7 @@ export function BasicInfo() {
   const [rebateModalOpen, setRebateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [batchCreateModalOpen, setBatchCreateModalOpen] = useState(false);
   const [selectedTalent, setSelectedTalent] = useState<Talent | null>(null);
 
   // 分页状态
@@ -87,16 +90,14 @@ export function BasicInfo() {
   const [priceMin, setPriceMin] = useState<string>('');
   const [priceMax, setPriceMax] = useState<string>('');
 
-  // 获取平台的默认价格档位
+  // 获取平台的默认价格档位（使用动态配置）
   const getDefaultPriceTier = (platform: Platform): string | null => {
-    const platformPriceTypes = PLATFORM_PRICE_TYPES[platform];
+    const platformPriceTypes = getPlatformPriceTypes(platform);
     if (platformPriceTypes && platformPriceTypes.length > 0) {
-      if (platform === 'xiaohongshu') {
-        return 'image';
-      }
+      // 使用数据库配置的第一个价格类型作为默认值
       return platformPriceTypes[0].key;
     }
-    return 'video_60plus';
+    return null;
   };
 
   // 价格档位选择状态（不使用 localStorage）
@@ -104,8 +105,8 @@ export function BasicInfo() {
     return getDefaultPriceTier(selectedPlatform);
   });
 
-  // 价格类型配置
-  const priceTypes = PLATFORM_PRICE_TYPES[selectedPlatform] || [];
+  // 价格类型配置（使用动态配置）
+  const priceTypes = getPlatformPriceTypes(selectedPlatform);
 
   // 组件挂载后清除路由状态
   useEffect(() => {
@@ -210,7 +211,7 @@ export function BasicInfo() {
   // 获取机构名称
   const getAgencyName = (agencyId?: string): string => {
     if (!agencyId || agencyId === AGENCY_INDIVIDUAL_ID) {
-      return '独立达人';
+      return '野生达人';
     }
     const agency = agencies.find(a => a.id === agencyId);
     return agency?.name || '未知机构';
@@ -559,20 +560,30 @@ export function BasicInfo() {
       dataIndex: 'talentTier',
       key: 'talentTier',
       width: 100,
-      render: (_, record) =>
-        record.talentTier ? (
-          <Tag
-            color={
-              record.talentTier === '头部' ? 'red' :
-                record.talentTier === '腰部' ? 'blue' :
-                  'default'
-            }
-          >
-            {record.talentTier}
-          </Tag>
-        ) : (
-          <span className="text-gray-400 text-xs">-</span>
-        ),
+      render: (_, record) => {
+        if (!record.talentTier) {
+          return <span className="text-gray-400 text-xs">-</span>;
+        }
+        // 从配置中获取该等级的颜色
+        const tierConfig = getTalentTiers(selectedPlatform).find(
+          t => t.label === record.talentTier
+        );
+        if (tierConfig) {
+          return (
+            <Tag
+              style={{
+                backgroundColor: tierConfig.bgColor,
+                color: tierConfig.textColor,
+                border: 'none',
+              }}
+            >
+              {record.talentTier}
+            </Tag>
+          );
+        }
+        // 兜底：如果没找到配置，使用默认样式
+        return <Tag>{record.talentTier}</Tag>;
+      },
     },
     {
       title: '内容标签',
@@ -990,12 +1001,20 @@ export function BasicInfo() {
                 >
                   新增达人
                 </Button>,
+                // 批量新增按钮
+                <Button
+                  key="batch-add"
+                  icon={<UploadOutlined />}
+                  onClick={() => setBatchCreateModalOpen(true)}
+                >
+                  批量新增
+                </Button>,
                 // 价格类型选择器
                 <div key="price" className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200">
                   <span className="text-sm font-medium text-blue-700">价格类型</span>
                   <Select
-                    value={selectedPriceTier}
-                    onChange={setSelectedPriceTier}
+                    value={selectedPriceTier ?? '__HIDE__'}
+                    onChange={(val) => setSelectedPriceTier(val === '__HIDE__' ? null : val)}
                     style={{ width: 130 }}
                     size="small"
                     options={[
@@ -1005,7 +1024,7 @@ export function BasicInfo() {
                       })),
                       {
                         label: '隐藏价格',
-                        value: null,
+                        value: '__HIDE__',
                       },
                     ]}
                   />
@@ -1082,6 +1101,14 @@ export function BasicInfo() {
             />
           )
         }
+
+        {/* 批量新增达人弹窗 */}
+        <BatchCreateTalentModal
+          open={batchCreateModalOpen}
+          onClose={() => setBatchCreateModalOpen(false)}
+          onSuccess={loadTalents}
+          initialPlatform={selectedPlatform}
+        />
       </div>
     </PageTransition>
   );

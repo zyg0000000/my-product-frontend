@@ -30,6 +30,18 @@ export interface PriceTypeConfig {
 }
 
 /**
+ * 达人等级配置
+ */
+export interface TalentTierConfig {
+  key: string;           // 唯一标识，如 'top', 'middle', 'tail', 'normal'
+  label: string;         // 显示名称，如 '头部', '腰部', '尾部', '常规达人'
+  bgColor: string;       // 背景色
+  textColor: string;     // 文字色
+  order: number;         // 排序
+  isDefault?: boolean;   // 是否为默认值（批量创建时使用）
+}
+
+/**
  * 字段配置
  */
 export interface FieldConfig {
@@ -55,6 +67,7 @@ export interface PlatformConfig {
   };
 
   priceTypes: PriceTypeConfig[];
+  talentTiers: TalentTierConfig[];
   specificFields: Record<string, FieldConfig>;
 
   link?: {

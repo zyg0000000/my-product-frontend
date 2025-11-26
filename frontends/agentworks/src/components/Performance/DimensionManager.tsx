@@ -26,7 +26,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import type { DimensionConfig } from '../../api/performance';
 import type { Platform } from '../../types/talent';
-import { PLATFORM_PRICE_TYPES } from '../../types/talent';
+import { usePlatformConfig } from '../../hooks/usePlatformConfig';
 import { Modal } from './Modal';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useBatchEdit } from '../../hooks/useBatchEdit';
@@ -71,8 +71,10 @@ export function DimensionManager({
   const categoryOptions = (categories && categories.length > 0)
     ? [...categories].sort((a, b) => a.order - b.order)
     : DEFAULT_CATEGORIES;
-  // 获取当前平台的价格类型配置
-  const priceTypes = PLATFORM_PRICE_TYPES[platform] || [];
+
+  // 使用平台配置 Hook 获取价格类型（动态配置）
+  const { getPlatformPriceTypes } = usePlatformConfig(true);
+  const priceTypes = getPlatformPriceTypes(platform);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);

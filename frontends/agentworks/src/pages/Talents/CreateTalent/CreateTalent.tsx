@@ -43,7 +43,7 @@ export function CreateTalent() {
   const [form] = Form.useForm();
 
   // 使用平台配置 Hook（只获取启用的平台）
-  const { getPlatformList, getPlatformNames, loading: configLoading } = usePlatformConfig(false);
+  const { getPlatformList, getPlatformNames, getTalentTiers, loading: configLoading } = usePlatformConfig(false);
   const platforms = getPlatformList();
   const platformNames = getPlatformNames();
 
@@ -237,11 +237,10 @@ export function CreateTalent() {
               name="talentTier"
               label="达人层级"
               placeholder="请选择达人层级"
-              options={[
-                { label: '头部', value: '头部' },
-                { label: '腰部', value: '腰部' },
-                { label: '尾部', value: '尾部' },
-              ]}
+              options={getTalentTiers(selectedPlatform).map(tier => ({
+                label: tier.label,
+                value: tier.label,
+              }))}
             />
 
             <ProFormSelect

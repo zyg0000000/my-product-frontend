@@ -78,7 +78,7 @@ export function DataImportModal({
       onCancel={onClose}
       footer={null}
       width={560}
-      destroyOnClose
+      destroyOnHidden
       centered
     >
       <ProForm

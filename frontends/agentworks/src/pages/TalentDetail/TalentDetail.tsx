@@ -9,7 +9,8 @@ import { getTalentDetail } from '../../api/talent';
 import { getTalentRebate, getRebateHistory as fetchRebateHistory } from '../../api/rebate';
 import { getAgencies } from '../../api/agency';
 import type { Talent, Platform } from '../../types/talent';
-import { PLATFORM_NAMES, PLATFORM_PRICE_TYPES } from '../../types/talent';
+import { PLATFORM_NAMES } from '../../types/talent';
+import { usePlatformConfig } from '../../hooks/usePlatformConfig';
 import type { Agency } from '../../types/agency';
 import { AGENCY_INDIVIDUAL_ID } from '../../types/agency';
 import type { GetRebateResponse, RebateConfig } from '../../types/rebate';
@@ -37,6 +38,9 @@ export function TalentDetail() {
   const navigate = useNavigate();
   const [talent, setTalent] = useState<Talent | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // 使用平台配置 Hook 获取价格类型（动态配置）
+  const { getPlatformPriceTypes } = usePlatformConfig(true);
 
   // 新返点管理系统状态
   const [rebateData, setRebateData] = useState<GetRebateResponse['data'] | null>(null);
@@ -147,7 +151,8 @@ export function TalentDetail() {
   }
 
   const priceHistory = getPriceHistory(talent.prices);
-  const priceTypes = PLATFORM_PRICE_TYPES[talent.platform];
+  // 使用动态配置获取价格类型
+  const priceTypes = getPlatformPriceTypes(talent.platform);
 
   return (
     <div className="space-y-6">

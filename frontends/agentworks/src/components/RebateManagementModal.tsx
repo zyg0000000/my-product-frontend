@@ -112,7 +112,7 @@ export function RebateManagementModal({
         </div>
       }
       width={900}
-      destroyOnClose
+      destroyOnHidden
       centered
     >
       {/* Tabs 导航 */}

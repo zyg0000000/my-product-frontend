@@ -14,10 +14,11 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Modal, Tabs, Form, message, Switch, Tag, Space } from 'antd';
+import { Modal, Tabs, Form, message, Switch, Tag, Space, Button, Input, Popconfirm, ColorPicker, Radio } from 'antd';
 import { ProForm, ProFormText, ProFormDigit, ProFormSelect, ProFormTextArea } from '@ant-design/pro-components';
 import { ProCard } from '@ant-design/pro-components';
-import type { PlatformConfig, PriceTypeConfig } from '../api/platformConfig';
+import { PlusOutlined, DeleteOutlined, HolderOutlined } from '@ant-design/icons';
+import type { PlatformConfig, PriceTypeConfig, TalentTierConfig } from '../api/platformConfig';
 import { updatePlatformConfig, createPlatformConfig } from '../api/platformConfig';
 import { logger } from '../utils/logger';
 
@@ -39,6 +40,8 @@ export function PlatformConfigModal({
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
+  const [talentTiers, setTalentTiers] = useState<TalentTierConfig[]>([]);
+  const [priceTypes, setPriceTypes] = useState<PriceTypeConfig[]>([]);
 
   // 初始化表单数据
   useEffect(() => {
@@ -63,6 +66,8 @@ export function PlatformConfigModal({
           rebateManagement: true,
           dataImport: true,
         });
+        setTalentTiers([]);
+        setPriceTypes([]);
       } else if (config) {
         // 编辑模式：加载现有配置
         form.setFieldsValue({
@@ -83,6 +88,10 @@ export function PlatformConfigModal({
           rebateManagement: config.features?.rebateManagement,
           dataImport: config.features?.dataImport,
         });
+        // 加载达人等级配置
+        setTalentTiers(config.talentTiers || []);
+        // 加载价格类型配置
+        setPriceTypes(config.priceTypes || []);
       }
     }
   }, [isOpen, config, isCreating, form]);
@@ -93,35 +102,52 @@ export function PlatformConfigModal({
       setSaving(true);
 
       // 构建配置数据
+      // 重要：编辑模式下必须保留原有数据中未被编辑的字段
+      // 使用 ?? 运算符确保只有当值为 null/undefined 时才使用原有值
       const configData: any = {
         platform: isCreating ? values.platform : config!.platform,
         name: values.name,
         enabled: values.enabled,
         color: values.color,
         order: values.order,
+        // accountId: 保留原有值，只覆盖用户明确填写的字段
         accountId: {
-          label: values.accountIdLabel,
-          placeholder: values.accountIdPlaceholder,
-          helpText: values.accountIdHelpText || undefined,
+          label: values.accountIdLabel ?? config?.accountId?.label,
+          placeholder: values.accountIdPlaceholder ?? config?.accountId?.placeholder,
+          helpText: values.accountIdHelpText ?? config?.accountId?.helpText,
         },
+        // business: 保留原有值
         business: {
-          fee: values.fee !== null && values.fee !== undefined ? values.fee / 100 : null,
-          defaultRebate: values.defaultRebate,
-          minRebate: 0,
-          maxRebate: 100,
+          fee: values.fee !== null && values.fee !== undefined
+            ? values.fee / 100
+            : config?.business?.fee ?? null,
+          defaultRebate: values.defaultRebate ?? config?.business?.defaultRebate ?? 15,
+          minRebate: config?.business?.minRebate ?? 0,
+          maxRebate: config?.business?.maxRebate ?? 100,
         },
+        // link: 保留原有配置，只有用户明确修改时才更新
         link: values.linkTemplate ? {
           template: values.linkTemplate,
-          idField: values.linkIdField || 'platformAccountId',
-        } : null,
+          idField: values.linkIdField || config?.link?.idField || 'platformAccountId',
+        } : (isCreating ? null : config?.link ?? null),
+        // features: 使用表单值，fallback 到原有配置
         features: {
-          priceManagement: values.priceManagement ?? false,
-          performanceTracking: values.performanceTracking ?? false,
-          rebateManagement: values.rebateManagement ?? false,
-          dataImport: values.dataImport ?? false,
+          priceManagement: values.priceManagement ?? config?.features?.priceManagement ?? false,
+          performanceTracking: values.performanceTracking ?? config?.features?.performanceTracking ?? false,
+          rebateManagement: values.rebateManagement ?? config?.features?.rebateManagement ?? false,
+          dataImport: values.dataImport ?? config?.features?.dataImport ?? false,
         },
-        priceTypes: config?.priceTypes || [],
-        specificFields: config?.specificFields || {},
+        // priceTypes: 合并原有数据中的 required 等字段
+        priceTypes: priceTypes.map(pt => {
+          const original = config?.priceTypes?.find(op => op.key === pt.key);
+          return {
+            ...original, // 保留原有字段（如 required）
+            ...pt,       // 覆盖用户编辑的字段
+          };
+        }),
+        talentTiers: talentTiers,
+        // specificFields: 编辑模式下必须保留
+        specificFields: isCreating ? {} : (config?.specificFields || {}),
       };
 
       let response;
@@ -263,45 +289,287 @@ export function PlatformConfigModal({
         </ProCard>
       ),
     },
-    // 仅在编辑模式显示价格类型Tab
-    ...(!isCreating ? [{
+    // 价格类型配置 Tab
+    {
       key: 'priceTypes',
       label: '价格类型',
       children: (
         <ProCard>
-          <div className="mb-4">
-            <p className="text-sm text-gray-600 mb-2">当前价格类型：</p>
-            <Space size="small" wrap>
-              {config?.priceTypes && config.priceTypes.length > 0 ? (
-                config.priceTypes.map((pt: PriceTypeConfig) => (
-                  <Tag
-                    key={pt.key}
-                    style={{
-                      backgroundColor: pt.bgColor,
-                      color: pt.textColor,
-                      border: 'none',
-                    }}
-                  >
-                    {pt.label}
-                  </Tag>
-                ))
-              ) : (
-                <span className="text-gray-400">暂无价格类型</span>
-              )}
-            </Space>
+          <div className="mb-4 flex justify-between items-center">
+            <p className="text-sm text-gray-600">
+              配置该平台的价格类型（如：60s以上视频、图文笔记等）
+            </p>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              size="small"
+              onClick={() => {
+                const newPriceType: PriceTypeConfig = {
+                  key: `price_${Date.now()}`,
+                  label: '',
+                  bgColor: '#dbeafe',
+                  textColor: '#1e40af',
+                  order: priceTypes.length + 1,
+                };
+                setPriceTypes([...priceTypes, newPriceType]);
+              }}
+            >
+              新增价格类型
+            </Button>
           </div>
 
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-700">
-              💡 <strong>提示</strong>: 价格类型配置较为复杂，暂不支持在界面中编辑。
-            </p>
-            <p className="text-xs text-gray-500 mt-2">
-              如需修改价格类型，请在数据库中直接编辑或联系开发者。
+          {priceTypes.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              暂无价格类型配置，点击上方按钮添加
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {priceTypes
+                .map((pt, index) => ({ ...pt, _index: index }))
+                .sort((a, b) => a.order - b.order)
+                .map((pt) => (
+                  <div
+                    key={pt._index}
+                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                  >
+                    <HolderOutlined className="text-gray-400 cursor-move" />
+
+                    <Input
+                      placeholder="类型标识(英文)"
+                      value={pt.key}
+                      onChange={(e) => {
+                        const updated = [...priceTypes];
+                        updated[pt._index] = { ...updated[pt._index], key: e.target.value };
+                        setPriceTypes(updated);
+                      }}
+                      style={{ width: 140 }}
+                    />
+
+                    <Input
+                      placeholder="显示名称"
+                      value={pt.label}
+                      onChange={(e) => {
+                        const updated = [...priceTypes];
+                        updated[pt._index] = { ...updated[pt._index], label: e.target.value };
+                        setPriceTypes(updated);
+                      }}
+                      style={{ width: 120 }}
+                    />
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">背景:</span>
+                      <ColorPicker
+                        value={pt.bgColor}
+                        size="small"
+                        onChange={(color) => {
+                          const updated = [...priceTypes];
+                          updated[pt._index] = { ...updated[pt._index], bgColor: color.toHexString() };
+                          setPriceTypes(updated);
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">文字:</span>
+                      <ColorPicker
+                        value={pt.textColor}
+                        size="small"
+                        onChange={(color) => {
+                          const updated = [...priceTypes];
+                          updated[pt._index] = { ...updated[pt._index], textColor: color.toHexString() };
+                          setPriceTypes(updated);
+                        }}
+                      />
+                    </div>
+
+                    <Tag
+                      style={{
+                        backgroundColor: pt.bgColor,
+                        color: pt.textColor,
+                        border: 'none',
+                      }}
+                    >
+                      {pt.label || '预览'}
+                    </Tag>
+
+                    <div className="flex-1" />
+
+                    <Popconfirm
+                      title="确定删除该价格类型？"
+                      onConfirm={() => {
+                        const updated = priceTypes
+                          .filter((_, i) => i !== pt._index)
+                          .map((p, i) => ({ ...p, order: i + 1 }));
+                        setPriceTypes(updated);
+                      }}
+                    >
+                      <Button
+                        type="text"
+                        danger
+                        icon={<DeleteOutlined />}
+                        size="small"
+                      />
+                    </Popconfirm>
+                  </div>
+                ))}
+            </div>
+          )}
+
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+            <p className="text-xs text-blue-700">
+              💡 <strong>说明</strong>: 类型标识(key)用于数据存储，请使用英文小写和下划线（如：video_60plus）
             </p>
           </div>
         </ProCard>
       ),
-    }] : []),
+    },
+    // 达人等级配置 Tab
+    {
+      key: 'talentTiers',
+      label: '达人等级',
+      children: (
+        <ProCard>
+          <div className="mb-4 flex justify-between items-center">
+            <p className="text-sm text-gray-600">
+              配置该平台的达人等级分类（如：头部、腰部、尾部）
+            </p>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              size="small"
+              onClick={() => {
+                const newTier: TalentTierConfig = {
+                  key: `tier_${Date.now()}`,
+                  label: '',
+                  bgColor: '#e5e7eb',
+                  textColor: '#374151',
+                  order: talentTiers.length + 1,
+                  isDefault: talentTiers.length === 0,
+                };
+                setTalentTiers([...talentTiers, newTier]);
+              }}
+            >
+              新增等级
+            </Button>
+          </div>
+
+          {talentTiers.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              暂无达人等级配置，点击上方按钮添加
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {talentTiers
+                .sort((a, b) => a.order - b.order)
+                .map((tier, index) => (
+                  <div
+                    key={tier.key}
+                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                  >
+                    <HolderOutlined className="text-gray-400 cursor-move" />
+
+                    <Input
+                      placeholder="等级名称"
+                      value={tier.label}
+                      onChange={(e) => {
+                        const updated = talentTiers.map((t) =>
+                          t.key === tier.key ? { ...t, label: e.target.value } : t
+                        );
+                        setTalentTiers(updated);
+                      }}
+                      style={{ width: 120 }}
+                    />
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">背景:</span>
+                      <ColorPicker
+                        value={tier.bgColor}
+                        size="small"
+                        onChange={(color) => {
+                          const updated = talentTiers.map((t) =>
+                            t.key === tier.key
+                              ? { ...t, bgColor: color.toHexString() }
+                              : t
+                          );
+                          setTalentTiers(updated);
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">文字:</span>
+                      <ColorPicker
+                        value={tier.textColor}
+                        size="small"
+                        onChange={(color) => {
+                          const updated = talentTiers.map((t) =>
+                            t.key === tier.key
+                              ? { ...t, textColor: color.toHexString() }
+                              : t
+                          );
+                          setTalentTiers(updated);
+                        }}
+                      />
+                    </div>
+
+                    <Tag
+                      style={{
+                        backgroundColor: tier.bgColor,
+                        color: tier.textColor,
+                        border: 'none',
+                      }}
+                    >
+                      {tier.label || '预览'}
+                    </Tag>
+
+                    <Radio
+                      checked={tier.isDefault}
+                      onChange={() => {
+                        const updated = talentTiers.map((t) => ({
+                          ...t,
+                          isDefault: t.key === tier.key,
+                        }));
+                        setTalentTiers(updated);
+                      }}
+                    >
+                      <span className="text-xs">默认</span>
+                    </Radio>
+
+                    <div className="flex-1" />
+
+                    <Popconfirm
+                      title="确定删除该等级？"
+                      onConfirm={() => {
+                        const updated = talentTiers
+                          .filter((t) => t.key !== tier.key)
+                          .map((t, i) => ({ ...t, order: i + 1 }));
+                        // 如果删除的是默认项，将第一项设为默认
+                        if (tier.isDefault && updated.length > 0) {
+                          updated[0].isDefault = true;
+                        }
+                        setTalentTiers(updated);
+                      }}
+                    >
+                      <Button
+                        type="text"
+                        danger
+                        icon={<DeleteOutlined />}
+                        size="small"
+                      />
+                    </Popconfirm>
+                  </div>
+                ))}
+            </div>
+          )}
+
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+            <p className="text-xs text-blue-700">
+              💡 <strong>说明</strong>: 设置为"默认"的等级将在批量创建达人时自动使用
+            </p>
+          </div>
+        </ProCard>
+      ),
+    },
     {
       key: 'business',
       label: '业务配置',
@@ -438,7 +706,7 @@ export function PlatformConfigModal({
       onCancel={onClose}
       footer={null}
       width={900}
-      destroyOnClose
+      destroyOnHidden
       centered
     >
       <ProForm

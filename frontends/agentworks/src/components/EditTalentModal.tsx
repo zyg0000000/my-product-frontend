@@ -19,6 +19,7 @@ import { PLATFORM_NAMES } from '../types/talent';
 import { AGENCY_INDIVIDUAL_ID } from '../types/agency';
 import { TagInput } from './TagInput';
 import { AgencySelector } from './AgencySelector';
+import { usePlatformConfig } from '../hooks/usePlatformConfig';
 
 interface EditTalentModalProps {
   isOpen: boolean;
@@ -44,6 +45,7 @@ interface FormData {
 
 export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags }: EditTalentModalProps) {
   const [form] = Form.useForm<FormData>();
+  const { getTalentTiers } = usePlatformConfig(false);
 
   // 当弹窗打开时，初始化表单数据
   useEffect(() => {
@@ -147,7 +149,7 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
       onCancel={onClose}
       footer={null}
       width={900}
-      destroyOnClose
+      destroyOnHidden
       centered
     >
       <ProForm
@@ -241,11 +243,14 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
               <ProFormRadio.Group
                 name="talentTier"
                 label="达人等级"
-                options={[
-                  { label: '头部', value: '头部' },
-                  { label: '腰部', value: '腰部' },
-                  { label: '尾部', value: '尾部' },
-                ]}
+                options={
+                  talent?.platform
+                    ? getTalentTiers(talent.platform).map(tier => ({
+                        label: tier.label,
+                        value: tier.label,
+                      }))
+                    : []
+                }
                 fieldProps={{
                   optionType: 'default',
                 }}

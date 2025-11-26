@@ -88,7 +88,7 @@ export function AgencyFormModal({ isOpen, onClose, agency, onSave }: AgencyFormM
       onCancel={onClose}
       footer={null}
       width={900}
-      destroyOnClose
+      destroyOnHidden
       centered
     >
       <ProForm

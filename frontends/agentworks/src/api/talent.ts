@@ -252,3 +252,66 @@ export async function searchTalents(
 
   return post('/talents/search', requestBody);
 }
+
+// ==================== 批量创建达人接口 ====================
+
+/**
+ * 批量创建达人 - 单条数据
+ */
+export interface BulkCreateTalentItem {
+  name: string;                   // 达人昵称（必填）
+  platformAccountId: string;      // 平台账号ID（必填，如星图ID）
+  uid?: string;                   // 平台UID（可选）
+  talentTier?: string;            // 达人层级（可选，默认"常规达人"）
+  agencyId?: string;              // 机构ID（可选，默认"individual"野生达人）
+}
+
+/**
+ * 批量创建达人请求参数
+ */
+export interface BulkCreateTalentsParams {
+  platform: Platform;             // 目标平台（必填）
+  talents: BulkCreateTalentItem[]; // 达人数据数组（必填）
+}
+
+/**
+ * 批量创建达人响应 - 错误详情
+ */
+export interface BulkCreateError {
+  platformAccountId: string;
+  name: string;
+  reason: string;
+}
+
+/**
+ * 批量创建达人响应
+ */
+export interface BulkCreateTalentsResponse {
+  success: boolean;
+  message?: string;
+  dbVersion?: string;
+  data?: {
+    created: number;              // 成功创建数量
+    failed: number;               // 失败数量
+    total: number;                // 总提交数量
+    errors: BulkCreateError[];    // 失败详情
+  };
+  error?: string;
+}
+
+/**
+ * 批量创建达人
+ * @param params 批量创建参数
+ * @returns 创建结果
+ */
+export async function bulkCreateTalents(
+  params: BulkCreateTalentsParams
+): Promise<BulkCreateTalentsResponse> {
+  const requestBody = {
+    dbVersion: 'v2',  // agentworks 使用 v2 数据库
+    platform: params.platform,
+    talents: params.talents,
+  };
+
+  return post('/talents/bulk-create', requestBody);
+}

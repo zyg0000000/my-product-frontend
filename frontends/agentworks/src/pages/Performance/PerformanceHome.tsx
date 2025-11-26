@@ -10,7 +10,7 @@ import type { ProColumns, ActionType } from '@ant-design/pro-components';
 import { Select, Button, Tabs, message } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';
 import type { Platform, PriceType, Talent } from '../../types/talent';
-import { PLATFORM_NAMES, PLATFORM_PRICE_TYPES } from '../../types/talent';
+import { PLATFORM_NAMES } from '../../types/talent';
 import { usePerformanceData } from '../../hooks/usePerformanceData';
 import { useDimensionConfig } from '../../hooks/useDimensionConfig';
 import { usePerformanceFilters } from '../../hooks/usePerformanceFilters';
@@ -65,7 +65,7 @@ export function PerformanceHome() {
   const navigate = useNavigate();
 
   // 使用平台配置 Hook（只获取启用的平台）
-  const { getPlatformList, loading: configLoadingPlatform } = usePlatformConfig(false);
+  const { getPlatformList, getPlatformPriceTypes, loading: configLoadingPlatform } = usePlatformConfig(false);
   const platforms = getPlatformList();
 
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>(platforms[0] || 'douyin');
@@ -102,13 +102,14 @@ export function PerformanceHome() {
     search({});
   }, [resetFilters, search]);
 
-  const priceTypes = PLATFORM_PRICE_TYPES[selectedPlatform] || [];
+  // 使用动态配置获取价格类型
+  const priceTypes = getPlatformPriceTypes(selectedPlatform);
 
   // 处理平台切换
   const handlePlatformChange = (platform: Platform) => {
     setSelectedPlatform(platform);
     setPage(1);
-    const newPlatformPriceTypes = PLATFORM_PRICE_TYPES[platform];
+    const newPlatformPriceTypes = getPlatformPriceTypes(platform);
     if (newPlatformPriceTypes && newPlatformPriceTypes.length > 0) {
       setSelectedPriceType(newPlatformPriceTypes[0].key);
     } else {

@@ -12,8 +12,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tabs, Space, Tag, message } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, PercentageOutlined } from '@ant-design/icons';
+import { Button, Tabs, Space, Tag, App } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, PercentageOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import type { Agency } from '../../../types/agency';
 import type { Platform } from '../../../types/talent';
 import { PLATFORM_NAMES } from '../../../types/talent';
@@ -31,6 +31,7 @@ import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../../components/PageTransition';
 
 export function AgenciesList() {
+  const { message, modal } = App.useApp();
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [loading, setLoading] = useState(false);
   const [talentCounts, setTalentCounts] = useState<Record<string, number>>({});
@@ -110,7 +111,18 @@ export function AgenciesList() {
   // 打开编辑弹窗
   const handleEdit = (agency: Agency) => {
     if (agency.id === AGENCY_INDIVIDUAL_ID) {
-      message.warning('野生达人是系统预设机构，不可编辑');
+      // 系统预设机构需要二次确认
+      modal.confirm({
+        title: '编辑系统预设机构',
+        icon: <ExclamationCircleOutlined />,
+        content: '野生达人是系统预设机构，修改将影响所有归属于野生达人的达人。确定要编辑吗？',
+        okText: '确认编辑',
+        cancelText: '取消',
+        onOk() {
+          setEditingAgency(agency);
+          setIsModalOpen(true);
+        },
+      });
       return;
     }
     setEditingAgency(agency);

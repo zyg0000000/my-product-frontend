@@ -1,9 +1,14 @@
 /**
  * @file getCurrentAgencyRebate.js
- * @version 1.0.0
+ * @version 1.1.0
  * @description 云函数：获取机构当前生效的返点配置（按平台）
  *
  * --- 更新日志 ---
+ * [v1.1.0] 2025-11-26
+ * - [兼容性] 新增从 agencies 集合读取返点配置的 fallback 逻辑
+ * - [读取优先级] rebate_configs(active) > agencies.rebateConfig.platforms[platform] > agencies.rebateConfig.baseRebate
+ * - [场景支持] 野生达人初始默认返点率可正确读取（之前会返回 0）
+ *
  * [v1.0.0] 2025-11-16
  * - 初始版本
  * - 从 rebate_configs 集合读取当前 active 配置
@@ -82,8 +87,38 @@ async function getCurrentAgencyRebate(params) {
     status: 'active'
   });
 
-  // 如果没有配置，返回默认值
+  // 如果没有配置，尝试从 agencies 集合的 rebateConfig.platforms 读取（兼容旧数据）
   if (!activeConfig) {
+    // 检查 agencies 集合中是否有平台特定的返点配置
+    const platformConfig = agency.rebateConfig?.platforms?.[validatedPlatform];
+    if (platformConfig && platformConfig.baseRebate !== undefined) {
+      return {
+        agencyId,
+        agencyName: agency.name,
+        platform: validatedPlatform,
+        rebateRate: platformConfig.baseRebate,
+        effectiveDate: platformConfig.effectiveDate || null,
+        lastUpdatedAt: platformConfig.lastUpdatedAt || null,
+        updatedBy: platformConfig.updatedBy || null,
+        hasConfig: true
+      };
+    }
+
+    // 回退到 agencies 集合的基础返点率
+    if (agency.rebateConfig?.baseRebate !== undefined) {
+      return {
+        agencyId,
+        agencyName: agency.name,
+        platform: validatedPlatform,
+        rebateRate: agency.rebateConfig.baseRebate,
+        effectiveDate: agency.rebateConfig.effectiveDate || null,
+        lastUpdatedAt: agency.rebateConfig.lastUpdatedAt || null,
+        updatedBy: agency.rebateConfig.updatedBy || null,
+        hasConfig: true
+      };
+    }
+
+    // 都没有配置，返回默认值
     return {
       agencyId,
       agencyName: agency.name,

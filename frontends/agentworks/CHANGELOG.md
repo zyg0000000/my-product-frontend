@@ -1,5 +1,68 @@
 # AgentWorks 更新日志
 
+## v3.5.0 (2025-11-26) 🔧 - 野生达人返点系统修复
+
+### 🐛 关键修复
+
+#### 野生达人默认返点率
+- **问题**: 批量新增达人时，野生达人返点率硬编码为 0%，无视机构配置
+- **修复**: 从 `agencies` 集合动态读取野生达人机构的 `rebateConfig.baseRebate`
+- **影响范围**: 批量新增弹窗、后端创建逻辑
+
+#### 云函数升级
+
+**bulkCreateTalents v6.0**:
+- 新增 `getWildTalentRebateRate()` 函数
+- 读取优先级: `agencies.rebateConfig.platforms[platform]` > `agencies.rebateConfig.baseRebate` > 0
+- 野生达人 `currentRebate.source` 标记为 `'agency'`
+
+**getCurrentAgencyRebate v1.1.0**:
+- 新增 `agencies` 集合 fallback 逻辑
+- 读取优先级: `rebate_configs(active)` > `agencies.rebateConfig.platforms[platform]` > `agencies.rebateConfig.baseRebate` > 0
+- 支持野生达人初始默认返点率读取
+
+#### 前端优化
+
+**BatchCreateTalentModal**:
+- 选择平台后动态显示野生达人默认返点率
+- 调用 `getCurrentAgencyRebate` API 获取配置
+- 移除解析后预览表格底部的重复提示
+
+### 🔨 平台配置编辑修复
+
+#### PlatformConfigModal 数据保留
+- **问题**: 编辑平台配置保存时，未修改的字段被清空（accountId、link、business.fee、specificFields）
+- **修复**: 使用 `??` 运算符确保只覆盖用户明确修改的字段
+- **保留字段**: accountId、link、business、specificFields、priceTypes.required
+
+#### 数据库集合统一
+- **问题**: 存在两个平台配置集合（`system_config` 和 `platform_configs`）导致混淆
+- **确认**: 正确集合为 `system_config`（通过 `configType: 'platform'` 标识）
+- **清理**: 删除废弃的 `platform_configs` 集合
+
+### 📊 修复效果
+
+| 场景 | 修复前 | 修复后 |
+|------|--------|--------|
+| 野生达人批量新增返点 | 硬编码 0% | 动态读取（如 5%）✅ |
+| 批量弹窗默认值提示 | 显示 0% | 显示实际配置值 ✅ |
+| 平台配置编辑保存 | 清空未修改字段 | 保留原有值 ✅ |
+
+### 📁 修改文件
+
+**云函数** (2个):
+- `functions/bulkCreateTalents/index.js` - v6.0
+- `functions/getCurrentAgencyRebate/index.js` - v1.1.0
+
+**前端组件** (2个):
+- `frontends/agentworks/src/components/BatchCreateTalentModal/index.tsx`
+- `frontends/agentworks/src/components/PlatformConfigModal.tsx`
+
+**数据库脚本** (1个):
+- `database/agentworks_db/scripts/restore-platform-configs.js` - 修正集合名
+
+---
+
 ## v3.4.0 (2025-11-24) ✨ - UI/UX 全面优化
 
 ### 🎨 骨架屏加载系统 (Skeleton Screens)

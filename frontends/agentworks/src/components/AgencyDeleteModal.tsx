@@ -77,7 +77,7 @@ export function AgencyDeleteModal({
       onCancel={handleClose}
       footer={null}
       width={560}
-      destroyOnClose
+      destroyOnHidden
       centered
       closable={!deleting}
       maskClosable={!deleting}
