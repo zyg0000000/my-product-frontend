@@ -1,0 +1,9 @@
+{
+  "name": "talent-performance",
+  "version": "1.0.0",
+  "description": "达人表现数据 API - 查询 talent_performance 集合",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^5.0.0"
+  }
+}

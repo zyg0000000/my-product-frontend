@@ -574,6 +574,27 @@ function DimensionEditForm({
               </select>
             </div>
 
+            {/* 数据来源集合 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                数据来源
+              </label>
+              <select
+                value={dimension.targetCollection || 'talents'}
+                onChange={(e) => onChange({
+                  ...dimension,
+                  targetCollection: e.target.value as 'talents' | 'talent_performance'
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="talents">达人主表 (talents)</option>
+                <option value="talent_performance">表现数据 (talent_performance)</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                指定从哪个集合读取此维度的数据
+              </p>
+            </div>
+
             {/* 价格类型（仅当 type = "price" 时显示）*/}
             {dimension.type === 'price' && priceTypes.length > 0 && (
               <div>

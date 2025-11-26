@@ -1,0 +1,99 @@
+{
+    "collection": "talent_performance",
+    "database": "agentworks_db",
+    "version": "1.0",
+    "indexes": [
+        {
+            "name": "idx_snapshotId",
+            "keys": { "snapshotId": 1 },
+            "options": { "unique": true },
+            "description": "快照ID唯一索引",
+            "usage": "db.talent_performance.findOne({ snapshotId: 'perf_abc123def456gh78' })",
+            "important": true
+        },
+        {
+            "name": "idx_oneId_platform_date",
+            "keys": { "oneId": 1, "platform": 1, "snapshotDate": -1 },
+            "options": {},
+            "description": "【核心】查询某达人某平台的历史数据",
+            "usage": "db.talent_performance.find({ oneId: 'talent_00000001', platform: 'douyin' }).sort({ snapshotDate: -1 })",
+            "important": true
+        },
+        {
+            "name": "idx_oneId_platform_type_date",
+            "keys": { "oneId": 1, "platform": 1, "snapshotType": 1, "snapshotDate": -1 },
+            "options": { "unique": true },
+            "description": "【唯一约束】同一达人+平台+类型+日期只能有一条记录",
+            "usage": "db.talent_performance.findOne({ oneId: 'talent_00000001', platform: 'douyin', snapshotType: 'daily', snapshotDate: '2025-11-26' })",
+            "important": true
+        },
+        {
+            "name": "idx_snapshotDate",
+            "keys": { "snapshotDate": -1 },
+            "options": {},
+            "description": "按日期倒序（用于批量处理和数据清理）",
+            "usage": "db.talent_performance.find({ snapshotDate: { $lt: '2025-01-01' } })"
+        },
+        {
+            "name": "idx_dataSource",
+            "keys": { "dataSource": 1 },
+            "options": {},
+            "description": "按数据来源筛选",
+            "usage": "db.talent_performance.find({ dataSource: 'predicted' })"
+        },
+        {
+            "name": "idx_platform_date",
+            "keys": { "platform": 1, "snapshotDate": -1 },
+            "options": {},
+            "description": "按平台和日期查询（用于平台级分析）",
+            "usage": "db.talent_performance.find({ platform: 'douyin', snapshotDate: '2025-11-26' })"
+        },
+        {
+            "name": "idx_platform_type_date",
+            "keys": { "platform": 1, "snapshotType": 1, "snapshotDate": -1 },
+            "options": {},
+            "description": "平台级批量查询（用于导出训练数据）",
+            "usage": "db.talent_performance.find({ platform: 'douyin', snapshotType: 'daily' }).sort({ snapshotDate: -1 })"
+        },
+        {
+            "name": "idx_createdAt",
+            "keys": { "createdAt": -1 },
+            "options": {},
+            "description": "按创建时间倒序",
+            "usage": "db.talent_performance.find().sort({ createdAt: -1 }).limit(100)"
+        }
+    ],
+    "notes": [
+        "【重要】idx_oneId_platform_type_date 是唯一索引，确保数据不重复",
+        "【性能】对于 AI 训练场景，主要使用 idx_platform_type_date 批量导出",
+        "【查询优化】idx_oneId_platform_date 优化达人维度的历史查询",
+        "【数据清理】idx_snapshotDate 支持按时间范围清理旧数据",
+        "【扩展建议】如需支持更复杂的 AI 特征查询，可添加部分索引"
+    ],
+    "createIndexCommands": [
+        "db.talent_performance.createIndex({ snapshotId: 1 }, { unique: true })",
+        "db.talent_performance.createIndex({ oneId: 1, platform: 1, snapshotDate: -1 })",
+        "db.talent_performance.createIndex({ oneId: 1, platform: 1, snapshotType: 1, snapshotDate: -1 }, { unique: true })",
+        "db.talent_performance.createIndex({ snapshotDate: -1 })",
+        "db.talent_performance.createIndex({ dataSource: 1 })",
+        "db.talent_performance.createIndex({ platform: 1, snapshotDate: -1 })",
+        "db.talent_performance.createIndex({ platform: 1, snapshotType: 1, snapshotDate: -1 })",
+        "db.talent_performance.createIndex({ createdAt: -1 })"
+    ],
+    "partialIndexSuggestions": [
+        {
+            "name": "idx_ai_embedding_exists",
+            "keys": { "oneId": 1, "platform": 1 },
+            "options": { "partialFilterExpression": { "aiFeatures.embedding": { "$exists": true } } },
+            "description": "【可选】仅索引有特征向量的记录（用于相似度搜索）",
+            "note": "按需创建，适用于大规模 AI 特征查询场景"
+        },
+        {
+            "name": "idx_predicted_data",
+            "keys": { "oneId": 1, "platform": 1, "snapshotDate": -1 },
+            "options": { "partialFilterExpression": { "dataSource": "predicted" } },
+            "description": "【可选】仅索引预测数据",
+            "note": "按需创建，适用于频繁查询预测结果的场景"
+        }
+    ]
+}

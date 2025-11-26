@@ -16,6 +16,7 @@ export interface FieldMappingRule {
   defaultValue?: any;
   order?: number;
   priceType?: string;  // 价格类型（当 targetPath = "prices" 时使用）
+  targetCollection?: 'talents' | 'talent_performance';  // 目标集合（默认 talents）
 }
 
 export interface FieldMappingConfig {
@@ -79,6 +80,7 @@ export interface DimensionConfig {
   width?: number;
   order: number;
   priceType?: string;  // 价格类型（当 type = "price" 时使用）
+  targetCollection?: 'talents' | 'talent_performance';  // 数据来源集合（默认 talents）
   // v1.1 新增：筛选相关字段
   filterable?: boolean;  // 是否可作为筛选条件
   filterType?: 'text' | 'range' | 'enum';  // 筛选器类型
@@ -176,4 +178,67 @@ export async function importPerformanceFromFeishu(request: ImportRequest): Promi
     priceYear: request.priceYear,
     priceMonth: request.priceMonth
   });
+}
+
+/**
+ * ========== talent_performance 集合查询 API ==========
+ */
+
+export interface TalentPerformanceRecord {
+  _id?: string;
+  snapshotId: string;
+  oneId: string;
+  platform: string;
+  snapshotDate: string;
+  snapshotType: 'daily' | 'weekly' | 'monthly';
+  dataSource: 'feishu_sync' | 'api_import' | 'manual';
+  metrics: Record<string, any>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface TalentPerformanceQuery {
+  oneId?: string;
+  oneIds?: string;  // 逗号分隔的多个 oneId
+  platform: string;
+  snapshotType?: 'daily' | 'weekly' | 'monthly';
+  snapshotDate?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  limit?: number;
+  page?: number;
+  pageSize?: number;
+}
+
+/**
+ * 查询单个达人的最新表现数据
+ */
+export async function getTalentPerformance(oneId: string, platform: string, snapshotType = 'daily') {
+  return get('/talent-performance', { oneId, platform, snapshotType });
+}
+
+/**
+ * 批量查询多个达人的最新表现数据
+ */
+export async function getBatchTalentPerformance(oneIds: string[], platform: string, snapshotType = 'daily') {
+  return get('/talent-performance', { oneIds: oneIds.join(','), platform, snapshotType });
+}
+
+/**
+ * 查询达人的历史表现数据
+ */
+export async function getTalentPerformanceHistory(
+  oneId: string,
+  platform: string,
+  snapshotType = 'daily',
+  limit = 30
+) {
+  return get('/talent-performance/history', { oneId, platform, snapshotType, limit });
+}
+
+/**
+ * 列表查询表现数据（分页）
+ */
+export async function listTalentPerformance(query: TalentPerformanceQuery) {
+  return get('/talent-performance', query);
 }

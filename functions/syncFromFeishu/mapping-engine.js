@@ -1,6 +1,18 @@
 /**
  * mapping-engine.js - 通用映射引擎
- * @version 1.2 - Price Import Support
+ * @version 1.3 - Multi-Collection Support
+ *
+ * --- v1.3 更新日志 (2025-11-26) ---
+ * - [多集合支持] 支持 targetCollection 字段，实现数据分流写入
+ *   - talents: 达人基础信息（默认）
+ *   - talent_performance: 表现数据时序（新增）
+ * - [分流逻辑] applyMappingRules 按 targetCollection 分离数据
+ * - [时序数据] 写入 talent_performance 时自动添加：
+ *   - snapshotId: 唯一标识
+ *   - snapshotDate: 当天日期
+ *   - snapshotType: 'daily'
+ *   - dataSource: 'feishu'
+ * - [批量更新] bulkUpdateTalents 支持多集合写入
  *
  * --- v1.2 更新日志 (2025-11-20) ---
  * - [价格字段识别] applyMappingRules 支持通过 priceType 元数据识别价格类型
@@ -100,22 +112,38 @@ async function getMappingConfig(db, platform, configName = 'default') {
 }
 
 /**
+ * 生成快照ID
+ * 格式: perf_{oneId}_{platform}_{date}_{随机串}
+ */
+function generateSnapshotId(oneId, platform) {
+  const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+  const random = Math.random().toString(36).substring(2, 8);
+  return `perf_${oneId || 'unknown'}_${platform}_${dateStr}_${random}`;
+}
+
+/**
  * 应用映射规则（核心引擎）
+ * v1.3: 支持 targetCollection 分流
+ *
  * @param {Array} rows - 原始数据行（第一行为表头）
  * @param {Array} mappingRules - 映射规则数组
  * @param {string} platform - 平台
  * @param {number} priceYear - 价格归属年份
  * @param {number} priceMonth - 价格归属月份
- * @returns {Object} { validData, invalidRows }
+ * @returns {Object} { validData, invalidRows, performanceData }
+ *   - validData: 写入 talents 集合的数据
+ *   - performanceData: 写入 talent_performance 集合的数据
+ *   - invalidRows: 无效行
  */
 function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth) {
   if (!rows || rows.length < 2) {
-    return { validData: [], invalidRows: [] };
+    return { validData: [], invalidRows: [], performanceData: [] };
   }
 
   const header = rows[0];
   const dataRows = rows.slice(1);
-  const validData = [];
+  const validData = [];          // talents 集合数据
+  const performanceData = [];    // talent_performance 集合数据
   const invalidRows = [];
 
   // 构建表头索引 Map
@@ -125,9 +153,14 @@ function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth) 
       .filter(([col]) => col !== '')
   );
 
+  // v1.3: 按 targetCollection 分组映射规则
+  const talentRules = mappingRules.filter(r => !r.targetCollection || r.targetCollection === 'talents');
+  const performanceRules = mappingRules.filter(r => r.targetCollection === 'talent_performance');
+
   console.log(`[映射引擎] 表头列数: ${header.length}`);
   console.log(`[映射引擎] 数据行数: ${dataRows.length}`);
   console.log(`[映射引擎] 映射规则数: ${mappingRules.length}`);
+  console.log(`[映射引擎] → talents 规则: ${talentRules.length}, talent_performance 规则: ${performanceRules.length}`);
 
   // 🔍 调试：打印前10个表头列名
   console.log(`[映射引擎] 前10个表头:`, header.slice(0, 10).filter(h => h).join(', '));
@@ -136,24 +169,37 @@ function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth) 
   const expectedHeaders = mappingRules.map(r => r.excelHeader).slice(0, 10);
   console.log(`[映射引擎] 期望的列名（前10个）:`, expectedHeaders.join(', '));
 
+  // 获取今天的日期（用于 snapshotDate）
+  const today = new Date().toISOString().split('T')[0];
+
   for (let rowIndex = 0; rowIndex < dataRows.length; rowIndex++) {
     const row = dataRows[rowIndex];
 
     try {
-      const processedRow = {
+      // talents 集合数据
+      const talentRow = {
         platform: platform
       };
-      let hasRequiredFields = true;
-      let processedFieldsCount = 0;
+      // talent_performance 集合数据
+      const perfRow = {
+        platform: platform,
+        snapshotDate: today,
+        snapshotType: 'daily',
+        dataSource: 'feishu',
+        metrics: {},
+        audience: {}
+      };
 
-      // 遍历映射规则
-      for (const rule of mappingRules) {
+      let hasRequiredFields = true;
+      let talentFieldsCount = 0;
+      let perfFieldsCount = 0;
+
+      // 首先处理 talents 规则（获取 platformAccountId/oneId 用于关联）
+      for (const rule of talentRules) {
         const colIndex = headerMap.get(rule.excelHeader);
 
         if (colIndex === undefined) {
-          // Excel中没有这一列
           if (rule.required) {
-            // 🔍 调试：记录缺少的必需字段
             if (rowIndex === 0) {
               console.log(`[映射引擎] ❌ 缺少必需列: "${rule.excelHeader}"`);
             }
@@ -165,7 +211,6 @@ function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth) 
 
         let value = row[colIndex];
 
-        // 空值处理
         if (value === null || value === undefined || String(value).trim() === '') {
           if (rule.required) {
             hasRequiredFields = false;
@@ -200,45 +245,73 @@ function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth) 
           continue;
         }
 
-        // 自定义转换（预留，Phase 2可实现）
-        if (rule.transform) {
-          // TODO: 执行自定义转换函数
-        }
-
-        // 验证（预留，Phase 2可实现）
-        if (rule.validator) {
-          // TODO: 执行验证函数
-        }
-
-        // 🔥 价格字段特殊处理（使用 priceType 元数据识别）
+        // 价格字段特殊处理
         if (rule.targetPath === 'prices' && rule.priceType) {
-          // 通过 priceType 元数据识别价格类型（平台通用）
           if (processedValue > 0) {
-            // 初始化 prices 数组
-            if (!processedRow.prices) {
-              processedRow.prices = [];
+            if (!talentRow.prices) {
+              talentRow.prices = [];
             }
-
-            // 构建 PriceRecord
             const priceRecord = {
               year: priceYear || new Date().getFullYear(),
               month: priceMonth || (new Date().getMonth() + 1),
-              type: rule.priceType,  // ← 直接使用配置中的 priceType
-              price: Math.round(processedValue * 100),  // 元转分
+              type: rule.priceType,
+              price: Math.round(processedValue * 100),
               status: 'confirmed'
             };
-
-            processedRow.prices.push(priceRecord);
-            processedFieldsCount++;
-
+            talentRow.prices.push(priceRecord);
+            talentFieldsCount++;
             if (rowIndex === 0) {
-              console.log(`[映射引擎] 🏷️ 识别价格字段: ${rule.excelHeader} → ${rule.priceType} (${priceYear}年${priceMonth}月)`);
+              console.log(`[映射引擎] 🏷️ 识别价格字段: ${rule.excelHeader} → ${rule.priceType}`);
             }
           }
         } else {
-          // 普通字段，按原逻辑处理
-          setNestedValue(processedRow, rule.targetPath, processedValue);
-          processedFieldsCount++;
+          setNestedValue(talentRow, rule.targetPath, processedValue);
+          talentFieldsCount++;
+        }
+      }
+
+      // 处理 talent_performance 规则
+      for (const rule of performanceRules) {
+        const colIndex = headerMap.get(rule.excelHeader);
+
+        if (colIndex === undefined) {
+          continue;  // performance 字段不强制要求
+        }
+
+        let value = row[colIndex];
+
+        if (value === null || value === undefined || String(value).trim() === '') {
+          continue;
+        }
+
+        // 格式转换
+        let processedValue = value;
+        try {
+          switch (rule.format) {
+            case 'percentage':
+              processedValue = parseFlexibleNumber(value, true);
+              break;
+            case 'number':
+              processedValue = parseFlexibleNumber(value, false);
+              break;
+            case 'date':
+              processedValue = new Date(value);
+              if (isNaN(processedValue.getTime())) continue;
+              break;
+            case 'text':
+            default:
+              processedValue = String(value).trim();
+          }
+        } catch (error) {
+          continue;
+        }
+
+        // 设置到 perfRow（targetPath 应该是如 metrics.cpm, audience.gender.male 等）
+        setNestedValue(perfRow, rule.targetPath, processedValue);
+        perfFieldsCount++;
+
+        if (rowIndex === 0) {
+          console.log(`[映射引擎] 📊 Performance 字段: ${rule.excelHeader} → ${rule.targetPath}`);
         }
       }
 
@@ -253,7 +326,7 @@ function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth) 
       }
 
       // 至少要有一些数据字段
-      if (processedFieldsCount === 0) {
+      if (talentFieldsCount === 0 && perfFieldsCount === 0) {
         invalidRows.push({
           index: rowIndex + 1,
           row: row,
@@ -262,7 +335,30 @@ function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth) 
         continue;
       }
 
-      validData.push(processedRow);
+      // 添加到对应集合
+      if (talentFieldsCount > 0) {
+        validData.push(talentRow);
+      }
+
+      // 如果有 performance 数据，需要关联到达人
+      if (perfFieldsCount > 0) {
+        // 从 talentRow 获取关联字段
+        perfRow.oneId = talentRow.oneId || null;
+        perfRow.platformAccountId = talentRow.platformAccountId || null;
+
+        // 生成 snapshotId（唯一标识）
+        perfRow.snapshotId = generateSnapshotId(
+          perfRow.oneId || perfRow.platformAccountId,
+          platform
+        );
+
+        // 添加时间戳
+        perfRow.lastUpdated = new Date();
+        perfRow.createdAt = new Date();
+        perfRow.updatedAt = new Date();
+
+        performanceData.push(perfRow);
+      }
 
     } catch (error) {
       invalidRows.push({
@@ -273,19 +369,25 @@ function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth) 
     }
   }
 
-  console.log(`[映射引擎] 处理完成: 成功${validData.length}, 失败${invalidRows.length}`);
+  console.log(`[映射引擎] 处理完成:`);
+  console.log(`  → talents: ${validData.length} 条`);
+  console.log(`  → talent_performance: ${performanceData.length} 条`);
+  console.log(`  → 失败: ${invalidRows.length} 条`);
 
-  return { validData, invalidRows };
+  return { validData, invalidRows, performanceData };
 }
 
 /**
  * 批量更新达人数据到数据库
+ * v1.3: 支持同时写入 talents 和 talent_performance 集合
+ *
  * @param {Object} db - 数据库连接
- * @param {Array} processedData - 处理后的数据
+ * @param {Array} processedData - 处理后的 talents 数据
  * @param {string} dbVersion - 数据库版本（v1/v2）
+ * @param {Array} performanceData - 处理后的 talent_performance 数据（可选）
  * @returns {Object} 更新统计
  */
-async function bulkUpdateTalents(db, processedData, dbVersion) {
+async function bulkUpdateTalents(db, processedData, dbVersion, performanceData = []) {
   const collection = db.collection('talents');
   const bulkOps = [];
   const currentTime = new Date();
@@ -443,12 +545,78 @@ async function bulkUpdateTalents(db, processedData, dbVersion) {
 
   const result = { matchedCount, modifiedCount };
 
-  console.log(`[批量更新] 完成: Matched=${result.matchedCount}, Modified=${result.modifiedCount}`);
+  console.log(`[批量更新 talents] 完成: Matched=${result.matchedCount}, Modified=${result.modifiedCount}`);
+
+  // ========== v1.3: 写入 talent_performance 集合 ==========
+  let perfStats = { upserted: 0, modified: 0, failed: 0 };
+
+  if (performanceData && performanceData.length > 0) {
+    console.log(`[批量更新 talent_performance] 准备写入 ${performanceData.length} 条记录`);
+
+    const perfCollection = db.collection('talent_performance');
+    const perfBulkOps = [];
+
+    for (const perf of performanceData) {
+      // 需要先查询达人获取 oneId（如果只有 platformAccountId）
+      if (!perf.oneId && perf.platformAccountId) {
+        const talent = await collection.findOne({
+          platformAccountId: perf.platformAccountId,
+          platform: perf.platform
+        });
+        if (talent) {
+          perf.oneId = talent.oneId;
+        }
+      }
+
+      // 必须有 oneId 才能写入
+      if (!perf.oneId) {
+        console.warn(`[talent_performance] 跳过：无法确定 oneId (platformAccountId: ${perf.platformAccountId})`);
+        perfStats.failed++;
+        continue;
+      }
+
+      // 使用 upsert：同一达人+平台+类型+日期 只保留一条
+      perfBulkOps.push({
+        updateOne: {
+          filter: {
+            oneId: perf.oneId,
+            platform: perf.platform,
+            snapshotType: perf.snapshotType,
+            snapshotDate: perf.snapshotDate
+          },
+          update: {
+            $set: {
+              ...perf,
+              updatedAt: currentTime
+            },
+            $setOnInsert: {
+              createdAt: currentTime
+            }
+          },
+          upsert: true
+        }
+      });
+    }
+
+    if (perfBulkOps.length > 0) {
+      try {
+        const perfResult = await perfCollection.bulkWrite(perfBulkOps, { ordered: false });
+        perfStats.upserted = perfResult.upsertedCount || 0;
+        perfStats.modified = perfResult.modifiedCount || 0;
+        console.log(`[批量更新 talent_performance] 完成: Upserted=${perfStats.upserted}, Modified=${perfStats.modified}`);
+      } catch (err) {
+        console.error('[批量更新 talent_performance] 失败:', err);
+        perfStats.failed = perfBulkOps.length;
+      }
+    }
+  }
 
   return {
     matched: result.matchedCount,
     modified: result.modifiedCount,
-    failed: bulkOps.length - result.matchedCount
+    failed: bulkOps.length - result.matchedCount,
+    // v1.3: 新增 talent_performance 统计
+    performance: perfStats
   };
 }
 

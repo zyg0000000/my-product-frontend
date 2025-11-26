@@ -1,8 +1,14 @@
 /**
  * @file getTalentsSearch.js
- * @version 9.0-dual-db
+ * @version 10.0-multi-collection
  * @description
- * 云函数: getTalentsSearch (双数据库统一版)
+ * 云函数: getTalentsSearch (多集合支持版)
+ *
+ * [v10.0] 多集合支持:
+ * 1. [新增] v2 版本支持从 dimension_configs 读取 targetCollection 配置
+ * 2. [新增] 自动 $lookup 关联 talent_performance 集合的表现数据
+ * 3. [新增] 合并 talents 和 talent_performance 两个集合的数据
+ * 4. [兼容] 完全向后兼容 v9.x 的所有功能
  *
  * [v9.0] 双数据库支持:
  * 1. [新增] 支持 dbVersion 参数: 'v1' (kol_data/byteproject) 或 'v2' (agentworks_db/agentworks)
@@ -29,6 +35,8 @@ const { MongoClient } = require('mongodb');
 // --- 数据库连接配置 ---
 const MONGO_URI = process.env.MONGO_URI;
 const TALENTS_COLLECTION = 'talents';
+const PERFORMANCE_COLLECTION = 'talent_performance';
+const DIMENSION_CONFIGS_COLLECTION = 'dimension_configs';
 
 // --- 双数据库配置 ---
 const DB_CONFIGS = {
@@ -101,6 +109,123 @@ const DB_CONFIGS = {
 const DEFAULT_DB_VERSION = 'v1';
 
 let clients = {}; // 缓存数据库连接
+
+// 缓存维度配置（避免每次请求都查询）
+let dimensionConfigCache = {};
+const CACHE_TTL = 5 * 60 * 1000; // 5分钟缓存
+
+/**
+ * 获取维度配置（带缓存）
+ * @returns {Object} { performanceDimensions: [...], talentDimensions: [...] }
+ */
+async function getDimensionConfig(db, platform) {
+  const cacheKey = `${platform}`;
+  const now = Date.now();
+
+  // 检查缓存是否有效
+  if (dimensionConfigCache[cacheKey] && (now - dimensionConfigCache[cacheKey].timestamp < CACHE_TTL)) {
+    return dimensionConfigCache[cacheKey].data;
+  }
+
+  try {
+    const config = await db.collection(DIMENSION_CONFIGS_COLLECTION).findOne({
+      platform,
+      isActive: true
+    });
+
+    if (!config || !config.dimensions) {
+      return { performanceDimensions: [], talentDimensions: [] };
+    }
+
+    // 按 targetCollection 分类维度
+    const performanceDimensions = config.dimensions.filter(d => d.targetCollection === 'talent_performance');
+    const talentDimensions = config.dimensions.filter(d => !d.targetCollection || d.targetCollection === 'talents');
+
+    const result = {
+      performanceDimensions,
+      talentDimensions,
+      allDimensions: config.dimensions
+    };
+
+    // 更新缓存
+    dimensionConfigCache[cacheKey] = {
+      timestamp: now,
+      data: result
+    };
+
+    return result;
+  } catch (error) {
+    console.error('获取维度配置失败:', error);
+    return { performanceDimensions: [], talentDimensions: [] };
+  }
+}
+
+/**
+ * 构建 talent_performance 关联查询的 $lookup 管道
+ * 使用 $lookup + 最新快照逻辑
+ */
+function buildPerformanceLookupPipeline(platform, performanceDimensions) {
+  if (!performanceDimensions || performanceDimensions.length === 0) {
+    return [];
+  }
+
+  // 提取需要从 performance 集合获取的字段路径
+  const performanceFields = performanceDimensions.map(d => d.targetPath);
+
+  return [
+    // Step 1: 关联 talent_performance 集合，获取每个达人的最新记录
+    {
+      $lookup: {
+        from: PERFORMANCE_COLLECTION,
+        let: { talentOneId: '$oneId', talentPlatform: '$platform' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$oneId', '$$talentOneId'] },
+                  { $eq: ['$platform', '$$talentPlatform'] }
+                ]
+              }
+            }
+          },
+          { $sort: { snapshotDate: -1 } },
+          { $limit: 1 },
+          { $project: { _id: 0, metrics: 1, snapshotDate: 1, snapshotType: 1 } }
+        ],
+        as: '_performanceData'
+      }
+    },
+    // Step 2: 将关联结果解构为单个对象
+    {
+      $addFields: {
+        _latestPerformance: { $arrayElemAt: ['$_performanceData', 0] }
+      }
+    },
+    // Step 3: 将 metrics 中的字段合并到 performanceData
+    {
+      $addFields: {
+        performanceData: {
+          $mergeObjects: [
+            '$performanceData',  // 保留 talents 集合中可能已有的 performanceData
+            '$_latestPerformance.metrics',  // 合并 talent_performance 的 metrics
+            {
+              _snapshotDate: '$_latestPerformance.snapshotDate',
+              _snapshotType: '$_latestPerformance.snapshotType'
+            }
+          ]
+        }
+      }
+    },
+    // Step 4: 清理临时字段
+    {
+      $project: {
+        _performanceData: 0,
+        _latestPerformance: 0
+      }
+    }
+  ];
+}
 
 /**
  * 获取指定版本的数据库连接
@@ -360,6 +485,18 @@ exports.handler = async (event, context) => {
 
         const matchStage = matchConditions.length > 0 ? { $and: matchConditions } : {};
 
+        // --- [v10.0] 多集合支持：获取维度配置，判断是否需要关联 talent_performance ---
+        let performanceLookupStages = [];
+        let dimensionConfig = null;
+
+        if (dbVersion === 'v2' && platform) {
+            dimensionConfig = await getDimensionConfig(db, platform);
+            if (dimensionConfig.performanceDimensions.length > 0) {
+                performanceLookupStages = buildPerformanceLookupPipeline(platform, dimensionConfig.performanceDimensions);
+                console.log(`[v10.0] 检测到 ${dimensionConfig.performanceDimensions.length} 个 performance 维度，启用多集合查询`);
+            }
+        }
+
         // --- [v9.0] Dashboard 统计字段根据版本动态配置 ---
         const dashboardFields = dbConfig.dashboardFields;
 
@@ -405,7 +542,14 @@ exports.handler = async (event, context) => {
             ]
         };
 
-        const pipeline = [ { $match: matchStage }, { $facet: facetPipeline } ];
+        // --- [v10.0] 构建完整的聚合管道 ---
+        // 在 $match 之后、$facet 之前插入 $lookup 阶段
+        const pipeline = [
+            { $match: matchStage },
+            ...performanceLookupStages,  // v10.0: 多集合关联
+            { $facet: facetPipeline }
+        ];
+
         const results = await collection.aggregate(pipeline).toArray();
 
         const facetResult = results[0] || {};
@@ -415,6 +559,7 @@ exports.handler = async (event, context) => {
         const responseBody = {
             success: true,
             dbVersion: dbVersion,  // 返回使用的数据库版本
+            multiCollection: performanceLookupStages.length > 0,  // v10.0: 是否使用了多集合查询
             data: {
                 pagination: { page, pageSize, totalItems, totalPages: Math.ceil(totalItems / pageSize) },
                 talents: talents,
@@ -423,7 +568,14 @@ exports.handler = async (event, context) => {
                     cpmDistribution: facetResult.cpmDistribution || [],
                     maleAudienceDistribution: facetResult.maleAudienceDistribution || [],
                     femaleAudienceDistribution: facetResult.femaleAudienceDistribution || []
-                }
+                },
+                // v10.0: 添加数据来源信息（仅在多集合模式下返回）
+                ...(performanceLookupStages.length > 0 && dimensionConfig ? {
+                    _meta: {
+                        performanceDimensionsCount: dimensionConfig.performanceDimensions.length,
+                        talentDimensionsCount: dimensionConfig.talentDimensions.length
+                    }
+                } : {})
             }
         };
 

@@ -1,6 +1,11 @@
 /**
  * talent-performance-processor.js - 达人性能数据处理器
- * @version 1.1 - Price Import Support
+ * @version 1.2 - Multi-Collection Support
+ *
+ * --- v1.2 更新日志 (2025-11-26) ---
+ * - [多集合支持] 支持同时写入 talents 和 talent_performance 集合
+ * - [分流逻辑] 根据 field_mappings 中的 targetCollection 分流数据
+ * - [统计增强] 返回 talents 和 talent_performance 的分别统计
  *
  * --- v1.1 更新日志 (2025-11-20) ---
  * - [价格导入] processTalentPerformance 支持 priceYear/priceMonth 参数
@@ -22,7 +27,7 @@ const { getMappingConfig, applyMappingRules, bulkUpdateTalents } = require('./ma
 
 /**
  * 处理达人表现数据导入（v12.0 新版本）
- * 支持 v2 数据库 + 配置驱动 + 价格导入
+ * v1.2: 支持同时写入 talents 和 talent_performance 集合
  *
  * @param {Object} db - 数据库连接
  * @param {Array} rows - 飞书/Excel数据行
@@ -31,7 +36,7 @@ const { getMappingConfig, applyMappingRules, bulkUpdateTalents } = require('./ma
  * @param {string} mappingConfigId - 映射配置ID
  * @param {number} priceYear - 价格归属年份
  * @param {number} priceMonth - 价格归属月份
- * @returns {Object} { validData, invalidRows, stats }
+ * @returns {Object} { validData, performanceData, invalidRows, stats }
  */
 async function processTalentPerformance(db, rows, platform, dbVersion, mappingConfigId = 'default', priceYear, priceMonth) {
   console.log(`[性能数据导入] 开始处理 - 平台: ${platform}, 数据库: ${dbVersion}`);
@@ -42,16 +47,27 @@ async function processTalentPerformance(db, rows, platform, dbVersion, mappingCo
   console.log(`[性能数据导入] 使用映射配置: ${mappingConfig.configName} (v${mappingConfig.version})`);
   console.log(`[性能数据导入] 映射规则数: ${mappingConfig.mappings.length}`);
 
-  // 2. 应用映射引擎（传递价格年月）
-  const { validData, invalidRows } = applyMappingRules(rows, mappingConfig.mappings, platform, priceYear, priceMonth);
+  // 2. 应用映射引擎（v1.2: 返回 validData + performanceData）
+  const { validData, invalidRows, performanceData } = applyMappingRules(
+    rows,
+    mappingConfig.mappings,
+    platform,
+    priceYear,
+    priceMonth
+  );
 
-  // 3. 批量更新数据库
-  const stats = await bulkUpdateTalents(db, validData, dbVersion);
+  // 3. 批量更新数据库（v1.2: 传递 performanceData）
+  const stats = await bulkUpdateTalents(db, validData, dbVersion, performanceData);
 
-  console.log(`[性能数据导入] 完成 - 成功:${stats.modified}, 失败:${stats.failed}`);
+  console.log(`[性能数据导入] 完成:`);
+  console.log(`  → talents: 成功${stats.modified}, 失败${stats.failed}`);
+  if (stats.performance) {
+    console.log(`  → talent_performance: 新增${stats.performance.upserted}, 更新${stats.performance.modified}, 失败${stats.performance.failed}`);
+  }
 
   return {
     validData,
+    performanceData,
     invalidRows,
     stats: {
       total: rows.length - 1,  // 减去表头行
@@ -59,7 +75,9 @@ async function processTalentPerformance(db, rows, platform, dbVersion, mappingCo
       invalid: invalidRows.length,
       matched: stats.matched,
       modified: stats.modified,
-      failed: stats.failed
+      failed: stats.failed,
+      // v1.2: 新增 talent_performance 统计
+      performance: stats.performance || { upserted: 0, modified: 0, failed: 0 }
     }
   };
 }

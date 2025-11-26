@@ -114,6 +114,7 @@ export function FieldMappingManager({
               <th className="px-4 py-3 text-left font-medium text-gray-700">#</th>
               <th className="px-4 py-3 text-left font-medium text-gray-700">Excel列名</th>
               <th className="px-4 py-3 text-left font-medium text-gray-700">目标字段路径</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-700">目标集合</th>
               <th className="px-4 py-3 text-left font-medium text-gray-700">格式</th>
               <th className="px-4 py-3 text-left font-medium text-gray-700">价格类型</th>
               <th className="px-4 py-3 text-center font-medium text-gray-700">必需</th>
@@ -126,6 +127,15 @@ export function FieldMappingManager({
                 <td className="px-4 py-3 text-gray-500">{index + 1}</td>
                 <td className="px-4 py-3 font-medium text-gray-900">{rule.excelHeader}</td>
                 <td className="px-4 py-3 font-mono text-xs text-gray-600">{rule.targetPath}</td>
+                <td className="px-4 py-3">
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    rule.targetCollection === 'talent_performance'
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}>
+                    {rule.targetCollection === 'talent_performance' ? '表现数据' : '达人主表'}
+                  </span>
+                </td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-1 rounded text-xs font-medium ${
                     rule.format === 'percentage' ? 'bg-purple-100 text-purple-700' :
@@ -243,6 +253,29 @@ export function FieldMappingManager({
                 <option value="percentage">百分比 (percentage)</option>
                 <option value="date">日期 (date)</option>
               </select>
+            </div>
+
+            {/* 目标集合 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                目标集合
+              </label>
+              <select
+                value={editingRule.targetCollection || 'talents'}
+                onChange={(e) => setEditingRule({
+                  ...editingRule,
+                  targetCollection: e.target.value as 'talents' | 'talent_performance'
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="talents">达人主表 (talents)</option>
+                <option value="talent_performance">表现数据 (talent_performance)</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                <strong>达人主表</strong>：基础信息、价格等不随时间变化的数据
+                <br />
+                <strong>表现数据</strong>：时序数据（CPM、粉丝画像等），支持历史记录和AI分析
+              </p>
             </div>
 
             {/* 价格类型（仅当 targetPath = "prices" 时显示）*/}
