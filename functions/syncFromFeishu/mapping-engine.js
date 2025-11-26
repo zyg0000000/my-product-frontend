@@ -141,7 +141,14 @@ function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth) 
   }
 
   const header = rows[0];
-  const dataRows = rows.slice(1);
+  const rawDataRows = rows.slice(1);
+
+  // 过滤空行：只保留至少有一个非空单元格的行
+  const dataRows = rawDataRows.filter(row => {
+    if (!row || !Array.isArray(row)) return false;
+    return row.some(cell => cell !== null && cell !== undefined && String(cell).trim() !== '');
+  });
+
   const validData = [];          // talents 集合数据
   const performanceData = [];    // talent_performance 集合数据
   const invalidRows = [];
@@ -158,7 +165,7 @@ function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth) 
   const performanceRules = mappingRules.filter(r => r.targetCollection === 'talent_performance');
 
   console.log(`[映射引擎] 表头列数: ${header.length}`);
-  console.log(`[映射引擎] 数据行数: ${dataRows.length}`);
+  console.log(`[映射引擎] 原始数据行: ${rawDataRows.length}, 有效数据行: ${dataRows.length} (过滤空行: ${rawDataRows.length - dataRows.length})`);
   console.log(`[映射引擎] 映射规则数: ${mappingRules.length}`);
   console.log(`[映射引擎] → talents 规则: ${talentRules.length}, talent_performance 规则: ${performanceRules.length}`);
 
@@ -213,6 +220,9 @@ function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth) 
 
         if (value === null || value === undefined || String(value).trim() === '') {
           if (rule.required) {
+            if (rowIndex < 5) {
+              console.log(`[映射引擎] ⚠️ 行${rowIndex + 1}: 必需字段 "${rule.excelHeader}" 值为空`);
+            }
             hasRequiredFields = false;
             break;
           }
@@ -369,10 +379,19 @@ function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth) 
     }
   }
 
+  // 统计失败原因分布
+  const failureReasons = {};
+  invalidRows.forEach(r => {
+    failureReasons[r.reason] = (failureReasons[r.reason] || 0) + 1;
+  });
+
   console.log(`[映射引擎] 处理完成:`);
   console.log(`  → talents: ${validData.length} 条`);
   console.log(`  → talent_performance: ${performanceData.length} 条`);
   console.log(`  → 失败: ${invalidRows.length} 条`);
+  if (Object.keys(failureReasons).length > 0) {
+    console.log(`  → 失败原因分布:`, JSON.stringify(failureReasons));
+  }
 
   return { validData, invalidRows, performanceData };
 }
@@ -576,6 +595,9 @@ async function bulkUpdateTalents(db, processedData, dbVersion, performanceData =
       }
 
       // 使用 upsert：同一达人+平台+类型+日期 只保留一条
+      // 从 perf 中移除 createdAt，避免与 $setOnInsert 冲突
+      const { createdAt: _ignored, ...perfWithoutCreatedAt } = perf;
+
       perfBulkOps.push({
         updateOne: {
           filter: {
@@ -586,7 +608,7 @@ async function bulkUpdateTalents(db, processedData, dbVersion, performanceData =
           },
           update: {
             $set: {
-              ...perf,
+              ...perfWithoutCreatedAt,
               updatedAt: currentTime
             },
             $setOnInsert: {

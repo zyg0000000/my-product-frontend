@@ -170,7 +170,7 @@
 
 ## 数据库配置迁移
 
-### 迁移脚本
+### 迁移脚本 1 - 添加 targetCollection
 
 位置：`database/agentworks_db/scripts/migrate-dimension-configs-v1.2.js`
 
@@ -186,6 +186,23 @@ mongosh "mongodb+srv://..." --file migrate-dimension-configs-v1.2.js
 **执行结果**：
 - `field_mappings`: 17 条映射 → `talent_performance`，7 条保留 → `talents`
 - `dimension_configs`: 17 个维度 → `talent_performance`，7 个保留 → `talents`
+
+### 迁移脚本 2 - 修正 targetPath
+
+位置：`database/agentworks_db/scripts/fix-targetpath-v1.3.js`
+
+**功能**：
+- 将 `field_mappings` 中 `talent_performance` 规则的 `targetPath` 从 `performanceData.xxx` 修正为 `metrics.xxx`
+- 确保数据写入到 `talent_performance.metrics` 而不是 `talent_performance.performanceData`
+
+**执行方式**：
+```bash
+mongosh "mongodb+srv://..." --file fix-targetpath-v1.3.js
+```
+
+**执行结果**：
+- 17 条规则的 `targetPath` 从 `performanceData.*` → `metrics.*`
+- 配置版本升级到 v1.2
 
 ---
 
@@ -237,11 +254,30 @@ db.talents.updateMany(
 ### 云函数
 - `functions/getTalentsSearch/index.js` - v10.0
 - `functions/getPerformanceData/index.js` - v2.0
-- `functions/syncFromFeishu/mapping-engine.js` - v1.3 (写入分流)
+- `functions/syncFromFeishu/mapping-engine.js` - v1.4 (写入分流 + 空行过滤 + createdAt 冲突修复)
 - `functions/talentPerformance/index.js` - v1.0 (独立查询接口)
 
 ### 数据库配置
-- `database/agentworks_db/scripts/migrate-dimension-configs-v1.2.js`
+- `database/agentworks_db/scripts/migrate-dimension-configs-v1.2.js` - 添加 targetCollection
+- `database/agentworks_db/scripts/fix-targetpath-v1.3.js` - 修正 targetPath
+
+---
+
+## Bug 修复记录
+
+### mapping-engine.js v1.4 修复 (2025-11-26)
+
+**问题 1：空行导致大量导入失败**
+- 原因：飞书 API 默认读取 2000 行，但实际数据可能只有几行，导致 1998 行空行被标记为"缺少必需字段"
+- 修复：在处理前过滤空行（至少有一个非空单元格才保留）
+- 日志：`原始数据行: 1999, 有效数据行: 5 (过滤空行: 1994)`
+
+**问题 2：createdAt 字段冲突**
+- 原因：MongoDB upsert 时 `$set` 展开的对象包含 `createdAt`，与 `$setOnInsert` 的 `createdAt` 冲突
+- 错误：`Updating the path 'createdAt' would create a conflict at 'createdAt'`
+- 修复：写入前从 `perf` 对象中移除 `createdAt` 字段
+
+---
 
 ### 文档
 - `database/agentworks_db/README.md` - v2.1
@@ -249,5 +285,5 @@ db.talents.updateMany(
 ---
 
 **维护者**: Claude
-**文档版本**: 1.0
+**文档版本**: 1.1
 **最后更新**: 2025-11-26
