@@ -160,8 +160,8 @@ export function useApiCallWithRetry<T = any>(
     }
 
     // 所有重试都失败
-    if (lastError && options.showToast !== false) {
-      baseHook.error && options.onError?.(lastError.message);
+    if (lastError && options.showToast !== false && options.onError) {
+      options.onError(lastError.message);
     }
 
     setRetryCount(0);

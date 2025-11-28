@@ -47,18 +47,28 @@ export function PerformanceConfig() {
   const [showImportModal, setShowImportModal] = useState(false);
 
   // 当 URL 参数变化时，更新状态
+  // 这是 URL 同步状态的标准模式，需要在 effect 中调用 setState
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const platform = searchParams.get('platform') as Platform;
     const tab = searchParams.get('tab') as 'mapping' | 'dimension' | 'import';
 
-    // 使用函数式更新避免 lint 警告
-    if (platform && platforms.includes(platform)) {
-      setSelectedPlatform(prev => (prev !== platform ? platform : prev));
+    if (
+      platform &&
+      platforms.includes(platform) &&
+      platform !== selectedPlatform
+    ) {
+      setSelectedPlatform(platform);
     }
-    if (tab && ['mapping', 'dimension', 'import'].includes(tab)) {
-      setActiveTab(prev => (prev !== tab ? tab : prev));
+    if (
+      tab &&
+      ['mapping', 'dimension', 'import'].includes(tab) &&
+      tab !== activeTab
+    ) {
+      setActiveTab(tab);
     }
-  }, [searchParams, platforms]);
+  }, [searchParams, platforms, selectedPlatform, activeTab]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const fieldMapping = useFieldMapping(selectedPlatform);
   const dimensionConfig = useDimensionConfig(selectedPlatform);
