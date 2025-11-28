@@ -34,21 +34,17 @@ export function RebateHistoryList({
   onNextPage,
 }: RebateHistoryListProps) {
   if (loading) {
-    return (
-      <div className="py-8 text-center text-gray-500">加载中...</div>
-    );
+    return <div className="py-8 text-center text-gray-500">加载中...</div>;
   }
 
   if (records.length === 0) {
-    return (
-      <p className="py-8 text-center text-gray-500">暂无调整记录</p>
-    );
+    return <p className="py-8 text-center text-gray-500">暂无调整记录</p>;
   }
 
   return (
     <>
       <div className="space-y-4">
-        {records.map((record) => (
+        {records.map(record => (
           <div
             key={record.configId}
             className="relative border-l-2 border-gray-200 pl-6 pb-4 last:pb-0"

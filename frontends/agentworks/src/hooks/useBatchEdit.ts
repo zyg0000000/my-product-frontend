@@ -17,7 +17,10 @@ interface UseBatchEditOptions<T> {
   compareKey?: keyof T; // 用于比较的唯一键，默认用索引
 }
 
-export function useBatchEdit<T>({ initialData, onSave }: UseBatchEditOptions<T>) {
+export function useBatchEdit<T>({
+  initialData,
+  onSave,
+}: UseBatchEditOptions<T>) {
   const [localData, setLocalData] = useState<T[]>(initialData);
   const [hasChanges, setHasChanges] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -37,7 +40,10 @@ export function useBatchEdit<T>({ initialData, onSave }: UseBatchEditOptions<T>)
   };
 
   // 批量更新（通过predicate）
-  const updateItems = (predicate: (item: T, index: number) => boolean, update: (item: T) => T) => {
+  const updateItems = (
+    predicate: (item: T, index: number) => boolean,
+    update: (item: T) => T
+  ) => {
     const newData = localData.map((item, index) =>
       predicate(item, index) ? update(item) : item
     );
@@ -53,8 +59,6 @@ export function useBatchEdit<T>({ initialData, onSave }: UseBatchEditOptions<T>)
       setSaving(true);
       await onSave(localData);
       setHasChanges(false);
-    } catch (error) {
-      throw error;
     } finally {
       setSaving(false);
     }
@@ -74,6 +78,6 @@ export function useBatchEdit<T>({ initialData, onSave }: UseBatchEditOptions<T>)
     updateItems,
     saveChanges,
     cancelChanges,
-    setLocalData
+    setLocalData,
   };
 }

@@ -11,7 +11,6 @@ import { PageTransition } from '../../components/PageTransition';
 import { motion } from 'framer-motion';
 
 export function ClientsHome() {
-
   const features = [
     {
       icon: UserGroupIcon,

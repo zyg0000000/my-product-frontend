@@ -6,7 +6,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { logger } from '../../utils/logger';
 import { getTalentDetail } from '../../api/talent';
-import { getTalentRebate, getRebateHistory as fetchRebateHistory } from '../../api/rebate';
+import {
+  getTalentRebate,
+  getRebateHistory as fetchRebateHistory,
+} from '../../api/rebate';
 import { getAgencies } from '../../api/agency';
 import type { Talent, Platform } from '../../types/talent';
 import { PLATFORM_NAMES } from '../../types/talent';
@@ -14,10 +17,7 @@ import { usePlatformConfig } from '../../hooks/usePlatformConfig';
 import type { Agency } from '../../types/agency';
 import { AGENCY_INDIVIDUAL_ID } from '../../types/agency';
 import type { GetRebateResponse, RebateConfig } from '../../types/rebate';
-import {
-  REBATE_SOURCE_LABELS,
-  formatRebateRate,
-} from '../../types/rebate';
+import { REBATE_SOURCE_LABELS, formatRebateRate } from '../../types/rebate';
 import {
   formatPrice,
   formatFansCount,
@@ -43,7 +43,9 @@ export function TalentDetail() {
   const { getPlatformPriceTypes } = usePlatformConfig(true);
 
   // 新返点管理系统状态
-  const [rebateData, setRebateData] = useState<GetRebateResponse['data'] | null>(null);
+  const [rebateData, setRebateData] = useState<
+    GetRebateResponse['data'] | null
+  >(null);
   const [rebateHistory, setRebateHistory] = useState<RebateConfig[]>([]);
   const [rebateLoading, setRebateLoading] = useState(false);
   const [showUpdateRebateModal, setShowUpdateRebateModal] = useState(false);
@@ -161,7 +163,7 @@ export function TalentDetail() {
         onClick={() => {
           // 返回到对应平台的基础信息页面，并保持平台选中状态
           navigate('/talents/basic', {
-            state: { selectedPlatform: platform }
+            state: { selectedPlatform: platform },
           });
         }}
         className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
@@ -255,7 +257,10 @@ export function TalentDetail() {
 
                 <div className="mt-3 grid grid-cols-2 gap-4 md:grid-cols-4">
                   {priceTypes.map(priceType => {
-                    const price = history.prices[priceType.key as keyof typeof history.prices];
+                    const price =
+                      history.prices[
+                        priceType.key as keyof typeof history.prices
+                      ];
                     return (
                       <div key={priceType.key}>
                         <p className="text-xs text-gray-500">
@@ -323,7 +328,9 @@ export function TalentDetail() {
 
             {/* 返点历史时间线 */}
             <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-4">调整历史</h3>
+              <h3 className="text-sm font-medium text-gray-900 mb-4">
+                调整历史
+              </h3>
 
               <RebateHistoryList
                 records={rebateHistory}
@@ -338,9 +345,7 @@ export function TalentDetail() {
             </div>
           </div>
         ) : (
-          <div className="mt-6 text-center text-gray-500">
-            暂无返点配置信息
-          </div>
+          <div className="mt-6 text-center text-gray-500">暂无返点配置信息</div>
         )}
       </div>
 

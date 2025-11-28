@@ -20,14 +20,18 @@ export async function getAgencies(params?: {
 /**
  * 获取单个机构详情
  */
-export async function getAgencyDetail(id: string): Promise<ApiResponse<Agency>> {
+export async function getAgencyDetail(
+  id: string
+): Promise<ApiResponse<Agency>> {
   return get('/agencyManagement', { id });
 }
 
 /**
  * 创建机构
  */
-export async function createAgency(data: AgencyFormData): Promise<ApiResponse<Agency>> {
+export async function createAgency(
+  data: AgencyFormData
+): Promise<ApiResponse<Agency>> {
   return post('/agencyManagement', data);
 }
 
@@ -52,14 +56,14 @@ export async function deleteAgency(id: string): Promise<ApiResponse<void>> {
  * 更新机构返点配置（v3.0 - 按平台）
  */
 export interface UpdateAgencyRebateRequest {
-  agencyId: string;  // 必填：机构ID
-  platform: Platform;  // 必填：平台
+  agencyId: string; // 必填：机构ID
+  platform: Platform; // 必填：平台
   rebateConfig: {
     baseRebate: number;
     effectiveDate?: string;
     updatedBy?: string;
   };
-  syncToTalents?: boolean;  // 是否立即同步到达人
+  syncToTalents?: boolean; // 是否立即同步到达人
 }
 
 export async function updateAgencyRebate(
@@ -74,7 +78,7 @@ export async function updateAgencyRebate(
 export interface AgencyRebateHistoryRecord {
   agencyId: string;
   agencyName: string;
-  platform: Platform;  // 新增：平台
+  platform: Platform; // 新增：平台
   previousRate: number;
   newRate: number;
   effectiveDate: string;
@@ -88,16 +92,18 @@ export interface AgencyRebateHistoryRecord {
  */
 export async function getAgencyRebateHistory(params: {
   agencyId: string;
-  platform: Platform;  // 必填：平台
+  platform: Platform; // 必填：平台
   limit?: number;
   offset?: number;
-}): Promise<ApiResponse<{
-  records: AgencyRebateHistoryRecord[];
-  total: number;
-  limit: number;
-  offset: number;
-  platform: Platform;  // 新增：当前查询的平台
-}>> {
+}): Promise<
+  ApiResponse<{
+    records: AgencyRebateHistoryRecord[];
+    total: number;
+    limit: number;
+    offset: number;
+    platform: Platform; // 新增：当前查询的平台
+  }>
+> {
   return get('/getAgencyRebateHistory', params);
 }
 
@@ -112,7 +118,7 @@ export interface CurrentAgencyRebateConfig {
   effectiveDate: string | null;
   lastUpdatedAt: string | null;
   updatedBy: string | null;
-  hasConfig: boolean;  // 是否已配置
+  hasConfig: boolean; // 是否已配置
 }
 
 /**

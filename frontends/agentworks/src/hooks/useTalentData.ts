@@ -7,7 +7,11 @@
 
 import { useState } from 'react';
 import { logger } from '../utils/logger';
-import { getTalents, type GetTalentsParams, type GetTalentsResponse } from '../api/talent';
+import {
+  getTalents,
+  type GetTalentsParams,
+  type GetTalentsResponse,
+} from '../api/talent';
 import type { Talent } from '../types/talent';
 import { useApiCall } from './useApiCall';
 

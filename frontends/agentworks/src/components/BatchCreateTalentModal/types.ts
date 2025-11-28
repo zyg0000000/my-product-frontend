@@ -8,12 +8,12 @@ import type { Platform } from '../../types/talent';
  * 解析后的达人数据行
  */
 export interface ParsedTalentRow {
-  key: string;                    // 唯一标识（用于表格）
-  name: string;                   // 达人昵称
-  platformAccountId: string;      // 平台账号ID（如星图ID）
-  uid?: string;                   // 平台UID（可选）
-  isValid: boolean;               // 是否有效
-  errors: string[];               // 错误信息列表
+  key: string; // 唯一标识（用于表格）
+  name: string; // 达人昵称
+  platformAccountId: string; // 平台账号ID（如星图ID）
+  uid?: string; // 平台UID（可选）
+  isValid: boolean; // 是否有效
+  errors: string[]; // 错误信息列表
 }
 
 /**
@@ -21,10 +21,10 @@ export interface ParsedTalentRow {
  */
 export interface PlatformFieldConfig {
   platform: Platform;
-  accountIdLabel: string;         // 账号ID字段标签（如"星图ID"）
-  accountIdPlaceholder: string;   // 账号ID占位符
-  uidLabel?: string;              // UID字段标签（可选）
-  requiredFields: string[];       // 必填字段列表
+  accountIdLabel: string; // 账号ID字段标签（如"星图ID"）
+  accountIdPlaceholder: string; // 账号ID占位符
+  uidLabel?: string; // UID字段标签（可选）
+  requiredFields: string[]; // 必填字段列表
 }
 
 /**
@@ -32,58 +32,58 @@ export interface PlatformFieldConfig {
  */
 export const HEADER_MAPPINGS: Record<string, string> = {
   // 达人昵称
-  '达人昵称': 'name',
-  '昵称': 'name',
-  '名称': 'name',
-  '达人名称': 'name',
-  '达人': 'name',
-  'nickname': 'name',
-  'name': 'name',
-  '账号名称': 'name',
-  '账号昵称': 'name',
+  达人昵称: 'name',
+  昵称: 'name',
+  名称: 'name',
+  达人名称: 'name',
+  达人: 'name',
+  nickname: 'name',
+  name: 'name',
+  账号名称: 'name',
+  账号昵称: 'name',
 
   // 星图ID（抖音）
-  '星图ID': 'platformAccountId',
-  '星图id': 'platformAccountId',
-  '星图': 'platformAccountId',
-  'xingtuId': 'platformAccountId',
-  'xingtuid': 'platformAccountId',
-  '星图达人ID': 'platformAccountId',
-  '达人星图ID': 'platformAccountId',
-  '达人星图id': 'platformAccountId',
+  星图ID: 'platformAccountId',
+  星图id: 'platformAccountId',
+  星图: 'platformAccountId',
+  xingtuId: 'platformAccountId',
+  xingtuid: 'platformAccountId',
+  星图达人ID: 'platformAccountId',
+  达人星图ID: 'platformAccountId',
+  达人星图id: 'platformAccountId',
 
   // 通用平台ID
-  '平台ID': 'platformAccountId',
-  '平台账号ID': 'platformAccountId',
-  'platformAccountId': 'platformAccountId',
-  'ID': 'platformAccountId',
-  'id': 'platformAccountId',
-  '账号ID': 'platformAccountId',
+  平台ID: 'platformAccountId',
+  平台账号ID: 'platformAccountId',
+  platformAccountId: 'platformAccountId',
+  ID: 'platformAccountId',
+  id: 'platformAccountId',
+  账号ID: 'platformAccountId',
 
   // 小红书
-  '蒲公英ID': 'platformAccountId',
-  '小红书ID': 'platformAccountId',
-  '蒲公英': 'platformAccountId',
-  '红书ID': 'platformAccountId',
+  蒲公英ID: 'platformAccountId',
+  小红书ID: 'platformAccountId',
+  蒲公英: 'platformAccountId',
+  红书ID: 'platformAccountId',
 
   // B站
-  'B站UID': 'platformAccountId',
-  'b站uid': 'platformAccountId',
-  'biliUid': 'platformAccountId',
-  'B站ID': 'platformAccountId',
+  B站UID: 'platformAccountId',
+  b站uid: 'platformAccountId',
+  biliUid: 'platformAccountId',
+  B站ID: 'platformAccountId',
 
   // 快手
-  '快手ID': 'platformAccountId',
-  'kuaishouId': 'platformAccountId',
-  '磁力聚星ID': 'platformAccountId',
+  快手ID: 'platformAccountId',
+  kuaishouId: 'platformAccountId',
+  磁力聚星ID: 'platformAccountId',
 
   // UID（抖音特有的第三列）
-  'UID': 'uid',
-  'uid': 'uid',
-  '抖音UID': 'uid',
-  '用户UID': 'uid',
-  '达人UID': 'uid',
-  '达人uid': 'uid',
+  UID: 'uid',
+  uid: 'uid',
+  抖音UID: 'uid',
+  用户UID: 'uid',
+  达人UID: 'uid',
+  达人uid: 'uid',
 };
 
 /**
@@ -108,7 +108,11 @@ export function matchHeader(header: string): string | null {
   // 3. 包含关键词匹配（注意顺序：先匹配更具体的，再匹配通用的）
 
   // 先检查是否包含平台ID相关关键词
-  if (lowerHeader.includes('星图') || lowerHeader.includes('蒲公英') || lowerHeader.includes('磁力')) {
+  if (
+    lowerHeader.includes('星图') ||
+    lowerHeader.includes('蒲公英') ||
+    lowerHeader.includes('磁力')
+  ) {
     return 'platformAccountId';
   }
 
@@ -303,7 +307,9 @@ export function inferColumnMapping(
 /**
  * 获取平台对应的字段配置
  */
-export function getPlatformFieldConfig(platform: Platform): PlatformFieldConfig {
+export function getPlatformFieldConfig(
+  platform: Platform
+): PlatformFieldConfig {
   switch (platform) {
     case 'douyin':
       return {

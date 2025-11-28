@@ -30,15 +30,12 @@ import { PageTransition } from '../../components/PageTransition';
 
 export function PlatformConfig() {
   const actionRef = useRef<ActionType>(null);
-  const {
-    configs,
-    loading,
-    error,
-    refreshConfigs,
-  } = usePlatformConfig(true); // 包含禁用的平台
+  const { configs, loading, error, refreshConfigs } = usePlatformConfig(true); // 包含禁用的平台
 
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [selectedConfig, setSelectedConfig] = useState<PlatformConfig | null>(null);
+  const [selectedConfig, setSelectedConfig] = useState<PlatformConfig | null>(
+    null
+  );
   const [isCreating, setIsCreating] = useState(false);
 
   // 刷新配置
@@ -121,7 +118,11 @@ export function PlatformConfig() {
       render: (_, record) => {
         const count = record.priceTypes?.length || 0;
         return (
-          <span className={count > 0 ? 'text-primary-600 font-medium' : 'text-gray-400'}>
+          <span
+            className={
+              count > 0 ? 'text-primary-600 font-medium' : 'text-gray-400'
+            }
+          >
             {count} 个
           </span>
         );
@@ -149,9 +150,15 @@ export function PlatformConfig() {
       render: (_, record) => (
         <div className="overflow-x-auto">
           <Space size={4} wrap={false}>
-            {record.features?.priceManagement && <Tag color="blue">价格管理</Tag>}
-            {record.features?.rebateManagement && <Tag color="green">返点管理</Tag>}
-            {record.features?.performanceTracking && <Tag color="purple">达人数据</Tag>}
+            {record.features?.priceManagement && (
+              <Tag color="blue">价格管理</Tag>
+            )}
+            {record.features?.rebateManagement && (
+              <Tag color="green">返点管理</Tag>
+            )}
+            {record.features?.performanceTracking && (
+              <Tag color="purple">达人数据</Tag>
+            )}
             {record.features?.dataImport && <Tag color="orange">数据导入</Tag>}
           </Space>
         </div>

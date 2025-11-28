@@ -1,0 +1,20 @@
+#!/bin/sh
+
+echo "🔍 Running pre-push checks..."
+
+# 进入 agentworks 目录
+cd frontends/agentworks
+
+# TypeScript 类型检查（必须通过，Cloudflare 构建依赖）
+echo "📝 TypeScript type checking..."
+npm run type-check
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript errors found. Please fix them before pushing."
+  exit 1
+fi
+
+# ESLint 检查（仅警告，不阻止推送）
+echo "🔧 ESLint checking..."
+npm run lint || echo "⚠️ ESLint found some issues (non-blocking)"
+
+echo "✅ Pre-push checks completed!"

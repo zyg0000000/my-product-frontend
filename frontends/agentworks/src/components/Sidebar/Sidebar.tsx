@@ -45,9 +45,7 @@ const navigation: NavItem[] = [
     name: '客户管理',
     path: '/customers',
     icon: BuildingOfficeIcon,
-    children: [
-      { name: '客户列表', path: '/customers/list' },
-    ],
+    children: [{ name: '客户列表', path: '/customers/list' }],
   },
   { name: '项目管理', path: '/projects', icon: FolderIcon },
   { name: '数据分析', path: '/analytics', icon: ChartBarIcon },
@@ -64,7 +62,11 @@ const navigation: NavItem[] = [
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['达人管理', '客户管理', '系统设置']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([
+    '达人管理',
+    '客户管理',
+    '系统设置',
+  ]);
   const location = useLocation();
 
   const toggleMenu = (menuName: string) => {
@@ -88,7 +90,9 @@ export function Sidebar() {
       <div className="flex h-14 items-center justify-center border-b border-gray-100">
         {!isCollapsed ? (
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold text-gray-900 tracking-tight">AgentWorks</h1>
+            <h1 className="text-lg font-semibold text-gray-900 tracking-tight">
+              AgentWorks
+            </h1>
             <span className="text-[10px] text-gray-400 font-medium">v3.5</span>
           </div>
         ) : (
@@ -104,7 +108,9 @@ export function Sidebar() {
             if (item.children) {
               const isExpanded = isMenuExpanded(item.name);
               const isParentActive = location.pathname === item.path;
-              const hasActiveChild = item.children.some(child => location.pathname === child.path);
+              const hasActiveChild = item.children.some(
+                child => location.pathname === child.path
+              );
               const isActive = isParentActive || hasActiveChild;
 
               // 折叠状态
@@ -120,9 +126,11 @@ export function Sidebar() {
                     }`}
                     title={item.name}
                   >
-                    <item.icon className={`h-5 w-5 transition-transform duration-200 group-hover:scale-105 ${
-                      isActive ? 'text-primary-600' : ''
-                    }`} />
+                    <item.icon
+                      className={`h-5 w-5 transition-transform duration-200 group-hover:scale-105 ${
+                        isActive ? 'text-primary-600' : ''
+                      }`}
+                    />
                   </NavLink>
                 );
               }
@@ -133,27 +141,33 @@ export function Sidebar() {
                   {/* 父级菜单 */}
                   <div
                     className={`group flex items-center rounded-lg transition-all duration-200 ${
-                      isActive
-                        ? 'bg-primary-50'
-                        : 'hover:bg-gray-50'
+                      isActive ? 'bg-primary-50' : 'hover:bg-gray-50'
                     }`}
                   >
                     <NavLink
                       to={item.path!}
                       className={`flex flex-1 items-center gap-3 px-3 py-2.5 text-[13px] font-medium ${
-                        isActive ? 'text-primary-600' : 'text-gray-600 group-hover:text-gray-900'
+                        isActive
+                          ? 'text-primary-600'
+                          : 'text-gray-600 group-hover:text-gray-900'
                       }`}
                     >
-                      <item.icon className={`h-[18px] w-[18px] transition-transform duration-200 group-hover:scale-105 ${
-                        isActive ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-600'
-                      }`} />
+                      <item.icon
+                        className={`h-[18px] w-[18px] transition-transform duration-200 group-hover:scale-105 ${
+                          isActive
+                            ? 'text-primary-600'
+                            : 'text-gray-400 group-hover:text-gray-600'
+                        }`}
+                      />
                       <span>{item.name}</span>
                     </NavLink>
 
                     <button
                       onClick={() => toggleMenu(item.name)}
                       className={`mr-2 p-1 rounded transition-colors ${
-                        isActive ? 'text-primary-500 hover:bg-primary-100' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+                        isActive
+                          ? 'text-primary-500 hover:bg-primary-100'
+                          : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
                       }`}
                     >
                       <ChevronDownIcon
@@ -181,11 +195,13 @@ export function Sidebar() {
                                 : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
                             }`}
                           >
-                            <span className={`h-1.5 w-1.5 rounded-full transition-all duration-200 ${
-                              isChildActive
-                                ? 'bg-white'
-                                : 'bg-gray-300 group-hover:bg-primary-400'
-                            }`} />
+                            <span
+                              className={`h-1.5 w-1.5 rounded-full transition-all duration-200 ${
+                                isChildActive
+                                  ? 'bg-white'
+                                  : 'bg-gray-300 group-hover:bg-primary-400'
+                              }`}
+                            />
                             <span>{child.name}</span>
                           </NavLink>
                         );
@@ -212,9 +228,13 @@ export function Sidebar() {
               >
                 {({ isActive }) => (
                   <>
-                    <item.icon className={`h-[18px] w-[18px] transition-transform duration-200 group-hover:scale-105 ${
-                      isActive ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-600'
-                    }`} />
+                    <item.icon
+                      className={`h-[18px] w-[18px] transition-transform duration-200 group-hover:scale-105 ${
+                        isActive
+                          ? 'text-primary-600'
+                          : 'text-gray-400 group-hover:text-gray-600'
+                      }`}
+                    />
                     {!isCollapsed && <span>{item.name}</span>}
                   </>
                 )}

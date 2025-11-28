@@ -54,7 +54,8 @@ function getNestedValue(obj: any, path: string): any {
  */
 function getPlatformLink(talent: Talent): string | null {
   if (talent.platform === 'douyin') {
-    const xingtuId = talent.platformSpecific?.xingtuId || talent.platformAccountId;
+    const xingtuId =
+      talent.platformSpecific?.xingtuId || talent.platformAccountId;
     if (!xingtuId) return null;
     return `https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/${xingtuId}`;
   }
@@ -65,18 +66,29 @@ export function PerformanceHome() {
   const navigate = useNavigate();
 
   // 使用平台配置 Hook（只获取启用的平台）
-  const { getPlatformList, getPlatformPriceTypes, loading: configLoadingPlatform } = usePlatformConfig(false);
+  const {
+    getPlatformList,
+    getPlatformPriceTypes,
+    loading: configLoadingPlatform,
+  } = usePlatformConfig(false);
   const platforms = getPlatformList();
 
-  const [selectedPlatform, setSelectedPlatform] = useState<Platform>(platforms[0] || 'douyin');
-  const [selectedPriceType, setSelectedPriceType] = useState<PriceType | null>('video_60plus');
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform>(
+    platforms[0] || 'douyin'
+  );
+  const [selectedPriceType, setSelectedPriceType] = useState<PriceType | null>(
+    'video_60plus'
+  );
   const actionRef = useRef<ActionType>(null);
 
   const { talents, loading, total, currentPage, pageSize, setPage, search } =
     usePerformanceData(selectedPlatform);
 
-  const { activeConfig, visibleDimensionIds, loading: configLoading } =
-    useDimensionConfig(selectedPlatform);
+  const {
+    activeConfig,
+    visibleDimensionIds,
+    loading: configLoading,
+  } = useDimensionConfig(selectedPlatform);
 
   // 筛选 Hook - 从维度配置中提取可筛选维度
   const {
@@ -87,7 +99,7 @@ export function PerformanceHome() {
     activeFilterCount,
     updateFilter,
     resetFilters,
-    buildQueryParams
+    buildQueryParams,
   } = usePerformanceFilters(activeConfig?.dimensions || []);
 
   // 执行搜索
@@ -133,7 +145,8 @@ export function PerformanceHome() {
 
     return visibleDimensions.map(dim => {
       // 特殊处理：更新日期固定到右侧
-      const isUpdateDate = dim.targetPath === 'performanceData.updateDate' ||
+      const isUpdateDate =
+        dim.targetPath === 'performanceData.updateDate' ||
         dim.targetPath === 'updatedAt' ||
         dim.name.includes('更新日期');
 
@@ -142,7 +155,7 @@ export function PerformanceHome() {
         dataIndex: dim.targetPath.split('.'),
         key: dim.id,
         width: dim.width || 120,
-        fixed: isUpdateDate ? 'right' : (dim.pinned ? 'left' : undefined),
+        fixed: isUpdateDate ? 'right' : dim.pinned ? 'left' : undefined,
         ellipsis: true,
         hideInSearch: true, // 筛选器独立，不使用 ProTable 内置搜索
       };
@@ -197,7 +210,9 @@ export function PerformanceHome() {
         column.render = (_, record) => {
           const value = getNestedValue(record, dim.targetPath);
           return value !== null && value !== undefined
-            ? typeof value === 'number' ? value.toLocaleString() : String(value)
+            ? typeof value === 'number'
+              ? value.toLocaleString()
+              : String(value)
             : 'N/A';
         };
       }
@@ -256,7 +271,7 @@ export function PerformanceHome() {
         {/* 平台 Tabs - Ant Design Tabs */}
         <Tabs
           activeKey={selectedPlatform}
-          onChange={(key) => handlePlatformChange(key as Platform)}
+          onChange={key => handlePlatformChange(key as Platform)}
           items={platforms.map(platform => ({
             key: platform,
             label: PLATFORM_NAMES[platform],
@@ -280,7 +295,8 @@ export function PerformanceHome() {
         )}
 
         {/* ProTable - 新版实现 */}
-        {(configLoadingPlatform || configLoading || loading) && talents.length === 0 ? (
+        {(configLoadingPlatform || configLoading || loading) &&
+        talents.length === 0 ? (
           <TableSkeleton columnCount={8} rowCount={10} />
         ) : (
           <ProTable<Talent>
@@ -295,10 +311,10 @@ export function PerformanceHome() {
               total: total,
               showSizeChanger: true,
               showQuickJumper: true,
-              showTotal: (total) => `共 ${total} 条`,
-              onChange: (page) => setPage(page),
+              showTotal: total => `共 ${total} 条`,
+              onChange: page => setPage(page),
             }}
-            search={false}  // 关闭 ProTable 内置搜索
+            search={false} // 关闭 ProTable 内置搜索
             cardBordered
             headerTitle={
               <div className="flex items-center gap-3">
@@ -313,13 +329,22 @@ export function PerformanceHome() {
                 <Button
                   key="config"
                   icon={<SettingOutlined />}
-                  onClick={() => navigate(`/settings/performance-config?platform=${selectedPlatform}&tab=dimension`)}
+                  onClick={() =>
+                    navigate(
+                      `/settings/performance-config?platform=${selectedPlatform}&tab=dimension`
+                    )
+                  }
                 >
                   表格配置
                 </Button>,
                 // 价格类型选择器
-                <div key="price" className="flex items-center gap-2 bg-primary-50 px-3 py-1.5 rounded-lg border border-primary-200">
-                  <span className="text-sm font-medium text-primary-700">价格类型</span>
+                <div
+                  key="price"
+                  className="flex items-center gap-2 bg-primary-50 px-3 py-1.5 rounded-lg border border-primary-200"
+                >
+                  <span className="text-sm font-medium text-primary-700">
+                    价格类型
+                  </span>
                   <Select
                     value={selectedPriceType}
                     onChange={setSelectedPriceType}
@@ -345,18 +370,30 @@ export function PerformanceHome() {
                 message.success('数据已刷新');
                 return true;
               },
-              density: false,  // 关闭密度调整（避免混乱）
-              setting: true,   // 开启列设置
+              density: false, // 关闭密度调整（避免混乱）
+              setting: true, // 开启列设置
             }}
             scroll={{ x: 1500 }}
             size="middle"
             locale={{
               emptyText: (
                 <div className="text-center py-12">
-                  <svg className="mx-auto h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <svg
+                    className="mx-auto h-16 w-16 text-gray-300"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
                   </svg>
-                  <p className="mt-4 text-lg font-medium text-gray-900">暂无表现数据</p>
+                  <p className="mt-4 text-lg font-medium text-gray-900">
+                    暂无表现数据
+                  </p>
                   <p className="mt-2 text-sm text-gray-500">
                     {PLATFORM_NAMES[selectedPlatform]} 平台暂无达人表现数据
                   </p>
@@ -366,7 +403,11 @@ export function PerformanceHome() {
                   <Button
                     type="primary"
                     className="mt-4"
-                    onClick={() => navigate(`/settings/performance-config?platform=${selectedPlatform}&tab=import`)}
+                    onClick={() =>
+                      navigate(
+                        `/settings/performance-config?platform=${selectedPlatform}&tab=import`
+                      )
+                    }
                   >
                     立即导入数据
                   </Button>

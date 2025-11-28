@@ -73,19 +73,25 @@ export function CustomersHome() {
               className="text-center p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200"
             >
               <p className="text-3xl font-bold text-primary-900">0</p>
-              <p className="text-sm text-primary-700 mt-1 font-medium">总客户数</p>
+              <p className="text-sm text-primary-700 mt-1 font-medium">
+                总客户数
+              </p>
             </motion.div>
             {[
               { label: 'VIP客户', value: 0, delay: 0.1 },
               { label: '大型客户', value: 0, delay: 0.2 },
               { label: '活跃客户', value: 0, delay: 0.3 },
-            ].map((item) => (
+            ].map(item => (
               <motion.div
                 key={item.label}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: item.delay, duration: 0.3 }}
-                whileHover={{ y: -4, boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" }}
+                whileHover={{
+                  y: -4,
+                  boxShadow:
+                    '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                }}
                 className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200 transition-shadow"
               >
                 <p className="text-2xl font-bold text-gray-900">{item.value}</p>
@@ -109,12 +115,15 @@ export function CustomersHome() {
                 whileTap={module.available ? { scale: 0.98 } : {}}
                 onClick={() => module.available && navigate(module.path)}
                 disabled={!module.available}
-                className={`group relative flex flex-col items-start rounded-lg border-2 bg-white p-6 text-left transition-colors ${module.available
-                  ? 'border-gray-200 hover:border-primary-500 hover:shadow-lg cursor-pointer'
-                  : 'border-gray-200 opacity-60 cursor-not-allowed'
-                  }`}
+                className={`group relative flex flex-col items-start rounded-lg border-2 bg-white p-6 text-left transition-colors ${
+                  module.available
+                    ? 'border-gray-200 hover:border-primary-500 hover:shadow-lg cursor-pointer'
+                    : 'border-gray-200 opacity-60 cursor-not-allowed'
+                }`}
               >
-                <div className={`rounded-lg ${module.color} p-3 flex items-center justify-center`}>
+                <div
+                  className={`rounded-lg ${module.color} p-3 flex items-center justify-center`}
+                >
                   <module.icon style={{ fontSize: '24px', color: 'white' }} />
                 </div>
                 <h3 className="mt-4 text-lg font-semibold text-gray-900">
@@ -123,7 +132,9 @@ export function CustomersHome() {
                     <span className="ml-2 text-xs text-gray-400">(开发中)</span>
                   )}
                 </h3>
-                <p className="mt-2 text-sm text-gray-500">{module.description}</p>
+                <p className="mt-2 text-sm text-gray-500">
+                  {module.description}
+                </p>
               </motion.button>
             ))}
           </div>

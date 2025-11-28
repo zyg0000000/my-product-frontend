@@ -29,7 +29,7 @@ export function ProjectsHome() {
             <motion.div
               initial={{ rotate: -10, scale: 0.8 }}
               animate={{ rotate: 0, scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
             >
               <FolderIcon className="mx-auto h-16 w-16 text-gray-400" />
             </motion.div>

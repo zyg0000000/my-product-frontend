@@ -10,11 +10,11 @@
  */
 export interface TalentFilters {
   searchTerm: string;
-  tiers: string[];              // 达人层级
-  tags: string[];               // 内容标签
+  tiers: string[]; // 达人层级
+  tags: string[]; // 内容标签
   rebateRange: [string, string]; // 返点率区间 [min, max]，空字符串表示不限
-  priceRange: [string, string];  // 价格区间 [min, max]，空字符串表示不限
-  priceTiers: string[];          // 价格档位
+  priceRange: [string, string]; // 价格区间 [min, max]，空字符串表示不限
+  priceTiers: string[]; // 价格档位
 }
 
 /**

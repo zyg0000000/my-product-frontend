@@ -10,14 +10,16 @@ import {
   updateDimensionConfig,
   deleteDimensionConfig,
   type DimensionConfigDoc,
-  type DimensionConfig
+  type DimensionConfig,
 } from '../api/performance';
 import type { Platform } from '../types/talent';
 import { useToast } from './useToast';
 
 export function useDimensionConfig(platform: Platform) {
   const [configs, setConfigs] = useState<DimensionConfigDoc[]>([]);
-  const [activeConfig, setActiveConfig] = useState<DimensionConfigDoc | null>(null);
+  const [activeConfig, setActiveConfig] = useState<DimensionConfigDoc | null>(
+    null
+  );
   const [visibleDimensionIds, setVisibleDimensionIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const { success, error } = useToast();
@@ -29,7 +31,9 @@ export function useDimensionConfig(platform: Platform) {
       const response: any = await getDimensionConfigs(platform);
       if (response.success && response.data) {
         setConfigs(response.data);
-        const active = response.data.find((c: DimensionConfigDoc) => c.isActive);
+        const active = response.data.find(
+          (c: DimensionConfigDoc) => c.isActive
+        );
         setActiveConfig(active || null);
         // visibleDimensionIds 由下方的 useEffect 根据 activeConfig 处理
       }
@@ -104,7 +108,7 @@ export function useDimensionConfig(platform: Platform) {
 
     const updatedConfig = {
       ...activeConfig,
-      dimensions: [...activeConfig.dimensions, dimension]
+      dimensions: [...activeConfig.dimensions, dimension],
     };
 
     await updateConfig(updatedConfig);
@@ -122,7 +126,7 @@ export function useDimensionConfig(platform: Platform) {
 
     const updatedConfig = {
       ...activeConfig,
-      dimensions: updatedDimensions
+      dimensions: updatedDimensions,
     };
 
     await updateConfig(updatedConfig);
@@ -135,11 +139,13 @@ export function useDimensionConfig(platform: Platform) {
       return;
     }
 
-    const updatedDimensions = activeConfig.dimensions.filter((_, i) => i !== index);
+    const updatedDimensions = activeConfig.dimensions.filter(
+      (_, i) => i !== index
+    );
 
     const updatedConfig = {
       ...activeConfig,
-      dimensions: updatedDimensions
+      dimensions: updatedDimensions,
     };
 
     await updateConfig(updatedConfig);
@@ -155,12 +161,12 @@ export function useDimensionConfig(platform: Platform) {
     // 更新order字段
     const reorderedDimensions = dimensions.map((dim, index) => ({
       ...dim,
-      order: index
+      order: index,
     }));
 
     const updatedConfig = {
       ...activeConfig,
-      dimensions: reorderedDimensions
+      dimensions: reorderedDimensions,
     };
 
     await updateConfig(updatedConfig);
@@ -180,7 +186,7 @@ export function useDimensionConfig(platform: Platform) {
     const updatedConfig = {
       ...activeConfig,
       dimensions,
-      defaultVisibleIds: updatedDefaultVisibleIds
+      defaultVisibleIds: updatedDefaultVisibleIds,
     };
 
     await updateConfig(updatedConfig);
@@ -207,7 +213,7 @@ export function useDimensionConfig(platform: Platform) {
     const updatedConfig = {
       ...activeConfig,
       dimensions: updatedDimensions,
-      defaultVisibleIds: updatedDefaultVisibleIds
+      defaultVisibleIds: updatedDefaultVisibleIds,
     };
 
     await updateConfig(updatedConfig);
@@ -216,7 +222,10 @@ export function useDimensionConfig(platform: Platform) {
   // 更新显示的维度ID列表（用户偏好，仅保存在localStorage）
   const updateVisibleIds = (ids: string[]) => {
     setVisibleDimensionIds(ids);
-    localStorage.setItem(`performance_visible_dimensions_${platform}`, JSON.stringify(ids));
+    localStorage.setItem(
+      `performance_visible_dimensions_${platform}`,
+      JSON.stringify(ids)
+    );
   };
 
   // 初始加载
@@ -229,26 +238,33 @@ export function useDimensionConfig(platform: Platform) {
   useEffect(() => {
     if (!activeConfig) return;
 
-    const saved = localStorage.getItem(`performance_visible_dimensions_${platform}`);
+    const saved = localStorage.getItem(
+      `performance_visible_dimensions_${platform}`
+    );
     if (saved) {
       try {
         const savedIds = JSON.parse(saved) as string[];
         // 获取当前配置中所有有效的维度ID
-        const validDimensionIds = new Set(activeConfig.dimensions.map(d => d.id));
+        const validDimensionIds = new Set(
+          activeConfig.dimensions.map(d => d.id)
+        );
         // 过滤掉不再存在的维度，保留仍然有效的
         const validSavedIds = savedIds.filter(id => validDimensionIds.has(id));
 
         // 检查是否有新的默认显示维度需要添加
         const defaultIds = activeConfig.defaultVisibleIds || [];
-        const newDefaultIds = defaultIds.filter(id =>
-          validDimensionIds.has(id) && !validSavedIds.includes(id)
+        const newDefaultIds = defaultIds.filter(
+          id => validDimensionIds.has(id) && !validSavedIds.includes(id)
         );
 
         // 如果有新的默认维度（如 price），自动添加
         if (newDefaultIds.length > 0) {
           const mergedIds = [...validSavedIds, ...newDefaultIds];
           setVisibleDimensionIds(mergedIds);
-          localStorage.setItem(`performance_visible_dimensions_${platform}`, JSON.stringify(mergedIds));
+          localStorage.setItem(
+            `performance_visible_dimensions_${platform}`,
+            JSON.stringify(mergedIds)
+          );
         } else {
           setVisibleDimensionIds(validSavedIds);
         }
@@ -277,6 +293,6 @@ export function useDimensionConfig(platform: Platform) {
     reorderDimensions,
     batchUpdateDimensions,
     toggleDimensionVisibility,
-    updateVisibleIds
+    updateVisibleIds,
   };
 }

@@ -6,7 +6,20 @@
  */
 
 import { useState, useMemo } from 'react';
-import { message, Collapse, Button, Tag, Tooltip, Input, Select, InputNumber, Form, Space, Radio, Alert } from 'antd';
+import {
+  message,
+  Collapse,
+  Button,
+  Tag,
+  Tooltip,
+  Input,
+  Select,
+  InputNumber,
+  Form,
+  Space,
+  Radio,
+  Alert,
+} from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -14,10 +27,14 @@ import {
   CalculatorOutlined,
   FunctionOutlined,
   CodeOutlined,
-  QuestionCircleOutlined
+  QuestionCircleOutlined,
 } from '@ant-design/icons';
 import { logger } from '../../utils/logger';
-import type { ComputedFieldRule, ComputedFieldFormula, FieldMappingRule } from '../../api/performance';
+import type {
+  ComputedFieldRule,
+  ComputedFieldFormula,
+  FieldMappingRule,
+} from '../../api/performance';
 import { Modal } from './Modal';
 import { ConfirmDialog } from './ConfirmDialog';
 
@@ -60,12 +77,14 @@ export function ComputedFieldManager({
   mappings,
   onAdd,
   onUpdate,
-  onDelete
+  onDelete,
 }: ComputedFieldManagerProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);
-  const [editingField, setEditingField] = useState<ComputedFieldRule | null>(null);
+  const [editingField, setEditingField] = useState<ComputedFieldRule | null>(
+    null
+  );
   const [formulaMode, setFormulaMode] = useState<FormulaMode>('expression');
   const [showHelp, setShowHelp] = useState(false);
 
@@ -74,38 +93,46 @@ export function ComputedFieldManager({
     const options: { value: string; label: string; group: string }[] = [];
 
     // 价格字段
-    mappings.filter(m => m.priceType).forEach(m => {
-      options.push({
-        value: `prices.${m.priceType}`,
-        label: `${m.excelHeader} (prices.${m.priceType})`,
-        group: '价格字段'
+    mappings
+      .filter(m => m.priceType)
+      .forEach(m => {
+        options.push({
+          value: `prices.${m.priceType}`,
+          label: `${m.excelHeader} (prices.${m.priceType})`,
+          group: '价格字段',
+        });
       });
-    });
 
     // 表现数据字段
-    mappings.filter(m =>
-      m.targetCollection === 'talent_performance' &&
-      m.targetPath.startsWith('metrics.')
-    ).forEach(m => {
-      options.push({
-        value: m.targetPath,
-        label: `${m.excelHeader} (${m.targetPath})`,
-        group: '表现数据'
+    mappings
+      .filter(
+        m =>
+          m.targetCollection === 'talent_performance' &&
+          m.targetPath.startsWith('metrics.')
+      )
+      .forEach(m => {
+        options.push({
+          value: m.targetPath,
+          label: `${m.excelHeader} (${m.targetPath})`,
+          group: '表现数据',
+        });
       });
-    });
 
     // 基础字段（数字类型）
-    mappings.filter(m =>
-      m.format === 'number' &&
-      !m.priceType &&
-      m.targetCollection !== 'talent_performance'
-    ).forEach(m => {
-      options.push({
-        value: m.targetPath,
-        label: `${m.excelHeader} (${m.targetPath})`,
-        group: '基础信息'
+    mappings
+      .filter(
+        m =>
+          m.format === 'number' &&
+          !m.priceType &&
+          m.targetCollection !== 'talent_performance'
+      )
+      .forEach(m => {
+        options.push({
+          value: m.targetPath,
+          label: `${m.excelHeader} (${m.targetPath})`,
+          group: '基础信息',
+        });
       });
-    });
 
     return options;
   }, [mappings]);
@@ -119,7 +146,7 @@ export function ComputedFieldManager({
     });
     return Object.entries(groups).map(([label, options]) => ({
       label,
-      options: options.map(o => ({ value: o.value, label: o.label }))
+      options: options.map(o => ({ value: o.value, label: o.label })),
     }));
   }, [variableOptions]);
 
@@ -131,10 +158,10 @@ export function ComputedFieldManager({
       targetCollection: 'talent_performance',
       formula: {
         expression: '',
-        precision: 2
+        precision: 2,
       },
       category: '核心绩效',
-      order: computedFields.length + 100
+      order: computedFields.length + 100,
     });
     setFormulaMode('expression');
     setIsAdding(true);
@@ -217,7 +244,7 @@ export function ComputedFieldManager({
     if (!editingField) return;
     setEditingField({
       ...editingField,
-      formula: { ...editingField.formula, [key]: value }
+      formula: { ...editingField.formula, [key]: value },
     });
   };
 
@@ -236,21 +263,35 @@ export function ComputedFieldManager({
     }
     const type = FORMULA_TYPES.find(t => t.value === formula.type);
     const symbol = type?.symbol || '?';
-    const multiplierStr = formula.multiplier && formula.multiplier !== 1 ? ` × ${formula.multiplier}` : '';
+    const multiplierStr =
+      formula.multiplier && formula.multiplier !== 1
+        ? ` × ${formula.multiplier}`
+        : '';
     return `${formula.operand1} ${symbol} ${formula.operand2}${multiplierStr}`;
   };
 
   // 判断是表达式还是简单模式
-  const isExpressionMode = (field: ComputedFieldRule) => !!field.formula.expression;
+  const isExpressionMode = (field: ComputedFieldRule) =>
+    !!field.formula.expression;
 
   // 渲染单个计算字段行
   const renderFieldRow = (field: ComputedFieldRule, index: number) => (
     <tr key={index} className="hover:bg-gray-50">
-      <td className="px-3 py-2 font-medium text-gray-900 text-sm">{field.name}</td>
+      <td className="px-3 py-2 font-medium text-gray-900 text-sm">
+        {field.name}
+      </td>
       <td className="px-3 py-2 font-mono text-xs text-gray-600">{field.id}</td>
       <td className="px-3 py-2">
-        <Tag color={isExpressionMode(field) ? 'blue' : 'purple'} icon={isExpressionMode(field) ? <CodeOutlined /> : <FunctionOutlined />}>
-          {isExpressionMode(field) ? '表达式' : (FORMULA_TYPES.find(t => t.value === field.formula.type)?.label || '简单')}
+        <Tag
+          color={isExpressionMode(field) ? 'blue' : 'purple'}
+          icon={
+            isExpressionMode(field) ? <CodeOutlined /> : <FunctionOutlined />
+          }
+        >
+          {isExpressionMode(field)
+            ? '表达式'
+            : FORMULA_TYPES.find(t => t.value === field.formula.type)?.label ||
+              '简单'}
         </Tag>
       </td>
       <td className="px-3 py-2 font-mono text-xs text-gray-500 max-w-xs">
@@ -264,10 +305,21 @@ export function ComputedFieldManager({
       <td className="px-3 py-2 text-center">
         <div className="flex items-center justify-center gap-1">
           <Tooltip title="编辑">
-            <Button type="text" size="small" icon={<EditOutlined />} onClick={() => handleEdit(index)} />
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(index)}
+            />
           </Tooltip>
           <Tooltip title="删除">
-            <Button type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => setDeletingIndex(index)} />
+            <Button
+              type="text"
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => setDeletingIndex(index)}
+            />
           </Tooltip>
         </div>
       </td>
@@ -281,7 +333,9 @@ export function ComputedFieldManager({
       label: (
         <div className="flex items-center justify-between w-full pr-4">
           <div className="flex items-center gap-2">
-            <span className="text-gray-500"><CalculatorOutlined /></span>
+            <span className="text-gray-500">
+              <CalculatorOutlined />
+            </span>
             <span className="font-medium">计算字段</span>
             <Tag color="purple">{computedFields.length} 个</Tag>
           </div>
@@ -295,12 +349,24 @@ export function ComputedFieldManager({
               <table className="w-full text-sm">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">名称</th>
-                    <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">字段ID</th>
-                    <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">模式</th>
-                    <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">公式</th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-600 text-xs">精度</th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-600 text-xs w-20">操作</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                      名称
+                    </th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                      字段ID
+                    </th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                      模式
+                    </th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                      公式
+                    </th>
+                    <th className="px-3 py-2 text-center font-medium text-gray-600 text-xs">
+                      精度
+                    </th>
+                    <th className="px-3 py-2 text-center font-medium text-gray-600 text-xs w-20">
+                      操作
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
@@ -308,7 +374,12 @@ export function ComputedFieldManager({
                 </tbody>
               </table>
               <div className="p-2 bg-gray-50 border-t">
-                <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={handleAdd}>
+                <Button
+                  type="dashed"
+                  size="small"
+                  icon={<PlusOutlined />}
+                  onClick={handleAdd}
+                >
                   添加计算字段
                 </Button>
               </div>
@@ -317,14 +388,20 @@ export function ComputedFieldManager({
             <div className="text-center py-8 text-gray-500">
               <CalculatorOutlined className="text-3xl mb-2 text-gray-300" />
               <p>暂无计算字段</p>
-              <Button type="dashed" size="small" icon={<PlusOutlined />} onClick={handleAdd} className="mt-2">
+              <Button
+                type="dashed"
+                size="small"
+                icon={<PlusOutlined />}
+                onClick={handleAdd}
+                className="mt-2"
+              >
                 添加计算字段
               </Button>
             </div>
           )}
         </div>
-      )
-    }
+      ),
+    },
   ];
 
   return (
@@ -358,10 +435,16 @@ export function ComputedFieldManager({
           <Form layout="vertical" className="space-y-4">
             {/* 基础信息 */}
             <div className="grid grid-cols-2 gap-4">
-              <Form.Item label="字段ID" required tooltip="唯一标识符，如 cpm_60s_expected">
+              <Form.Item
+                label="字段ID"
+                required
+                tooltip="唯一标识符，如 cpm_60s_expected"
+              >
                 <Input
                   value={editingField.id}
-                  onChange={(e) => setEditingField({ ...editingField, id: e.target.value })}
+                  onChange={e =>
+                    setEditingField({ ...editingField, id: e.target.value })
+                  }
                   placeholder="cpm_60s_expected"
                   style={{ fontFamily: 'monospace' }}
                 />
@@ -369,16 +452,27 @@ export function ComputedFieldManager({
               <Form.Item label="显示名称" required>
                 <Input
                   value={editingField.name}
-                  onChange={(e) => setEditingField({ ...editingField, name: e.target.value })}
+                  onChange={e =>
+                    setEditingField({ ...editingField, name: e.target.value })
+                  }
                   placeholder="60s预期CPM"
                 />
               </Form.Item>
             </div>
 
-            <Form.Item label="目标路径" required tooltip="计算结果存储的字段路径">
+            <Form.Item
+              label="目标路径"
+              required
+              tooltip="计算结果存储的字段路径"
+            >
               <Input
                 value={editingField.targetPath}
-                onChange={(e) => setEditingField({ ...editingField, targetPath: e.target.value })}
+                onChange={e =>
+                  setEditingField({
+                    ...editingField,
+                    targetPath: e.target.value,
+                  })
+                }
                 placeholder="metrics.cpm_60s_expected"
                 style={{ fontFamily: 'monospace' }}
               />
@@ -391,9 +485,17 @@ export function ComputedFieldManager({
                   <FunctionOutlined className="mr-2" />
                   公式配置
                 </h4>
-                <Radio.Group value={formulaMode} onChange={(e) => setFormulaMode(e.target.value)} size="small">
-                  <Radio.Button value="expression"><CodeOutlined /> 表达式</Radio.Button>
-                  <Radio.Button value="simple"><CalculatorOutlined /> 简单</Radio.Button>
+                <Radio.Group
+                  value={formulaMode}
+                  onChange={e => setFormulaMode(e.target.value)}
+                  size="small"
+                >
+                  <Radio.Button value="expression">
+                    <CodeOutlined /> 表达式
+                  </Radio.Button>
+                  <Radio.Button value="simple">
+                    <CalculatorOutlined /> 简单
+                  </Radio.Button>
                 </Radio.Group>
               </div>
             </div>
@@ -405,7 +507,12 @@ export function ComputedFieldManager({
                   label={
                     <span>
                       计算公式
-                      <Button type="link" size="small" icon={<QuestionCircleOutlined />} onClick={() => setShowHelp(!showHelp)}>
+                      <Button
+                        type="link"
+                        size="small"
+                        icon={<QuestionCircleOutlined />}
+                        onClick={() => setShowHelp(!showHelp)}
+                      >
                         帮助
                       </Button>
                     </span>
@@ -414,7 +521,7 @@ export function ComputedFieldManager({
                 >
                   <TextArea
                     value={editingField.formula.expression || ''}
-                    onChange={(e) => updateFormula('expression', e.target.value)}
+                    onChange={e => updateFormula('expression', e.target.value)}
                     placeholder="例如: prices.video_60plus / metrics.expected_plays * 1000"
                     rows={3}
                     style={{ fontFamily: 'monospace' }}
@@ -429,19 +536,49 @@ export function ComputedFieldManager({
                     message="表达式语法帮助"
                     description={
                       <div className="text-xs space-y-2 mt-2">
-                        <p><strong>支持的运算符：</strong> + - * / () &gt; &lt; &gt;= &lt;= == !=</p>
-                        <p><strong>支持的函数：</strong></p>
+                        <p>
+                          <strong>支持的运算符：</strong> + - * / () &gt; &lt;
+                          &gt;= &lt;= == !=
+                        </p>
+                        <p>
+                          <strong>支持的函数：</strong>
+                        </p>
                         <ul className="list-disc pl-4 space-y-1">
                           {SUPPORTED_FUNCTIONS.map(f => (
-                            <li key={f.name}><code>{f.desc}</code></li>
+                            <li key={f.name}>
+                              <code>{f.desc}</code>
+                            </li>
                           ))}
                         </ul>
-                        <p><strong>示例：</strong></p>
+                        <p>
+                          <strong>示例：</strong>
+                        </p>
                         <ul className="list-disc pl-4 space-y-1">
-                          <li><code>prices.video_60plus / metrics.expected_plays * 1000</code></li>
-                          <li><code>(prices.video_60plus * 0.6 + prices.video_21_60 * 0.4) / metrics.expected_plays * 1000</code></li>
-                          <li><code>if(metrics.expected_plays &gt; 0, prices.video_60plus / metrics.expected_plays * 1000, 0)</code></li>
-                          <li><code>round(prices.video_60plus / metrics.expected_plays * 1000, 2)</code></li>
+                          <li>
+                            <code>
+                              prices.video_60plus / metrics.expected_plays *
+                              1000
+                            </code>
+                          </li>
+                          <li>
+                            <code>
+                              (prices.video_60plus * 0.6 + prices.video_21_60 *
+                              0.4) / metrics.expected_plays * 1000
+                            </code>
+                          </li>
+                          <li>
+                            <code>
+                              if(metrics.expected_plays &gt; 0,
+                              prices.video_60plus / metrics.expected_plays *
+                              1000, 0)
+                            </code>
+                          </li>
+                          <li>
+                            <code>
+                              round(prices.video_60plus / metrics.expected_plays
+                              * 1000, 2)
+                            </code>
+                          </li>
                         </ul>
                       </div>
                     }
@@ -461,7 +598,12 @@ export function ComputedFieldManager({
                       </Tag>
                     ))}
                     {variableOptions.length > 10 && (
-                      <Tooltip title={variableOptions.slice(10).map(o => o.value).join(', ')}>
+                      <Tooltip
+                        title={variableOptions
+                          .slice(10)
+                          .map(o => o.value)
+                          .join(', ')}
+                      >
                         <Tag>+{variableOptions.length - 10} 更多</Tag>
                       </Tooltip>
                     )}
@@ -476,10 +618,10 @@ export function ComputedFieldManager({
                 <Form.Item label="运算类型">
                   <Select
                     value={editingField.formula.type || 'division'}
-                    onChange={(value) => updateFormula('type', value)}
+                    onChange={value => updateFormula('type', value)}
                     options={FORMULA_TYPES.map(t => ({
                       value: t.value,
-                      label: `${t.label} - 操作数1 ${t.symbol} 操作数2`
+                      label: `${t.label} - 操作数1 ${t.symbol} 操作数2`,
                     }))}
                   />
                 </Form.Item>
@@ -488,7 +630,7 @@ export function ComputedFieldManager({
                   <Form.Item label="操作数1" required>
                     <Select
                       value={editingField.formula.operand1 || undefined}
-                      onChange={(value) => updateFormula('operand1', value)}
+                      onChange={value => updateFormula('operand1', value)}
                       placeholder="选择字段"
                       options={groupedOptions}
                       showSearch
@@ -498,7 +640,7 @@ export function ComputedFieldManager({
                   <Form.Item label="操作数2" required>
                     <Select
                       value={editingField.formula.operand2 || undefined}
-                      onChange={(value) => updateFormula('operand2', value)}
+                      onChange={value => updateFormula('operand2', value)}
                       placeholder="选择字段"
                       options={groupedOptions}
                       showSearch
@@ -507,10 +649,13 @@ export function ComputedFieldManager({
                   </Form.Item>
                 </div>
 
-                <Form.Item label="结果乘数" tooltip="计算结果后乘以此数，如 CPM 需要 × 1000">
+                <Form.Item
+                  label="结果乘数"
+                  tooltip="计算结果后乘以此数，如 CPM 需要 × 1000"
+                >
                   <InputNumber
                     value={editingField.formula.multiplier || 1}
-                    onChange={(value) => updateFormula('multiplier', value)}
+                    onChange={value => updateFormula('multiplier', value)}
                     min={0}
                     style={{ width: '100%' }}
                   />
@@ -523,7 +668,7 @@ export function ComputedFieldManager({
               <Form.Item label="小数精度">
                 <InputNumber
                   value={editingField.formula.precision ?? 2}
-                  onChange={(value) => updateFormula('precision', value)}
+                  onChange={value => updateFormula('precision', value)}
                   min={0}
                   max={10}
                   style={{ width: '100%' }}
@@ -532,7 +677,9 @@ export function ComputedFieldManager({
               <Form.Item label="分类">
                 <Select
                   value={editingField.category || '核心绩效'}
-                  onChange={(value) => setEditingField({ ...editingField, category: value })}
+                  onChange={value =>
+                    setEditingField({ ...editingField, category: value })
+                  }
                   options={[
                     { value: '基础信息', label: '基础信息' },
                     { value: '核心绩效', label: '核心绩效' },
@@ -543,11 +690,14 @@ export function ComputedFieldManager({
             </div>
 
             {/* 公式预览 */}
-            {(editingField.formula.expression || (editingField.formula.operand1 && editingField.formula.operand2)) && (
+            {(editingField.formula.expression ||
+              (editingField.formula.operand1 &&
+                editingField.formula.operand2)) && (
               <div className="bg-gray-50 p-3 rounded-lg border">
                 <div className="text-xs text-gray-500 mb-1">公式预览</div>
                 <div className="font-mono text-sm text-purple-600">
-                  {editingField.name || '结果'} = {getFormulaDescription(editingField)}
+                  {editingField.name || '结果'} ={' '}
+                  {getFormulaDescription(editingField)}
                 </div>
               </div>
             )}
@@ -556,7 +706,9 @@ export function ComputedFieldManager({
             <Form.Item className="mb-0 pt-4 border-t">
               <Space className="w-full justify-end">
                 <Button onClick={handleCloseModal}>取消</Button>
-                <Button type="primary" onClick={handleSave}>保存</Button>
+                <Button type="primary" onClick={handleSave}>
+                  保存
+                </Button>
               </Space>
             </Form.Item>
           </Form>

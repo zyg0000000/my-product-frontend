@@ -10,7 +10,12 @@
 
 import { useEffect } from 'react';
 import { Modal, Form, message } from 'antd';
-import { ProForm, ProFormText, ProFormSelect, ProFormTextArea } from '@ant-design/pro-components';
+import {
+  ProForm,
+  ProFormText,
+  ProFormSelect,
+  ProFormTextArea,
+} from '@ant-design/pro-components';
 import { ProCard } from '@ant-design/pro-components';
 import type { Agency, AgencyFormData } from '../types/agency';
 
@@ -32,7 +37,12 @@ const AGENCY_STATUS_OPTIONS = [
   { label: '🔴 停用', value: 'inactive' },
 ];
 
-export function AgencyFormModal({ isOpen, onClose, agency, onSave }: AgencyFormModalProps) {
+export function AgencyFormModal({
+  isOpen,
+  onClose,
+  agency,
+  onSave,
+}: AgencyFormModalProps) {
   const [form] = Form.useForm<AgencyFormData>();
   const isEditing = !!agency;
 
@@ -78,9 +88,7 @@ export function AgencyFormModal({ isOpen, onClose, agency, onSave }: AgencyFormM
             {isEditing ? '编辑机构' : '新增机构'}
           </div>
           <div className="text-xs font-normal text-gray-500 mt-0.5">
-            {isEditing
-              ? `更新机构信息：${agency?.name}`
-              : '创建新的机构'}
+            {isEditing ? `更新机构信息：${agency?.name}` : '创建新的机构'}
           </div>
         </div>
       }
@@ -115,7 +123,12 @@ export function AgencyFormModal({ isOpen, onClose, agency, onSave }: AgencyFormM
         className="compact-form"
       >
         {/* 基础信息卡片 */}
-        <ProCard title="基础信息" headerBordered className="mb-3" bodyStyle={{ padding: '12px 16px' }}>
+        <ProCard
+          title="基础信息"
+          headerBordered
+          className="mb-3"
+          bodyStyle={{ padding: '12px 16px' }}
+        >
           <div className="grid grid-cols-3 gap-3">
             {/* 机构名称 */}
             <div className="col-span-2">
@@ -153,7 +166,12 @@ export function AgencyFormModal({ isOpen, onClose, agency, onSave }: AgencyFormM
         </ProCard>
 
         {/* 联系信息卡片 */}
-        <ProCard title="联系信息" headerBordered className="mb-3" bodyStyle={{ padding: '12px 16px' }}>
+        <ProCard
+          title="联系信息"
+          headerBordered
+          className="mb-3"
+          bodyStyle={{ padding: '12px 16px' }}
+        >
           <div className="grid grid-cols-2 gap-3">
             {/* 联系人 */}
             <ProFormText
@@ -198,7 +216,11 @@ export function AgencyFormModal({ isOpen, onClose, agency, onSave }: AgencyFormM
         </ProCard>
 
         {/* 备注信息卡片 */}
-        <ProCard title="备注信息" headerBordered bodyStyle={{ padding: '12px 16px' }}>
+        <ProCard
+          title="备注信息"
+          headerBordered
+          bodyStyle={{ padding: '12px 16px' }}
+        >
           <ProFormTextArea
             name="description"
             label="备注说明"

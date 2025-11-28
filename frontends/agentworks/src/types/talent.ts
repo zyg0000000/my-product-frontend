@@ -40,13 +40,43 @@ export interface PriceTypeConfig {
  */
 export const PLATFORM_PRICE_TYPES: Record<Platform, PriceTypeConfig[]> = {
   douyin: [
-    { key: 'video_60plus', label: '60s+', required: true, bgColor: '#dbeafe', textColor: '#1e40af' },
-    { key: 'video_21_60', label: '21-60s', required: true, bgColor: '#e0e7ff', textColor: '#4338ca' },
-    { key: 'video_1_20', label: '1-20s', required: true, bgColor: '#ddd6fe', textColor: '#6b21a8' },
+    {
+      key: 'video_60plus',
+      label: '60s+',
+      required: true,
+      bgColor: '#dbeafe',
+      textColor: '#1e40af',
+    },
+    {
+      key: 'video_21_60',
+      label: '21-60s',
+      required: true,
+      bgColor: '#e0e7ff',
+      textColor: '#4338ca',
+    },
+    {
+      key: 'video_1_20',
+      label: '1-20s',
+      required: true,
+      bgColor: '#ddd6fe',
+      textColor: '#6b21a8',
+    },
   ],
   xiaohongshu: [
-    { key: 'video', label: '视频笔记', required: true, bgColor: '#fce7f3', textColor: '#9f1239' },
-    { key: 'image', label: '图文笔记', required: true, bgColor: '#fee2e2', textColor: '#991b1b' },
+    {
+      key: 'video',
+      label: '视频笔记',
+      required: true,
+      bgColor: '#fce7f3',
+      textColor: '#9f1239',
+    },
+    {
+      key: 'image',
+      label: '图文笔记',
+      required: true,
+      bgColor: '#fee2e2',
+      textColor: '#991b1b',
+    },
   ],
   bilibili: [],
   kuaishou: [],
@@ -102,13 +132,13 @@ export interface OneIdHistoryRecord {
  */
 export interface PlatformSpecific {
   // 抖音特有
-  xingtuId?: string;    // 星图ID（也可以作为 platformAccountId）
-  uid?: string;         // 抖音UID
-  starLevel?: number;   // 星图等级
+  xingtuId?: string; // 星图ID（也可以作为 platformAccountId）
+  uid?: string; // 抖音UID
+  starLevel?: number; // 星图等级
 
   // 小红书特有（字段名后续确定）
-  xiaohongshuId?: string;      // 小红书ID（预留）
-  dandelionId?: string;        // 蒲公英ID（预留）
+  xiaohongshuId?: string; // 小红书ID（预留）
+  dandelionId?: string; // 蒲公英ID（预留）
   mcnName?: string;
   contentTags?: string[];
 
@@ -133,9 +163,9 @@ export type RebateSource = 'manual' | 'agency_sync';
  * 当前返点配置
  */
 export interface CurrentRebate {
-  rate: number;                      // 当前返点率 (0-100)
-  effectiveDate: string;              // 生效日期 (YYYY-MM-DD)
-  source: RebateSource;               // 数据来源
+  rate: number; // 当前返点率 (0-100)
+  effectiveDate: string; // 生效日期 (YYYY-MM-DD)
+  source: RebateSource; // 数据来源
 }
 
 /**
@@ -150,10 +180,10 @@ export interface Talent {
   fansCount?: number;
   talentType?: string[];
   talentTier?: TalentTier;
-  agencyId?: string;                   // 机构ID（AGENCY_INDIVIDUAL_ID表示野生达人）
-  rebateMode?: RebateMode;             // 返点模式（野生达人永远是independent）
-  currentRebate?: CurrentRebate;       // 当前返点配置
-  lastRebateSyncAt?: string;           // 最后同步时间（仅机构达人同步模式使用）
+  agencyId?: string; // 机构ID（AGENCY_INDIVIDUAL_ID表示野生达人）
+  rebateMode?: RebateMode; // 返点模式（野生达人永远是independent）
+  currentRebate?: CurrentRebate; // 当前返点配置
+  lastRebateSyncAt?: string; // 最后同步时间（仅机构达人同步模式使用）
   prices: PriceRecord[];
   platformSpecific?: PlatformSpecific;
   performanceData?: {
@@ -196,7 +226,8 @@ export interface TalentListItem {
   fansCount?: number;
   agencyId?: string; // ⭐ 新增：机构ID
   agencyName?: string; // ⭐ 新增：机构名称（前端展示用）
-  currentRebate?: { // ⭐ 新增：当前返点配置
+  currentRebate?: {
+    // ⭐ 新增：当前返点配置
     rate: number;
     source: 'default' | 'personal' | 'rule' | 'agency';
     effectiveDate: string;

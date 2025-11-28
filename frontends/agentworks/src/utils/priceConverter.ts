@@ -48,9 +48,9 @@ export const PriceConverter = {
   format(
     cents: number,
     options?: {
-      showUnit?: boolean;  // 是否显示单位"元"
-      useWan?: boolean;    // 是否使用"万"作为单位（>=10000 时）
-      decimals?: number;   // 小数位数（默认 0）
+      showUnit?: boolean; // 是否显示单位"元"
+      useWan?: boolean; // 是否使用"万"作为单位（>=10000 时）
+      decimals?: number; // 小数位数（默认 0）
     }
   ): string {
     const yuan = this.toYuan(cents);
@@ -112,12 +112,7 @@ export const PriceConverter = {
    * @returns 是否有效
    */
   isValid(cents: number): boolean {
-    return (
-      cents !== null &&
-      cents !== undefined &&
-      !isNaN(cents) &&
-      cents >= 0
-    );
+    return cents !== null && cents !== undefined && !isNaN(cents) && cents >= 0;
   },
 
   /**
@@ -131,7 +126,7 @@ export const PriceConverter = {
       return defaultValue;
     }
     return this.format(cents, { useWan: true });
-  }
+  },
 };
 
 /**

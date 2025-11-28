@@ -15,9 +15,9 @@ export interface FieldMappingRule {
   required?: boolean;
   defaultValue?: any;
   order?: number;
-  priceType?: string;  // 价格类型（当 targetPath = "prices" 时使用）
-  targetCollection?: 'talents' | 'talent_performance';  // 目标集合（默认 talents）
-  category?: string;  // 分类（基础信息、核心绩效、受众分析等）
+  priceType?: string; // 价格类型（当 targetPath = "prices" 时使用）
+  targetCollection?: 'talents' | 'talent_performance'; // 目标集合（默认 talents）
+  category?: string; // 分类（基础信息、核心绩效、受众分析等）
 }
 
 export interface CategoryConfig {
@@ -34,29 +34,29 @@ export interface CategoryConfig {
  */
 export interface ComputedFieldFormula {
   // === 新格式：表达式（推荐） ===
-  expression?: string;  // 完整表达式，如 "(prices.video_60plus * 0.6 + prices.video_21_60 * 0.4) / metrics.expected_plays * 1000"
+  expression?: string; // 完整表达式，如 "(prices.video_60plus * 0.6 + prices.video_21_60 * 0.4) / metrics.expected_plays * 1000"
 
   // === 旧格式：简单二元运算（向后兼容） ===
   type?: 'division' | 'multiplication' | 'addition' | 'subtraction';
-  operand1?: string;  // 第一个操作数的 targetPath（如 "prices.video_60plus"）
-  operand2?: string;  // 第二个操作数的 targetPath（如 "metrics.expected_plays"）
-  multiplier?: number;  // 乘数（如 CPM 计算需要 × 1000）
+  operand1?: string; // 第一个操作数的 targetPath（如 "prices.video_60plus"）
+  operand2?: string; // 第二个操作数的 targetPath（如 "metrics.expected_plays"）
+  multiplier?: number; // 乘数（如 CPM 计算需要 × 1000）
 
   // === 通用配置 ===
-  precision?: number;   // 保留小数位数
+  precision?: number; // 保留小数位数
 }
 
 /**
  * 计算字段规则
  */
 export interface ComputedFieldRule {
-  id: string;              // 字段ID，如 'cpm_60s_expected'
-  name: string;            // 显示名称，如 '60s预期CPM'
-  targetPath: string;      // 目标路径，如 'metrics.cpm_60s_expected'
+  id: string; // 字段ID，如 'cpm_60s_expected'
+  name: string; // 显示名称，如 '60s预期CPM'
+  targetPath: string; // 目标路径，如 'metrics.cpm_60s_expected'
   targetCollection: 'talents' | 'talent_performance';
   formula: ComputedFieldFormula;
-  category?: string;       // 分类
-  order?: number;          // 排序
+  category?: string; // 分类
+  order?: number; // 排序
 }
 
 export interface FieldMappingConfig {
@@ -67,8 +67,8 @@ export interface FieldMappingConfig {
   isActive: boolean;
   description?: string;
   mappings: FieldMappingRule[];
-  computedFields?: ComputedFieldRule[];  // 计算字段配置
-  categories?: CategoryConfig[];  // 分类配置
+  computedFields?: ComputedFieldRule[]; // 计算字段配置
+  categories?: CategoryConfig[]; // 分类配置
   totalMappings?: number;
   createdAt?: string;
   updatedAt?: string;
@@ -112,26 +112,26 @@ export async function deleteFieldMapping(id: string) {
 export interface DimensionConfig {
   id: string;
   name: string;
-  type: 'text' | 'number' | 'percentage' | 'date' | 'price';  // 新增 price 类型
+  type: 'text' | 'number' | 'percentage' | 'date' | 'price'; // 新增 price 类型
   category: string;
   targetPath: string;
   required?: boolean;
   defaultVisible?: boolean;
   sortable?: boolean;
-  pinned?: boolean;  // 是否固定在左侧（不受横向滚动影响）
+  pinned?: boolean; // 是否固定在左侧（不受横向滚动影响）
   width?: number;
   order: number;
-  priceType?: string;  // 价格类型（当 type = "price" 时使用）
-  targetCollection?: 'talents' | 'talent_performance';  // 数据来源集合（默认 talents）
+  priceType?: string; // 价格类型（当 type = "price" 时使用）
+  targetCollection?: 'talents' | 'talent_performance'; // 数据来源集合（默认 talents）
   // v1.1 新增：筛选相关字段
-  filterable?: boolean;  // 是否可作为筛选条件
-  filterType?: 'text' | 'range' | 'enum';  // 筛选器类型
-  filterOrder?: number;  // 筛选面板中的显示顺序
-  filterOptions?: string[];  // 枚举筛选的选项列表（仅 filterType=enum 时使用）
+  filterable?: boolean; // 是否可作为筛选条件
+  filterType?: 'text' | 'range' | 'enum'; // 筛选器类型
+  filterOrder?: number; // 筛选面板中的显示顺序
+  filterOptions?: string[]; // 枚举筛选的选项列表（仅 filterType=enum 时使用）
   // v1.2 新增：计算字段标识
-  isComputed?: boolean;  // 是否为计算字段
+  isComputed?: boolean; // 是否为计算字段
   computedFrom?: {
-    formula: string;  // 公式描述（用于展示）
+    formula: string; // 公式描述（用于展示）
   };
 }
 
@@ -153,7 +153,10 @@ export interface DimensionConfigDoc {
 /**
  * 获取维度配置
  */
-export async function getDimensionConfigs(platform?: string, configName?: string) {
+export async function getDimensionConfigs(
+  platform?: string,
+  configName?: string
+) {
   const params: any = {};
   if (platform) params.platform = platform;
   if (configName) params.configName = configName;
@@ -163,7 +166,9 @@ export async function getDimensionConfigs(platform?: string, configName?: string
 /**
  * 创建维度配置
  */
-export async function createDimensionConfig(config: Partial<DimensionConfigDoc>) {
+export async function createDimensionConfig(
+  config: Partial<DimensionConfigDoc>
+) {
   return post('/dimensionConfigManager', config);
 }
 
@@ -190,8 +195,8 @@ export interface ImportRequest {
   platform: string;
   dbVersion?: string;
   mappingConfigId?: string;
-  priceYear?: number;   // 价格归属年份
-  priceMonth?: number;  // 价格归属月份
+  priceYear?: number; // 价格归属年份
+  priceMonth?: number; // 价格归属月份
 }
 
 export interface ImportResult {
@@ -215,7 +220,9 @@ export interface ImportResult {
 /**
  * 从飞书导入达人表现数据
  */
-export async function importPerformanceFromFeishu(request: ImportRequest): Promise<ImportResult> {
+export async function importPerformanceFromFeishu(
+  request: ImportRequest
+): Promise<ImportResult> {
   return post('/sync-from-feishu', {
     dataType: 'talentPerformance',
     feishuUrl: request.feishuUrl,
@@ -223,7 +230,7 @@ export async function importPerformanceFromFeishu(request: ImportRequest): Promi
     dbVersion: request.dbVersion || 'v2',
     mappingConfigId: request.mappingConfigId || 'default',
     priceYear: request.priceYear,
-    priceMonth: request.priceMonth
+    priceMonth: request.priceMonth,
   });
 }
 
@@ -246,7 +253,7 @@ export interface TalentPerformanceRecord {
 
 export interface TalentPerformanceQuery {
   oneId?: string;
-  oneIds?: string;  // 逗号分隔的多个 oneId
+  oneIds?: string; // 逗号分隔的多个 oneId
   platform: string;
   snapshotType?: 'daily' | 'weekly' | 'monthly';
   snapshotDate?: string;
@@ -260,15 +267,27 @@ export interface TalentPerformanceQuery {
 /**
  * 查询单个达人的最新表现数据
  */
-export async function getTalentPerformance(oneId: string, platform: string, snapshotType = 'daily') {
+export async function getTalentPerformance(
+  oneId: string,
+  platform: string,
+  snapshotType = 'daily'
+) {
   return get('/talent-performance', { oneId, platform, snapshotType });
 }
 
 /**
  * 批量查询多个达人的最新表现数据
  */
-export async function getBatchTalentPerformance(oneIds: string[], platform: string, snapshotType = 'daily') {
-  return get('/talent-performance', { oneIds: oneIds.join(','), platform, snapshotType });
+export async function getBatchTalentPerformance(
+  oneIds: string[],
+  platform: string,
+  snapshotType = 'daily'
+) {
+  return get('/talent-performance', {
+    oneIds: oneIds.join(','),
+    platform,
+    snapshotType,
+  });
 }
 
 /**
@@ -280,7 +299,12 @@ export async function getTalentPerformanceHistory(
   snapshotType = 'daily',
   limit = 30
 ) {
-  return get('/talent-performance/history', { oneId, platform, snapshotType, limit });
+  return get('/talent-performance/history', {
+    oneId,
+    platform,
+    snapshotType,
+    limit,
+  });
 }
 
 /**

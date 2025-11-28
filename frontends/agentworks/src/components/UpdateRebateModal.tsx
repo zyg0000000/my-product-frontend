@@ -9,7 +9,11 @@
  */
 
 import { useState, useEffect } from 'react';
-import { XMarkIcon, ArrowPathIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import {
+  XMarkIcon,
+  ArrowPathIcon,
+  InformationCircleIcon,
+} from '@heroicons/react/24/outline';
 import { updateTalentRebate, syncAgencyRebateToTalent } from '../api/rebate';
 import type { Platform } from '../types/talent';
 import type { EffectType, UpdateRebateRequest } from '../types/rebate';
@@ -45,7 +49,9 @@ export function UpdateRebateModal({
   const isAgencyTalent = agencyId !== 'individual';
 
   // 返点模式状态
-  const [rebateMode, setRebateMode] = useState<'sync' | 'independent'>(initialRebateMode);
+  const [rebateMode, setRebateMode] = useState<'sync' | 'independent'>(
+    initialRebateMode
+  );
 
   // 手动调整表单状态
   const [rebateRate, setRebateRate] = useState<string>('');
@@ -68,7 +74,7 @@ export function UpdateRebateModal({
 
   // 切换返点模式
   const handleToggleMode = () => {
-    setRebateMode(prev => prev === 'sync' ? 'independent' : 'sync');
+    setRebateMode(prev => (prev === 'sync' ? 'independent' : 'sync'));
     setError('');
   };
 
@@ -171,7 +177,9 @@ export function UpdateRebateModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-gray-600 mb-1">归属机构</p>
-                <p className="text-base font-semibold text-gray-900">{agencyName}</p>
+                <p className="text-base font-semibold text-gray-900">
+                  {agencyName}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-gray-600 mb-1">当前返点率</p>
@@ -218,8 +226,12 @@ export function UpdateRebateModal({
                     disabled={syncLoading}
                     className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                   >
-                    <ArrowPathIcon className={`h-5 w-5 ${syncLoading ? 'animate-spin' : ''}`} />
-                    {syncLoading ? '同步中...' : `从机构"${agencyName}"同步返点`}
+                    <ArrowPathIcon
+                      className={`h-5 w-5 ${syncLoading ? 'animate-spin' : ''}`}
+                    />
+                    {syncLoading
+                      ? '同步中...'
+                      : `从机构"${agencyName}"同步返点`}
                   </button>
                   <p className="mt-2 text-xs text-gray-500 text-center">
                     点击后将使用机构在该平台的当前返点配置
@@ -234,7 +246,9 @@ export function UpdateRebateModal({
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
               <InformationCircleIcon className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-yellow-900">绑定机构返点模式</p>
+                <p className="text-sm font-medium text-yellow-900">
+                  绑定机构返点模式
+                </p>
                 <p className="text-xs text-yellow-700 mt-1">
                   当前返点绑定机构配置，如需手动调整，请切换到"独立设置返点"模式
                 </p>
@@ -244,7 +258,10 @@ export function UpdateRebateModal({
 
           {/* 手动调整表单 */}
           {canManualAdjust && (
-            <form onSubmit={handleSubmit} className="space-y-5 border rounded-lg p-5 bg-white">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-5 border rounded-lg p-5 bg-white"
+            >
               <h3 className="text-sm font-semibold text-gray-900 pb-2 border-b">
                 手动调整返点
               </h3>
@@ -258,7 +275,7 @@ export function UpdateRebateModal({
                   <input
                     type="number"
                     value={rebateRate}
-                    onChange={(e) => setRebateRate(e.target.value)}
+                    onChange={e => setRebateRate(e.target.value)}
                     min={REBATE_VALIDATION.min}
                     max={REBATE_VALIDATION.max}
                     step={REBATE_VALIDATION.step}
@@ -269,7 +286,8 @@ export function UpdateRebateModal({
                   <span className="text-gray-500">%</span>
                 </div>
                 <p className="mt-1 text-xs text-gray-500">
-                  范围: {REBATE_VALIDATION.min}-{REBATE_VALIDATION.max}，最多{REBATE_VALIDATION.precision}位小数
+                  范围: {REBATE_VALIDATION.min}-{REBATE_VALIDATION.max}，最多
+                  {REBATE_VALIDATION.precision}位小数
                 </p>
               </div>
 
@@ -285,7 +303,9 @@ export function UpdateRebateModal({
                       name="effectType"
                       value="immediate"
                       checked={effectType === 'immediate'}
-                      onChange={(e) => setEffectType(e.target.value as EffectType)}
+                      onChange={e =>
+                        setEffectType(e.target.value as EffectType)
+                      }
                       className="h-4 w-4 text-primary-600"
                     />
                     <div className="flex-1">
@@ -304,13 +324,18 @@ export function UpdateRebateModal({
                       name="effectType"
                       value="next_cooperation"
                       checked={effectType === 'next_cooperation'}
-                      onChange={(e) => setEffectType(e.target.value as EffectType)}
+                      onChange={e =>
+                        setEffectType(e.target.value as EffectType)
+                      }
                       disabled
                       className="h-4 w-4 text-primary-600"
                     />
                     <div className="flex-1">
                       <p className="font-medium text-gray-900">
-                        {EFFECT_TYPE_LABELS.next_cooperation} <span className="text-orange-600 text-xs">(暂不支持)</span>
+                        {EFFECT_TYPE_LABELS.next_cooperation}{' '}
+                        <span className="text-orange-600 text-xs">
+                          (暂不支持)
+                        </span>
                       </p>
                       <p className="text-xs text-gray-500">
                         创建待生效配置，等待下次合作时激活
@@ -328,7 +353,7 @@ export function UpdateRebateModal({
                 <input
                   type="text"
                   value={createdBy}
-                  onChange={(e) => setCreatedBy(e.target.value)}
+                  onChange={e => setCreatedBy(e.target.value)}
                   className="input mt-1"
                   placeholder="默认为 system"
                 />
@@ -373,10 +398,7 @@ export function UpdateRebateModal({
         {/* 底部按钮（绑定模式下） */}
         {!canManualAdjust && (
           <div className="flex justify-end gap-3 px-6 py-4 bg-gray-50 border-t">
-            <button
-              onClick={onClose}
-              className="btn btn-secondary"
-            >
+            <button onClick={onClose} className="btn btn-secondary">
               关闭
             </button>
           </div>

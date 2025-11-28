@@ -14,12 +14,41 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Modal, Tabs, Form, message, Switch, Tag, Button, Input, Popconfirm, ColorPicker, Radio } from 'antd';
-import { ProForm, ProFormText, ProFormDigit, ProFormSelect, ProFormTextArea } from '@ant-design/pro-components';
+import {
+  Modal,
+  Tabs,
+  Form,
+  message,
+  Switch,
+  Tag,
+  Button,
+  Input,
+  Popconfirm,
+  ColorPicker,
+  Radio,
+} from 'antd';
+import {
+  ProForm,
+  ProFormText,
+  ProFormDigit,
+  ProFormSelect,
+  ProFormTextArea,
+} from '@ant-design/pro-components';
 import { ProCard } from '@ant-design/pro-components';
-import { PlusOutlined, DeleteOutlined, HolderOutlined } from '@ant-design/icons';
-import type { PlatformConfig, PriceTypeConfig, TalentTierConfig } from '../api/platformConfig';
-import { updatePlatformConfig, createPlatformConfig } from '../api/platformConfig';
+import {
+  PlusOutlined,
+  DeleteOutlined,
+  HolderOutlined,
+} from '@ant-design/icons';
+import type {
+  PlatformConfig,
+  PriceTypeConfig,
+  TalentTierConfig,
+} from '../api/platformConfig';
+import {
+  updatePlatformConfig,
+  createPlatformConfig,
+} from '../api/platformConfig';
 import { logger } from '../utils/logger';
 
 interface PlatformConfigModalProps {
@@ -79,7 +108,8 @@ export function PlatformConfigModal({
           accountIdLabel: config.accountId?.label,
           accountIdPlaceholder: config.accountId?.placeholder,
           accountIdHelpText: config.accountId?.helpText,
-          fee: config.business?.fee !== null ? config.business?.fee * 100 : null,
+          fee:
+            config.business?.fee !== null ? config.business?.fee * 100 : null,
           defaultRebate: config.business?.defaultRebate,
           linkTemplate: config.link?.template,
           linkIdField: config.link?.idField,
@@ -113,41 +143,61 @@ export function PlatformConfigModal({
         // accountId: 保留原有值，只覆盖用户明确填写的字段
         accountId: {
           label: values.accountIdLabel ?? config?.accountId?.label,
-          placeholder: values.accountIdPlaceholder ?? config?.accountId?.placeholder,
+          placeholder:
+            values.accountIdPlaceholder ?? config?.accountId?.placeholder,
           helpText: values.accountIdHelpText ?? config?.accountId?.helpText,
         },
         // business: 保留原有值
         business: {
-          fee: values.fee !== null && values.fee !== undefined
-            ? values.fee / 100
-            : config?.business?.fee ?? null,
-          defaultRebate: values.defaultRebate ?? config?.business?.defaultRebate ?? 15,
+          fee:
+            values.fee !== null && values.fee !== undefined
+              ? values.fee / 100
+              : (config?.business?.fee ?? null),
+          defaultRebate:
+            values.defaultRebate ?? config?.business?.defaultRebate ?? 15,
           minRebate: config?.business?.minRebate ?? 0,
           maxRebate: config?.business?.maxRebate ?? 100,
         },
         // link: 保留原有配置，只有用户明确修改时才更新
-        link: values.linkTemplate ? {
-          template: values.linkTemplate,
-          idField: values.linkIdField || config?.link?.idField || 'platformAccountId',
-        } : (isCreating ? null : config?.link ?? null),
+        link: values.linkTemplate
+          ? {
+              template: values.linkTemplate,
+              idField:
+                values.linkIdField ||
+                config?.link?.idField ||
+                'platformAccountId',
+            }
+          : isCreating
+            ? null
+            : (config?.link ?? null),
         // features: 使用表单值，fallback 到原有配置
         features: {
-          priceManagement: values.priceManagement ?? config?.features?.priceManagement ?? false,
-          performanceTracking: values.performanceTracking ?? config?.features?.performanceTracking ?? false,
-          rebateManagement: values.rebateManagement ?? config?.features?.rebateManagement ?? false,
-          dataImport: values.dataImport ?? config?.features?.dataImport ?? false,
+          priceManagement:
+            values.priceManagement ??
+            config?.features?.priceManagement ??
+            false,
+          performanceTracking:
+            values.performanceTracking ??
+            config?.features?.performanceTracking ??
+            false,
+          rebateManagement:
+            values.rebateManagement ??
+            config?.features?.rebateManagement ??
+            false,
+          dataImport:
+            values.dataImport ?? config?.features?.dataImport ?? false,
         },
         // priceTypes: 合并原有数据中的 required 等字段
         priceTypes: priceTypes.map(pt => {
           const original = config?.priceTypes?.find(op => op.key === pt.key);
           return {
             ...original, // 保留原有字段（如 required）
-            ...pt,       // 覆盖用户编辑的字段
+            ...pt, // 覆盖用户编辑的字段
           };
         }),
         talentTiers: talentTiers,
         // specificFields: 编辑模式下必须保留
-        specificFields: isCreating ? {} : (config?.specificFields || {}),
+        specificFields: isCreating ? {} : config?.specificFields || {},
       };
 
       let response;
@@ -173,7 +223,9 @@ export function PlatformConfigModal({
       }
     } catch (err: any) {
       logger.error(isCreating ? '创建平台配置失败:' : '更新平台配置失败:', err);
-      message.error(err.message || (isCreating ? '创建失败' : '更新失败') + '，请稍后重试');
+      message.error(
+        err.message || (isCreating ? '创建失败' : '更新失败') + '，请稍后重试'
+      );
     } finally {
       setSaving(false);
     }
@@ -194,7 +246,10 @@ export function PlatformConfigModal({
                 placeholder="如：douyin, xiaohongshu"
                 rules={[
                   { required: true, message: '请输入平台标识' },
-                  { pattern: /^[a-z0-9_]+$/, message: '只能包含小写字母、数字和下划线' }
+                  {
+                    pattern: /^[a-z0-9_]+$/,
+                    message: '只能包含小写字母、数字和下划线',
+                  },
                 ]}
                 extra="平台唯一标识，创建后不可修改"
               />
@@ -231,15 +286,8 @@ export function PlatformConfigModal({
               rules={[{ required: true, message: '请选择主题配色' }]}
             />
 
-            <Form.Item
-              name="enabled"
-              label="启用状态"
-              valuePropName="checked"
-            >
-              <Switch
-                checkedChildren="启用"
-                unCheckedChildren="禁用"
-              />
+            <Form.Item name="enabled" label="启用状态" valuePropName="checked">
+              <Switch checkedChildren="启用" unCheckedChildren="禁用" />
             </Form.Item>
           </div>
 
@@ -327,7 +375,7 @@ export function PlatformConfigModal({
               {priceTypes
                 .map((pt, index) => ({ ...pt, _index: index }))
                 .sort((a, b) => a.order - b.order)
-                .map((pt) => (
+                .map(pt => (
                   <div
                     key={pt._index}
                     className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
@@ -337,9 +385,12 @@ export function PlatformConfigModal({
                     <Input
                       placeholder="类型标识(英文)"
                       value={pt.key}
-                      onChange={(e) => {
+                      onChange={e => {
                         const updated = [...priceTypes];
-                        updated[pt._index] = { ...updated[pt._index], key: e.target.value };
+                        updated[pt._index] = {
+                          ...updated[pt._index],
+                          key: e.target.value,
+                        };
                         setPriceTypes(updated);
                       }}
                       style={{ width: 140 }}
@@ -348,9 +399,12 @@ export function PlatformConfigModal({
                     <Input
                       placeholder="显示名称"
                       value={pt.label}
-                      onChange={(e) => {
+                      onChange={e => {
                         const updated = [...priceTypes];
-                        updated[pt._index] = { ...updated[pt._index], label: e.target.value };
+                        updated[pt._index] = {
+                          ...updated[pt._index],
+                          label: e.target.value,
+                        };
                         setPriceTypes(updated);
                       }}
                       style={{ width: 120 }}
@@ -361,9 +415,12 @@ export function PlatformConfigModal({
                       <ColorPicker
                         value={pt.bgColor}
                         size="small"
-                        onChange={(color) => {
+                        onChange={color => {
                           const updated = [...priceTypes];
-                          updated[pt._index] = { ...updated[pt._index], bgColor: color.toHexString() };
+                          updated[pt._index] = {
+                            ...updated[pt._index],
+                            bgColor: color.toHexString(),
+                          };
                           setPriceTypes(updated);
                         }}
                       />
@@ -374,9 +431,12 @@ export function PlatformConfigModal({
                       <ColorPicker
                         value={pt.textColor}
                         size="small"
-                        onChange={(color) => {
+                        onChange={color => {
                           const updated = [...priceTypes];
-                          updated[pt._index] = { ...updated[pt._index], textColor: color.toHexString() };
+                          updated[pt._index] = {
+                            ...updated[pt._index],
+                            textColor: color.toHexString(),
+                          };
                           setPriceTypes(updated);
                         }}
                       />
@@ -417,7 +477,8 @@ export function PlatformConfigModal({
 
           <div className="mt-4 p-3 bg-primary-50 rounded-lg">
             <p className="text-xs text-primary-700">
-              💡 <strong>说明</strong>: 类型标识(key)用于数据存储，请使用英文小写和下划线（如：video_60plus）
+              💡 <strong>说明</strong>:
+              类型标识(key)用于数据存储，请使用英文小写和下划线（如：video_60plus）
             </p>
           </div>
         </ProCard>
@@ -461,7 +522,7 @@ export function PlatformConfigModal({
             <div className="space-y-3">
               {talentTiers
                 .sort((a, b) => a.order - b.order)
-                .map((tier) => (
+                .map(tier => (
                   <div
                     key={tier.key}
                     className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
@@ -471,9 +532,11 @@ export function PlatformConfigModal({
                     <Input
                       placeholder="等级名称"
                       value={tier.label}
-                      onChange={(e) => {
-                        const updated = talentTiers.map((t) =>
-                          t.key === tier.key ? { ...t, label: e.target.value } : t
+                      onChange={e => {
+                        const updated = talentTiers.map(t =>
+                          t.key === tier.key
+                            ? { ...t, label: e.target.value }
+                            : t
                         );
                         setTalentTiers(updated);
                       }}
@@ -485,8 +548,8 @@ export function PlatformConfigModal({
                       <ColorPicker
                         value={tier.bgColor}
                         size="small"
-                        onChange={(color) => {
-                          const updated = talentTiers.map((t) =>
+                        onChange={color => {
+                          const updated = talentTiers.map(t =>
                             t.key === tier.key
                               ? { ...t, bgColor: color.toHexString() }
                               : t
@@ -501,8 +564,8 @@ export function PlatformConfigModal({
                       <ColorPicker
                         value={tier.textColor}
                         size="small"
-                        onChange={(color) => {
-                          const updated = talentTiers.map((t) =>
+                        onChange={color => {
+                          const updated = talentTiers.map(t =>
                             t.key === tier.key
                               ? { ...t, textColor: color.toHexString() }
                               : t
@@ -525,7 +588,7 @@ export function PlatformConfigModal({
                     <Radio
                       checked={tier.isDefault}
                       onChange={() => {
-                        const updated = talentTiers.map((t) => ({
+                        const updated = talentTiers.map(t => ({
                           ...t,
                           isDefault: t.key === tier.key,
                         }));
@@ -541,7 +604,7 @@ export function PlatformConfigModal({
                       title="确定删除该等级？"
                       onConfirm={() => {
                         const updated = talentTiers
-                          .filter((t) => t.key !== tier.key)
+                          .filter(t => t.key !== tier.key)
                           .map((t, i) => ({ ...t, order: i + 1 }));
                         // 如果删除的是默认项，将第一项设为默认
                         if (tier.isDefault && updated.length > 0) {
@@ -564,7 +627,8 @@ export function PlatformConfigModal({
 
           <div className="mt-4 p-3 bg-primary-50 rounded-lg">
             <p className="text-xs text-primary-700">
-              💡 <strong>说明</strong>: 设置为"默认"的等级将在批量创建达人时自动使用
+              💡 <strong>说明</strong>:
+              设置为"默认"的等级将在批量创建达人时自动使用
             </p>
           </div>
         </ProCard>
@@ -690,14 +754,19 @@ export function PlatformConfigModal({
             {isCreating ? (
               <>新增平台配置</>
             ) : (
-              <>编辑平台配置: <span className="text-primary-600">{config?.name}</span></>
+              <>
+                编辑平台配置:{' '}
+                <span className="text-primary-600">{config?.name}</span>
+              </>
             )}
           </div>
           <div className="text-sm font-normal text-gray-500 mt-0.5">
             {isCreating ? (
               <>创建新的平台配置</>
             ) : (
-              <>平台标识: {config?.platform} · 版本: v{config?.version || 1}</>
+              <>
+                平台标识: {config?.platform} · 版本: v{config?.version || 1}
+              </>
             )}
           </div>
         </div>
@@ -719,9 +788,7 @@ export function PlatformConfigModal({
             resetText: '重置',
           },
           render: (_, dom) => (
-            <div className="flex justify-end gap-2 pt-4 border-t">
-              {dom}
-            </div>
+            <div className="flex justify-end gap-2 pt-4 border-t">{dom}</div>
           ),
         }}
       >

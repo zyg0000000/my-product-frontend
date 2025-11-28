@@ -24,8 +24,8 @@ export type PricingModel = 'framework' | 'project' | 'hybrid';
 export interface DiscountConfig {
   rate: number;
   includesPlatformFee: boolean;
-  validFrom?: string;  // 有效期开始日期
-  validTo?: string;    // 有效期结束日期
+  validFrom?: string; // 有效期开始日期
+  validTo?: string; // 有效期结束日期
 }
 
 // 服务费配置
@@ -37,14 +37,14 @@ export interface ServiceFeeConfig {
 // 平台费配置（v3.0 支持完全独立的平台级配置）
 export interface PlatformFeeConfig {
   enabled: boolean;
-  platformFeeRate: number;                                    // 平台费率（如抖音5%）
-  discountRate?: number;                                      // 平台级折扣率（如抖音79.5%，小红书90%）
-  serviceFeeRate?: number;                                    // 平台级服务费率
-  validFrom?: string | null;                                  // 平台级有效期开始
-  validTo?: string | null;                                    // 平台级有效期结束
-  includesPlatformFee?: boolean;                              // 折扣是否包含平台费
-  serviceFeeBase?: 'beforeDiscount' | 'afterDiscount';        // 服务费计算基准
-  includesTax?: boolean;                                      // 是否含税报价
+  platformFeeRate: number; // 平台费率（如抖音5%）
+  discountRate?: number; // 平台级折扣率（如抖音79.5%，小红书90%）
+  serviceFeeRate?: number; // 平台级服务费率
+  validFrom?: string | null; // 平台级有效期开始
+  validTo?: string | null; // 平台级有效期结束
+  includesPlatformFee?: boolean; // 折扣是否包含平台费
+  serviceFeeBase?: 'beforeDiscount' | 'afterDiscount'; // 服务费计算基准
+  includesTax?: boolean; // 是否含税报价
   taxCalculationBase?: 'excludeServiceFee' | 'includeServiceFee'; // 税费计算基准
 }
 

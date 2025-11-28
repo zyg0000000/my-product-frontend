@@ -31,8 +31,12 @@ export default defineConfig([
       // UI 规范强制
       '@typescript-eslint/no-unused-vars': ['error', {
         argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_'
+        varsIgnorePattern: '^_',
+        caughtErrors: 'none'  // 允许 catch 块中的未使用变量
       }],
+
+      // any 类型：降级为警告（逐步修复）
+      '@typescript-eslint/no-explicit-any': 'warn',
 
       // 禁止console（生产环境）
       'no-console': ['warn', { allow: ['warn', 'error'] }],

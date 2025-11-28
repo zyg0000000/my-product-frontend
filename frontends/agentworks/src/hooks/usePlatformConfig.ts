@@ -58,7 +58,7 @@ function saveToCache(configs: PlatformConfig[]): void {
   try {
     const data: CacheData = {
       configs,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
     localStorage.setItem(CACHE_KEY, JSON.stringify(data));
     logger.info('平台配置已缓存');
@@ -111,7 +111,9 @@ export function usePlatformConfig(includeDisabled = false) {
           : response.data.filter(c => c.enabled);
 
         setConfigs(filteredConfigs);
-        logger.info(`平台配置加载成功，共 ${filteredConfigs.length} 个平台（总数 ${response.data.length}）`);
+        logger.info(
+          `平台配置加载成功，共 ${filteredConfigs.length} 个平台（总数 ${response.data.length}）`
+        );
       } else {
         throw new Error(response.message || '加载平台配置失败');
       }
@@ -143,10 +145,13 @@ export function usePlatformConfig(includeDisabled = false) {
    * @returns { douyin: '抖音', xiaohongshu: '小红书', ... }
    */
   const getPlatformNames = (): Record<Platform, string> => {
-    return configs.reduce((acc, c) => {
-      acc[c.platform] = c.name;
-      return acc;
-    }, {} as Record<Platform, string>);
+    return configs.reduce(
+      (acc, c) => {
+        acc[c.platform] = c.name;
+        return acc;
+      },
+      {} as Record<Platform, string>
+    );
   };
 
   /**
@@ -162,7 +167,9 @@ export function usePlatformConfig(includeDisabled = false) {
    * @param platform - 平台标识
    * @returns 平台配置对象或 undefined
    */
-  const getPlatformConfigByKey = (platform: Platform): PlatformConfig | undefined => {
+  const getPlatformConfigByKey = (
+    platform: Platform
+  ): PlatformConfig | undefined => {
     return configs.find(c => c.platform === platform);
   };
 
@@ -192,7 +199,9 @@ export function usePlatformConfig(includeDisabled = false) {
    * @param platform - 平台标识
    * @returns 默认达人等级配置或 undefined
    */
-  const getDefaultTalentTier = (platform: Platform): TalentTierConfig | undefined => {
+  const getDefaultTalentTier = (
+    platform: Platform
+  ): TalentTierConfig | undefined => {
     const tiers = getTalentTiers(platform);
     return tiers.find(t => t.isDefault) || tiers[0];
   };

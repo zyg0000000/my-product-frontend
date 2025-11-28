@@ -61,10 +61,11 @@ export function usePerformanceFilters(
   // 提取可筛选维度
   const filterableDimensions = useMemo(() => {
     return dimensions
-      .filter((d): d is FilterableDimension =>
-        d.filterable === true &&
-        d.filterType !== undefined &&
-        d.filterOrder !== undefined
+      .filter(
+        (d): d is FilterableDimension =>
+          d.filterable === true &&
+          d.filterType !== undefined &&
+          d.filterOrder !== undefined
       )
       .sort((a, b) => a.filterOrder - b.filterOrder);
   }, [dimensions]);
@@ -107,17 +108,20 @@ export function usePerformanceFilters(
 
     return {
       hasActiveFilters: count > 0,
-      activeFilterCount: count
+      activeFilterCount: count,
     };
   }, [filters, filterableDimensions]);
 
   // 更新单个筛选值
-  const updateFilter = useCallback((dimensionId: string, value: FilterValue) => {
-    setFilters(prev => ({
-      ...prev,
-      [dimensionId]: value
-    }));
-  }, []);
+  const updateFilter = useCallback(
+    (dimensionId: string, value: FilterValue) => {
+      setFilters(prev => ({
+        ...prev,
+        [dimensionId]: value,
+      }));
+    },
+    []
+  );
 
   // 重置所有筛选
   const resetFilters = useCallback(() => {
@@ -160,15 +164,17 @@ export function usePerformanceFilters(
           // 数值/百分比区间
           if (value.min) {
             const minKey = `${dimId}Min`;
-            params[minKey] = dim.type === 'percentage'
-              ? parseFloat(value.min) / 100  // 百分比转小数
-              : parseFloat(value.min);
+            params[minKey] =
+              dim.type === 'percentage'
+                ? parseFloat(value.min) / 100 // 百分比转小数
+                : parseFloat(value.min);
           }
           if (value.max) {
             const maxKey = `${dimId}Max`;
-            params[maxKey] = dim.type === 'percentage'
-              ? parseFloat(value.max) / 100
-              : parseFloat(value.max);
+            params[maxKey] =
+              dim.type === 'percentage'
+                ? parseFloat(value.max) / 100
+                : parseFloat(value.max);
           }
           break;
       }
@@ -185,6 +191,6 @@ export function usePerformanceFilters(
     activeFilterCount,
     updateFilter,
     resetFilters,
-    buildQueryParams
+    buildQueryParams,
   };
 }

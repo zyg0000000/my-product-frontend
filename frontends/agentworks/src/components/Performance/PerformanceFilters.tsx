@@ -12,7 +12,11 @@
  */
 
 import { useState, useMemo } from 'react';
-import type { FilterValue, FilterableDimension, PerformanceFilters as FiltersType } from '../../hooks/usePerformanceFilters';
+import type {
+  FilterValue,
+  FilterableDimension,
+  PerformanceFilters as FiltersType,
+} from '../../hooks/usePerformanceFilters';
 
 interface PerformanceFiltersProps {
   // 可筛选的维度列表（已按 filterOrder 排序）
@@ -37,7 +41,7 @@ interface PerformanceFiltersProps {
 interface ActiveFilterTag {
   dimensionId: string;
   dimensionName: string;
-  label: string;  // 显示的标签文本
+  label: string; // 显示的标签文本
   type: 'text' | 'range' | 'enum';
 }
 
@@ -49,12 +53,14 @@ export function PerformanceFilters({
   activeFilterCount,
   onFilterChange,
   onReset,
-  onSearch
+  onSearch,
 }: PerformanceFiltersProps) {
   // 控制面板展开/折叠（默认折叠）
   const [isExpanded, setIsExpanded] = useState(false);
   // 控制各分类展开状态（默认只展开"基础信息"）
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() => {
+  const [expandedCategories, setExpandedCategories] = useState<
+    Record<string, boolean>
+  >(() => {
     // 初始化：只有"基础信息"展开，其他折叠
     const initial: Record<string, boolean> = {};
     Object.keys(filtersByCategory).forEach(category => {
@@ -95,7 +101,7 @@ export function PerformanceFilters({
               dimensionId: dimId,
               dimensionName: dim.name,
               label: `${dim.name}: "${value.text.trim()}"`,
-              type: 'text'
+              type: 'text',
             });
           }
           break;
@@ -106,7 +112,7 @@ export function PerformanceFilters({
                 dimensionId: dimId,
                 dimensionName: dim.name,
                 label: `${dim.name}: ${sel}`,
-                type: 'enum'
+                type: 'enum',
               });
             });
           }
@@ -127,7 +133,7 @@ export function PerformanceFilters({
               dimensionId: dimId,
               dimensionName: dim.name,
               label: `${dim.name}: ${rangeText}`,
-              type: 'range'
+              type: 'range',
             });
           }
           break;
@@ -145,13 +151,19 @@ export function PerformanceFilters({
       case 'text':
         onFilterChange(tag.dimensionId, { ...currentValue, text: '' });
         break;
-      case 'enum':
+      case 'enum': {
         // 从 selected 数组中移除对应的值
         const labelParts = tag.label.split(': ');
         const valueToRemove = labelParts[1];
-        const newSelected = (currentValue.selected || []).filter(s => s !== valueToRemove);
-        onFilterChange(tag.dimensionId, { ...currentValue, selected: newSelected });
+        const newSelected = (currentValue.selected || []).filter(
+          s => s !== valueToRemove
+        );
+        onFilterChange(tag.dimensionId, {
+          ...currentValue,
+          selected: newSelected,
+        });
         break;
+      }
       case 'range':
         onFilterChange(tag.dimensionId, { ...currentValue, min: '', max: '' });
         break;
@@ -162,7 +174,7 @@ export function PerformanceFilters({
   const toggleCategory = (category: string) => {
     setExpandedCategories(prev => ({
       ...prev,
-      [category]: !prev[category]
+      [category]: !prev[category],
     }));
   };
 
@@ -186,7 +198,7 @@ export function PerformanceFilters({
             key={dim.id}
             dimension={dim}
             value={value.text || ''}
-            onChange={(text) => onFilterChange(dim.id, { ...value, text })}
+            onChange={text => onFilterChange(dim.id, { ...value, text })}
           />
         );
 
@@ -196,7 +208,9 @@ export function PerformanceFilters({
             key={dim.id}
             dimension={dim}
             selected={value.selected || []}
-            onChange={(selected) => onFilterChange(dim.id, { ...value, selected })}
+            onChange={selected =>
+              onFilterChange(dim.id, { ...value, selected })
+            }
           />
         );
 
@@ -207,7 +221,9 @@ export function PerformanceFilters({
             dimension={dim}
             min={value.min || ''}
             max={value.max || ''}
-            onChange={(min, max) => onFilterChange(dim.id, { ...value, min, max })}
+            onChange={(min, max) =>
+              onFilterChange(dim.id, { ...value, min, max })
+            }
           />
         );
 
@@ -234,11 +250,19 @@ export function PerformanceFilters({
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
           </svg>
           <span className="font-medium text-gray-900">筛选条件</span>
         </div>
-        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="flex items-center gap-2"
+          onClick={e => e.stopPropagation()}
+        >
           {hasActiveFilters && (
             <button
               onClick={onReset}
@@ -261,7 +285,7 @@ export function PerformanceFilters({
         <div className="flex">
           {/* 左侧：筛选器分类面板 */}
           <div className="flex-1 p-4 border-r border-gray-100">
-            {sortedCategories.map((category) => (
+            {sortedCategories.map(category => (
               <div key={category} className="mb-4 last:mb-0">
                 {/* 分类标题 */}
                 <div
@@ -274,9 +298,16 @@ export function PerformanceFilters({
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
-                  <span className="text-sm font-medium text-gray-700">{category}</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    {category}
+                  </span>
                 </div>
 
                 {/* 分类下的筛选器（按 filterOrder 排序）*/}
@@ -294,7 +325,9 @@ export function PerformanceFilters({
           {/* 右侧：已选条件展示 */}
           <div className="w-96 p-4 bg-gray-50">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-gray-700">已选条件</span>
+              <span className="text-sm font-medium text-gray-700">
+                已选条件
+              </span>
               {hasActiveFilters && (
                 <button
                   onClick={onReset}
@@ -317,8 +350,18 @@ export function PerformanceFilters({
                       onClick={() => removeFilterTag(tag)}
                       className="ml-1 text-gray-400 hover:text-gray-600"
                     >
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="w-3 h-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </span>
@@ -351,7 +394,7 @@ export function PerformanceFilters({
 function TextFilter({
   dimension,
   value,
-  onChange
+  onChange,
 }: {
   dimension: FilterableDimension;
   value: string;
@@ -365,7 +408,7 @@ function TextFilter({
       <input
         type="text"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         placeholder={`搜索${dimension.name}...`}
         className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
       />
@@ -379,7 +422,7 @@ function TextFilter({
 function EnumFilter({
   dimension,
   selected,
-  onChange
+  onChange,
 }: {
   dimension: FilterableDimension;
   selected: string[];
@@ -401,7 +444,7 @@ function EnumFilter({
         {dimension.name}
       </label>
       <div className="flex flex-wrap gap-2">
-        {options.map((option) => (
+        {options.map(option => (
           <button
             key={option}
             onClick={() => toggleOption(option)}
@@ -426,7 +469,7 @@ function RangeFilter({
   dimension,
   min,
   max,
-  onChange
+  onChange,
 }: {
   dimension: FilterableDimension;
   min: string;
@@ -446,7 +489,7 @@ function RangeFilter({
         <input
           type="number"
           value={min}
-          onChange={(e) => onChange(e.target.value, max)}
+          onChange={e => onChange(e.target.value, max)}
           placeholder={`最小${suffix}`}
           className="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         />
@@ -454,7 +497,7 @@ function RangeFilter({
         <input
           type="number"
           value={max}
-          onChange={(e) => onChange(min, e.target.value)}
+          onChange={e => onChange(min, e.target.value)}
           placeholder={`最大${suffix}`}
           className="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         />

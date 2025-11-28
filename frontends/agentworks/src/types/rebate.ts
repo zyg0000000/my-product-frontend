@@ -14,52 +14,52 @@ import type { Platform } from './talent';
  * 返点来源
  */
 export type RebateSource =
-  | 'default'       // 系统默认
-  | 'personal'      // 个人配置
-  | 'rule_trigger'  // 规则触发
-  | 'agency';       // 机构统一
+  | 'default' // 系统默认
+  | 'personal' // 个人配置
+  | 'rule_trigger' // 规则触发
+  | 'agency'; // 机构统一
 
 /**
  * 生效方式
  */
 export type EffectType =
-  | 'immediate'         // 立即生效
+  | 'immediate' // 立即生效
   | 'next_cooperation'; // 下次合作生效
 
 /**
  * 返点配置状态
  */
 export type RebateStatus =
-  | 'pending'   // 待生效
-  | 'active'    // 已生效
-  | 'expired';  // 已失效
+  | 'pending' // 待生效
+  | 'active' // 已生效
+  | 'expired'; // 已失效
 
 /**
  * 当前返点配置（存储在 talents 表中）
  */
 export interface CurrentRebate {
-  rate: number;              // 返点率（百分比，2位小数）
-  source: RebateSource;      // 返点来源
-  effectiveDate: string;     // 生效日期 (YYYY-MM-DD)
-  lastUpdated: string;       // 最后更新时间 (ISO 8601)
+  rate: number; // 返点率（百分比，2位小数）
+  source: RebateSource; // 返点来源
+  effectiveDate: string; // 生效日期 (YYYY-MM-DD)
+  lastUpdated: string; // 最后更新时间 (ISO 8601)
 }
 
 /**
  * 返点配置历史记录（rebate_configs 集合）
  */
 export interface RebateConfig {
-  configId: string;          // 配置ID
-  targetType: 'talent';      // 目标类型（固定为 talent）
-  targetId: string;          // 目标ID（oneId）
-  platform: Platform;        // 平台
-  rebateRate: number;        // 返点率（百分比，2位小数）
-  effectType: EffectType;    // 生效方式
-  effectiveDate: string;     // 生效时间 (ISO 8601 时间戳)
+  configId: string; // 配置ID
+  targetType: 'talent'; // 目标类型（固定为 talent）
+  targetId: string; // 目标ID（oneId）
+  platform: Platform; // 平台
+  rebateRate: number; // 返点率（百分比，2位小数）
+  effectType: EffectType; // 生效方式
+  effectiveDate: string; // 生效时间 (ISO 8601 时间戳)
   expiryDate: string | null; // 失效时间 (ISO 8601 时间戳)，null 表示当前生效中
-  status: RebateStatus;      // 状态
-  reason?: string;           // 调整原因
-  createdBy: string;         // 操作人
-  createdAt: string;         // 创建时间 (ISO 8601)
+  status: RebateStatus; // 状态
+  reason?: string; // 调整原因
+  createdBy: string; // 操作人
+  createdAt: string; // 创建时间 (ISO 8601)
 }
 
 /**
@@ -71,9 +71,9 @@ export interface GetRebateResponse {
     oneId: string;
     platform: Platform;
     name: string;
-    agencyId: string;        // 'individual' for wild talents, agency ID for agency talents
-    agencyName: string;      // 机构名称（野生达人为"野生达人"）
-    rebateMode: 'sync' | 'independent';  // 返点模式：sync=绑定机构，independent=独立设置
+    agencyId: string; // 'individual' for wild talents, agency ID for agency talents
+    agencyName: string; // 机构名称（野生达人为"野生达人"）
+    rebateMode: 'sync' | 'independent'; // 返点模式：sync=绑定机构，independent=独立设置
     currentRebate: CurrentRebate;
   };
   message?: string;
@@ -84,11 +84,11 @@ export interface GetRebateResponse {
  * 更新达人返点 - API 请求
  */
 export interface UpdateRebateRequest {
-  oneId: string;              // 达人唯一标识
-  platform: Platform;         // 平台名称
-  rebateRate: number;         // 新返点率（0-100，最多2位小数）
-  effectType: EffectType;     // 生效方式
-  createdBy?: string;         // 操作人（默认 system）
+  oneId: string; // 达人唯一标识
+  platform: Platform; // 平台名称
+  rebateRate: number; // 新返点率（0-100，最多2位小数）
+  effectType: EffectType; // 生效方式
+  createdBy?: string; // 操作人（默认 system）
 }
 
 /**
@@ -130,15 +130,15 @@ export interface RebateConfigItem {
   configId: string;
   rebateRate: number;
   effectType: EffectType;
-  effectTypeLabel: string;    // '立即生效' | '下次合作生效'
+  effectTypeLabel: string; // '立即生效' | '下次合作生效'
   effectiveDate: string;
   status: RebateStatus;
-  statusLabel: string;        // '待生效' | '已生效' | '已失效'
-  statusColor: string;        // 状态颜色（用于UI）
+  statusLabel: string; // '待生效' | '已生效' | '已失效'
+  statusColor: string; // 状态颜色（用于UI）
   reason?: string;
   createdBy: string;
   createdAt: string;
-  formattedDate: string;      // 格式化的日期（用于UI展示）
+  formattedDate: string; // 格式化的日期（用于UI展示）
 }
 
 /**
@@ -180,14 +180,14 @@ export const REBATE_SOURCE_LABELS: Record<RebateSource, string> = {
 /**
  * 默认返点率
  */
-export const DEFAULT_REBATE_RATE = 10.00;
+export const DEFAULT_REBATE_RATE = 10.0;
 
 /**
  * 返点率验证
  */
 export interface RebateValidation {
-  min: number;  // 最小值
-  max: number;  // 最大值
+  min: number; // 最小值
+  max: number; // 最大值
   step: number; // 步长
   precision: number; // 精度（小数位数）
 }
@@ -225,16 +225,16 @@ export function validateRebateRate(rate: number): {
   if (num < REBATE_VALIDATION.min || num > REBATE_VALIDATION.max) {
     return {
       valid: false,
-      error: `返点率必须在 ${REBATE_VALIDATION.min}-${REBATE_VALIDATION.max} 之间`
+      error: `返点率必须在 ${REBATE_VALIDATION.min}-${REBATE_VALIDATION.max} 之间`,
     };
   }
 
   // 检查小数位数
-  const decimalPart = (rate.toString().split('.')[1] || '');
+  const decimalPart = rate.toString().split('.')[1] || '';
   if (decimalPart.length > REBATE_VALIDATION.precision) {
     return {
       valid: false,
-      error: `返点率最多支持小数点后${REBATE_VALIDATION.precision}位`
+      error: `返点率最多支持小数点后${REBATE_VALIDATION.precision}位`,
     };
   }
 
@@ -273,17 +273,17 @@ export function toRebateConfigItem(config: RebateConfig): RebateConfigItem {
  * 触发类型
  */
 export type TriggerType =
-  | 'cooperation_count'  // 合作次数
+  | 'cooperation_count' // 合作次数
   | 'cooperation_amount' // 合作金额累计
-  | 'time_based';        // 基于时间
+  | 'time_based'; // 基于时间
 
 /**
  * 触发条件
  */
 export interface TriggerCondition {
-  threshold: number;           // 阈值（次数或金额）
-  operator: '>=' | '>' | '=';  // 比较运算符
-  timeRange?: string;          // 时间范围（可选）
+  threshold: number; // 阈值（次数或金额）
+  operator: '>=' | '>' | '='; // 比较运算符
+  timeRange?: string; // 时间范围（可选）
 }
 
 /**
@@ -296,26 +296,26 @@ export type RuleStatus = 'active' | 'inactive' | 'expired';
  * @status Phase 2 - 待开发，依赖 cooperations 集合
  */
 export interface RebateRule {
-  ruleId: string;                  // 规则ID
+  ruleId: string; // 规则ID
   targetType: 'talent' | 'agency'; // 目标类型
-  targetId: string;                // 目标ID（oneId）
-  platform: Platform;              // 平台
-  triggerType: TriggerType;        // 触发类型
+  targetId: string; // 目标ID（oneId）
+  platform: Platform; // 平台
+  triggerType: TriggerType; // 触发类型
   triggerCondition: TriggerCondition; // 触发条件
-  targetRebateRate: number;        // 目标返点率
-  status: RuleStatus;              // 规则状态
-  priority?: number;               // 优先级
-  notes?: string;                  // 规则说明
-  lastTriggered?: string;          // 最后触发时间（ISO 8601）
-  triggeredCount?: number;         // 触发次数统计
-  createdBy: string;               // 创建人
-  createdAt: string;               // 创建时间（ISO 8601）
-  updatedAt?: string;              // 更新时间（ISO 8601）
+  targetRebateRate: number; // 目标返点率
+  status: RuleStatus; // 规则状态
+  priority?: number; // 优先级
+  notes?: string; // 规则说明
+  lastTriggered?: string; // 最后触发时间（ISO 8601）
+  triggeredCount?: number; // 触发次数统计
+  createdBy: string; // 创建人
+  createdAt: string; // 创建时间（ISO 8601）
+  updatedAt?: string; // 更新时间（ISO 8601）
 }
 
 /**
  * 扩展 RebateConfig 以支持规则触发
  */
 export interface RebateConfigWithRule extends RebateConfig {
-  triggeredByRuleId?: string;  // 如果是规则触发，记录规则ID
+  triggeredByRuleId?: string; // 如果是规则触发，记录规则ID
 }

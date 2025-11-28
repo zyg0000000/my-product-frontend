@@ -20,10 +20,19 @@ interface DeleteConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   talent: Talent | null;
-  onConfirm: (oneId: string, platform: Platform, deleteAll: boolean) => Promise<void>;
+  onConfirm: (
+    oneId: string,
+    platform: Platform,
+    deleteAll: boolean
+  ) => Promise<void>;
 }
 
-export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: DeleteConfirmModalProps) {
+export function DeleteConfirmModal({
+  isOpen,
+  onClose,
+  talent,
+  onConfirm,
+}: DeleteConfirmModalProps) {
   const [deleting, setDeleting] = useState(false);
   const [deleteAll, setDeleteAll] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
@@ -85,7 +94,9 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
       <div className="space-y-3">
         {/* 达人信息 */}
         <div className="p-3 bg-gray-50 rounded border border-gray-200">
-          <h4 className="text-xs font-semibold text-gray-900 mb-1.5">即将删除的达人</h4>
+          <h4 className="text-xs font-semibold text-gray-900 mb-1.5">
+            即将删除的达人
+          </h4>
           <div className="space-y-0.5 text-xs">
             <div className="flex items-center gap-2">
               <span className="text-gray-600">达人名称:</span>
@@ -93,11 +104,15 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
             </div>
             <div className="flex items-center gap-2">
               <span className="text-gray-600">平台:</span>
-              <span className="font-medium text-gray-900">{PLATFORM_NAMES[talent.platform]}</span>
+              <span className="font-medium text-gray-900">
+                {PLATFORM_NAMES[talent.platform]}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-gray-600">OneID:</span>
-              <span className="font-mono text-xs text-gray-900">{talent.oneId}</span>
+              <span className="font-mono text-xs text-gray-900">
+                {talent.oneId}
+              </span>
             </div>
           </div>
         </div>
@@ -108,9 +123,15 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
           description={
             <ul className="text-xs space-y-0.5 list-disc list-inside mt-1">
               <li>删除后，该达人的所有信息将永久丢失</li>
-              <li>与该达人相关的<strong>合作记录</strong>可能会出现数据异常</li>
-              <li>与该达人相关的<strong>项目关联</strong>可能会受到影响</li>
-              <li>此操作<strong>无法撤销</strong>，请确保你真的要删除</li>
+              <li>
+                与该达人相关的<strong>合作记录</strong>可能会出现数据异常
+              </li>
+              <li>
+                与该达人相关的<strong>项目关联</strong>可能会受到影响
+              </li>
+              <li>
+                此操作<strong>无法撤销</strong>，请确保你真的要删除
+              </li>
             </ul>
           }
           type="error"
@@ -124,7 +145,7 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
           <div className="text-xs font-medium text-gray-700 mb-2">删除范围</div>
           <Radio.Group
             value={deleteAll}
-            onChange={(e) => setDeleteAll(e.target.value)}
+            onChange={e => setDeleteAll(e.target.value)}
             className="w-full"
           >
             <Space direction="vertical" className="w-full" size={8}>
@@ -134,7 +155,11 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
               >
                 <div className="ml-1">
                   <div className="text-xs font-medium text-gray-900">
-                    仅删除 <span className="text-red-600">{PLATFORM_NAMES[talent.platform]}</span> 平台数据
+                    仅删除{' '}
+                    <span className="text-red-600">
+                      {PLATFORM_NAMES[talent.platform]}
+                    </span>{' '}
+                    平台数据
                   </div>
                   <div className="text-xs text-gray-500 mt-0.5">
                     只删除该达人在当前平台的信息，保留其他平台的数据
@@ -150,7 +175,8 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
                     删除<strong>所有平台</strong>数据
                   </div>
                   <div className="text-xs text-red-700 mt-0.5">
-                    删除该达人在所有平台的信息（通过 OneID 关联），这是最彻底的删除
+                    删除该达人在所有平台的信息（通过 OneID
+                    关联），这是最彻底的删除
                   </div>
                 </div>
               </Radio>
@@ -162,7 +188,7 @@ export function DeleteConfirmModal({ isOpen, onClose, talent, onConfirm }: Delet
         <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
           <Checkbox
             checked={confirmed}
-            onChange={(e) => setConfirmed(e.target.checked)}
+            onChange={e => setConfirmed(e.target.checked)}
           >
             <span className="text-xs font-medium text-gray-900">
               我已了解删除的影响，确认要删除该达人

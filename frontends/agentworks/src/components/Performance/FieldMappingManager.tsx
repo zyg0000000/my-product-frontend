@@ -4,7 +4,19 @@
  */
 
 import { useState, useMemo } from 'react';
-import { message, Collapse, Button, Tag, Tooltip, AutoComplete, Input, Select, Checkbox, Form, Space } from 'antd';
+import {
+  message,
+  Collapse,
+  Button,
+  Tag,
+  Tooltip,
+  AutoComplete,
+  Input,
+  Select,
+  Checkbox,
+  Form,
+  Space,
+} from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -13,7 +25,7 @@ import {
   LineChartOutlined,
   TeamOutlined,
   CalendarOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
 } from '@ant-design/icons';
 import { logger } from '../../utils/logger';
 import type { FieldMappingRule, CategoryConfig } from '../../api/performance';
@@ -24,11 +36,11 @@ import { ConfirmDialog } from './ConfirmDialog';
 
 // 分类图标映射
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  '基础信息': <UserOutlined />,
-  '核心绩效': <LineChartOutlined />,
+  基础信息: <UserOutlined />,
+  核心绩效: <LineChartOutlined />,
   '受众分析-性别': <TeamOutlined />,
   '受众分析-年龄': <CalendarOutlined />,
-  '人群包分析': <AppstoreOutlined />
+  人群包分析: <AppstoreOutlined />,
 };
 
 // 默认分类配置
@@ -37,7 +49,7 @@ const DEFAULT_CATEGORIES: CategoryConfig[] = [
   { name: '核心绩效', order: 2, icon: 'chart' },
   { name: '受众分析-性别', order: 3, icon: 'users' },
   { name: '受众分析-年龄', order: 4, icon: 'calendar' },
-  { name: '人群包分析', order: 5, icon: 'group' }
+  { name: '人群包分析', order: 5, icon: 'group' },
 ];
 
 interface FieldMappingManagerProps {
@@ -55,7 +67,7 @@ export function FieldMappingManager({
   categories,
   onAdd,
   onUpdate,
-  onDelete
+  onDelete,
 }: FieldMappingManagerProps) {
   // 使用平台配置 Hook 获取价格类型
   const { getPlatformPriceTypes } = usePlatformConfig(true);
@@ -68,14 +80,17 @@ export function FieldMappingManager({
 
   // 使用传入的分类或默认分类
   const categoryOptions = useMemo(() => {
-    return (categories && categories.length > 0)
+    return categories && categories.length > 0
       ? [...categories].sort((a, b) => a.order - b.order)
       : DEFAULT_CATEGORIES;
   }, [categories]);
 
   // 按分类分组映射规则
   const groupedMappings = useMemo(() => {
-    const groups: Record<string, { rules: FieldMappingRule[]; indices: number[] }> = {};
+    const groups: Record<
+      string,
+      { rules: FieldMappingRule[]; indices: number[] }
+    > = {};
 
     // 初始化所有分类
     categoryOptions.forEach(cat => {
@@ -102,7 +117,7 @@ export function FieldMappingManager({
       format: 'text',
       required: false,
       order: mappings.length,
-      category: defaultCategory || '基础信息'
+      category: defaultCategory || '基础信息',
     });
     setIsAdding(true);
   };
@@ -152,19 +167,37 @@ export function FieldMappingManager({
   // 渲染单个映射规则行
   const renderRuleRow = (rule: FieldMappingRule, globalIndex: number) => (
     <tr key={globalIndex} className="hover:bg-gray-50">
-      <td className="px-3 py-2 font-medium text-gray-900 text-sm">{rule.excelHeader}</td>
-      <td className="px-3 py-2 font-mono text-xs text-gray-600">{rule.targetPath}</td>
+      <td className="px-3 py-2 font-medium text-gray-900 text-sm">
+        {rule.excelHeader}
+      </td>
+      <td className="px-3 py-2 font-mono text-xs text-gray-600">
+        {rule.targetPath}
+      </td>
       <td className="px-3 py-2">
-        <Tag color={rule.targetCollection === 'talent_performance' ? 'purple' : 'default'}>
-          {rule.targetCollection === 'talent_performance' ? '表现数据' : '达人主表'}
+        <Tag
+          color={
+            rule.targetCollection === 'talent_performance'
+              ? 'purple'
+              : 'default'
+          }
+        >
+          {rule.targetCollection === 'talent_performance'
+            ? '表现数据'
+            : '达人主表'}
         </Tag>
       </td>
       <td className="px-3 py-2">
-        <Tag color={
-          rule.format === 'percentage' ? 'magenta' :
-          rule.format === 'number' ? 'green' :
-          rule.format === 'date' ? 'blue' : 'default'
-        }>
+        <Tag
+          color={
+            rule.format === 'percentage'
+              ? 'magenta'
+              : rule.format === 'number'
+                ? 'green'
+                : rule.format === 'date'
+                  ? 'blue'
+                  : 'default'
+          }
+        >
           {rule.format}
         </Tag>
       </td>
@@ -216,7 +249,9 @@ export function FieldMappingManager({
         label: (
           <div className="flex items-center justify-between w-full pr-4">
             <div className="flex items-center gap-2">
-              <span className="text-gray-500">{CATEGORY_ICONS[cat.name] || <AppstoreOutlined />}</span>
+              <span className="text-gray-500">
+                {CATEGORY_ICONS[cat.name] || <AppstoreOutlined />}
+              </span>
               <span className="font-medium">{cat.name}</span>
               <Tag color="blue">{group.rules.length} 个映射</Tag>
             </div>
@@ -230,17 +265,33 @@ export function FieldMappingManager({
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">Excel列名</th>
-                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">目标路径</th>
-                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">目标集合</th>
-                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">格式</th>
-                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">价格类型</th>
-                  <th className="px-3 py-2 text-center font-medium text-gray-600 text-xs">必需</th>
-                  <th className="px-3 py-2 text-center font-medium text-gray-600 text-xs w-20">操作</th>
+                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                    Excel列名
+                  </th>
+                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                    目标路径
+                  </th>
+                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                    目标集合
+                  </th>
+                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                    格式
+                  </th>
+                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                    价格类型
+                  </th>
+                  <th className="px-3 py-2 text-center font-medium text-gray-600 text-xs">
+                    必需
+                  </th>
+                  <th className="px-3 py-2 text-center font-medium text-gray-600 text-xs w-20">
+                    操作
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
-                {group.rules.map((rule, i) => renderRuleRow(rule, group.indices[i]))}
+                {group.rules.map((rule, i) =>
+                  renderRuleRow(rule, group.indices[i])
+                )}
               </tbody>
             </table>
             <div className="p-2 bg-gray-50 border-t">
@@ -254,7 +305,7 @@ export function FieldMappingManager({
               </Button>
             </div>
           </div>
-        )
+        ),
       };
     });
 
@@ -300,11 +351,20 @@ export function FieldMappingManager({
         {editingRule && (
           <Form layout="vertical" className="space-y-4">
             {/* 分类选择（支持输入新分类） */}
-            <Form.Item label="分类" required tooltip="可从下拉列表选择，或直接输入新的分类名称">
+            <Form.Item
+              label="分类"
+              required
+              tooltip="可从下拉列表选择，或直接输入新的分类名称"
+            >
               <AutoComplete
                 value={editingRule.category || '基础信息'}
-                onChange={(value) => setEditingRule({ ...editingRule, category: value })}
-                options={categoryOptions.map(cat => ({ value: cat.name, label: cat.name }))}
+                onChange={value =>
+                  setEditingRule({ ...editingRule, category: value })
+                }
+                options={categoryOptions.map(cat => ({
+                  value: cat.name,
+                  label: cat.name,
+                }))}
                 placeholder="选择或输入新分类"
                 allowClear
               />
@@ -314,7 +374,12 @@ export function FieldMappingManager({
             <Form.Item label="Excel列名" required>
               <Input
                 value={editingRule.excelHeader}
-                onChange={(e) => setEditingRule({ ...editingRule, excelHeader: e.target.value })}
+                onChange={e =>
+                  setEditingRule({
+                    ...editingRule,
+                    excelHeader: e.target.value,
+                  })
+                }
                 placeholder="例如: CPM"
               />
             </Form.Item>
@@ -327,7 +392,9 @@ export function FieldMappingManager({
             >
               <Input
                 value={editingRule.targetPath}
-                onChange={(e) => setEditingRule({ ...editingRule, targetPath: e.target.value })}
+                onChange={e =>
+                  setEditingRule({ ...editingRule, targetPath: e.target.value })
+                }
                 placeholder="例如: metrics.cpm 或 prices（价格字段）"
                 style={{ fontFamily: 'monospace' }}
               />
@@ -337,7 +404,9 @@ export function FieldMappingManager({
             <Form.Item label="数据格式">
               <Select
                 value={editingRule.format}
-                onChange={(value) => setEditingRule({ ...editingRule, format: value })}
+                onChange={value =>
+                  setEditingRule({ ...editingRule, format: value })
+                }
                 options={[
                   { value: 'text', label: '文本 (text)' },
                   { value: 'number', label: '数字 (number)' },
@@ -354,10 +423,15 @@ export function FieldMappingManager({
             >
               <Select
                 value={editingRule.targetCollection || 'talents'}
-                onChange={(value) => setEditingRule({ ...editingRule, targetCollection: value })}
+                onChange={value =>
+                  setEditingRule({ ...editingRule, targetCollection: value })
+                }
                 options={[
                   { value: 'talents', label: '达人主表 (talents)' },
-                  { value: 'talent_performance', label: '表现数据 (talent_performance)' },
+                  {
+                    value: 'talent_performance',
+                    label: '表现数据 (talent_performance)',
+                  },
                 ]}
               />
             </Form.Item>
@@ -367,11 +441,13 @@ export function FieldMappingManager({
               <Form.Item label="价格类型" required>
                 <Select
                   value={editingRule.priceType || undefined}
-                  onChange={(value) => setEditingRule({ ...editingRule, priceType: value })}
+                  onChange={value =>
+                    setEditingRule({ ...editingRule, priceType: value })
+                  }
                   placeholder="请选择价格类型"
                   options={priceTypes.map(pt => ({
                     value: pt.key,
-                    label: `${pt.label} (${pt.key})`
+                    label: `${pt.label} (${pt.key})`,
                   }))}
                 />
               </Form.Item>
@@ -381,7 +457,9 @@ export function FieldMappingManager({
             <Form.Item>
               <Checkbox
                 checked={editingRule.required || false}
-                onChange={(e) => setEditingRule({ ...editingRule, required: e.target.checked })}
+                onChange={e =>
+                  setEditingRule({ ...editingRule, required: e.target.checked })
+                }
               >
                 Excel必填列（导入时Excel文件必须包含此列）
               </Checkbox>
@@ -391,7 +469,12 @@ export function FieldMappingManager({
             <Form.Item label="默认值（可选）">
               <Input
                 value={editingRule.defaultValue || ''}
-                onChange={(e) => setEditingRule({ ...editingRule, defaultValue: e.target.value })}
+                onChange={e =>
+                  setEditingRule({
+                    ...editingRule,
+                    defaultValue: e.target.value,
+                  })
+                }
                 placeholder="当Excel中该列为空时使用的默认值"
               />
             </Form.Item>
@@ -400,7 +483,9 @@ export function FieldMappingManager({
             <Form.Item className="mb-0 pt-4 border-t">
               <Space className="w-full justify-end">
                 <Button onClick={handleCloseModal}>取消</Button>
-                <Button type="primary" onClick={handleSave}>保存</Button>
+                <Button type="primary" onClick={handleSave}>
+                  保存
+                </Button>
               </Space>
             </Form.Item>
           </Form>

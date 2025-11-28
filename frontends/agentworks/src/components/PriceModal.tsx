@@ -12,11 +12,25 @@
 
 import { useState, useEffect } from 'react';
 import { Modal, Select, message } from 'antd';
-import { ProForm, ProFormSelect, ProFormDigit } from '@ant-design/pro-components';
+import {
+  ProForm,
+  ProFormSelect,
+  ProFormDigit,
+} from '@ant-design/pro-components';
 import { ProCard } from '@ant-design/pro-components';
 import { logger } from '../utils/logger';
-import type { Talent, PriceRecord, PriceType, PriceStatus } from '../types/talent';
-import { formatPrice, getPriceHistory, formatYearMonth, yuanToCents } from '../utils/formatters';
+import type {
+  Talent,
+  PriceRecord,
+  PriceType,
+  PriceStatus,
+} from '../types/talent';
+import {
+  formatPrice,
+  getPriceHistory,
+  formatYearMonth,
+  yuanToCents,
+} from '../utils/formatters';
 import { usePlatformConfig } from '../hooks/usePlatformConfig';
 
 interface PriceModalProps {
@@ -34,10 +48,19 @@ interface NewPriceForm {
   status: PriceStatus;
 }
 
-export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps) {
+export function PriceModal({
+  isOpen,
+  onClose,
+  talent,
+  onSave,
+}: PriceModalProps) {
   const [saving, setSaving] = useState(false);
-  const [selectedYear, setSelectedYear] = useState<number | undefined>(undefined);
-  const [selectedMonth, setSelectedMonth] = useState<number | undefined>(undefined);
+  const [selectedYear, setSelectedYear] = useState<number | undefined>(
+    undefined
+  );
+  const [selectedMonth, setSelectedMonth] = useState<number | undefined>(
+    undefined
+  );
   const [form] = ProForm.useForm<NewPriceForm>();
 
   // 使用平台配置 Hook（获取所有平台，包括禁用的）
@@ -71,7 +94,7 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
   const priceHistory = getPriceHistory(talent.prices);
 
   // 筛选后的历史价格
-  const filteredHistory = priceHistory.filter((h) => {
+  const filteredHistory = priceHistory.filter(h => {
     if (selectedYear && h.year !== selectedYear) return false;
     if (selectedMonth && h.month !== selectedMonth) return false;
     return true;
@@ -89,13 +112,13 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
 
       // 查找是否已存在该类型的价格
       const existingIndex = talent.prices.findIndex(
-        (p) =>
+        p =>
           p.year === values.year &&
           p.month === values.month &&
           p.type === values.type
       );
 
-      let updatedPrices = [...talent.prices];
+      const updatedPrices = [...talent.prices];
 
       if (existingIndex !== -1) {
         // 更新现有价格
@@ -165,10 +188,12 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
                 size="small"
                 style={{ width: 100 }}
                 allowClear
-                options={Array.from(new Set(priceHistory.map(h => h.year))).map(y => ({
-                  label: `${y}`,
-                  value: y,
-                }))}
+                options={Array.from(new Set(priceHistory.map(h => h.year))).map(
+                  y => ({
+                    label: `${y}`,
+                    value: y,
+                  })
+                )}
               />
               <Select
                 value={selectedMonth}
@@ -185,9 +210,14 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
             </div>
           }
         >
-          <div className="space-y-2" style={{ maxHeight: '350px', overflowY: 'auto' }}>
+          <div
+            className="space-y-2"
+            style={{ maxHeight: '350px', overflowY: 'auto' }}
+          >
             {filteredHistory.length === 0 ? (
-              <p className="text-center text-gray-500 text-sm py-8">暂无价格记录</p>
+              <p className="text-center text-gray-500 text-sm py-8">
+                暂无价格记录
+              </p>
             ) : (
               filteredHistory.map((history, index) => (
                 <div key={index} className="bg-gray-50 rounded-md border p-3">
@@ -202,10 +232,14 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
                     )}
                   </div>
                   <div className="space-y-1">
-                    {priceTypes.map((pt) => {
-                      const price = history.prices[pt.key as keyof typeof history.prices];
+                    {priceTypes.map(pt => {
+                      const price =
+                        history.prices[pt.key as keyof typeof history.prices];
                       return (
-                        <div key={pt.key} className="flex items-center gap-2 text-xs">
+                        <div
+                          key={pt.key}
+                          className="flex items-center gap-2 text-xs"
+                        >
                           <span
                             className="inline-flex items-center justify-center rounded-md px-2 py-0.5 font-semibold w-16"
                             style={{
@@ -215,7 +249,13 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
                           >
                             {pt.label}
                           </span>
-                          <span className={price ? 'text-gray-900 font-medium' : 'text-gray-400'}>
+                          <span
+                            className={
+                              price
+                                ? 'text-gray-900 font-medium'
+                                : 'text-gray-400'
+                            }
+                          >
                             {price ? formatPrice(price) : 'N/A'}
                           </span>
                         </div>
@@ -248,10 +288,12 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
               <ProFormSelect
                 name="year"
                 label="年份"
-                options={[currentYear - 1, currentYear, currentYear + 1].map((y) => ({
-                  label: `${y}`,
-                  value: y,
-                }))}
+                options={[currentYear - 1, currentYear, currentYear + 1].map(
+                  y => ({
+                    label: `${y}`,
+                    value: y,
+                  })
+                )}
                 fieldProps={{
                   size: 'middle',
                 }}
@@ -259,7 +301,7 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
               <ProFormSelect
                 name="month"
                 label="月份"
-                options={Array.from({ length: 12 }, (_, i) => i + 1).map((m) => ({
+                options={Array.from({ length: 12 }, (_, i) => i + 1).map(m => ({
                   label: `${m}月`,
                   value: m,
                 }))}
@@ -271,10 +313,17 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
 
             <ProFormSelect
               name="type"
-              label={talent.platform === 'xiaohongshu' ? '笔记类型' : '视频类型'}
+              label={
+                talent.platform === 'xiaohongshu' ? '笔记类型' : '视频类型'
+              }
               placeholder="请选择类型"
-              rules={[{ required: true, message: `请选择${talent.platform === 'xiaohongshu' ? '笔记类型' : '视频类型'}` }]}
-              options={priceTypes.map((pt) => ({
+              rules={[
+                {
+                  required: true,
+                  message: `请选择${talent.platform === 'xiaohongshu' ? '笔记类型' : '视频类型'}`,
+                },
+              ]}
+              options={priceTypes.map(pt => ({
                 label: pt.label,
                 value: pt.key,
               }))}

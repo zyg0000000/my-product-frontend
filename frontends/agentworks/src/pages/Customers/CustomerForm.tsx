@@ -117,14 +117,17 @@ export default function CustomerForm() {
               resetText: '取消',
             },
             render: (_props, doms) => (
-              <div className="flex gap-2 pt-4 border-t">
-                {doms}
-              </div>
+              <div className="flex gap-2 pt-4 border-t">{doms}</div>
             ),
           }}
         >
           {/* 基础信息 */}
-          <ProCard title="基础信息" headerBordered collapsible defaultCollapsed={false}>
+          <ProCard
+            title="基础信息"
+            headerBordered
+            collapsible
+            defaultCollapsed={false}
+          >
             <div className="grid grid-cols-3 gap-4 mb-4">
               <ProFormText
                 name="name"
@@ -249,11 +252,7 @@ export default function CustomerForm() {
 
       {/* Toast 通知 */}
       {toast.visible && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-        />
+        <Toast message={toast.message} type={toast.type} onClose={hideToast} />
       )}
     </div>
   );

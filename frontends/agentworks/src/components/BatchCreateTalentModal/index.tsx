@@ -31,11 +31,7 @@ import { AGENCY_INDIVIDUAL_ID } from '../../types/agency';
 import type { Platform } from '../../types/talent';
 import type { BulkCreateTalentItem, BulkCreateError } from '../../api/talent';
 import type { ParsedTalentRow } from './types';
-import {
-  getPlatformFieldConfig,
-  matchHeader,
-  isHeaderRow,
-} from './types';
+import { getPlatformFieldConfig, matchHeader, isHeaderRow } from './types';
 
 const { TextArea } = Input;
 
@@ -53,7 +49,8 @@ export function BatchCreateTalentModal({
   initialPlatform,
 }: BatchCreateTalentModalProps) {
   const { message } = App.useApp();
-  const { getPlatformList, getPlatformConfigByKey, getDefaultTalentTier } = usePlatformConfig(false);
+  const { getPlatformList, getPlatformConfigByKey, getDefaultTalentTier } =
+    usePlatformConfig(false);
   const platforms = getPlatformList();
 
   // 平台选择
@@ -85,7 +82,9 @@ export function BatchCreateTalentModal({
   const [parsing, setParsing] = useState(false);
 
   // 野生达人返点率
-  const [wildTalentRebateRate, setWildTalentRebateRate] = useState<number | null>(null);
+  const [wildTalentRebateRate, setWildTalentRebateRate] = useState<
+    number | null
+  >(null);
 
   // 获取野生达人返点率
   useEffect(() => {
@@ -116,11 +115,11 @@ export function BatchCreateTalentModal({
 
   // 统计
   const validCount = useMemo(
-    () => parsedData.filter((r) => r.isValid).length,
+    () => parsedData.filter(r => r.isValid).length,
     [parsedData]
   );
   const invalidCount = useMemo(
-    () => parsedData.filter((r) => !r.isValid).length,
+    () => parsedData.filter(r => !r.isValid).length,
     [parsedData]
   );
 
@@ -176,7 +175,7 @@ export function BatchCreateTalentModal({
 
     // 检查批次内重复（排除自己）
     const duplicateCount = allRows.filter(
-      (r) =>
+      r =>
         r.key !== row.key &&
         r.platformAccountId &&
         r.platformAccountId === row.platformAccountId
@@ -197,7 +196,7 @@ export function BatchCreateTalentModal({
     rows: ParsedTalentRow[],
     platform: Platform
   ): ParsedTalentRow[] => {
-    return rows.map((row) => revalidateRow(row, rows, platform));
+    return rows.map(row => revalidateRow(row, rows, platform));
   };
 
   // 解析粘贴的数据
@@ -228,20 +227,22 @@ export function BatchCreateTalentModal({
       const delimiter = lines[0].includes('\t') ? '\t' : ',';
 
       // 解析第一行，判断是否为表头
-      const firstLineValues = lines[0].split(delimiter).map((v) => v.trim());
+      const firstLineValues = lines[0].split(delimiter).map(v => v.trim());
       const hasHeader = isHeaderRow(firstLineValues);
 
       // 调试日志
       console.log('[BatchCreate] 第一行数据:', firstLineValues);
       console.log('[BatchCreate] 是否识别为表头:', hasHeader);
 
-      let fieldIndexMap: Record<string, number> = {};
+      const fieldIndexMap: Record<string, number> = {};
       let dataStartIndex = 0;
 
       if (!hasHeader) {
         // 无表头：要求用户添加表头
         console.log('[BatchCreate] 未识别到表头，显示错误提示');
-        message.error('未识别到表头，请在第一行添加表头（如：昵称、星图ID、UID）');
+        message.error(
+          '未识别到表头，请在第一行添加表头（如：昵称、星图ID、UID）'
+        );
         setParsing(false);
         return;
       }
@@ -266,7 +267,9 @@ export function BatchCreateTalentModal({
       }
 
       if (missingFields.length > 0) {
-        message.error(`无法识别 ${missingFields.join('、')} 列，请确保数据包含中文昵称和数字ID`);
+        message.error(
+          `无法识别 ${missingFields.join('、')} 列，请确保数据包含中文昵称和数字ID`
+        );
         setParsing(false);
         return;
       }
@@ -291,9 +294,9 @@ export function BatchCreateTalentModal({
       const seenAccountIds = new Set<string>();
 
       const parsed: ParsedTalentRow[] = dataLines
-        .filter((line) => line.trim())
+        .filter(line => line.trim())
         .map((line, index) => {
-          const values = line.split(delimiter).map((v) => v.trim());
+          const values = line.split(delimiter).map(v => v.trim());
           const errors: string[] = [];
 
           const name = values[fieldIndexMap['name']] || '';
@@ -347,10 +350,12 @@ export function BatchCreateTalentModal({
 
       setParsedData(parsed);
 
-      const valid = parsed.filter((r) => r.isValid).length;
-      const invalid = parsed.filter((r) => !r.isValid).length;
+      const valid = parsed.filter(r => r.isValid).length;
+      const invalid = parsed.filter(r => !r.isValid).length;
 
-      const headerHint = hasHeader ? '（已识别表头）' : '（无表头，按列顺序解析）';
+      const headerHint = hasHeader
+        ? '（已识别表头）'
+        : '（无表头，按列顺序解析）';
       message.success(
         `解析完成${headerHint}：共 ${parsed.length} 条，有效 ${valid} 条${
           invalid > 0 ? `，错误 ${invalid} 条` : ''
@@ -375,7 +380,7 @@ export function BatchCreateTalentModal({
   const saveEditing = () => {
     if (!editingKey || !editingField || !selectedPlatform) return;
 
-    const newData = parsedData.map((row) => {
+    const newData = parsedData.map(row => {
       if (row.key === editingKey) {
         const updatedRow = { ...row, [editingField]: editingValue };
         return revalidateRow(updatedRow, parsedData, selectedPlatform);
@@ -394,7 +399,7 @@ export function BatchCreateTalentModal({
   // 删除行
   const deleteRow = (key: string) => {
     if (!selectedPlatform) return;
-    const newData = parsedData.filter((row) => row.key !== key);
+    const newData = parsedData.filter(row => row.key !== key);
     const revalidatedData = revalidateAllRows(newData, selectedPlatform);
     setParsedData(revalidatedData);
   };
@@ -403,7 +408,7 @@ export function BatchCreateTalentModal({
   const handleSubmit = async () => {
     if (!selectedPlatform) return;
 
-    const validData = parsedData.filter((row) => row.isValid);
+    const validData = parsedData.filter(row => row.isValid);
     if (validData.length === 0) {
       message.warning('没有有效的数据可提交');
       return;
@@ -416,12 +421,12 @@ export function BatchCreateTalentModal({
       const defaultTier = getDefaultTalentTier(selectedPlatform);
       const defaultTierLabel = defaultTier?.label || '尾部';
 
-      const talents: BulkCreateTalentItem[] = validData.map((row) => ({
+      const talents: BulkCreateTalentItem[] = validData.map(row => ({
         name: row.name,
         platformAccountId: row.platformAccountId,
         uid: row.uid || undefined,
         talentTier: defaultTierLabel,
-        agencyId: 'individual',  // 默认归属野生达人
+        agencyId: 'individual', // 默认归属野生达人
       }));
 
       const response = await bulkCreateTalents({
@@ -472,7 +477,7 @@ export function BatchCreateTalentModal({
       return (
         <Input
           value={editingValue}
-          onChange={(e) => setEditingValue(e.target.value)}
+          onChange={e => setEditingValue(e.target.value)}
           onPressEnter={saveEditing}
           onBlur={saveEditing}
           autoFocus
@@ -589,7 +594,7 @@ export function BatchCreateTalentModal({
       title: '失败原因',
       dataIndex: 'reason',
       key: 'reason',
-      render: (text) => <span className="text-red-600">{text}</span>,
+      render: text => <span className="text-red-600">{text}</span>,
     },
   ];
 
@@ -623,7 +628,9 @@ export function BatchCreateTalentModal({
           subTitle={
             <div>
               成功创建{' '}
-              <span className="text-green-600 font-bold text-lg">{created}</span>{' '}
+              <span className="text-green-600 font-bold text-lg">
+                {created}
+              </span>{' '}
               个达人
             </div>
           }
@@ -647,7 +654,9 @@ export function BatchCreateTalentModal({
                   <div className="text-sm text-gray-500">成功</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-red-600">{failed}</div>
+                  <div className="text-2xl font-bold text-red-600">
+                    {failed}
+                  </div>
                   <div className="text-sm text-gray-500">失败</div>
                 </div>
               </div>
@@ -679,7 +688,9 @@ export function BatchCreateTalentModal({
           <div className="flex items-center gap-2 py-2 px-3 bg-red-50 rounded">
             <CloseCircleOutlined className="text-red-500 text-xl" />
             <span className="font-medium">批量创建失败</span>
-            <span className="text-sm text-gray-500">（{failed} 条数据全部创建失败）</span>
+            <span className="text-sm text-gray-500">
+              （{failed} 条数据全部创建失败）
+            </span>
           </div>
 
           {errors.length > 0 && (
@@ -720,14 +731,14 @@ export function BatchCreateTalentModal({
           <div className="text-sm text-gray-600 mb-2">选择平台</div>
           <Radio.Group
             value={selectedPlatform}
-            onChange={(e) => {
+            onChange={e => {
               setSelectedPlatform(e.target.value);
               setParsedData([]); // 切换平台清空解析数据
             }}
             optionType="button"
             buttonStyle="solid"
           >
-            {platforms.map((platform) => {
+            {platforms.map(platform => {
               const config = getPlatformConfigByKey(platform);
               return (
                 <Radio.Button key={platform} value={platform}>
@@ -750,7 +761,17 @@ export function BatchCreateTalentModal({
                   首行必须为表头，列顺序任意（单次最多100条）
                 </div>
                 <div className="text-xs text-gray-500 mb-2">
-                  默认值：达人层级 = <strong>{getDefaultTalentTier(selectedPlatform)?.label || '未配置'}</strong> | 返点 = <strong>{wildTalentRebateRate !== null ? `${wildTalentRebateRate}%` : '加载中...'}</strong> | 商业归属 = <strong>野生达人</strong>
+                  默认值：达人层级 ={' '}
+                  <strong>
+                    {getDefaultTalentTier(selectedPlatform)?.label || '未配置'}
+                  </strong>{' '}
+                  | 返点 ={' '}
+                  <strong>
+                    {wildTalentRebateRate !== null
+                      ? `${wildTalentRebateRate}%`
+                      : '加载中...'}
+                  </strong>{' '}
+                  | 商业归属 = <strong>野生达人</strong>
                 </div>
                 <pre className="bg-primary-50 p-2 rounded text-xs overflow-x-auto whitespace-pre m-0">
                   {exampleText}
@@ -770,7 +791,7 @@ export function BatchCreateTalentModal({
                 : '请先选择平台'
             }
             value={rawText}
-            onChange={(e) => setRawText(e.target.value)}
+            onChange={e => setRawText(e.target.value)}
             rows={6}
             className="font-mono text-sm"
             disabled={!selectedPlatform}
@@ -800,13 +821,17 @@ export function BatchCreateTalentModal({
                 {validCount > 0 && (
                   <>
                     <span className="mx-1">|</span>
-                    <span className="text-green-600">✅ 有效 {validCount} 条</span>
+                    <span className="text-green-600">
+                      ✅ 有效 {validCount} 条
+                    </span>
                   </>
                 )}
                 {invalidCount > 0 && (
                   <>
                     <span className="mx-1">|</span>
-                    <span className="text-red-600">❌ 错误 {invalidCount} 条</span>
+                    <span className="text-red-600">
+                      ❌ 错误 {invalidCount} 条
+                    </span>
                   </>
                 )}
               </div>
@@ -830,7 +855,7 @@ export function BatchCreateTalentModal({
               size="small"
               pagination={false}
               scroll={{ x: 'max-content', y: 200 }}
-              rowClassName={(record) => (!record.isValid ? 'bg-red-50' : '')}
+              rowClassName={record => (!record.isValid ? 'bg-red-50' : '')}
             />
           </div>
         )}

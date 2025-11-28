@@ -27,21 +27,33 @@ export function useToast() {
     setToast(prev => ({ ...prev, visible: false }));
   }, []);
 
-  const success = useCallback((message: string) => {
-    showToast(message, 'success');
-  }, [showToast]);
+  const success = useCallback(
+    (message: string) => {
+      showToast(message, 'success');
+    },
+    [showToast]
+  );
 
-  const error = useCallback((message: string) => {
-    showToast(message, 'error');
-  }, [showToast]);
+  const error = useCallback(
+    (message: string) => {
+      showToast(message, 'error');
+    },
+    [showToast]
+  );
 
-  const warning = useCallback((message: string) => {
-    showToast(message, 'warning');
-  }, [showToast]);
+  const warning = useCallback(
+    (message: string) => {
+      showToast(message, 'warning');
+    },
+    [showToast]
+  );
 
-  const info = useCallback((message: string) => {
-    showToast(message, 'info');
-  }, [showToast]);
+  const info = useCallback(
+    (message: string) => {
+      showToast(message, 'info');
+    },
+    [showToast]
+  );
 
   return {
     toast,

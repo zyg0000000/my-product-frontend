@@ -10,7 +10,7 @@ import {
   deleteFieldMapping,
   type FieldMappingConfig,
   type FieldMappingRule,
-  type ComputedFieldRule
+  type ComputedFieldRule,
 } from '../api/performance';
 import type { Platform } from '../types/talent';
 import { useToast } from './useToast';
@@ -18,7 +18,9 @@ import { logger } from '../utils/logger';
 
 export function useFieldMapping(platform: Platform) {
   const [configs, setConfigs] = useState<FieldMappingConfig[]>([]);
-  const [activeConfig, setActiveConfig] = useState<FieldMappingConfig | null>(null);
+  const [activeConfig, setActiveConfig] = useState<FieldMappingConfig | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const { success, error } = useToast();
 
@@ -29,7 +31,9 @@ export function useFieldMapping(platform: Platform) {
       const response: any = await getFieldMappings(platform);
       if (response.success && response.data) {
         setConfigs(response.data);
-        const active = response.data.find((c: FieldMappingConfig) => c.isActive);
+        const active = response.data.find(
+          (c: FieldMappingConfig) => c.isActive
+        );
         setActiveConfig(active || null);
       }
     } catch (err) {
@@ -103,7 +107,7 @@ export function useFieldMapping(platform: Platform) {
 
     const updatedConfig = {
       ...activeConfig,
-      mappings: [...activeConfig.mappings, rule]
+      mappings: [...activeConfig.mappings, rule],
     };
 
     await updateConfig(updatedConfig);
@@ -121,7 +125,7 @@ export function useFieldMapping(platform: Platform) {
 
     const updatedConfig = {
       ...activeConfig,
-      mappings: updatedMappings
+      mappings: updatedMappings,
     };
 
     await updateConfig(updatedConfig);
@@ -138,7 +142,7 @@ export function useFieldMapping(platform: Platform) {
 
     const updatedConfig = {
       ...activeConfig,
-      mappings: updatedMappings
+      mappings: updatedMappings,
     };
 
     await updateConfig(updatedConfig);
@@ -155,14 +159,17 @@ export function useFieldMapping(platform: Platform) {
 
     const updatedConfig = {
       ...activeConfig,
-      computedFields: [...(activeConfig.computedFields || []), field]
+      computedFields: [...(activeConfig.computedFields || []), field],
     };
 
     await updateConfig(updatedConfig);
   };
 
   // 更新计算字段
-  const updateComputedField = async (index: number, field: ComputedFieldRule) => {
+  const updateComputedField = async (
+    index: number,
+    field: ComputedFieldRule
+  ) => {
     if (!activeConfig) {
       error('没有激活的配置');
       return;
@@ -173,7 +180,7 @@ export function useFieldMapping(platform: Platform) {
 
     const updatedConfig = {
       ...activeConfig,
-      computedFields: updatedComputedFields
+      computedFields: updatedComputedFields,
     };
 
     await updateConfig(updatedConfig);
@@ -186,11 +193,13 @@ export function useFieldMapping(platform: Platform) {
       return;
     }
 
-    const updatedComputedFields = (activeConfig.computedFields || []).filter((_, i) => i !== index);
+    const updatedComputedFields = (activeConfig.computedFields || []).filter(
+      (_, i) => i !== index
+    );
 
     const updatedConfig = {
       ...activeConfig,
-      computedFields: updatedComputedFields
+      computedFields: updatedComputedFields,
     };
 
     await updateConfig(updatedConfig);
@@ -215,6 +224,6 @@ export function useFieldMapping(platform: Platform) {
     // 计算字段
     addComputedField,
     updateComputedField,
-    deleteComputedField
+    deleteComputedField,
   };
 }

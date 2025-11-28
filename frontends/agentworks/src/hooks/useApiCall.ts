@@ -13,11 +13,11 @@ import type { ApiResponse } from '../types/talent';
  * API 调用配置选项
  */
 export interface ApiCallOptions<T> {
-  onSuccess?: (data: T) => void;           // 成功回调
-  onError?: (error: string) => void;        // 错误回调
-  showToast?: boolean;                      // 是否显示 Toast（默认 true）
-  successMessage?: string;                  // 成功提示消息
-  errorMessage?: string;                    // 错误提示消息（可选，默认使用 API 返回的错误）
+  onSuccess?: (data: T) => void; // 成功回调
+  onError?: (error: string) => void; // 错误回调
+  showToast?: boolean; // 是否显示 Toast（默认 true）
+  successMessage?: string; // 成功提示消息
+  errorMessage?: string; // 错误提示消息（可选，默认使用 API 返回的错误）
 }
 
 /**
@@ -83,7 +83,6 @@ export function useApiCall<T = any>() {
       }
 
       return response.data !== undefined ? response.data : null;
-
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : '未知错误';
       setError(errorMsg);
@@ -99,7 +98,6 @@ export function useApiCall<T = any>() {
       }
 
       return null;
-
     } finally {
       setLoading(false);
     }

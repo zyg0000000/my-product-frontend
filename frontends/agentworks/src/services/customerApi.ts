@@ -1,4 +1,8 @@
-import type { Customer, CreateCustomerRequest, UpdateCustomerRequest } from '../types/customer';
+import type {
+  Customer,
+  CreateCustomerRequest,
+  UpdateCustomerRequest,
+} from '../types/customer';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -30,7 +34,9 @@ class CustomerApi {
   /**
    * 获取客户列表
    */
-  async getCustomers(params: GetCustomersParams): Promise<ApiResponse<GetCustomersResponse>> {
+  async getCustomers(
+    params: GetCustomersParams
+  ): Promise<ApiResponse<GetCustomersResponse>> {
     const queryParams = new URLSearchParams();
 
     Object.entries(params).forEach(([key, value]) => {
@@ -76,7 +82,9 @@ class CustomerApi {
   /**
    * 创建客户
    */
-  async createCustomer(data: CreateCustomerRequest): Promise<ApiResponse<Customer>> {
+  async createCustomer(
+    data: CreateCustomerRequest
+  ): Promise<ApiResponse<Customer>> {
     const url = `${API_BASE_URL}/customers`;
     const response = await fetch(url, {
       method: 'POST',
@@ -96,7 +104,10 @@ class CustomerApi {
   /**
    * 更新客户
    */
-  async updateCustomer(id: string, data: UpdateCustomerRequest): Promise<ApiResponse<Customer>> {
+  async updateCustomer(
+    id: string,
+    data: UpdateCustomerRequest
+  ): Promise<ApiResponse<Customer>> {
     // 将 ID 添加到查询参数中，以符合火山引擎云函数路由要求
     const url = `${API_BASE_URL}/customers?id=${encodeURIComponent(id)}`;
     const response = await fetch(url, {
@@ -136,7 +147,9 @@ class CustomerApi {
   /**
    * 永久删除客户（物理删除）
    */
-  async permanentDeleteCustomer(id: string): Promise<ApiResponse<{ message: string }>> {
+  async permanentDeleteCustomer(
+    id: string
+  ): Promise<ApiResponse<{ message: string }>> {
     const url = `${API_BASE_URL}/customers?id=${encodeURIComponent(id)}&permanent=true`;
     const response = await fetch(url, {
       method: 'DELETE',

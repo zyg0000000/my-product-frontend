@@ -14,7 +14,7 @@ import {
   getTalentRebate,
   getRebateHistory as fetchRebateHistory,
   updateTalentRebate,
-  syncAgencyRebateToTalent
+  syncAgencyRebateToTalent,
 } from '../../api/rebate';
 import { getAgencies } from '../../api/agency';
 import type { Talent } from '../../types/talent';
@@ -23,12 +23,17 @@ import type {
   GetRebateResponse,
   RebateConfig,
   EffectType,
-  UpdateRebateRequest
+  UpdateRebateRequest,
 } from '../../types/rebate';
 import { validateRebateRate } from '../../types/rebate';
 import { AGENCY_INDIVIDUAL_ID } from '../../types/agency';
 
-export type TabType = 'current' | 'manual' | 'agencySync' | 'stepRule' | 'history';
+export type TabType =
+  | 'current'
+  | 'manual'
+  | 'agencySync'
+  | 'stepRule'
+  | 'history';
 
 interface UseRebateFormParams {
   talent: Talent;
@@ -40,7 +45,9 @@ interface UseRebateFormParams {
  */
 export function useRebateForm({ talent, isOpen }: UseRebateFormParams) {
   // ==================== 数据状态 ====================
-  const [rebateData, setRebateData] = useState<GetRebateResponse['data'] | null>(null);
+  const [rebateData, setRebateData] = useState<
+    GetRebateResponse['data'] | null
+  >(null);
   const [rebateHistory, setRebateHistory] = useState<RebateConfig[]>([]);
   const [rebateLoading, setRebateLoading] = useState(false);
   const [agencies, setAgencies] = useState<Agency[]>([]);
@@ -51,7 +58,8 @@ export function useRebateForm({ talent, isOpen }: UseRebateFormParams) {
 
   // ==================== 手动调整表单状态 ====================
   const [manualRebateRate, setManualRebateRate] = useState<string>('');
-  const [manualEffectType, setManualEffectType] = useState<EffectType>('immediate');
+  const [manualEffectType, setManualEffectType] =
+    useState<EffectType>('immediate');
   const [manualCreatedBy, setManualCreatedBy] = useState<string>('');
   const [manualLoading, setManualLoading] = useState(false);
 
@@ -95,7 +103,10 @@ export function useRebateForm({ talent, isOpen }: UseRebateFormParams) {
       setRebateLoading(true);
 
       // 加载当前返点配置
-      const rebateResponse = await getTalentRebate(talent.oneId, talent.platform);
+      const rebateResponse = await getTalentRebate(
+        talent.oneId,
+        talent.platform
+      );
       if (rebateResponse.success && rebateResponse.data) {
         setRebateData(rebateResponse.data);
         setRebateMode(rebateResponse.data.rebateMode);
@@ -167,7 +178,7 @@ export function useRebateForm({ talent, isOpen }: UseRebateFormParams) {
   // ==================== 返点模式切换 ====================
 
   const handleToggleMode = () => {
-    setRebateMode(prev => prev === 'sync' ? 'independent' : 'sync');
+    setRebateMode(prev => (prev === 'sync' ? 'independent' : 'sync'));
     setManualError('');
   };
 

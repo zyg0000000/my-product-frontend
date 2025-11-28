@@ -32,12 +32,16 @@ export function Pagination({
     let l: number | undefined;
 
     for (let i = 1; i <= totalPages; i++) {
-      if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+      if (
+        i === 1 ||
+        i === totalPages ||
+        (i >= currentPage - delta && i <= currentPage + delta)
+      ) {
         range.push(i);
       }
     }
 
-    range.forEach((i) => {
+    range.forEach(i => {
       if (l !== undefined) {
         if (i - l === 2) {
           rangeWithDots.push(l + 1);
@@ -81,10 +85,12 @@ export function Pagination({
   const pageNumbers = getPageNumbers();
 
   // 计算显示范围
-  const startRecord = totalRecords && pageSize ? (currentPage - 1) * pageSize + 1 : 0;
-  const endRecord = totalRecords && pageSize
-    ? Math.min(currentPage * pageSize, totalRecords)
-    : 0;
+  const startRecord =
+    totalRecords && pageSize ? (currentPage - 1) * pageSize + 1 : 0;
+  const endRecord =
+    totalRecords && pageSize
+      ? Math.min(currentPage * pageSize, totalRecords)
+      : 0;
 
   return (
     <div className={`flex items-center justify-between ${className}`}>
@@ -93,8 +99,11 @@ export function Pagination({
         <div className="text-sm text-gray-600">
           {totalRecords > 0 ? (
             <>
-              显示第 <span className="font-medium">{startRecord}-{endRecord}</span> 条，
-              共 <span className="font-medium">{totalRecords}</span> 条记录
+              显示第{' '}
+              <span className="font-medium">
+                {startRecord}-{endRecord}
+              </span>{' '}
+              条， 共 <span className="font-medium">{totalRecords}</span> 条记录
             </>
           ) : (
             '暂无数据'
@@ -110,9 +119,10 @@ export function Pagination({
           disabled={currentPage === 1}
           className={`
             ${buttonClass} font-medium rounded-md border transition-colors
-            ${currentPage === 1
-              ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            ${
+              currentPage === 1
+                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
             }
           `}
         >
@@ -122,7 +132,7 @@ export function Pagination({
         {/* 页码按钮 */}
         {totalPages > 1 && (
           <div className="flex items-center gap-1">
-            {pageNumbers.map((number, index) => (
+            {pageNumbers.map((number, index) =>
               number === '...' ? (
                 <span key={`dots-${index}`} className="px-2 text-gray-500">
                   ...
@@ -133,16 +143,17 @@ export function Pagination({
                   onClick={() => onPageChange(number as number)}
                   className={`
                     ${buttonClass} min-w-[32px] font-medium rounded-md border transition-colors
-                    ${currentPage === number
-                      ? 'bg-primary-600 text-white border-primary-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                    ${
+                      currentPage === number
+                        ? 'bg-primary-600 text-white border-primary-600'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                     }
                   `}
                 >
                   {number}
                 </button>
               )
-            ))}
+            )}
           </div>
         )}
 
@@ -152,9 +163,10 @@ export function Pagination({
           disabled={currentPage === totalPages}
           className={`
             ${buttonClass} font-medium rounded-md border transition-colors
-            ${currentPage === totalPages
-              ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            ${
+              currentPage === totalPages
+                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
             }
           `}
         >

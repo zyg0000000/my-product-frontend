@@ -14,7 +14,12 @@ import { Modal, Form, Space, message } from 'antd';
 import { ProForm, ProFormText, ProFormRadio } from '@ant-design/pro-components';
 import { ProCard } from '@ant-design/pro-components';
 import { logger } from '../utils/logger';
-import type { Talent, Platform, TalentTier, TalentStatus } from '../types/talent';
+import type {
+  Talent,
+  Platform,
+  TalentTier,
+  TalentStatus,
+} from '../types/talent';
 import { PLATFORM_NAMES } from '../types/talent';
 import { AGENCY_INDIVIDUAL_ID } from '../types/agency';
 import { TagInput } from './TagInput';
@@ -25,7 +30,11 @@ interface EditTalentModalProps {
   isOpen: boolean;
   onClose: () => void;
   talent: Talent | null;
-  onSave: (oneId: string, platform: Platform, data: Partial<Talent>) => Promise<void>;
+  onSave: (
+    oneId: string,
+    platform: Platform,
+    data: Partial<Talent>
+  ) => Promise<void>;
   availableTags: string[];
 }
 
@@ -43,7 +52,13 @@ interface FormData {
   };
 }
 
-export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags }: EditTalentModalProps) {
+export function EditTalentModal({
+  isOpen,
+  onClose,
+  talent,
+  onSave,
+  availableTags,
+}: EditTalentModalProps) {
   const [form] = Form.useForm<FormData>();
   const { getTalentTiers } = usePlatformConfig(false);
 
@@ -115,7 +130,10 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
         name: values.name,
         agencyId: values.agencyId,
         talentTier: values.talentTier,
-        talentType: values.talentType && values.talentType.length > 0 ? values.talentType : undefined,
+        talentType:
+          values.talentType && values.talentType.length > 0
+            ? values.talentType
+            : undefined,
         status: values.status,
         platformSpecific:
           Object.keys(cleanedPlatformSpecific).length > 0
@@ -141,7 +159,8 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
             编辑达人: <span className="text-primary-600">{talent.name}</span>
           </div>
           <div className="text-sm font-normal text-gray-500 mt-1">
-            {PLATFORM_NAMES[talent.platform]} 平台 · 更新达人的基础信息和平台特定字段
+            {PLATFORM_NAMES[talent.platform]} 平台 ·
+            更新达人的基础信息和平台特定字段
           </div>
         </div>
       }
@@ -195,7 +214,12 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
               name="platformAccountId"
               label={getPlatformAccountIdLabel()}
               placeholder={getPlatformAccountIdPlaceholder()}
-              rules={[{ required: true, message: `请输入${getPlatformAccountIdLabel()}` }]}
+              rules={[
+                {
+                  required: true,
+                  message: `请输入${getPlatformAccountIdLabel()}`,
+                },
+              ]}
               fieldProps={{
                 size: 'middle',
               }}
@@ -207,7 +231,9 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
               label={
                 <span>
                   商业属性
-                  <span className="ml-1 text-xs text-gray-500">（机构归属）</span>
+                  <span className="ml-1 text-xs text-gray-500">
+                    （机构归属）
+                  </span>
                 </span>
               }
               rules={[{ required: true, message: '请选择商业属性' }]}
@@ -280,9 +306,9 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
               <TagInput
                 selectedTags={form.getFieldValue('talentType') || []}
                 availableTags={availableTags}
-                onChange={(tags) => form.setFieldValue('talentType', tags)}
+                onChange={tags => form.setFieldValue('talentType', tags)}
                 placeholder="输入分类标签后按回车，如：美妆、时尚等"
-                onError={(msg) => message.warning(msg)}
+                onError={msg => message.warning(msg)}
               />
             </Form.Item>
           </div>

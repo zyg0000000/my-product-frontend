@@ -4,7 +4,11 @@
  */
 
 import { useState } from 'react';
-import { importPerformanceFromFeishu, type ImportRequest, type ImportResult } from '../api/performance';
+import {
+  importPerformanceFromFeishu,
+  type ImportRequest,
+  type ImportResult,
+} from '../api/performance';
 import type { Platform } from '../types/talent';
 import { useToast } from './useToast';
 
@@ -17,7 +21,11 @@ export function useDataImport(platform: Platform) {
   /**
    * 从飞书导入
    */
-  const importFromFeishu = async (feishuUrl: string, priceYear: number, priceMonth: number) => {
+  const importFromFeishu = async (
+    feishuUrl: string,
+    priceYear: number,
+    priceMonth: number
+  ) => {
     try {
       setImporting(true);
 
@@ -27,7 +35,7 @@ export function useDataImport(platform: Platform) {
         dbVersion: 'v2',
         mappingConfigId: 'default',
         priceYear,
-        priceMonth
+        priceMonth,
       };
 
       const result = await importPerformanceFromFeishu(request);
@@ -39,7 +47,8 @@ export function useDataImport(platform: Platform) {
 
         // Toast 提示
         const failedCount = result.data.stats?.failed || 0;
-        const successCount = result.data.stats?.modified || result.data.stats?.valid || 0;
+        const successCount =
+          result.data.stats?.modified || result.data.stats?.valid || 0;
 
         if (failedCount > 0) {
           error(`导入完成：成功 ${successCount} 条，失败 ${failedCount} 条`);
@@ -73,6 +82,6 @@ export function useDataImport(platform: Platform) {
     importResult,
     showResult,
     importFromFeishu,
-    closeResult
+    closeResult,
   };
 }

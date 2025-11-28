@@ -12,7 +12,11 @@
 
 import { useNavigate } from 'react-router-dom';
 import { ProCard } from '@ant-design/pro-components';
-import { SettingOutlined, DatabaseOutlined, RightOutlined } from '@ant-design/icons';
+import {
+  SettingOutlined,
+  DatabaseOutlined,
+  RightOutlined,
+} from '@ant-design/icons';
 import { PageTransition } from '../../components/PageTransition';
 
 interface SettingItem {
@@ -49,11 +53,23 @@ export function SettingsHome() {
   const getStatusTag = (status: string) => {
     switch (status) {
       case 'active':
-        return <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">稳定</span>;
+        return (
+          <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">
+            稳定
+          </span>
+        );
       case 'beta':
-        return <span className="px-2 py-0.5 text-xs font-medium bg-primary-100 text-primary-700 rounded">Beta</span>;
+        return (
+          <span className="px-2 py-0.5 text-xs font-medium bg-primary-100 text-primary-700 rounded">
+            Beta
+          </span>
+        );
       case 'coming':
-        return <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">即将上线</span>;
+        return (
+          <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+            即将上线
+          </span>
+        );
       default:
         return null;
     }
@@ -72,7 +88,7 @@ export function SettingsHome() {
 
         {/* 设置项卡片网格 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {settingItems.map((item) => (
+          {settingItems.map(item => (
             <ProCard
               key={item.key}
               hoverable

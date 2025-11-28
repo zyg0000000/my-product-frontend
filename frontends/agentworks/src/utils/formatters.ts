@@ -15,7 +15,7 @@ export function formatPrice(cents: number): string {
   // 统一显示精确的元金额，带千分位符
   return `¥${yuan.toLocaleString('zh-CN', {
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: 0,
   })}`;
 }
 
@@ -28,7 +28,7 @@ export function formatPriceInYuan(cents: number): string {
   const yuan = cents / 100;
   return yuan.toLocaleString('zh-CN', {
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: 0,
   });
 }
 

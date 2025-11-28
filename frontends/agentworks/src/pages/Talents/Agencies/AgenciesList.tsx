@@ -13,15 +13,22 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
 import { Button, Tabs, Space, Tag, App } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, PercentageOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  PercentageOutlined,
+  ExclamationCircleOutlined,
+} from '@ant-design/icons';
 import type { Agency } from '../../../types/agency';
 import type { Platform } from '../../../types/talent';
 import { PLATFORM_NAMES } from '../../../types/talent';
-import { AGENCY_TYPE_NAMES, AGENCY_STATUS_NAMES, AGENCY_INDIVIDUAL_ID } from '../../../types/agency';
 import {
-  getAgencies,
-  deleteAgency,
-} from '../../../api/agency';
+  AGENCY_TYPE_NAMES,
+  AGENCY_STATUS_NAMES,
+  AGENCY_INDIVIDUAL_ID,
+} from '../../../types/agency';
+import { getAgencies, deleteAgency } from '../../../api/agency';
 import { getTalents } from '../../../api/talent';
 import { AgencyRebateModal } from '../../../components/AgencyRebateModal';
 import { AgencyFormModal } from '../../../components/AgencyFormModal';
@@ -40,7 +47,9 @@ export function AgenciesList() {
   const { getPlatformList } = usePlatformConfig(false);
   const platforms = getPlatformList();
 
-  const [selectedPlatform, setSelectedPlatform] = useState<Platform>(platforms[0] || 'douyin');
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform>(
+    platforms[0] || 'douyin'
+  );
 
   // 弹窗状态
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -73,7 +82,7 @@ export function AgenciesList() {
       const response = await getTalents({ platform: selectedPlatform });
       if (response.success && response.data) {
         const counts: Record<string, number> = {};
-        response.data.forEach((talent) => {
+        response.data.forEach(talent => {
           const agencyId = talent.agencyId || AGENCY_INDIVIDUAL_ID;
           counts[agencyId] = (counts[agencyId] || 0) + 1;
         });
@@ -115,7 +124,8 @@ export function AgenciesList() {
       modal.confirm({
         title: '编辑系统预设机构',
         icon: <ExclamationCircleOutlined />,
-        content: '野生达人是系统预设机构，修改将影响所有归属于野生达人的达人。确定要编辑吗？',
+        content:
+          '野生达人是系统预设机构，修改将影响所有归属于野生达人的达人。确定要编辑吗？',
         okText: '确认编辑',
         cancelText: '取消',
         onOk() {
@@ -181,127 +191,140 @@ export function AgenciesList() {
   };
 
   // ProTable 列定义
-  const columns: ProColumns<Agency>[] = useMemo(() => [
-    {
-      title: '机构名称',
-      dataIndex: 'name',
-      key: 'name',
-      width: 200,
-      fixed: 'left',
-      ellipsis: true,
-      render: (_, record) => (
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-gray-900">{record.name}</span>
-          {record.id === AGENCY_INDIVIDUAL_ID && (
-            <Tag color="purple" className="text-xs">系统预设</Tag>
-          )}
-        </div>
-      ),
-    },
-    {
-      title: '类型',
-      dataIndex: 'type',
-      key: 'type',
-      width: 100,
-      render: (_, record) => (
-        <Tag color={record.type === 'agency' ? 'blue' : 'default'}>
-          {AGENCY_TYPE_NAMES[record.type as keyof typeof AGENCY_TYPE_NAMES]}
-        </Tag>
-      ),
-    },
-    {
-      title: `${PLATFORM_NAMES[selectedPlatform]}返点`,
-      key: 'rebate',
-      width: 120,
-      render: (_, record) => {
-        const rebate = getPlatformRebate(record);
-        return rebate !== undefined ? (
-          <span className="font-medium text-green-600">{rebate.toFixed(2)}%</span>
-        ) : (
-          <span className="text-gray-400 text-xs">未配置</span>
-        );
+  const columns: ProColumns<Agency>[] = useMemo(
+    () => [
+      {
+        title: '机构名称',
+        dataIndex: 'name',
+        key: 'name',
+        width: 200,
+        fixed: 'left',
+        ellipsis: true,
+        render: (_, record) => (
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-gray-900">{record.name}</span>
+            {record.id === AGENCY_INDIVIDUAL_ID && (
+              <Tag color="purple" className="text-xs">
+                系统预设
+              </Tag>
+            )}
+          </div>
+        ),
       },
-    },
-    {
-      title: '达人数',
-      key: 'talentCount',
-      width: 100,
-      render: (_, record) => (
-        <span className="text-gray-900">{getTalentCount(record.id)}</span>
-      ),
-    },
-    {
-      title: '联系人',
-      key: 'contact',
-      width: 150,
-      render: (_, record) => (
-        <div className="text-sm">
-          <div className="text-gray-900">{record.contactInfo?.contactPerson || '-'}</div>
-          {record.contactInfo?.phoneNumber && (
-            <div className="text-xs text-gray-500">{record.contactInfo.phoneNumber}</div>
-          )}
-        </div>
-      ),
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      width: 100,
-      render: (_, record) => {
-        const colorMap = {
-          active: 'success',
-          suspended: 'warning',
-          inactive: 'default',
-        };
-        return (
-          <Tag color={colorMap[record.status as keyof typeof colorMap]}>
-            {AGENCY_STATUS_NAMES[record.status as keyof typeof AGENCY_STATUS_NAMES] || record.status}
+      {
+        title: '类型',
+        dataIndex: 'type',
+        key: 'type',
+        width: 100,
+        render: (_, record) => (
+          <Tag color={record.type === 'agency' ? 'blue' : 'default'}>
+            {AGENCY_TYPE_NAMES[record.type as keyof typeof AGENCY_TYPE_NAMES]}
           </Tag>
-        );
+        ),
       },
-    },
-    {
-      title: '操作',
-      key: 'actions',
-      width: 200,
-      fixed: 'right',
-      render: (_, record) => (
-        <Space size="small">
-          {record.id !== AGENCY_INDIVIDUAL_ID && (
+      {
+        title: `${PLATFORM_NAMES[selectedPlatform]}返点`,
+        key: 'rebate',
+        width: 120,
+        render: (_, record) => {
+          const rebate = getPlatformRebate(record);
+          return rebate !== undefined ? (
+            <span className="font-medium text-green-600">
+              {rebate.toFixed(2)}%
+            </span>
+          ) : (
+            <span className="text-gray-400 text-xs">未配置</span>
+          );
+        },
+      },
+      {
+        title: '达人数',
+        key: 'talentCount',
+        width: 100,
+        render: (_, record) => (
+          <span className="text-gray-900">{getTalentCount(record.id)}</span>
+        ),
+      },
+      {
+        title: '联系人',
+        key: 'contact',
+        width: 150,
+        render: (_, record) => (
+          <div className="text-sm">
+            <div className="text-gray-900">
+              {record.contactInfo?.contactPerson || '-'}
+            </div>
+            {record.contactInfo?.phoneNumber && (
+              <div className="text-xs text-gray-500">
+                {record.contactInfo.phoneNumber}
+              </div>
+            )}
+          </div>
+        ),
+      },
+      {
+        title: '状态',
+        dataIndex: 'status',
+        key: 'status',
+        width: 100,
+        render: (_, record) => {
+          const colorMap = {
+            active: 'success',
+            suspended: 'warning',
+            inactive: 'default',
+          };
+          return (
+            <Tag color={colorMap[record.status as keyof typeof colorMap]}>
+              {AGENCY_STATUS_NAMES[
+                record.status as keyof typeof AGENCY_STATUS_NAMES
+              ] || record.status}
+            </Tag>
+          );
+        },
+      },
+      {
+        title: '操作',
+        key: 'actions',
+        width: 200,
+        fixed: 'right',
+        render: (_, record) => (
+          <Space size="small">
+            {record.id !== AGENCY_INDIVIDUAL_ID && (
+              <Button
+                type="link"
+                size="small"
+                icon={<PercentageOutlined />}
+                onClick={() => handleRebateManagement(record)}
+                className="text-green-600 hover:text-green-700"
+              >
+                返点
+              </Button>
+            )}
             <Button
               type="link"
               size="small"
-              icon={<PercentageOutlined />}
-              onClick={() => handleRebateManagement(record)}
-              className="text-green-600 hover:text-green-700"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
             >
-              返点
+              编辑
             </Button>
-          )}
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          >
-            编辑
-          </Button>
-          {record.id !== AGENCY_INDIVIDUAL_ID && (
-            <Button
-              type="link"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record)}
-            >
-              删除
-            </Button>
-          )}
-        </Space>
-      ),
-    },
-  ], [selectedPlatform, talentCounts]);
+            {record.id !== AGENCY_INDIVIDUAL_ID && (
+              <Button
+                type="link"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => handleDelete(record)}
+              >
+                删除
+              </Button>
+            )}
+          </Space>
+        ),
+      },
+    ],
+    [selectedPlatform, talentCounts]
+  );
 
   return (
     <PageTransition>
@@ -317,7 +340,7 @@ export function AgenciesList() {
         {/* 平台 Tabs - Ant Design Tabs */}
         <Tabs
           activeKey={selectedPlatform}
-          onChange={(key) => setSelectedPlatform(key as Platform)}
+          onChange={key => setSelectedPlatform(key as Platform)}
           items={platforms.map(platform => ({
             key: platform,
             label: PLATFORM_NAMES[platform],
@@ -338,7 +361,7 @@ export function AgenciesList() {
               pageSize: 20,
               showSizeChanger: true,
               showQuickJumper: true,
-              showTotal: (total) => `共 ${total} 个机构`,
+              showTotal: total => `共 ${total} 个机构`,
             }}
             search={false}
             cardBordered
@@ -346,7 +369,9 @@ export function AgenciesList() {
               <div className="flex items-center gap-3">
                 <span className="font-medium">机构列表</span>
                 <div className="h-4 w-px bg-gray-300"></div>
-                <span className="text-sm text-gray-500">共 {agencies.length} 个机构</span>
+                <span className="text-sm text-gray-500">
+                  共 {agencies.length} 个机构
+                </span>
               </div>
             }
             toolbar={{
@@ -405,6 +430,6 @@ export function AgenciesList() {
           talentCount={agencyToDelete ? getTalentCount(agencyToDelete.id) : 0}
         />
       </div>
-    </PageTransition >
+    </PageTransition>
   );
 }

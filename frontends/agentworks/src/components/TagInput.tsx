@@ -40,7 +40,11 @@ export function TagInput({
         onChange([...selectedTags, newTag]);
       }
       setInputValue('');
-    } else if (e.key === 'Backspace' && !inputValue && selectedTags.length > 0) {
+    } else if (
+      e.key === 'Backspace' &&
+      !inputValue &&
+      selectedTags.length > 0
+    ) {
       // 删除最后一个标签
       onChange(selectedTags.slice(0, -1));
     }
@@ -128,7 +132,11 @@ export function TagInput({
 
       {/* 提示文本 */}
       <div className="text-xs text-gray-500">
-        💡 提示：输入自定义标签后按 <kbd className="px-1 py-0.5 bg-gray-100 border border-gray-300 rounded">Enter</kbd> 添加，或点击上方常用标签快速添加
+        💡 提示：输入自定义标签后按{' '}
+        <kbd className="px-1 py-0.5 bg-gray-100 border border-gray-300 rounded">
+          Enter
+        </kbd>{' '}
+        添加，或点击上方常用标签快速添加
       </div>
     </div>
   );

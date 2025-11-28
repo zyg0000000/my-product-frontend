@@ -44,10 +44,10 @@ export async function updateTalentRebate(
  * 获取返点历史记录参数
  */
 export interface GetRebateHistoryParams {
-  oneId: string;      // 达人唯一标识
+  oneId: string; // 达人唯一标识
   platform: Platform; // 平台名称
-  limit?: number;     // 每页记录数（默认 20，最大 100）
-  offset?: number;    // 偏移量（默认 0）
+  limit?: number; // 每页记录数（默认 20，最大 100）
+  offset?: number; // 偏移量（默认 0）
 }
 
 /**
@@ -94,10 +94,10 @@ export async function loadMoreRebateHistory(
  * 同步机构返点到达人参数
  */
 export interface SyncAgencyRebateRequest {
-  oneId: string;           // 达人唯一标识
-  platform: Platform;      // 平台名称
-  changeMode?: boolean;    // 是否同时切换模式到sync（可选）
-  createdBy?: string;      // 操作人（可选）
+  oneId: string; // 达人唯一标识
+  platform: Platform; // 平台名称
+  changeMode?: boolean; // 是否同时切换模式到sync（可选）
+  createdBy?: string; // 操作人（可选）
 }
 
 /**

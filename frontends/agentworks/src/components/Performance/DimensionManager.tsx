@@ -4,7 +4,20 @@
  */
 
 import { useState, useMemo } from 'react';
-import { Collapse, Button, Tag, Checkbox, Space, Tooltip, message, AutoComplete, Form, Input, Select, InputNumber } from 'antd';
+import {
+  Collapse,
+  Button,
+  Tag,
+  Checkbox,
+  Space,
+  Tooltip,
+  message,
+  AutoComplete,
+  Form,
+  Input,
+  Select,
+  InputNumber,
+} from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -14,7 +27,7 @@ import {
   LineChartOutlined,
   TeamOutlined,
   CalendarOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
 } from '@ant-design/icons';
 import { logger } from '../../utils/logger';
 import {
@@ -24,14 +37,14 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  type DragEndEvent
+  type DragEndEvent,
 } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
-  verticalListSortingStrategy
+  verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { DimensionConfig } from '../../api/performance';
@@ -65,16 +78,16 @@ const DEFAULT_CATEGORIES: CategoryConfig[] = [
   { name: '核心绩效', order: 2, icon: 'chart' },
   { name: '受众分析-性别', order: 3, icon: 'users' },
   { name: '受众分析-年龄', order: 4, icon: 'calendar' },
-  { name: '人群包分析', order: 5, icon: 'group' }
+  { name: '人群包分析', order: 5, icon: 'group' },
 ];
 
 // 分类图标映射
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  'user': <UserOutlined />,
-  'chart': <LineChartOutlined />,
-  'users': <TeamOutlined />,
-  'calendar': <CalendarOutlined />,
-  'group': <AppstoreOutlined />
+  user: <UserOutlined />,
+  chart: <LineChartOutlined />,
+  users: <TeamOutlined />,
+  calendar: <CalendarOutlined />,
+  group: <AppstoreOutlined />,
 };
 
 // 获取分类图标
@@ -89,7 +102,7 @@ const TYPE_COLORS: Record<string, string> = {
   number: 'green',
   percentage: 'purple',
   date: 'blue',
-  price: 'orange'
+  price: 'orange',
 };
 
 export function DimensionManager({
@@ -100,12 +113,13 @@ export function DimensionManager({
   onUpdate,
   onDelete,
   onReorder,
-  onBatchUpdate
+  onBatchUpdate,
 }: DimensionManagerProps) {
   // 使用传入的分类配置，如果没有则使用默认值
-  const categoryOptions = (categories && categories.length > 0)
-    ? [...categories].sort((a, b) => a.order - b.order)
-    : DEFAULT_CATEGORIES;
+  const categoryOptions =
+    categories && categories.length > 0
+      ? [...categories].sort((a, b) => a.order - b.order)
+      : DEFAULT_CATEGORIES;
 
   // 使用平台配置 Hook 获取价格类型
   const { getPlatformPriceTypes } = usePlatformConfig(true);
@@ -114,7 +128,8 @@ export function DimensionManager({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);
-  const [editingDimension, setEditingDimension] = useState<DimensionConfig | null>(null);
+  const [editingDimension, setEditingDimension] =
+    useState<DimensionConfig | null>(null);
 
   // 使用批量编辑 Hook
   const {
@@ -123,20 +138,20 @@ export function DimensionManager({
     saving,
     updateItems,
     saveChanges,
-    cancelChanges
+    cancelChanges,
   } = useBatchEdit({
     initialData: dimensions,
-    onSave: async (updatedDimensions) => {
+    onSave: async updatedDimensions => {
       // 一次性批量更新所有变更，避免逐个请求导致状态不同步
       await onBatchUpdate(updatedDimensions);
-    }
+    },
   });
 
   // 切换单个维度可见性（仅本地状态）
   const handleToggleVisibilityLocal = (dimensionId: string) => {
     updateItems(
-      (d) => d.id === dimensionId,
-      (d) => ({ ...d, defaultVisible: !d.defaultVisible })
+      d => d.id === dimensionId,
+      d => ({ ...d, defaultVisible: !d.defaultVisible })
     );
   };
 
@@ -175,8 +190,8 @@ export function DimensionManager({
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = dimensions.findIndex((d) => d.id === active.id);
-      const newIndex = dimensions.findIndex((d) => d.id === over.id);
+      const oldIndex = dimensions.findIndex(d => d.id === active.id);
+      const newIndex = dimensions.findIndex(d => d.id === over.id);
 
       const reorderedDimensions = arrayMove(dimensions, oldIndex, newIndex);
       await onReorder(reorderedDimensions);
@@ -194,7 +209,7 @@ export function DimensionManager({
       defaultVisible: true,
       sortable: true,
       width: 120,
-      order: dimensions.length
+      order: dimensions.length,
     });
     setIsAdding(true);
   };
@@ -260,38 +275,41 @@ export function DimensionManager({
           </div>
         </div>
       ),
-      children: dims.length > 0 ? (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={dims.map(d => d.id)}
-            strategy={verticalListSortingStrategy}
+      children:
+        dims.length > 0 ? (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
           >
-            <div className="space-y-2">
-              {dims.map((dimension) => {
-                const originalIndex = dimensions.findIndex(d => d.id === dimension.id);
-                return (
-                  <SortableDimensionCard
-                    key={dimension.id}
-                    dimension={dimension}
-                    index={originalIndex}
-                    onEdit={handleEdit}
-                    onDelete={setDeletingIndex}
-                    onToggleVisibility={handleToggleVisibilityLocal}
-                  />
-                );
-              })}
-            </div>
-          </SortableContext>
-        </DndContext>
-      ) : (
-        <div className="text-center py-8 text-gray-400">
-          此分类暂无维度配置
-        </div>
-      )
+            <SortableContext
+              items={dims.map(d => d.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-2">
+                {dims.map(dimension => {
+                  const originalIndex = dimensions.findIndex(
+                    d => d.id === dimension.id
+                  );
+                  return (
+                    <SortableDimensionCard
+                      key={dimension.id}
+                      dimension={dimension}
+                      index={originalIndex}
+                      onEdit={handleEdit}
+                      onDelete={setDeletingIndex}
+                      onToggleVisibility={handleToggleVisibilityLocal}
+                    />
+                  );
+                })}
+              </div>
+            </SortableContext>
+          </DndContext>
+        ) : (
+          <div className="text-center py-8 text-gray-400">
+            此分类暂无维度配置
+          </div>
+        ),
     };
   });
 
@@ -325,8 +343,10 @@ export function DimensionManager({
             strategy={verticalListSortingStrategy}
           >
             <div className="space-y-2">
-              {dims.map((dimension) => {
-                const originalIndex = dimensions.findIndex(d => d.id === dimension.id);
+              {dims.map(dimension => {
+                const originalIndex = dimensions.findIndex(
+                  d => d.id === dimension.id
+                );
                 return (
                   <SortableDimensionCard
                     key={dimension.id}
@@ -341,7 +361,7 @@ export function DimensionManager({
             </div>
           </SortableContext>
         </DndContext>
-      )
+      ),
     });
   }
 
@@ -362,11 +382,7 @@ export function DimensionManager({
             onSave={saveChanges}
             onCancel={cancelChanges}
           />
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAdd}
-          >
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
             添加维度
           </Button>
         </Space>
@@ -374,7 +390,8 @@ export function DimensionManager({
 
       {/* 提示 */}
       <div className="bg-primary-50 border border-primary-200 rounded-md p-3 text-sm text-primary-800">
-        <strong>提示：</strong>拖动左侧的排序图标可以调整维度的显示顺序，点击分类展开/折叠
+        <strong>提示：</strong>
+        拖动左侧的排序图标可以调整维度的显示顺序，点击分类展开/折叠
       </div>
 
       {/* 分类折叠面板 */}
@@ -425,7 +442,7 @@ function SortableDimensionCard({
   index,
   onEdit,
   onDelete,
-  onToggleVisibility
+  onToggleVisibility,
 }: {
   dimension: DimensionConfig;
   index: number;
@@ -473,14 +490,21 @@ function SortableDimensionCard({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-medium text-gray-900">{dimension.name}</span>
-          <Tag color={TYPE_COLORS[dimension.type] || 'default'} className="text-xs">
+          <Tag
+            color={TYPE_COLORS[dimension.type] || 'default'}
+            className="text-xs"
+          >
             {dimension.type}
           </Tag>
           {dimension.pinned && (
-            <Tag color="orange" className="text-xs">固定</Tag>
+            <Tag color="orange" className="text-xs">
+              固定
+            </Tag>
           )}
           {dimension.filterable && (
-            <Tag color="cyan" className="text-xs">可筛选</Tag>
+            <Tag color="cyan" className="text-xs">
+              可筛选
+            </Tag>
           )}
         </div>
         <div className="text-xs text-gray-500 font-mono truncate mt-1">
@@ -537,7 +561,7 @@ function DimensionEditForm({
   priceTypes,
   onChange,
   onSave,
-  onCancel
+  onCancel,
 }: {
   dimension: DimensionConfig;
   isAdding: boolean;
@@ -550,15 +574,33 @@ function DimensionEditForm({
   const [activeTab, setActiveTab] = useState<EditTab>('basic');
 
   const tabs: { key: EditTab; label: string; icon: string }[] = [
-    { key: 'basic', label: '基础信息', icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { key: 'display', label: '显示设置', icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' },
-    { key: 'filter', label: '筛选配置', icon: 'M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z' }
+    {
+      key: 'basic',
+      label: '基础信息',
+      icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+    },
+    {
+      key: 'display',
+      label: '显示设置',
+      icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z',
+    },
+    {
+      key: 'filter',
+      label: '筛选配置',
+      icon: 'M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z',
+    },
   ];
 
   const filterOptionsStr = dimension.filterOptions?.join(', ') || '';
   const handleFilterOptionsChange = (value: string) => {
-    const options = value.split(',').map(s => s.trim()).filter(Boolean);
-    onChange({ ...dimension, filterOptions: options.length > 0 ? options : undefined });
+    const options = value
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+    onChange({
+      ...dimension,
+      filterOptions: options.length > 0 ? options : undefined,
+    });
   };
 
   return (
@@ -576,8 +618,18 @@ function DimensionEditForm({
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={tab.icon} />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d={tab.icon}
+                />
               </svg>
               {tab.label}
               {tab.key === 'filter' && dimension.filterable && (
@@ -599,7 +651,7 @@ function DimensionEditForm({
             >
               <Input
                 value={dimension.id}
-                onChange={(e) => onChange({ ...dimension, id: e.target.value })}
+                onChange={e => onChange({ ...dimension, id: e.target.value })}
                 disabled={!isAdding}
                 placeholder="例如: cpm"
               />
@@ -608,16 +660,22 @@ function DimensionEditForm({
             <Form.Item label="维度名称" required>
               <Input
                 value={dimension.name}
-                onChange={(e) => onChange({ ...dimension, name: e.target.value })}
+                onChange={e => onChange({ ...dimension, name: e.target.value })}
                 placeholder="例如: CPM"
               />
             </Form.Item>
 
-            <Form.Item label="分类" tooltip="可从下拉列表选择，或直接输入新的分类名称">
+            <Form.Item
+              label="分类"
+              tooltip="可从下拉列表选择，或直接输入新的分类名称"
+            >
               <AutoComplete
                 value={dimension.category}
-                onChange={(value) => onChange({ ...dimension, category: value })}
-                options={categoryOptions.map(cat => ({ value: cat.name, label: cat.name }))}
+                onChange={value => onChange({ ...dimension, category: value })}
+                options={categoryOptions.map(cat => ({
+                  value: cat.name,
+                  label: cat.name,
+                }))}
                 placeholder="选择或输入新分类"
                 allowClear
               />
@@ -626,7 +684,9 @@ function DimensionEditForm({
             <Form.Item label="目标字段路径" required>
               <Input
                 value={dimension.targetPath}
-                onChange={(e) => onChange({ ...dimension, targetPath: e.target.value })}
+                onChange={e =>
+                  onChange({ ...dimension, targetPath: e.target.value })
+                }
                 placeholder="例如: metrics.cpm"
                 style={{ fontFamily: 'monospace' }}
               />
@@ -635,7 +695,7 @@ function DimensionEditForm({
             <Form.Item label="数据类型">
               <Select
                 value={dimension.type}
-                onChange={(value) => onChange({ ...dimension, type: value })}
+                onChange={value => onChange({ ...dimension, type: value })}
                 options={[
                   { value: 'text', label: '文本 (text)' },
                   { value: 'number', label: '数字 (number)' },
@@ -646,16 +706,24 @@ function DimensionEditForm({
               />
             </Form.Item>
 
-            <Form.Item label="数据来源" tooltip="指定从哪个集合读取此维度的数据">
+            <Form.Item
+              label="数据来源"
+              tooltip="指定从哪个集合读取此维度的数据"
+            >
               <Select
                 value={dimension.targetCollection || 'talents'}
-                onChange={(value) => onChange({
-                  ...dimension,
-                  targetCollection: value as 'talents' | 'talent_performance'
-                })}
+                onChange={value =>
+                  onChange({
+                    ...dimension,
+                    targetCollection: value as 'talents' | 'talent_performance',
+                  })
+                }
                 options={[
                   { value: 'talents', label: '达人主表 (talents)' },
-                  { value: 'talent_performance', label: '表现数据 (talent_performance)' },
+                  {
+                    value: 'talent_performance',
+                    label: '表现数据 (talent_performance)',
+                  },
                 ]}
               />
             </Form.Item>
@@ -664,11 +732,13 @@ function DimensionEditForm({
               <Form.Item label="价格类型" required>
                 <Select
                   value={dimension.priceType || undefined}
-                  onChange={(value) => onChange({ ...dimension, priceType: value })}
+                  onChange={value =>
+                    onChange({ ...dimension, priceType: value })
+                  }
                   placeholder="请选择价格类型"
                   options={priceTypes.map(pt => ({
                     value: pt.key,
-                    label: `${pt.label} (${pt.key})`
+                    label: `${pt.label} (${pt.key})`,
                   }))}
                 />
               </Form.Item>
@@ -682,7 +752,9 @@ function DimensionEditForm({
             <Form.Item label="列宽（像素）">
               <InputNumber
                 value={dimension.width}
-                onChange={(value) => onChange({ ...dimension, width: value || 120 })}
+                onChange={value =>
+                  onChange({ ...dimension, width: value || 120 })
+                }
                 min={80}
                 max={400}
                 style={{ width: '100%' }}
@@ -693,21 +765,27 @@ function DimensionEditForm({
               <Space direction="vertical" className="w-full">
                 <Checkbox
                   checked={dimension.defaultVisible || false}
-                  onChange={(e) => onChange({ ...dimension, defaultVisible: e.target.checked })}
+                  onChange={e =>
+                    onChange({ ...dimension, defaultVisible: e.target.checked })
+                  }
                 >
                   默认显示（在列表页面默认显示此维度）
                 </Checkbox>
 
                 <Checkbox
                   checked={dimension.sortable !== false}
-                  onChange={(e) => onChange({ ...dimension, sortable: e.target.checked })}
+                  onChange={e =>
+                    onChange({ ...dimension, sortable: e.target.checked })
+                  }
                 >
                   可排序（允许用户点击列头排序）
                 </Checkbox>
 
                 <Checkbox
                   checked={dimension.pinned || false}
-                  onChange={(e) => onChange({ ...dimension, pinned: e.target.checked })}
+                  onChange={e =>
+                    onChange({ ...dimension, pinned: e.target.checked })
+                  }
                 >
                   固定在左侧（不受横向滚动影响，始终可见）
                 </Checkbox>
@@ -720,20 +798,29 @@ function DimensionEditForm({
         {activeTab === 'filter' && (
           <Form layout="vertical" className="space-y-4">
             <div className="bg-primary-50 border border-primary-200 rounded-md p-3 text-sm text-primary-800">
-              <strong>提示：</strong>启用筛选后，此维度将出现在 Performance 页面的筛选面板中
+              <strong>提示：</strong>启用筛选后，此维度将出现在 Performance
+              页面的筛选面板中
             </div>
 
             <Form.Item>
               <Checkbox
                 checked={dimension.filterable || false}
-                onChange={(e) => onChange({
-                  ...dimension,
-                  filterable: e.target.checked,
-                  filterType: e.target.checked ? (dimension.filterType || 'text') : undefined,
-                  filterOrder: e.target.checked ? (dimension.filterOrder || 1) : undefined
-                })}
+                onChange={e =>
+                  onChange({
+                    ...dimension,
+                    filterable: e.target.checked,
+                    filterType: e.target.checked
+                      ? dimension.filterType || 'text'
+                      : undefined,
+                    filterOrder: e.target.checked
+                      ? dimension.filterOrder || 1
+                      : undefined,
+                  })
+                }
               >
-                <span className="font-medium">启用筛选（允许用户通过此维度筛选数据）</span>
+                <span className="font-medium">
+                  启用筛选（允许用户通过此维度筛选数据）
+                </span>
               </Checkbox>
             </Form.Item>
 
@@ -742,18 +829,25 @@ function DimensionEditForm({
                 <Form.Item
                   label="筛选器类型"
                   tooltip={
-                    dimension.filterType === 'text' ? '适用于名称、ID等文本字段' :
-                    dimension.filterType === 'range' ? '适用于数字、百分比等数值字段' :
-                    '适用于层级、状态等固定选项字段'
+                    dimension.filterType === 'text'
+                      ? '适用于名称、ID等文本字段'
+                      : dimension.filterType === 'range'
+                        ? '适用于数字、百分比等数值字段'
+                        : '适用于层级、状态等固定选项字段'
                   }
                 >
                   <Select
                     value={dimension.filterType || 'text'}
-                    onChange={(value) => onChange({
-                      ...dimension,
-                      filterType: value as 'text' | 'range' | 'enum',
-                      filterOptions: value === 'enum' ? dimension.filterOptions : undefined
-                    })}
+                    onChange={value =>
+                      onChange({
+                        ...dimension,
+                        filterType: value as 'text' | 'range' | 'enum',
+                        filterOptions:
+                          value === 'enum'
+                            ? dimension.filterOptions
+                            : undefined,
+                      })
+                    }
                     options={[
                       { value: 'text', label: '文本搜索（输入框模糊匹配）' },
                       { value: 'range', label: '数值区间（最小值-最大值）' },
@@ -762,10 +856,15 @@ function DimensionEditForm({
                   />
                 </Form.Item>
 
-                <Form.Item label="筛选面板排序" tooltip="数字越小，在筛选面板中显示越靠前">
+                <Form.Item
+                  label="筛选面板排序"
+                  tooltip="数字越小，在筛选面板中显示越靠前"
+                >
                   <InputNumber
                     value={dimension.filterOrder || 1}
-                    onChange={(value) => onChange({ ...dimension, filterOrder: value || 1 })}
+                    onChange={value =>
+                      onChange({ ...dimension, filterOrder: value || 1 })
+                    }
                     min={1}
                     style={{ width: '100%' }}
                   />
@@ -779,16 +878,17 @@ function DimensionEditForm({
                   >
                     <Input
                       value={filterOptionsStr}
-                      onChange={(e) => handleFilterOptionsChange(e.target.value)}
+                      onChange={e => handleFilterOptionsChange(e.target.value)}
                       placeholder="头部, 腰部, 尾部"
                     />
-                    {dimension.filterOptions && dimension.filterOptions.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {dimension.filterOptions.map((opt, idx) => (
-                          <Tag key={idx}>{opt}</Tag>
-                        ))}
-                      </div>
-                    )}
+                    {dimension.filterOptions &&
+                      dimension.filterOptions.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {dimension.filterOptions.map((opt, idx) => (
+                            <Tag key={idx}>{opt}</Tag>
+                          ))}
+                        </div>
+                      )}
                   </Form.Item>
                 )}
               </div>
@@ -801,7 +901,9 @@ function DimensionEditForm({
       <Form.Item className="mb-0 pt-4 border-t">
         <Space className="w-full justify-end">
           <Button onClick={onCancel}>取消</Button>
-          <Button type="primary" onClick={onSave}>保存</Button>
+          <Button type="primary" onClick={onSave}>
+            保存
+          </Button>
         </Space>
       </Form.Item>
     </div>

@@ -25,7 +25,7 @@ import { PageHeader } from '../../../components/PageHeader';
 // 获取所有平台（包括预留的）
 const TALENT_PLATFORMS_ALL = [
   { key: 'douyin', name: '抖音', fee: 0.05, enabled: true },
-  { key: 'xiaohongshu', name: '小红书', fee: 0.10, enabled: true },
+  { key: 'xiaohongshu', name: '小红书', fee: 0.1, enabled: true },
   { key: 'shipinhao', name: '视频号', fee: null, enabled: false },
   { key: 'bilibili', name: 'B站', fee: null, enabled: false },
   { key: 'weibo', name: '微博', fee: null, enabled: false },
@@ -39,14 +39,16 @@ const getDefaultPlatformConfig = (platformKey: string) => {
   return {
     enabled: false,
     platformFeeRate: platform?.fee || 0,
-    discountRate: 1.0,  // 默认 100%
-    serviceFeeRate: 0,  // 默认 0%
+    discountRate: 1.0, // 默认 100%
+    serviceFeeRate: 0, // 默认 0%
     validFrom: null as string | null,
     validTo: null as string | null,
     includesPlatformFee: false,
     serviceFeeBase: 'beforeDiscount' as 'beforeDiscount' | 'afterDiscount',
     includesTax: true,
-    taxCalculationBase: 'excludeServiceFee' as 'excludeServiceFee' | 'includeServiceFee',
+    taxCalculationBase: 'excludeServiceFee' as
+      | 'excludeServiceFee'
+      | 'includeServiceFee',
   };
 };
 
@@ -114,14 +116,15 @@ export default function PricingStrategy() {
               loadedPlatformFees[p.key] = {
                 enabled: savedConfig.enabled || false,
                 platformFeeRate: savedConfig.platformFeeRate || p.fee || 0,
-                discountRate: savedConfig.discountRate ?? 1.0,  // 默认 100%
-                serviceFeeRate: savedConfig.serviceFeeRate ?? 0,  // 默认 0%
+                discountRate: savedConfig.discountRate ?? 1.0, // 默认 100%
+                serviceFeeRate: savedConfig.serviceFeeRate ?? 0, // 默认 0%
                 validFrom: savedConfig.validFrom || null,
                 validTo: savedConfig.validTo || null,
                 includesPlatformFee: savedConfig.includesPlatformFee || false,
                 serviceFeeBase: savedConfig.serviceFeeBase || 'beforeDiscount',
                 includesTax: savedConfig.includesTax ?? true,
-                taxCalculationBase: savedConfig.taxCalculationBase || 'excludeServiceFee',
+                taxCalculationBase:
+                  savedConfig.taxCalculationBase || 'excludeServiceFee',
               };
             } else {
               loadedPlatformFees[p.key] = getDefaultPlatformConfig(p.key);
@@ -157,7 +160,8 @@ export default function PricingStrategy() {
 
         let serviceFeeAmount;
         if (config.serviceFeeBase === 'beforeDiscount') {
-          serviceFeeAmount = (baseAmount + platformFeeAmount) * (config.serviceFeeRate || 0);
+          serviceFeeAmount =
+            (baseAmount + platformFeeAmount) * (config.serviceFeeRate || 0);
         } else {
           serviceFeeAmount = discountedAmount * (config.serviceFeeRate || 0);
         }
@@ -203,7 +207,12 @@ export default function PricingStrategy() {
       const coefficient = Number(data.coefficient);
 
       // 严格校验：必须是有效数字，且在合理范围内
-      if (!isNaN(coefficient) && isFinite(coefficient) && coefficient > 0 && coefficient < 10) {
+      if (
+        !isNaN(coefficient) &&
+        isFinite(coefficient) &&
+        coefficient > 0 &&
+        coefficient < 10
+      ) {
         paymentCoefficients[platform] = Number(coefficient.toFixed(4));
       } else {
         console.error(`Invalid coefficient for ${platform}:`, data.coefficient);
@@ -221,7 +230,7 @@ export default function PricingStrategy() {
       enabled: true,
       pricingModel: values.pricingModel || 'framework',
       platformFees: platformFees,
-      paymentCoefficients: paymentCoefficients,  // 保存计算出的支付系数（仅当前快照）
+      paymentCoefficients: paymentCoefficients, // 保存计算出的支付系数（仅当前快照）
     };
 
     try {
@@ -300,11 +309,15 @@ export default function PricingStrategy() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-96">加载中...</div>;
+    return (
+      <div className="flex items-center justify-center h-96">加载中...</div>
+    );
   }
 
   // 当前选中平台的配置
-  const currentConfig = platformFees[selectedPlatform] || getDefaultPlatformConfig(selectedPlatform);
+  const currentConfig =
+    platformFees[selectedPlatform] ||
+    getDefaultPlatformConfig(selectedPlatform);
   const currentPlatformInfo = getPlatformByKey(selectedPlatform);
 
   // Tab 配置
@@ -315,7 +328,9 @@ export default function PricingStrategy() {
         <span>
           达人采买
           {customer?.businessStrategies?.talentProcurement?.enabled && (
-            <Tag color="blue" className="ml-2">已配置</Tag>
+            <Tag color="blue" className="ml-2">
+              已配置
+            </Tag>
           )}
         </span>
       ),
@@ -326,9 +341,13 @@ export default function PricingStrategy() {
         <span>
           广告投流
           {customer?.businessStrategies?.adPlacement?.enabled && (
-            <Tag color="orange" className="ml-2">已配置</Tag>
+            <Tag color="orange" className="ml-2">
+              已配置
+            </Tag>
           )}
-          <Tag color="default" className="ml-2">开发中</Tag>
+          <Tag color="default" className="ml-2">
+            开发中
+          </Tag>
         </span>
       ),
     },
@@ -338,9 +357,13 @@ export default function PricingStrategy() {
         <span>
           内容制作
           {customer?.businessStrategies?.contentProduction?.enabled && (
-            <Tag color="purple" className="ml-2">已配置</Tag>
+            <Tag color="purple" className="ml-2">
+              已配置
+            </Tag>
           )}
-          <Tag color="default" className="ml-2">开发中</Tag>
+          <Tag color="default" className="ml-2">
+            开发中
+          </Tag>
         </span>
       ),
     },
@@ -357,20 +380,18 @@ export default function PricingStrategy() {
 
       {/* 业务类型 Tabs */}
       <ProCard>
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          items={tabItems}
-        />
+        <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
 
         {/* 达人采买业务配置 */}
         {activeTab === 'talentProcurement' && (
           <ProForm
             initialValues={{
-              pricingModel: customer?.businessStrategies?.talentProcurement?.pricingModel || 'framework',
+              pricingModel:
+                customer?.businessStrategies?.talentProcurement?.pricingModel ||
+                'framework',
             }}
             onFinish={handleSubmit}
-            onValuesChange={(changed) => {
+            onValuesChange={changed => {
               if (changed.pricingModel) {
                 setCurrentPricingModel(changed.pricingModel);
                 calculateCoefficients(changed.pricingModel, platformFees);
@@ -406,8 +427,12 @@ export default function PricingStrategy() {
                   />
                 </div>
                 <div className="text-sm text-primary-600 flex items-center gap-2">
-                  <span className="text-2xl">{getPricingModeInfo(currentPricingModel).statusIcon}</span>
-                  <span>{getPricingModeInfo(currentPricingModel).description}</span>
+                  <span className="text-2xl">
+                    {getPricingModeInfo(currentPricingModel).statusIcon}
+                  </span>
+                  <span>
+                    {getPricingModeInfo(currentPricingModel).description}
+                  </span>
                 </div>
               </div>
             </ProCard>
@@ -415,7 +440,9 @@ export default function PricingStrategy() {
             {/* 项目比价模式：只显示说明 */}
             {currentPricingModel === 'project' && (
               <div className="text-center py-12 bg-primary-50 border border-primary-200 rounded-lg">
-                <div className="text-primary-900 font-semibold mb-2">项目比价模式</div>
+                <div className="text-primary-900 font-semibold mb-2">
+                  项目比价模式
+                </div>
                 <div className="text-sm text-primary-700">
                   项目比价模式下无需预设配置。创建项目时，请在合作明细中手动填写对客报价。
                 </div>
@@ -423,220 +450,283 @@ export default function PricingStrategy() {
             )}
 
             {/* 框架折扣/混合模式：显示平台配置 */}
-            {(currentPricingModel === 'framework' || currentPricingModel === 'hybrid') && (
+            {(currentPricingModel === 'framework' ||
+              currentPricingModel === 'hybrid') && (
               <>
-            {/* 平台配置卡片（融合选择器） */}
-            <ProCard
-              title="平台配置"
-              headerBordered
-              className="mb-4"
-              extra={
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-gray-500">选择平台:</span>
-                  <Select
-                    value={selectedPlatform}
-                    onChange={setSelectedPlatform}
-                    options={TALENT_PLATFORMS_ALL.map(p => ({
-                      value: p.key,
-                      label: p.name,
-                      disabled: !p.enabled && p.fee === null,
-                    }))}
-                    style={{ width: 150 }}
-                  />
-                  <span className="text-sm text-gray-400 mx-2">|</span>
-                  <span className="text-sm text-gray-500">启用</span>
-                  <ProFormSwitch
-                    name={`${selectedPlatform}Enabled`}
-                    noStyle
-                    fieldProps={{
-                      checked: currentConfig.enabled,
-                      onChange: (checked) => updateCurrentPlatformConfig('enabled', checked),
-                    }}
-                  />
-                </div>
-              }
-            >
-              <div className="space-y-4">
-                {/* 第一行：基础配置（4列） */}
-                <div className="grid grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">折扣率 (%)</label>
-                    <ProFormDigit
-                      name={`${selectedPlatform}DiscountRate`}
-                      noStyle
-                      min={0}
-                      max={100}
-                      fieldProps={{
-                        precision: 2,
-                        value: Number(((currentConfig.discountRate || 0) * 100).toFixed(2)),
-                        onChange: (val) => updateCurrentPlatformConfig('discountRate', (val || 0) / 100),
-                        disabled: !currentConfig.enabled,
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">服务费率 (%)</label>
-                    <ProFormDigit
-                      name={`${selectedPlatform}ServiceFeeRate`}
-                      noStyle
-                      min={0}
-                      max={100}
-                      fieldProps={{
-                        precision: 2,
-                        value: Number(((currentConfig.serviceFeeRate || 0) * 100).toFixed(2)),
-                        onChange: (val) => updateCurrentPlatformConfig('serviceFeeRate', (val || 0) / 100),
-                        disabled: !currentConfig.enabled,
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">有效期</label>
-                    <ProFormDateRangePicker
-                      name={`${selectedPlatform}ValidPeriod`}
-                      noStyle
-                      placeholder={['开始', '结束']}
-                      fieldProps={{
-                        format: 'YYYY-MM-DD',
-                        value: currentConfig.validFrom && currentConfig.validTo
-                          ? [dayjs(currentConfig.validFrom), dayjs(currentConfig.validTo)]
-                          : undefined,
-                        onChange: (dates: any) => {
-                          if (dates && dates[0] && dates[1]) {
-                            const validFrom = dates[0].format('YYYY-MM-DD');
-                            const validTo = dates[1].format('YYYY-MM-DD');
-                            setPlatformFees(prev => ({
-                              ...prev,
-                              [selectedPlatform]: {
-                                ...prev[selectedPlatform],
-                                validFrom,
-                                validTo,
-                              },
-                            }));
-                            calculateCoefficients(currentPricingModel, {
-                              ...platformFees,
-                              [selectedPlatform]: {
-                                ...platformFees[selectedPlatform],
-                                validFrom,
-                                validTo,
-                              },
-                            });
-                          } else {
-                            setPlatformFees(prev => ({
-                              ...prev,
-                              [selectedPlatform]: {
-                                ...prev[selectedPlatform],
-                                validFrom: null,
-                                validTo: null,
-                              },
-                            }));
-                          }
-                        },
-                        disabled: !currentConfig.enabled,
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">平台费</label>
-                    <div className="h-8 flex items-center">
-                      <Tag color="blue">{((currentPlatformInfo?.fee || 0) * 100).toFixed(0)}% (固定)</Tag>
+                {/* 平台配置卡片（融合选择器） */}
+                <ProCard
+                  title="平台配置"
+                  headerBordered
+                  className="mb-4"
+                  extra={
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm text-gray-500">选择平台:</span>
+                      <Select
+                        value={selectedPlatform}
+                        onChange={setSelectedPlatform}
+                        options={TALENT_PLATFORMS_ALL.map(p => ({
+                          value: p.key,
+                          label: p.name,
+                          disabled: !p.enabled && p.fee === null,
+                        }))}
+                        style={{ width: 150 }}
+                      />
+                      <span className="text-sm text-gray-400 mx-2">|</span>
+                      <span className="text-sm text-gray-500">启用</span>
+                      <ProFormSwitch
+                        name={`${selectedPlatform}Enabled`}
+                        noStyle
+                        fieldProps={{
+                          checked: currentConfig.enabled,
+                          onChange: checked =>
+                            updateCurrentPlatformConfig('enabled', checked),
+                        }}
+                      />
+                    </div>
+                  }
+                >
+                  <div className="space-y-4">
+                    {/* 第一行：基础配置（4列） */}
+                    <div className="grid grid-cols-4 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          折扣率 (%)
+                        </label>
+                        <ProFormDigit
+                          name={`${selectedPlatform}DiscountRate`}
+                          noStyle
+                          min={0}
+                          max={100}
+                          fieldProps={{
+                            precision: 2,
+                            value: Number(
+                              ((currentConfig.discountRate || 0) * 100).toFixed(
+                                2
+                              )
+                            ),
+                            onChange: val =>
+                              updateCurrentPlatformConfig(
+                                'discountRate',
+                                (val || 0) / 100
+                              ),
+                            disabled: !currentConfig.enabled,
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          服务费率 (%)
+                        </label>
+                        <ProFormDigit
+                          name={`${selectedPlatform}ServiceFeeRate`}
+                          noStyle
+                          min={0}
+                          max={100}
+                          fieldProps={{
+                            precision: 2,
+                            value: Number(
+                              (
+                                (currentConfig.serviceFeeRate || 0) * 100
+                              ).toFixed(2)
+                            ),
+                            onChange: val =>
+                              updateCurrentPlatformConfig(
+                                'serviceFeeRate',
+                                (val || 0) / 100
+                              ),
+                            disabled: !currentConfig.enabled,
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          有效期
+                        </label>
+                        <ProFormDateRangePicker
+                          name={`${selectedPlatform}ValidPeriod`}
+                          noStyle
+                          placeholder={['开始', '结束']}
+                          fieldProps={{
+                            format: 'YYYY-MM-DD',
+                            value:
+                              currentConfig.validFrom && currentConfig.validTo
+                                ? [
+                                    dayjs(currentConfig.validFrom),
+                                    dayjs(currentConfig.validTo),
+                                  ]
+                                : undefined,
+                            onChange: (dates: any) => {
+                              if (dates && dates[0] && dates[1]) {
+                                const validFrom = dates[0].format('YYYY-MM-DD');
+                                const validTo = dates[1].format('YYYY-MM-DD');
+                                setPlatformFees(prev => ({
+                                  ...prev,
+                                  [selectedPlatform]: {
+                                    ...prev[selectedPlatform],
+                                    validFrom,
+                                    validTo,
+                                  },
+                                }));
+                                calculateCoefficients(currentPricingModel, {
+                                  ...platformFees,
+                                  [selectedPlatform]: {
+                                    ...platformFees[selectedPlatform],
+                                    validFrom,
+                                    validTo,
+                                  },
+                                });
+                              } else {
+                                setPlatformFees(prev => ({
+                                  ...prev,
+                                  [selectedPlatform]: {
+                                    ...prev[selectedPlatform],
+                                    validFrom: null,
+                                    validTo: null,
+                                  },
+                                }));
+                              }
+                            },
+                            disabled: !currentConfig.enabled,
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          平台费
+                        </label>
+                        <div className="h-8 flex items-center">
+                          <Tag color="blue">
+                            {((currentPlatformInfo?.fee || 0) * 100).toFixed(0)}
+                            % (固定)
+                          </Tag>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 第二行：配置选项（4列统一） */}
+                    <div className="grid grid-cols-4 gap-4 pt-3">
+                      <ProFormRadio.Group
+                        name={`${selectedPlatform}IncludesPlatformFee`}
+                        label="折扣包含平台费"
+                        fieldProps={{
+                          value: currentConfig.includesPlatformFee,
+                          onChange: e =>
+                            updateCurrentPlatformConfig(
+                              'includesPlatformFee',
+                              e.target.value
+                            ),
+                          disabled: !currentConfig.enabled,
+                        }}
+                        options={[
+                          { label: '不含', value: false },
+                          { label: '含', value: true },
+                        ]}
+                      />
+                      <ProFormRadio.Group
+                        name={`${selectedPlatform}ServiceFeeBase`}
+                        label="服务费计算基准"
+                        fieldProps={{
+                          value: currentConfig.serviceFeeBase,
+                          onChange: e =>
+                            updateCurrentPlatformConfig(
+                              'serviceFeeBase',
+                              e.target.value
+                            ),
+                          disabled: !currentConfig.enabled,
+                        }}
+                        options={[
+                          { label: '折扣前', value: 'beforeDiscount' },
+                          { label: '折扣后', value: 'afterDiscount' },
+                        ]}
+                      />
+                      <ProFormRadio.Group
+                        name={`${selectedPlatform}IncludesTax`}
+                        label="报价税费设置"
+                        fieldProps={{
+                          value: currentConfig.includesTax,
+                          onChange: e =>
+                            updateCurrentPlatformConfig(
+                              'includesTax',
+                              e.target.value
+                            ),
+                          disabled: !currentConfig.enabled,
+                        }}
+                        options={[
+                          { label: '含税', value: true },
+                          { label: '不含', value: false },
+                        ]}
+                      />
+                      <ProFormRadio.Group
+                        name={`${selectedPlatform}TaxCalculationBase`}
+                        label="税费计算基准"
+                        fieldProps={{
+                          value: currentConfig.taxCalculationBase,
+                          onChange: e =>
+                            updateCurrentPlatformConfig(
+                              'taxCalculationBase',
+                              e.target.value
+                            ),
+                          disabled:
+                            !currentConfig.enabled || currentConfig.includesTax,
+                        }}
+                        options={[
+                          { label: '不含服务费', value: 'excludeServiceFee' },
+                          { label: '含服务费', value: 'includeServiceFee' },
+                        ]}
+                      />
+                    </div>
+
+                    {/* 说明 */}
+                    <div className="text-xs text-gray-500">
+                      有效期留空表示长期有效。各平台配置完全独立。
                     </div>
                   </div>
-                </div>
+                </ProCard>
 
-                {/* 第二行：配置选项（4列统一） */}
-                <div className="grid grid-cols-4 gap-4 pt-3">
-                  <ProFormRadio.Group
-                    name={`${selectedPlatform}IncludesPlatformFee`}
-                    label="折扣包含平台费"
-                    fieldProps={{
-                      value: currentConfig.includesPlatformFee,
-                      onChange: (e) => updateCurrentPlatformConfig('includesPlatformFee', e.target.value),
-                      disabled: !currentConfig.enabled,
-                    }}
-                    options={[
-                      { label: '不含', value: false },
-                      { label: '含', value: true },
-                    ]}
-                  />
-                  <ProFormRadio.Group
-                    name={`${selectedPlatform}ServiceFeeBase`}
-                    label="服务费计算基准"
-                    fieldProps={{
-                      value: currentConfig.serviceFeeBase,
-                      onChange: (e) => updateCurrentPlatformConfig('serviceFeeBase', e.target.value),
-                      disabled: !currentConfig.enabled,
-                    }}
-                    options={[
-                      { label: '折扣前', value: 'beforeDiscount' },
-                      { label: '折扣后', value: 'afterDiscount' },
-                    ]}
-                  />
-                  <ProFormRadio.Group
-                    name={`${selectedPlatform}IncludesTax`}
-                    label="报价税费设置"
-                    fieldProps={{
-                      value: currentConfig.includesTax,
-                      onChange: (e) => updateCurrentPlatformConfig('includesTax', e.target.value),
-                      disabled: !currentConfig.enabled,
-                    }}
-                    options={[
-                      { label: '含税', value: true },
-                      { label: '不含', value: false },
-                    ]}
-                  />
-                  <ProFormRadio.Group
-                    name={`${selectedPlatform}TaxCalculationBase`}
-                    label="税费计算基准"
-                    fieldProps={{
-                      value: currentConfig.taxCalculationBase,
-                      onChange: (e) => updateCurrentPlatformConfig('taxCalculationBase', e.target.value),
-                      disabled: !currentConfig.enabled || currentConfig.includesTax,
-                    }}
-                    options={[
-                      { label: '不含服务费', value: 'excludeServiceFee' },
-                      { label: '含服务费', value: 'includeServiceFee' },
-                    ]}
-                  />
-                </div>
-
-                {/* 说明 */}
-                <div className="text-xs text-gray-500">
-                  有效期留空表示长期有效。各平台配置完全独立。
-                </div>
-              </div>
-            </ProCard>
-
-            {/* 配置总览 */}
-            <ProCard title="配置总览" headerBordered className="mb-4">
-              <div className="grid grid-cols-2 gap-4">
-                {ENABLED_PLATFORMS.map(p => {
-                  const config = platformFees[p.key];
-                  return (
-                    <div
-                      key={p.key}
-                      className={`border rounded-lg p-3 ${config?.enabled ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{p.name}</span>
-                        <Tag color={config?.enabled ? 'green' : 'default'}>
-                          {config?.enabled ? '已启用' : '未启用'}
-                        </Tag>
-                      </div>
-                      {config?.enabled && (
-                        <div className="mt-2 text-xs text-gray-600 space-y-1">
-                          <div>折扣率: {((config.discountRate || 0) * 100).toFixed(0)}%</div>
-                          <div>服务费率: {((config.serviceFeeRate || 0) * 100).toFixed(0)}%</div>
-                          <div>平台费: {((p.fee || 0) * 100).toFixed(0)}%</div>
-                          {config.validFrom && config.validTo && (
-                            <div>有效期: {config.validFrom} ~ {config.validTo}</div>
+                {/* 配置总览 */}
+                <ProCard title="配置总览" headerBordered className="mb-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    {ENABLED_PLATFORMS.map(p => {
+                      const config = platformFees[p.key];
+                      return (
+                        <div
+                          key={p.key}
+                          className={`border rounded-lg p-3 ${config?.enabled ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium">{p.name}</span>
+                            <Tag color={config?.enabled ? 'green' : 'default'}>
+                              {config?.enabled ? '已启用' : '未启用'}
+                            </Tag>
+                          </div>
+                          {config?.enabled && (
+                            <div className="mt-2 text-xs text-gray-600 space-y-1">
+                              <div>
+                                折扣率:{' '}
+                                {((config.discountRate || 0) * 100).toFixed(0)}%
+                              </div>
+                              <div>
+                                服务费率:{' '}
+                                {((config.serviceFeeRate || 0) * 100).toFixed(
+                                  0
+                                )}
+                                %
+                              </div>
+                              <div>
+                                平台费: {((p.fee || 0) * 100).toFixed(0)}%
+                              </div>
+                              {config.validFrom && config.validTo && (
+                                <div>
+                                  有效期: {config.validFrom} ~ {config.validTo}
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </ProCard>
+                      );
+                    })}
+                  </div>
+                </ProCard>
               </>
             )}
           </ProForm>
@@ -670,25 +760,59 @@ export default function PricingStrategy() {
         {Object.keys(coefficients).length > 0 ? (
           <Table
             columns={[
-              { title: '平台', dataIndex: 'platform', key: 'platform',
-                render: (val: string) => getPlatformName(val) },
-              { title: '折扣率', dataIndex: 'discountRate', key: 'discountRate',
-                render: (_: any, record: any) => `${((platformFees[record.platform]?.discountRate || 0) * 100).toFixed(2)}%` },
-              { title: '服务费率', dataIndex: 'serviceFeeRate', key: 'serviceFeeRate',
-                render: (_: any, record: any) => `${((platformFees[record.platform]?.serviceFeeRate || 0) * 100).toFixed(2)}%` },
-              { title: '平台费', dataIndex: 'platformFeeAmount', key: 'platformFeeAmount',
-                render: (val: number) => `¥${(val / 100).toFixed(2)}` },
-              { title: '有效期', dataIndex: 'validPeriod', key: 'validPeriod',
+              {
+                title: '平台',
+                dataIndex: 'platform',
+                key: 'platform',
+                render: (val: string) => getPlatformName(val),
+              },
+              {
+                title: '折扣率',
+                dataIndex: 'discountRate',
+                key: 'discountRate',
+                render: (_: any, record: any) =>
+                  `${((platformFees[record.platform]?.discountRate || 0) * 100).toFixed(2)}%`,
+              },
+              {
+                title: '服务费率',
+                dataIndex: 'serviceFeeRate',
+                key: 'serviceFeeRate',
+                render: (_: any, record: any) =>
+                  `${((platformFees[record.platform]?.serviceFeeRate || 0) * 100).toFixed(2)}%`,
+              },
+              {
+                title: '平台费',
+                dataIndex: 'platformFeeAmount',
+                key: 'platformFeeAmount',
+                render: (val: number) => `¥${(val / 100).toFixed(2)}`,
+              },
+              {
+                title: '有效期',
+                dataIndex: 'validPeriod',
+                key: 'validPeriod',
                 render: (_: any, record: any) => {
                   const config = platformFees[record.platform];
-                  return config?.validFrom && config?.validTo
-                    ? `${config.validFrom} ~ ${config.validTo}`
-                    : <span className="text-gray-400">长期有效</span>;
-                }},
-              { title: '最终金额', dataIndex: 'finalAmount', key: 'finalAmount',
-                render: (val: number) => <span className="font-bold">¥{(val / 100).toFixed(2)}</span> },
-              { title: '支付系数', dataIndex: 'coefficient', key: 'coefficient',
-                render: (val: number) => <Tag color="blue">{val}</Tag> },
+                  return config?.validFrom && config?.validTo ? (
+                    `${config.validFrom} ~ ${config.validTo}`
+                  ) : (
+                    <span className="text-gray-400">长期有效</span>
+                  );
+                },
+              },
+              {
+                title: '最终金额',
+                dataIndex: 'finalAmount',
+                key: 'finalAmount',
+                render: (val: number) => (
+                  <span className="font-bold">¥{(val / 100).toFixed(2)}</span>
+                ),
+              },
+              {
+                title: '支付系数',
+                dataIndex: 'coefficient',
+                key: 'coefficient',
+                render: (val: number) => <Tag color="blue">{val}</Tag>,
+              },
             ]}
             dataSource={Object.values(coefficients)}
             rowKey="platform"
@@ -704,11 +828,7 @@ export default function PricingStrategy() {
 
       {/* Toast 通知 */}
       {toast.visible && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-        />
+        <Toast message={toast.message} type={toast.type} onClose={hideToast} />
       )}
     </div>
   );

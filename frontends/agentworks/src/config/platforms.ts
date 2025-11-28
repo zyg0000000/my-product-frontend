@@ -4,13 +4,13 @@
  */
 
 export interface PlatformConfig {
-  key: string;           // 平台唯一标识
-  name: string;          // 平台中文名称
-  fee: number | null;    // 平台费率（null 表示待确定）
-  enabled: boolean;      // 是否已开通
-  color: string;         // 主题色
-  hoverColor?: string;   // hover 颜色
-  description?: string;  // 描述
+  key: string; // 平台唯一标识
+  name: string; // 平台中文名称
+  fee: number | null; // 平台费率（null 表示待确定）
+  enabled: boolean; // 是否已开通
+  color: string; // 主题色
+  hoverColor?: string; // hover 颜色
+  description?: string; // 描述
 }
 
 /**
@@ -29,7 +29,7 @@ export const TALENT_PLATFORMS: PlatformConfig[] = [
   {
     key: 'xiaohongshu',
     name: '小红书',
-    fee: 0.10,
+    fee: 0.1,
     enabled: true,
     color: 'red',
     hoverColor: 'hover:bg-red-50',

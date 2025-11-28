@@ -91,7 +91,7 @@ export function AgencySelector({
   };
 
   // 自定义选项渲染（简洁模式：仅显示名称）
-  const optionRender: SelectProps['optionRender'] = (option) => {
+  const optionRender: SelectProps['optionRender'] = option => {
     const data = option.data as AgencyOption;
 
     // 统一样式：只显示名称

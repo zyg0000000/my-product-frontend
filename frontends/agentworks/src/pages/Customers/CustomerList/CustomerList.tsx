@@ -7,9 +7,27 @@ import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
 import { Button, Tag, Space, Popconfirm, Popover } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, DollarOutlined, UndoOutlined, StopOutlined, ReloadOutlined, ShoppingOutlined, ThunderboltOutlined, VideoCameraOutlined } from '@ant-design/icons';
-import type { Customer, CustomerLevel, CustomerStatus } from '../../../types/customer';
-import { CUSTOMER_LEVEL_NAMES, CUSTOMER_STATUS_NAMES } from '../../../types/customer';
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  DollarOutlined,
+  UndoOutlined,
+  StopOutlined,
+  ReloadOutlined,
+  ShoppingOutlined,
+  ThunderboltOutlined,
+  VideoCameraOutlined,
+} from '@ant-design/icons';
+import type {
+  Customer,
+  CustomerLevel,
+  CustomerStatus,
+} from '../../../types/customer';
+import {
+  CUSTOMER_LEVEL_NAMES,
+  CUSTOMER_STATUS_NAMES,
+} from '../../../types/customer';
 import { customerApi } from '../../../services/customerApi';
 import { Toast } from '../../../components/Toast';
 import { useToast } from '../../../hooks/useToast';
@@ -186,18 +204,28 @@ export default function CustomerList() {
           {/* 计算步骤 */}
           <div className="space-y-2 bg-gray-800 p-3 rounded text-xs">
             <div className="flex justify-between gap-4">
-              <span className="text-gray-300 whitespace-nowrap">① 基础刊例价:</span>
-              <span className="font-medium text-white whitespace-nowrap">¥{(baseAmount / 100).toFixed(2)}</span>
+              <span className="text-gray-300 whitespace-nowrap">
+                ① 基础刊例价:
+              </span>
+              <span className="font-medium text-white whitespace-nowrap">
+                ¥{(baseAmount / 100).toFixed(2)}
+              </span>
             </div>
 
             <div className="flex justify-between gap-4">
-              <span className="text-gray-300 whitespace-nowrap">② 平台费 ({(platformFeeRate * 100).toFixed(2)}%):</span>
-              <span className="font-medium text-white whitespace-nowrap">¥{(platformFeeAmount / 100).toFixed(2)}</span>
+              <span className="text-gray-300 whitespace-nowrap">
+                ② 平台费 ({(platformFeeRate * 100).toFixed(2)}%):
+              </span>
+              <span className="font-medium text-white whitespace-nowrap">
+                ¥{(platformFeeAmount / 100).toFixed(2)}
+              </span>
             </div>
 
             <div className="border-t border-gray-600 pt-1.5 space-y-1">
               <div className="flex justify-between gap-4">
-                <span className="text-gray-300 whitespace-nowrap">③ 折扣率 ({(discountRate * 100).toFixed(2)}%):</span>
+                <span className="text-gray-300 whitespace-nowrap">
+                  ③ 折扣率 ({(discountRate * 100).toFixed(2)}%):
+                </span>
                 <span className="text-white text-xs whitespace-nowrap">
                   {includesPlatformFee ? '含平台费' : '不含平台费'}
                 </span>
@@ -206,33 +234,48 @@ export default function CustomerList() {
               <div className="text-gray-400 text-xs pl-3">
                 {includesPlatformFee
                   ? `(¥${(baseAmount / 100).toFixed(2)} + ¥${(platformFeeAmount / 100).toFixed(2)}) × ${(discountRate * 100).toFixed(2)}%`
-                  : `¥${(baseAmount / 100).toFixed(2)} × ${(discountRate * 100).toFixed(2)}% + ¥${(platformFeeAmount / 100).toFixed(2)}`
-                }
+                  : `¥${(baseAmount / 100).toFixed(2)} × ${(discountRate * 100).toFixed(2)}% + ¥${(platformFeeAmount / 100).toFixed(2)}`}
               </div>
 
               <div className="flex justify-between gap-4">
-                <span className="text-gray-300 whitespace-nowrap">= 折扣后金额:</span>
-                <span className="font-medium text-white whitespace-nowrap">¥{(discountedAmount / 100).toFixed(2)}</span>
+                <span className="text-gray-300 whitespace-nowrap">
+                  = 折扣后金额:
+                </span>
+                <span className="font-medium text-white whitespace-nowrap">
+                  ¥{(discountedAmount / 100).toFixed(2)}
+                </span>
               </div>
             </div>
 
             {serviceFeeRate > 0 && (
               <div className="flex justify-between gap-4 border-t border-gray-600 pt-1">
-                <span className="text-gray-300 whitespace-nowrap">④ 服务费 ({(serviceFeeRate * 100).toFixed(2)}%):</span>
-                <span className="font-medium text-white whitespace-nowrap">¥{(serviceFeeAmount / 100).toFixed(2)}</span>
+                <span className="text-gray-300 whitespace-nowrap">
+                  ④ 服务费 ({(serviceFeeRate * 100).toFixed(2)}%):
+                </span>
+                <span className="font-medium text-white whitespace-nowrap">
+                  ¥{(serviceFeeAmount / 100).toFixed(2)}
+                </span>
               </div>
             )}
 
             {taxAmount > 0 && (
               <div className="flex justify-between gap-4 border-t border-gray-600 pt-1">
-                <span className="text-gray-300 whitespace-nowrap">⑤ 增值税 (6%):</span>
-                <span className="font-medium text-white whitespace-nowrap">¥{(taxAmount / 100).toFixed(2)}</span>
+                <span className="text-gray-300 whitespace-nowrap">
+                  ⑤ 增值税 (6%):
+                </span>
+                <span className="font-medium text-white whitespace-nowrap">
+                  ¥{(taxAmount / 100).toFixed(2)}
+                </span>
               </div>
             )}
 
             <div className="flex justify-between gap-4 border-t border-gray-600 pt-1.5 mt-1">
-              <span className="text-gray-300 font-semibold whitespace-nowrap">⑥ 最终金额:</span>
-              <span className="font-bold text-green-300 whitespace-nowrap">¥{(finalAmount / 100).toFixed(2)}</span>
+              <span className="text-gray-300 font-semibold whitespace-nowrap">
+                ⑥ 最终金额:
+              </span>
+              <span className="font-bold text-green-300 whitespace-nowrap">
+                ¥{(finalAmount / 100).toFixed(2)}
+              </span>
             </div>
           </div>
 
@@ -240,18 +283,25 @@ export default function CustomerList() {
           <div className="space-y-1 pt-2 text-xs">
             <div className="flex justify-between gap-4 text-gray-400">
               <span className="whitespace-nowrap">折扣含平台费:</span>
-              <span className="whitespace-nowrap">{includesPlatformFee ? '是' : '否'}</span>
+              <span className="whitespace-nowrap">
+                {includesPlatformFee ? '是' : '否'}
+              </span>
             </div>
 
             <div className="flex justify-between gap-4 text-gray-400">
               <span className="whitespace-nowrap">含税报价:</span>
-              <span className="whitespace-nowrap">{includesTax ? '是（已含6%税）' : '否（需加税）'}</span>
+              <span className="whitespace-nowrap">
+                {includesTax ? '是（已含6%税）' : '否（需加税）'}
+              </span>
             </div>
 
             {config.validFrom && config.validTo && (
               <div className="flex justify-between gap-4 text-gray-400">
                 <span className="whitespace-nowrap">有效期:</span>
-                <span className="whitespace-nowrap">{config.validFrom.substring(0, 7)} ~ {config.validTo.substring(0, 7)}</span>
+                <span className="whitespace-nowrap">
+                  {config.validFrom.substring(0, 7)} ~{' '}
+                  {config.validTo.substring(0, 7)}
+                </span>
               </div>
             )}
           </div>
@@ -259,10 +309,18 @@ export default function CustomerList() {
           {/* 最终系数 */}
           <div className="border-t border-gray-600 pt-2 mt-2">
             <div className="flex justify-between items-center gap-4">
-              <span className="font-semibold text-primary-300 whitespace-nowrap">支付系数:</span>
+              <span className="font-semibold text-primary-300 whitespace-nowrap">
+                支付系数:
+              </span>
               <div className="text-right">
-                <div className="font-bold text-primary-200 text-sm whitespace-nowrap">{paymentCoefficient?.toFixed(4) || calculatedCoefficient.toFixed(4)}</div>
-                <div className="text-xs text-gray-400 whitespace-nowrap">= ¥{(finalAmount / 100).toFixed(2)} ÷ ¥{(baseAmount / 100).toFixed(2)}</div>
+                <div className="font-bold text-primary-200 text-sm whitespace-nowrap">
+                  {paymentCoefficient?.toFixed(4) ||
+                    calculatedCoefficient.toFixed(4)}
+                </div>
+                <div className="text-xs text-gray-400 whitespace-nowrap">
+                  = ¥{(finalAmount / 100).toFixed(2)} ÷ ¥
+                  {(baseAmount / 100).toFixed(2)}
+                </div>
               </div>
             </div>
           </div>
@@ -276,10 +334,24 @@ export default function CustomerList() {
         <div className="flex items-center gap-3 text-sm">
           {/* 标题 */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            <ShoppingOutlined className="text-primary-500" style={{ fontSize: '14px' }} />
-            <span className="font-semibold text-gray-800 text-sm">达人采买</span>
-            <Tag color="blue" style={{ fontSize: '12px', lineHeight: '20px', padding: '0 7px', margin: 0 }}>
-              {pricingModelNames[strategy.pricingModel] || strategy.pricingModel}
+            <ShoppingOutlined
+              className="text-primary-500"
+              style={{ fontSize: '14px' }}
+            />
+            <span className="font-semibold text-gray-800 text-sm">
+              达人采买
+            </span>
+            <Tag
+              color="blue"
+              style={{
+                fontSize: '12px',
+                lineHeight: '20px',
+                padding: '0 7px',
+                margin: 0,
+              }}
+            >
+              {pricingModelNames[strategy.pricingModel] ||
+                strategy.pricingModel}
             </Tag>
           </div>
 
@@ -288,9 +360,11 @@ export default function CustomerList() {
 
           {/* 所有平台横向排列 */}
           <div className="flex items-center gap-5 flex-1">
-            {enabledPlatforms.map((platform) => (
+            {enabledPlatforms.map(platform => (
               <div key={platform.key} className="flex items-center gap-2">
-                <span className="text-gray-600 text-sm font-medium">{platform.name}</span>
+                <span className="text-gray-600 text-sm font-medium">
+                  {platform.name}
+                </span>
                 <Popover
                   content={generateTooltipContent(platform)}
                   placement="top"
@@ -299,7 +373,7 @@ export default function CustomerList() {
                   overlayInnerStyle={{
                     padding: '12px',
                     backgroundColor: '#1f2937',
-                    borderRadius: '6px'
+                    borderRadius: '6px',
                   }}
                 >
                   <span className="font-bold text-primary-600 cursor-help border-b border-dashed border-primary-300 text-sm">
@@ -321,9 +395,20 @@ export default function CustomerList() {
     return (
       <div className="px-4 py-2.5 bg-white">
         <div className="flex items-center gap-2">
-          <ThunderboltOutlined className="text-orange-500" style={{ fontSize: '14px' }} />
+          <ThunderboltOutlined
+            className="text-orange-500"
+            style={{ fontSize: '14px' }}
+          />
           <span className="font-semibold text-gray-800 text-sm">广告投流</span>
-          <Tag color="orange" style={{ fontSize: '12px', lineHeight: '20px', padding: '0 7px', margin: 0 }}>
+          <Tag
+            color="orange"
+            style={{
+              fontSize: '12px',
+              lineHeight: '20px',
+              padding: '0 7px',
+              margin: 0,
+            }}
+          >
             待配置详细策略
           </Tag>
         </div>
@@ -338,9 +423,20 @@ export default function CustomerList() {
     return (
       <div className="px-4 py-2.5 bg-white">
         <div className="flex items-center gap-2">
-          <VideoCameraOutlined className="text-purple-600" style={{ fontSize: '14px' }} />
+          <VideoCameraOutlined
+            className="text-purple-600"
+            style={{ fontSize: '14px' }}
+          />
           <span className="font-semibold text-gray-800 text-sm">内容制作</span>
-          <Tag color="purple" style={{ fontSize: '12px', lineHeight: '20px', padding: '0 7px', margin: 0 }}>
+          <Tag
+            color="purple"
+            style={{
+              fontSize: '12px',
+              lineHeight: '20px',
+              padding: '0 7px',
+              margin: 0,
+            }}
+          >
             待配置详细策略
           </Tag>
         </div>
@@ -374,11 +470,17 @@ export default function CustomerList() {
     }
 
     return (
-      <div className="bg-gray-50 rounded-lg overflow-hidden" style={{ marginLeft: '40px' }}>
+      <div
+        className="bg-gray-50 rounded-lg overflow-hidden"
+        style={{ marginLeft: '40px' }}
+      >
         <div className="divide-y divide-gray-200">
-          {businessStrategies.talentProcurement?.enabled && renderTalentProcurement(businessStrategies.talentProcurement)}
-          {businessStrategies.adPlacement?.enabled && renderAdPlacement(businessStrategies.adPlacement)}
-          {businessStrategies.contentProduction?.enabled && renderContentProduction(businessStrategies.contentProduction)}
+          {businessStrategies.talentProcurement?.enabled &&
+            renderTalentProcurement(businessStrategies.talentProcurement)}
+          {businessStrategies.adPlacement?.enabled &&
+            renderAdPlacement(businessStrategies.adPlacement)}
+          {businessStrategies.contentProduction?.enabled &&
+            renderContentProduction(businessStrategies.contentProduction)}
         </div>
       </div>
     );
@@ -422,7 +524,11 @@ export default function CustomerList() {
           medium: 'green',
           small: 'default',
         };
-        return <Tag color={colorMap[record.level]}>{CUSTOMER_LEVEL_NAMES[record.level]}</Tag>;
+        return (
+          <Tag color={colorMap[record.level]}>
+            {CUSTOMER_LEVEL_NAMES[record.level]}
+          </Tag>
+        );
       },
     },
     {
@@ -443,7 +549,11 @@ export default function CustomerList() {
           suspended: 'default',
           deleted: 'error',
         };
-        return <Tag color={colorMap[record.status]}>{CUSTOMER_STATUS_NAMES[record.status]}</Tag>;
+        return (
+          <Tag color={colorMap[record.status]}>
+            {CUSTOMER_STATUS_NAMES[record.status]}
+          </Tag>
+        );
       },
     },
     {
@@ -461,7 +571,8 @@ export default function CustomerList() {
       align: 'center',
       hideInSearch: true,
       render: (_, record) => {
-        const contact = record.contacts?.find((c) => c.isPrimary) || record.contacts?.[0];
+        const contact =
+          record.contacts?.find(c => c.isPrimary) || record.contacts?.[0];
         if (!contact) return '-';
         return (
           <div>
@@ -482,15 +593,33 @@ export default function CustomerList() {
       render: (_, record) => {
         const types = [];
         if (record.businessStrategies?.talentProcurement?.enabled) {
-          types.push(<Tag key="talent" color="blue">达人采买</Tag>);
+          types.push(
+            <Tag key="talent" color="blue">
+              达人采买
+            </Tag>
+          );
         }
         if (record.businessStrategies?.adPlacement?.enabled) {
-          types.push(<Tag key="ad" color="orange">广告投流</Tag>);
+          types.push(
+            <Tag key="ad" color="orange">
+              广告投流
+            </Tag>
+          );
         }
         if (record.businessStrategies?.contentProduction?.enabled) {
-          types.push(<Tag key="content" color="purple">内容制作</Tag>);
+          types.push(
+            <Tag key="content" color="purple">
+              内容制作
+            </Tag>
+          );
         }
-        return types.length > 0 ? <Space size={[4, 4]} wrap>{types}</Space> : <span className="text-gray-400">未配置</span>;
+        return types.length > 0 ? (
+          <Space size={[4, 4]} wrap>
+            {types}
+          </Space>
+        ) : (
+          <span className="text-gray-400">未配置</span>
+        );
       },
     },
     {
@@ -523,7 +652,9 @@ export default function CustomerList() {
               </Button>
               <Popconfirm
                 title="确定永久删除？此操作不可恢复！"
-                onConfirm={() => handlePermanentDelete(record._id || record.code)}
+                onConfirm={() =>
+                  handlePermanentDelete(record._id || record.code)
+                }
                 okText="确定"
                 cancelText="取消"
               >
@@ -542,7 +673,9 @@ export default function CustomerList() {
               type="link"
               size="small"
               icon={<DollarOutlined />}
-              onClick={() => navigate(`/customers/${record._id || record.code}/pricing`)}
+              onClick={() =>
+                navigate(`/customers/${record._id || record.code}/pricing`)
+              }
             >
               价格
             </Button>
@@ -550,7 +683,9 @@ export default function CustomerList() {
               type="link"
               size="small"
               icon={<EditOutlined />}
-              onClick={() => navigate(`/customers/edit/${record._id || record.code}`)}
+              onClick={() =>
+                navigate(`/customers/edit/${record._id || record.code}`)
+              }
             >
               编辑
             </Button>
@@ -590,10 +725,10 @@ export default function CustomerList() {
             cardBordered
             dataSource={customers}
             loading={loading}
-            rowKey={(record) => record._id || record.code}
+            rowKey={record => record._id || record.code}
             expandable={{
               expandedRowRender,
-              rowExpandable: (record) => !!record.businessStrategies,
+              rowExpandable: record => !!record.businessStrategies,
             }}
             pagination={{
               current: currentPage,
@@ -601,7 +736,7 @@ export default function CustomerList() {
               total: total,
               showSizeChanger: true,
               showQuickJumper: true,
-              showTotal: (total) => `共 ${total} 条`,
+              showTotal: total => `共 ${total} 条`,
               onChange: (page, size) => {
                 setCurrentPage(page);
                 setPageSize(size);
@@ -611,9 +746,11 @@ export default function CustomerList() {
               labelWidth: 80,
               span: 6,
               defaultCollapsed: false,
-              optionRender: (_searchConfig, _formProps, dom) => [...dom.reverse()],
+              optionRender: (_searchConfig, _formProps, dom) => [
+                ...dom.reverse(),
+              ],
             }}
-            onSubmit={(params) => {
+            onSubmit={params => {
               setSearchTerm(params.name || '');
               setLevelFilter(params.level || '');
               setStatusFilter(params.status || '');

@@ -26,7 +26,7 @@ export class ErrorBoundary extends Component<Props, State> {
   static getDerivedStateFromError(error: Error): State {
     return {
       hasError: true,
-      error
+      error,
     };
   }
 
@@ -36,7 +36,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
     // 保存错误信息到状态
     this.setState({
-      errorInfo
+      errorInfo,
     });
 
     // 生产环境可以上报到监控服务
@@ -49,7 +49,7 @@ export class ErrorBoundary extends Component<Props, State> {
     this.setState({
       hasError: false,
       error: undefined,
-      errorInfo: undefined
+      errorInfo: undefined,
     });
   };
 

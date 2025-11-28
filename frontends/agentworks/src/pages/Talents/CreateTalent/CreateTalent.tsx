@@ -11,12 +11,23 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ProForm, ProFormSelect, ProFormText, ProFormDigit, ProCard } from '@ant-design/pro-components';
+import {
+  ProForm,
+  ProFormSelect,
+  ProFormText,
+  ProFormDigit,
+  ProCard,
+} from '@ant-design/pro-components';
 import { Button, message, Tag, Form } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { logger } from '../../../utils/logger';
 import { createTalent, getTalents } from '../../../api/talent';
-import type { Platform, TalentTier, TalentStatus, Talent } from '../../../types/talent';
+import type {
+  Platform,
+  TalentTier,
+  TalentStatus,
+  Talent,
+} from '../../../types/talent';
 import { PLATFORM_NAMES } from '../../../types/talent';
 import { AGENCY_INDIVIDUAL_ID } from '../../../types/agency';
 import { AgencySelector } from '../../../components/AgencySelector';
@@ -43,7 +54,12 @@ export function CreateTalent() {
   const [form] = Form.useForm();
 
   // 使用平台配置 Hook（只获取启用的平台）
-  const { getPlatformList, getPlatformNames, getTalentTiers, loading: configLoading } = usePlatformConfig(false);
+  const {
+    getPlatformList,
+    getPlatformNames,
+    getTalentTiers,
+    loading: configLoading,
+  } = usePlatformConfig(false);
   const platforms = getPlatformList();
   const platformNames = getPlatformNames();
 
@@ -62,7 +78,9 @@ export function CreateTalent() {
         for (const platform of platforms) {
           const response = await getTalents({ platform });
           if (response.success && response.data) {
-            const talents = Array.isArray(response.data) ? response.data : [response.data];
+            const talents = Array.isArray(response.data)
+              ? response.data
+              : [response.data];
             talents.forEach((talent: Talent) => {
               if (talent.talentType && Array.isArray(talent.talentType)) {
                 talent.talentType.forEach(type => allTags.add(type));
@@ -75,7 +93,18 @@ export function CreateTalent() {
       } catch (error) {
         logger.error('加载标签失败:', error);
         // 失败时设置一些默认标签
-        setAvailableTags(['美妆', '时尚', '美食', '旅游', '科技', '游戏', '教育', '母婴', '运动', '其他']);
+        setAvailableTags([
+          '美妆',
+          '时尚',
+          '美食',
+          '旅游',
+          '科技',
+          '游戏',
+          '教育',
+          '母婴',
+          '运动',
+          '其他',
+        ]);
       }
     };
 
@@ -123,7 +152,8 @@ export function CreateTalent() {
         fansCount: values.fansCount,
         agencyId: values.agencyId || AGENCY_INDIVIDUAL_ID,
         talentTier: values.talentTier,
-        talentType: values.talentType?.length > 0 ? values.talentType : undefined,
+        talentType:
+          values.talentType?.length > 0 ? values.talentType : undefined,
         status: values.status,
         platformSpecific: values.uid ? { uid: values.uid } : undefined,
         prices: [],
@@ -133,7 +163,9 @@ export function CreateTalent() {
 
       if (response.success) {
         message.success('达人创建成功');
-        navigate('/talents/basic', { state: { selectedPlatform: values.platform } });
+        navigate('/talents/basic', {
+          state: { selectedPlatform: values.platform },
+        });
       } else {
         message.error(`创建失败：${response.message || '未知错误'}`);
       }
@@ -152,9 +184,7 @@ export function CreateTalent() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">新增达人</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              添加新的达人信息到系统
-            </p>
+            <p className="mt-1 text-sm text-gray-500">添加新的达人信息到系统</p>
           </div>
           <Button
             icon={<ArrowLeftOutlined />}
@@ -180,9 +210,7 @@ export function CreateTalent() {
             resetText: '重置',
           },
           render: (_, dom) => (
-            <div className="flex justify-end gap-2 pt-4">
-              {dom}
-            </div>
+            <div className="flex justify-end gap-2 pt-4">{dom}</div>
           ),
         }}
       >
@@ -210,8 +238,17 @@ export function CreateTalent() {
               name="platformAccountId"
               label={getPlatformAccountIdLabel()}
               placeholder={getPlatformAccountIdPlaceholder()}
-              rules={[{ required: true, message: `请输入${getPlatformAccountIdLabel()}` }]}
-              tooltip={selectedPlatform === 'douyin' ? '星图ID是抖音平台的唯一标识' : undefined}
+              rules={[
+                {
+                  required: true,
+                  message: `请输入${getPlatformAccountIdLabel()}`,
+                },
+              ]}
+              tooltip={
+                selectedPlatform === 'douyin'
+                  ? '星图ID是抖音平台的唯一标识'
+                  : undefined
+              }
             />
 
             <ProFormText
@@ -228,8 +265,10 @@ export function CreateTalent() {
               fieldProps={{
                 min: 0,
                 precision: 0,
-                formatter: (value) => value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '',
-                parser: (value) => value ? parseInt(value.replace(/\$\s?|(,*)/g, '')) || 0 : 0,
+                formatter: value =>
+                  value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '',
+                parser: value =>
+                  value ? parseInt(value.replace(/\$\s?|(,*)/g, '')) || 0 : 0,
               }}
             />
 
@@ -259,14 +298,10 @@ export function CreateTalent() {
         {/* 商业信息 */}
         <ProCard title="商业信息" className="mb-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-0">
-            <Form.Item
-              name="agencyId"
-              label="所属机构"
-              className="mb-6"
-            >
+            <Form.Item name="agencyId" label="所属机构" className="mb-6">
               <AgencySelector
                 value={form.getFieldValue('agencyId')}
-                onChange={(value) => form.setFieldValue('agencyId', value)}
+                onChange={value => form.setFieldValue('agencyId', value)}
               />
             </Form.Item>
 

@@ -18,19 +18,19 @@ export interface GetTalentsParams {
   order?: 'asc' | 'desc';
 
   // 筛选参数（v3.3 新增）
-  searchTerm?: string;          // 搜索（名称/OneID）
-  tiers?: string[];             // 达人层级（前端数组）
-  tags?: string[];              // 内容标签（前端数组）
-  rebateMin?: number;           // 返点率下限（百分比）
-  rebateMax?: number;           // 返点率上限（百分比）
-  priceMin?: number;            // 价格下限（元）
-  priceMax?: number;            // 价格上限（元）
-  priceTiers?: string[];        // 价格档位（前端数组）
-  priceMonth?: string;          // 价格月份（YYYY-MM）
+  searchTerm?: string; // 搜索（名称/OneID）
+  tiers?: string[]; // 达人层级（前端数组）
+  tags?: string[]; // 内容标签（前端数组）
+  rebateMin?: number; // 返点率下限（百分比）
+  rebateMax?: number; // 返点率上限（百分比）
+  priceMin?: number; // 价格下限（元）
+  priceMax?: number; // 价格上限（元）
+  priceTiers?: string[]; // 价格档位（前端数组）
+  priceMonth?: string; // 价格月份（YYYY-MM）
 
   // 兼容旧参数
-  agencyId?: string;            // 按机构ID筛选
-  groupBy?: 'oneId';            // 按 oneId 分组
+  agencyId?: string; // 按机构ID筛选
+  groupBy?: 'oneId'; // 按 oneId 分组
   view?: 'simple';
 }
 
@@ -42,13 +42,13 @@ export interface GetTalentsResponse {
 
   // 分页模式下返回（v3.3 新增）
   data?: Talent[];
-  total?: number;               // 总记录数
-  page?: number;                // 当前页
-  limit?: number;               // 每页数量
-  totalPages?: number;          // 总页数
+  total?: number; // 总记录数
+  page?: number; // 当前页
+  limit?: number; // 每页数量
+  totalPages?: number; // 总页数
 
   // 传统模式下返回（兼容）
-  count?: number;               // 记录数
+  count?: number; // 记录数
   view?: string;
   groupBy?: string;
 
@@ -163,9 +163,20 @@ export async function createTalent(
  * 筛选条件类型
  */
 export interface SearchFilter {
-  dimension: string;      // 字段名
-  operator: '>' | '>=' | '<' | '<=' | '=' | '!=' | 'contains' | 'notContains' | 'between' | 'isEmpty' | 'isNotEmpty';
-  value: any;             // 值（between 时为 [min, max] 数组）
+  dimension: string; // 字段名
+  operator:
+    | '>'
+    | '>='
+    | '<'
+    | '<='
+    | '='
+    | '!='
+    | 'contains'
+    | 'notContains'
+    | 'between'
+    | 'isEmpty'
+    | 'isNotEmpty';
+  value: any; // 值（between 时为 [min, max] 数组）
 }
 
 /**
@@ -182,9 +193,9 @@ export interface SearchTalentsParams {
   sortOrder?: 'asc' | 'desc';
 
   // 基础搜索
-  search?: string;        // 名称/ID 搜索
-  tiers?: string[];       // 达人层级
-  types?: string[];       // 达人类型
+  search?: string; // 名称/ID 搜索
+  tiers?: string[]; // 达人层级
+  types?: string[]; // 达人类型
 
   // 高级筛选（灵活操作符）
   filters?: SearchFilter[];
@@ -246,7 +257,7 @@ export async function searchTalents(
 ): Promise<SearchTalentsResponse> {
   // 构建请求体，自动添加 dbVersion: 'v2' 标识
   const requestBody = {
-    dbVersion: 'v2',  // agentworks 使用 v2 数据库
+    dbVersion: 'v2', // agentworks 使用 v2 数据库
     ...params,
   };
 
@@ -259,18 +270,18 @@ export async function searchTalents(
  * 批量创建达人 - 单条数据
  */
 export interface BulkCreateTalentItem {
-  name: string;                   // 达人昵称（必填）
-  platformAccountId: string;      // 平台账号ID（必填，如星图ID）
-  uid?: string;                   // 平台UID（可选）
-  talentTier?: string;            // 达人层级（可选，默认"常规达人"）
-  agencyId?: string;              // 机构ID（可选，默认"individual"野生达人）
+  name: string; // 达人昵称（必填）
+  platformAccountId: string; // 平台账号ID（必填，如星图ID）
+  uid?: string; // 平台UID（可选）
+  talentTier?: string; // 达人层级（可选，默认"常规达人"）
+  agencyId?: string; // 机构ID（可选，默认"individual"野生达人）
 }
 
 /**
  * 批量创建达人请求参数
  */
 export interface BulkCreateTalentsParams {
-  platform: Platform;             // 目标平台（必填）
+  platform: Platform; // 目标平台（必填）
   talents: BulkCreateTalentItem[]; // 达人数据数组（必填）
 }
 
@@ -291,10 +302,10 @@ export interface BulkCreateTalentsResponse {
   message?: string;
   dbVersion?: string;
   data?: {
-    created: number;              // 成功创建数量
-    failed: number;               // 失败数量
-    total: number;                // 总提交数量
-    errors: BulkCreateError[];    // 失败详情
+    created: number; // 成功创建数量
+    failed: number; // 失败数量
+    total: number; // 总提交数量
+    errors: BulkCreateError[]; // 失败详情
   };
   error?: string;
 }
@@ -308,7 +319,7 @@ export async function bulkCreateTalents(
   params: BulkCreateTalentsParams
 ): Promise<BulkCreateTalentsResponse> {
   const requestBody = {
-    dbVersion: 'v2',  // agentworks 使用 v2 数据库
+    dbVersion: 'v2', // agentworks 使用 v2 数据库
     platform: params.platform,
     talents: params.talents,
   };

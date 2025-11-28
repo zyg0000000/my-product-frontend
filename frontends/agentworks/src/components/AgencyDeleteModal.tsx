@@ -85,7 +85,9 @@ export function AgencyDeleteModal({
       <div className="space-y-3">
         {/* 机构信息 */}
         <div className="p-3 bg-gray-50 rounded border border-gray-200">
-          <h4 className="text-xs font-semibold text-gray-900 mb-1.5">即将删除的机构</h4>
+          <h4 className="text-xs font-semibold text-gray-900 mb-1.5">
+            即将删除的机构
+          </h4>
           <div className="space-y-0.5 text-xs">
             <div className="flex items-center gap-2">
               <span className="text-gray-600">机构名称:</span>
@@ -93,12 +95,16 @@ export function AgencyDeleteModal({
             </div>
             <div className="flex items-center gap-2">
               <span className="text-gray-600">机构ID:</span>
-              <span className="font-mono text-xs text-gray-900">{agency.id}</span>
+              <span className="font-mono text-xs text-gray-900">
+                {agency.id}
+              </span>
             </div>
             {talentCount > 0 && (
               <div className="flex items-center gap-2">
                 <span className="text-gray-600">达人数量:</span>
-                <span className="font-semibold text-red-600">{talentCount} 位</span>
+                <span className="font-semibold text-red-600">
+                  {talentCount} 位
+                </span>
               </div>
             )}
           </div>
@@ -112,11 +118,16 @@ export function AgencyDeleteModal({
               <li>删除后，该机构的所有信息将永久丢失</li>
               {talentCount > 0 && (
                 <li className="text-red-700 font-medium">
-                  该机构下还有 <strong>{talentCount}</strong> 位达人，删除可能影响达人数据
+                  该机构下还有 <strong>{talentCount}</strong>{' '}
+                  位达人，删除可能影响达人数据
                 </li>
               )}
-              <li>与该机构相关的<strong>返点配置</strong>将被清除</li>
-              <li>此操作<strong>无法撤销</strong>，请确保你真的要删除</li>
+              <li>
+                与该机构相关的<strong>返点配置</strong>将被清除
+              </li>
+              <li>
+                此操作<strong>无法撤销</strong>，请确保你真的要删除
+              </li>
             </ul>
           }
           type="error"
@@ -129,7 +140,7 @@ export function AgencyDeleteModal({
         <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
           <Checkbox
             checked={confirmed}
-            onChange={(e) => setConfirmed(e.target.checked)}
+            onChange={e => setConfirmed(e.target.checked)}
           >
             <span className="text-xs font-medium text-gray-900">
               我已了解删除的影响，确认要删除机构「{agency.name}」

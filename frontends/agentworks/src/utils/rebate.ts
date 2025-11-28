@@ -34,7 +34,7 @@ export function shouldSyncWithAgency(talent: Talent): boolean {
  */
 export function getRebateAttribute(talent: Talent): string {
   if (isWildTalent(talent)) {
-    return '独立设置';  // 野生达人
+    return '独立设置'; // 野生达人
   }
   // 如果没有设置rebateMode，默认为sync
   const mode = talent.rebateMode || 'sync';
@@ -45,7 +45,10 @@ export function getRebateAttribute(talent: Talent): string {
  * 获取商业属性显示文本
  * 用于在UI上显示商业属性（机构归属）
  */
-export function getBusinessAttribute(talent: Talent, agencyName?: string): string {
+export function getBusinessAttribute(
+  talent: Talent,
+  agencyName?: string
+): string {
   if (isWildTalent(talent)) {
     return '野生达人';
   }
@@ -58,17 +61,20 @@ export function getBusinessAttribute(talent: Talent, agencyName?: string): strin
  */
 export function canManuallyAdjustRebate(talent: Talent): boolean {
   if (isWildTalent(talent)) {
-    return true;  // 野生达人总是可以手动调整
+    return true; // 野生达人总是可以手动调整
   }
-  return talent.rebateMode === 'independent';  // 机构达人只有独立模式可以
+  return talent.rebateMode === 'independent'; // 机构达人只有独立模式可以
 }
 
 /**
  * 获取默认返点率
  * 野生达人默认0%，机构达人根据机构设置
  */
-export function getDefaultRebateRate(isWild: boolean, agencyRate?: number): number {
-  return isWild ? 0 : (agencyRate || 0);
+export function getDefaultRebateRate(
+  isWild: boolean,
+  agencyRate?: number
+): number {
+  return isWild ? 0 : agencyRate || 0;
 }
 
 /**
@@ -83,7 +89,10 @@ export function getDefaultRebateMode(isWild: boolean): RebateMode {
  * 获取默认返点来源
  * 野生达人是manual，机构达人同步模式是agency_sync
  */
-export function getDefaultRebateSource(isWild: boolean, mode: RebateMode): RebateSource {
+export function getDefaultRebateSource(
+  isWild: boolean,
+  mode: RebateMode
+): RebateSource {
   if (isWild) {
     return 'manual';
   }
@@ -155,5 +164,5 @@ export function getTabDisplayName(tab: string): string {
  * 判断Tab是否应该显示Phase标记
  */
 export function isPhaseTab(tab: string): boolean {
-  return tab === 'stepRule';  // 阶梯规则是Phase 2功能
+  return tab === 'stepRule'; // 阶梯规则是Phase 2功能
 }

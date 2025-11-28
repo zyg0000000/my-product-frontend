@@ -12,9 +12,25 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Modal, Tabs, Alert, Button, Select, message, Spin, Checkbox, Table } from 'antd';
+import {
+  Modal,
+  Tabs,
+  Alert,
+  Button,
+  Select,
+  message,
+  Spin,
+  Checkbox,
+  Table,
+} from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { ProCard, ProForm, ProFormDigit, ProFormText, ProFormDatePicker } from '@ant-design/pro-components';
+import {
+  ProCard,
+  ProForm,
+  ProFormDigit,
+  ProFormText,
+  ProFormDatePicker,
+} from '@ant-design/pro-components';
 import { logger } from '../utils/logger';
 import type { Agency } from '../types/agency';
 import type { Platform } from '../types/talent';
@@ -24,7 +40,7 @@ import {
   getAgencyRebateHistory,
   getCurrentAgencyRebate,
   type AgencyRebateHistoryRecord,
-  type CurrentAgencyRebateConfig
+  type CurrentAgencyRebateConfig,
 } from '../api/agency';
 import { REBATE_VALIDATION, formatRebateRate } from '../types/rebate';
 import { usePlatformConfig } from '../hooks/usePlatformConfig';
@@ -49,10 +65,13 @@ export function AgencyRebateModal({
   const supportedPlatforms = getPlatformList();
 
   const [activeTab, setActiveTab] = useState<TabType>('current');
-  const [selectedPlatform, setSelectedPlatform] = useState<Platform>(supportedPlatforms[0] || 'douyin');
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform>(
+    supportedPlatforms[0] || 'douyin'
+  );
 
   // 当前平台的配置
-  const [currentConfig, setCurrentConfig] = useState<CurrentAgencyRebateConfig | null>(null);
+  const [currentConfig, setCurrentConfig] =
+    useState<CurrentAgencyRebateConfig | null>(null);
   const [configLoading, setConfigLoading] = useState(false);
 
   // 手动调整表单
@@ -63,7 +82,9 @@ export function AgencyRebateModal({
   const [loading, setLoading] = useState(false);
 
   // 历史记录
-  const [historyRecords, setHistoryRecords] = useState<AgencyRebateHistoryRecord[]>([]);
+  const [historyRecords, setHistoryRecords] = useState<
+    AgencyRebateHistoryRecord[]
+  >([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
@@ -77,13 +98,15 @@ export function AgencyRebateModal({
       setConfigLoading(true);
       const response = await getCurrentAgencyRebate({
         agencyId: agency.id,
-        platform
+        platform,
       });
 
       if (response.success && response.data) {
         setCurrentConfig(response.data);
         setRebateRate(response.data.rebateRate.toString());
-        setEffectiveDate(response.data.effectiveDate || new Date().toISOString().split('T')[0]);
+        setEffectiveDate(
+          response.data.effectiveDate || new Date().toISOString().split('T')[0]
+        );
       } else {
         setCurrentConfig(null);
         setRebateRate('');
@@ -112,7 +135,7 @@ export function AgencyRebateModal({
         agencyId: agency.id,
         platform: selectedPlatform,
         limit: pageSize,
-        offset
+        offset,
       });
 
       if (response.success && response.data) {
@@ -148,8 +171,14 @@ export function AgencyRebateModal({
     if (!agency) return;
 
     const rate = parseFloat(rebateRate);
-    if (isNaN(rate) || rate < REBATE_VALIDATION.min || rate > REBATE_VALIDATION.max) {
-      message.error(`返点率必须在 ${REBATE_VALIDATION.min}-${REBATE_VALIDATION.max} 之间`);
+    if (
+      isNaN(rate) ||
+      rate < REBATE_VALIDATION.min ||
+      rate > REBATE_VALIDATION.max
+    ) {
+      message.error(
+        `返点率必须在 ${REBATE_VALIDATION.min}-${REBATE_VALIDATION.max} 之间`
+      );
       return;
     }
 
@@ -161,9 +190,9 @@ export function AgencyRebateModal({
         rebateConfig: {
           baseRebate: rate,
           effectiveDate,
-          updatedBy
+          updatedBy,
         },
-        syncToTalents
+        syncToTalents,
       });
 
       if (response.success) {
@@ -191,7 +220,7 @@ export function AgencyRebateModal({
       dataIndex: 'previousRate',
       key: 'previousRate',
       width: 80,
-      render: (rate: number) => formatRebateRate(rate)
+      render: (rate: number) => formatRebateRate(rate),
     },
     {
       title: '调整后',
@@ -199,8 +228,10 @@ export function AgencyRebateModal({
       key: 'newRate',
       width: 80,
       render: (rate: number) => (
-        <span className="font-semibold text-green-600">{formatRebateRate(rate)}</span>
-      )
+        <span className="font-semibold text-green-600">
+          {formatRebateRate(rate)}
+        </span>
+      ),
     },
     {
       title: '生效日期',
@@ -223,14 +254,14 @@ export function AgencyRebateModal({
         <span className={sync ? 'text-green-600' : 'text-gray-400'}>
           {sync ? '是' : '否'}
         </span>
-      )
+      ),
     },
     {
       title: '调整时间',
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 140,
-      render: (date: string) => new Date(date).toLocaleString('zh-CN')
+      render: (date: string) => new Date(date).toLocaleString('zh-CN'),
     },
   ];
 
@@ -264,12 +295,18 @@ export function AgencyRebateModal({
                 <div>
                   <div className="text-xs text-gray-600">最后更新时间</div>
                   <div className="text-sm text-gray-900">
-                    {currentConfig.lastUpdatedAt ? new Date(currentConfig.lastUpdatedAt).toLocaleString('zh-CN') : '-'}
+                    {currentConfig.lastUpdatedAt
+                      ? new Date(currentConfig.lastUpdatedAt).toLocaleString(
+                          'zh-CN'
+                        )
+                      : '-'}
                   </div>
                 </div>
                 <div>
                   <div className="text-xs text-gray-600">更新人</div>
-                  <div className="text-sm text-gray-900">{currentConfig.updatedBy || '-'}</div>
+                  <div className="text-sm text-gray-900">
+                    {currentConfig.updatedBy || '-'}
+                  </div>
                 </div>
               </div>
             </div>
@@ -312,7 +349,7 @@ export function AgencyRebateModal({
                 initialValue={rebateRate}
                 fieldProps={{
                   value: Number(rebateRate) || 0,
-                  onChange: (value) => setRebateRate(value?.toString() || ''),
+                  onChange: value => setRebateRate(value?.toString() || ''),
                   precision: 2,
                   min: REBATE_VALIDATION.min,
                   max: REBATE_VALIDATION.max,
@@ -322,8 +359,13 @@ export function AgencyRebateModal({
                   { required: true, message: '请输入返点率' },
                   {
                     validator: (_: any, value: any) => {
-                      if (value < REBATE_VALIDATION.min || value > REBATE_VALIDATION.max) {
-                        return Promise.reject(`返点率必须在 ${REBATE_VALIDATION.min}-${REBATE_VALIDATION.max} 之间`);
+                      if (
+                        value < REBATE_VALIDATION.min ||
+                        value > REBATE_VALIDATION.max
+                      ) {
+                        return Promise.reject(
+                          `返点率必须在 ${REBATE_VALIDATION.min}-${REBATE_VALIDATION.max} 之间`
+                        );
                       }
                       return Promise.resolve();
                     },
@@ -336,7 +378,8 @@ export function AgencyRebateModal({
                 initialValue={effectiveDate}
                 fieldProps={{
                   value: effectiveDate,
-                  onChange: (_: any, dateString: any) => setEffectiveDate(dateString as string),
+                  onChange: (_: any, dateString: any) =>
+                    setEffectiveDate(dateString as string),
                   format: 'YYYY-MM-DD',
                 }}
                 rules={[{ required: true, message: '请选择生效日期' }]}
@@ -348,7 +391,7 @@ export function AgencyRebateModal({
               initialValue={updatedBy}
               fieldProps={{
                 value: updatedBy,
-                onChange: (e) => setUpdatedBy(e.target.value),
+                onChange: e => setUpdatedBy(e.target.value),
                 placeholder: '请输入操作人姓名',
               }}
               rules={[{ required: true, message: '请输入操作人' }]}
@@ -356,9 +399,11 @@ export function AgencyRebateModal({
             <div className="mt-4">
               <Checkbox
                 checked={syncToTalents}
-                onChange={(e) => setSyncToTalents(e.target.checked)}
+                onChange={e => setSyncToTalents(e.target.checked)}
               >
-                <span className="text-sm">立即同步到该机构在此平台的所有达人</span>
+                <span className="text-sm">
+                  立即同步到该机构在此平台的所有达人
+                </span>
               </Checkbox>
             </div>
             <Alert
@@ -411,11 +456,12 @@ export function AgencyRebateModal({
                 columns={historyColumns}
                 pagination={false}
                 size="small"
-                rowKey={(record) => `${record.createdAt}-${record.newRate}`}
+                rowKey={record => `${record.createdAt}-${record.newRate}`}
               />
               <div className="flex items-center justify-between mt-4 pt-4 border-t">
                 <div className="text-xs text-gray-500">
-                  共 {totalRecords} 条记录，第 {currentPage} / {Math.ceil(totalRecords / pageSize)} 页
+                  共 {totalRecords} 条记录，第 {currentPage} /{' '}
+                  {Math.ceil(totalRecords / pageSize)} 页
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -452,7 +498,9 @@ export function AgencyRebateModal({
     <Modal
       title={
         <div>
-          <div className="text-base font-semibold">机构返点管理 - {agency.name}</div>
+          <div className="text-base font-semibold">
+            机构返点管理 - {agency.name}
+          </div>
           <div className="text-xs font-normal text-gray-500 mt-1">
             选择平台后查看和管理该机构的返点配置
           </div>
@@ -472,11 +520,11 @@ export function AgencyRebateModal({
         </label>
         <Select
           value={selectedPlatform}
-          onChange={(value) => setSelectedPlatform(value)}
+          onChange={value => setSelectedPlatform(value)}
           style={{ width: 200 }}
           options={supportedPlatforms.map(platform => ({
             value: platform,
-            label: PLATFORM_NAMES[platform]
+            label: PLATFORM_NAMES[platform],
           }))}
         />
       </div>
@@ -484,7 +532,7 @@ export function AgencyRebateModal({
       {/* Tabs */}
       <Tabs
         activeKey={activeTab}
-        onChange={(key) => setActiveTab(key as TabType)}
+        onChange={key => setActiveTab(key as TabType)}
         items={tabItems}
       />
     </Modal>

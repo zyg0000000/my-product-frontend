@@ -21,7 +21,7 @@ export function BatchEditToolbar({
   onCancel,
   saveLabel = '保存更改',
   cancelLabel = '取消',
-  changeMessage = '有未保存的更改'
+  changeMessage = '有未保存的更改',
 }: BatchEditToolbarProps) {
   if (!hasChanges) return null;
 
@@ -54,8 +54,18 @@ export function BatchEditToolbar({
           </>
         ) : (
           <>
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
             {saveLabel}
           </>

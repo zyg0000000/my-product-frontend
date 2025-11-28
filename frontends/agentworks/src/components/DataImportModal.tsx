@@ -18,7 +18,11 @@ interface DataImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   platform: Platform;
-  onImport: (feishuUrl: string, priceYear: number, priceMonth: number) => Promise<void>;
+  onImport: (
+    feishuUrl: string,
+    priceYear: number,
+    priceMonth: number
+  ) => Promise<void>;
   loading?: boolean;
 }
 
@@ -27,7 +31,7 @@ export function DataImportModal({
   onClose,
   platform,
   onImport,
-  loading
+  loading,
 }: DataImportModalProps) {
   const [form] = Form.useForm();
 

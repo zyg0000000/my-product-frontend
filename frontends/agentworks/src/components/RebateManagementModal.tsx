@@ -13,7 +13,13 @@
 
 import { Modal, Tabs, Switch, Alert, Button, Skeleton } from 'antd';
 import { InfoCircleOutlined, SyncOutlined } from '@ant-design/icons';
-import { ProCard, ProForm, ProFormDigit, ProFormText, ProFormRadio } from '@ant-design/pro-components';
+import {
+  ProCard,
+  ProForm,
+  ProFormDigit,
+  ProFormText,
+  ProFormRadio,
+} from '@ant-design/pro-components';
 import type { Talent } from '../types/talent';
 import type { EffectType } from '../types/rebate';
 import {
@@ -28,7 +34,7 @@ import {
   getRebateTabs,
   getTabDisplayName,
   isPhaseTab,
-  getBusinessAttribute
+  getBusinessAttribute,
 } from '../utils/rebate';
 import { useRebateForm, type TabType } from '../hooks/features/useRebateForm';
 
@@ -76,7 +82,7 @@ export function RebateManagementModal({
   if (!isOpen) return null;
 
   // 构建 Tabs 配置
-  const tabItems = getRebateTabs({ ...talent, rebateMode }).map((tab) => ({
+  const tabItems = getRebateTabs({ ...talent, rebateMode }).map(tab => ({
     key: tab,
     label: (
       <span className="flex items-center gap-2">
@@ -100,7 +106,8 @@ export function RebateManagementModal({
             返点管理: <span className="text-green-600">{talent.name}</span>
           </div>
           <div className="text-sm font-normal text-gray-500 mt-0.5">
-            {isWildTalent(talent) ? '野生达人' : '机构达人'} · 查看和调整达人的返点配置
+            {isWildTalent(talent) ? '野生达人' : '机构达人'} ·
+            查看和调整达人的返点配置
           </div>
         </div>
       }
@@ -118,7 +125,7 @@ export function RebateManagementModal({
       {/* Tabs 导航 */}
       <Tabs
         activeKey={activeTab}
-        onChange={(key) => setActiveTab(key as TabType)}
+        onChange={key => setActiveTab(key as TabType)}
         items={tabItems}
         className="mb-4"
       />
@@ -139,7 +146,10 @@ export function RebateManagementModal({
                   <div>
                     <p className="text-xs text-gray-500">商业属性</p>
                     <p className="mt-1 text-base font-medium text-gray-900">
-                      {getBusinessAttribute(talent, getAgencyName(rebateData.agencyId))}
+                      {getBusinessAttribute(
+                        talent,
+                        getAgencyName(rebateData.agencyId)
+                      )}
                     </p>
                   </div>
                   <div>
@@ -173,7 +183,9 @@ export function RebateManagementModal({
                     <div className="flex items-start justify-between p-4 bg-gray-50 rounded-lg">
                       <div className="flex-1">
                         <h3 className="text-sm font-semibold text-gray-900 mb-1">
-                          {rebateMode === 'sync' ? '绑定机构返点' : '独立设置返点'}
+                          {rebateMode === 'sync'
+                            ? '绑定机构返点'
+                            : '独立设置返点'}
                         </h3>
                         <p className="text-xs text-gray-600">
                           {rebateMode === 'sync'
@@ -194,8 +206,16 @@ export function RebateManagementModal({
                       message="关于返点模式"
                       description={
                         <ul className="text-xs space-y-1 list-disc list-inside mt-2">
-                          <li><strong>绑定机构返点：</strong>返点率跟随机构配置，机构调整时自动同步。切换后请前往"机构同步" Tab进行同步操作</li>
-                          <li><strong>独立设置返点：</strong>使用自定义返点率，不受机构变化影响。切换后请前往"手动调整" Tab进行配置</li>
+                          <li>
+                            <strong>绑定机构返点：</strong>
+                            返点率跟随机构配置，机构调整时自动同步。切换后请前往"机构同步"
+                            Tab进行同步操作
+                          </li>
+                          <li>
+                            <strong>独立设置返点：</strong>
+                            使用自定义返点率，不受机构变化影响。切换后请前往"手动调整"
+                            Tab进行配置
+                          </li>
                         </ul>
                       }
                       type="info"
@@ -246,7 +266,7 @@ export function RebateManagementModal({
                   // 适配器：ProForm 传递的是 values，但 handleManualSubmit 期望 event
                   // 由于 handleManualSubmit 从 state 读取值，我们创建一个假的 event 对象
                   const fakeEvent = {
-                    preventDefault: () => { },
+                    preventDefault: () => {},
                   } as React.FormEvent;
                   await handleManualSubmit(fakeEvent);
                 }}
@@ -271,11 +291,19 @@ export function RebateManagementModal({
                   placeholder="请输入返点率"
                   rules={[
                     { required: true, message: '请输入返点率' },
-                    { type: 'number', min: REBATE_VALIDATION.min, max: REBATE_VALIDATION.max, message: `返点率必须在 ${REBATE_VALIDATION.min}-${REBATE_VALIDATION.max}% 之间` },
+                    {
+                      type: 'number',
+                      min: REBATE_VALIDATION.min,
+                      max: REBATE_VALIDATION.max,
+                      message: `返点率必须在 ${REBATE_VALIDATION.min}-${REBATE_VALIDATION.max}% 之间`,
+                    },
                   ]}
                   fieldProps={{
-                    value: manualRebateRate ? parseFloat(manualRebateRate) : undefined,
-                    onChange: (value) => setManualRebateRate(value?.toString() || ''),
+                    value: manualRebateRate
+                      ? parseFloat(manualRebateRate)
+                      : undefined,
+                    onChange: value =>
+                      setManualRebateRate(value?.toString() || ''),
                     precision: REBATE_VALIDATION.precision,
                     min: REBATE_VALIDATION.min,
                     max: REBATE_VALIDATION.max,
@@ -294,7 +322,8 @@ export function RebateManagementModal({
                   initialValue={manualEffectType}
                   fieldProps={{
                     value: manualEffectType,
-                    onChange: (e) => setManualEffectType(e.target.value as EffectType),
+                    onChange: e =>
+                      setManualEffectType(e.target.value as EffectType),
                   }}
                   options={[
                     {
@@ -315,7 +344,9 @@ export function RebateManagementModal({
                         <div>
                           <div className="font-medium text-gray-900 text-sm">
                             {EFFECT_TYPE_LABELS.next_cooperation}
-                            <span className="text-orange-600 text-xs ml-2">(暂不支持)</span>
+                            <span className="text-orange-600 text-xs ml-2">
+                              (暂不支持)
+                            </span>
                           </div>
                           <div className="text-xs text-gray-500">
                             创建待生效配置，等待下次合作时激活
@@ -340,19 +371,14 @@ export function RebateManagementModal({
                   placeholder="默认为 system"
                   fieldProps={{
                     value: manualCreatedBy,
-                    onChange: (e) => setManualCreatedBy(e.target.value),
+                    onChange: e => setManualCreatedBy(e.target.value),
                     size: 'middle',
                   }}
                 />
 
                 {/* 错误提示 */}
                 {manualError && (
-                  <Alert
-                    message={manualError}
-                    type="error"
-                    showIcon
-                    closable
-                  />
+                  <Alert message={manualError} type="error" showIcon closable />
                 )}
               </ProForm>
             </ProCard>
@@ -384,7 +410,9 @@ export function RebateManagementModal({
                   <div>
                     <p className="text-xs text-gray-500">当前返点率</p>
                     <p className="mt-1 text-base font-bold text-green-600">
-                      {rebateData ? formatRebateRate(rebateData.currentRebate.rate) : '0%'}
+                      {rebateData
+                        ? formatRebateRate(rebateData.currentRebate.rate)
+                        : '0%'}
                     </p>
                   </div>
                 </div>
@@ -399,7 +427,9 @@ export function RebateManagementModal({
                     block
                     size="large"
                   >
-                    {syncLoading ? '同步中...' : `从机构"${rebateData?.agencyName}"同步返点`}
+                    {syncLoading
+                      ? '同步中...'
+                      : `从机构"${rebateData?.agencyName}"同步返点`}
                   </Button>
                   <p className="mt-2 text-xs text-gray-500 text-center">
                     点击后将使用机构在该平台的当前返点配置
@@ -408,12 +438,7 @@ export function RebateManagementModal({
 
                 {/* 错误提示 */}
                 {manualError && (
-                  <Alert
-                    message={manualError}
-                    type="error"
-                    showIcon
-                    closable
-                  />
+                  <Alert message={manualError} type="error" showIcon closable />
                 )}
 
                 {/* 说明信息 */}
@@ -459,9 +484,7 @@ export function RebateManagementModal({
           )}
         </div>
       ) : (
-        <div className="py-12 text-center text-gray-500">
-          暂无返点配置信息
-        </div>
+        <div className="py-12 text-center text-gray-500">暂无返点配置信息</div>
       )}
     </Modal>
   );

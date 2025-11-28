@@ -53,7 +53,9 @@ export function Home() {
           <h1 className="text-3xl font-bold text-gray-900">
             欢迎使用 AgentWorks
           </h1>
-          <p className="mt-2 text-lg text-gray-600">多平台广告代理项目管理系统</p>
+          <p className="mt-2 text-lg text-gray-600">
+            多平台广告代理项目管理系统
+          </p>
         </div>
 
         {/* 快速操作 */}
@@ -72,7 +74,9 @@ export function Home() {
                 <h3 className="mt-4 text-lg font-semibold text-gray-900">
                   {action.name}
                 </h3>
-                <p className="mt-2 text-sm text-gray-500">{action.description}</p>
+                <p className="mt-2 text-sm text-gray-500">
+                  {action.description}
+                </p>
               </button>
             ))}
           </div>
@@ -81,7 +85,9 @@ export function Home() {
         {/* 近期功能更新 */}
         <div className="card">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">近期功能更新</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              近期功能更新
+            </h2>
             <span className="rounded-full bg-primary-100 px-3 py-1 text-xs font-medium text-primary-800">
               v3.5.0
             </span>
@@ -102,7 +108,8 @@ export function Home() {
                     <span className="text-xs text-gray-500">2025-11-29</span>
                   </div>
                   <p className="mt-1 text-sm text-gray-600">
-                    Tailwind + Ant Design 颜色配置统一，主色调升级为靛蓝色系，侧边栏优化为浅色主题，整体视觉体验提升
+                    Tailwind + Ant Design
+                    颜色配置统一，主色调升级为靛蓝色系，侧边栏优化为浅色主题，整体视觉体验提升
                   </p>
                 </div>
               </div>
@@ -123,7 +130,8 @@ export function Home() {
                     <span className="text-xs text-gray-500">2025-11-21</span>
                   </div>
                   <p className="mt-1 text-sm text-gray-600">
-                    支持从飞书表格导入达人价格数据（多年月、多类型），Performance 页面新增价格类型切换器，动态表头跟随选择器变化
+                    支持从飞书表格导入达人价格数据（多年月、多类型），Performance
+                    页面新增价格类型切换器，动态表头跟随选择器变化
                   </p>
                 </div>
               </div>

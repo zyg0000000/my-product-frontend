@@ -22,7 +22,7 @@ export function ConfirmDialog({
   cancelLabel = '取消',
   confirmButtonClass = 'bg-red-600 hover:bg-red-700 text-white',
   onConfirm,
-  onCancel
+  onCancel,
 }: ConfirmDialogProps) {
   if (!isOpen) return null;
 
