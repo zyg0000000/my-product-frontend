@@ -11,12 +11,13 @@
  * - 右侧：已选筛选条件标签展示
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type {
   FilterValue,
   FilterableDimension,
   PerformanceFilters as FiltersType,
 } from '../../hooks/usePerformanceFilters';
+import { getTalentFilterOptions } from '../../api/talent';
 
 interface PerformanceFiltersProps {
   // 可筛选的维度列表（已按 filterOrder 排序）
@@ -418,6 +419,7 @@ function TextFilter({
 
 /**
  * 枚举多选筛选器
+ * 支持动态从 API 加载选项（talentType/talentTier）
  */
 function EnumFilter({
   dimension,
@@ -428,7 +430,52 @@ function EnumFilter({
   selected: string[];
   onChange: (selected: string[]) => void;
 }) {
-  const options = dimension.filterOptions || [];
+  const [dynamicOptions, setDynamicOptions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // 判断是否需要动态加载
+  const needsDynamicLoad =
+    dimension.id === 'talentType' ||
+    dimension.id === 'talentTier' ||
+    dimension.targetPath?.includes('talentType') ||
+    dimension.targetPath?.includes('talentTier');
+
+  // 动态加载选项
+  useEffect(() => {
+    if (!needsDynamicLoad) return;
+
+    const loadOptions = async () => {
+      setLoading(true);
+      try {
+        const res = await getTalentFilterOptions('v2');
+        if (res.success && res.data) {
+          if (
+            dimension.id === 'talentType' ||
+            dimension.targetPath?.includes('talentType')
+          ) {
+            setDynamicOptions(res.data.types || []);
+          } else if (
+            dimension.id === 'talentTier' ||
+            dimension.targetPath?.includes('talentTier')
+          ) {
+            setDynamicOptions(res.data.tiers || []);
+          }
+        }
+      } catch {
+        // 加载失败时使用配置中的静态选项
+        setDynamicOptions(dimension.filterOptions || []);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOptions();
+  }, [dimension.id, dimension.targetPath, dimension.filterOptions, needsDynamicLoad]);
+
+  // 优先使用动态加载的选项，否则使用配置中的静态选项
+  const options = needsDynamicLoad
+    ? dynamicOptions
+    : dimension.filterOptions || [];
 
   const toggleOption = (option: string) => {
     if (selected.includes(option)) {
@@ -444,19 +491,25 @@ function EnumFilter({
         {dimension.name}
       </label>
       <div className="flex flex-wrap gap-2">
-        {options.map(option => (
-          <button
-            key={option}
-            onClick={() => toggleOption(option)}
-            className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-              selected.includes(option)
-                ? 'bg-primary-600 text-white border-primary-600'
-                : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400'
-            }`}
-          >
-            {option}
-          </button>
-        ))}
+        {loading ? (
+          <span className="text-xs text-gray-400">加载中...</span>
+        ) : options.length > 0 ? (
+          options.map(option => (
+            <button
+              key={option}
+              onClick={() => toggleOption(option)}
+              className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                selected.includes(option)
+                  ? 'bg-primary-600 text-white border-primary-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400'
+              }`}
+            >
+              {option}
+            </button>
+          ))
+        ) : (
+          <span className="text-xs text-gray-400">暂无选项</span>
+        )}
       </div>
     </div>
   );

@@ -29,6 +29,7 @@ import {
 } from '@ant-design/icons';
 import { logger } from '../../utils/logger';
 import type { FieldMappingRule, CategoryConfig } from '../../api/performance';
+import { TRANSFORM_OPTIONS } from '../../api/performance';
 import type { Platform } from '../../types/talent';
 import { usePlatformConfig } from '../../hooks/usePlatformConfig';
 import { Modal } from './Modal';
@@ -208,6 +209,23 @@ export function FieldMappingManager({
           <span className="text-gray-300">-</span>
         )}
       </td>
+      <td className="px-3 py-2 text-xs">
+        {rule.transform ? (
+          <Tooltip
+            title={
+              TRANSFORM_OPTIONS.find(t => t.value === rule.transform)
+                ?.description
+            }
+          >
+            <Tag color="cyan">
+              {TRANSFORM_OPTIONS.find(t => t.value === rule.transform)?.label ||
+                rule.transform}
+            </Tag>
+          </Tooltip>
+        ) : (
+          <span className="text-gray-300">-</span>
+        )}
+      </td>
       <td className="px-3 py-2 text-center">
         {rule.required ? (
           <span className="text-green-600">✓</span>
@@ -279,6 +297,9 @@ export function FieldMappingManager({
                   </th>
                   <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
                     价格类型
+                  </th>
+                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                    转换函数
                   </th>
                   <th className="px-3 py-2 text-center font-medium text-gray-600 text-xs">
                     必需
@@ -463,6 +484,31 @@ export function FieldMappingManager({
               >
                 Excel必填列（导入时Excel文件必须包含此列）
               </Checkbox>
+            </Form.Item>
+
+            {/* 转换函数 */}
+            <Form.Item
+              label="转换函数（可选）"
+              tooltip="对导入的值进行转换处理，如提取JSON中的key"
+            >
+              <Select
+                value={editingRule.transform || undefined}
+                onChange={value =>
+                  setEditingRule({ ...editingRule, transform: value })
+                }
+                allowClear
+                placeholder="选择转换函数（可选）"
+                optionLabelProp="label"
+              >
+                {TRANSFORM_OPTIONS.map(t => (
+                  <Select.Option key={t.value} value={t.value} label={t.label}>
+                    <div>
+                      <div>{t.label}</div>
+                      <div className="text-xs text-gray-400">{t.description}</div>
+                    </div>
+                  </Select.Option>
+                ))}
+              </Select>
             </Form.Item>
 
             {/* 默认值 */}

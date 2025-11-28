@@ -1,14 +1,15 @@
 /**
  * @file getTalentFilterOptions.js
- * @version 1.0
+ * @version 1.1
  * @description
  * 云函数: getTalentFilterOptions (生产版)
- * 专为“近期表现”和“达人库”等页面的筛选器提供动态选项。
+ * 专为"近期表现"和"达人库"等页面的筛选器提供动态选项。
  *
  * 功能特性:
  * - 实时查询数据库中所有不重复的 `talentTier` (达人层级)。
  * - 实时查询数据库中所有不重复的 `talentType` (达人类型)。
  * - 高效轻量，只返回筛选所需的最少数据。
+ * - v1.1: 支持 dbVersion 参数切换数据库 (默认v1=kol_data, v2=agentworks_db)
  *
  * 触发器: API 网关, GET /talents/filter-options
  */
@@ -17,7 +18,8 @@ const { MongoClient } = require('mongodb');
 
 // 从环境变量中获取配置
 const MONGO_URI = process.env.MONGO_URI;
-const DB_NAME = process.env.MONGO_DB_NAME || 'kol_data';
+const DB_NAME_V1 = process.env.MONGO_DB_NAME || 'kol_data';
+const DB_NAME_V2 = 'agentworks_db';
 const TALENTS_COLLECTION = 'talents';
 
 let client;
@@ -55,8 +57,17 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    // 解析 dbVersion 参数（可选，默认 v1）
+    const queryParams = event.queryStringParameters || {};
+    const dbVersion = queryParams.dbVersion || 'v1';
+
+    // 根据 dbVersion 选择数据库
+    const dbName = dbVersion === 'v2' ? DB_NAME_V2 : DB_NAME_V1;
+
+    console.log(`[getTalentFilterOptions] 使用数据库: ${dbName} (dbVersion=${dbVersion})`);
+
     const dbClient = await connectToDatabase();
-    const collection = dbClient.db(DB_NAME).collection(TALENTS_COLLECTION);
+    const collection = dbClient.db(dbName).collection(TALENTS_COLLECTION);
 
     // 1. 使用 Promise.all 并行执行两个独立的数据库查询
     const [tiers, types] = await Promise.all([

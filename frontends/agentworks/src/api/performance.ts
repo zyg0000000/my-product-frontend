@@ -8,6 +8,46 @@ import { get, post, put, del } from './client';
  * ========== 字段映射配置管理 ==========
  */
 
+/**
+ * 可用的 Transform 函数
+ * 这些函数在云函数 mapping-engine.js 中实现
+ */
+export type TransformFunction =
+  | 'extractJsonFirstKey' // 提取 JSON 首个 key
+  | 'extractJsonFirstKeyAsArray' // 提取 JSON 首个 key 并返回数组
+  | 'splitToArray' // 逗号分隔转数组
+  | 'extractJsonAllKeys'; // 提取所有 keys
+
+/**
+ * Transform 函数选项配置
+ */
+export const TRANSFORM_OPTIONS: Array<{
+  value: TransformFunction;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: 'extractJsonFirstKey',
+    label: '提取JSON首个Key',
+    description: '从 {"key": value} 提取 "key"',
+  },
+  {
+    value: 'extractJsonFirstKeyAsArray',
+    label: '提取JSON首个Key(数组)',
+    description: '从 {"key": value} 提取 ["key"]',
+  },
+  {
+    value: 'splitToArray',
+    label: '逗号分隔转数组',
+    description: '"a,b,c" → ["a", "b", "c"]',
+  },
+  {
+    value: 'extractJsonAllKeys',
+    label: '提取所有Keys',
+    description: '从 {"a":1, "b":2} 提取 ["a", "b"]',
+  },
+];
+
 export interface FieldMappingRule {
   excelHeader: string;
   targetPath: string;
@@ -18,6 +58,7 @@ export interface FieldMappingRule {
   priceType?: string; // 价格类型（当 targetPath = "prices" 时使用）
   targetCollection?: 'talents' | 'talent_performance'; // 目标集合（默认 talents）
   category?: string; // 分类（基础信息、核心绩效、受众分析等）
+  transform?: TransformFunction; // 值转换函数（v1.7 新增）
 }
 
 export interface CategoryConfig {

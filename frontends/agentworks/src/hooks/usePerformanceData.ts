@@ -16,6 +16,7 @@ import type { Talent, Platform } from '../types/talent';
 export interface PerformanceFilterParams {
   searchTerm?: string;
   tiers?: string[] | string; // 支持数组或逗号分隔字符串
+  types?: string[] | string; // 内容标签筛选
   // 数值区间筛选
   cpmMin?: number;
   cpmMax?: number;
@@ -77,6 +78,22 @@ export function usePerformanceData(
           ) {
             // 字符串格式转数组
             params.tiers = filters.tiers
+              .split(',')
+              .map((s: string) => s.trim())
+              .filter(Boolean);
+          }
+        }
+
+        // 处理 types 参数（内容标签，可能是数组或逗号分隔字符串）
+        if (filters.types) {
+          if (Array.isArray(filters.types) && filters.types.length > 0) {
+            params.types = filters.types;
+          } else if (
+            typeof filters.types === 'string' &&
+            filters.types.trim()
+          ) {
+            // 字符串格式转数组
+            params.types = filters.types
               .split(',')
               .map((s: string) => s.trim())
               .filter(Boolean);

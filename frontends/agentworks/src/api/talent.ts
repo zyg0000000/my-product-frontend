@@ -326,3 +326,26 @@ export async function bulkCreateTalents(
 
   return post('/talents/bulk-create', requestBody);
 }
+
+/**
+ * 筛选选项响应
+ */
+export interface FilterOptionsResponse {
+  success: boolean;
+  data?: {
+    tiers: string[]; // 达人层级选项
+    types: string[]; // 内容标签选项
+  };
+  message?: string;
+}
+
+/**
+ * 获取达人筛选选项（达人层级、内容标签等的唯一值列表）
+ * 用于动态填充筛选器的枚举选项
+ * @param dbVersion 数据库版本（必填）: v1=kol_data (byteproject), v2=agentworks_db (agentworks)
+ */
+export async function getTalentFilterOptions(
+  dbVersion: 'v1' | 'v2'
+): Promise<FilterOptionsResponse> {
+  return get('/talents/filter-options', { dbVersion });
+}

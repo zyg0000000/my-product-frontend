@@ -48,6 +48,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { DimensionConfig } from '../../api/performance';
+import { getTalentFilterOptions } from '../../api/talent';
 import type { Platform } from '../../types/talent';
 import { usePlatformConfig } from '../../hooks/usePlatformConfig';
 import { Modal } from './Modal';
@@ -554,6 +555,16 @@ interface PriceTypeConfig {
   label: string;
 }
 
+// 判断是否为动态加载枚举选项的字段
+function isDynamicEnumField(dimension: DimensionConfig): boolean {
+  return (
+    dimension.id === 'talentType' ||
+    dimension.id === 'talentTier' ||
+    dimension.targetPath?.includes('talentType') ||
+    dimension.targetPath?.includes('talentTier')
+  );
+}
+
 function DimensionEditForm({
   dimension,
   isAdding,
@@ -838,16 +849,51 @@ function DimensionEditForm({
                 >
                   <Select
                     value={dimension.filterType || 'text'}
-                    onChange={value =>
-                      onChange({
+                    onChange={async value => {
+                      const newDimension = {
                         ...dimension,
                         filterType: value as 'text' | 'range' | 'enum',
                         filterOptions:
                           value === 'enum'
                             ? dimension.filterOptions
                             : undefined,
-                      })
-                    }
+                      };
+                      onChange(newDimension);
+
+                      // 选择枚举时自动加载选项
+                      if (
+                        value === 'enum' &&
+                        (!dimension.filterOptions ||
+                          dimension.filterOptions.length === 0)
+                      ) {
+                        try {
+                          const res = await getTalentFilterOptions('v2');
+                          if (res.success && res.data) {
+                            let options: string[] = [];
+                            if (
+                              dimension.targetPath?.includes('talentType') ||
+                              dimension.id === 'talentType'
+                            ) {
+                              options = res.data.types || [];
+                            } else if (
+                              dimension.targetPath?.includes('talentTier') ||
+                              dimension.id === 'talentTier'
+                            ) {
+                              options = res.data.tiers || [];
+                            }
+                            if (options.length > 0) {
+                              onChange({
+                                ...newDimension,
+                                filterOptions: options,
+                              });
+                              message.success(`已自动加载 ${options.length} 个选项`);
+                            }
+                          }
+                        } catch (err) {
+                          logger.error('自动加载枚举选项失败', err);
+                        }
+                      }
+                    }}
                     options={[
                       { value: 'text', label: '文本搜索（输入框模糊匹配）' },
                       { value: 'range', label: '数值区间（最小值-最大值）' },
@@ -873,22 +919,104 @@ function DimensionEditForm({
                 {dimension.filterType === 'enum' && (
                   <Form.Item
                     label="枚举选项"
-                    required
-                    tooltip="多个选项用逗号分隔，如：头部, 腰部, 尾部"
+                    required={!isDynamicEnumField(dimension)}
+                    tooltip={
+                      isDynamicEnumField(dimension)
+                        ? '此字段选项由列表页面动态加载，无需手动配置'
+                        : '多个选项用逗号分隔，或点击「自动加载」从数据库获取'
+                    }
                   >
-                    <Input
-                      value={filterOptionsStr}
-                      onChange={e => handleFilterOptionsChange(e.target.value)}
-                      placeholder="头部, 腰部, 尾部"
-                    />
-                    {dimension.filterOptions &&
-                      dimension.filterOptions.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {dimension.filterOptions.map((opt, idx) => (
-                            <Tag key={idx}>{opt}</Tag>
-                          ))}
+                    {isDynamicEnumField(dimension) ? (
+                      // 动态加载字段：显示提示信息，不需要手动配置
+                      <div className="bg-green-50 border border-green-200 rounded-md p-3 text-sm text-green-700">
+                        <div className="flex items-center gap-2">
+                          <svg
+                            className="w-4 h-4 text-green-500"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                          <span className="font-medium">此字段选项从数据库动态加载</span>
                         </div>
-                      )}
+                        <p className="mt-1 text-xs text-green-600">
+                          列表页面筛选器会自动从 API 获取最新的选项值（{dimension.id === 'talentType' || dimension.targetPath?.includes('talentType') ? '达人类型/内容标签' : '达人层级'}），无需在此手动配置。
+                        </p>
+                      </div>
+                    ) : (
+                      // 其他枚举字段：显示手动输入和自动加载按钮
+                      <>
+                        <Space.Compact style={{ width: '100%' }}>
+                          <Input
+                            value={filterOptionsStr}
+                            onChange={e => handleFilterOptionsChange(e.target.value)}
+                            placeholder="选项1, 选项2, 选项3"
+                            style={{ flex: 1 }}
+                          />
+                          <Tooltip title="从数据库自动获取该字段的所有唯一值">
+                            <Button
+                              onClick={async () => {
+                                try {
+                                  const res = await getTalentFilterOptions('v2');
+                                  if (res.success && res.data) {
+                                    // 根据 targetPath 判断使用哪个字段的选项
+                                    let options: string[] = [];
+                                    if (
+                                      dimension.targetPath?.includes('talentType') ||
+                                      dimension.id === 'talentType'
+                                    ) {
+                                      options = res.data.types || [];
+                                    } else if (
+                                      dimension.targetPath?.includes('talentTier') ||
+                                      dimension.id === 'talentTier'
+                                    ) {
+                                      options = res.data.tiers || [];
+                                    } else {
+                                      message.warning(
+                                        '当前字段暂不支持自动加载，请手动输入选项'
+                                      );
+                                      return;
+                                    }
+                                    if (options.length > 0) {
+                                      onChange({
+                                        ...dimension,
+                                        filterOptions: options,
+                                      });
+                                      message.success(
+                                        `已加载 ${options.length} 个选项`
+                                      );
+                                    } else {
+                                      message.warning('未找到可用选项');
+                                    }
+                                  } else {
+                                    message.error('加载失败：' + (res.message || '未知错误'));
+                                  }
+                                } catch (err) {
+                                  message.error('加载失败，请检查网络');
+                                  logger.error('自动加载枚举选项失败', err);
+                                }
+                              }}
+                            >
+                              自动加载
+                            </Button>
+                          </Tooltip>
+                        </Space.Compact>
+                        {dimension.filterOptions &&
+                          dimension.filterOptions.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {dimension.filterOptions.map((opt, idx) => (
+                                <Tag key={idx}>{opt}</Tag>
+                              ))}
+                            </div>
+                          )}
+                      </>
+                    )}
                   </Form.Item>
                 )}
               </div>

@@ -151,11 +151,13 @@ export function usePerformanceFilters(
 
         case 'enum':
           if (value.selected && value.selected.length > 0) {
-            // 枚举筛选：如达人层级
+            // 枚举筛选：根据字段映射到后端参数
             if (dimId === 'talentTier') {
-              params.tiers = value.selected.join(',');
+              params.tiers = value.selected;
+            } else if (dimId === 'talentType') {
+              params.types = value.selected;
             } else {
-              params[`filter_${dimId}`] = value.selected.join(',');
+              params[`filter_${dimId}`] = value.selected;
             }
           }
           break;
