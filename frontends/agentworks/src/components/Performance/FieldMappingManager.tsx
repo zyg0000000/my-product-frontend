@@ -504,7 +504,9 @@ export function FieldMappingManager({
                   <Select.Option key={t.value} value={t.value} label={t.label}>
                     <div>
                       <div>{t.label}</div>
-                      <div className="text-xs text-gray-400">{t.description}</div>
+                      <div className="text-xs text-gray-400">
+                        {t.description}
+                      </div>
                     </div>
                   </Select.Option>
                 ))}

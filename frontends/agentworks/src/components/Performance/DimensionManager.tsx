@@ -886,7 +886,9 @@ function DimensionEditForm({
                                 ...newDimension,
                                 filterOptions: options,
                               });
-                              message.success(`已自动加载 ${options.length} 个选项`);
+                              message.success(
+                                `已自动加载 ${options.length} 个选项`
+                              );
                             }
                           }
                         } catch (err) {
@@ -943,10 +945,17 @@ function DimensionEditForm({
                               d="M5 13l4 4L19 7"
                             />
                           </svg>
-                          <span className="font-medium">此字段选项从数据库动态加载</span>
+                          <span className="font-medium">
+                            此字段选项从数据库动态加载
+                          </span>
                         </div>
                         <p className="mt-1 text-xs text-green-600">
-                          列表页面筛选器会自动从 API 获取最新的选项值（{dimension.id === 'talentType' || dimension.targetPath?.includes('talentType') ? '达人类型/内容标签' : '达人层级'}），无需在此手动配置。
+                          列表页面筛选器会自动从 API 获取最新的选项值（
+                          {dimension.id === 'talentType' ||
+                          dimension.targetPath?.includes('talentType')
+                            ? '达人类型/内容标签'
+                            : '达人层级'}
+                          ），无需在此手动配置。
                         </p>
                       </div>
                     ) : (
@@ -955,7 +964,9 @@ function DimensionEditForm({
                         <Space.Compact style={{ width: '100%' }}>
                           <Input
                             value={filterOptionsStr}
-                            onChange={e => handleFilterOptionsChange(e.target.value)}
+                            onChange={e =>
+                              handleFilterOptionsChange(e.target.value)
+                            }
                             placeholder="选项1, 选项2, 选项3"
                             style={{ flex: 1 }}
                           />
@@ -963,17 +974,22 @@ function DimensionEditForm({
                             <Button
                               onClick={async () => {
                                 try {
-                                  const res = await getTalentFilterOptions('v2');
+                                  const res =
+                                    await getTalentFilterOptions('v2');
                                   if (res.success && res.data) {
                                     // 根据 targetPath 判断使用哪个字段的选项
                                     let options: string[] = [];
                                     if (
-                                      dimension.targetPath?.includes('talentType') ||
+                                      dimension.targetPath?.includes(
+                                        'talentType'
+                                      ) ||
                                       dimension.id === 'talentType'
                                     ) {
                                       options = res.data.types || [];
                                     } else if (
-                                      dimension.targetPath?.includes('talentTier') ||
+                                      dimension.targetPath?.includes(
+                                        'talentTier'
+                                      ) ||
                                       dimension.id === 'talentTier'
                                     ) {
                                       options = res.data.tiers || [];
@@ -995,7 +1011,9 @@ function DimensionEditForm({
                                       message.warning('未找到可用选项');
                                     }
                                   } else {
-                                    message.error('加载失败：' + (res.message || '未知错误'));
+                                    message.error(
+                                      '加载失败：' + (res.message || '未知错误')
+                                    );
                                   }
                                 } catch (err) {
                                   message.error('加载失败，请检查网络');

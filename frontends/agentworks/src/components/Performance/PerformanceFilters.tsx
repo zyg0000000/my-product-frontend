@@ -470,7 +470,12 @@ function EnumFilter({
     };
 
     loadOptions();
-  }, [dimension.id, dimension.targetPath, dimension.filterOptions, needsDynamicLoad]);
+  }, [
+    dimension.id,
+    dimension.targetPath,
+    dimension.filterOptions,
+    needsDynamicLoad,
+  ]);
 
   // 优先使用动态加载的选项，否则使用配置中的静态选项
   const options = needsDynamicLoad
