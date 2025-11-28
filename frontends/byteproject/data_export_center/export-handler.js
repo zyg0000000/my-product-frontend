@@ -59,6 +59,7 @@ const BACKEND_FIELD_KEY_MAP = {
     // 合作/项目维度
     'collaboration_status': '合作状态',
     'collaboration_amount': '合作金额',
+    'collaboration_rebate': '合作返点',
     'collaboration_orderType': '下单方式',
     'collaboration_plannedReleaseDate': '计划发布日期',
     'collaboration_publishDate': '实际发布日期',
@@ -66,6 +67,7 @@ const BACKEND_FIELD_KEY_MAP = {
     'videoId': '视频ID',
     'project_name': '项目名称',
     'talent_price_60s': '达人60s+价格',
+    'talent_highest_rebate': '达人最高返点率',
     'work_t7_totalViews': 'T+7 播放量',
     'work_t7_likeCount': 'T+7 点赞数'
 };
@@ -355,6 +357,7 @@ function getFieldMapping() {
         ratio_urban_blue_collar: '都市蓝领粉丝比例',
         collaboration_status: '合作状态',
         collaboration_amount: '合作金额',
+        collaboration_rebate: '合作返点',
         collaboration_orderType: '下单方式',
         collaboration_plannedReleaseDate: '计划发布日期',
         collaboration_publishDate: '实际发布日期',
@@ -363,6 +366,7 @@ function getFieldMapping() {
         project_name: '所属项目',
         project_type: '项目类型',
         talent_price_60s: '达人60s+价格',
+        talent_highest_rebate: '达人最高返点率',
         work_t7_totalViews: 'T+7播放量',
         work_t7_likeCount: 'T+7点赞数'
     };

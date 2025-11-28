@@ -1,12 +1,13 @@
 /**
  * @file exportComprehensiveData/index.js
- * @version 1.4
+ * @version 1.5
  * @description "数据导出中心"后端核心云函数 (多主体聚合引擎)。
  * - 支持 'talent', 'collaboration', 'project' 多种导出主体 (entity)。
  * - 根据前端请求的 entity, fields, filters 动态构建 MongoDB Aggregation Pipeline。
  * - 聚合来自 talents, collaborations, works, projects, automation-tasks 多个集合的数据。
  * - [v1.3] 新增支持 taskId (星图任务ID) 和 videoId (视频ID) 字段导出
  * - [v1.4] 按项目导出新增达人维度：星图ID (xingtuId)、60s+价格 (talent_price_60s)
+ * - [v1.5] 新增合作返点 (collaboration_rebate) 字段导出
  */
 
 const { MongoClient } = require('mongodb');
@@ -163,6 +164,7 @@ function buildCollaborationPipeline(db, fields, filters, entity) {
         switch (field) {
             case 'collaboration_status': projectStage['合作状态'] = '$status'; break;
             case 'collaboration_amount': projectStage['合作金额'] = '$amount'; break;
+            case 'collaboration_rebate': projectStage['合作返点'] = '$rebate'; break;
             case 'collaboration_orderType': projectStage['下单方式'] = '$orderType'; break;
             case 'collaboration_plannedReleaseDate': projectStage['计划发布日期'] = '$plannedReleaseDate'; break;
             case 'collaboration_publishDate': projectStage['实际发布日期'] = '$publishDate'; break;
@@ -206,6 +208,12 @@ function buildCollaborationPipeline(db, fields, filters, entity) {
                         },
                         in: { $ifNull: ['$$matchedPrice.price', null] }
                     }
+                };
+                break;
+            case 'talent_highest_rebate':
+                // 从达人的rebates数组中取最高返点率
+                projectStage['达人最高返点率'] = {
+                    $ifNull: [{ $max: '$talentInfo.rebates.rate' }, null]
                 };
                 break;
             case 'work_t7_totalViews': projectStage['T+7 播放量'] = '$workInfo.t7_totalViews'; break;
