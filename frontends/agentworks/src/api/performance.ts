@@ -17,6 +17,46 @@ export interface FieldMappingRule {
   order?: number;
   priceType?: string;  // 价格类型（当 targetPath = "prices" 时使用）
   targetCollection?: 'talents' | 'talent_performance';  // 目标集合（默认 talents）
+  category?: string;  // 分类（基础信息、核心绩效、受众分析等）
+}
+
+export interface CategoryConfig {
+  name: string;
+  order: number;
+  icon?: string;
+}
+
+/**
+ * 计算字段公式配置
+ * v1.6: 支持两种格式
+ * - 简单格式（向后兼容）: type + operand1 + operand2
+ * - 表达式格式（推荐）: expression 字符串
+ */
+export interface ComputedFieldFormula {
+  // === 新格式：表达式（推荐） ===
+  expression?: string;  // 完整表达式，如 "(prices.video_60plus * 0.6 + prices.video_21_60 * 0.4) / metrics.expected_plays * 1000"
+
+  // === 旧格式：简单二元运算（向后兼容） ===
+  type?: 'division' | 'multiplication' | 'addition' | 'subtraction';
+  operand1?: string;  // 第一个操作数的 targetPath（如 "prices.video_60plus"）
+  operand2?: string;  // 第二个操作数的 targetPath（如 "metrics.expected_plays"）
+  multiplier?: number;  // 乘数（如 CPM 计算需要 × 1000）
+
+  // === 通用配置 ===
+  precision?: number;   // 保留小数位数
+}
+
+/**
+ * 计算字段规则
+ */
+export interface ComputedFieldRule {
+  id: string;              // 字段ID，如 'cpm_60s_expected'
+  name: string;            // 显示名称，如 '60s预期CPM'
+  targetPath: string;      // 目标路径，如 'metrics.cpm_60s_expected'
+  targetCollection: 'talents' | 'talent_performance';
+  formula: ComputedFieldFormula;
+  category?: string;       // 分类
+  order?: number;          // 排序
 }
 
 export interface FieldMappingConfig {
@@ -27,6 +67,8 @@ export interface FieldMappingConfig {
   isActive: boolean;
   description?: string;
   mappings: FieldMappingRule[];
+  computedFields?: ComputedFieldRule[];  // 计算字段配置
+  categories?: CategoryConfig[];  // 分类配置
   totalMappings?: number;
   createdAt?: string;
   updatedAt?: string;
@@ -86,6 +128,11 @@ export interface DimensionConfig {
   filterType?: 'text' | 'range' | 'enum';  // 筛选器类型
   filterOrder?: number;  // 筛选面板中的显示顺序
   filterOptions?: string[];  // 枚举筛选的选项列表（仅 filterType=enum 时使用）
+  // v1.2 新增：计算字段标识
+  isComputed?: boolean;  // 是否为计算字段
+  computedFrom?: {
+    formula: string;  // 公式描述（用于展示）
+  };
 }
 
 export interface DimensionConfigDoc {

@@ -68,6 +68,37 @@
 | 间距 | Tailwind spacing (`p-*`, `m-*`, `gap-*`) | Tailwind |
 | 文字样式 | Tailwind typography (`text-sm`, `font-bold`) | Tailwind |
 
+### 表单输入组件规范
+
+| 场景 | 使用组件 | 来源 | 说明 |
+|------|---------|------|------|
+| 固定选项下拉 | `Select` / `ProFormSelect` | Ant Design | 用户只能从预设选项中选择 |
+| 可输入新值的下拉 | `AutoComplete` | Ant Design | 用户可选择或输入自定义值（如分类） |
+| 文本输入 | `Input` / `ProFormText` | Ant Design | 标准文本输入 |
+| 数字输入 | `InputNumber` / `ProFormDigit` | Ant Design | 带增减按钮的数字输入 |
+| 复选框 | `Checkbox` | Ant Design | 布尔值选择 |
+| 表单布局 | `Form` + `Form.Item` | Ant Design | 统一的表单字段包装，支持 label、tooltip、required |
+
+**禁止使用**：
+- ❌ 原生 HTML `<select>`, `<input>`, `<datalist>`, `<option>`
+- ❌ 自定义手写下拉组件
+- ❌ 原生 HTML `<form>` 表单
+
+**示例：分类选择器（支持自定义输入）**
+```tsx
+import { AutoComplete } from 'antd';
+
+<Form.Item label="分类" tooltip="可从下拉列表选择，或直接输入新的分类名称">
+  <AutoComplete
+    value={value}
+    onChange={onChange}
+    options={categories.map(cat => ({ value: cat.name, label: cat.name }))}
+    placeholder="选择或输入新分类"
+    allowClear
+  />
+</Form.Item>
+```
+
 ---
 
 ## 🧩 组件规范
@@ -694,6 +725,13 @@ message.success('操作成功');
 
 ## 📝 更新记录
 
+### v3.2.0 (2025-11-28) - 表单组件规范化
+- ✅ 新增 **表单输入组件规范** 章节
+- ✅ 明确 `Select` vs `AutoComplete` 使用场景
+- ✅ 禁止使用原生 HTML 表单元素（`<select>`, `<input>`, `<datalist>`）
+- ✅ 统一 PerformanceConfig 页面弹窗组件（FieldMappingManager、DimensionManager）
+- ✅ 所有表单使用 `Form` + `Form.Item` 包装
+
 ### v3.1.0 (2025-11-23) - BasicInfo 页面升级
 - ✅ 完成 **BasicInfo** 页面完全重构
 - ✅ ProTable 替代手写表格（代码减少 54%）
@@ -736,12 +774,16 @@ message.success('操作成功');
 - [ ] 使用 message 替代 alert() 和 Toast
 - [ ] 弹窗宽度符合规范（900px / 560px）
 - [ ] Tailwind 用于布局和间距
+- [ ] 表单使用 `Form` + `Form.Item` 包装（非 ProForm 场景）
+- [ ] 下拉选择使用 `Select`，可输入的下拉使用 `AutoComplete`
+- [ ] 数字输入使用 `InputNumber`，复选框使用 `Checkbox`
+- [ ] 禁止使用原生 HTML 表单元素（`<select>`, `<input>`, `<datalist>`）
 - [ ] 移除内联样式和手写 CSS
 
 ---
 
 **维护者**: AgentWorks 团队
-**最后更新**: 2025-11-23
-**版本**: v3.0.0
+**最后更新**: 2025-11-28
+**版本**: v3.2.0
 
 🤖 本规范遵循 Ant Design Pro + Tailwind CSS 混合开发模式

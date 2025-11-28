@@ -1,9 +1,9 @@
 {
     "collection": "field_mappings",
-    "description": "字段映射配置集合 - 存储各平台数据导入时的字段映射规则",
+    "description": "字段映射配置集合 - 存储各平台数据导入时的字段映射规则及计算字段配置",
     "database": "agentworks_db",
-    "version": "1.0",
-    "lastUpdated": "2025-11-18",
+    "version": "1.2",
+    "lastUpdated": "2025-11-28",
     "author": "Claude Code",
     "fields": {
         "_id": {
@@ -112,6 +112,74 @@
             "required": false,
             "min": 0
         },
+        "computedFields": {
+            "type": "Array",
+            "description": "计算字段配置数组（v1.2 新增）",
+            "required": false,
+            "itemType": "Object",
+            "itemSchema": {
+                "id": {
+                    "type": "String",
+                    "description": "计算字段唯一标识",
+                    "required": true,
+                    "example": "cpm_60s_expected"
+                },
+                "name": {
+                    "type": "String",
+                    "description": "计算字段显示名称",
+                    "required": true,
+                    "example": "60s预期CPM"
+                },
+                "targetPath": {
+                    "type": "String",
+                    "description": "计算结果存储路径",
+                    "required": true,
+                    "example": "metrics.cpm_60s_expected"
+                },
+                "targetCollection": {
+                    "type": "String",
+                    "description": "目标集合",
+                    "required": true,
+                    "enum": ["talents", "talent_performance"],
+                    "default": "talent_performance"
+                },
+                "formula": {
+                    "type": "Object",
+                    "description": "计算公式配置",
+                    "required": true,
+                    "schema": {
+                        "expression": {
+                            "type": "String",
+                            "description": "表达式模式（推荐）- 支持复杂数学表达式",
+                            "example": "if(metrics.expected_plays > 0, prices.video_60plus / metrics.expected_plays * 1000, 0)"
+                        },
+                        "type": {
+                            "type": "String",
+                            "description": "简单模式 - 运算类型（向后兼容）",
+                            "enum": ["division", "multiplication", "addition", "subtraction"]
+                        },
+                        "operand1": {
+                            "type": "String",
+                            "description": "简单模式 - 操作数1的字段路径"
+                        },
+                        "operand2": {
+                            "type": "String",
+                            "description": "简单模式 - 操作数2的字段路径"
+                        },
+                        "multiplier": {
+                            "type": "Number",
+                            "description": "简单模式 - 结果乘数",
+                            "default": 1
+                        },
+                        "precision": {
+                            "type": "Integer",
+                            "description": "小数精度",
+                            "default": 2
+                        }
+                    }
+                }
+            }
+        },
         "createdAt": {
             "type": "Date",
             "description": "创建时间",
@@ -184,6 +252,9 @@
         "同一平台同时只能有一个 isActive=true 的配置",
         "mappings 数组中的 targetPath 支持任意嵌套层级",
         "format 字段用于数据类型转换（percentage 会自动除以100）",
-        "required 字段用于导入时的数据验证"
+        "required 字段用于导入时的数据验证",
+        "v1.2 新增 computedFields 支持计算字段",
+        "计算字段支持两种模式：expression（推荐）和简单模式（向后兼容）",
+        "表达式支持函数：min, max, abs, round, floor, ceil, sqrt, pow, if, coalesce"
     ]
 }

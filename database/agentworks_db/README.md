@@ -1,4 +1,4 @@
-# AgentWorks Database (v2.1)
+# AgentWorks Database (v2.2)
 
 > **新一代多平台广告代理项目管理数据库**，对应前端 `frontends/agentworks/`
 
@@ -9,8 +9,19 @@
 - **数据库名称**: `agentworks_db`
 - **数据库类型**: MongoDB (NoSQL)
 - **关联前端**: `frontends/agentworks/`
-- **版本**: v2.1
+- **版本**: v2.2
 - **状态**: 生产中 ✅
+
+### 连接信息
+
+```
+mongodb://root:64223902Kz@mongoreplica6a8259b198d70.mongodb.cn-shanghai.volces.com:3717,mongoreplica6a8259b198d71.mongodb.cn-shanghai.volces.com:3717/?authSource=admin&replicaSet=rs-mongo-replica-6a8259b198d7&retryWrites=true
+```
+
+**连接命令**:
+```bash
+mongosh "mongodb://root:64223902Kz@mongoreplica6a8259b198d70.mongodb.cn-shanghai.volces.com:3717,mongoreplica6a8259b198d71.mongodb.cn-shanghai.volces.com:3717/?authSource=admin&replicaSet=rs-mongo-replica-6a8259b198d7&retryWrites=true"
+```
 
 ---
 
@@ -36,6 +47,13 @@
 - **talent_performance**: 表现数据（时间序列，频繁更新）
 - 通过 `$lookup` 自动关联，前端无感知
 - 支持历史快照查询
+
+### 🧮 计算字段引擎 (v2.2 新增)
+- **表达式解析器**: 安全的数学表达式计算（无 eval）
+- **支持运算符**: `+ - * / ()` 及比较运算 `> < >= <= == !=`
+- **内置函数**: `min`, `max`, `abs`, `round`, `floor`, `ceil`, `sqrt`, `pow`, `if`, `coalesce`
+- **前端可配置**: 通过 UI 动态添加/编辑计算字段
+- **自动计算**: 导入数据时自动计算派生字段
 
 ---
 
@@ -189,14 +207,14 @@ agentworks_db/
 
 ### 4. field_mappings（字段映射配置）
 
-定义飞书表格导入时的字段映射规则
+定义飞书表格导入时的字段映射规则，包含计算字段配置
 
 ```javascript
 {
   _id: ObjectId("..."),
   platform: "douyin",
   configName: "default",
-  version: "1.1",
+  version: "1.2",
   isActive: true,
   mappings: [
     {
@@ -207,14 +225,32 @@ agentworks_db/
       targetCollection: "talents"      // ⭐ 写入目标集合
     },
     {
-      excelHeader: "CPM",
-      targetPath: "performanceData.cpm",
+      excelHeader: "预期播放量",
+      targetPath: "metrics.expected_plays",
       format: "number",
       targetCollection: "talent_performance"  // ⭐ 写入 performance 集合
+    }
+  ],
+  // ⭐ v2.2 新增：计算字段配置
+  computedFields: [
+    {
+      id: "cpm_60s_expected",
+      name: "60s预期CPM",
+      targetPath: "metrics.cpm_60s_expected",
+      targetCollection: "talent_performance",
+      formula: {
+        // 表达式模式（推荐）
+        expression: "if(metrics.expected_plays > 0, prices.video_60plus / metrics.expected_plays * 1000, 0)",
+        precision: 2
+      }
     }
   ]
 }
 ```
+
+**计算字段公式格式**:
+- **表达式模式**: `formula.expression` - 支持复杂表达式，如 `if(a > 0, b / a * 1000, 0)`
+- **简单模式**: `formula.type` + `formula.operand1` + `formula.operand2` - 二元运算（向后兼容）
 
 ---
 
@@ -321,7 +357,8 @@ $mergeObjects 合并 performanceData
 - **云函数代码**：`../../functions/`
   - `getTalentsSearch` - v10.0 多集合支持
   - `getPerformanceData` - v2.0 多集合支持
-  - `syncFromFeishu/mapping-engine.js` - v1.3 分流写入
+  - `syncFromFeishu/mapping-engine.js` - v1.6 分流写入 + 计算字段
+  - `syncFromFeishu/expression-parser.js` - v1.0 表达式解析器
 - **前端代码**：`../../frontends/agentworks/`
 
 ---
@@ -355,5 +392,5 @@ mongosh "mongodb+srv://..." --file scripts/migrate-dimension-configs-v1.2.js
 ---
 
 **维护者**：产品团队
-**最后更新**：2025-11-26
-**版本**：v2.1
+**最后更新**：2025-11-28
+**版本**：v2.2

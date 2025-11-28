@@ -1,6 +1,10 @@
 /**
  * talent-performance-processor.js - 达人性能数据处理器
- * @version 1.2 - Multi-Collection Support
+ * @version 1.3 - Computed Fields Support
+ *
+ * --- v1.3 更新日志 (2025-11-28) ---
+ * - [计算字段] 支持 computedFields 配置，在导入时自动计算派生字段
+ * - [配置传递] 从 field_mappings 读取 computedFields 并传递给 applyMappingRules
  *
  * --- v1.2 更新日志 (2025-11-26) ---
  * - [多集合支持] 支持同时写入 talents 和 talent_performance 集合
@@ -47,13 +51,20 @@ async function processTalentPerformance(db, rows, platform, dbVersion, mappingCo
   console.log(`[性能数据导入] 使用映射配置: ${mappingConfig.configName} (v${mappingConfig.version})`);
   console.log(`[性能数据导入] 映射规则数: ${mappingConfig.mappings.length}`);
 
-  // 2. 应用映射引擎（v1.2: 返回 validData + performanceData）
+  // v1.3: 获取计算字段配置
+  const computedFields = mappingConfig.computedFields || [];
+  if (computedFields.length > 0) {
+    console.log(`[性能数据导入] 计算字段数: ${computedFields.length}`);
+  }
+
+  // 2. 应用映射引擎（v1.3: 传递 computedFields）
   const { validData, invalidRows, performanceData } = applyMappingRules(
     rows,
     mappingConfig.mappings,
     platform,
     priceYear,
-    priceMonth
+    priceMonth,
+    computedFields
   );
 
   // 3. 批量更新数据库（v1.2: 传递 performanceData）

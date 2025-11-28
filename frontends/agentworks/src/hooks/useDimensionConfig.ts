@@ -166,6 +166,26 @@ export function useDimensionConfig(platform: Platform) {
     await updateConfig(updatedConfig);
   };
 
+  // 批量更新维度（不改变顺序，用于批量修改 defaultVisible 等属性）
+  const batchUpdateDimensions = async (dimensions: DimensionConfig[]) => {
+    if (!activeConfig) {
+      error('没有激活的配置');
+      return;
+    }
+
+    const updatedDefaultVisibleIds = dimensions
+      .filter(d => d.defaultVisible)
+      .map(d => d.id);
+
+    const updatedConfig = {
+      ...activeConfig,
+      dimensions,
+      defaultVisibleIds: updatedDefaultVisibleIds
+    };
+
+    await updateConfig(updatedConfig);
+  };
+
   // 切换维度可见性
   const toggleDimensionVisibility = async (dimensionId: string) => {
     if (!activeConfig) {
@@ -255,6 +275,7 @@ export function useDimensionConfig(platform: Platform) {
     updateDimension,
     deleteDimension,
     reorderDimensions,
+    batchUpdateDimensions,
     toggleDimensionVisibility,
     updateVisibleIds
   };

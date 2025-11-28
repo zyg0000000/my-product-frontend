@@ -15,6 +15,7 @@ import { useFieldMapping } from '../../hooks/useFieldMapping';
 import { useDimensionConfig } from '../../hooks/useDimensionConfig';
 import { useDataImport } from '../../hooks/useDataImport';
 import { FieldMappingManager } from '../../components/Performance/FieldMappingManager';
+import { ComputedFieldManager } from '../../components/Performance/ComputedFieldManager';
 import { DimensionManager } from '../../components/Performance/DimensionManager';
 import { DataImportModal } from '../../components/DataImportModal';
 import { ImportResultPanel } from '../../components/ImportResultPanel';
@@ -209,9 +210,22 @@ function MappingConfigPanel({
       <FieldMappingManager
         mappings={config.mappings}
         platform={platform}
+        categories={config.categories}
         onAdd={fieldMapping.addMappingRule}
         onUpdate={fieldMapping.updateMappingRule}
         onDelete={fieldMapping.deleteMappingRule}
+      />
+
+      {/* 分隔线 */}
+      <div className="border-t my-6" />
+
+      {/* 计算字段管理器 */}
+      <ComputedFieldManager
+        computedFields={config.computedFields || []}
+        mappings={config.mappings}
+        onAdd={fieldMapping.addComputedField}
+        onUpdate={fieldMapping.updateComputedField}
+        onDelete={fieldMapping.deleteComputedField}
       />
     </div>
   );
@@ -279,7 +293,7 @@ function DimensionConfigPanel({
         onUpdate={dimensionConfig.updateDimension}
         onDelete={dimensionConfig.deleteDimension}
         onReorder={dimensionConfig.reorderDimensions}
-        onToggleVisibility={dimensionConfig.toggleDimensionVisibility}
+        onBatchUpdate={dimensionConfig.batchUpdateDimensions}
       />
     </div>
   );

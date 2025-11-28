@@ -1,6 +1,28 @@
 /**
  * mapping-engine.js - 通用映射引擎
- * @version 1.3 - Multi-Collection Support
+ * @version 1.6 - Expression Engine
+ *
+ * --- v1.6 更新日志 (2025-11-28) ---
+ * - [表达式引擎] 支持复杂数学表达式公式
+ *   - 语法: "(prices.video_60plus * 0.6 + prices.video_21_60 * 0.4) / metrics.expected_plays * 1000"
+ *   - 支持: + - * / () 运算符
+ *   - 支持: min, max, abs, round, floor, ceil, sqrt, pow, if, coalesce 函数
+ *   - 支持: >, <, >=, <=, ==, != 比较运算
+ * - [向后兼容] 同时支持旧格式 (formula.type + operand1/operand2) 和新格式 (formula.expression)
+ * - [安全] 使用自定义解析器，不使用 eval，防止代码注入
+ *
+ * --- v1.5 更新日志 (2025-11-28) ---
+ * - [计算字段] 新增 computedFields 支持，实现数据导入时自动计算派生字段
+ *   - 支持 division, multiplication, addition, subtraction 四种运算
+ *   - 支持跨集合引用（talents 和 talent_performance）
+ *   - 支持 prices.xxx 路径读取价格字段（自动分转元）
+ *   - 支持 precision 精度控制和 multiplier 乘数
+ * - [辅助函数] 新增 getNestedValue, getValueFromPath, calculateComputedField
+ *
+ * --- v1.4 更新日志 (2025-11-26) ---
+ * - [Bug修复] 空行过滤：飞书API默认读取2000行，过滤掉没有任何有效数据的空行
+ * - [Bug修复] createdAt冲突：MongoDB upsert时$set和$setOnInsert都有createdAt会冲突
+ *   - 修复方式：写入前从perf对象中移除createdAt字段
  *
  * --- v1.3 更新日志 (2025-11-26) ---
  * - [多集合支持] 支持 targetCollection 字段，实现数据分流写入
@@ -91,6 +113,153 @@ function setNestedValue(obj, path, value) {
 }
 
 /**
+ * 获取嵌套属性值
+ * @param {Object} obj - 源对象
+ * @param {string} path - 嵌套路径（如 'metrics.cpm'）
+ * @returns {any} 值或 null
+ */
+function getNestedValue(obj, path) {
+  if (!obj || !path) return null;
+  const keys = path.split('.');
+  let current = obj;
+
+  for (const key of keys) {
+    if (current === null || current === undefined) return null;
+    current = current[key];
+  }
+
+  return current;
+}
+
+/**
+ * 从路径获取值（支持跨集合引用）
+ * @param {Object} talentRow - talents 数据
+ * @param {Object} perfRow - talent_performance 数据
+ * @param {string} path - 字段路径
+ * @returns {number|null} 数值或 null
+ */
+function getValueFromPath(talentRow, perfRow, path) {
+  // prices.video_60plus 特殊处理（价格字段）
+  if (path.startsWith('prices.')) {
+    const priceType = path.replace('prices.', '');
+    const priceRecord = talentRow.prices?.find(p => p.type === priceType);
+    return priceRecord ? priceRecord.price / 100 : null; // 分转元
+  }
+
+  // metrics.xxx 从 perfRow 获取
+  if (path.startsWith('metrics.')) {
+    return getNestedValue(perfRow, path);
+  }
+
+  // 其他从 talentRow 获取
+  return getNestedValue(talentRow, path);
+}
+
+/**
+ * 构建变量映射表（用于表达式引擎）
+ * @param {Object} talentRow - talents 数据
+ * @param {Object} perfRow - talent_performance 数据
+ * @param {Array} variableNames - 变量名列表
+ * @returns {Object} 变量值映射
+ */
+function buildVariableMap(talentRow, perfRow, variableNames) {
+  const variables = {};
+
+  for (const varName of variableNames) {
+    variables[varName] = getValueFromPath(talentRow, perfRow, varName);
+  }
+
+  return variables;
+}
+
+/**
+ * 从表达式中提取变量名（简化版，用于不引入 expression-parser 时）
+ * @param {string} expression - 表达式字符串
+ * @returns {string[]} 变量名列表
+ */
+function extractVariablesFromExpression(expression) {
+  // 匹配变量名模式: 字母开头，可包含字母、数字、下划线、点
+  const varRegex = /[a-zA-Z_][a-zA-Z0-9_.]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*/g;
+  const matches = expression.match(varRegex) || [];
+
+  // 过滤掉函数名
+  const functions = ['min', 'max', 'abs', 'round', 'floor', 'ceil', 'sqrt', 'pow', 'if', 'coalesce'];
+  return [...new Set(matches.filter(m => !functions.includes(m.toLowerCase())))];
+}
+
+/**
+ * 计算派生字段
+ * v1.6: 支持表达式公式
+ *
+ * @param {Object} talentRow - talents 数据
+ * @param {Object} perfRow - talent_performance 数据
+ * @param {Object} computed - 计算字段配置
+ * @returns {number|null} 计算结果或 null
+ */
+function calculateComputedField(talentRow, perfRow, computed) {
+  const { formula } = computed;
+
+  // v1.6: 新格式 - 表达式公式
+  if (formula.expression) {
+    try {
+      // 动态加载表达式解析器（避免循环依赖）
+      const { evaluateExpression } = require('./expression-parser');
+
+      // 提取变量名并构建变量映射
+      const variableNames = extractVariablesFromExpression(formula.expression);
+      const variables = buildVariableMap(talentRow, perfRow, variableNames);
+
+      // 计算表达式
+      let result = evaluateExpression(formula.expression, variables);
+
+      // 精度处理
+      if (result !== null && formula.precision !== undefined) {
+        result = Number(result.toFixed(formula.precision));
+      }
+
+      return result;
+    } catch (err) {
+      console.error(`[计算字段] 表达式执行失败: ${err.message}`);
+      return null;
+    }
+  }
+
+  // v1.5: 旧格式 - 简单二元运算（向后兼容）
+  const val1 = getValueFromPath(talentRow, perfRow, formula.operand1);
+  const val2 = getValueFromPath(talentRow, perfRow, formula.operand2);
+
+  // 检查操作数有效性
+  if (val1 === null || val1 === undefined || isNaN(val1)) return null;
+  if (formula.type === 'division' && (val2 === null || val2 === undefined || isNaN(val2) || val2 === 0)) return null;
+  if (formula.type !== 'division' && (val2 === null || val2 === undefined || isNaN(val2))) return null;
+
+  let result;
+  switch (formula.type) {
+    case 'division':
+      result = (val1 / val2) * (formula.multiplier || 1);
+      break;
+    case 'multiplication':
+      result = val1 * val2 * (formula.multiplier || 1);
+      break;
+    case 'addition':
+      result = (val1 + val2) * (formula.multiplier || 1);
+      break;
+    case 'subtraction':
+      result = (val1 - val2) * (formula.multiplier || 1);
+      break;
+    default:
+      return null;
+  }
+
+  // 精度处理
+  if (formula.precision !== undefined) {
+    result = Number(result.toFixed(formula.precision));
+  }
+
+  return result;
+}
+
+/**
  * 从数据库获取映射配置
  * @param {Object} db - 数据库连接
  * @param {string} platform - 平台
@@ -123,6 +292,7 @@ function generateSnapshotId(oneId, platform) {
 
 /**
  * 应用映射规则（核心引擎）
+ * v1.4: 支持计算字段（computedFields）
  * v1.3: 支持 targetCollection 分流
  *
  * @param {Array} rows - 原始数据行（第一行为表头）
@@ -130,12 +300,13 @@ function generateSnapshotId(oneId, platform) {
  * @param {string} platform - 平台
  * @param {number} priceYear - 价格归属年份
  * @param {number} priceMonth - 价格归属月份
+ * @param {Array} computedFields - 计算字段配置（可选）
  * @returns {Object} { validData, invalidRows, performanceData }
  *   - validData: 写入 talents 集合的数据
  *   - performanceData: 写入 talent_performance 集合的数据
  *   - invalidRows: 无效行
  */
-function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth) {
+function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth, computedFields = []) {
   if (!rows || rows.length < 2) {
     return { validData: [], invalidRows: [], performanceData: [] };
   }
@@ -368,6 +539,33 @@ function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth) 
         perfRow.updatedAt = new Date();
 
         performanceData.push(perfRow);
+      }
+
+      // v1.4: 处理计算字段
+      if (computedFields && computedFields.length > 0) {
+        for (const computed of computedFields) {
+          try {
+            const value = calculateComputedField(talentRow, perfRow, computed);
+
+            if (value !== null && value !== undefined && !isNaN(value)) {
+              if (computed.targetCollection === 'talent_performance') {
+                setNestedValue(perfRow, computed.targetPath, value);
+                if (rowIndex === 0) {
+                  console.log(`[映射引擎] 🧮 计算字段: ${computed.name} = ${value} → ${computed.targetPath}`);
+                }
+              } else {
+                setNestedValue(talentRow, computed.targetPath, value);
+                if (rowIndex === 0) {
+                  console.log(`[映射引擎] 🧮 计算字段: ${computed.name} = ${value} → ${computed.targetPath}`);
+                }
+              }
+            }
+          } catch (err) {
+            if (rowIndex === 0) {
+              console.warn(`[映射引擎] ⚠️ 计算字段 ${computed.name} 失败:`, err.message);
+            }
+          }
+        }
       }
 
     } catch (error) {

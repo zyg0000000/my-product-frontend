@@ -9,7 +9,8 @@ import {
   updateFieldMapping,
   deleteFieldMapping,
   type FieldMappingConfig,
-  type FieldMappingRule
+  type FieldMappingRule,
+  type ComputedFieldRule
 } from '../api/performance';
 import type { Platform } from '../types/talent';
 import { useToast } from './useToast';
@@ -143,6 +144,58 @@ export function useFieldMapping(platform: Platform) {
     await updateConfig(updatedConfig);
   };
 
+  // ========== 计算字段管理 ==========
+
+  // 添加计算字段
+  const addComputedField = async (field: ComputedFieldRule) => {
+    if (!activeConfig) {
+      error('没有激活的配置');
+      return;
+    }
+
+    const updatedConfig = {
+      ...activeConfig,
+      computedFields: [...(activeConfig.computedFields || []), field]
+    };
+
+    await updateConfig(updatedConfig);
+  };
+
+  // 更新计算字段
+  const updateComputedField = async (index: number, field: ComputedFieldRule) => {
+    if (!activeConfig) {
+      error('没有激活的配置');
+      return;
+    }
+
+    const updatedComputedFields = [...(activeConfig.computedFields || [])];
+    updatedComputedFields[index] = field;
+
+    const updatedConfig = {
+      ...activeConfig,
+      computedFields: updatedComputedFields
+    };
+
+    await updateConfig(updatedConfig);
+  };
+
+  // 删除计算字段
+  const deleteComputedField = async (index: number) => {
+    if (!activeConfig) {
+      error('没有激活的配置');
+      return;
+    }
+
+    const updatedComputedFields = (activeConfig.computedFields || []).filter((_, i) => i !== index);
+
+    const updatedConfig = {
+      ...activeConfig,
+      computedFields: updatedComputedFields
+    };
+
+    await updateConfig(updatedConfig);
+  };
+
   // 初始加载
   useEffect(() => {
     loadConfigs();
@@ -158,6 +211,10 @@ export function useFieldMapping(platform: Platform) {
     deleteConfig,
     addMappingRule,
     updateMappingRule,
-    deleteMappingRule
+    deleteMappingRule,
+    // 计算字段
+    addComputedField,
+    updateComputedField,
+    deleteComputedField
   };
 }
