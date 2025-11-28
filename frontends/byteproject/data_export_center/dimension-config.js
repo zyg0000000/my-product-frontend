@@ -102,6 +102,7 @@ export const DIMENSION_CONFIG = {
             '合作信息': [
                 { id: 'collaboration_status', label: '合作状态' },
                 { id: 'collaboration_amount', label: '合作金额' },
+                { id: 'collaboration_rebate', label: '合作返点' },
                 { id: 'collaboration_orderType', label: '下单方式' },
                 { id: 'collaboration_plannedReleaseDate', label: '计划发布日期' },
                 { id: 'collaboration_publishDate', label: '实际发布日期' },
@@ -114,7 +115,9 @@ export const DIMENSION_CONFIG = {
             ],
             '达人信息': [
                 { id: 'nickname', label: '达人昵称' },
+                { id: 'xingtuId', label: '星图ID' },
                 { id: 'talentTier', label: '达人层级' },
+                { id: 'talent_highest_rebate', label: '达人最高返点率' },
             ],
             '作品表现 (T+7)': [
                 { id: 'work_t7_totalViews', label: 'T+7 播放量' },
