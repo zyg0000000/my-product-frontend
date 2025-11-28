@@ -15,7 +15,7 @@ console.log('✅ table-preview.js v2.1.0 已加载 (包含 taskId 和 videoId �
  * 动态字段映射缓存
  */
 let dynamicFieldMapping = null;
-const FORCE_USE_STATIC_MAPPING = false; // 已恢复动态加载（后端 API 已包含新字段）
+const FORCE_USE_STATIC_MAPPING = true; // 强制使用静态映射，确保新字段可用
 
 /**
  * 前端字段ID到后端返回的中文字段名的映射
@@ -64,6 +64,8 @@ const FIELD_TO_BACKEND_KEY_MAP = {
     'taskId': '星图任务ID',
     'videoId': '视频ID',
     'project_name': '项目名称',
+    'project_type': '项目类型',
+    'talent_price_60s': '达人60s+价格',
     'work_t7_totalViews': 'T+7 播放量',
     'work_t7_likeCount': 'T+7 点赞数'
 };

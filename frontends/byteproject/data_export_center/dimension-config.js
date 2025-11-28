@@ -170,7 +170,9 @@ export const DIMENSION_CONFIG = {
             ],
             '达人信息': [
                 { id: 'nickname', label: '达人昵称' },
+                { id: 'xingtuId', label: '星图ID' },
                 { id: 'talentTier', label: '达人层级' },
+                { id: 'talent_price_60s', label: '达人60s+价格 (当月)' },
             ],
             '作品表现 (T+7)': [
                 { id: 'work_t7_totalViews', label: 'T+7 播放量' },

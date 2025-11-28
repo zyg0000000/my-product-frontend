@@ -1,11 +1,12 @@
 /**
  * @file exportComprehensiveData/index.js
- * @version 1.3
+ * @version 1.4
  * @description "数据导出中心"后端核心云函数 (多主体聚合引擎)。
  * - 支持 'talent', 'collaboration', 'project' 多种导出主体 (entity)。
  * - 根据前端请求的 entity, fields, filters 动态构建 MongoDB Aggregation Pipeline。
  * - 聚合来自 talents, collaborations, works, projects, automation-tasks 多个集合的数据。
  * - [v1.3] 新增支持 taskId (星图任务ID) 和 videoId (视频ID) 字段导出
+ * - [v1.4] 按项目导出新增达人维度：星图ID (xingtuId)、60s+价格 (talent_price_60s)
  */
 
 const { MongoClient } = require('mongodb');
@@ -168,7 +169,45 @@ function buildCollaborationPipeline(db, fields, filters, entity) {
             case 'project_name': projectStage['项目名称'] = '$projectInfo.name'; break;
             case 'project_type': projectStage['项目类型'] = '$projectInfo.type'; break;
             case 'nickname': projectStage['达人昵称'] = '$talentInfo.nickname'; break;
+            case 'xingtuId': projectStage['星图ID'] = '$talentInfo.xingtuId'; break;
             case 'talentTier': projectStage['达人层级'] = '$talentInfo.talentTier'; break;
+            case 'talent_price_60s':
+                // 从达人的prices数组中提取当月60s+价格
+                // 前端yearMonth格式: { year: "2025", month: "M11" }
+                let priceYear, priceMonth;
+                if (filters.yearMonth && typeof filters.yearMonth === 'object') {
+                    priceYear = parseInt(filters.yearMonth.year, 10);
+                    // 月份格式为 "M11"，需要提取数字部分
+                    priceMonth = parseInt(filters.yearMonth.month.replace('M', ''), 10);
+                } else {
+                    // 默认使用当前年月
+                    const now = new Date();
+                    priceYear = now.getFullYear();
+                    priceMonth = now.getMonth() + 1;
+                }
+                projectStage['达人60s+价格'] = {
+                    $let: {
+                        vars: {
+                            matchedPrice: {
+                                $arrayElemAt: [{
+                                    $filter: {
+                                        input: '$talentInfo.prices',
+                                        as: 'p',
+                                        cond: {
+                                            $and: [
+                                                { $eq: ['$$p.year', priceYear] },
+                                                { $eq: ['$$p.month', priceMonth] },
+                                                { $eq: ['$$p.type', '60s_plus'] }
+                                            ]
+                                        }
+                                    }
+                                }, 0]
+                            }
+                        },
+                        in: { $ifNull: ['$$matchedPrice.price', null] }
+                    }
+                };
+                break;
             case 'work_t7_totalViews': projectStage['T+7 播放量'] = '$workInfo.t7_totalViews'; break;
             case 'work_t7_likeCount': projectStage['T+7 点赞数'] = '$workInfo.t7_likeCount'; break;
             // [v1.3] 新增字段映射
@@ -225,6 +264,10 @@ exports.handler = async (event) => {
         console.log("Executing pipeline:", JSON.stringify(pipeline, null, 2));
 
         const results = await primaryCollection.aggregate(pipeline).toArray();
+
+        // 调试：输出前3条结果
+        console.log("Results count:", results.length);
+        console.log("Results sample (first 3):", JSON.stringify(results.slice(0, 3), null, 2));
 
         return {
             statusCode: 200,
