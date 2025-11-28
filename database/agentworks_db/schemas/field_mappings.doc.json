@@ -2,7 +2,7 @@
     "collection": "field_mappings",
     "description": "字段映射配置集合 - 存储各平台数据导入时的字段映射规则及计算字段配置",
     "database": "agentworks_db",
-    "version": "1.2",
+    "version": "1.3",
     "lastUpdated": "2025-11-28",
     "author": "Claude Code",
     "fields": {
@@ -92,10 +92,10 @@
                 },
                 "transform": {
                     "type": "String",
-                    "description": "自定义转换函数名（可选，高级功能）",
+                    "description": "自定义转换函数名（v1.7 已实现）",
                     "required": false,
-                    "example": "splitByComma, toLowerCase",
-                    "comment": "预留字段，Phase 2 实现"
+                    "example": "extractJsonFirstKeyAsArray, splitToArray, extractJsonAllKeys",
+                    "comment": "支持的函数: extractJsonFirstKey(提取JSON首个key), extractJsonFirstKeyAsArray(返回数组), splitToArray(逗号分隔转数组), extractJsonAllKeys(提取所有keys)"
                 },
                 "validator": {
                     "type": "String",
@@ -255,6 +255,7 @@
         "required 字段用于导入时的数据验证",
         "v1.2 新增 computedFields 支持计算字段",
         "计算字段支持两种模式：expression（推荐）和简单模式（向后兼容）",
-        "表达式支持函数：min, max, abs, round, floor, ceil, sqrt, pow, if, coalesce"
+        "表达式支持函数：min, max, abs, round, floor, ceil, sqrt, pow, if, coalesce",
+        "v1.3 新增 transform 字段支持值转换函数（如提取JSON首个key）"
     ]
 }

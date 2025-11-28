@@ -1,6 +1,13 @@
 /**
  * mapping-engine.js - 通用映射引擎
- * @version 1.6 - Expression Engine
+ * @version 1.7 - Transform Functions
+ *
+ * --- v1.7 更新日志 (2025-11-28) ---
+ * - [Transform 支持] 新增字段值转换函数机制
+ *   - extractJsonFirstKey: 从 JSON 字符串提取第一个 key（如 `{"剧情搞笑":["剧情"]}` → `剧情搞笑`）
+ *   - splitToArray: 将逗号分隔字符串转为数组
+ *   - 支持自定义 transform 函数扩展
+ * - [内容标签] 支持飞书"内容标签"字段自动解析
  *
  * --- v1.6 更新日志 (2025-11-28) ---
  * - [表达式引擎] 支持复杂数学表达式公式
@@ -89,6 +96,105 @@ function parseFlexibleNumber(value, isPercentage = false) {
 
   const num = parseFloat(numStr);
   return isNaN(num) ? 0 : num;
+}
+
+// ==================== Transform 函数 ====================
+
+/**
+ * Transform 函数注册表
+ * 用于字段值的自定义转换
+ */
+const TRANSFORM_FUNCTIONS = {
+  /**
+   * 从 JSON 字符串提取第一个 key
+   * 输入: '{"剧情搞笑":["剧情"]}' 或 {"剧情搞笑":["剧情"]}
+   * 输出: '剧情搞笑'
+   */
+  extractJsonFirstKey: (value) => {
+    if (!value) return null;
+
+    try {
+      // 如果是字符串，尝试解析
+      const obj = typeof value === 'string' ? JSON.parse(value) : value;
+
+      if (typeof obj === 'object' && obj !== null) {
+        const keys = Object.keys(obj);
+        return keys.length > 0 ? keys[0] : null;
+      }
+      return null;
+    } catch (e) {
+      // 如果不是有效 JSON，尝试正则提取
+      if (typeof value === 'string') {
+        const match = value.match(/"([^"]+)":/);
+        return match ? match[1] : null;
+      }
+      return null;
+    }
+  },
+
+  /**
+   * 从 JSON 字符串提取第一个 key，返回数组格式
+   * 输入: '{"剧情搞笑":["剧情"]}'
+   * 输出: ['剧情搞笑']
+   */
+  extractJsonFirstKeyAsArray: (value) => {
+    const key = TRANSFORM_FUNCTIONS.extractJsonFirstKey(value);
+    return key ? [key] : [];
+  },
+
+  /**
+   * 将逗号分隔的字符串转为数组
+   * 输入: '美妆,时尚,美食'
+   * 输出: ['美妆', '时尚', '美食']
+   */
+  splitToArray: (value) => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+    return String(value).split(/[,，、]/).map(s => s.trim()).filter(Boolean);
+  },
+
+  /**
+   * 提取所有 JSON keys 作为数组
+   * 输入: '{"剧情搞笑":["剧情"],"生活":["日常"]}'
+   * 输出: ['剧情搞笑', '生活']
+   */
+  extractJsonAllKeys: (value) => {
+    if (!value) return [];
+
+    try {
+      const obj = typeof value === 'string' ? JSON.parse(value) : value;
+
+      if (typeof obj === 'object' && obj !== null) {
+        return Object.keys(obj);
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+};
+
+/**
+ * 应用 transform 函数
+ * @param {any} value - 原始值
+ * @param {string} transformName - transform 函数名称
+ * @returns {any} 转换后的值
+ */
+function applyTransform(value, transformName) {
+  if (!transformName) return value;
+
+  const transformFn = TRANSFORM_FUNCTIONS[transformName];
+  if (!transformFn) {
+    console.warn(`[映射引擎] ⚠️ 未知的 transform 函数: ${transformName}`);
+    return value;
+  }
+
+  try {
+    return transformFn(value);
+  } catch (e) {
+    console.warn(`[映射引擎] ⚠️ Transform 函数执行失败: ${transformName}`, e.message);
+    return value;
+  }
 }
 
 /**
@@ -421,6 +527,14 @@ function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth, 
             default:
               processedValue = String(value).trim();
           }
+
+          // v1.7: 应用 transform 函数（如果配置了）
+          if (rule.transform) {
+            processedValue = applyTransform(processedValue, rule.transform);
+            if (rowIndex === 0) {
+              console.log(`[映射引擎] 🔄 Transform: ${rule.excelHeader} → ${rule.transform}`);
+            }
+          }
         } catch (error) {
           console.warn(`[映射引擎] 行${rowIndex + 1}: 格式转换失败 ${rule.excelHeader}:`, error.message);
           continue;
@@ -482,6 +596,11 @@ function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth, 
             case 'text':
             default:
               processedValue = String(value).trim();
+          }
+
+          // v1.7: 应用 transform 函数（如果配置了）
+          if (rule.transform) {
+            processedValue = applyTransform(processedValue, rule.transform);
           }
         } catch (error) {
           continue;
