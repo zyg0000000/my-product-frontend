@@ -492,22 +492,72 @@ const data = response.data as Talent[];
 data.map(item => ...)
 ```
 
-##### 错误 2: 未使用的变量/导入
+##### 错误 2: 未使用的变量/导入 (TS6133)
 ```typescript
 // ❌ 会导致部署失败
 import { useState, useEffect } from 'react';  // useEffect 未使用
+import { Space, Button } from 'antd';  // Space 未使用
 
-// ✅ 正确做法
+// ✅ 正确做法：只导入使用的内容
 import { useState } from 'react';
+import { Button } from 'antd';
+
+// ❌ 会导致部署失败：未使用的函数参数
+items.map((item, index) => <div key={item.id}>{item.name}</div>)  // index 未使用
+
+// ✅ 正确做法：移除未使用的参数
+items.map((item) => <div key={item.id}>{item.name}</div>)
+
+// ✅ 或使用下划线前缀表示故意忽略
+items.map((item, _index) => <div key={item.id}>{item.name}</div>)
 ```
 
-##### 错误 3: 缺失依赖
+##### 错误 3: 类型不匹配 (TS2322)
+```typescript
+// ❌ 会导致部署失败：字符串模板不匹配字面量联合类型
+type PriceType = 'video_60plus' | 'video_21_60' | 'live';
+const key: PriceType = `price_${Date.now()}`;  // Error!
+
+// ✅ 正确做法：使用 string 类型或类型断言
+interface Config {
+  key: string;  // 改用 string 而非严格的联合类型
+}
+
+// ✅ 或使用类型断言（确保值正确时）
+const key = `video_60plus` as PriceType;
+```
+
+##### 错误 4: 缺失依赖
 ```typescript
 // ❌ 会导致部署失败
 import { ProTable } from '@ant-design/pro-components';  // 未安装
 
 // ✅ 确保已安装
 npm install @ant-design/pro-components
+```
+
+#### TypeScript 严格模式最佳实践
+
+**Cloudflare Pages 使用 `tsc -b`（严格模式）编译**，以下规则必须遵守：
+
+| 规则 | 错误码 | 说明 | 解决方案 |
+|------|--------|------|----------|
+| 未使用的导入 | TS6133 | 导入但未使用的模块 | 删除未使用的导入 |
+| 未使用的变量 | TS6133 | 声明但未使用的变量 | 删除或使用 `_` 前缀 |
+| 未使用的参数 | TS6133 | 函数参数未使用 | 删除或使用 `_` 前缀 |
+| 类型不匹配 | TS2322 | 赋值类型不兼容 | 修正类型定义或使用断言 |
+| 隐式 any | TS7006 | 参数缺少类型注解 | 添加明确类型 |
+
+**开发时自动检查**（推荐配置 VS Code）：
+```json
+// .vscode/settings.json
+{
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true,
+    "source.removeUnusedImports": true
+  }
+}
 ```
 
 #### 部署前检查清单
@@ -659,6 +709,6 @@ git push origin main
 ---
 
 **维护者**: Claude Code
-**最后更新**: 2025-11-24
+**最后更新**: 2025-11-28
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

@@ -19,11 +19,12 @@ import type { Platform, PriceType } from '../types/talent';
 
 /**
  * 价格类型配置
+ * 注意：key 使用 string 而非 PriceType，允许用户自定义价格类型
  */
 export interface PriceTypeConfig {
-  key: PriceType;
+  key: string;
   label: string;
-  required: boolean;
+  required?: boolean;
   bgColor: string;
   textColor: string;
   order: number;

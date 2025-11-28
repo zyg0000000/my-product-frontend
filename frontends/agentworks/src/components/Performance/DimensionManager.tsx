@@ -14,8 +14,7 @@ import {
   LineChartOutlined,
   TeamOutlined,
   CalendarOutlined,
-  AppstoreOutlined,
-  ReloadOutlined
+  AppstoreOutlined
 } from '@ant-design/icons';
 import { logger } from '../../utils/logger';
 import {

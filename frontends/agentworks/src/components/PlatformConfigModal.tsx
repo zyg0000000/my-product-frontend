@@ -14,7 +14,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Modal, Tabs, Form, message, Switch, Tag, Space, Button, Input, Popconfirm, ColorPicker, Radio } from 'antd';
+import { Modal, Tabs, Form, message, Switch, Tag, Button, Input, Popconfirm, ColorPicker, Radio } from 'antd';
 import { ProForm, ProFormText, ProFormDigit, ProFormSelect, ProFormTextArea } from '@ant-design/pro-components';
 import { ProCard } from '@ant-design/pro-components';
 import { PlusOutlined, DeleteOutlined, HolderOutlined } from '@ant-design/icons';
@@ -461,7 +461,7 @@ export function PlatformConfigModal({
             <div className="space-y-3">
               {talentTiers
                 .sort((a, b) => a.order - b.order)
-                .map((tier, index) => (
+                .map((tier) => (
                   <div
                     key={tier.key}
                     className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
