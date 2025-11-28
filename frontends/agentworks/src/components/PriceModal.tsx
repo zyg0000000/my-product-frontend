@@ -203,7 +203,7 @@ export function PriceModal({ isOpen, onClose, talent, onSave }: PriceModalProps)
                   </div>
                   <div className="space-y-1">
                     {priceTypes.map((pt) => {
-                      const price = history.prices[pt.key];
+                      const price = history.prices[pt.key as keyof typeof history.prices];
                       return (
                         <div key={pt.key} className="flex items-center gap-2 text-xs">
                           <span

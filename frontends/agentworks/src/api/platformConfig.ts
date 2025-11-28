@@ -13,7 +13,7 @@
  */
 
 import { get, post, put, del } from './client';
-import type { Platform, PriceType } from '../types/talent';
+import type { Platform } from '../types/talent';
 
 // ==================== 类型定义 ====================
 

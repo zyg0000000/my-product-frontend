@@ -111,7 +111,7 @@ export function PerformanceHome() {
     setPage(1);
     const newPlatformPriceTypes = getPlatformPriceTypes(platform);
     if (newPlatformPriceTypes && newPlatformPriceTypes.length > 0) {
-      setSelectedPriceType(newPlatformPriceTypes[0].key);
+      setSelectedPriceType(newPlatformPriceTypes[0].key as PriceType);
     } else {
       setSelectedPriceType(null);
     }

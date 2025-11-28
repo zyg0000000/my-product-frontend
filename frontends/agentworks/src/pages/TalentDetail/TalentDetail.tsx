@@ -255,7 +255,7 @@ export function TalentDetail() {
 
                 <div className="mt-3 grid grid-cols-2 gap-4 md:grid-cols-4">
                   {priceTypes.map(priceType => {
-                    const price = history.prices[priceType.key];
+                    const price = history.prices[priceType.key as keyof typeof history.prices];
                     return (
                       <div key={priceType.key}>
                         <p className="text-xs text-gray-500">
