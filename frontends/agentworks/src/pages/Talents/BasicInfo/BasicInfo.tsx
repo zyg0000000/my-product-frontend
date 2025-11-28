@@ -536,7 +536,7 @@ export function BasicInfo() {
             href={link}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 font-medium"
+            className="text-primary-600 hover:text-primary-800 font-medium"
             onClick={(e) => e.stopPropagation()}
           >
             {record.name}
@@ -676,7 +676,7 @@ export function BasicInfo() {
             size="small"
             icon={<DollarOutlined />}
             onClick={() => handleMenuClick('price', record)}
-            className="text-blue-600 hover:text-blue-700"
+            className="text-primary-600 hover:text-primary-700"
           >
             价格
           </Button>
@@ -773,7 +773,7 @@ export function BasicInfo() {
               )}
               <button
                 onClick={handleSearch}
-                className="px-4 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded"
+                className="px-4 py-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded"
               >
                 搜索
               </button>
@@ -919,7 +919,7 @@ export function BasicInfo() {
                   {hasActiveFilters && (
                     <button
                       onClick={handleResetFilters}
-                      className="text-xs text-blue-600 hover:text-blue-800"
+                      className="text-xs text-primary-600 hover:text-primary-800"
                     >
                       清空全部
                     </button>
@@ -1010,8 +1010,8 @@ export function BasicInfo() {
                   批量新增
                 </Button>,
                 // 价格类型选择器
-                <div key="price" className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200">
-                  <span className="text-sm font-medium text-blue-700">价格类型</span>
+                <div key="price" className="flex items-center gap-2 bg-primary-50 px-3 py-1.5 rounded-lg border border-primary-200">
+                  <span className="text-sm font-medium text-primary-700">价格类型</span>
                   <Select
                     value={selectedPriceTier ?? '__HIDE__'}
                     onChange={(val) => setSelectedPriceTier(val === '__HIDE__' ? null : val)}

@@ -259,9 +259,9 @@ export default function CustomerList() {
           {/* 最终系数 */}
           <div className="border-t border-gray-600 pt-2 mt-2">
             <div className="flex justify-between items-center gap-4">
-              <span className="font-semibold text-blue-300 whitespace-nowrap">支付系数:</span>
+              <span className="font-semibold text-primary-300 whitespace-nowrap">支付系数:</span>
               <div className="text-right">
-                <div className="font-bold text-blue-200 text-sm whitespace-nowrap">{paymentCoefficient?.toFixed(4) || calculatedCoefficient.toFixed(4)}</div>
+                <div className="font-bold text-primary-200 text-sm whitespace-nowrap">{paymentCoefficient?.toFixed(4) || calculatedCoefficient.toFixed(4)}</div>
                 <div className="text-xs text-gray-400 whitespace-nowrap">= ¥{(finalAmount / 100).toFixed(2)} ÷ ¥{(baseAmount / 100).toFixed(2)}</div>
               </div>
             </div>
@@ -276,7 +276,7 @@ export default function CustomerList() {
         <div className="flex items-center gap-3 text-sm">
           {/* 标题 */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            <ShoppingOutlined className="text-blue-500" style={{ fontSize: '14px' }} />
+            <ShoppingOutlined className="text-primary-500" style={{ fontSize: '14px' }} />
             <span className="font-semibold text-gray-800 text-sm">达人采买</span>
             <Tag color="blue" style={{ fontSize: '12px', lineHeight: '20px', padding: '0 7px', margin: 0 }}>
               {pricingModelNames[strategy.pricingModel] || strategy.pricingModel}
@@ -302,7 +302,7 @@ export default function CustomerList() {
                     borderRadius: '6px'
                   }}
                 >
-                  <span className="font-bold text-blue-600 cursor-help border-b border-dashed border-blue-300 text-sm">
+                  <span className="font-bold text-primary-600 cursor-help border-b border-dashed border-primary-300 text-sm">
                     {platform.paymentCoefficient?.toFixed(4) || '-'}
                   </span>
                 </Popover>

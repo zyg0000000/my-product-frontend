@@ -405,7 +405,7 @@ export default function PricingStrategy() {
                     ]}
                   />
                 </div>
-                <div className="text-sm text-blue-600 flex items-center gap-2">
+                <div className="text-sm text-primary-600 flex items-center gap-2">
                   <span className="text-2xl">{getPricingModeInfo(currentPricingModel).statusIcon}</span>
                   <span>{getPricingModeInfo(currentPricingModel).description}</span>
                 </div>
@@ -414,9 +414,9 @@ export default function PricingStrategy() {
 
             {/* 项目比价模式：只显示说明 */}
             {currentPricingModel === 'project' && (
-              <div className="text-center py-12 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="text-blue-900 font-semibold mb-2">项目比价模式</div>
-                <div className="text-sm text-blue-700">
+              <div className="text-center py-12 bg-primary-50 border border-primary-200 rounded-lg">
+                <div className="text-primary-900 font-semibold mb-2">项目比价模式</div>
+                <div className="text-sm text-primary-700">
                   项目比价模式下无需预设配置。创建项目时，请在合作明细中手动填写对客报价。
                 </div>
               </div>

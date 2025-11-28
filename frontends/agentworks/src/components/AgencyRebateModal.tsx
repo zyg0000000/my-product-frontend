@@ -247,9 +247,9 @@ export function AgencyRebateModal({
           ) : currentConfig && currentConfig.hasConfig ? (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="p-4 bg-primary-50 rounded-lg">
                   <div className="text-xs text-gray-600 mb-1">当前返点率</div>
-                  <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-2xl font-bold text-primary-600">
                     {formatRebateRate(currentConfig.rebateRate)}
                   </div>
                 </div>

@@ -32,7 +32,7 @@ export function SettingsHome() {
       key: 'performance-config',
       title: '达人数据表现配置',
       description: '配置达人表现数据的维度、字段映射和计算规则',
-      icon: <DatabaseOutlined className="text-2xl text-blue-600" />,
+      icon: <DatabaseOutlined className="text-2xl text-primary-600" />,
       path: '/settings/performance-config',
       status: 'active',
     },
@@ -51,7 +51,7 @@ export function SettingsHome() {
       case 'active':
         return <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">稳定</span>;
       case 'beta':
-        return <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">Beta</span>;
+        return <span className="px-2 py-0.5 text-xs font-medium bg-primary-100 text-primary-700 rounded">Beta</span>;
       case 'coming':
         return <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">即将上线</span>;
       default:
@@ -108,14 +108,14 @@ export function SettingsHome() {
         </div>
 
         {/* 提示信息 */}
-        <ProCard className="bg-blue-50 border-blue-200">
+        <ProCard className="bg-primary-50 border-primary-200">
           <div className="flex items-start gap-3">
-            <SettingOutlined className="text-blue-600 text-lg mt-0.5" />
+            <SettingOutlined className="text-primary-600 text-lg mt-0.5" />
             <div>
-              <h4 className="text-sm font-medium text-blue-900 mb-1">
+              <h4 className="text-sm font-medium text-primary-900 mb-1">
                 关于系统设置
               </h4>
-              <p className="text-xs text-blue-700">
+              <p className="text-xs text-primary-700">
                 系统设置模块用于管理 AgentWorks 的全局配置和参数。
                 配置修改后会立即生效，部分配置可能需要刷新页面才能看到效果。
               </p>

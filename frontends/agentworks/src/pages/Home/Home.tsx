@@ -20,7 +20,7 @@ export function Home() {
       description: '查看和管理多平台达人信息',
       icon: UsersIcon,
       path: '/talents',
-      color: 'bg-blue-500',
+      color: 'bg-primary-500',
     },
     {
       name: '客户管理',
@@ -82,11 +82,32 @@ export function Home() {
         <div className="card">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">近期功能更新</h2>
-            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
-              v2.8.0
+            <span className="rounded-full bg-primary-100 px-3 py-1 text-xs font-medium text-primary-800">
+              v3.5.0
             </span>
           </div>
           <div className="mt-6 space-y-4">
+            <div className="border-l-4 border-primary-500 bg-primary-50 p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-500 text-white">
+                    <span className="text-xs font-bold">优</span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-900">
+                      设计系统统一
+                    </h3>
+                    <span className="text-xs text-gray-500">2025-11-29</span>
+                  </div>
+                  <p className="mt-1 text-sm text-gray-600">
+                    Tailwind + Ant Design 颜色配置统一，主色调升级为靛蓝色系，侧边栏优化为浅色主题，整体视觉体验提升
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="border-l-4 border-orange-500 bg-orange-50 p-4">
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0">
@@ -129,10 +150,10 @@ export function Home() {
               </div>
             </div>
 
-            <div className="border-l-4 border-blue-500 bg-blue-50 p-4">
+            <div className="border-l-4 border-primary-500 bg-primary-50 p-4">
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-white">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-500 text-white">
                     <span className="text-xs font-bold">✓</span>
                   </div>
                 </div>

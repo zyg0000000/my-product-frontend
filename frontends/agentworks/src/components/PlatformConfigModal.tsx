@@ -245,11 +245,11 @@ export function PlatformConfigModal({
 
           {/* 编辑模式下显示平台标识（只读） */}
           {!isCreating && config && (
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800">
+            <div className="mt-4 p-3 bg-primary-50 rounded-lg">
+              <p className="text-sm text-primary-800">
                 <strong>平台标识</strong>: {config.platform}
               </p>
-              <p className="text-xs text-blue-600 mt-1">
+              <p className="text-xs text-primary-600 mt-1">
                 平台标识创建后不可修改
               </p>
             </div>
@@ -415,8 +415,8 @@ export function PlatformConfigModal({
             </div>
           )}
 
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-            <p className="text-xs text-blue-700">
+          <div className="mt-4 p-3 bg-primary-50 rounded-lg">
+            <p className="text-xs text-primary-700">
               💡 <strong>说明</strong>: 类型标识(key)用于数据存储，请使用英文小写和下划线（如：video_60plus）
             </p>
           </div>
@@ -562,8 +562,8 @@ export function PlatformConfigModal({
             </div>
           )}
 
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-            <p className="text-xs text-blue-700">
+          <div className="mt-4 p-3 bg-primary-50 rounded-lg">
+            <p className="text-xs text-primary-700">
               💡 <strong>说明</strong>: 设置为"默认"的等级将在批量创建达人时自动使用
             </p>
           </div>
@@ -690,7 +690,7 @@ export function PlatformConfigModal({
             {isCreating ? (
               <>新增平台配置</>
             ) : (
-              <>编辑平台配置: <span className="text-blue-600">{config?.name}</span></>
+              <>编辑平台配置: <span className="text-primary-600">{config?.name}</span></>
             )}
           </div>
           <div className="text-sm font-normal text-gray-500 mt-0.5">

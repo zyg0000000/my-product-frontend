@@ -5,7 +5,8 @@
 
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { App as AntApp } from 'antd';
+import { App as AntApp, ConfigProvider } from 'antd';
+import zhCN from 'antd/locale/zh_CN';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { MainLayout } from './components/Layout/MainLayout';
 import { Home } from './pages/Home/Home';
@@ -35,17 +36,59 @@ function LoadingFallback() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
         <p className="mt-4 text-gray-600">加载中...</p>
       </div>
     </div>
   );
 }
 
+// Ant Design 主题配置 - 与 Tailwind 保持一致
+const antTheme = {
+  token: {
+    // 主色调
+    colorPrimary: '#4f46e5',
+    colorLink: '#4f46e5',
+    colorLinkHover: '#4338ca',
+    // 圆角
+    borderRadius: 8,
+    borderRadiusLG: 12,
+    borderRadiusSM: 6,
+    // 字体
+    fontFamily: '"Inter", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif',
+    // 成功/警告/错误
+    colorSuccess: '#10b981',
+    colorWarning: '#f59e0b',
+    colorError: '#ef4444',
+  },
+  components: {
+    Button: {
+      controlHeight: 36,
+      controlHeightLG: 40,
+      controlHeightSM: 32,
+    },
+    Input: {
+      controlHeight: 36,
+    },
+    Select: {
+      controlHeight: 36,
+    },
+    Table: {
+      headerBg: '#f9fafb',
+      headerColor: '#374151',
+      rowHoverBg: '#f9fafb',
+    },
+    Card: {
+      paddingLG: 24,
+    },
+  },
+};
+
 function App() {
   return (
-    <AntApp>
-      <ErrorBoundary>
+    <ConfigProvider theme={antTheme} locale={zhCN}>
+      <AntApp>
+        <ErrorBoundary>
         <BrowserRouter>
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
@@ -84,8 +127,9 @@ function App() {
           </Routes>
         </Suspense>
       </BrowserRouter>
-    </ErrorBoundary>
-    </AntApp>
+      </ErrorBoundary>
+      </AntApp>
+    </ConfigProvider>
   );
 }
 

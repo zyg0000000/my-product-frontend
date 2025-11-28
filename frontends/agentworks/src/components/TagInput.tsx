@@ -73,17 +73,17 @@ export function TagInput({
   return (
     <div className="space-y-3">
       {/* 已选标签显示和输入框 */}
-      <div className="flex flex-wrap gap-2 p-3 border-2 border-gray-300 rounded-lg focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 bg-white min-h-[44px]">
+      <div className="flex flex-wrap gap-2 p-3 border-2 border-gray-300 rounded-lg focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 bg-white min-h-[44px]">
         {selectedTags.map(tag => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+            className="inline-flex items-center gap-1 px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm font-medium"
           >
             {tag}
             <button
               type="button"
               onClick={() => removeTag(tag)}
-              className="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+              className="hover:bg-primary-200 rounded-full p-0.5 transition-colors"
             >
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path

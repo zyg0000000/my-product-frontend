@@ -159,7 +159,7 @@ export function PerformanceHome() {
                 href={platformLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                className="font-medium text-primary-600 hover:text-primary-800 hover:underline"
               >
                 {name}
               </a>
@@ -318,8 +318,8 @@ export function PerformanceHome() {
                   表格配置
                 </Button>,
                 // 价格类型选择器
-                <div key="price" className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200">
-                  <span className="text-sm font-medium text-blue-700">价格类型</span>
+                <div key="price" className="flex items-center gap-2 bg-primary-50 px-3 py-1.5 rounded-lg border border-primary-200">
+                  <span className="text-sm font-medium text-primary-700">价格类型</span>
                   <Select
                     value={selectedPriceType}
                     onChange={setSelectedPriceType}

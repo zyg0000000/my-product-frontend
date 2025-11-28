@@ -454,7 +454,7 @@ export function ComputedFieldManager({
                     {variableOptions.slice(0, 10).map(opt => (
                       <Tag
                         key={opt.value}
-                        className="cursor-pointer hover:bg-blue-50"
+                        className="cursor-pointer hover:bg-primary-50"
                         onClick={() => insertVariable(opt.value)}
                       >
                         {opt.value.split('.').pop()}

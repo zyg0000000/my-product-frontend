@@ -59,7 +59,7 @@ export function TalentsHome() {
       description: '管理达人基础资料、价格和返点信息',
       icon: InformationCircleIcon,
       path: '/talents/basic',
-      color: 'bg-blue-500',
+      color: 'bg-primary-500',
       available: true,
     },
     {
@@ -110,11 +110,11 @@ export function TalentsHome() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
-                className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200"
+                className="text-center p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200"
               >
-                <p className="text-3xl font-bold text-blue-900">{stats.totalTalents}</p>
-                <p className="text-sm text-blue-700 mt-1 font-medium">总达人数</p>
-                <p className="text-xs text-blue-600 mt-0.5">按 OneID 去重</p>
+                <p className="text-3xl font-bold text-primary-900">{stats.totalTalents}</p>
+                <p className="text-sm text-primary-700 mt-1 font-medium">总达人数</p>
+                <p className="text-xs text-primary-600 mt-0.5">按 OneID 去重</p>
               </motion.div>
               {[
                 { label: '抖音', value: stats.douyin, delay: 0.1 },

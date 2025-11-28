@@ -2,7 +2,94 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Toast 动画 */
+/* ========================================
+   AgentWorks 设计系统
+   ======================================== */
+
+/* CSS 变量 - 与 Tailwind 配置保持同步 */
+:root {
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+
+  --shadow-soft: 0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 4px 16px -4px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+/* ========================================
+   基础重置与全局样式
+   ======================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-gray-50);
+  color: var(--color-gray-800);
+  line-height: 1.6;
+}
+
+/* ========================================
+   滚动条样式
+   ======================================== */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-gray-300) transparent;
+}
+
+/* ========================================
+   动画
+   ======================================== */
+
 @keyframes slide-in {
   from {
     transform: translateX(100%);
@@ -14,63 +101,176 @@
   }
 }
 
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
 }
 
-/* 全局样式 */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
 }
 
-body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
 }
 
-/* 自定义滚动条 */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+/* ========================================
+   组件基础样式
+   ======================================== */
 
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* 自定义组件样式 */
 @layer components {
+  /* 按钮 */
   .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800;
+    @apply bg-primary-600 text-white
+           hover:bg-primary-700
+           active:bg-primary-800
+           focus:ring-primary-500;
   }
 
   .btn-secondary {
-    @apply bg-gray-200 text-gray-800 hover:bg-gray-300 active:bg-gray-400;
+    @apply bg-white text-gray-700 border border-gray-300
+           hover:bg-gray-50 hover:border-gray-400
+           active:bg-gray-100
+           focus:ring-gray-300;
   }
 
+  .btn-ghost {
+    @apply bg-transparent text-gray-600
+           hover:bg-gray-100 hover:text-gray-900
+           active:bg-gray-200;
+  }
+
+  /* 卡片 */
   .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
+    @apply bg-white rounded-xl border border-gray-200 p-6;
+    box-shadow: var(--shadow-card);
   }
 
-  .input {
-    @apply border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+  .card-hover {
+    @apply card transition-all duration-200
+           hover:border-gray-300 hover:shadow-soft;
   }
+
+  /* 输入框 */
+  .input {
+    @apply w-full border border-gray-300 rounded-lg px-3 py-2
+           text-gray-900 placeholder-gray-400
+           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+           transition-all duration-200;
+  }
+
+  /* 标签 */
+  .tag {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full
+           text-xs font-medium;
+  }
+
+  .tag-primary {
+    @apply tag bg-primary-100 text-primary-700;
+  }
+
+  .tag-success {
+    @apply tag bg-green-100 text-green-700;
+  }
+
+  .tag-warning {
+    @apply tag bg-amber-100 text-amber-700;
+  }
+
+  .tag-danger {
+    @apply tag bg-red-100 text-red-700;
+  }
+
+  /* 页面容器 */
+  .page-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6;
+  }
+
+  /* 页面标题 */
+  .page-title {
+    @apply text-2xl font-semibold text-gray-900;
+  }
+
+  .page-subtitle {
+    @apply text-sm text-gray-500 mt-1;
+  }
+}
+
+/* ========================================
+   Ant Design 样式覆盖
+   ======================================== */
+
+/* 统一 Ant Design 与 Tailwind 的圆角 */
+.ant-btn {
+  border-radius: var(--radius-md) !important;
+}
+
+.ant-input,
+.ant-select-selector,
+.ant-picker {
+  border-radius: var(--radius-md) !important;
+}
+
+.ant-card {
+  border-radius: var(--radius-lg) !important;
+}
+
+.ant-modal-content {
+  border-radius: var(--radius-xl) !important;
+}
+
+.ant-table {
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+}
+
+/* 主色调覆盖 */
+.ant-btn-primary {
+  background-color: var(--color-primary-600) !important;
+  border-color: var(--color-primary-600) !important;
+}
+
+.ant-btn-primary:hover {
+  background-color: var(--color-primary-700) !important;
+  border-color: var(--color-primary-700) !important;
+}
+
+/* 链接色 */
+a {
+  color: var(--color-primary-600);
+}
+
+a:hover {
+  color: var(--color-primary-700);
+}
+
+/* 选中状态 */
+::selection {
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-900);
 }

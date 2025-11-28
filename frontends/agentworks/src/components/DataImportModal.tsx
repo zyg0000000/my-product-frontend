@@ -146,7 +146,7 @@ export function DataImportModal({
           />
         </div>
 
-        <div className="mt-4 p-3 bg-blue-50 rounded text-xs text-gray-600">
+        <div className="mt-4 p-3 bg-primary-50 rounded text-xs text-gray-600">
           <p className="font-medium text-gray-900 mb-1">📌 导入说明</p>
           <ul className="space-y-0.5 list-disc list-inside">
             <li>确保飞书表格已正确配置字段映射</li>

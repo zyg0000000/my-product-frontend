@@ -116,9 +116,9 @@ export function ImportResultPanel({ result, onClose }: ImportResultPanelProps) {
 
           {/* 下一步建议 */}
           {hasFailures && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">💡 下一步建议</h4>
-              <ul className="text-xs text-blue-700 space-y-1">
+            <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-primary-900 mb-2">💡 下一步建议</h4>
+              <ul className="text-xs text-primary-700 space-y-1">
                 <li>• 前往 <a href="/performance" className="underline font-medium">Performance 页面</a> 查看成功导入的 {successCount} 条数据</li>
                 <li>• 检查失败记录，修复数据后可重新导入</li>
                 <li>• 常见失败原因：达人不存在、必填字段缺失、字段格式错误</li>
@@ -139,7 +139,7 @@ export function ImportResultPanel({ result, onClose }: ImportResultPanelProps) {
           )}
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
           >
             关闭
           </button>

@@ -752,7 +752,7 @@ export function BatchCreateTalentModal({
                 <div className="text-xs text-gray-500 mb-2">
                   默认值：达人层级 = <strong>{getDefaultTalentTier(selectedPlatform)?.label || '未配置'}</strong> | 返点 = <strong>{wildTalentRebateRate !== null ? `${wildTalentRebateRate}%` : '加载中...'}</strong> | 商业归属 = <strong>野生达人</strong>
                 </div>
-                <pre className="bg-blue-50 p-2 rounded text-xs overflow-x-auto whitespace-pre m-0">
+                <pre className="bg-primary-50 p-2 rounded text-xs overflow-x-auto whitespace-pre m-0">
                   {exampleText}
                 </pre>
               </div>

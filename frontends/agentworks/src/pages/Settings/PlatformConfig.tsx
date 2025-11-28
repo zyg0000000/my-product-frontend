@@ -121,7 +121,7 @@ export function PlatformConfig() {
       render: (_, record) => {
         const count = record.priceTypes?.length || 0;
         return (
-          <span className={count > 0 ? 'text-blue-600 font-medium' : 'text-gray-400'}>
+          <span className={count > 0 ? 'text-primary-600 font-medium' : 'text-gray-400'}>
             {count} 个
           </span>
         );

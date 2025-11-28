@@ -351,7 +351,7 @@ export function DimensionManager({
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-600">
           总计 {localDimensions.length} 个维度
-          <span className="ml-3 text-blue-600">
+          <span className="ml-3 text-primary-600">
             默认显示 {localDimensions.filter(d => d.defaultVisible).length} 个
           </span>
         </div>
@@ -373,7 +373,7 @@ export function DimensionManager({
       </div>
 
       {/* 提示 */}
-      <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800">
+      <div className="bg-primary-50 border border-primary-200 rounded-md p-3 text-sm text-primary-800">
         <strong>提示：</strong>拖动左侧的排序图标可以调整维度的显示顺序，点击分类展开/折叠
       </div>
 
@@ -452,7 +452,7 @@ function SortableDimensionCard({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
+      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-primary-300 transition-colors"
     >
       {/* 拖动手柄 */}
       <div
@@ -572,7 +572,7 @@ function DimensionEditForm({
               onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-2 py-2 px-3 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === tab.key
-                  ? 'border-blue-600 text-blue-600'
+                  ? 'border-primary-600 text-primary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -719,7 +719,7 @@ function DimensionEditForm({
         {/* 筛选配置 Tab */}
         {activeTab === 'filter' && (
           <Form layout="vertical" className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800">
+            <div className="bg-primary-50 border border-primary-200 rounded-md p-3 text-sm text-primary-800">
               <strong>提示：</strong>启用筛选后，此维度将出现在 Performance 页面的筛选面板中
             </div>
 
@@ -738,7 +738,7 @@ function DimensionEditForm({
             </Form.Item>
 
             {dimension.filterable && (
-              <div className="space-y-4 pl-6 border-l-2 border-blue-200">
+              <div className="space-y-4 pl-6 border-l-2 border-primary-200">
                 <Form.Item
                   label="筛选器类型"
                   tooltip={

@@ -312,11 +312,11 @@ function DataImportPanel({
   return (
     <div className="space-y-6">
       {/* 导入说明 */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-blue-900 mb-2">
+      <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+        <h3 className="text-sm font-medium text-primary-900 mb-2">
           📥 数据导入功能说明
         </h3>
-        <ul className="text-xs text-blue-700 space-y-1">
+        <ul className="text-xs text-primary-700 space-y-1">
           <li>• 支持从飞书表格导入 {PLATFORM_NAMES[platform]} 平台的达人表现数据</li>
           <li>• 导入前请确保字段映射配置已正确设置</li>
           <li>• 表格需要包含"达人UID"或"星图ID"列用于匹配达人</li>
@@ -328,7 +328,7 @@ function DataImportPanel({
       <div className="border border-gray-200 rounded-lg p-6">
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0">
-            <svg className="w-12 h-12 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-12 h-12 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
           </div>
@@ -354,19 +354,19 @@ function DataImportPanel({
         <h3 className="text-sm font-medium text-gray-900 mb-3">导入步骤</h3>
         <ol className="space-y-2 text-sm text-gray-600">
           <li className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-medium">1</span>
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-xs font-medium">1</span>
             <span>准备飞书表格，确保包含达人标识列（UID/星图ID）</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-medium">2</span>
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-xs font-medium">2</span>
             <span>在"字段映射配置"中检查字段映射规则是否正确</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-medium">3</span>
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-xs font-medium">3</span>
             <span>点击"开始导入"按钮，粘贴飞书表格分享链接</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-medium">4</span>
+            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-xs font-medium">4</span>
             <span>等待系统处理，导入完成后会显示结果统计</span>
           </li>
         </ol>

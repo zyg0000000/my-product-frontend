@@ -13,7 +13,7 @@ export function MainLayout() {
 
       {/* 主内容区 */}
       <div className="flex-1 overflow-auto">
-        <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="mx-auto max-w-[1500px] px-6 py-8">
           <Outlet />
         </div>
       </div>

@@ -22,7 +22,7 @@ export function CustomersHome() {
       description: '管理客户基础信息、联系人和业务配置',
       icon: TeamOutlined,
       path: '/customers/list',
-      color: 'bg-blue-500',
+      color: 'bg-primary-500',
       available: true,
     },
     {
@@ -70,10 +70,10 @@ export function CustomersHome() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
-              className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200"
+              className="text-center p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg border border-primary-200"
             >
-              <p className="text-3xl font-bold text-blue-900">0</p>
-              <p className="text-sm text-blue-700 mt-1 font-medium">总客户数</p>
+              <p className="text-3xl font-bold text-primary-900">0</p>
+              <p className="text-sm text-primary-700 mt-1 font-medium">总客户数</p>
             </motion.div>
             {[
               { label: 'VIP客户', value: 0, delay: 0.1 },

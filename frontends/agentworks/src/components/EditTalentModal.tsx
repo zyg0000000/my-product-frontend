@@ -138,7 +138,7 @@ export function EditTalentModal({ isOpen, onClose, talent, onSave, availableTags
       title={
         <div>
           <div className="text-lg font-semibold">
-            编辑达人: <span className="text-blue-600">{talent.name}</span>
+            编辑达人: <span className="text-primary-600">{talent.name}</span>
           </div>
           <div className="text-sm font-normal text-gray-500 mt-1">
             {PLATFORM_NAMES[talent.platform]} 平台 · 更新达人的基础信息和平台特定字段

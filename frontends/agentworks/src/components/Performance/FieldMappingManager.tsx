@@ -264,7 +264,7 @@ export function FieldMappingManager({
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-600">
           总计 {mappings.length} 个映射规则
-          <span className="ml-3 text-blue-600">
+          <span className="ml-3 text-primary-600">
             必填 {mappings.filter(m => m.required).length} 个
           </span>
         </div>

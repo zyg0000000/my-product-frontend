@@ -115,7 +115,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </button>
               <button
                 onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
               >
                 刷新页面
               </button>
@@ -125,7 +125,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="mt-4">
               <a
                 href="/"
-                className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                className="text-sm text-primary-600 hover:text-primary-800 hover:underline"
               >
                 返回首页
               </a>
