@@ -1,5 +1,78 @@
 # AgentWorks 更新日志
 
+## v3.6.0 (2025-11-29) 🎨 - 设计系统统一 + 开发工作流优化
+
+### 🎨 设计系统统一
+
+#### 颜色系统
+- **主色调升级**: 蓝色系 → 靛蓝色系 (`primary-600: #4f46e5`)
+- **Tailwind 配置扩展**: 新增 `primary`, `success`, `warning`, `danger` 语义色
+- **Ant Design 主题同步**: ConfigProvider 颜色配置与 Tailwind 完全一致
+- **全局替换**: 所有 `blue-*` 类名 → `primary-*`
+
+#### 字体与样式
+- **字体系统**: Inter + 苹方 + 微软雅黑
+- **全局样式重构**: `index.css` 重写为设计系统，添加 CSS 变量
+- **阴影系统**: 新增 `shadow-soft`, `shadow-card` 自定义阴影
+
+#### 侧边栏优化
+- **主题切换**: 深色 → 浅色主题
+- **宽度调整**: 240px → 192px (收起时 64px)
+- **Logo 区域**: 纯文字居中 + 版本号
+- **动画增强**: 展开/收起平滑过渡
+
+#### 布局优化
+- **主内容区**: 最大宽度 1280px → 1500px
+- **间距统一**: 统一使用设计系统间距变量
+
+### 🔧 开发工作流优化
+
+#### Pre-push Hook
+- **TypeScript 检查**: 必须通过，否则阻止推送
+- **ESLint 检查**: 仅显示警告，不阻止推送
+- **防止部署失败**: 确保 Cloudflare 构建成功
+
+#### ESLint 配置优化
+- `@typescript-eslint/no-explicit-any` → `warn` (降级为警告)
+- `caughtErrors: 'none'` (允许 catch 块变量不使用)
+- 修复多个 `no-case-declarations` 错误
+
+### 📁 修改文件
+
+**配置文件** (3个):
+- `.husky/pre-push` - 新增 Pre-push Hook
+- `tailwind.config.js` - 扩展颜色系统
+- `eslint.config.js` - ESLint 规则优化
+
+**样式文件** (2个):
+- `src/index.css` - 重写为设计系统
+- `src/App.css` - 已删除（未使用）
+
+**核心组件** (4个):
+- `src/App.tsx` - 添加 Ant Design ConfigProvider
+- `src/components/Sidebar/Sidebar.tsx` - 浅色主题重设计
+- `src/components/Layout/MainLayout.tsx` - 内容区宽度调整
+- `src/pages/Home/Home.tsx` - 版本号更新
+
+**文档** (2个):
+- `docs/agentworks/UI_UX_GUIDELINES.md` - v3.3.0 更新
+- `frontends/agentworks/README.md` - v3.5.0 更新
+
+**全局颜色替换** (30+ 个文件):
+- 所有 `blue-*` → `primary-*`
+
+### 📊 优化效果
+
+| 优化项 | 修改前 | 修改后 |
+|-------|--------|--------|
+| 主色调 | 蓝色 (blue-600) | 靛蓝色 (primary-600) |
+| 侧边栏宽度 | 240px | 192px |
+| 内容区宽度 | 1280px | 1500px |
+| 颜色一致性 | Tailwind/AntD 分离 | 完全同步 |
+| 部署失败率 | 频繁 TS 错误 | Pre-push 拦截 |
+
+---
+
 ## v3.5.0 (2025-11-26) 🔧 - 野生达人返点系统修复
 
 ### 🐛 关键修复
