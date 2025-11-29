@@ -40,6 +40,7 @@ import {
   MoreOutlined,
   UploadOutlined,
 } from '@ant-design/icons';
+import { Tooltip } from 'antd';
 import { logger } from '../../../utils/logger';
 import {
   getTalents,
@@ -65,6 +66,7 @@ import type { Agency } from '../../../types/agency';
 import { AGENCY_INDIVIDUAL_ID } from '../../../types/agency';
 import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../../components/PageTransition';
+import type { LinkConfig } from '../../../api/platformConfig';
 
 export function BasicInfo() {
   const navigate = useNavigate();
@@ -76,6 +78,7 @@ export function BasicInfo() {
     getPlatformList,
     getTalentTiers,
     getPlatformPriceTypes,
+    getPlatformConfigByKey,
     loading: configLoading,
   } = usePlatformConfig(false);
   const platforms = getPlatformList();
@@ -241,14 +244,46 @@ export function BasicInfo() {
     return agency?.name || '未知机构';
   };
 
-  // 获取平台外链
-  const getPlatformLink = (talent: Talent): string | null => {
-    if (talent.platform === 'douyin') {
-      const xingtuId =
-        talent.platformSpecific?.xingtuId || talent.platformAccountId;
-      return `https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/${xingtuId}`;
-    }
-    return null;
+  // 获取平台所有外链（支持多链接配置）
+  const getPlatformLinks = (
+    talent: Talent
+  ): Array<{ name: string; label: string; url: string }> => {
+    const config = getPlatformConfigByKey(talent.platform);
+    if (!config) return [];
+
+    // 兼容旧数据：如果有 links 用 links，否则从 link 转换
+    const linksConfig: LinkConfig[] =
+      config.links ||
+      (config.link
+        ? [
+            {
+              name: '外链',
+              label: '链接',
+              template: config.link.template,
+              idField: config.link.idField,
+            },
+          ]
+        : []);
+
+    return linksConfig
+      .map(link => {
+        // 优先从 platformSpecific 获取 ID，回退到 platformAccountId
+        const platformSpecificData = talent.platformSpecific as
+          | Record<string, string>
+          | undefined;
+        const idValue =
+          platformSpecificData?.[link.idField] || talent.platformAccountId;
+        if (!idValue) return null;
+        return {
+          name: link.name,
+          label: link.label,
+          url: link.template.replace('{id}', idValue),
+        };
+      })
+      .filter(
+        (item): item is { name: string; label: string; url: string } =>
+          item !== null
+      );
   };
 
   // 获取唯一的达人层级
@@ -583,23 +618,32 @@ export function BasicInfo() {
         title: '达人名称',
         dataIndex: 'name',
         key: 'name',
-        width: 180, // 压缩20px
+        width: 220,
         fixed: 'left',
         ellipsis: true,
         render: (_, record) => {
-          const link = getPlatformLink(record);
-          return link ? (
-            <a
-              href={link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary-600 hover:text-primary-800 font-medium"
-              onClick={e => e.stopPropagation()}
-            >
-              {record.name}
-            </a>
-          ) : (
-            <span className="font-medium text-gray-900">{record.name}</span>
+          const links = getPlatformLinks(record);
+          return (
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-gray-900">{record.name}</span>
+              {links.length > 0 && (
+                <div className="flex items-center gap-1">
+                  {links.map((link, i) => (
+                    <Tooltip key={i} title={link.name}>
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        className="px-1.5 py-0.5 text-xs font-medium bg-primary-100 text-primary-700 rounded hover:bg-primary-200 transition-colors"
+                      >
+                        {link.label}
+                      </a>
+                    </Tooltip>
+                  ))}
+                </div>
+              )}
+            </div>
           );
         },
       },
