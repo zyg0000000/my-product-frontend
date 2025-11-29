@@ -42,8 +42,8 @@ interface FormData {
   talentTier?: TalentTier;
   talentType: string[];
   status: TalentStatus;
-  // 平台特定字段
-  uid?: string;
+  // 平台特定字段（动态，从配置读取）
+  [key: string]: unknown;
 }
 
 export function CreateTalent() {
@@ -145,7 +145,7 @@ export function CreateTalent() {
       const specificFields = getSpecificFields();
       const platformSpecific: Record<string, string> = {};
       Object.keys(specificFields).forEach(fieldKey => {
-        const value = (values as Record<string, unknown>)[fieldKey];
+        const value = values[fieldKey];
         if (value) {
           platformSpecific[fieldKey] = String(value);
         }
