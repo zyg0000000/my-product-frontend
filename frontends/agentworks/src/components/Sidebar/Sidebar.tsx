@@ -38,7 +38,8 @@ const navigation: NavItem[] = [
     children: [
       { name: '基础信息', path: '/talents/basic' },
       { name: '机构管理', path: '/talents/agencies' },
-      { name: '近期表现', path: '/performance' },
+      { name: '近期表现', path: '/performance/list' },
+      { name: '趋势分析', path: '/performance/analytics' },
     ],
   },
   {

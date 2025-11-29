@@ -58,6 +58,11 @@ const PerformanceHome = lazy(() =>
     default: m.PerformanceHome,
   }))
 );
+const PerformanceAnalytics = lazy(() =>
+  import('./pages/Performance/PerformanceAnalytics').then(m => ({
+    default: m.PerformanceAnalytics,
+  }))
+);
 const PerformanceConfig = lazy(() =>
   import('./pages/Settings/PerformanceConfig').then(m => ({
     default: m.PerformanceConfig,
@@ -174,7 +179,19 @@ function App() {
                   <Route path="analytics" element={<AnalyticsHome />} />
 
                   {/* 达人表现模块 */}
-                  <Route path="performance" element={<PerformanceHome />} />
+                  <Route
+                    path="performance/list"
+                    element={<PerformanceHome />}
+                  />
+                  <Route
+                    path="performance/analytics"
+                    element={<PerformanceAnalytics />}
+                  />
+                  {/* 兼容旧路由，重定向到 list */}
+                  <Route
+                    path="performance"
+                    element={<Navigate to="/performance/list" replace />}
+                  />
 
                   {/* 设置模块 */}
                   <Route path="settings" element={<SettingsHome />} />

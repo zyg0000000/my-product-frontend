@@ -231,13 +231,29 @@ export async function deleteDimensionConfig(id: string) {
  * ========== 数据导入 ==========
  */
 
+/**
+ * 数据导入请求参数
+ * v2.1: 新增 snapshotDate 支持导入历史数据
+ */
 export interface ImportRequest {
+  /** 飞书表格分享链接 */
   feishuUrl?: string;
+  /** 平台标识（douyin/xiaohongshu 等） */
   platform: string;
+  /** 数据库版本（v1/v2） */
   dbVersion?: string;
+  /** 字段映射配置名称 */
   mappingConfigId?: string;
-  priceYear?: number; // 价格归属年份
-  priceMonth?: number; // 价格归属月份
+  /** 价格归属年份（用于价格数据的时间标记） */
+  priceYear?: number;
+  /** 价格归属月份（用于价格数据的时间标记） */
+  priceMonth?: number;
+  /**
+   * 快照日期（用于表现数据的时间标记）
+   * 格式：YYYY-MM-DD
+   * 默认为当天日期，设置后可导入历史表现数据
+   */
+  snapshotDate?: string;
 }
 
 export interface ImportResult {
@@ -260,6 +276,14 @@ export interface ImportResult {
 
 /**
  * 从飞书导入达人表现数据
+ *
+ * v2.1: 支持 snapshotDate 参数，用于导入历史数据
+ * - 价格数据使用 priceYear + priceMonth 标记时间（月度粒度）
+ * - 表现数据使用 snapshotDate 标记时间（日度粒度）
+ * - 两者独立，可以分别设置不同的时间
+ *
+ * @param request - 导入请求参数
+ * @returns 导入结果（含统计信息）
  */
 export async function importPerformanceFromFeishu(
   request: ImportRequest
@@ -272,6 +296,7 @@ export async function importPerformanceFromFeishu(
     mappingConfigId: request.mappingConfigId || 'default',
     priceYear: request.priceYear,
     priceMonth: request.priceMonth,
+    snapshotDate: request.snapshotDate, // v2.1: 快照日期（用于历史数据导入）
   });
 }
 
@@ -353,4 +378,25 @@ export async function getTalentPerformanceHistory(
  */
 export async function listTalentPerformance(query: TalentPerformanceQuery) {
   return get('/talent-performance', query);
+}
+
+/**
+ * 查询多个达人的历史表现数据（趋势分析用）
+ */
+export interface PerformanceHistoryParams {
+  platform: string;
+  oneIds: string[];
+  metrics: string[];
+  startDate: string;
+  endDate: string;
+}
+
+export async function getPerformanceHistory(params: PerformanceHistoryParams) {
+  return get('/performance/history', {
+    platform: params.platform,
+    oneIds: params.oneIds.join(','),
+    metrics: params.metrics.join(','),
+    startDate: params.startDate,
+    endDate: params.endDate,
+  });
 }

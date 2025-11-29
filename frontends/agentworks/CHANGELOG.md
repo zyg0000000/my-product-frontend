@@ -1,5 +1,90 @@
 # AgentWorks 更新日志
 
+## v3.7.0 (2025-11-30) 📈 - 达人表现趋势分析
+
+### ✨ 新功能：趋势分析页面
+
+#### 核心功能
+- **多达人对比模式**（Phase 1）
+  - 支持最多 5 个达人同时对比
+  - 单指标趋势图（Line 图表）
+  - 按达人区分颜色，支持图例切换
+
+- **单达人双指标对比模式**（Phase 2）
+  - 选择 1 个达人时，可选择 1-2 个指标
+  - DualAxes 双轴图（左 Y 轴 + 右 Y 轴）
+  - 智能模式切换（达人数量变化时自动调整）
+
+#### 支持的指标（8 个）
+| 指标 | 类型 | 说明 |
+|------|------|------|
+| 60s预期CPM | 数值 | 核心绩效指标 |
+| 涨粉量 | 整数 | 可为负数 |
+| 粉丝数 | 大数值 | 自动转万 |
+| 30日互动率 | 百分比 | 0-100% |
+| 30日完播率 | 百分比 | 0-100% |
+| 传播指数 | 数值 | 综合指数 |
+| 预期播放量 | 大数值 | 自动转万 |
+| 触达用户数 | 大数值 | 自动转万 |
+
+#### 筛选功能
+- **平台选择**：抖音/小红书/B站/快手
+- **达人搜索**：支持名称和账号 ID 搜索
+- **时间范围**：近 30 天 / 近 90 天 / 近 180 天 / 自定义
+
+#### 技术实现
+- **图表库**：@ant-design/charts 2.x（Line + DualAxes）
+- **数据源**：talent_performance 集合历史快照
+- **API**：getPerformanceHistory 云函数 v1.1
+
+### 📁 新增/修改文件
+
+**前端页面** (1个新增):
+- `src/pages/Performance/PerformanceAnalytics.tsx` - 趋势分析页面
+
+**组件** (1个新增):
+- `src/components/Performance/TalentSelector.tsx` - 达人搜索选择器
+
+**Hooks** (1个新增):
+- `src/hooks/usePerformanceHistory.ts` - 历史数据 Hook
+
+**API** (1个修改):
+- `src/api/performance.ts` - 新增 getPerformanceHistory 方法
+
+**云函数** (1个新增):
+- `functions/getPerformanceHistory/index.js` - 历史数据查询 v1.1
+
+**路由** (2个修改):
+- `src/App.tsx` - 新增 /performance/analytics 路由
+- `src/components/Sidebar/Sidebar.tsx` - 新增"趋势分析"菜单项
+
+### 🐛 代码质量优化
+
+- **TalentSelector**：
+  - `@ts-ignore` → `@ts-expect-error`
+  - 修复 `any` 类型警告
+  - 移除未使用的 `onRemove` 参数
+
+- **usePerformanceHistory**：
+  - 替换 `any` 类型为具体接口
+  - 修复 useCallback 依赖数组警告
+
+- **PerformanceAnalytics**：
+  - Prettier 格式化
+  - ESLint 检查通过
+
+### 📊 技术亮点
+
+| 特性 | 实现方式 |
+|------|---------|
+| 模式切换 | useEffect 自动调整指标数量 |
+| 双轴图 | DualAxes + 单数据源 + 双 yField |
+| 颜色系统 | 与设计系统一致 (#4f46e5, #10b981) |
+| 数据转换 | 百分比×100，大数值÷10000 |
+| UI 一致性 | ProCard + Tailwind + PageTransition |
+
+---
+
 ## v3.6.0 (2025-11-29) 🎨 - 设计系统统一 + 开发工作流优化
 
 ### 🎨 设计系统统一

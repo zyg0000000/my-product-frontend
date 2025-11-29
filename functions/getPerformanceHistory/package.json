@@ -1,0 +1,9 @@
+{
+  "name": "get-performance-history",
+  "version": "1.0.0",
+  "description": "获取达人历史表现数据，用于趋势分析",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  }
+}
