@@ -52,6 +52,17 @@ export interface FieldConfig {
 }
 
 /**
+ * 外链配置项
+ * @description 单个外链的配置，支持多个外链
+ */
+export interface LinkConfig {
+  name: string; // 链接名称，如"星图主页"（内部标识）
+  label: string; // 显示标签，限2个中文字，如"星图"、"抖音"
+  template: string; // URL模板，使用 {id} 作为占位符
+  idField: string; // ID字段名，如"xingtuId"
+}
+
+/**
  * 平台配置
  */
 export interface PlatformConfig {
@@ -71,10 +82,14 @@ export interface PlatformConfig {
   talentTiers: TalentTierConfig[];
   specificFields: Record<string, FieldConfig>;
 
+  /** @deprecated 使用 links 替代，保留用于向后兼容 */
   link?: {
     template: string;
     idField: string;
   } | null;
+
+  /** 外链配置列表（支持多个外链） */
+  links?: LinkConfig[] | null;
 
   business: {
     fee: number | null;

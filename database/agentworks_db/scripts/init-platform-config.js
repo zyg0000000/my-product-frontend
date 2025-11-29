@@ -82,10 +82,17 @@ const platformConfigs = [
       }
     },
 
-    link: {
-      template: 'https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/{id}',
-      idField: 'xingtuId'
-    },
+    // links: 外链配置列表（支持多个外链）
+    links: [
+      {
+        name: '星图主页',
+        label: '星图',
+        template: 'https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/{id}',
+        idField: 'xingtuId'
+      }
+    ],
+    // link: 已废弃，保留用于向后兼容
+    link: null,
 
     business: {
       fee: 0.05,
@@ -141,6 +148,8 @@ const platformConfigs = [
 
     specificFields: {},
 
+    // links: 外链配置列表
+    links: [],
     link: null,
 
     business: {
@@ -180,6 +189,8 @@ const platformConfigs = [
 
     specificFields: {},
 
+    // links: 外链配置列表
+    links: [],
     link: null,
 
     business: {
@@ -219,6 +230,8 @@ const platformConfigs = [
 
     specificFields: {},
 
+    // links: 外链配置列表
+    links: [],
     link: null,
 
     business: {

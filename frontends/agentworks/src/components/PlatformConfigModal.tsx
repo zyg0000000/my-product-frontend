@@ -33,6 +33,8 @@ import {
   ProFormDigit,
   ProFormSelect,
   ProFormTextArea,
+  ProFormList,
+  ProFormGroup,
 } from '@ant-design/pro-components';
 import { ProCard } from '@ant-design/pro-components';
 import {
@@ -44,6 +46,7 @@ import type {
   PlatformConfig,
   PriceTypeConfig,
   TalentTierConfig,
+  LinkConfig,
 } from '../api/platformConfig';
 import {
   updatePlatformConfig,
@@ -88,8 +91,7 @@ export function PlatformConfigModal({
           accountIdHelpText: '',
           fee: null,
           defaultRebate: 15,
-          linkTemplate: '',
-          linkIdField: '',
+          links: [],
           priceManagement: false,
           performanceTracking: false,
           rebateManagement: true,
@@ -99,6 +101,20 @@ export function PlatformConfigModal({
         setPriceTypes([]);
       } else if (config) {
         // 编辑模式：加载现有配置
+        // 兼容旧数据：如果有 links 用 links，否则从 link 转换
+        const linksData: LinkConfig[] =
+          config.links ||
+          (config.link
+            ? [
+                {
+                  name: '外链',
+                  label: '链接',
+                  template: config.link.template,
+                  idField: config.link.idField,
+                },
+              ]
+            : []);
+
         form.setFieldsValue({
           platform: config.platform,
           name: config.name,
@@ -111,8 +127,7 @@ export function PlatformConfigModal({
           fee:
             config.business?.fee !== null ? config.business?.fee * 100 : null,
           defaultRebate: config.business?.defaultRebate,
-          linkTemplate: config.link?.template,
-          linkIdField: config.link?.idField,
+          links: linksData,
           priceManagement: config.features?.priceManagement,
           performanceTracking: config.features?.performanceTracking,
           rebateManagement: config.features?.rebateManagement,
@@ -158,18 +173,10 @@ export function PlatformConfigModal({
           minRebate: config?.business?.minRebate ?? 0,
           maxRebate: config?.business?.maxRebate ?? 100,
         },
-        // link: 保留原有配置，只有用户明确修改时才更新
-        link: values.linkTemplate
-          ? {
-              template: values.linkTemplate,
-              idField:
-                values.linkIdField ||
-                config?.link?.idField ||
-                'platformAccountId',
-            }
-          : isCreating
-            ? null
-            : (config?.link ?? null),
+        // links: 使用新的多链接配置
+        links: values.links || [],
+        // link: 保留向后兼容（deprecated）
+        link: null,
         // features: 使用表单值，fallback 到原有配置
         features: {
           priceManagement:
@@ -710,38 +717,76 @@ export function PlatformConfigModal({
       ),
     },
     {
-      key: 'link',
+      key: 'links',
       label: '外链配置',
       children: (
-        <ProCard>
-          <ProFormText
-            name="linkTemplate"
-            label="URL 模板"
-            placeholder="如：https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/{id}"
-            extra="使用 {id} 作为占位符，将被实际ID替换"
-          />
-
-          <ProFormText
-            name="linkIdField"
-            label="ID 字段"
-            placeholder="如：xingtuId"
-            extra="指定使用哪个字段作为链接中的ID"
-          />
-
-          {!isCreating && config?.link && (
-            <div className="mt-4 p-3 bg-green-50 rounded-lg">
-              <p className="text-sm text-green-800">
-                <strong>当前配置</strong>
-              </p>
-              <p className="text-xs text-green-600 mt-1">
-                模板: {config.link.template}
-              </p>
-              <p className="text-xs text-green-600">
-                字段: {config.link.idField}
-              </p>
-            </div>
-          )}
-        </ProCard>
+        <div className="space-y-3">
+          {/* 滚动容器 */}
+          <div className="overflow-y-auto" style={{ maxHeight: 300 }}>
+            <ProFormList
+              name="links"
+              creatorButtonProps={{
+                creatorButtonText: '添加外链',
+                type: 'dashed',
+                block: true,
+                icon: <PlusOutlined />,
+                size: 'small',
+              }}
+              min={0}
+              copyIconProps={false}
+              deleteIconProps={{
+                tooltipText: '删除此外链',
+              }}
+              itemRender={({ listDom, action }) => (
+                <div className="mb-3 p-4 border border-gray-200 rounded-lg bg-gray-50/50 hover:border-primary-300 transition-colors">
+                  <div className="flex gap-3">
+                    <div className="flex-1">{listDom}</div>
+                    <div className="flex items-start pt-6 text-gray-400 hover:text-red-500">
+                      {action}
+                    </div>
+                  </div>
+                </div>
+              )}
+            >
+              <div className="grid grid-cols-4 gap-3">
+                <ProFormText
+                  name="name"
+                  label="链接名称"
+                  placeholder="如：星图主页"
+                  rules={[{ required: true, message: '请输入名称' }]}
+                  fieldProps={{ size: 'small' }}
+                />
+                <ProFormText
+                  name="label"
+                  label="显示标签"
+                  placeholder="2个中文字"
+                  rules={[
+                    { required: true, message: '请输入标签' },
+                    { pattern: /^[\u4e00-\u9fa5]{2}$/, message: '需2个中文' },
+                  ]}
+                  fieldProps={{ size: 'small', maxLength: 2 }}
+                  tooltip="在达人列表中显示的标签文字"
+                />
+                <ProFormText
+                  name="template"
+                  label="URL模板"
+                  placeholder="https://.../{id}"
+                  rules={[{ required: true, message: '请输入URL' }]}
+                  fieldProps={{ size: 'small' }}
+                  tooltip="使用 {id} 作为占位符"
+                />
+                <ProFormText
+                  name="idField"
+                  label="ID字段"
+                  placeholder="如：xingtuId"
+                  rules={[{ required: true, message: '请输入字段名' }]}
+                  fieldProps={{ size: 'small' }}
+                  tooltip="达人数据中对应的字段名"
+                />
+              </div>
+            </ProFormList>
+          </div>
+        </div>
       ),
     },
   ];

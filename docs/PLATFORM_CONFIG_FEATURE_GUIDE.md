@@ -1,12 +1,14 @@
 # 平台配置管理 - 产品功能指南
 
-> **文档版本**: v1.0.0
+> **文档版本**: v1.1.0
 >
 > **创建时间**: 2025-11-23
 >
+> **最后更新**: 2025-11-29
+>
 > **维护者**: AgentWorks 团队
 >
-> **相关实施文档**: [PLATFORM_CONFIG_UNIFICATION_PLAN.md](./PLATFORM_CONFIG_UNIFICATION_PLAN.md)
+> **相关实施文档**: [PLATFORM_CONFIG_UNIFICATION_PLAN.md](./archive/PLATFORM_CONFIG_UNIFICATION_PLAN.md)
 
 ---
 
@@ -140,17 +142,46 @@ priceTypes: [
 
 ---
 
-### 5. 外链配置
+### 5. 外链配置（v2.0 多链接支持）
 
 | 字段 | 类型 | 说明 | 示例 |
 |------|------|------|------|
-| link.template | string | URL 模板 | `https://xingtu.cn/...//{id}` |
-| link.idField | string | 使用哪个字段作为ID | `xingtuId` |
+| links | LinkConfig[] | 外链配置列表 | 见下方示例 |
+| links[].name | string | 链接名称（内部标识） | `星图主页` |
+| links[].label | string | 显示标签（限2个中文字） | `星图`, `抖音` |
+| links[].template | string | URL 模板 | `https://xingtu.cn/...//{id}` |
+| links[].idField | string | ID字段名 | `xingtuId` |
+
+**示例配置：**
+```javascript
+links: [
+  {
+    name: '星图主页',
+    label: '星图',
+    template: 'https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/{id}',
+    idField: 'xingtuId'
+  },
+  {
+    name: '抖音主页',
+    label: '抖音',
+    template: 'https://www.douyin.com/user/{id}',
+    idField: 'douyinId'
+  }
+]
+```
 
 **说明：**
-- 用于生成跳转到平台官方页面的链接
-- `{id}` 作为占位符，运行时替换为实际ID
-- `link` 为 `null` 表示该平台不支持外链
+- 支持配置**不限数量**的外链
+- 每个外链可使用不同的 ID 字段（如 xingtuId、douyinId）
+- `{id}` 作为占位符，运行时替换为达人的实际ID
+- `label` 字段限制为2个中文字符，用于在达人列表中显示
+- `links` 为空数组 `[]` 表示该平台不支持外链
+- **废弃字段**: 旧的 `link` 字段已废弃，但保留向后兼容
+
+**UI 展示：**
+- 达人名称旁边显示标签链接列表（如「星图」「抖音」）
+- hover 标签显示完整链接名称
+- 点击标签在新窗口打开对应页面
 
 ---
 
@@ -930,6 +961,21 @@ const hasLiveStreaming = config.features?.liveStreaming ?? false;
 
 ## 📅 版本历史
 
+### v1.1.0 (2025-11-29)
+
+**外链配置多链接支持：**
+- 外链配置从单链接扩展为支持**不限数量**的多链接
+- 新增 `label` 字段（显示标签，限2个中文字）替代原有的 `icon` 字段
+- 使用 ProFormList 实现动态添加/删除外链配置
+- 达人列表中外链以标签形式显示在名称旁边
+- 优化外链配置 UI 布局（4列网格布局、卡片包裹、实时预览）
+
+**配置字段变更：**
+- `links[].name`: 链接名称（内部标识）
+- `links[].label`: 显示标签（限2个中文字，如「星图」「抖音」）
+- `links[].template`: URL模板（使用 `{id}` 占位符）
+- `links[].idField`: ID字段名
+
 ### v1.0.0 (2025-11-23)
 
 **初始版本：**
@@ -969,5 +1015,5 @@ const hasLiveStreaming = config.features?.liveStreaming ?? false;
 ---
 
 **文档维护**: 每次新增功能开关时更新本文档
-**最后更新**: 2025-11-23
+**最后更新**: 2025-11-29
 **维护者**: AgentWorks 团队
