@@ -1,5 +1,44 @@
 # AgentWorks 更新日志
 
+## v3.7.2 (2025-11-30) 🔧 - 更新日期字段修复
+
+### 🐛 修复：更新日期应使用 snapshotDate
+
+#### 问题背景
+- 前端"更新日期"列之前指向 `performanceData.lastUpdated`（从 Excel 导入）
+- 实际应该使用 `performanceData._snapshotDate`（从 talent_performance 集合关联查询得来）
+- `_snapshotDate` 代表数据导入时的快照日期，更准确反映数据的时效性
+
+#### 修复内容
+
+**维度配置 (dimension_configs)**:
+- `lastUpdated` → `snapshotDate`
+- `targetPath`: `performanceData.lastUpdated` → `performanceData._snapshotDate`
+
+**字段映射 (field_mappings)**:
+- 移除 `更新日期 → performanceData.lastUpdated` 映射
+- 更新日期不再从 Excel 导入，而是使用导入时的快照日期
+
+**前端 (PerformanceHome.tsx)**:
+- 优化日期渲染：直接显示 `YYYY-MM-DD` 格式的字符串，避免不必要的 Date 转换
+
+### 📁 修改文件清单
+
+| 文件 | 变更类型 |
+|------|---------|
+| `src/pages/Performance/PerformanceHome.tsx` | 优化日期渲染 |
+| `database/.../init-douyin-performance-config.js` | 更新默认配置 |
+| `database/.../fix-update-date-to-snapshot-date.js` | 新增修复脚本 |
+
+### ⚠️ 数据库修复
+
+需要在 MongoDB 中执行修复脚本：
+```bash
+mongosh agentworks_db --file database/agentworks_db/scripts/fix-update-date-to-snapshot-date.js
+```
+
+---
+
 ## v3.7.1 (2025-11-30) 🔧 - 平台配置动态化 + xingtuId 废弃清理
 
 ### 🔧 重构：平台配置动态化

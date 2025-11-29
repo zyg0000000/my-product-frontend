@@ -221,6 +221,11 @@ export function PerformanceHome() {
           const value = getNestedValue(record, dim.targetPath);
           if (!value) return 'N/A';
 
+          // 如果已经是 YYYY-MM-DD 格式的字符串，直接显示
+          if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            return value;
+          }
+
           try {
             const date = value instanceof Date ? value : new Date(value);
             if (isNaN(date.getTime())) return 'N/A';

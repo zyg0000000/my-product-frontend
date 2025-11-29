@@ -44,7 +44,7 @@ const fieldMappingConfig = {
 
     // 核心绩效
     { excelHeader: '预期cpm', targetPath: 'performanceData.cpm', format: 'number', required: false, order: 10 },
-    { excelHeader: '更新日期', targetPath: 'performanceData.lastUpdated', format: 'date', required: false, order: 11 },
+    // 注意：更新日期不再从 Excel 导入，而是使用 snapshotDate（导入时的快照日期）
 
     // 受众分析 - 性别
     { excelHeader: '男性粉丝占比', targetPath: 'performanceData.audienceGender.male', format: 'percentage', required: false, order: 20 },
@@ -102,7 +102,8 @@ const dimensionConfig = {
 
     // 核心绩效
     { id: 'cpm', name: '60s+ 预期CPM', type: 'number', category: '核心绩效', targetPath: 'performanceData.cpm', defaultVisible: true, sortable: true, width: 120, order: 10, filterable: true, filterType: 'range', filterOrder: 3 },
-    { id: 'lastUpdated', name: '更新日期', type: 'date', category: '核心绩效', targetPath: 'performanceData.lastUpdated', defaultVisible: true, sortable: true, width: 120, order: 11 },
+    // 更新日期使用 _snapshotDate（从 talent_performance 关联查询得来，字符串格式 YYYY-MM-DD）
+    { id: 'snapshotDate', name: '更新日期', type: 'date', category: '核心绩效', targetPath: 'performanceData._snapshotDate', defaultVisible: true, sortable: true, width: 120, order: 11 },
 
     // 受众分析 - 性别
     { id: 'maleRatio', name: '男性观众比例', type: 'percentage', category: '受众分析-性别', targetPath: 'performanceData.audienceGender.male', defaultVisible: true, sortable: true, width: 120, order: 20, filterable: true, filterType: 'range', filterOrder: 4 },
@@ -132,7 +133,7 @@ const dimensionConfig = {
     { name: '受众分析-年龄', order: 4, icon: 'calendar' },
     { name: '人群包分析', order: 5, icon: 'group' }
   ],
-  defaultVisibleIds: ['name', 'xingtuId', 'talentTier', 'price', 'cpm', 'lastUpdated', 'maleRatio', 'femaleRatio'],
+  defaultVisibleIds: ['name', 'xingtuId', 'talentTier', 'price', 'cpm', 'snapshotDate', 'maleRatio', 'femaleRatio'],
   totalDimensions: 21,
   createdAt: new Date(),
   updatedAt: new Date()
