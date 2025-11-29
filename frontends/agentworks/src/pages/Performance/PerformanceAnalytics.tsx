@@ -26,7 +26,10 @@ import { Line, DualAxes } from '@ant-design/charts';
 import type { Platform } from '../../types/talent';
 import { PLATFORM_NAMES } from '../../types/talent';
 import { usePlatformConfig } from '../../hooks/usePlatformConfig';
-import { usePerformanceHistory } from '../../hooks/usePerformanceHistory';
+import {
+  usePerformanceHistory,
+  type TalentMetrics,
+} from '../../hooks/usePerformanceHistory';
 import { TalentSelector } from '../../components/Performance/TalentSelector';
 import { PageTransition } from '../../components/PageTransition';
 import dayjs from 'dayjs';
@@ -200,10 +203,12 @@ export function PerformanceAnalytics() {
 
       data.series.forEach(item => {
         const talentData = item[talent.oneId];
-        if (!talentData) return;
+        if (!talentData || typeof talentData === 'string') return;
 
-        let value1 = talentData[metric1];
-        let value2 = talentData[metric2];
+        // 类型守卫：确保 talentData 是 TalentMetrics
+        const metrics = talentData as TalentMetrics;
+        let value1 = metrics[metric1] as number | null;
+        let value2 = metrics[metric2] as number | null;
 
         // 转换 value1
         if (value1 !== null && value1 !== undefined) {
@@ -247,9 +252,11 @@ export function PerformanceAnalytics() {
     data.series.forEach(item => {
       selectedTalents.forEach(talent => {
         const talentData = item[talent.oneId];
-        if (!talentData) return;
+        if (!talentData || typeof talentData === 'string') return;
 
-        let value = talentData[selectedMetric];
+        // 类型守卫：确保 talentData 是 TalentMetrics
+        const metrics = talentData as TalentMetrics;
+        let value = metrics[selectedMetric] as number | null;
         if (value === null || value === undefined) return;
 
         // 百分比转换（数据库存储 0.03 → 显示 3%）

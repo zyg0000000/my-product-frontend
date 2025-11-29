@@ -17,12 +17,12 @@ export interface PerformanceHistoryParams {
 }
 
 // 达人指标数据
-interface TalentMetrics {
+export interface TalentMetrics {
   [metricKey: string]: number | string | null;
 }
 
 // 时间序列数据点
-interface SeriesDataPoint {
+export interface SeriesDataPoint {
   date: string;
   [oneId: string]: TalentMetrics | string; // oneId -> 指标数据，date 字段是 string
 }
