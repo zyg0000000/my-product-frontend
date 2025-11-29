@@ -1,6 +1,16 @@
 /**
  * 数据导入管理 Hook
- * 处理飞书/Excel 数据导入流程
+ * @version 1.1.0 - 支持快照日期
+ *
+ * v1.1.0 更新日志 (2025-11-29):
+ * - [快照日期] importFromFeishu 新增 snapshotDate 参数
+ *   - 用于导入历史表现数据
+ *   - 价格数据使用 priceYear + priceMonth（月度粒度）
+ *   - 表现数据使用 snapshotDate（日度粒度）
+ *
+ * v1.0.0:
+ * - 处理飞书/Excel 数据导入流程
+ * - 支持导入结果展示和关闭
  */
 
 import { useState } from 'react';
@@ -19,12 +29,18 @@ export function useDataImport(platform: Platform) {
   const { success, error } = useToast();
 
   /**
-   * 从飞书导入
+   * 从飞书导入达人表现数据
+   *
+   * @param feishuUrl - 飞书表格分享链接
+   * @param priceYear - 价格归属年份（月度粒度）
+   * @param priceMonth - 价格归属月份（月度粒度）
+   * @param snapshotDate - 快照日期（日度粒度，YYYY-MM-DD 格式，用于历史数据导入）
    */
   const importFromFeishu = async (
     feishuUrl: string,
     priceYear: number,
-    priceMonth: number
+    priceMonth: number,
+    snapshotDate?: string
   ) => {
     try {
       setImporting(true);
@@ -36,6 +52,7 @@ export function useDataImport(platform: Platform) {
         mappingConfigId: 'default',
         priceYear,
         priceMonth,
+        snapshotDate, // v1.1: 快照日期（用于历史数据导入）
       };
 
       const result = await importPerformanceFromFeishu(request);

@@ -1,28 +1,56 @@
 /**
- * 数据导入弹窗 - v2.0 (Ant Design Pro + Tailwind 升级版)
+ * 数据导入弹窗组件
+ * @version 2.1.0 - 支持快照日期
  *
- * 升级要点：
- * 1. 使用 Modal 替代手写弹窗容器
- * 2. 使用 ProForm 和 ProFormText 管理表单
- * 3. 使用 message 替代 alert()
- * 4. 使用 ProFormDigit 处理数字输入
+ * v2.1.0 更新日志 (2025-11-29):
+ * - [快照日期] 新增 snapshotDate 日期选择器，用于导入历史数据
+ *   - 价格数据使用 priceYear + priceMonth 标记（月度粒度）
+ *   - 表现数据使用 snapshotDate 标记（日度粒度）
+ *   - 两者独立设置，互不影响
+ *
+ * v2.0.0 更新日志 (2025-11-28):
+ * - 使用 Modal 替代手写弹窗容器
+ * - 使用 ProForm 和 ProFormText 管理表单
+ * - 使用 message 替代 alert()
+ * - 使用 ProFormDigit 处理数字输入
  */
 
 import { useEffect } from 'react';
 import { Modal, Form, message } from 'antd';
-import { ProForm, ProFormText, ProFormDigit } from '@ant-design/pro-components';
+import {
+  ProForm,
+  ProFormText,
+  ProFormDigit,
+  ProFormDatePicker,
+} from '@ant-design/pro-components';
 import type { Platform } from '../types/talent';
 import { PLATFORM_NAMES } from '../types/talent';
+import dayjs from 'dayjs';
 
+/**
+ * 数据导入弹窗组件 Props
+ */
 interface DataImportModalProps {
+  /** 弹窗是否可见 */
   isOpen: boolean;
+  /** 关闭弹窗回调 */
   onClose: () => void;
+  /** 当前平台 */
   platform: Platform;
+  /**
+   * 导入回调函数
+   * @param feishuUrl - 飞书表格链接
+   * @param priceYear - 价格归属年份
+   * @param priceMonth - 价格归属月份
+   * @param snapshotDate - 表现数据快照日期（YYYY-MM-DD）
+   */
   onImport: (
     feishuUrl: string,
     priceYear: number,
-    priceMonth: number
+    priceMonth: number,
+    snapshotDate?: string
   ) => Promise<void>;
+  /** 加载状态 */
   loading?: boolean;
 }
 
@@ -46,18 +74,38 @@ export function DataImportModal({
         feishuUrl: '',
         priceYear: currentYear,
         priceMonth: currentMonth,
+        snapshotDate: dayjs(), // 默认当天
       });
     }
   }, [isOpen, form, currentYear, currentMonth]);
 
   // 提交表单
+  // 注意：ProFormDatePicker 返回的是字符串（YYYY-MM-DD 格式），不是 dayjs 对象
   const handleSubmit = async (values: {
     feishuUrl: string;
     priceYear: number;
     priceMonth: number;
+    snapshotDate?: string | dayjs.Dayjs;
   }) => {
     try {
-      await onImport(values.feishuUrl, values.priceYear, values.priceMonth);
+      // 处理 snapshotDate：可能是字符串或 dayjs 对象
+      let snapshotDateStr: string | undefined;
+      if (values.snapshotDate) {
+        if (typeof values.snapshotDate === 'string') {
+          // ProFormDatePicker 返回的字符串格式
+          snapshotDateStr = values.snapshotDate;
+        } else if (values.snapshotDate.format) {
+          // dayjs 对象（初始化时设置的默认值）
+          snapshotDateStr = values.snapshotDate.format('YYYY-MM-DD');
+        }
+      }
+
+      await onImport(
+        values.feishuUrl,
+        values.priceYear,
+        values.priceMonth,
+        snapshotDateStr
+      );
       message.success('导入任务已提交');
       onClose();
     } catch (err) {
@@ -122,11 +170,13 @@ export function DataImportModal({
           }}
         />
 
+        {/* 价格归属时间（月度粒度） */}
         <div className="grid grid-cols-2 gap-3">
           <ProFormDigit
             name="priceYear"
             label="价格归属年份"
             placeholder="年份"
+            tooltip="价格数据的时间标记（月度粒度）"
             rules={[{ required: true, message: '请输入年份' }]}
             fieldProps={{
               size: 'middle',
@@ -150,11 +200,35 @@ export function DataImportModal({
           />
         </div>
 
+        {/* 表现数据快照日期（日度粒度） */}
+        <ProFormDatePicker
+          name="snapshotDate"
+          label="表现数据日期"
+          tooltip="表现数据的快照日期（日度粒度），用于导入历史数据"
+          placeholder="选择日期"
+          rules={[{ required: true, message: '请选择表现数据日期' }]}
+          fieldProps={{
+            size: 'middle',
+            style: { width: '100%' },
+            disabledDate: (current: dayjs.Dayjs) => {
+              // 不能选择未来日期
+              return current && current > dayjs().endOf('day');
+            },
+          }}
+        />
+
         <div className="mt-4 p-3 bg-primary-50 rounded text-xs text-gray-600">
           <p className="font-medium text-gray-900 mb-1">📌 导入说明</p>
           <ul className="space-y-0.5 list-disc list-inside">
             <li>确保飞书表格已正确配置字段映射</li>
-            <li>价格数据将归属到指定的年月</li>
+            <li>
+              <strong>价格数据</strong>
+              ：按「年份+月份」归属（同年月同类型会覆盖）
+            </li>
+            <li>
+              <strong>表现数据</strong>
+              ：按「日期」归属（用于趋势分析和历史回溯）
+            </li>
             <li>导入过程中请勿关闭此页面</li>
           </ul>
         </div>

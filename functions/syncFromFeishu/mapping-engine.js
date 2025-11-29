@@ -1,6 +1,12 @@
 /**
  * mapping-engine.js - 通用映射引擎
- * @version 1.7 - Transform Functions
+ * @version 1.8 - Custom Snapshot Date
+ *
+ * --- v1.8 更新日志 (2025-11-29) ---
+ * - [快照时间] 支持自定义 snapshotDate 参数，用于导入历史数据
+ *   - applyMappingRules 新增 options.snapshotDate 参数
+ *   - 如未指定，默认使用当天日期
+ *   - 支持导入过去日期的历史表现数据
  *
  * --- v1.7 更新日志 (2025-11-28) ---
  * - [Transform 支持] 新增字段值转换函数机制
@@ -398,6 +404,7 @@ function generateSnapshotId(oneId, platform) {
 
 /**
  * 应用映射规则（核心引擎）
+ * v1.8: 支持自定义 snapshotDate（用于导入历史数据）
  * v1.4: 支持计算字段（computedFields）
  * v1.3: 支持 targetCollection 分流
  *
@@ -407,12 +414,14 @@ function generateSnapshotId(oneId, platform) {
  * @param {number} priceYear - 价格归属年份
  * @param {number} priceMonth - 价格归属月份
  * @param {Array} computedFields - 计算字段配置（可选）
+ * @param {Object} options - 高级选项（可选）
+ * @param {string} options.snapshotDate - 快照日期（YYYY-MM-DD），用于导入历史数据，默认为当天
  * @returns {Object} { validData, invalidRows, performanceData }
  *   - validData: 写入 talents 集合的数据
  *   - performanceData: 写入 talent_performance 集合的数据
  *   - invalidRows: 无效行
  */
-function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth, computedFields = []) {
+function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth, computedFields = [], options = {}) {
   if (!rows || rows.length < 2) {
     return { validData: [], invalidRows: [], performanceData: [] };
   }
@@ -453,8 +462,13 @@ function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth, 
   const expectedHeaders = mappingRules.map(r => r.excelHeader).slice(0, 10);
   console.log(`[映射引擎] 期望的列名（前10个）:`, expectedHeaders.join(', '));
 
-  // 获取今天的日期（用于 snapshotDate）
-  const today = new Date().toISOString().split('T')[0];
+  // v1.8: 获取快照日期（优先使用传入的 snapshotDate，否则使用当天日期）
+  const snapshotDate = options.snapshotDate || new Date().toISOString().split('T')[0];
+  if (options.snapshotDate) {
+    console.log(`[映射引擎] 📅 使用自定义快照日期: ${snapshotDate}`);
+  } else {
+    console.log(`[映射引擎] 📅 使用当天日期作为快照: ${snapshotDate}`);
+  }
 
   for (let rowIndex = 0; rowIndex < dataRows.length; rowIndex++) {
     const row = dataRows[rowIndex];
@@ -464,10 +478,10 @@ function applyMappingRules(rows, mappingRules, platform, priceYear, priceMonth, 
       const talentRow = {
         platform: platform
       };
-      // talent_performance 集合数据
+      // talent_performance 集合数据（v1.8: 使用自定义或当天的 snapshotDate）
       const perfRow = {
         platform: platform,
-        snapshotDate: today,
+        snapshotDate: snapshotDate,
         snapshotType: 'daily',
         dataSource: 'feishu',
         metrics: {},

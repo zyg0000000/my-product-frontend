@@ -1,8 +1,12 @@
 /**
  * @file utils.js
- * @version 12.2.0
- * @date 2025-11-24
+ * @version 12.3.0
+ * @date 2025-11-29
  * @changelog
+ * - v12.3.0 (2025-11-29): 支持自定义 snapshotDate 导入历史数据
+ *   - handleTalentImport 新增 snapshotDate 参数
+ *   - handleFeishuRequest 支持解析 snapshotDate
+ *   - 用于导入过去日期的表现数据
  * - v12.2.0 (2025-11-24): 修复 DATA_SCHEMAS 中 screenshots 索引错误
  *   - 修正 automation-tasks.fields 中 screenshots 的索引和显示名称
  *   - 添加缺失的 screenshots[3] (年龄分布)
@@ -488,13 +492,22 @@ async function generateAutomationSheet(payload) {
 // --- 业务逻辑：导入功能 ---
 
 /**
- * [V12.0 升级] 处理达人数据导入
- * 支持 v1/v2 数据库 + 配置驱动
+ * [V12.3 升级] 处理达人数据导入
+ * 支持 v1/v2 数据库 + 配置驱动 + 自定义快照日期
+ *
+ * @param {string} spreadsheetToken - 飞书表格 Token
+ * @param {string} platform - 平台（douyin/xiaohongshu/etc）
+ * @param {string} dbVersion - 数据库版本（v1/v2）
+ * @param {string} mappingConfigId - 映射配置ID
+ * @param {number} priceYear - 价格归属年份
+ * @param {number} priceMonth - 价格归属月份
+ * @param {string} snapshotDate - 快照日期（YYYY-MM-DD），用于导入历史数据
  */
-async function handleTalentImport(spreadsheetToken, platform, dbVersion, mappingConfigId, priceYear, priceMonth) {
+async function handleTalentImport(spreadsheetToken, platform, dbVersion, mappingConfigId, priceYear, priceMonth, snapshotDate) {
     console.log(`[导入] 开始从表格 ${spreadsheetToken} 导入达人数据...`);
     console.log(`[导入] 平台: ${platform || 'douyin'}, 数据库版本: ${dbVersion || 'v1'}`);
     console.log(`[导入] 价格归属时间: ${priceYear || '未指定'}年${priceMonth || '未指定'}月`);
+    console.log(`[导入] 快照日期: ${snapshotDate || '当天'}`);  // v12.3: 新增日志
 
     // 使用新的飞书API模块
     const rows = await feishuApi.readFeishuSheet(spreadsheetToken);
@@ -509,7 +522,7 @@ async function handleTalentImport(spreadsheetToken, platform, dbVersion, mapping
     const db = client.db(targetDbName);
 
     if (effectiveDbVersion === 'v2') {
-      // v2: 使用新的配置驱动处理器（含价格年月）
+      // v2: 使用新的配置驱动处理器（含价格年月和快照日期）
       return await processTalentPerformance(
         db,
         rows,
@@ -517,7 +530,8 @@ async function handleTalentImport(spreadsheetToken, platform, dbVersion, mapping
         'v2',
         mappingConfigId || 'default',
         priceYear,
-        priceMonth
+        priceMonth,
+        snapshotDate  // v12.3: 传递快照日期
       );
     }
 
@@ -1001,9 +1015,9 @@ async function performProjectSync(spreadsheetToken, dataType) {
 }
 
 
-// --- 总调度函数（v12.0 升级） ---
+// --- 总调度函数（v12.3 升级：支持 snapshotDate） ---
 async function handleFeishuRequest(requestBody) {
-    const { dataType, payload, platform, dbVersion, mappingConfigId, priceYear, priceMonth, ...legacyParams } = requestBody;
+    const { dataType, payload, platform, dbVersion, mappingConfigId, priceYear, priceMonth, snapshotDate, ...legacyParams } = requestBody;
     if (!dataType) throw new AppError('Missing required parameter: dataType.', 400);
 
     const extractToken = (data) => {
@@ -1033,8 +1047,8 @@ async function handleFeishuRequest(requestBody) {
             if (!token) throw new AppError(`Missing spreadsheetToken or a valid feishuUrl for ${dataType}.`, 400);
 
             if (dataType === 'talentPerformance') {
-                // v12.0 升级：传递新参数（含价格年月）
-                const result = await handleTalentImport(token, platform, dbVersion, mappingConfigId, priceYear, priceMonth);
+                // v12.3 升级：传递新参数（含价格年月和快照日期）
+                const result = await handleTalentImport(token, platform, dbVersion, mappingConfigId, priceYear, priceMonth, snapshotDate);
                 return result;
             } else {
                 const result = await performProjectSync(token, dataType);

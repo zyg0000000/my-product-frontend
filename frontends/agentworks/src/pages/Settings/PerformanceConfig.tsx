@@ -75,13 +75,20 @@ export function PerformanceConfig() {
   const { importing, importResult, showResult, importFromFeishu, closeResult } =
     useDataImport(selectedPlatform);
 
-  // 处理数据导入
+  /**
+   * 处理数据导入
+   * @param feishuUrl - 飞书表格分享链接
+   * @param priceYear - 价格归属年份（月度粒度）
+   * @param priceMonth - 价格归属月份（月度粒度）
+   * @param snapshotDate - 快照日期（日度粒度，YYYY-MM-DD，用于历史数据导入）
+   */
   const handleImport = async (
     feishuUrl: string,
     priceYear: number,
-    priceMonth: number
+    priceMonth: number,
+    snapshotDate?: string
   ) => {
-    await importFromFeishu(feishuUrl, priceYear, priceMonth);
+    await importFromFeishu(feishuUrl, priceYear, priceMonth, snapshotDate);
     setShowImportModal(false);
     // showResult 会自动变为 true，显示结果面板
   };

@@ -1,6 +1,11 @@
 /**
  * talent-performance-processor.js - 达人性能数据处理器
- * @version 1.3 - Computed Fields Support
+ * @version 1.4 - Custom Snapshot Date
+ *
+ * --- v1.4 更新日志 (2025-11-29) ---
+ * - [快照时间] 支持自定义 snapshotDate 参数，用于导入历史数据
+ *   - 新增 snapshotDate 参数传递到 applyMappingRules
+ *   - 用户可指定历史日期导入过去的表现数据
  *
  * --- v1.3 更新日志 (2025-11-28) ---
  * - [计算字段] 支持 computedFields 配置，在导入时自动计算派生字段
@@ -31,6 +36,7 @@ const { getMappingConfig, applyMappingRules, bulkUpdateTalents } = require('./ma
 
 /**
  * 处理达人表现数据导入（v12.0 新版本）
+ * v1.4: 支持自定义 snapshotDate 导入历史数据
  * v1.2: 支持同时写入 talents 和 talent_performance 集合
  *
  * @param {Object} db - 数据库连接
@@ -40,11 +46,13 @@ const { getMappingConfig, applyMappingRules, bulkUpdateTalents } = require('./ma
  * @param {string} mappingConfigId - 映射配置ID
  * @param {number} priceYear - 价格归属年份
  * @param {number} priceMonth - 价格归属月份
+ * @param {string} snapshotDate - 快照日期（YYYY-MM-DD），用于导入历史数据，默认当天
  * @returns {Object} { validData, performanceData, invalidRows, stats }
  */
-async function processTalentPerformance(db, rows, platform, dbVersion, mappingConfigId = 'default', priceYear, priceMonth) {
+async function processTalentPerformance(db, rows, platform, dbVersion, mappingConfigId = 'default', priceYear, priceMonth, snapshotDate) {
   console.log(`[性能数据导入] 开始处理 - 平台: ${platform}, 数据库: ${dbVersion}`);
   console.log(`[性能数据导入] 价格时间: ${priceYear || '未指定'}年${priceMonth || '未指定'}月`);
+  console.log(`[性能数据导入] 快照日期: ${snapshotDate || '默认当天'}`);
 
   // 1. 获取映射配置
   const mappingConfig = await getMappingConfig(db, platform, mappingConfigId);
@@ -57,14 +65,15 @@ async function processTalentPerformance(db, rows, platform, dbVersion, mappingCo
     console.log(`[性能数据导入] 计算字段数: ${computedFields.length}`);
   }
 
-  // 2. 应用映射引擎（v1.3: 传递 computedFields）
+  // 2. 应用映射引擎（v1.4: 传递 computedFields 和 snapshotDate）
   const { validData, invalidRows, performanceData } = applyMappingRules(
     rows,
     mappingConfig.mappings,
     platform,
     priceYear,
     priceMonth,
-    computedFields
+    computedFields,
+    { snapshotDate }  // v1.4: 传递快照日期选项
   );
 
   // 3. 批量更新数据库（v1.2: 传递 performanceData）
