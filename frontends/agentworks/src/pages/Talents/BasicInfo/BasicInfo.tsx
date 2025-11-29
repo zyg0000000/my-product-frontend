@@ -1128,12 +1128,16 @@ export function BasicInfo() {
             }
             toolbar={{
               actions: [
-                // 新增达人按钮
+                // 新增达人按钮（传递当前选中的平台）
                 <Button
                   key="add"
                   type="primary"
                   icon={<PlusOutlined />}
-                  onClick={() => navigate('/talents/create')}
+                  onClick={() =>
+                    navigate('/talents/create', {
+                      state: { platform: selectedPlatform },
+                    })
+                  }
                 >
                   新增达人
                 </Button>,

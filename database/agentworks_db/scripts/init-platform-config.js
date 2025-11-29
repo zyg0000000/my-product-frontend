@@ -69,12 +69,8 @@ const platformConfigs = [
       }
     ],
 
+    // specificFields: 平台特定字段（不含主账号ID，主账号ID由 accountId 配置）
     specificFields: {
-      xingtuId: {
-        label: '星图ID',
-        type: 'string',
-        required: false
-      },
       uid: {
         label: '抖音UID',
         type: 'string',
@@ -88,7 +84,7 @@ const platformConfigs = [
         name: '星图主页',
         label: '星图',
         template: 'https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/{id}',
-        idField: 'xingtuId'
+        idField: 'platformAccountId'  // 使用 platformAccountId（即星图ID）
       }
     ],
     // link: 已废弃，保留用于向后兼容

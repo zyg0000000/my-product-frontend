@@ -54,10 +54,8 @@ function getNestedValue(obj: any, path: string): any {
  */
 function getPlatformLink(talent: Talent): string | null {
   if (talent.platform === 'douyin') {
-    const xingtuId =
-      talent.platformSpecific?.xingtuId || talent.platformAccountId;
-    if (!xingtuId) return null;
-    return `https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/${xingtuId}`;
+    if (!talent.platformAccountId) return null;
+    return `https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/${talent.platformAccountId}`;
   }
   return null;
 }

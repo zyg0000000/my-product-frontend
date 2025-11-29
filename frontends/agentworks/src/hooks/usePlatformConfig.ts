@@ -1,7 +1,7 @@
 /**
  * 平台配置管理 Hook
  *
- * @version 1.0.0
+ * @version 1.1.0
  * @description 从服务器加载平台配置，提供缓存和查询功能
  *
  * 功能：
@@ -10,6 +10,7 @@
  * - 提供配置查询方法
  * - 自动处理加载状态
  * - 支持手动刷新
+ * - 支持按功能开关过滤平台（v1.1）
  */
 
 import { useState, useEffect } from 'react';
@@ -163,6 +164,38 @@ export function usePlatformConfig(includeDisabled = false) {
   };
 
   /**
+   * 功能开关类型
+   */
+  type FeatureKey = keyof PlatformConfig['features'];
+
+  /**
+   * 获取启用了指定功能的平台列表
+   * @param feature - 功能开关名称
+   * @returns 启用了该功能的平台标识数组
+   *
+   * @example
+   * // 获取启用了表现追踪的平台
+   * const platforms = getPlatformsByFeature('performanceTracking');
+   * // => ['douyin']
+   */
+  const getPlatformsByFeature = (feature: FeatureKey): Platform[] => {
+    return configs
+      .filter(c => c.features?.[feature] === true)
+      .map(c => c.platform);
+  };
+
+  /**
+   * 检查平台是否启用了指定功能
+   * @param platform - 平台标识
+   * @param feature - 功能开关名称
+   * @returns 是否启用
+   */
+  const hasFeature = (platform: Platform, feature: FeatureKey): boolean => {
+    const config = getPlatformConfigByKey(platform);
+    return config?.features?.[feature] === true;
+  };
+
+  /**
    * 获取单个平台配置
    * @param platform - 平台标识
    * @returns 平台配置对象或 undefined
@@ -223,6 +256,8 @@ export function usePlatformConfig(includeDisabled = false) {
     // 工具方法
     getPlatformNames,
     getPlatformList,
+    getPlatformsByFeature,
+    hasFeature,
     getPlatformConfigByKey,
     getPlatformPriceTypes,
     getTalentTiers,

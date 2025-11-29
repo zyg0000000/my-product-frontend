@@ -2,11 +2,12 @@
  * 达人表现趋势分析页面
  * 支持多达人对比、单/双指标选择、时间范围筛选
  *
- * @version 3.1.0 - Phase 2: 支持单达人双指标对比
+ * @version 3.2.0 - 基于 performanceTracking 功能开关过滤平台
  *
  * 技术说明：
  * - 多达人模式（2-5人）：单指标，Line 图表，按达人区分颜色
  * - 单达人模式（1人）：支持双指标，DualAxes 双轴图，按指标区分颜色
+ * - 只显示启用了 performanceTracking 的平台（v3.2）
  */
 
 import { useState, useMemo, useEffect } from 'react';
@@ -90,10 +91,10 @@ const TIME_PRESETS = [
 ];
 
 export function PerformanceAnalytics() {
-  // 平台配置
-  const { getPlatformList, loading: platformLoading } =
+  // 平台配置 - 只获取启用了 performanceTracking 的平台
+  const { getPlatformsByFeature, loading: platformLoading } =
     usePlatformConfig(false);
-  const platforms = getPlatformList();
+  const platforms = getPlatformsByFeature('performanceTracking');
 
   // 状态
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>(

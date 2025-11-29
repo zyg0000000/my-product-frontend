@@ -372,12 +372,9 @@ async function handleV2Create(collection, talentsData, platform, headers) {
       updatedAt: new Date()
     };
 
-    // 添加平台特有字段
-    if (platform === 'douyin') {
-      talentDoc.platformSpecific.xingtuId = accountIdStr;
-      if (uid) {
-        talentDoc.platformSpecific.uid = uid.toString();
-      }
+    // 添加平台特有字段（xingtuId 已废弃，统一使用 platformAccountId）
+    if (platform === 'douyin' && uid) {
+      talentDoc.platformSpecific.uid = uid.toString();
     }
 
     talentsToInsert.push(talentDoc);

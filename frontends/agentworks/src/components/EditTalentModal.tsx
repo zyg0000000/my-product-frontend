@@ -47,7 +47,6 @@ interface FormData {
   status: TalentStatus;
   // 平台特定字段
   platformSpecific: {
-    xingtuId?: string;
     uid?: string;
   };
 }
@@ -73,7 +72,6 @@ export function EditTalentModal({
         talentType: talent.talentType || [],
         status: talent.status || 'active',
         platformSpecific: {
-          xingtuId: talent.platformSpecific?.xingtuId || '',
           uid: talent.platformSpecific?.uid || '',
         },
       });

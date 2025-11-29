@@ -1,5 +1,65 @@
 # AgentWorks 更新日志
 
+## v3.7.1 (2025-11-30) 🔧 - 平台配置动态化 + xingtuId 废弃清理
+
+### 🔧 重构：平台配置动态化
+
+#### CreateTalent 页面动态配置
+- **accountId 配置动态化**：从数据库读取 `label`、`placeholder`、`helpText`
+- **specificFields 动态渲染**：根据平台配置动态显示额外字段（如抖音 UID）
+- **移除硬编码**：删除 `getPlatformAccountIdLabel()` 等 switch 语句
+
+#### usePlatformConfig Hook 增强 (v1.1)
+- 新增 `getPlatformsByFeature(feature)` - 按功能开关过滤平台
+- 新增 `hasFeature(platform, feature)` - 检查平台是否启用指定功能
+- 新增 `getPlatformConfigByKey(platform)` - 获取完整平台配置
+
+### 🗑️ 废弃字段清理：platformSpecific.xingtuId
+
+#### 问题背景
+`platformSpecific.xingtuId` 与 `platformAccountId` 存储相同的值（星图ID），造成数据冗余。
+
+#### 清理范围
+
+**前端（AgentWorks）**:
+| 文件 | 修改 |
+|------|------|
+| `TalentDetail.tsx` | 展示改用 `platformAccountId` |
+| `EditTalentModal.tsx` | 删除 `xingtuId` 字段定义和初始化 |
+| `PerformanceHome.tsx` | 移除 `xingtuId` fallback |
+
+**云函数**:
+| 文件 | 修改 |
+|------|------|
+| `bulkCreateTalents/index.js` | 删除 `platformSpecific.xingtuId` 写入 |
+
+**数据库脚本**:
+| 文件 | 修改 |
+|------|------|
+| `init-platform-config.js` | 移除 `specificFields.xingtuId` |
+| `restore-platform-configs.js` | 移除 `specificFields.xingtuId` |
+
+#### 兼容性说明
+- **v2 (AgentWorks)**：统一使用 `platformAccountId`
+- **v1 (ByteProject)**：`syncFromFeishu` 保持使用 `xingtuId` 匹配，不受影响
+
+### 📁 修改文件清单
+
+| 文件 | 变更类型 |
+|------|---------|
+| `src/pages/Talents/CreateTalent/CreateTalent.tsx` | 重构 |
+| `src/hooks/usePlatformConfig.ts` | 增强 |
+| `src/pages/TalentDetail/TalentDetail.tsx` | 修复 |
+| `src/components/EditTalentModal.tsx` | 清理 |
+| `src/pages/Performance/PerformanceHome.tsx` | 清理 |
+| `src/pages/Performance/PerformanceAnalytics.tsx` | 优化 |
+| `src/pages/Talents/BasicInfo/BasicInfo.tsx` | 优化 |
+| `functions/bulkCreateTalents/index.js` | 清理 |
+| `database/.../init-platform-config.js` | 清理 |
+| `database/.../restore-platform-configs.js` | 清理 |
+
+---
+
 ## v3.7.0 (2025-11-30) 📈 - 达人表现趋势分析
 
 ### ✨ 新功能：趋势分析页面

@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   ProForm,
   ProFormSelect,
@@ -48,16 +48,23 @@ interface FormData {
 
 export function CreateTalent() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
-  const [selectedPlatform, setSelectedPlatform] = useState<Platform>('douyin');
   const [form] = Form.useForm();
+
+  // 从路由 state 获取传入的平台，默认抖音
+  const initialPlatform =
+    (location.state as { platform?: Platform })?.platform || 'douyin';
+  const [selectedPlatform, setSelectedPlatform] =
+    useState<Platform>(initialPlatform);
 
   // 使用平台配置 Hook（只获取启用的平台）
   const {
     getPlatformList,
     getPlatformNames,
     getTalentTiers,
+    getPlatformConfigByKey,
     loading: configLoading,
   } = usePlatformConfig(false);
   const platforms = getPlatformList();
@@ -111,38 +118,38 @@ export function CreateTalent() {
     loadAvailableTags();
   }, [configLoading, platforms]);
 
-  // 根据平台获取 platformAccountId 的提示文本
-  const getPlatformAccountIdPlaceholder = () => {
-    switch (selectedPlatform) {
-      case 'douyin':
-        return '请输入星图ID';
-      case 'xiaohongshu':
-        return '请输入蒲公英ID 或 小红书ID';
-      case 'bilibili':
-        return '请输入B站UID';
-      case 'kuaishou':
-        return '请输入快手ID';
-      default:
-        return '请输入平台账号ID';
-    }
+  // 获取当前平台的 accountId 配置
+  const getAccountIdConfig = () => {
+    const config = getPlatformConfigByKey(selectedPlatform);
+    return (
+      config?.accountId || {
+        label: '平台账号ID',
+        placeholder: '请输入平台账号ID',
+        helpText: undefined,
+      }
+    );
   };
 
-  // 根据平台获取 platformAccountId 的标签
-  const getPlatformAccountIdLabel = () => {
-    switch (selectedPlatform) {
-      case 'douyin':
-        return '星图ID';
-      case 'xiaohongshu':
-        return '主要ID';
-      default:
-        return '平台账号ID';
-    }
+  // 获取当前平台的特定字段配置
+  const getSpecificFields = () => {
+    const config = getPlatformConfigByKey(selectedPlatform);
+    return config?.specificFields || {};
   };
 
   // 提交表单
   const handleSubmit = async (values: FormData) => {
     try {
       setLoading(true);
+
+      // 动态构建 platformSpecific 数据
+      const specificFields = getSpecificFields();
+      const platformSpecific: Record<string, string> = {};
+      Object.keys(specificFields).forEach(fieldKey => {
+        const value = (values as Record<string, unknown>)[fieldKey];
+        if (value) {
+          platformSpecific[fieldKey] = String(value);
+        }
+      });
 
       // 构建提交数据
       const submitData = {
@@ -155,7 +162,10 @@ export function CreateTalent() {
         talentType:
           values.talentType?.length > 0 ? values.talentType : undefined,
         status: values.status,
-        platformSpecific: values.uid ? { uid: values.uid } : undefined,
+        platformSpecific:
+          Object.keys(platformSpecific).length > 0
+            ? platformSpecific
+            : undefined,
         prices: [],
       };
 
@@ -200,7 +210,7 @@ export function CreateTalent() {
         onFinish={handleSubmit}
         loading={loading || configLoading}
         initialValues={{
-          platform: platforms[0] || 'douyin',
+          platform: initialPlatform,
           status: 'active',
           agencyId: AGENCY_INDIVIDUAL_ID,
         }}
@@ -236,19 +246,15 @@ export function CreateTalent() {
 
             <ProFormText
               name="platformAccountId"
-              label={getPlatformAccountIdLabel()}
-              placeholder={getPlatformAccountIdPlaceholder()}
+              label={getAccountIdConfig().label}
+              placeholder={getAccountIdConfig().placeholder}
               rules={[
                 {
                   required: true,
-                  message: `请输入${getPlatformAccountIdLabel()}`,
+                  message: `请输入${getAccountIdConfig().label}`,
                 },
               ]}
-              tooltip={
-                selectedPlatform === 'douyin'
-                  ? '星图ID是抖音平台的唯一标识'
-                  : undefined
-              }
+              tooltip={getAccountIdConfig().helpText}
             />
 
             <ProFormText
@@ -318,20 +324,40 @@ export function CreateTalent() {
           </div>
         </ProCard>
 
-        {/* 平台特定信息 - 仅抖音显示 */}
-        {selectedPlatform === 'douyin' && (
+        {/* 平台特定信息 - 根据配置动态显示 */}
+        {Object.keys(getSpecificFields()).length > 0 && (
           <ProCard
             title="平台特定信息"
             className="mb-4"
-            extra={<Tag color="blue">抖音平台</Tag>}
+            extra={
+              <Tag color="blue">
+                {platformNames[selectedPlatform] || selectedPlatform}平台
+              </Tag>
+            }
           >
-            <ProFormText
-              name="uid"
-              label="抖音UID"
-              placeholder="请输入抖音UID（选填）"
-              tooltip="抖音UID是用户在抖音平台的唯一数字标识"
-              width="md"
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-0">
+              {Object.entries(getSpecificFields()).map(
+                ([fieldKey, fieldConfig]) => (
+                  <ProFormText
+                    key={fieldKey}
+                    name={fieldKey}
+                    label={fieldConfig.label}
+                    placeholder={`请输入${fieldConfig.label}${fieldConfig.required ? '' : '（选填）'}`}
+                    rules={
+                      fieldConfig.required
+                        ? [
+                            {
+                              required: true,
+                              message: `请输入${fieldConfig.label}`,
+                            },
+                          ]
+                        : undefined
+                    }
+                    width="md"
+                  />
+                )
+              )}
+            </div>
           </ProCard>
         )}
       </ProForm>

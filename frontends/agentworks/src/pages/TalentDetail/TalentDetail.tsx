@@ -199,11 +199,11 @@ export function TalentDetail() {
           <div className="mt-6 border-t pt-6">
             <h3 className="text-sm font-medium text-gray-900">平台特有信息</h3>
             <div className="mt-3 grid grid-cols-3 gap-4">
-              {talent.platformSpecific.xingtuId && (
+              {talent.platformAccountId && (
                 <div>
                   <p className="text-xs text-gray-500">星图ID</p>
                   <p className="mt-1 text-sm font-medium">
-                    {talent.platformSpecific.xingtuId}
+                    {talent.platformAccountId}
                   </p>
                 </div>
               )}

@@ -62,12 +62,8 @@ const douyinConfig = {
       order: 3
     }
   ],
+  // specificFields: 平台特定字段（不含主账号ID）
   specificFields: {
-    xingtuId: {
-      label: '星图ID',
-      type: 'string',
-      required: false
-    },
     uid: {
       label: '抖音UID',
       type: 'string',
@@ -76,7 +72,7 @@ const douyinConfig = {
   },
   link: {
     template: 'https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/{id}',
-    idField: 'xingtuId'
+    idField: 'platformAccountId'  // 使用 platformAccountId（即星图ID）
   },
   business: {
     fee: 0.05,
