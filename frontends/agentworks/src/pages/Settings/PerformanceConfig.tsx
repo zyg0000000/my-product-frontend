@@ -26,7 +26,6 @@ import { TableSkeleton } from '../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../components/PageTransition';
 
 export function PerformanceConfig() {
-  const { message } = App.useApp();
   const [searchParams] = useSearchParams();
 
   // 使用平台配置 Hook（只获取启用的平台）
@@ -198,6 +197,8 @@ function MappingConfigPanel({
   platform: Platform;
   fieldMapping: ReturnType<typeof useFieldMapping>;
 }) {
+  const { message } = App.useApp();
+
   if (fieldMapping.loading) {
     return <TableSkeleton columnCount={4} rowCount={5} />;
   }
@@ -273,6 +274,8 @@ function DimensionConfigPanel({
   platform: Platform;
   dimensionConfig: ReturnType<typeof useDimensionConfig>;
 }) {
+  const { message } = App.useApp();
+
   if (dimensionConfig.loading) {
     return <TableSkeleton columnCount={5} rowCount={8} />;
   }
