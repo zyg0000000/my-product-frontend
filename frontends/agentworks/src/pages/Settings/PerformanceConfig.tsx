@@ -9,7 +9,12 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Tabs, Button, App } from 'antd';
+import { Tabs, Button, App, Card } from 'antd';
+import {
+  FileTextOutlined,
+  AppstoreOutlined,
+  CloudUploadOutlined,
+} from '@ant-design/icons';
 import { ReloadOutlined } from '@ant-design/icons';
 import { useFieldMapping } from '../../hooks/useFieldMapping';
 import { useDimensionConfig } from '../../hooks/useDimensionConfig';
@@ -119,55 +124,83 @@ export function PerformanceConfig() {
           </p>
         </div>
 
-        {/* 平台 Tabs - Ant Design */}
-        <Tabs
-          activeKey={selectedPlatform}
-          onChange={key => setSelectedPlatform(key as Platform)}
-          items={platforms.map(platform => ({
-            key: platform,
-            label: PLATFORM_NAMES[platform],
-          }))}
-        />
+        {/* 嵌套 Tab 布局：平台 Tab（主级）+ 功能 Tab（子级） */}
+        <Card className="shadow-sm" bodyStyle={{ padding: 0 }}>
+          {/* 平台 Tab（主级） */}
+          <Tabs
+            activeKey={selectedPlatform}
+            onChange={key => setSelectedPlatform(key as Platform)}
+            items={platforms.map(platform => ({
+              key: platform,
+              label: PLATFORM_NAMES[platform],
+            }))}
+            tabBarStyle={{
+              marginBottom: 0,
+              paddingLeft: 16,
+              paddingRight: 16,
+              borderBottom: '1px solid #f0f0f0',
+            }}
+            size="large"
+          />
 
-        {/* 功能 Tabs（二级）- Ant Design */}
-        <Tabs
-          activeKey={activeTab}
-          onChange={key =>
-            setActiveTab(key as 'mapping' | 'dimension' | 'import')
-          }
-          items={[
-            {
-              key: 'mapping',
-              label: '字段映射',
-              children: (
-                <MappingConfigPanel
-                  platform={selectedPlatform}
-                  fieldMapping={fieldMapping}
-                />
-              ),
-            },
-            {
-              key: 'dimension',
-              label: '维度配置',
-              children: (
-                <DimensionConfigPanel
-                  platform={selectedPlatform}
-                  dimensionConfig={dimensionConfig}
-                />
-              ),
-            },
-            {
-              key: 'import',
-              label: '数据导入',
-              children: (
-                <DataImportPanel
-                  platform={selectedPlatform}
-                  onOpenImport={() => setShowImportModal(true)}
-                />
-              ),
-            },
-          ]}
-        />
+          {/* 功能 Tab（子级） */}
+          <div className="p-4">
+            <Tabs
+              activeKey={activeTab}
+              onChange={key =>
+                setActiveTab(key as 'mapping' | 'dimension' | 'import')
+              }
+              type="card"
+              items={[
+                {
+                  key: 'mapping',
+                  label: (
+                    <span className="flex items-center gap-1">
+                      <FileTextOutlined />
+                      字段映射
+                    </span>
+                  ),
+                  children: (
+                    <MappingConfigPanel
+                      platform={selectedPlatform}
+                      fieldMapping={fieldMapping}
+                    />
+                  ),
+                },
+                {
+                  key: 'dimension',
+                  label: (
+                    <span className="flex items-center gap-1">
+                      <AppstoreOutlined />
+                      维度配置
+                    </span>
+                  ),
+                  children: (
+                    <DimensionConfigPanel
+                      platform={selectedPlatform}
+                      dimensionConfig={dimensionConfig}
+                    />
+                  ),
+                },
+                {
+                  key: 'import',
+                  label: (
+                    <span className="flex items-center gap-1">
+                      <CloudUploadOutlined />
+                      数据导入
+                    </span>
+                  ),
+                  children: (
+                    <DataImportPanel
+                      platform={selectedPlatform}
+                      onOpenImport={() => setShowImportModal(true)}
+                    />
+                  ),
+                },
+              ]}
+            />
+          </div>
+        </Card>
 
         {/* 数据导入弹窗 */}
         <DataImportModal

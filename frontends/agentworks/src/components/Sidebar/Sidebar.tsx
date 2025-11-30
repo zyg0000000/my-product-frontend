@@ -39,7 +39,6 @@ const navigation: NavItem[] = [
       { name: '基础信息', path: '/talents/basic' },
       { name: '机构管理', path: '/talents/agencies' },
       { name: '近期表现', path: '/performance/list' },
-      { name: '趋势分析', path: '/performance/analytics' },
     ],
   },
   {
@@ -49,13 +48,18 @@ const navigation: NavItem[] = [
     children: [{ name: '客户列表', path: '/customers/list' }],
   },
   { name: '项目管理', path: '/projects', icon: FolderIcon },
-  { name: '数据分析', path: '/analytics', icon: ChartBarIcon },
+  {
+    name: '数据分析',
+    path: '/analytics',
+    icon: ChartBarIcon,
+    children: [{ name: '达人效果趋势', path: '/analytics/talent-trends' }],
+  },
   {
     name: '系统设置',
     path: '/settings',
     icon: Cog6ToothIcon,
     children: [
-      { name: '数据表现配置', path: '/settings/performance-config' },
+      { name: '达人表现配置', path: '/settings/performance-config' },
       { name: '平台配置', path: '/settings/platform-config' },
     ],
   },
@@ -66,6 +70,7 @@ export function Sidebar() {
   const [expandedMenus, setExpandedMenus] = useState<string[]>([
     '达人管理',
     '客户管理',
+    '数据分析',
     '系统设置',
   ]);
   const location = useLocation();

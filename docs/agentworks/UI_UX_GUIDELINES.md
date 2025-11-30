@@ -1,4 +1,4 @@
-# UI/UX 开发规范 v3.3
+# UI/UX 开发规范 v3.4
 
 ## 📋 目录
 - [设计原则](#设计原则)
@@ -514,7 +514,100 @@ className="bg-gray-50 text-gray-900 border-gray-200"
 
 ## 🎯 Tabs 导航规范
 
-### 平台切换 Tabs
+### Tab 类型概述
+
+| Tab 类型 | 用途 | 样式 | 示例 |
+|---------|------|------|------|
+| **主级 Tab** | 平台/大分类切换 | `size="large"` + 底部边框 | 抖音/小红书切换 |
+| **子级 Tab** | 功能模块切换 | `type="card"` + 图标 | 达人池/价格策略 |
+| **独立 Tab** | 单层 Tab 导航 | 默认样式 | 设置页面 |
+
+### 嵌套 Tab 规范 (v3.8+)
+
+**适用场景**：需要两层导航的页面（如客户详情、配置管理）
+
+**设计原则**：
+1. **主级 Tab**：用于大分类（如平台切换），样式较大
+2. **子级 Tab**：用于功能模块，使用 `type="card"` 卡片样式
+3. **外层容器**：使用 `Card` 组件包裹，统一阴影和边框
+
+**标准实现**：
+```tsx
+import { Tabs, Card } from 'antd';
+import { TeamOutlined, DollarOutlined, HistoryOutlined } from '@ant-design/icons';
+
+// 嵌套 Tab 布局
+<Card className="shadow-sm" bodyStyle={{ padding: 0 }}>
+  {/* 主级 Tab：平台切换 */}
+  <Tabs
+    activeKey={activePlatform}
+    onChange={key => setActivePlatform(key as Platform)}
+    items={platformTabs}
+    tabBarStyle={{
+      marginBottom: 0,
+      paddingLeft: 16,
+      paddingRight: 16,
+      borderBottom: '1px solid #f0f0f0',
+    }}
+    size="large"
+  />
+
+  {/* 子级 Tab：功能模块 */}
+  <div className="p-4">
+    <Tabs
+      activeKey={activeContentTab}
+      onChange={setActiveContentTab}
+      type="card"
+      items={[
+        {
+          key: 'talentPool',
+          label: (
+            <span className="flex items-center gap-1">
+              <TeamOutlined />
+              达人池
+            </span>
+          ),
+          children: <TalentPoolTab />,
+        },
+        {
+          key: 'pricing',
+          label: (
+            <span className="flex items-center gap-1">
+              <DollarOutlined />
+              价格策略
+            </span>
+          ),
+          children: <PricingTab />,
+        },
+        {
+          key: 'history',
+          label: (
+            <span className="flex items-center gap-1">
+              <HistoryOutlined />
+              合作历史
+            </span>
+          ),
+          children: <HistoryTab />,
+        },
+      ]}
+    />
+  </div>
+</Card>
+```
+
+**样式要点**：
+- ✅ 主级 Tab 使用 `size="large"`，视觉更突出
+- ✅ 主级 Tab 去除默认 margin（`marginBottom: 0`）
+- ✅ 主级 Tab 添加左右 padding（`paddingLeft/Right: 16`）
+- ✅ 主级 Tab 底部边框分隔（`borderBottom: '1px solid #f0f0f0'`）
+- ✅ 子级 Tab 使用 `type="card"` 卡片样式
+- ✅ 子级 Tab 标签添加图标（使用 flex 布局）
+- ✅ 子级 Tab 外层添加 padding（`p-4`）
+
+### 单层平台 Tab
+
+**适用场景**：仅需平台切换，无子功能模块
+
 ```tsx
 import { Tabs } from 'antd';
 import type { Platform } from '../types/talent';
@@ -547,6 +640,29 @@ const platforms: Platform[] = ['douyin', 'xiaohongshu', 'bilibili', 'kuaishou'];
   ),
   disabled: true,
 }
+```
+
+### Tab 带 Badge 数量
+
+```tsx
+import { Badge } from 'antd';
+
+// 平台 Tab 带数量统计
+const platformTabs = platforms.map(config => ({
+  key: config.platform,
+  label: (
+    <span className="flex items-center gap-2">
+      {config.name}
+      <Badge
+        count={stats[config.platform] || 0}
+        showZero
+        style={{
+          backgroundColor: stats[config.platform] > 0 ? '#1890ff' : '#d9d9d9',
+        }}
+      />
+    </span>
+  ),
+}));
 ```
 
 ---
@@ -741,6 +857,14 @@ message.success('操作成功');
 
 ## 📝 更新记录
 
+### v3.4.0 (2025-11-30) - 嵌套 Tab 规范化
+- ✅ **新增嵌套 Tab 规范**：统一主级 Tab + 子级 Tab 布局模式
+- ✅ **主级 Tab 样式**：`size="large"` + 自定义 tabBarStyle
+- ✅ **子级 Tab 样式**：`type="card"` + 图标标签
+- ✅ **外层容器规范**：使用 `Card` 组件统一包裹
+- ✅ **Tab Badge 数量**：新增带数量统计的 Tab 示例
+- ✅ **统一 PerformanceConfig**：迁移至嵌套 Tab 规范
+
 ### v3.3.0 (2025-11-29) - 设计系统统一
 - ✅ **颜色系统统一**：主色调改为靛蓝色系（`primary-600: #4f46e5`）
 - ✅ **Tailwind 配置更新**：新增 `primary`、`success`、`warning`、`danger` 语义色
@@ -809,7 +933,7 @@ message.success('操作成功');
 ---
 
 **维护者**: AgentWorks 团队
-**最后更新**: 2025-11-29
-**版本**: v3.3.0
+**最后更新**: 2025-11-30
+**版本**: v3.4.0
 
 🤖 本规范遵循 Ant Design Pro + Tailwind CSS 混合开发模式

@@ -183,17 +183,21 @@ function App() {
                   <Route path="clients" element={<ClientsHome />} />
                   <Route path="projects" element={<ProjectsHome />} />
                   <Route path="analytics" element={<AnalyticsHome />} />
+                  <Route
+                    path="analytics/talent-trends"
+                    element={<PerformanceAnalytics />}
+                  />
 
                   {/* 达人表现模块 */}
                   <Route
                     path="performance/list"
                     element={<PerformanceHome />}
                   />
+                  {/* 兼容旧路由，重定向到新路径 */}
                   <Route
                     path="performance/analytics"
-                    element={<PerformanceAnalytics />}
+                    element={<Navigate to="/analytics/talent-trends" replace />}
                   />
-                  {/* 兼容旧路由，重定向到 list */}
                   <Route
                     path="performance"
                     element={<Navigate to="/performance/list" replace />}

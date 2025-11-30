@@ -281,10 +281,46 @@ import { ProForm, ProCard, ProFormText } from '@ant-design/pro-components';
 | 数据表格 | `ProTable` | [PerformanceHome.tsx](frontends/agentworks/src/pages/Performance/PerformanceHome.tsx) |
 | 复杂表单 | `ProForm` + `ProCard` | [AgencyFormModal.tsx](frontends/agentworks/src/components/AgencyFormModal.tsx) |
 | 弹窗 | `Modal` | 所有 *Modal.tsx 组件 |
-| 标签页 | `Tabs` | 平台切换 |
+| 单层标签页 | `Tabs` | 平台切换 |
+| 嵌套标签页 | `Card` + `Tabs` 组合 | [CustomerDetail](frontends/agentworks/src/pages/Customers/CustomerDetail/) |
 | 通知 | `App.useApp().message` | 统一通知方案（见下文） |
 | 布局 | Tailwind `flex`, `grid` | 所有页面 |
 | 间距 | Tailwind `space-y-*`, `gap-*` | 所有页面 |
+
+#### 嵌套 Tab 规范（v3.8+）
+
+当需要两层导航时（如平台切换 + 功能模块），使用以下模式：
+
+```tsx
+import { Tabs, Card } from 'antd';
+
+<Card className="shadow-sm" bodyStyle={{ padding: 0 }}>
+  {/* 主级 Tab：size="large"，自定义 tabBarStyle */}
+  <Tabs
+    activeKey={platform}
+    onChange={setPlatform}
+    items={platformItems}
+    tabBarStyle={{
+      marginBottom: 0,
+      paddingLeft: 16,
+      paddingRight: 16,
+      borderBottom: '1px solid #f0f0f0',
+    }}
+    size="large"
+  />
+  {/* 子级 Tab：type="card"，带图标 */}
+  <div className="p-4">
+    <Tabs
+      activeKey={feature}
+      onChange={setFeature}
+      type="card"
+      items={featureItems}  // 每个 label 使用 <Icon /> + 文字
+    />
+  </div>
+</Card>
+```
+
+详细规范见 [UI/UX 规范 - Tabs 导航](UI_UX_GUIDELINES.md#-tabs-导航规范)
 
 #### 统一通知方案（v3.8.0+）
 
