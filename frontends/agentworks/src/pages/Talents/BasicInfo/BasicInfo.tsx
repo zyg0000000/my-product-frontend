@@ -39,6 +39,7 @@ import {
   CloseOutlined,
   MoreOutlined,
   UploadOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import { Tooltip } from 'antd';
 import { logger } from '../../../utils/logger';
@@ -61,12 +62,15 @@ import { EditTalentModal } from '../../../components/EditTalentModal';
 import { DeleteConfirmModal } from '../../../components/DeleteConfirmModal';
 import { RebateManagementModal } from '../../../components/RebateManagementModal';
 import { BatchCreateTalentModal } from '../../../components/BatchCreateTalentModal';
+import { AddToCustomerModal } from '../../../components/AddToCustomerModal';
 import { getAgencies } from '../../../api/agency';
 import type { Agency } from '../../../types/agency';
 import { AGENCY_INDIVIDUAL_ID } from '../../../types/agency';
 import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../../components/PageTransition';
 import type { LinkConfig } from '../../../api/platformConfig';
+import { customerApi } from '../../../services/customerApi';
+import type { Customer } from '../../../types/customer';
 
 export function BasicInfo() {
   const navigate = useNavigate();
@@ -99,7 +103,17 @@ export function BasicInfo() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [batchCreateModalOpen, setBatchCreateModalOpen] = useState(false);
+  const [addToCustomerModalOpen, setAddToCustomerModalOpen] = useState(false);
   const [selectedTalent, setSelectedTalent] = useState<Talent | null>(null);
+
+  // 批量选择状态
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+
+  // 客户筛选状态
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(
+    null
+  );
 
   // 分页状态
   const [currentPage, setCurrentPage] = useState(1);
@@ -145,6 +159,8 @@ export function BasicInfo() {
   // 切换平台时更新状态
   useEffect(() => {
     setCurrentPage(1);
+    setSelectedRowKeys([]); // 清空选择
+    setSelectedCustomerId(null); // 清空客户筛选
     // 切换平台时更新默认价格档位
     setSelectedPriceTier(getDefaultPriceTier(selectedPlatform));
   }, [selectedPlatform]);
@@ -164,11 +180,13 @@ export function BasicInfo() {
     rebateMax,
     priceMin,
     priceMax,
+    selectedCustomerId,
   ]);
 
   // 加载机构列表
   useEffect(() => {
     loadAgencies();
+    loadCustomers();
   }, []);
 
   const loadTalents = async () => {
@@ -195,6 +213,7 @@ export function BasicInfo() {
       if (rebateMax) params.rebateMax = parseFloat(rebateMax);
       if (priceMin) params.priceMin = parseFloat(priceMin);
       if (priceMax) params.priceMax = parseFloat(priceMax);
+      if (selectedCustomerId) params.customerId = selectedCustomerId;
 
       const response = await getTalents(params);
 
@@ -232,6 +251,20 @@ export function BasicInfo() {
       }
     } catch (error) {
       logger.error('加载机构列表失败:', error);
+    }
+  };
+
+  const loadCustomers = async () => {
+    try {
+      const response = await customerApi.getCustomers({
+        status: 'active',
+        pageSize: 100,
+      });
+      if (response.success && response.data) {
+        setCustomers(response.data.customers);
+      }
+    } catch (error) {
+      logger.error('加载客户列表失败:', error);
     }
   };
 
@@ -494,6 +527,7 @@ export function BasicInfo() {
     setRebateMax('');
     setPriceMin('');
     setPriceMax('');
+    setSelectedCustomerId(null);
     setCurrentPage(1);
   };
 
@@ -512,7 +546,8 @@ export function BasicInfo() {
       rebateMin ||
       rebateMax ||
       priceMin ||
-      priceMax
+      priceMax ||
+      selectedCustomerId
     );
   }, [
     searchTerm,
@@ -522,6 +557,7 @@ export function BasicInfo() {
     rebateMax,
     priceMin,
     priceMax,
+    selectedCustomerId,
   ]);
 
   // 生成已选筛选条件的标签
@@ -600,6 +636,21 @@ export function BasicInfo() {
       });
     }
 
+    // 客户筛选
+    if (selectedCustomerId) {
+      const customer = customers.find(
+        c => (c._id || c.code) === selectedCustomerId
+      );
+      tags.push({
+        id: 'customer',
+        label: `客户: ${customer?.name || selectedCustomerId}`,
+        onRemove: () => {
+          setSelectedCustomerId(null);
+          setCurrentPage(1);
+        },
+      });
+    }
+
     return tags;
   }, [
     searchTerm,
@@ -609,6 +660,8 @@ export function BasicInfo() {
     rebateMax,
     priceMin,
     priceMax,
+    selectedCustomerId,
+    customers,
   ]);
 
   // ProTable 列配置（移除价格列头的选择器）
@@ -910,19 +963,52 @@ export function BasicInfo() {
               {/* 左侧：筛选器面板 */}
               <div className="flex-1 p-4 border-r border-gray-100">
                 <div className="space-y-4">
-                  {/* 搜索框 - 全宽 */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      搜索
-                    </label>
-                    <Input
-                      placeholder="按达人名称或OneID搜索..."
-                      value={searchTerm}
-                      onChange={e => setSearchTerm(e.target.value)}
-                      prefix={<SearchOutlined />}
-                      allowClear
-                      onPressEnter={handleSearch}
-                    />
+                  {/* 搜索和客户筛选 - 并排 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* 搜索框 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        搜索
+                      </label>
+                      <Input
+                        placeholder="按达人名称或OneID搜索..."
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        prefix={<SearchOutlined />}
+                        allowClear
+                        onPressEnter={handleSearch}
+                      />
+                    </div>
+
+                    {/* 客户筛选 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        所属客户{' '}
+                        <span className="text-xs text-gray-500">
+                          （筛选客户达人池）
+                        </span>
+                      </label>
+                      <Select
+                        showSearch
+                        allowClear
+                        placeholder="选择客户..."
+                        value={selectedCustomerId}
+                        onChange={value => {
+                          setSelectedCustomerId(value);
+                          setCurrentPage(1);
+                        }}
+                        options={customers.map(c => ({
+                          value: c._id || c.code,
+                          label: c.name,
+                        }))}
+                        filterOption={(input, option) =>
+                          (option?.label ?? '')
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
+                        style={{ width: '100%' }}
+                      />
+                    </div>
                   </div>
 
                   {/* 常用筛选区 - 价格和返点并排 */}
@@ -1106,6 +1192,30 @@ export function BasicInfo() {
             dataSource={talents}
             rowKey="oneId"
             loading={configLoading || loading}
+            rowSelection={{
+              selectedRowKeys,
+              onChange: keys => setSelectedRowKeys(keys),
+              preserveSelectedRowKeys: true,
+            }}
+            tableAlertRender={({ selectedRowKeys: keys }) =>
+              keys.length > 0 ? (
+                <Space size="middle">
+                  <span>已选择 {keys.length} 个达人</span>
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<TeamOutlined />}
+                    onClick={() => setAddToCustomerModalOpen(true)}
+                  >
+                    添加到客户池
+                  </Button>
+                  <Button size="small" onClick={() => setSelectedRowKeys([])}>
+                    取消选择
+                  </Button>
+                </Space>
+              ) : null
+            }
+            tableAlertOptionRender={false}
             pagination={{
               current: currentPage,
               pageSize: pageSize,
@@ -1251,6 +1361,20 @@ export function BasicInfo() {
           onClose={() => setBatchCreateModalOpen(false)}
           onSuccess={loadTalents}
           initialPlatform={selectedPlatform}
+        />
+
+        {/* 添加到客户池弹窗 */}
+        <AddToCustomerModal
+          visible={addToCustomerModalOpen}
+          platform={selectedPlatform}
+          selectedTalents={talents
+            .filter(t => selectedRowKeys.includes(t.oneId))
+            .map(t => ({ oneId: t.oneId, name: t.name }))}
+          onClose={() => setAddToCustomerModalOpen(false)}
+          onSuccess={() => {
+            setSelectedRowKeys([]);
+            loadTalents();
+          }}
         />
       </div>
     </PageTransition>

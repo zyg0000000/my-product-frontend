@@ -12,17 +12,16 @@ import {
   ProFormList,
   ProCard,
 } from '@ant-design/pro-components';
+import { App } from 'antd';
 import { customerApi } from '../../services/customerApi';
-import { Toast } from '../../components/Toast';
-import { useToast } from '../../hooks/useToast';
 import { PageHeader } from '../../components/PageHeader';
 
 export default function CustomerForm() {
+  const { message } = App.useApp();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [initialValues, setInitialValues] = useState<any>();
   const [loading, setLoading] = useState(false);
-  const { toast, hideToast, success, error: showError } = useToast();
 
   const isEditMode = !!id;
 
@@ -49,7 +48,7 @@ export default function CustomerForm() {
         });
       }
     } catch (error) {
-      showError('加载客户信息失败');
+      message.error('加载客户信息失败');
       console.error('Error loading customer:', error);
     } finally {
       setLoading(false);
@@ -67,19 +66,19 @@ export default function CustomerForm() {
 
       // 检查响应是否成功
       if (response.success) {
-        success(isEditMode ? '客户信息更新成功' : '客户创建成功');
+        message.success(isEditMode ? '客户信息更新成功' : '客户创建成功');
         navigate('/customers/list');
         return true;
       } else {
         // API 返回业务错误
-        showError(response.message || (isEditMode ? '更新失败' : '创建失败'));
+        message.error(response.message || (isEditMode ? '更新失败' : '创建失败'));
         return false;
       }
     } catch (error) {
       // 网络错误或其他异常
       console.error('Error submitting customer:', error);
       const errorMessage = error instanceof Error ? error.message : '未知错误';
-      showError(`${isEditMode ? '更新失败' : '创建失败'}: ${errorMessage}`);
+      message.error(`${isEditMode ? '更新失败' : '创建失败'}: ${errorMessage}`);
       return false;
     }
   };
@@ -249,11 +248,6 @@ export default function CustomerForm() {
           </ProCard>
         </ProForm>
       </ProCard>
-
-      {/* Toast 通知 */}
-      {toast.visible && (
-        <Toast message={toast.message} type={toast.type} onClose={hideToast} />
-      )}
     </div>
   );
 }

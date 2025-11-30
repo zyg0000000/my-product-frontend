@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { useToast } from './useToast';
+import { App } from 'antd';
 import type { ApiResponse } from '../types/talent';
 
 /**
@@ -39,9 +39,9 @@ export interface ApiCallOptions<T> {
  * ```
  */
 export function useApiCall<T = any>() {
+  const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { success: showSuccess, error: showError } = useToast();
 
   /**
    * 执行 API 调用
@@ -79,7 +79,7 @@ export function useApiCall<T = any>() {
 
       // 显示成功提示
       if (showToast && successMessage) {
-        showSuccess(successMessage);
+        message.success(successMessage);
       }
 
       return response.data !== undefined ? response.data : null;
@@ -94,7 +94,7 @@ export function useApiCall<T = any>() {
 
       // 显示错误提示
       if (showToast) {
-        showError(errorMessage || errorMsg);
+        message.error(errorMessage || errorMsg);
       }
 
       return null;

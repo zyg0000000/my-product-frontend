@@ -18,7 +18,7 @@ import {
   ProFormDigit,
   ProCard,
 } from '@ant-design/pro-components';
-import { Button, message, Tag, Form } from 'antd';
+import { Button, App, Tag, Form } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { logger } from '../../../utils/logger';
 import { createTalent, getTalents } from '../../../api/talent';
@@ -47,6 +47,7 @@ interface FormData {
 }
 
 export function CreateTalent() {
+  const { message } = App.useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);

@@ -1,0 +1,23 @@
+{
+  "name": "customer-talents",
+  "version": "1.0.0",
+  "description": "云函数：客户达人池管理 RESTful API - 支持客户达人多对多关系、按平台管理达人池、批量添加/移除达人、标签备注管理",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^6.5.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "customer-talents",
+    "talent-pool",
+    "customer-management",
+    "restful-api"
+  ],
+  "author": "开发团队",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

@@ -20,7 +20,7 @@
 import { useState, useRef } from 'react';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Space, message } from 'antd';
+import { Button, Tag, Space, App } from 'antd';
 import { PlusOutlined, EditOutlined, ReloadOutlined } from '@ant-design/icons';
 import { usePlatformConfig } from '../../hooks/usePlatformConfig';
 import type { PlatformConfig } from '../../api/platformConfig';
@@ -29,6 +29,7 @@ import { TableSkeleton } from '../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../components/PageTransition';
 
 export function PlatformConfig() {
+  const { message } = App.useApp();
   const actionRef = useRef<ActionType>(null);
   const { configs, loading, error, refreshConfigs } = usePlatformConfig(true); // 包含禁用的平台
 

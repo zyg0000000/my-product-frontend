@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { App } from 'antd';
 import { logger } from '../utils/logger';
 import {
   getDimensionConfigs,
@@ -13,16 +14,15 @@ import {
   type DimensionConfig,
 } from '../api/performance';
 import type { Platform } from '../types/talent';
-import { useToast } from './useToast';
 
 export function useDimensionConfig(platform: Platform) {
+  const { message } = App.useApp();
   const [configs, setConfigs] = useState<DimensionConfigDoc[]>([]);
   const [activeConfig, setActiveConfig] = useState<DimensionConfigDoc | null>(
     null
   );
   const [visibleDimensionIds, setVisibleDimensionIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const { success, error } = useToast();
 
   // 加载配置
   const loadConfigs = async () => {
@@ -39,7 +39,7 @@ export function useDimensionConfig(platform: Platform) {
       }
     } catch (err) {
       logger.error('加载维度配置失败:', err);
-      error('加载配置失败');
+      message.error('加载配置失败');
     } finally {
       setLoading(false);
     }
@@ -51,12 +51,12 @@ export function useDimensionConfig(platform: Platform) {
       setLoading(true);
       const response: any = await createDimensionConfig(config);
       if (response.success) {
-        success('配置创建成功');
+        message.success('配置创建成功');
         await loadConfigs();
         return response.data;
       }
     } catch (err) {
-      error('创建配置失败');
+      message.error('创建配置失败');
       throw err;
     } finally {
       setLoading(false);
@@ -69,12 +69,12 @@ export function useDimensionConfig(platform: Platform) {
       setLoading(true);
       const response: any = await updateDimensionConfig(config);
       if (response.success) {
-        success('配置更新成功');
+        message.success('配置更新成功');
         await loadConfigs();
         return response.data;
       }
     } catch (err) {
-      error('更新配置失败');
+      message.error('更新配置失败');
       throw err;
     } finally {
       setLoading(false);
@@ -87,12 +87,12 @@ export function useDimensionConfig(platform: Platform) {
       setLoading(true);
       const response: any = await deleteDimensionConfig(id);
       if (response.success) {
-        success('配置删除成功');
+        message.success('配置删除成功');
         await loadConfigs();
         return true;
       }
     } catch (err) {
-      error('删除配置失败');
+      message.error('删除配置失败');
       throw err;
     } finally {
       setLoading(false);
@@ -102,7 +102,7 @@ export function useDimensionConfig(platform: Platform) {
   // 添加维度
   const addDimension = async (dimension: DimensionConfig) => {
     if (!activeConfig) {
-      error('没有激活的配置');
+      message.error('没有激活的配置');
       return;
     }
 
@@ -117,7 +117,7 @@ export function useDimensionConfig(platform: Platform) {
   // 更新维度
   const updateDimension = async (index: number, dimension: DimensionConfig) => {
     if (!activeConfig) {
-      error('没有激活的配置');
+      message.error('没有激活的配置');
       return;
     }
 
@@ -135,7 +135,7 @@ export function useDimensionConfig(platform: Platform) {
   // 删除维度
   const deleteDimension = async (index: number) => {
     if (!activeConfig) {
-      error('没有激活的配置');
+      message.error('没有激活的配置');
       return;
     }
 
@@ -154,7 +154,7 @@ export function useDimensionConfig(platform: Platform) {
   // 重新排序维度
   const reorderDimensions = async (dimensions: DimensionConfig[]) => {
     if (!activeConfig) {
-      error('没有激活的配置');
+      message.error('没有激活的配置');
       return;
     }
 
@@ -175,7 +175,7 @@ export function useDimensionConfig(platform: Platform) {
   // 批量更新维度（不改变顺序，用于批量修改 defaultVisible 等属性）
   const batchUpdateDimensions = async (dimensions: DimensionConfig[]) => {
     if (!activeConfig) {
-      error('没有激活的配置');
+      message.error('没有激活的配置');
       return;
     }
 
@@ -195,7 +195,7 @@ export function useDimensionConfig(platform: Platform) {
   // 切换维度可见性
   const toggleDimensionVisibility = async (dimensionId: string) => {
     if (!activeConfig) {
-      error('没有激活的配置');
+      message.error('没有激活的配置');
       return;
     }
 

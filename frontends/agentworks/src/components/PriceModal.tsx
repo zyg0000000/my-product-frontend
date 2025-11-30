@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Modal, Select, message } from 'antd';
+import { Modal, Select, App } from 'antd';
 import {
   ProForm,
   ProFormSelect,
@@ -54,6 +54,7 @@ export function PriceModal({
   talent,
   onSave,
 }: PriceModalProps) {
+  const { message } = App.useApp();
   const [saving, setSaving] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number | undefined>(
     undefined

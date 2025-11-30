@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { App } from 'antd';
 import {
   getFieldMappings,
   createFieldMapping,
@@ -13,16 +14,15 @@ import {
   type ComputedFieldRule,
 } from '../api/performance';
 import type { Platform } from '../types/talent';
-import { useToast } from './useToast';
 import { logger } from '../utils/logger';
 
 export function useFieldMapping(platform: Platform) {
+  const { message } = App.useApp();
   const [configs, setConfigs] = useState<FieldMappingConfig[]>([]);
   const [activeConfig, setActiveConfig] = useState<FieldMappingConfig | null>(
     null
   );
   const [loading, setLoading] = useState(false);
-  const { success, error } = useToast();
 
   // 加载配置
   const loadConfigs = async () => {
@@ -38,7 +38,7 @@ export function useFieldMapping(platform: Platform) {
       }
     } catch (err) {
       logger.error('加载字段映射配置失败:', err);
-      error('加载配置失败');
+      message.error('加载配置失败');
     } finally {
       setLoading(false);
     }
@@ -50,12 +50,12 @@ export function useFieldMapping(platform: Platform) {
       setLoading(true);
       const response: any = await createFieldMapping(config);
       if (response.success) {
-        success('配置创建成功');
+        message.success('配置创建成功');
         await loadConfigs();
         return response.data;
       }
     } catch (err) {
-      error('创建配置失败');
+      message.error('创建配置失败');
       throw err;
     } finally {
       setLoading(false);
@@ -68,12 +68,12 @@ export function useFieldMapping(platform: Platform) {
       setLoading(true);
       const response: any = await updateFieldMapping(config);
       if (response.success) {
-        success('配置更新成功');
+        message.success('配置更新成功');
         await loadConfigs();
         return response.data;
       }
     } catch (err) {
-      error('更新配置失败');
+      message.error('更新配置失败');
       throw err;
     } finally {
       setLoading(false);
@@ -86,12 +86,12 @@ export function useFieldMapping(platform: Platform) {
       setLoading(true);
       const response: any = await deleteFieldMapping(id);
       if (response.success) {
-        success('配置删除成功');
+        message.success('配置删除成功');
         await loadConfigs();
         return true;
       }
     } catch (err) {
-      error('删除配置失败');
+      message.error('删除配置失败');
       throw err;
     } finally {
       setLoading(false);
@@ -101,7 +101,7 @@ export function useFieldMapping(platform: Platform) {
   // 添加映射规则
   const addMappingRule = async (rule: FieldMappingRule) => {
     if (!activeConfig) {
-      error('没有激活的配置');
+      message.error('没有激活的配置');
       return;
     }
 
@@ -116,7 +116,7 @@ export function useFieldMapping(platform: Platform) {
   // 更新映射规则
   const updateMappingRule = async (index: number, rule: FieldMappingRule) => {
     if (!activeConfig) {
-      error('没有激活的配置');
+      message.error('没有激活的配置');
       return;
     }
 
@@ -134,7 +134,7 @@ export function useFieldMapping(platform: Platform) {
   // 删除映射规则
   const deleteMappingRule = async (index: number) => {
     if (!activeConfig) {
-      error('没有激活的配置');
+      message.error('没有激活的配置');
       return;
     }
 
@@ -153,7 +153,7 @@ export function useFieldMapping(platform: Platform) {
   // 添加计算字段
   const addComputedField = async (field: ComputedFieldRule) => {
     if (!activeConfig) {
-      error('没有激活的配置');
+      message.error('没有激活的配置');
       return;
     }
 
@@ -171,7 +171,7 @@ export function useFieldMapping(platform: Platform) {
     field: ComputedFieldRule
   ) => {
     if (!activeConfig) {
-      error('没有激活的配置');
+      message.error('没有激活的配置');
       return;
     }
 
@@ -189,7 +189,7 @@ export function useFieldMapping(platform: Platform) {
   // 删除计算字段
   const deleteComputedField = async (index: number) => {
     if (!activeConfig) {
-      error('没有激活的配置');
+      message.error('没有激活的配置');
       return;
     }
 

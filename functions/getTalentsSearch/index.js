@@ -1,8 +1,13 @@
 /**
  * @file getTalentsSearch.js
- * @version 10.0-multi-collection
+ * @version 10.1-customer-filter
  * @description
- * 云函数: getTalentsSearch (多集合支持版)
+ * 云函数: getTalentsSearch (多集合支持版 + 客户达人池筛选)
+ *
+ * [v10.1] 客户达人池筛选:
+ * 1. [新增] 支持 customerId 参数，筛选属于某客户达人池的达人
+ * 2. [新增] 通过 $lookup 关联 customer_talents 集合实现筛选
+ * 3. [兼容] 完全向后兼容 v10.0 的所有功能
  *
  * [v10.0] 多集合支持:
  * 1. [新增] v2 版本支持从 dimension_configs 读取 targetCollection 配置
@@ -37,6 +42,7 @@ const MONGO_URI = process.env.MONGO_URI;
 const TALENTS_COLLECTION = 'talents';
 const PERFORMANCE_COLLECTION = 'talent_performance';
 const DIMENSION_CONFIGS_COLLECTION = 'dimension_configs';
+const CUSTOMER_TALENTS_COLLECTION = 'customer_talents';
 
 // --- 双数据库配置 ---
 const DB_CONFIGS = {
@@ -222,6 +228,62 @@ function buildPerformanceLookupPipeline(platform, performanceDimensions) {
       $project: {
         _performanceData: 0,
         _latestPerformance: 0
+      }
+    }
+  ];
+}
+
+/**
+ * [v10.1] 构建客户达人池筛选的 $lookup 管道
+ * 用于筛选属于某客户达人池的达人
+ * @param {string} customerId - 客户编码
+ * @param {string} platform - 平台
+ */
+function buildCustomerTalentFilterPipeline(customerId, platform) {
+  if (!customerId) {
+    return [];
+  }
+
+  return [
+    // Step 1: 关联 customer_talents 集合
+    {
+      $lookup: {
+        from: CUSTOMER_TALENTS_COLLECTION,
+        let: { talentOneId: '$oneId', talentPlatform: '$platform' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$talentOneId', '$$talentOneId'] },
+                  { $eq: ['$platform', '$$talentPlatform'] },
+                  { $eq: ['$customerId', customerId] },
+                  { $eq: ['$status', 'active'] }
+                ]
+              }
+            }
+          },
+          { $project: { _id: 1, tags: 1, notes: 1, addedAt: 1 } }
+        ],
+        as: '_customerTalentMatch'
+      }
+    },
+    // Step 2: 只保留在客户达人池中的达人
+    {
+      $match: {
+        '_customerTalentMatch.0': { $exists: true }
+      }
+    },
+    // Step 3: 添加客户达人池信息字段
+    {
+      $addFields: {
+        customerTalentInfo: { $arrayElemAt: ['$_customerTalentMatch', 0] }
+      }
+    },
+    // Step 4: 清理临时字段
+    {
+      $project: {
+        _customerTalentMatch: 0
       }
     }
   ];
@@ -497,6 +559,14 @@ exports.handler = async (event, context) => {
             }
         }
 
+        // --- [v10.1] 客户达人池筛选 ---
+        const customerId = body.customerId;
+        let customerTalentFilterStages = [];
+        if (dbVersion === 'v2' && customerId && platform) {
+            customerTalentFilterStages = buildCustomerTalentFilterPipeline(customerId, platform);
+            console.log(`[v10.1] 启用客户达人池筛选: customerId=${customerId}, platform=${platform}`);
+        }
+
         // --- [v9.0] Dashboard 统计字段根据版本动态配置 ---
         const dashboardFields = dbConfig.dashboardFields;
 
@@ -542,10 +612,11 @@ exports.handler = async (event, context) => {
             ]
         };
 
-        // --- [v10.0] 构建完整的聚合管道 ---
+        // --- [v10.1] 构建完整的聚合管道 ---
         // 在 $match 之后、$facet 之前插入 $lookup 阶段
         const pipeline = [
             { $match: matchStage },
+            ...customerTalentFilterStages,  // v10.1: 客户达人池筛选（优先，会过滤掉不在池中的达人）
             ...performanceLookupStages,  // v10.0: 多集合关联
             { $facet: facetPipeline }
         ];
@@ -560,6 +631,7 @@ exports.handler = async (event, context) => {
             success: true,
             dbVersion: dbVersion,  // 返回使用的数据库版本
             multiCollection: performanceLookupStages.length > 0,  // v10.0: 是否使用了多集合查询
+            customerFiltered: customerTalentFilterStages.length > 0,  // v10.1: 是否使用了客户达人池筛选
             data: {
                 pagination: { page, pageSize, totalItems, totalPages: Math.ceil(totalItems / pageSize) },
                 talents: talents,
@@ -569,13 +641,16 @@ exports.handler = async (event, context) => {
                     maleAudienceDistribution: facetResult.maleAudienceDistribution || [],
                     femaleAudienceDistribution: facetResult.femaleAudienceDistribution || []
                 },
-                // v10.0: 添加数据来源信息（仅在多集合模式下返回）
-                ...(performanceLookupStages.length > 0 && dimensionConfig ? {
-                    _meta: {
+                // v10.0/v10.1: 添加数据来源信息
+                _meta: {
+                    ...(performanceLookupStages.length > 0 && dimensionConfig ? {
                         performanceDimensionsCount: dimensionConfig.performanceDimensions.length,
                         talentDimensionsCount: dimensionConfig.talentDimensions.length
-                    }
-                } : {})
+                    } : {}),
+                    ...(customerTalentFilterStages.length > 0 ? {
+                        customerFilter: { customerId, platform }
+                    } : {})
+                }
             }
         };
 

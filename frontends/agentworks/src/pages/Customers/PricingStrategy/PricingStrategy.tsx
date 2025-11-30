@@ -13,12 +13,10 @@ import {
   ProFormSwitch,
   ProCard,
 } from '@ant-design/pro-components';
-import { Table, Tag, Tabs, Select } from 'antd';
+import { Table, Tag, Tabs, Select, App } from 'antd';
 import { CalculatorOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { customerApi } from '../../../services/customerApi';
-import { Toast } from '../../../components/Toast';
-import { useToast } from '../../../hooks/useToast';
 import { getPlatformName, getPlatformByKey } from '../../../config/platforms';
 import { PageHeader } from '../../../components/PageHeader';
 
@@ -71,6 +69,7 @@ interface PlatformFees {
 }
 
 export default function PricingStrategy() {
+  const { message } = App.useApp();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [customer, setCustomer] = useState<any>(null);
@@ -79,7 +78,6 @@ export default function PricingStrategy() {
   const [activeTab, setActiveTab] = useState('talentProcurement');
   const [currentPricingModel, setCurrentPricingModel] = useState('framework');
   const [selectedPlatform, setSelectedPlatform] = useState('douyin');
-  const { toast, hideToast, success, error: showError } = useToast();
 
   // 平台配置状态（核心数据）
   const [platformFees, setPlatformFees] = useState<PlatformFees>(() => {
@@ -136,7 +134,7 @@ export default function PricingStrategy() {
         }
       }
     } catch (error) {
-      showError('加载客户信息失败');
+      message.error('加载客户信息失败');
     } finally {
       setLoading(false);
     }
@@ -221,7 +219,7 @@ export default function PricingStrategy() {
     });
 
     if (hasInvalidCoefficient) {
-      showError('支付系数计算异常，请检查配置后重试');
+      message.error('支付系数计算异常，请检查配置后重试');
       return;
     }
 
@@ -240,14 +238,14 @@ export default function PricingStrategy() {
         },
       });
       if (response.success) {
-        success('价格策略保存成功');
+        message.success('价格策略保存成功');
         // 重新加载以同步数据
         await loadCustomer();
       } else {
-        showError('保存失败');
+        message.error('保存失败');
       }
     } catch (error) {
-      showError('保存失败');
+      message.error('保存失败');
     }
   };
 
@@ -825,11 +823,6 @@ export default function PricingStrategy() {
           </div>
         )}
       </ProCard>
-
-      {/* Toast 通知 */}
-      {toast.visible && (
-        <Toast message={toast.message} type={toast.type} onClose={hideToast} />
-      )}
     </div>
   );
 }

@@ -9,7 +9,7 @@
  */
 
 import { useEffect } from 'react';
-import { Modal, Form, message } from 'antd';
+import { Modal, Form, App } from 'antd';
 import {
   ProForm,
   ProFormText,
@@ -43,6 +43,7 @@ export function AgencyFormModal({
   agency,
   onSave,
 }: AgencyFormModalProps) {
+  const { message } = App.useApp();
   const [form] = Form.useForm<AgencyFormData>();
   const isEditing = !!agency;
 

@@ -1,5 +1,172 @@
 # AgentWorks 更新日志
 
+## v3.8.0 (2025-11-30) ✨ - 客户达人池 + 通知系统统一
+
+### ✨ 新功能：客户达人池
+
+#### 功能概述
+支持为每个客户维护独立的达人池，实现达人与客户的多对多关联。
+
+#### 核心功能
+- **客户详情页达人池 Tab**
+  - 按平台分 Tab 展示（抖音/小红书/B站/快手）
+  - ProTable 展示达人列表（名称、账号ID、标签、备注、添加时间）
+  - 分页加载（每页 20 条）
+
+- **添加达人到客户**
+  - TalentSelectorModal：达人选择弹窗
+  - 支持搜索、筛选、多选
+  - 防重复添加校验
+  - 批量添加支持
+
+- **达人池管理**
+  - 移除达人（二次确认）
+  - 标签管理（待实现）
+  - 备注管理（待实现）
+
+#### 技术实现
+
+**数据库设计** (customer_talents 集合):
+```typescript
+interface CustomerTalent {
+  customerId: ObjectId;      // 客户ID
+  talentId: ObjectId;        // 达人ID
+  platform: Platform;        // 平台
+  tags?: string[];           // 自定义标签
+  notes?: string;            // 备注
+  addedAt: Date;             // 添加时间
+  addedBy?: string;          // 添加人
+}
+```
+
+**API 接口**:
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /customer-talents/:customerId | 获取客户达人池 |
+| POST | /customer-talents | 添加达人到客户 |
+| DELETE | /customer-talents/:customerId/:talentId | 移除达人 |
+| PUT | /customer-talents/:customerId/:talentId | 更新标签/备注 |
+
+**前端文件**:
+| 文件 | 说明 |
+|------|------|
+| `types/customerTalent.ts` | 类型定义 |
+| `api/customerTalents.ts` | API 接口 |
+| `components/TalentSelectorModal.tsx` | 达人选择弹窗 |
+| `components/AddToCustomerModal.tsx` | 添加达人弹窗 |
+| `pages/Customers/CustomerDetail/TalentPoolTab.tsx` | 达人池 Tab |
+| `pages/Customers/CustomerDetail/index.tsx` | 客户详情页 |
+
+**云函数**:
+| 文件 | 版本 | 说明 |
+|------|------|------|
+| `customerTalents/index.js` | v1.0 | 客户达人池 CRUD |
+
+---
+
+### 🔧 重构：通知系统统一
+
+#### 背景
+项目中存在 3 种通知实现方式，造成维护困难和不一致性：
+1. `message` 直接导入 (11 个文件)
+2. `App.useApp()` hook (4 个文件)
+3. `useToast` 自定义 Hook (7 个文件)
+
+#### 统一方案
+全部迁移到 **Ant Design 5.x 推荐的 `App.useApp()` 模式**。
+
+#### 迁移文件清单
+
+**Phase 1: 组件迁移** (11 个文件)
+```
+components/
+├── AgencyDeleteModal.tsx      ✅
+├── AgencyFormModal.tsx        ✅
+├── DeleteConfirmModal.tsx     ✅
+├── EditTalentModal.tsx        ✅
+├── DataImportModal.tsx        ✅
+└── PriceModal.tsx             ✅
+
+pages/
+├── Talents/CreateTalent/CreateTalent.tsx    ✅
+├── Settings/PlatformConfig.tsx              ✅
+├── Settings/PerformanceConfig.tsx           ✅
+├── Performance/PerformanceHome.tsx          ✅
+└── Customers/CustomerDetail/TalentPoolTab.tsx ✅
+```
+
+**Phase 2: 页面迁移** (3 个文件)
+```
+pages/Customers/
+├── CustomerList/CustomerList.tsx    ✅ (移除 useToast)
+├── CustomerForm.tsx                 ✅ (移除 useToast)
+└── PricingStrategy/PricingStrategy.tsx ✅ (移除 useToast)
+```
+
+**Phase 3: Hooks 迁移** (4 个文件)
+```
+hooks/
+├── useDataImport.ts      ✅
+├── useApiCall.ts         ✅
+├── useDimensionConfig.ts ✅
+└── useFieldMapping.ts    ✅
+```
+
+**Phase 4: 废弃代码清理**
+- ❌ 删除 `hooks/useToast.ts`
+- ❌ 删除 `components/Toast.tsx`
+
+#### 统一后的使用规范
+```typescript
+import { App } from 'antd';
+
+function MyComponent() {
+  const { message } = App.useApp();
+
+  // 成功提示
+  message.success('操作成功');
+
+  // 错误提示
+  message.error('操作失败');
+
+  // 警告提示
+  message.warning('请注意');
+}
+```
+
+#### 迁移效果
+
+| 指标 | 迁移前 | 迁移后 |
+|------|--------|--------|
+| 通知实现方式 | 3 种 | **1 种** |
+| 需维护的自定义组件 | Toast.tsx + useToast.ts | **0** |
+| Ant Design 5.x 兼容性 | 部分兼容 | **完全兼容** |
+| 代码一致性 | 低 | **高** |
+
+---
+
+### 📁 修改文件清单
+
+**新增文件** (9 个):
+- `database/agentworks_db/schemas/customer_talents.doc.json`
+- `database/agentworks_db/scripts/init-customer-talents.js`
+- `frontends/agentworks/src/api/customerTalents.ts`
+- `frontends/agentworks/src/types/customerTalent.ts`
+- `frontends/agentworks/src/components/AddToCustomerModal.tsx`
+- `frontends/agentworks/src/components/TalentSelectorModal.tsx`
+- `frontends/agentworks/src/pages/Customers/CustomerDetail/TalentPoolTab.tsx`
+- `frontends/agentworks/src/pages/Customers/CustomerDetail/index.tsx`
+- `functions/customerTalents/index.js`
+
+**删除文件** (2 个):
+- `frontends/agentworks/src/hooks/useToast.ts`
+- `frontends/agentworks/src/components/Toast.tsx`
+
+**修改文件** (18 个):
+- 通知系统迁移涉及的组件和页面
+
+---
+
 ## v3.7.2 (2025-11-30) 🔧 - 更新日期字段修复
 
 ### 🐛 修复：更新日期应使用 snapshotDate

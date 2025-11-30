@@ -9,7 +9,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Tabs, Button, message } from 'antd';
+import { Tabs, Button, App } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { useFieldMapping } from '../../hooks/useFieldMapping';
 import { useDimensionConfig } from '../../hooks/useDimensionConfig';
@@ -26,6 +26,7 @@ import { TableSkeleton } from '../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../components/PageTransition';
 
 export function PerformanceConfig() {
+  const { message } = App.useApp();
   const [searchParams] = useSearchParams();
 
   // 使用平台配置 Hook（只获取启用的平台）

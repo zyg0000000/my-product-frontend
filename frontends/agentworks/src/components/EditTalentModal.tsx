@@ -10,7 +10,7 @@
  */
 
 import { useEffect } from 'react';
-import { Modal, Form, Space, message } from 'antd';
+import { Modal, Form, Space, App } from 'antd';
 import { ProForm, ProFormText, ProFormRadio } from '@ant-design/pro-components';
 import { ProCard } from '@ant-design/pro-components';
 import { logger } from '../utils/logger';
@@ -58,6 +58,7 @@ export function EditTalentModal({
   onSave,
   availableTags,
 }: EditTalentModalProps) {
+  const { message } = App.useApp();
   const [form] = Form.useForm<FormData>();
   const { getTalentTiers } = usePlatformConfig(false);
 

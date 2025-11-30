@@ -10,7 +10,7 @@
  */
 
 import { useState } from 'react';
-import { Modal, Radio, Checkbox, Space, Button, Alert, message } from 'antd';
+import { Modal, Radio, Checkbox, Space, Button, Alert, App } from 'antd';
 import { ExclamationCircleFilled } from '@ant-design/icons';
 import { logger } from '../utils/logger';
 import type { Talent, Platform } from '../types/talent';
@@ -33,6 +33,7 @@ export function DeleteConfirmModal({
   talent,
   onConfirm,
 }: DeleteConfirmModalProps) {
+  const { message } = App.useApp();
   const [deleting, setDeleting] = useState(false);
   const [deleteAll, setDeleteAll] = useState(false);
   const [confirmed, setConfirmed] = useState(false);

@@ -14,19 +14,27 @@
  */
 
 import { useState } from 'react';
+import { App } from 'antd';
+import type { MessageInstance } from 'antd/es/message/interface';
 import {
   importPerformanceFromFeishu,
   type ImportRequest,
   type ImportResult,
 } from '../api/performance';
 import type { Platform } from '../types/talent';
-import { useToast } from './useToast';
 
-export function useDataImport(platform: Platform) {
+/**
+ * 数据导入 Hook
+ * @param platform - 平台
+ * @param messageInstance - 可选的 message 实例，如果不传则使用 App.useApp() 获取
+ */
+export function useDataImport(platform: Platform, messageInstance?: MessageInstance) {
+  const appMessage = App.useApp().message;
+  const message = messageInstance || appMessage;
+
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const { success, error } = useToast();
 
   /**
    * 从飞书导入达人表现数据
@@ -68,9 +76,9 @@ export function useDataImport(platform: Platform) {
           result.data.stats?.modified || result.data.stats?.valid || 0;
 
         if (failedCount > 0) {
-          error(`导入完成：成功 ${successCount} 条，失败 ${failedCount} 条`);
+          message.error(`导入完成：成功 ${successCount} 条，失败 ${failedCount} 条`);
         } else {
-          success(`导入成功：${successCount} 条数据已更新`);
+          message.success(`导入成功：${successCount} 条数据已更新`);
         }
 
         return result.data;
@@ -79,7 +87,7 @@ export function useDataImport(platform: Platform) {
       }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : '导入失败';
-      error(errorMsg);
+      message.error(errorMsg);
       throw err;
     } finally {
       setImporting(false);

@@ -9,7 +9,7 @@
  */
 
 import { useState } from 'react';
-import { Modal, Checkbox, Button, Alert, message } from 'antd';
+import { Modal, Checkbox, Button, Alert, App } from 'antd';
 import { ExclamationCircleFilled } from '@ant-design/icons';
 import type { Agency } from '../types/agency';
 
@@ -28,6 +28,7 @@ export function AgencyDeleteModal({
   onConfirm,
   talentCount = 0,
 }: AgencyDeleteModalProps) {
+  const { message } = App.useApp();
   const [deleting, setDeleting] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 

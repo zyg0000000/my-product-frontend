@@ -1,0 +1,171 @@
+{
+    "collection": "customer_talents",
+    "description": "客户达人池关联集合 - 实现客户与达人的多对多关联关系",
+    "database": "agentworks_db",
+    "version": "1.0",
+    "lastUpdated": "2025-11-30",
+    "author": "产品团队",
+    "fields": {
+        "_id": {
+            "type": "ObjectId",
+            "description": "MongoDB 文档 ID",
+            "required": true,
+            "auto": true
+        },
+        "customerId": {
+            "type": "String",
+            "description": "客户编码",
+            "required": true,
+            "pattern": "^CUS[0-9]{8}$",
+            "example": "CUS202401001",
+            "comment": "关联到 customers 集合的 code 字段"
+        },
+        "talentOneId": {
+            "type": "String",
+            "description": "达人统一ID",
+            "required": true,
+            "pattern": "^talent_[0-9]{8}$",
+            "example": "talent_00000123",
+            "comment": "关联到 talents 集合的 oneId 字段"
+        },
+        "platform": {
+            "type": "String",
+            "description": "平台类型",
+            "required": true,
+            "enum": ["douyin", "xiaohongshu", "bilibili", "kuaishou", "shipinhao", "weibo"],
+            "comment": "指定达人在哪个平台的账号被添加到客户池"
+        },
+        "tags": {
+            "type": "Array",
+            "description": "自定义标签",
+            "required": false,
+            "default": [],
+            "itemType": "String",
+            "example": ["核心", "备选", "测试"],
+            "comment": "客户自定义的达人分类标签"
+        },
+        "notes": {
+            "type": "String",
+            "description": "备注",
+            "required": false,
+            "maxLength": 500,
+            "comment": "关于该达人与客户关系的备注信息"
+        },
+        "status": {
+            "type": "String",
+            "description": "状态",
+            "required": true,
+            "default": "active",
+            "enum": ["active", "removed"],
+            "comment": "active=活跃, removed=已移除（软删除）"
+        },
+        "addedBy": {
+            "type": "String",
+            "description": "添加人ID",
+            "required": false,
+            "default": "system",
+            "comment": "预留权限字段，记录操作人"
+        },
+        "addedAt": {
+            "type": "Date",
+            "description": "添加时间",
+            "required": true,
+            "default": "now"
+        },
+        "removedAt": {
+            "type": "Date",
+            "description": "移除时间",
+            "required": false,
+            "comment": "仅当 status=removed 时有值"
+        },
+        "cooperationCount": {
+            "type": "Integer",
+            "description": "合作次数",
+            "required": false,
+            "default": 0,
+            "comment": "统计缓存，未来扩展用"
+        },
+        "lastCooperationDate": {
+            "type": "Date",
+            "description": "最近合作时间",
+            "required": false,
+            "comment": "统计缓存，未来扩展用"
+        }
+    },
+    "indexes": [
+        {
+            "name": "unique_customer_talent_platform",
+            "fields": { "customerId": 1, "talentOneId": 1, "platform": 1 },
+            "unique": true,
+            "description": "唯一约束：防止同一客户重复添加同一平台的同一达人"
+        },
+        {
+            "name": "idx_customer_platform_status_addedAt",
+            "fields": { "customerId": 1, "platform": 1, "status": 1, "addedAt": -1 },
+            "description": "按客户+平台查达人，支持分页（主要场景：客户详情页达人池Tab）"
+        },
+        {
+            "name": "idx_talent_platform_status",
+            "fields": { "talentOneId": 1, "platform": 1, "status": 1 },
+            "description": "按达人+平台查所属客户"
+        },
+        {
+            "name": "idx_customer_status",
+            "fields": { "customerId": 1, "status": 1 },
+            "description": "按客户统计各平台达人数"
+        }
+    ],
+    "relations": [
+        {
+            "collection": "customers",
+            "type": "many-to-one",
+            "localField": "customerId",
+            "foreignField": "code",
+            "description": "关联到客户"
+        },
+        {
+            "collection": "talents",
+            "type": "many-to-one",
+            "localField": "talentOneId",
+            "foreignField": "oneId",
+            "description": "关联到达人（需同时匹配 platform）"
+        }
+    ],
+    "notes": [
+        "【核心设计】实现客户与达人的多对多关联，关联粒度为 customerId + talentOneId + platform",
+        "【分平台管理】每个客户的达人池按平台独立（抖音池、小红书池...）",
+        "【三元组唯一】(customerId, talentOneId, platform) 联合唯一",
+        "【软删除】通过 status=removed 实现软删除，保留历史记录",
+        "【双向查询】支持通过客户查达人，也支持通过达人查所属客户",
+        "【扩展预留】tags 和 notes 字段支持客户自定义管理达人",
+        "【统计缓存】cooperationCount 和 lastCooperationDate 为未来扩展预留"
+    ],
+    "examples": [
+        {
+            "description": "示例1：某品牌添加抖音达人到达人池",
+            "data": {
+                "customerId": "CUS202401001",
+                "talentOneId": "talent_00000123",
+                "platform": "douyin",
+                "tags": ["核心", "美食"],
+                "notes": "2024年合作效果好",
+                "status": "active",
+                "addedBy": "user_001",
+                "addedAt": "2025-11-30T10:00:00Z"
+            }
+        },
+        {
+            "description": "示例2：同一客户添加同一达人的小红书账号",
+            "data": {
+                "customerId": "CUS202401001",
+                "talentOneId": "talent_00000123",
+                "platform": "xiaohongshu",
+                "tags": ["备选"],
+                "notes": "",
+                "status": "active",
+                "addedBy": "user_001",
+                "addedAt": "2025-11-30T10:05:00Z"
+            }
+        }
+    ]
+}

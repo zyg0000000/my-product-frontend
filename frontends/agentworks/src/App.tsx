@@ -85,6 +85,11 @@ const CustomerForm = lazy(() => import('./pages/Customers/CustomerForm'));
 const PricingStrategy = lazy(
   () => import('./pages/Customers/PricingStrategy/PricingStrategy')
 );
+const CustomerDetail = lazy(() =>
+  import('./pages/Customers/CustomerDetail/CustomerDetail').then(m => ({
+    default: m.CustomerDetail,
+  }))
+);
 
 /**
  * 加载中组件
@@ -168,6 +173,7 @@ function App() {
                   <Route path="customers/list" element={<CustomerList />} />
                   <Route path="customers/new" element={<CustomerForm />} />
                   <Route path="customers/edit/:id" element={<CustomerForm />} />
+                  <Route path="customers/:id" element={<CustomerDetail />} />
                   <Route
                     path="customers/:id/pricing"
                     element={<PricingStrategy />}

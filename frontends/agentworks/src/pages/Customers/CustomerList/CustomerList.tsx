@@ -6,7 +6,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Space, Popconfirm, Popover } from 'antd';
+import { Button, Tag, Space, Popconfirm, Popover, App } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -29,15 +29,13 @@ import {
   CUSTOMER_STATUS_NAMES,
 } from '../../../types/customer';
 import { customerApi } from '../../../services/customerApi';
-import { Toast } from '../../../components/Toast';
-import { useToast } from '../../../hooks/useToast';
 import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../../components/PageTransition';
 
 export default function CustomerList() {
+  const { message } = App.useApp();
   const navigate = useNavigate();
   const actionRef = useRef<ActionType>(null);
-  const { toast, hideToast, success, error: showError } = useToast();
 
   // Manual data fetching state
   const [loading, setLoading] = useState(true);
@@ -70,11 +68,11 @@ export default function CustomerList() {
       } else {
         setCustomers([]);
         setTotal(0);
-        showError('获取客户列表失败');
+        message.error('获取客户列表失败');
       }
     } catch (error) {
       console.error('Error loading customers:', error);
-      showError('获取客户列表失败');
+      message.error('获取客户列表失败');
       setCustomers([]);
       setTotal(0);
     } finally {
@@ -90,11 +88,11 @@ export default function CustomerList() {
     try {
       const response = await customerApi.deleteCustomer(id);
       if (response.success) {
-        success('删除成功');
+        message.success('删除成功');
         loadCustomers();
       }
     } catch (error) {
-      showError('删除失败');
+      message.error('删除失败');
     }
   };
 
@@ -102,11 +100,11 @@ export default function CustomerList() {
     try {
       const response = await customerApi.permanentDeleteCustomer(id);
       if (response.success) {
-        success('永久删除成功');
+        message.success('永久删除成功');
         loadCustomers();
       }
     } catch (error) {
-      showError('永久删除失败');
+      message.error('永久删除失败');
     }
   };
 
@@ -114,11 +112,11 @@ export default function CustomerList() {
     try {
       const response = await customerApi.restoreCustomer(id);
       if (response.success) {
-        success('恢复成功');
+        message.success('恢复成功');
         loadCustomers();
       }
     } catch (error) {
-      showError('恢复失败');
+      message.error('恢复失败');
     }
   };
 
@@ -504,6 +502,14 @@ export default function CustomerList() {
       formItemProps: {
         label: '搜索',
       },
+      render: (_, record) => (
+        <a
+          className="text-primary-600 hover:text-primary-700 font-medium cursor-pointer"
+          onClick={() => navigate(`/customers/${record._id || record.code}`)}
+        >
+          {record.name}
+        </a>
+      ),
     },
     {
       title: '客户级别',
@@ -788,15 +794,6 @@ export default function CustomerList() {
               setting: true,
             }}
             size="middle"
-          />
-        )}
-
-        {/* Toast 通知 */}
-        {toast.visible && (
-          <Toast
-            message={toast.message}
-            type={toast.type}
-            onClose={hideToast}
           />
         )}
       </div>

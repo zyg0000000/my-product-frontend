@@ -84,7 +84,7 @@ my-product-frontend/
 - `price.ts` - 价格相关接口
 
 #### `/components` - 组件库
-- **Ant Design 组件**：Modal（弹窗基础）, Toast（兼容保留）
+- **Ant Design 组件**：Modal（弹窗基础）
 - **业务弹窗组件**：
   - AgencyFormModal - 机构表单（ProForm + ProCard）
   - AgencyDeleteModal - 机构删除确认
@@ -93,6 +93,8 @@ my-product-frontend/
   - DeleteConfirmModal - 达人删除确认
   - RebateManagementModal - 达人返点管理
   - PriceModal - 价格管理
+  - TalentSelectorModal - 达人选择弹窗 (v3.8 新增)
+  - AddToCustomerModal - 添加达人到客户 (v3.8 新增)
 - **布局组件**：Layout, ErrorBoundary
 
 #### `/pages` - 页面组件
@@ -280,13 +282,53 @@ import { ProForm, ProCard, ProFormText } from '@ant-design/pro-components';
 | 复杂表单 | `ProForm` + `ProCard` | [AgencyFormModal.tsx](frontends/agentworks/src/components/AgencyFormModal.tsx) |
 | 弹窗 | `Modal` | 所有 *Modal.tsx 组件 |
 | 标签页 | `Tabs` | 平台切换 |
-| 通知 | `message` API | 替代 alert() 和 Toast |
+| 通知 | `App.useApp().message` | 统一通知方案（见下文） |
 | 布局 | Tailwind `flex`, `grid` | 所有页面 |
 | 间距 | Tailwind `space-y-*`, `gap-*` | 所有页面 |
 
+#### 统一通知方案（v3.8.0+）
+
+**唯一官方方式：`App.useApp()`**
+
+```tsx
+import { App } from 'antd';
+
+function MyComponent() {
+  const { message, modal, notification } = App.useApp();
+
+  const handleSave = async () => {
+    try {
+      await saveData();
+      message.success('保存成功');
+    } catch (err) {
+      message.error('保存失败');
+    }
+  };
+}
+```
+
+**自定义 Hook 中使用：**
+```tsx
+import { App } from 'antd';
+
+export function useMyHook() {
+  const { message } = App.useApp();
+
+  const doSomething = async () => {
+    message.success('操作成功');
+  };
+
+  return { doSomething };
+}
+```
+
+> ⚠️ **注意**: 自定义 Hook 可以正常使用 `App.useApp()`，因为它们最终在组件树内被调用。
+
 #### 禁止使用
 - ⛔ 手写 `<table>` 标签（使用 ProTable）
-- ⛔ `alert()`, `confirm()`, `prompt()`（使用 message API）
+- ⛔ `alert()`, `confirm()`, `prompt()`（使用 `App.useApp().message`）
+- ⛔ 直接 `import { message } from 'antd'`（使用 `App.useApp()`）
+- ⛔ 自定义 Toast/useToast 组件（已废弃并删除）
 - ⛔ 手写弹窗容器（使用 Modal）
 - ⛔ 内联样式 `style={{ ... }}`（使用 Tailwind）
 
@@ -348,6 +390,9 @@ DELETE /api/talents/:oneId/:platform
 
 ### 错误处理
 ```typescript
+// 使用 App.useApp() 获取 message 实例
+const { message } = App.useApp();
+
 try {
   const response = await getTalents({ platform });
   if (response.success) {
@@ -356,7 +401,7 @@ try {
     throw new Error(response.message);
   }
 } catch (err) {
-  error('加载失败');
+  message.error('加载失败');
 }
 ```
 

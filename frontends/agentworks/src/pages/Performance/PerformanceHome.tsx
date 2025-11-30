@@ -7,7 +7,7 @@ import { useState, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable, ProCard } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Select, Button, Tabs, message } from 'antd';
+import { Select, Button, Tabs, App } from 'antd';
 import { SettingOutlined } from '@ant-design/icons';
 import type { Platform, PriceType, Talent } from '../../types/talent';
 import { PLATFORM_NAMES } from '../../types/talent';
@@ -61,6 +61,7 @@ function getPlatformLink(talent: Talent): string | null {
 }
 
 export function PerformanceHome() {
+  const { message } = App.useApp();
   const navigate = useNavigate();
 
   // 使用平台配置 Hook（只获取启用的平台）

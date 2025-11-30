@@ -16,7 +16,7 @@
  */
 
 import { useEffect } from 'react';
-import { Modal, Form, message } from 'antd';
+import { Modal, Form, App } from 'antd';
 import {
   ProForm,
   ProFormText,
@@ -61,6 +61,7 @@ export function DataImportModal({
   onImport,
   loading,
 }: DataImportModalProps) {
+  const { message } = App.useApp();
   const [form] = Form.useForm();
 
   // 价格归属时间（默认当前年月）
