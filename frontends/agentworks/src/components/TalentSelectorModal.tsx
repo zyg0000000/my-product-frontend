@@ -14,10 +14,7 @@ import { Modal, Input, Table, Button, Tag, Space, Spin, App } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { SearchOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { searchTalents } from '../api/talent';
-import {
-  addCustomerTalents,
-  getCustomerTalents,
-} from '../api/customerTalents';
+import { addCustomerTalents, getCustomerTalents } from '../api/customerTalents';
 import type { Platform } from '../types/talent';
 import { usePlatformConfig } from '../hooks/usePlatformConfig';
 

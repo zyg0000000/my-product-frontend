@@ -28,7 +28,10 @@ import type { Platform } from '../types/talent';
  * @param platform - 平台
  * @param messageInstance - 可选的 message 实例，如果不传则使用 App.useApp() 获取
  */
-export function useDataImport(platform: Platform, messageInstance?: MessageInstance) {
+export function useDataImport(
+  platform: Platform,
+  messageInstance?: MessageInstance
+) {
   const appMessage = App.useApp().message;
   const message = messageInstance || appMessage;
 
@@ -76,7 +79,9 @@ export function useDataImport(platform: Platform, messageInstance?: MessageInsta
           result.data.stats?.modified || result.data.stats?.valid || 0;
 
         if (failedCount > 0) {
-          message.error(`导入完成：成功 ${successCount} 条，失败 ${failedCount} 条`);
+          message.error(
+            `导入完成：成功 ${successCount} 条，失败 ${failedCount} 条`
+          );
         } else {
           message.success(`导入成功：${successCount} 条数据已更新`);
         }

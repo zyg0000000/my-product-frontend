@@ -71,7 +71,9 @@ export default function CustomerForm() {
         return true;
       } else {
         // API 返回业务错误
-        message.error(response.message || (isEditMode ? '更新失败' : '创建失败'));
+        message.error(
+          response.message || (isEditMode ? '更新失败' : '创建失败')
+        );
         return false;
       }
     } catch (error) {

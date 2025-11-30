@@ -9,7 +9,16 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Tabs, Badge, Spin, Button, Tag, Descriptions, Card, Empty } from 'antd';
+import {
+  Tabs,
+  Badge,
+  Spin,
+  Button,
+  Tag,
+  Descriptions,
+  Card,
+  Empty,
+} from 'antd';
 import {
   ArrowLeftOutlined,
   EditOutlined,
