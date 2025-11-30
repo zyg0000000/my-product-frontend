@@ -17,6 +17,7 @@ import { searchTalents } from '../api/talent';
 import { addCustomerTalents, getCustomerTalents } from '../api/customerTalents';
 import type { Platform } from '../types/talent';
 import { usePlatformConfig } from '../hooks/usePlatformConfig';
+import { logger } from '../utils/logger';
 
 interface TalentItem {
   oneId: string;
@@ -72,7 +73,7 @@ export function TalentSelectorModal({
       const ids = new Set(response.list.map(item => item.talentOneId));
       setExistingIds(ids);
     } catch (error) {
-      console.error('Failed to load existing talents:', error);
+      logger.error('Failed to load existing talents:', error);
     }
   };
 
@@ -99,7 +100,7 @@ export function TalentSelectorModal({
         setTotal(response.data.pagination?.totalItems || 0);
       }
     } catch (error) {
-      console.error('Failed to search talents:', error);
+      logger.error('Failed to search talents:', error);
       message.error('搜索失败');
     } finally {
       setLoading(false);

@@ -38,6 +38,7 @@ import {
 } from '../../../types/customer';
 import { PageTransition } from '../../../components/PageTransition';
 import { TalentPoolTab } from './TalentPoolTab';
+import { logger } from '../../../utils/logger';
 
 /**
  * 客户详情页主组件
@@ -75,7 +76,7 @@ export function CustomerDetail() {
         setCustomer(response.data);
       }
     } catch (error) {
-      console.error('Failed to load customer:', error);
+      logger.error('Failed to load customer:', error);
     } finally {
       setLoading(false);
     }
@@ -86,7 +87,7 @@ export function CustomerDetail() {
       const stats = await getCustomerTalentStats(customerId);
       setTalentStats(stats);
     } catch (error) {
-      console.error('Failed to load talent stats:', error);
+      logger.error('Failed to load talent stats:', error);
     }
   };
 

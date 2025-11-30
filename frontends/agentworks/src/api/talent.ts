@@ -2,7 +2,7 @@
  * 达人相关 API
  */
 
-import { get, post, put, del } from './client';
+import { get, post, put, del, type RequestOptions } from './client';
 import type { Talent, Platform, ApiResponse } from '../types/talent';
 
 /**
@@ -251,9 +251,13 @@ export interface SearchTalentsResponse {
 /**
  * 高级搜索达人 (使用 getTalentsSearch 接口)
  * 支持更强大的筛选能力和 Dashboard 统计
+ *
+ * @param params 搜索参数
+ * @param options 请求选项（可传入 signal 用于取消请求）
  */
 export async function searchTalents(
-  params: SearchTalentsParams
+  params: SearchTalentsParams,
+  options?: RequestOptions
 ): Promise<SearchTalentsResponse> {
   // 构建请求体，自动添加 dbVersion: 'v2' 标识
   const requestBody = {
@@ -261,7 +265,7 @@ export async function searchTalents(
     ...params,
   };
 
-  return post('/talents/search', requestBody);
+  return post('/talents/search', requestBody, options);
 }
 
 // ==================== 批量创建达人接口 ====================

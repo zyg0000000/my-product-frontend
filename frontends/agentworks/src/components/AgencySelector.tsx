@@ -118,10 +118,14 @@ export function AgencySelector({
       style={{ width: '100%' }}
       popupMatchSelectWidth={true}
       notFoundContent={loading ? '加载中...' : '未找到匹配的机构'}
-      // 下拉列表样式配置
-      dropdownStyle={{
-        maxHeight: 400,
-        overflow: 'auto',
+      // 下拉列表样式配置（使用新 API 替代已废弃的 dropdownStyle）
+      styles={{
+        popup: {
+          root: {
+            maxHeight: 400,
+            overflow: 'auto',
+          },
+        },
       }}
       // 搜索框配置
       optionFilterProp="label"

@@ -18,6 +18,7 @@ import { getPlatformConfigs } from '../api/platformConfig';
 import type { PlatformConfig, TalentTierConfig } from '../api/platformConfig';
 import type { Platform } from '../types/talent';
 import { logger } from '../utils/logger';
+import { getErrorMessage } from '../types/api';
 
 const CACHE_KEY = 'agentworks_platform_configs';
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24小时
@@ -118,8 +119,8 @@ export function usePlatformConfig(includeDisabled = false) {
       } else {
         throw new Error(response.message || '加载平台配置失败');
       }
-    } catch (err: any) {
-      const errorMsg = err.message || '加载平台配置失败';
+    } catch (err) {
+      const errorMsg = getErrorMessage(err) || '加载平台配置失败';
       logger.error('加载平台配置失败:', err);
       setError(errorMsg);
 

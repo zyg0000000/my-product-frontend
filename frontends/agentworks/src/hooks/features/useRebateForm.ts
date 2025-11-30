@@ -10,6 +10,7 @@
 
 import { useState, useEffect } from 'react';
 import { logger } from '../../utils/logger';
+import { getErrorMessage } from '../../types/api';
 import {
   getTalentRebate,
   getRebateHistory as fetchRebateHistory,
@@ -210,8 +211,8 @@ export function useRebateForm({ talent, isOpen }: UseRebateFormParams) {
       } else {
         setManualError(response.message || '同步失败');
       }
-    } catch (err: any) {
-      setManualError(err.message || '同步机构返点失败');
+    } catch (err) {
+      setManualError(getErrorMessage(err) || '同步机构返点失败');
     } finally {
       setSyncLoading(false);
     }
@@ -261,8 +262,8 @@ export function useRebateForm({ talent, isOpen }: UseRebateFormParams) {
       } else {
         setManualError(response.message || '更新失败');
       }
-    } catch (err: any) {
-      setManualError(err.message || '更新返点失败');
+    } catch (err) {
+      setManualError(getErrorMessage(err) || '更新返点失败');
     } finally {
       setManualLoading(false);
     }

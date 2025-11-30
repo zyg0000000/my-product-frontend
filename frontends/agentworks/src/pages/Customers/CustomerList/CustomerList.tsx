@@ -31,6 +31,7 @@ import {
 import { customerApi } from '../../../services/customerApi';
 import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../../components/PageTransition';
+import { logger } from '../../../utils/logger';
 
 export default function CustomerList() {
   const { message } = App.useApp();
@@ -71,7 +72,7 @@ export default function CustomerList() {
         message.error('获取客户列表失败');
       }
     } catch (error) {
-      console.error('Error loading customers:', error);
+      logger.error('Error loading customers:', error);
       message.error('获取客户列表失败');
       setCustomers([]);
       setTotal(0);

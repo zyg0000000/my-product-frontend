@@ -15,6 +15,7 @@ import {
 import { App } from 'antd';
 import { customerApi } from '../../services/customerApi';
 import { PageHeader } from '../../components/PageHeader';
+import { logger } from '../../utils/logger';
 
 export default function CustomerForm() {
   const { message } = App.useApp();
@@ -49,7 +50,7 @@ export default function CustomerForm() {
       }
     } catch (error) {
       message.error('加载客户信息失败');
-      console.error('Error loading customer:', error);
+      logger.error('Error loading customer:', error);
     } finally {
       setLoading(false);
     }
@@ -78,7 +79,7 @@ export default function CustomerForm() {
       }
     } catch (error) {
       // 网络错误或其他异常
-      console.error('Error submitting customer:', error);
+      logger.error('Error submitting customer:', error);
       const errorMessage = error instanceof Error ? error.message : '未知错误';
       message.error(`${isEditMode ? '更新失败' : '创建失败'}: ${errorMessage}`);
       return false;

@@ -28,6 +28,7 @@ import type { CustomerTalentWithInfo } from '../../../types/customerTalent';
 import type { Platform } from '../../../types/talent';
 import { formatFansCount } from '../../../utils/formatters';
 import { TalentSelectorModal } from '../../../components/TalentSelectorModal';
+import { logger } from '../../../utils/logger';
 
 interface TalentPoolTabProps {
   customerId: string;
@@ -67,7 +68,7 @@ export function TalentPoolTab({
       setTalents(response.list);
       setTotal(response.total);
     } catch (error) {
-      console.error('Failed to load talents:', error);
+      logger.error('Failed to load talents:', error);
       message.error('加载达人池失败');
     } finally {
       setLoading(false);

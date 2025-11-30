@@ -68,11 +68,29 @@ export interface TalentProcurementStrategy {
   };
 }
 
+/**
+ * 广告投放业务策略（预留，待实现）
+ */
+export interface AdPlacementStrategy {
+  enabled: boolean;
+  // 预留字段，后续根据业务需求扩展
+  [key: string]: unknown;
+}
+
+/**
+ * 内容制作业务策略（预留，待实现）
+ */
+export interface ContentProductionStrategy {
+  enabled: boolean;
+  // 预留字段，后续根据业务需求扩展
+  [key: string]: unknown;
+}
+
 // 业务策略配置
 export interface BusinessStrategies {
   talentProcurement?: TalentProcurementStrategy;
-  adPlacement?: any;
-  contentProduction?: any;
+  adPlacement?: AdPlacementStrategy;
+  contentProduction?: ContentProductionStrategy;
 }
 
 // 客户主体
@@ -99,7 +117,7 @@ export interface CreateCustomerRequest {
   status: CustomerStatus;
   industry?: string;
   contacts?: Contact[];
-  businessStrategies?: any;
+  businessStrategies?: BusinessStrategies;
   notes?: string;
 }
 
@@ -110,7 +128,7 @@ export interface UpdateCustomerRequest {
   status?: CustomerStatus;
   industry?: string;
   contacts?: Contact[];
-  businessStrategies?: any;
+  businessStrategies?: BusinessStrategies;
   notes?: string;
 }
 

@@ -19,6 +19,7 @@ import dayjs from 'dayjs';
 import { customerApi } from '../../../services/customerApi';
 import { getPlatformName, getPlatformByKey } from '../../../config/platforms';
 import { PageHeader } from '../../../components/PageHeader';
+import { logger } from '../../../utils/logger';
 
 // 获取所有平台（包括预留的）
 const TALENT_PLATFORMS_ALL = [
@@ -72,9 +73,39 @@ export default function PricingStrategy() {
   const { message } = App.useApp();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [customer, setCustomer] = useState<any>(null);
+  // 客户数据类型
+  interface CustomerData {
+    _id?: string;
+    code?: string;
+    name?: string;
+    businessStrategies?: {
+      talentProcurement?: {
+        enabled?: boolean;
+        pricingModel?: string;
+        platformFees?: PlatformFees;
+      };
+      adPlacement?: { enabled?: boolean };
+      contentProduction?: { enabled?: boolean };
+    };
+  }
+
+  // 系数计算结果类型
+  interface CoefficientResult {
+    platform: string;
+    baseAmount: number;
+    platformFeeAmount: number;
+    discountedAmount: number;
+    serviceFeeAmount: number;
+    taxAmount: number;
+    finalAmount: number;
+    coefficient: number;
+  }
+
+  const [customer, setCustomer] = useState<CustomerData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [coefficients, setCoefficients] = useState<any>({});
+  const [coefficients, setCoefficients] = useState<
+    Record<string, CoefficientResult>
+  >({});
   const [activeTab, setActiveTab] = useState('talentProcurement');
   const [currentPricingModel, setCurrentPricingModel] = useState('framework');
   const [selectedPlatform, setSelectedPlatform] = useState('douyin');
@@ -100,7 +131,7 @@ export default function PricingStrategy() {
     try {
       const response = await customerApi.getCustomerById(id);
       if (response.success) {
-        setCustomer(response.data);
+        setCustomer(response.data as CustomerData);
         const strategy = response.data.businessStrategies?.talentProcurement;
         if (strategy) {
           const pricingModel = strategy.pricingModel || 'framework';
@@ -141,7 +172,7 @@ export default function PricingStrategy() {
   };
 
   const calculateCoefficients = (_pricingModel: string, fees: PlatformFees) => {
-    const results: any = {};
+    const results: Record<string, CoefficientResult> = {};
 
     Object.entries(fees).forEach(([platform, config]) => {
       if (config?.enabled) {
@@ -194,14 +225,14 @@ export default function PricingStrategy() {
     setCoefficients(results);
   };
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: { pricingModel?: string }) => {
     if (!id) return;
 
     // 构建 paymentCoefficients（从 coefficients 提取系数值，带数值校验）
-    const paymentCoefficients: any = {};
+    const paymentCoefficients: Record<string, number> = {};
     let hasInvalidCoefficient = false;
 
-    Object.entries(coefficients).forEach(([platform, data]: [string, any]) => {
+    Object.entries(coefficients).forEach(([platform, data]) => {
       const coefficient = Number(data.coefficient);
 
       // 严格校验：必须是有效数字，且在合理范围内
@@ -213,7 +244,7 @@ export default function PricingStrategy() {
       ) {
         paymentCoefficients[platform] = Number(coefficient.toFixed(4));
       } else {
-        console.error(`Invalid coefficient for ${platform}:`, data.coefficient);
+        logger.error(`Invalid coefficient for ${platform}:`, data.coefficient);
         hasInvalidCoefficient = true;
       }
     });
@@ -224,9 +255,9 @@ export default function PricingStrategy() {
     }
 
     // 构建保存数据
-    const strategy: any = {
+    const strategy = {
       enabled: true,
-      pricingModel: values.pricingModel || 'framework',
+      pricingModel: (values.pricingModel || 'framework') as 'framework' | 'project' | 'hybrid',
       platformFees: platformFees,
       paymentCoefficients: paymentCoefficients, // 保存计算出的支付系数（仅当前快照）
     };
@@ -234,7 +265,7 @@ export default function PricingStrategy() {
     try {
       const response = await customerApi.updateCustomer(id, {
         businessStrategies: {
-          talentProcurement: strategy,
+          talentProcurement: strategy as any,
         },
       });
       if (response.success) {
@@ -250,7 +281,10 @@ export default function PricingStrategy() {
   };
 
   // 更新当前选中平台的配置
-  const updateCurrentPlatformConfig = (field: string, value: any) => {
+  const updateCurrentPlatformConfig = (
+    field: keyof PlatformConfig,
+    value: PlatformConfig[keyof PlatformConfig]
+  ) => {
     setPlatformFees(prev => {
       const updated = {
         ...prev,
@@ -553,7 +587,9 @@ export default function PricingStrategy() {
                                     dayjs(currentConfig.validTo),
                                   ]
                                 : undefined,
-                            onChange: (dates: any) => {
+                            onChange: (
+                              dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null
+                            ) => {
                               if (dates && dates[0] && dates[1]) {
                                 const validFrom = dates[0].format('YYYY-MM-DD');
                                 const validTo = dates[1].format('YYYY-MM-DD');
@@ -768,14 +804,14 @@ export default function PricingStrategy() {
                 title: '折扣率',
                 dataIndex: 'discountRate',
                 key: 'discountRate',
-                render: (_: any, record: any) =>
+                render: (_: unknown, record: CoefficientResult) =>
                   `${((platformFees[record.platform]?.discountRate || 0) * 100).toFixed(2)}%`,
               },
               {
                 title: '服务费率',
                 dataIndex: 'serviceFeeRate',
                 key: 'serviceFeeRate',
-                render: (_: any, record: any) =>
+                render: (_: unknown, record: CoefficientResult) =>
                   `${((platformFees[record.platform]?.serviceFeeRate || 0) * 100).toFixed(2)}%`,
               },
               {
@@ -788,7 +824,7 @@ export default function PricingStrategy() {
                 title: '有效期',
                 dataIndex: 'validPeriod',
                 key: 'validPeriod',
-                render: (_: any, record: any) => {
+                render: (_: unknown, record: CoefficientResult) => {
                   const config = platformFees[record.platform];
                   return config?.validFrom && config?.validTo ? (
                     `${config.validFrom} ~ ${config.validTo}`

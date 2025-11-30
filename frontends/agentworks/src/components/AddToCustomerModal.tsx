@@ -15,6 +15,7 @@ import { addCustomerTalents } from '../api/customerTalents';
 import type { Customer } from '../types/customer';
 import type { Platform } from '../types/talent';
 import { CUSTOMER_LEVEL_NAMES } from '../types/customer';
+import { logger } from '../utils/logger';
 
 interface AddToCustomerModalProps {
   visible: boolean;
@@ -56,7 +57,7 @@ export function AddToCustomerModal({
         setCustomers(response.data.customers);
       }
     } catch (error) {
-      console.error('Failed to load customers:', error);
+      logger.error('Failed to load customers:', error);
     } finally {
       setLoading(false);
     }

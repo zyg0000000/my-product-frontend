@@ -69,7 +69,7 @@ export function Home() {
                 className="group relative flex flex-col items-start rounded-lg border-2 border-gray-200 bg-white p-6 text-left transition-all hover:border-primary-500 hover:shadow-lg"
               >
                 <div className={`rounded-lg ${action.color} p-3`}>
-                  <action.icon className="h-6 w-6 text-white" />
+                  <action.icon className="h-6 w-6 text-white" aria-hidden="true" />
                 </div>
                 <h3 className="mt-4 text-lg font-semibold text-gray-900">
                   {action.name}
@@ -89,7 +89,7 @@ export function Home() {
               近期功能更新
             </h2>
             <span className="rounded-full bg-primary-100 px-3 py-1 text-xs font-medium text-primary-800">
-              v3.5.0
+              v3.6.0
             </span>
           </div>
           <div className="mt-6 space-y-4">
@@ -97,6 +97,27 @@ export function Home() {
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-500 text-white">
+                    <span className="text-xs font-bold">优</span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-900">
+                      代码质量优化
+                    </h3>
+                    <span className="text-xs text-gray-500">2025-11-30</span>
+                  </div>
+                  <p className="mt-1 text-sm text-gray-600">
+                    类型安全增强、API 层重试机制、组件架构拆分、可访问性改进（WCAG AA）、console 日志清理
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-l-4 border-green-500 bg-green-50 p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white">
                     <span className="text-xs font-bold">优</span>
                   </div>
                 </div>

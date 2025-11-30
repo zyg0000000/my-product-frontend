@@ -116,34 +116,65 @@ export interface FieldMappingConfig {
 }
 
 /**
+ * 字段映射 API 响应类型
+ */
+export interface FieldMappingResponse {
+  success: boolean;
+  data: FieldMappingConfig[];
+  message?: string;
+}
+
+export interface FieldMappingSingleResponse {
+  success: boolean;
+  data?: FieldMappingConfig;
+  message?: string;
+}
+
+export interface FieldMappingOperationResponse {
+  success: boolean;
+  message?: string;
+}
+
+/**
  * 获取字段映射配置
  */
-export async function getFieldMappings(platform?: string, configName?: string) {
-  const params: any = {};
+export async function getFieldMappings(
+  platform?: string,
+  configName?: string
+): Promise<FieldMappingResponse> {
+  const params: Record<string, string> = {};
   if (platform) params.platform = platform;
   if (configName) params.configName = configName;
-  return get('/fieldMappingManager', params);
+  return get<FieldMappingResponse>('/fieldMappingManager', params);
 }
 
 /**
  * 创建字段映射配置
  */
-export async function createFieldMapping(config: Partial<FieldMappingConfig>) {
-  return post('/fieldMappingManager', config);
+export async function createFieldMapping(
+  config: Partial<FieldMappingConfig>
+): Promise<FieldMappingSingleResponse> {
+  return post<FieldMappingSingleResponse>('/fieldMappingManager', config);
 }
 
 /**
  * 更新字段映射配置
  */
-export async function updateFieldMapping(config: FieldMappingConfig) {
-  return put('/fieldMappingManager', config);
+export async function updateFieldMapping(
+  config: FieldMappingConfig
+): Promise<FieldMappingSingleResponse> {
+  return put<FieldMappingSingleResponse>('/fieldMappingManager', config);
 }
 
 /**
  * 删除字段映射配置
  */
-export async function deleteFieldMapping(id: string) {
-  return del('/fieldMappingManager', { _id: id });
+export async function deleteFieldMapping(
+  id: string
+): Promise<FieldMappingOperationResponse> {
+  return del<FieldMappingOperationResponse>('/fieldMappingManager', {
+    _id: id,
+  });
 }
 
 /**
@@ -377,7 +408,7 @@ export async function getTalentPerformanceHistory(
  * 列表查询表现数据（分页）
  */
 export async function listTalentPerformance(query: TalentPerformanceQuery) {
-  return get('/talent-performance', query);
+  return get('/talent-performance', query as unknown as Record<string, string | number | boolean | undefined | null>);
 }
 
 /**

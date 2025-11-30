@@ -2,16 +2,16 @@
  * 达人详情页
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { logger } from '../../utils/logger';
-import { getTalentDetail } from '../../api/talent';
+import { getTalentDetail, updateTalent } from '../../api/talent';
 import {
   getTalentRebate,
   getRebateHistory as fetchRebateHistory,
 } from '../../api/rebate';
 import { getAgencies } from '../../api/agency';
-import type { Talent, Platform } from '../../types/talent';
+import type { Talent, Platform, PriceRecord } from '../../types/talent';
 import { PLATFORM_NAMES } from '../../types/talent';
 import { usePlatformConfig } from '../../hooks/usePlatformConfig';
 import type { Agency } from '../../types/agency';
@@ -24,11 +24,13 @@ import {
   formatYearMonth,
   getPriceHistory,
 } from '../../utils/formatters';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-import { UpdateRebateModal } from '../../components/UpdateRebateModal';
+import { RebateManagementModal } from '../../components/RebateManagementModal';
 import { RebateHistoryList } from '../../components/RebateHistoryList';
 import { PageSkeleton } from '../../components/Skeletons/PageSkeleton';
-import { Skeleton } from 'antd';
+import { EditTalentModal } from '../../components/EditTalentModal';
+import { PriceModal } from '../../components/PriceModal';
+import { Button, Skeleton, App } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 
 export function TalentDetail() {
   const { oneId, platform } = useParams<{
@@ -36,6 +38,7 @@ export function TalentDetail() {
     platform: Platform;
   }>();
   const navigate = useNavigate();
+  const { message } = App.useApp();
   const [talent, setTalent] = useState<Talent | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -50,6 +53,10 @@ export function TalentDetail() {
   const [rebateLoading, setRebateLoading] = useState(false);
   const [showUpdateRebateModal, setShowUpdateRebateModal] = useState(false);
   const [agencies, setAgencies] = useState<Agency[]>([]);
+
+  // 编辑和价格弹窗状态
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showPriceModal, setShowPriceModal] = useState(false);
 
   // 分页状态
   const [currentPage, setCurrentPage] = useState(1);
@@ -131,6 +138,50 @@ export function TalentDetail() {
     return agency?.name || agencyId;
   };
 
+  // 保存达人信息
+  const handleSaveTalent = async (
+    talentOneId: string,
+    talentPlatform: Platform,
+    data: Partial<Talent>
+  ) => {
+    try {
+      await updateTalent({
+        oneId: talentOneId,
+        platform: talentPlatform,
+        ...data,
+      });
+      message.success('保存成功');
+      loadTalentDetail(); // 重新加载详情
+    } catch (error) {
+      logger.error('保存达人信息失败:', error);
+      message.error('保存失败');
+      throw error;
+    }
+  };
+
+  // 保存价格
+  const handleSavePrice = async (_talentOneId: string, prices: PriceRecord[]) => {
+    if (!talent) return;
+    try {
+      await updateTalent({
+        oneId: talent.oneId,
+        platform: talent.platform,
+        prices,
+      });
+      message.success('价格保存成功');
+      loadTalentDetail(); // 重新加载详情
+    } catch (error) {
+      logger.error('保存价格失败:', error);
+      message.error('保存失败');
+      throw error;
+    }
+  };
+
+  // 计算可用标签（来自当前达人）
+  const availableTags = useMemo(() => {
+    return talent?.talentType || [];
+  }, [talent]);
+
   // 分页处理
   const totalPages = Math.ceil(totalRecords / pageSize);
   const handlePrevPage = () => {
@@ -158,19 +209,21 @@ export function TalentDetail() {
 
   return (
     <div className="space-y-6">
-      {/* 返回按钮 */}
-      <button
-        onClick={() => {
-          // 返回到对应平台的基础信息页面，并保持平台选中状态
-          navigate('/talents/basic', {
-            state: { selectedPlatform: platform },
-          });
-        }}
-        className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
-      >
-        <ArrowLeftIcon className="h-4 w-4" />
-        返回列表
-      </button>
+      {/* 页面头部 - 与客户详情页风格一致 */}
+      <div className="flex items-center gap-4">
+        <Button
+          icon={<ArrowLeftOutlined />}
+          onClick={() => {
+            // 返回到对应平台的基础信息页面，并保持平台选中状态
+            navigate('/talents/basic', {
+              state: { selectedPlatform: platform },
+            });
+          }}
+        >
+          返回列表
+        </Button>
+        <h1 className="text-2xl font-bold text-gray-900 m-0">达人详情</h1>
+      </div>
 
       {/* 基础信息 */}
       <div className="card">
@@ -191,7 +244,9 @@ export function TalentDetail() {
             </div>
           </div>
 
-          <button className="btn btn-primary">编辑</button>
+          <Button type="primary" onClick={() => setShowEditModal(true)}>
+            编辑
+          </Button>
         </div>
 
         {/* 平台特有信息 */}
@@ -232,7 +287,7 @@ export function TalentDetail() {
       <div className="card">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">价格历史</h2>
-          <button className="btn btn-secondary text-sm">添加价格</button>
+          <Button onClick={() => setShowPriceModal(true)}>添加价格</Button>
         </div>
 
         <div className="mt-6 space-y-6">
@@ -283,13 +338,9 @@ export function TalentDetail() {
       <div className="card">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">返点配置</h2>
-          <button
-            onClick={() => setShowUpdateRebateModal(true)}
-            className="btn btn-secondary text-sm"
-            disabled={!rebateData}
-          >
+          <Button onClick={() => setShowUpdateRebateModal(true)}>
             调整返点
-          </button>
+          </Button>
         </div>
 
         {rebateLoading ? (
@@ -349,22 +400,34 @@ export function TalentDetail() {
         )}
       </div>
 
-      {/* 调整返点弹窗 */}
-      {rebateData && (
-        <UpdateRebateModal
+      {/* 返点管理弹窗 */}
+      {talent && (
+        <RebateManagementModal
           isOpen={showUpdateRebateModal}
-          onClose={() => setShowUpdateRebateModal(false)}
-          onSuccess={() => {
-            loadRebateData();
+          onClose={() => {
+            setShowUpdateRebateModal(false);
+            loadRebateData(); // 关闭时刷新返点数据
           }}
-          oneId={oneId!}
-          platform={platform as Platform}
-          currentRate={rebateData.currentRebate.rate}
-          rebateMode={rebateData.rebateMode}
-          agencyId={rebateData.agencyId}
-          agencyName={rebateData.agencyName}
+          talent={talent}
         />
       )}
+
+      {/* 编辑达人弹窗 */}
+      <EditTalentModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        talent={talent}
+        onSave={handleSaveTalent}
+        availableTags={availableTags}
+      />
+
+      {/* 价格弹窗 */}
+      <PriceModal
+        isOpen={showPriceModal}
+        onClose={() => setShowPriceModal(false)}
+        talent={talent}
+        onSave={handleSavePrice}
+      />
     </div>
   );
 }

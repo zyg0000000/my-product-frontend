@@ -10,8 +10,10 @@
  */
 
 import { useEffect } from 'react';
-import { Modal, Form, Space, App } from 'antd';
+import { Modal, Space, App } from 'antd';
 import { ProForm, ProFormText, ProFormRadio } from '@ant-design/pro-components';
+import type { ProFormInstance } from '@ant-design/pro-components';
+import { useRef } from 'react';
 import { ProCard } from '@ant-design/pro-components';
 import { logger } from '../utils/logger';
 import type {
@@ -59,13 +61,14 @@ export function EditTalentModal({
   availableTags,
 }: EditTalentModalProps) {
   const { message } = App.useApp();
-  const [form] = Form.useForm<FormData>();
+  // 使用 ProFormInstance ref 替代 Form.useForm，避免 "not connected" 警告
+  const formRef = useRef<ProFormInstance<FormData>>(null);
   const { getTalentTiers } = usePlatformConfig(false);
 
   // 当弹窗打开时，初始化表单数据
   useEffect(() => {
-    if (isOpen && talent) {
-      form.setFieldsValue({
+    if (isOpen && talent && formRef.current) {
+      formRef.current.setFieldsValue({
         platformAccountId: talent.platformAccountId || '',
         name: talent.name || '',
         agencyId: talent.agencyId || AGENCY_INDIVIDUAL_ID,
@@ -77,7 +80,7 @@ export function EditTalentModal({
         },
       });
     }
-  }, [isOpen, talent, form]);
+  }, [isOpen, talent]);
 
   if (!talent) return null;
 
@@ -171,7 +174,7 @@ export function EditTalentModal({
       centered
     >
       <ProForm
-        form={form}
+        formRef={formRef}
         onFinish={handleSubmit}
         submitter={{
           render: (_, dom) => (
@@ -225,7 +228,7 @@ export function EditTalentModal({
             />
 
             {/* 商业属性（机构选择器） */}
-            <Form.Item
+            <ProForm.Item
               name="agencyId"
               label={
                 <span>
@@ -238,7 +241,7 @@ export function EditTalentModal({
               rules={[{ required: true, message: '请选择商业属性' }]}
             >
               <AgencySelector placeholder="选择归属机构" />
-            </Form.Item>
+            </ProForm.Item>
 
             {/* 平台特定信息（仅抖音） */}
             {talent.platform === 'douyin' && (
@@ -297,19 +300,19 @@ export function EditTalentModal({
             </div>
 
             {/* 第二行：分类标签（使用自定义 TagInput 组件） */}
-            <Form.Item
+            <ProForm.Item
               name="talentType"
               label="分类标签"
               tooltip="输入标签后按回车添加，或点击下方常用标签快速添加"
             >
               <TagInput
-                selectedTags={form.getFieldValue('talentType') || []}
+                selectedTags={formRef.current?.getFieldValue?.('talentType') || []}
                 availableTags={availableTags}
-                onChange={tags => form.setFieldValue('talentType', tags)}
+                onChange={tags => formRef.current?.setFieldValue?.('talentType', tags)}
                 placeholder="输入分类标签后按回车，如：美妆、时尚等"
                 onError={msg => message.warning(msg)}
               />
-            </Form.Item>
+            </ProForm.Item>
           </div>
         </ProCard>
       </ProForm>

@@ -32,6 +32,7 @@ import type { Platform } from '../../types/talent';
 import type { BulkCreateTalentItem, BulkCreateError } from '../../api/talent';
 import type { ParsedTalentRow } from './types';
 import { getPlatformFieldConfig, matchHeader, isHeaderRow } from './types';
+import { logger } from '../../utils/logger';
 
 const { TextArea } = Input;
 
@@ -105,7 +106,7 @@ export function BatchCreateTalentModal({
           setWildTalentRebateRate(0);
         }
       } catch (error) {
-        console.error('获取野生达人返点率失败:', error);
+        logger.error('获取野生达人返点率失败:', error);
         setWildTalentRebateRate(0);
       }
     };
@@ -231,15 +232,15 @@ export function BatchCreateTalentModal({
       const hasHeader = isHeaderRow(firstLineValues);
 
       // 调试日志
-      console.log('[BatchCreate] 第一行数据:', firstLineValues);
-      console.log('[BatchCreate] 是否识别为表头:', hasHeader);
+      logger.debug('[BatchCreate] 第一行数据:', firstLineValues);
+      logger.debug('[BatchCreate] 是否识别为表头:', hasHeader);
 
       const fieldIndexMap: Record<string, number> = {};
       let dataStartIndex = 0;
 
       if (!hasHeader) {
         // 无表头：要求用户添加表头
-        console.log('[BatchCreate] 未识别到表头，显示错误提示');
+        logger.debug('[BatchCreate] 未识别到表头，显示错误提示');
         message.error(
           '未识别到表头，请在第一行添加表头（如：昵称、星图ID、UID）'
         );
@@ -362,7 +363,7 @@ export function BatchCreateTalentModal({
         }`
       );
     } catch (error) {
-      console.error('解析数据失败:', error);
+      logger.error('解析数据失败:', error);
       message.error('解析数据失败，请检查格式');
     } finally {
       setParsing(false);
@@ -370,10 +371,13 @@ export function BatchCreateTalentModal({
   };
 
   // 开始编辑
-  const startEditing = (record: ParsedTalentRow, field: string) => {
+  const startEditing = (
+    record: ParsedTalentRow,
+    field: keyof ParsedTalentRow
+  ) => {
     setEditingKey(record.key);
     setEditingField(field);
-    setEditingValue((record as any)[field] || '');
+    setEditingValue(String(record[field] || ''));
   };
 
   // 保存编辑
@@ -444,7 +448,7 @@ export function BatchCreateTalentModal({
         message.error(response.message || '批量创建失败');
       }
     } catch (error) {
-      console.error('批量创建失败:', error);
+      logger.error('批量创建失败:', error);
       message.error('批量创建失败，请稍后重试');
     } finally {
       setSubmitting(false);
@@ -464,11 +468,14 @@ export function BatchCreateTalentModal({
     setCreateResult(null);
   };
 
+  // 可编辑字段类型
+  type EditableField = 'name' | 'platformAccountId' | 'uid';
+
   // 渲染可编辑单元格
   const renderEditableCell = (
     text: string,
     record: ParsedTalentRow,
-    field: string
+    field: EditableField
   ) => {
     const isEditing = editingKey === record.key && editingField === field;
     const hasError = !record.isValid && !text;

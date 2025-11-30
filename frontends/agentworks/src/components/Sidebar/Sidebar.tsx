@@ -99,7 +99,7 @@ export function Sidebar() {
             <h1 className="text-lg font-semibold text-gray-900 tracking-tight">
               AgentWorks
             </h1>
-            <span className="text-[10px] text-gray-400 font-medium">v3.5</span>
+            <span className="text-[10px] text-gray-400 font-medium">v3.6</span>
           </div>
         ) : (
           <span className="text-lg font-bold text-primary-600">A</span>
@@ -175,9 +175,12 @@ export function Sidebar() {
                           ? 'text-primary-500 hover:bg-primary-100'
                           : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
                       }`}
+                      aria-label={isExpanded ? `收起${item.name}子菜单` : `展开${item.name}子菜单`}
+                      aria-expanded={isExpanded}
                     >
                       <ChevronDownIcon
                         className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                        aria-hidden="true"
                       />
                     </button>
                   </div>
@@ -256,12 +259,14 @@ export function Sidebar() {
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-gray-400 transition-all duration-200 hover:bg-gray-50 hover:text-gray-600"
           title={isCollapsed ? '展开侧边栏' : '折叠侧边栏'}
+          aria-label={isCollapsed ? '展开侧边栏' : '折叠侧边栏'}
+          aria-expanded={!isCollapsed}
         >
           {isCollapsed ? (
-            <ChevronRightIcon className="h-4 w-4" />
+            <ChevronRightIcon className="h-4 w-4" aria-hidden="true" />
           ) : (
             <>
-              <ChevronLeftIcon className="h-4 w-4" />
+              <ChevronLeftIcon className="h-4 w-4" aria-hidden="true" />
               <span className="text-xs">收起</span>
             </>
           )}
@@ -272,7 +277,7 @@ export function Sidebar() {
       {!isCollapsed && (
         <div className="border-t border-gray-100 px-4 py-3">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-gray-400">v3.5.0</span>
+            <span className="text-[10px] text-gray-400">v3.6.0</span>
             <div className="flex items-center gap-1">
               <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
               <span className="text-[10px] text-gray-400">在线</span>

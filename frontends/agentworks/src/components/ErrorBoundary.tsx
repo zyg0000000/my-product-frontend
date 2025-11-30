@@ -3,7 +3,7 @@
  * 捕获组件树中的 JavaScript 错误，防止整个应用崩溃
  */
 
-import { Component, type ReactNode } from 'react';
+import { Component, type ReactNode, type ErrorInfo } from 'react';
 import { logger } from '../utils/logger';
 
 interface Props {
@@ -14,7 +14,7 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
-  errorInfo?: any;
+  errorInfo?: ErrorInfo;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -30,7 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // 记录错误信息
     logger.error('Error caught by ErrorBoundary:', error, errorInfo);
 

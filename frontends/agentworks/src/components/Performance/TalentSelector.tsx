@@ -9,6 +9,7 @@ import { Select, Spin } from 'antd';
 import { debounce } from 'lodash-es';
 import type { Platform } from '../../types/talent';
 import { searchTalents } from '../../api/talent';
+import { logger } from '../../utils/logger';
 
 interface TalentOption {
   oneId: string;
@@ -61,7 +62,7 @@ export function TalentSelector({
           setOptions(talents);
         }
       } catch (error) {
-        console.error('搜索达人失败:', error);
+        logger.error('搜索达人失败:', error);
         setOptions([]);
       } finally {
         setLoading(false);
@@ -113,7 +114,11 @@ export function TalentSelector({
       }
       disabled={isMaxReached}
       style={{ width: '100%' }}
-      dropdownStyle={{ maxHeight: 300, overflow: 'auto' }}
+      styles={{
+        popup: {
+          root: { maxHeight: 300, overflow: 'auto' },
+        },
+      }}
     >
       {filteredOptions.map(option => (
         <Select.Option key={option.oneId} value={option.oneId}>

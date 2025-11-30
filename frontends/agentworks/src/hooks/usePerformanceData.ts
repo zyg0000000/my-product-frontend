@@ -1,6 +1,10 @@
 /**
  * 达人表现数据加载 Hook
  * 使用 getTalentsSearch 高级搜索接口，支持更强大的筛选和 Dashboard 统计
+ *
+ * Phase 2 增强：
+ * - 支持请求取消（组件卸载时自动取消）
+ * - 防止竞态条件（新请求自动取消旧请求）
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -11,6 +15,12 @@ import {
   type DashboardStats,
 } from '../api/talent';
 import type { Talent, Platform } from '../types/talent';
+import { isAbortError } from './useAbortController';
+
+/**
+ * 筛选参数值类型
+ */
+type FilterParamValue = string | string[] | number | boolean | undefined | null;
 
 // 筛选参数类型
 export interface PerformanceFilterParams {
@@ -24,8 +34,8 @@ export interface PerformanceFilterParams {
   maleRatioMax?: number;
   femaleRatioMin?: number;
   femaleRatioMax?: number;
-  // 可扩展更多筛选参数
-  [key: string]: any;
+  // 可扩展更多筛选参数（使用类型安全的索引签名）
+  [key: string]: FilterParamValue;
 }
 
 export function usePerformanceData(
@@ -46,11 +56,32 @@ export function usePerformanceData(
     filterParams
   );
 
+  // 请求取消控制器
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // 组件卸载时取消请求
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort('组件已卸载');
+      }
+    };
+  }, []);
+
   const loadData = useCallback(
     async (
       page: number = currentPage,
       filters: PerformanceFilterParams = filterParams || {}
     ) => {
+      // 取消之前的请求（防止竞态条件）
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort('被新请求替代');
+      }
+
+      // 创建新的 AbortController
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       try {
         setLoading(true);
 
@@ -112,7 +143,14 @@ export function usePerformanceData(
         if (filters.femaleRatioMax !== undefined)
           params.femaleRatioMax = filters.femaleRatioMax;
 
-        const response = await searchTalents(params);
+        const response = await searchTalents(params, {
+          signal: controller.signal,
+        });
+
+        // 检查请求是否已被取消（可能在 await 期间被取消）
+        if (controller.signal.aborted) {
+          return;
+        }
 
         if (response.success && response.data) {
           setTalents(response.data.talents || []);
@@ -124,12 +162,20 @@ export function usePerformanceData(
           setDashboardStats(null);
         }
       } catch (err) {
+        // 忽略取消错误
+        if (isAbortError(err)) {
+          return;
+        }
+
         logger.error('加载达人表现数据失败:', err);
         setTalents([]);
         setTotal(0);
         setDashboardStats(null);
       } finally {
-        setLoading(false);
+        // 只有当前请求未被取消时才更新 loading 状态
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     },
     [platform, currentPage, pageSize]

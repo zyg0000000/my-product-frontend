@@ -36,6 +36,7 @@ import { AgencyDeleteModal } from '../../../components/AgencyDeleteModal';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../../components/PageTransition';
+import { logger } from '../../../utils/logger';
 
 export function AgenciesList() {
   const { message, modal } = App.useApp();
@@ -89,7 +90,7 @@ export function AgenciesList() {
         setTalentCounts(counts);
       }
     } catch (error) {
-      console.error('加载达人统计失败:', error);
+      logger.error('加载达人统计失败:', error);
     }
   };
 

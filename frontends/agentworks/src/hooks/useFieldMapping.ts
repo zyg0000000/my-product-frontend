@@ -28,12 +28,10 @@ export function useFieldMapping(platform: Platform) {
   const loadConfigs = async () => {
     try {
       setLoading(true);
-      const response: any = await getFieldMappings(platform);
+      const response = await getFieldMappings(platform);
       if (response.success && response.data) {
         setConfigs(response.data);
-        const active = response.data.find(
-          (c: FieldMappingConfig) => c.isActive
-        );
+        const active = response.data.find(c => c.isActive);
         setActiveConfig(active || null);
       }
     } catch (err) {
@@ -48,7 +46,7 @@ export function useFieldMapping(platform: Platform) {
   const createConfig = async (config: Partial<FieldMappingConfig>) => {
     try {
       setLoading(true);
-      const response: any = await createFieldMapping(config);
+      const response = await createFieldMapping(config);
       if (response.success) {
         message.success('配置创建成功');
         await loadConfigs();
@@ -66,7 +64,7 @@ export function useFieldMapping(platform: Platform) {
   const updateConfig = async (config: FieldMappingConfig) => {
     try {
       setLoading(true);
-      const response: any = await updateFieldMapping(config);
+      const response = await updateFieldMapping(config);
       if (response.success) {
         message.success('配置更新成功');
         await loadConfigs();
@@ -84,7 +82,7 @@ export function useFieldMapping(platform: Platform) {
   const deleteConfig = async (id: string) => {
     try {
       setLoading(true);
-      const response: any = await deleteFieldMapping(id);
+      const response = await deleteFieldMapping(id);
       if (response.success) {
         message.success('配置删除成功');
         await loadConfigs();

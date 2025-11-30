@@ -1,76 +1,41 @@
 /**
- * 达人基础信息页 - v2.2 (Ant Design Pro 升级版)
+ * 达人基础信息页 - v2.4 (完整重构版)
  *
- * 升级要点：
- * 1. ProTable 替代手写 table
- * 2. Ant Design Tabs 替代手写平台切换
- * 3. Dropdown 替代手写操作菜单
- * 4. message API 替代 alert 和 Toast
- * 5. 筛选面板采用左右两栏布局（参考 Performance 页面）
- * 6. 价格选择器移至 toolbar 工具栏
- * 7. 筛选面板默认折叠
+ * 重构要点：
+ * 1. 筛选面板拆分为 TalentFilterPanel 组件
+ * 2. 表格列配置拆分为 useTalentColumns Hook
+ * 3. 数据逻辑拆分为 useBasicInfoData Hook
+ * 4. 主组件只负责 UI 渲染和用户交互
  */
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
-import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import {
-  Tabs,
-  Button,
-  Dropdown,
-  Space,
-  Tag,
-  Select,
-  message,
-  Checkbox,
-  Input,
-} from 'antd';
+import type { ActionType } from '@ant-design/pro-components';
+import { Tabs, Button, Select, message, Space } from 'antd';
 import {
   PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  DollarOutlined,
-  PercentageOutlined,
-  EyeOutlined,
-  HistoryOutlined,
-  SearchOutlined,
   ReloadOutlined,
-  CloseOutlined,
-  MoreOutlined,
   UploadOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import { Tooltip } from 'antd';
 import { logger } from '../../../utils/logger';
-import {
-  getTalents,
-  updateTalent,
-  deleteTalent,
-  deleteTalentAll,
-} from '../../../api/talent';
-import type { Talent, Platform, PriceType } from '../../../types/talent';
+import { updateTalent, deleteTalent, deleteTalentAll } from '../../../api/talent';
+import type { Talent, Platform } from '../../../types/talent';
 import { PLATFORM_NAMES } from '../../../types/talent';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
-import {
-  formatPrice,
-  formatRebate,
-  getLatestPricesMap,
-} from '../../../utils/formatters';
 import { PriceModal } from '../../../components/PriceModal';
 import { EditTalentModal } from '../../../components/EditTalentModal';
 import { DeleteConfirmModal } from '../../../components/DeleteConfirmModal';
 import { RebateManagementModal } from '../../../components/RebateManagementModal';
 import { BatchCreateTalentModal } from '../../../components/BatchCreateTalentModal';
 import { AddToCustomerModal } from '../../../components/AddToCustomerModal';
-import { getAgencies } from '../../../api/agency';
-import type { Agency } from '../../../types/agency';
-import { AGENCY_INDIVIDUAL_ID } from '../../../types/agency';
 import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../../components/PageTransition';
-import type { LinkConfig } from '../../../api/platformConfig';
-import { customerApi } from '../../../services/customerApi';
-import type { Customer } from '../../../types/customer';
+
+// 拆分的组件和 Hook
+import { TalentFilterPanel } from './components';
+import { useTalentColumns, useBasicInfoData } from './hooks';
 
 export function BasicInfo() {
   const navigate = useNavigate();
@@ -92,10 +57,34 @@ export function BasicInfo() {
     (location.state?.selectedPlatform as Platform) || platforms[0] || 'douyin';
   const [selectedPlatform, setSelectedPlatform] =
     useState<Platform>(initialPlatform);
-  const [talents, setTalents] = useState<Talent[]>([]);
-  const [agencies, setAgencies] = useState<Agency[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [totalTalents, setTotalTalents] = useState(0);
+
+  // 使用数据逻辑 Hook
+  const {
+    talents,
+    agencies,
+    customers,
+    totalTalents,
+    loading,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    filterState,
+    handleFilterChange,
+    handleResetFilters,
+    handleSearch,
+    selectedPriceTier,
+    setSelectedPriceTier,
+    selectedRowKeys,
+    setSelectedRowKeys,
+    loadTalents,
+    getUniqueTalentTiers,
+    getUniqueTalentTypes,
+  } = useBasicInfoData({
+    selectedPlatform,
+    configLoading,
+    platformsLength: platforms.length,
+    getPlatformPriceTypes,
+  });
 
   // 弹窗状态
   const [priceModalOpen, setPriceModalOpen] = useState(false);
@@ -106,47 +95,10 @@ export function BasicInfo() {
   const [addToCustomerModalOpen, setAddToCustomerModalOpen] = useState(false);
   const [selectedTalent, setSelectedTalent] = useState<Talent | null>(null);
 
-  // 批量选择状态
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  // 筛选面板展开状态
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
 
-  // 客户筛选状态
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(
-    null
-  );
-
-  // 分页状态
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 15;
-
-  // 搜索和筛选状态
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isFilterExpanded, setIsFilterExpanded] = useState(false); // 默认折叠
-  const [selectedTiers, setSelectedTiers] = useState<string[]>([]);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [rebateMin, setRebateMin] = useState<string>('');
-  const [rebateMax, setRebateMax] = useState<string>('');
-  const [priceMin, setPriceMin] = useState<string>('');
-  const [priceMax, setPriceMax] = useState<string>('');
-
-  // 获取平台的默认价格档位（使用动态配置）
-  const getDefaultPriceTier = (platform: Platform): string | null => {
-    const platformPriceTypes = getPlatformPriceTypes(platform);
-    if (platformPriceTypes && platformPriceTypes.length > 0) {
-      // 使用数据库配置的第一个价格类型作为默认值
-      return platformPriceTypes[0].key;
-    }
-    return null;
-  };
-
-  // 价格档位选择状态（不使用 localStorage）
-  const [selectedPriceTier, setSelectedPriceTier] = useState<string | null>(
-    () => {
-      return getDefaultPriceTier(selectedPlatform);
-    }
-  );
-
-  // 价格类型配置（使用动态配置）
+  // 价格类型配置
   const priceTypes = getPlatformPriceTypes(selectedPlatform);
 
   // 组件挂载后清除路由状态
@@ -154,259 +106,48 @@ export function BasicInfo() {
     if (location.state?.selectedPlatform) {
       window.history.replaceState({}, document.title);
     }
-  }, []);
-
-  // 切换平台时更新状态
-  useEffect(() => {
-    setCurrentPage(1);
-    setSelectedRowKeys([]); // 清空选择
-    setSelectedCustomerId(null); // 清空客户筛选
-    // 切换平台时更新默认价格档位
-    setSelectedPriceTier(getDefaultPriceTier(selectedPlatform));
-  }, [selectedPlatform]);
-
-  // 加载达人数据
-  useEffect(() => {
-    loadTalents();
-  }, [
-    configLoading,
-    platforms.length,
-    selectedPlatform,
-    currentPage,
-    searchTerm,
-    selectedTiers,
-    selectedTags,
-    rebateMin,
-    rebateMax,
-    priceMin,
-    priceMax,
-    selectedCustomerId,
-  ]);
-
-  // 加载机构列表
-  useEffect(() => {
-    loadAgencies();
-    loadCustomers();
-  }, []);
-
-  const loadTalents = async () => {
-    // 等待平台配置加载完成
-    if (configLoading || platforms.length === 0) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      const params: any = {
-        platform: selectedPlatform,
-        page: currentPage,
-        limit: pageSize,
-        sortBy: 'updatedAt',
-        order: 'desc',
-      };
-
-      if (searchTerm) params.searchTerm = searchTerm;
-      if (selectedTiers.length > 0) params.tiers = selectedTiers;
-      if (selectedTags.length > 0) params.tags = selectedTags;
-      if (rebateMin) params.rebateMin = parseFloat(rebateMin);
-      if (rebateMax) params.rebateMax = parseFloat(rebateMax);
-      if (priceMin) params.priceMin = parseFloat(priceMin);
-      if (priceMax) params.priceMax = parseFloat(priceMax);
-      if (selectedCustomerId) params.customerId = selectedCustomerId;
-
-      const response = await getTalents(params);
-
-      if (response.success && response.data) {
-        const talentsData = Array.isArray(response.data)
-          ? response.data
-          : [response.data];
-
-        setTalents(talentsData);
-
-        if (response.total !== undefined) {
-          setTotalTalents(response.total);
-        } else if (response.count !== undefined) {
-          setTotalTalents(response.count);
-        }
-      } else {
-        setTalents([]);
-        setTotalTalents(0);
-      }
-    } catch (err) {
-      logger.error('加载达人列表失败:', err);
-      message.error('加载达人列表失败');
-      setTalents([]);
-      setTotalTalents(0);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadAgencies = async () => {
-    try {
-      const response = await getAgencies();
-      if (response.success && response.data) {
-        setAgencies(response.data);
-      }
-    } catch (error) {
-      logger.error('加载机构列表失败:', error);
-    }
-  };
-
-  const loadCustomers = async () => {
-    try {
-      const response = await customerApi.getCustomers({
-        status: 'active',
-        pageSize: 100,
-      });
-      if (response.success && response.data) {
-        setCustomers(response.data.customers);
-      }
-    } catch (error) {
-      logger.error('加载客户列表失败:', error);
-    }
-  };
-
-  // 获取机构名称
-  const getAgencyName = (agencyId?: string): string => {
-    if (!agencyId || agencyId === AGENCY_INDIVIDUAL_ID) {
-      return '野生达人';
-    }
-    const agency = agencies.find(a => a.id === agencyId);
-    return agency?.name || '未知机构';
-  };
-
-  // 获取平台所有外链（支持多链接配置）
-  const getPlatformLinks = (
-    talent: Talent
-  ): Array<{ name: string; label: string; url: string }> => {
-    const config = getPlatformConfigByKey(talent.platform);
-    if (!config) return [];
-
-    // 兼容旧数据：如果有 links 用 links，否则从 link 转换
-    const linksConfig: LinkConfig[] =
-      config.links ||
-      (config.link
-        ? [
-            {
-              name: '外链',
-              label: '链接',
-              template: config.link.template,
-              idField: config.link.idField,
-            },
-          ]
-        : []);
-
-    return linksConfig
-      .map(link => {
-        // 优先从 platformSpecific 获取 ID，回退到 platformAccountId
-        const platformSpecificData = talent.platformSpecific as
-          | Record<string, string>
-          | undefined;
-        const idValue =
-          platformSpecificData?.[link.idField] || talent.platformAccountId;
-        if (!idValue) return null;
-        return {
-          name: link.name,
-          label: link.label,
-          url: link.template.replace('{id}', idValue),
-        };
-      })
-      .filter(
-        (item): item is { name: string; label: string; url: string } =>
-          item !== null
-      );
-  };
-
-  // 获取唯一的达人层级
-  const getUniqueTalentTiers = (): string[] => {
-    const tiers = new Set<string>();
-    talents.forEach(talent => {
-      if (talent.talentTier) {
-        tiers.add(talent.talentTier);
-      }
-    });
-    return Array.from(tiers).sort();
-  };
-
-  // 获取唯一的内容标签
-  const getUniqueTalentTypes = (): string[] => {
-    const types = new Set<string>();
-    talents.forEach(talent => {
-      if (talent.talentType && Array.isArray(talent.talentType)) {
-        talent.talentType.forEach(type => types.add(type));
-      }
-    });
-    return Array.from(types).sort();
-  };
-
-  // 字符串转颜色（用于标签）
-  const stringToColor = (str: string): string => {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const colors = [
-      '#E3F2FD',
-      '#F3E5F5',
-      '#FCE4EC',
-      '#FFF3E0',
-      '#FFF8E1',
-      '#F1F8E9',
-      '#E8F5E9',
-      '#E0F2F1',
-    ];
-    return colors[Math.abs(hash) % colors.length];
-  };
+  }, [location.state?.selectedPlatform]);
 
   // 处理菜单点击
-  const handleMenuClick = (key: string, record: Talent) => {
-    switch (key) {
-      case 'edit':
-        handleOpenEditModal(record);
-        break;
-      case 'price':
-        handleOpenPriceModal(record);
-        break;
-      case 'rebate':
-        handleOpenRebateModal(record);
-        break;
-      case 'detail':
-        navigate(`/talents/${record.oneId}/${record.platform}`);
-        break;
-      case 'history':
-        message.info('合作历史功能即将上线，敬请期待！');
-        break;
-      case 'delete':
-        handleOpenDeleteModal(record);
-        break;
-    }
-  };
+  const handleMenuClick = useCallback(
+    (key: string, record: Talent) => {
+      switch (key) {
+        case 'edit':
+          setSelectedTalent(record);
+          setEditModalOpen(true);
+          break;
+        case 'price':
+          setSelectedTalent(record);
+          setPriceModalOpen(true);
+          break;
+        case 'rebate':
+          setSelectedTalent(record);
+          setRebateModalOpen(true);
+          break;
+        case 'detail':
+          navigate(`/talents/${record.oneId}/${record.platform}`);
+          break;
+        case 'history':
+          message.info('合作历史功能即将上线，敬请期待！');
+          break;
+        case 'delete':
+          setSelectedTalent(record);
+          setDeleteModalOpen(true);
+          break;
+      }
+    },
+    [navigate]
+  );
 
-  // 打开价格管理弹窗
-  const handleOpenPriceModal = (talent: Talent) => {
-    setSelectedTalent(talent);
-    setPriceModalOpen(true);
-  };
-
-  // 打开返点管理弹窗
-  const handleOpenRebateModal = (talent: Talent) => {
-    setSelectedTalent(talent);
-    setRebateModalOpen(true);
-  };
-
-  // 打开编辑弹窗
-  const handleOpenEditModal = (talent: Talent) => {
-    setSelectedTalent(talent);
-    setEditModalOpen(true);
-  };
-
-  // 打开删除确认弹窗
-  const handleOpenDeleteModal = (talent: Talent) => {
-    setSelectedTalent(talent);
-    setDeleteModalOpen(true);
-  };
+  // 使用表格列配置 Hook
+  const columns = useTalentColumns({
+    platform: selectedPlatform,
+    selectedPriceTier,
+    agencies,
+    getTalentTiers,
+    getPlatformConfigByKey,
+    onMenuClick: handleMenuClick,
+  });
 
   // 关闭价格管理弹窗
   const handleClosePriceModal = async () => {
@@ -417,7 +158,6 @@ export function BasicInfo() {
 
   // 保存价格
   const handleSavePrices = async () => {
-    // 价格保存逻辑由 PriceModal 内部处理
     await loadTalents();
   };
 
@@ -502,396 +242,6 @@ export function BasicInfo() {
     }
   };
 
-  // 处理层级筛选
-  const handleTierChange = (tier: string) => {
-    setSelectedTiers(prev =>
-      prev.includes(tier) ? prev.filter(t => t !== tier) : [...prev, tier]
-    );
-    setCurrentPage(1);
-  };
-
-  // 处理标签筛选
-  const handleTagChange = (tag: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-    );
-    setCurrentPage(1);
-  };
-
-  // 重置筛选条件
-  const handleResetFilters = () => {
-    setSearchTerm('');
-    setSelectedTiers([]);
-    setSelectedTags([]);
-    setRebateMin('');
-    setRebateMax('');
-    setPriceMin('');
-    setPriceMax('');
-    setSelectedCustomerId(null);
-    setCurrentPage(1);
-  };
-
-  // 执行搜索
-  const handleSearch = () => {
-    setCurrentPage(1);
-    loadTalents();
-  };
-
-  // 计算是否有激活的筛选
-  const hasActiveFilters = useMemo(() => {
-    return (
-      searchTerm ||
-      selectedTiers.length > 0 ||
-      selectedTags.length > 0 ||
-      rebateMin ||
-      rebateMax ||
-      priceMin ||
-      priceMax ||
-      selectedCustomerId
-    );
-  }, [
-    searchTerm,
-    selectedTiers,
-    selectedTags,
-    rebateMin,
-    rebateMax,
-    priceMin,
-    priceMax,
-    selectedCustomerId,
-  ]);
-
-  // 生成已选筛选条件的标签
-  const activeFilterTags = useMemo(() => {
-    const tags: { id: string; label: string; onRemove: () => void }[] = [];
-
-    // 搜索关键词
-    if (searchTerm) {
-      tags.push({
-        id: 'search',
-        label: `搜索: "${searchTerm}"`,
-        onRemove: () => {
-          setSearchTerm('');
-          setCurrentPage(1);
-        },
-      });
-    }
-
-    // 达人层级
-    selectedTiers.forEach(tier => {
-      tags.push({
-        id: `tier-${tier}`,
-        label: `层级: ${tier}`,
-        onRemove: () => handleTierChange(tier),
-      });
-    });
-
-    // 内容标签
-    selectedTags.forEach(tag => {
-      tags.push({
-        id: `tag-${tag}`,
-        label: `标签: ${tag}`,
-        onRemove: () => handleTagChange(tag),
-      });
-    });
-
-    // 返点范围
-    if (rebateMin || rebateMax) {
-      let label = '返点: ';
-      if (rebateMin && rebateMax) {
-        label += `${rebateMin}% - ${rebateMax}%`;
-      } else if (rebateMin) {
-        label += `≥ ${rebateMin}%`;
-      } else if (rebateMax) {
-        label += `≤ ${rebateMax}%`;
-      }
-      tags.push({
-        id: 'rebate',
-        label,
-        onRemove: () => {
-          setRebateMin('');
-          setRebateMax('');
-          setCurrentPage(1);
-        },
-      });
-    }
-
-    // 价格范围
-    if (priceMin || priceMax) {
-      let label = '价格: ';
-      if (priceMin && priceMax) {
-        label += `¥${priceMin} - ¥${priceMax}`;
-      } else if (priceMin) {
-        label += `≥ ¥${priceMin}`;
-      } else if (priceMax) {
-        label += `≤ ¥${priceMax}`;
-      }
-      tags.push({
-        id: 'price',
-        label,
-        onRemove: () => {
-          setPriceMin('');
-          setPriceMax('');
-          setCurrentPage(1);
-        },
-      });
-    }
-
-    // 客户筛选
-    if (selectedCustomerId) {
-      const customer = customers.find(
-        c => (c._id || c.code) === selectedCustomerId
-      );
-      tags.push({
-        id: 'customer',
-        label: `客户: ${customer?.name || selectedCustomerId}`,
-        onRemove: () => {
-          setSelectedCustomerId(null);
-          setCurrentPage(1);
-        },
-      });
-    }
-
-    return tags;
-  }, [
-    searchTerm,
-    selectedTiers,
-    selectedTags,
-    rebateMin,
-    rebateMax,
-    priceMin,
-    priceMax,
-    selectedCustomerId,
-    customers,
-  ]);
-
-  // ProTable 列配置（移除价格列头的选择器）
-  const columns: ProColumns<Talent>[] = useMemo(
-    () => [
-      {
-        title: '达人名称',
-        dataIndex: 'name',
-        key: 'name',
-        width: 220,
-        fixed: 'left',
-        ellipsis: true,
-        render: (_, record) => {
-          const links = getPlatformLinks(record);
-          return (
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-gray-900">{record.name}</span>
-              {links.length > 0 && (
-                <div className="flex items-center gap-1">
-                  {links.map((link, i) => (
-                    <Tooltip key={i} title={link.name}>
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={e => e.stopPropagation()}
-                        className="px-1.5 py-0.5 text-xs font-medium bg-primary-100 text-primary-700 rounded hover:bg-primary-200 transition-colors"
-                      >
-                        {link.label}
-                      </a>
-                    </Tooltip>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        },
-      },
-      {
-        title: '商业属性',
-        dataIndex: 'agencyId',
-        key: 'agencyId',
-        width: 100, // 压缩20px
-        render: (_, record) => <Tag>{getAgencyName(record.agencyId)}</Tag>,
-      },
-      {
-        title: '达人层级',
-        dataIndex: 'talentTier',
-        key: 'talentTier',
-        width: 100,
-        render: (_, record) => {
-          if (!record.talentTier) {
-            return <span className="text-gray-400 text-xs">-</span>;
-          }
-          // 从配置中获取该等级的颜色
-          const tierConfig = getTalentTiers(selectedPlatform).find(
-            t => t.label === record.talentTier
-          );
-          if (tierConfig) {
-            return (
-              <Tag
-                style={{
-                  backgroundColor: tierConfig.bgColor,
-                  color: tierConfig.textColor,
-                  border: 'none',
-                }}
-              >
-                {record.talentTier}
-              </Tag>
-            );
-          }
-          // 兜底：如果没找到配置，使用默认样式
-          return <Tag>{record.talentTier}</Tag>;
-        },
-      },
-      {
-        title: '内容标签',
-        dataIndex: 'talentType',
-        key: 'talentType',
-        width: 160, // 压缩20px
-        render: (_, record) =>
-          record.talentType && record.talentType.length > 0 ? (
-            <Space size="small" wrap>
-              {record.talentType.slice(0, 2).map((tag, index) => (
-                <Tag
-                  key={index}
-                  style={{
-                    backgroundColor: stringToColor(tag),
-                    color: '#374151',
-                  }}
-                >
-                  {tag}
-                </Tag>
-              ))}
-              {record.talentType.length > 2 && (
-                <span className="text-xs text-gray-500">
-                  +{record.talentType.length - 2}
-                </span>
-              )}
-            </Space>
-          ) : (
-            <span className="text-gray-400 text-xs">-</span>
-          ),
-      },
-      // 价格列（根据选中的价格类型显示，如果是 null 则隐藏）
-      ...(selectedPriceTier
-        ? [
-            {
-              title: '当月价格',
-              key: 'price',
-              width: 100, // 压缩20px
-              render: (_: any, record: Talent) => {
-                const latestPrices = getLatestPricesMap(record.prices);
-                const price = latestPrices[selectedPriceTier as PriceType];
-                return price ? (
-                  <span className="text-gray-900 font-medium">
-                    {formatPrice(price)}
-                  </span>
-                ) : (
-                  <span className="text-gray-400">N/A</span>
-                );
-              },
-            },
-          ]
-        : []),
-      {
-        title: '返点',
-        key: 'rebate',
-        width: 80, // 压缩20px
-        render: (_, record) =>
-          record.currentRebate?.rate !== undefined ? (
-            <span className="text-gray-900 font-medium">
-              {formatRebate(record.currentRebate.rate)}
-            </span>
-          ) : (
-            <span className="text-gray-400">-</span>
-          ),
-      },
-      {
-        title: '状态',
-        dataIndex: 'status',
-        key: 'status',
-        width: 80,
-        render: (_, record) => (
-          <Tag
-            color={
-              record.status === 'active'
-                ? 'success'
-                : record.status === 'inactive'
-                  ? 'warning'
-                  : 'default'
-            }
-          >
-            {record.status === 'active'
-              ? '活跃'
-              : record.status === 'inactive'
-                ? '暂停'
-                : '归档'}
-          </Tag>
-        ),
-      },
-      {
-        title: '操作',
-        key: 'actions',
-        width: 180, // 增加80px
-        fixed: 'right',
-        render: (_, record) => (
-          <Space size="small">
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => handleMenuClick('edit', record)}
-            >
-              编辑
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              icon={<DollarOutlined />}
-              onClick={() => handleMenuClick('price', record)}
-              className="text-primary-600 hover:text-primary-700"
-            >
-              价格
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              icon={<PercentageOutlined />}
-              onClick={() => handleMenuClick('rebate', record)}
-              className="text-green-600 hover:text-green-700"
-            >
-              返点
-            </Button>
-            <Dropdown
-              menu={{
-                items: [
-                  {
-                    key: 'detail',
-                    label: '详情',
-                    icon: <EyeOutlined />,
-                  },
-                  {
-                    key: 'history',
-                    label: '合作历史',
-                    icon: <HistoryOutlined />,
-                  },
-                  {
-                    type: 'divider',
-                  },
-                  {
-                    key: 'delete',
-                    label: '删除',
-                    icon: <DeleteOutlined />,
-                    danger: true,
-                  },
-                ],
-                onClick: ({ key }) => handleMenuClick(key, record),
-              }}
-              trigger={['click']}
-            >
-              <Button size="small" type="text" icon={<MoreOutlined />} />
-            </Dropdown>
-          </Space>
-        ),
-      },
-    ],
-    [selectedPlatform, selectedPriceTier, agencies]
-  );
-
   return (
     <PageTransition>
       <div className="space-y-4">
@@ -913,274 +263,19 @@ export function BasicInfo() {
           }))}
         />
 
-        {/* 筛选面板 - 左右两栏布局（参考 Performance） */}
-        <div className="bg-white rounded-lg shadow mb-4">
-          {/* 筛选面板头部 */}
-          <div
-            className="flex items-center justify-between px-4 py-3 border-b cursor-pointer hover:bg-gray-50"
-            onClick={() => setIsFilterExpanded(!isFilterExpanded)}
-          >
-            <div className="flex items-center gap-2">
-              <svg
-                className={`w-5 h-5 text-gray-500 transition-transform ${isFilterExpanded ? 'rotate-90' : ''}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-              <span className="font-medium text-gray-900">筛选条件</span>
-            </div>
-            <div
-              className="flex items-center gap-2"
-              onClick={e => e.stopPropagation()}
-            >
-              {hasActiveFilters && (
-                <button
-                  onClick={handleResetFilters}
-                  className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
-                >
-                  重置
-                </button>
-              )}
-              <button
-                onClick={handleSearch}
-                className="px-4 py-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded"
-              >
-                搜索
-              </button>
-            </div>
-          </div>
-
-          {/* 筛选内容区域 - 左右双列布局 */}
-          {isFilterExpanded && (
-            <div className="flex">
-              {/* 左侧：筛选器面板 */}
-              <div className="flex-1 p-4 border-r border-gray-100">
-                <div className="space-y-4">
-                  {/* 搜索和客户筛选 - 并排 */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* 搜索框 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        搜索
-                      </label>
-                      <Input
-                        placeholder="按达人名称或OneID搜索..."
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                        prefix={<SearchOutlined />}
-                        allowClear
-                        onPressEnter={handleSearch}
-                      />
-                    </div>
-
-                    {/* 客户筛选 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        所属客户{' '}
-                        <span className="text-xs text-gray-500">
-                          （筛选客户达人池）
-                        </span>
-                      </label>
-                      <Select
-                        showSearch
-                        allowClear
-                        placeholder="选择客户..."
-                        value={selectedCustomerId}
-                        onChange={value => {
-                          setSelectedCustomerId(value);
-                          setCurrentPage(1);
-                        }}
-                        options={customers.map(c => ({
-                          value: c._id || c.code,
-                          label: c.name,
-                        }))}
-                        filterOption={(input, option) =>
-                          (option?.label ?? '')
-                            .toLowerCase()
-                            .includes(input.toLowerCase())
-                        }
-                        style={{ width: '100%' }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* 常用筛选区 - 价格和返点并排 */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* 价格范围筛选 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        价格范围{' '}
-                        <span className="text-xs text-gray-500">（常用）</span>
-                      </label>
-                      <div className="flex gap-2">
-                        <Input
-                          type="number"
-                          placeholder="最小"
-                          value={priceMin}
-                          onChange={e => setPriceMin(e.target.value)}
-                          style={{ width: '50%' }}
-                        />
-                        <span className="self-center text-gray-400">-</span>
-                        <Input
-                          type="number"
-                          placeholder="最大"
-                          value={priceMax}
-                          onChange={e => setPriceMax(e.target.value)}
-                          style={{ width: '50%' }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* 返点范围筛选 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        返点范围 (%){' '}
-                        <span className="text-xs text-gray-500">（常用）</span>
-                      </label>
-                      <div className="flex gap-2">
-                        <Input
-                          type="number"
-                          placeholder="最小"
-                          value={rebateMin}
-                          onChange={e => setRebateMin(e.target.value)}
-                          style={{ width: '50%' }}
-                        />
-                        <span className="self-center text-gray-400">-</span>
-                        <Input
-                          type="number"
-                          placeholder="最大"
-                          value={rebateMax}
-                          onChange={e => setRebateMax(e.target.value)}
-                          style={{ width: '50%' }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 其他筛选区 */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* 达人层级筛选 */}
-                    {getUniqueTalentTiers().length > 0 && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          达人层级
-                        </label>
-                        <div
-                          className="border border-gray-200 rounded-md bg-gray-50"
-                          style={{ height: '144px' }}
-                        >
-                          <div className="p-3 h-full overflow-y-auto">
-                            <div className="space-y-2">
-                              {getUniqueTalentTiers().map(tier => (
-                                <Checkbox
-                                  key={tier}
-                                  checked={selectedTiers.includes(tier)}
-                                  onChange={() => handleTierChange(tier)}
-                                >
-                                  {tier}
-                                </Checkbox>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 内容标签筛选 - 优化展示 */}
-                    {getUniqueTalentTypes().length > 0 && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          内容标签
-                        </label>
-                        <div
-                          className="border border-gray-200 rounded-md bg-gray-50"
-                          style={{ width: '400px', height: '144px' }}
-                        >
-                          {/* 标签列表 - 横向排列带换行 */}
-                          <div className="p-3 h-full">
-                            <div className="flex flex-wrap gap-2 h-full overflow-y-auto">
-                              {getUniqueTalentTypes().map(tag => (
-                                <label
-                                  key={tag}
-                                  className="inline-flex items-center cursor-pointer hover:bg-white rounded px-1 py-0.5 h-fit"
-                                >
-                                  <Checkbox
-                                    checked={selectedTags.includes(tag)}
-                                    onChange={() => handleTagChange(tag)}
-                                    className="mr-1"
-                                  />
-                                  <span className="text-sm" title={tag}>
-                                    {tag}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* 右侧：已选条件展示 */}
-              <div className="w-96 p-4 bg-gray-50">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-gray-700">
-                    已选条件
-                  </span>
-                  {hasActiveFilters && (
-                    <button
-                      onClick={handleResetFilters}
-                      className="text-xs text-primary-600 hover:text-primary-800"
-                    >
-                      清空全部
-                    </button>
-                  )}
-                </div>
-
-                {activeFilterTags.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {activeFilterTags.map(tag => (
-                      <span
-                        key={tag.id}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 rounded-md text-sm"
-                      >
-                        <span className="text-gray-700">{tag.label}</span>
-                        <button
-                          onClick={tag.onRemove}
-                          className="ml-1 text-gray-400 hover:text-gray-600"
-                        >
-                          <CloseOutlined className="text-xs" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-sm text-gray-500">
-                    暂无筛选条件，请在左侧选择
-                  </div>
-                )}
-
-                {/* 筛选统计信息 */}
-                {hasActiveFilters && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <div className="text-xs text-gray-500">
-                      <div>符合条件的达人: {totalTalents} 个</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+        {/* 筛选面板 */}
+        <TalentFilterPanel
+          filterState={filterState}
+          onFilterChange={handleFilterChange}
+          availableTiers={getUniqueTalentTiers()}
+          availableTags={getUniqueTalentTypes()}
+          customers={customers}
+          totalTalents={totalTalents}
+          isExpanded={isFilterExpanded}
+          onToggleExpand={() => setIsFilterExpanded(!isFilterExpanded)}
+          onSearch={handleSearch}
+          onReset={handleResetFilters}
+        />
 
         {/* ProTable - 达人列表 */}
         {(configLoading || loading) && talents.length === 0 ? (
@@ -1238,7 +333,7 @@ export function BasicInfo() {
             }
             toolbar={{
               actions: [
-                // 新增达人按钮（传递当前选中的平台）
+                // 新增达人按钮
                 <Button
                   key="add"
                   type="primary"
