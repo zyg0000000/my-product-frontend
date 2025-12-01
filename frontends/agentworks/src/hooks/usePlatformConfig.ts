@@ -13,7 +13,7 @@
  * - 支持按功能开关过滤平台（v1.1）
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getPlatformConfigs } from '../api/platformConfig';
 import type { PlatformConfig, TalentTierConfig } from '../api/platformConfig';
 import type { Platform } from '../types/talent';
@@ -179,11 +179,14 @@ export function usePlatformConfig(includeDisabled = false) {
    * const platforms = getPlatformsByFeature('performanceTracking');
    * // => ['douyin']
    */
-  const getPlatformsByFeature = (feature: FeatureKey): Platform[] => {
-    return configs
-      .filter(c => c.features?.[feature] === true)
-      .map(c => c.platform);
-  };
+  const getPlatformsByFeature = useCallback(
+    (feature: FeatureKey): Platform[] => {
+      return configs
+        .filter(c => c.features?.[feature] === true)
+        .map(c => c.platform);
+    },
+    [configs]
+  );
 
   /**
    * 检查平台是否启用了指定功能

@@ -94,11 +94,15 @@ class CustomerApi {
       body: JSON.stringify(data),
     });
 
+    // 解析响应体获取详细错误信息
+    const result = await response.json();
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // 使用后端返回的错误消息
+      throw new Error(result.message || `请求失败 (${response.status})`);
     }
 
-    return response.json();
+    return result;
   }
 
   /**
@@ -118,11 +122,14 @@ class CustomerApi {
       body: JSON.stringify(data),
     });
 
+    // 解析响应体获取详细错误信息
+    const result = await response.json();
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(result.message || `请求失败 (${response.status})`);
     }
 
-    return response.json();
+    return result;
   }
 
   /**

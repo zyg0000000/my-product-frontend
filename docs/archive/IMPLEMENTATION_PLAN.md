@@ -260,8 +260,8 @@ Tab 3: 项目历史
         byContentType: false    // 按内容类型区分
       },
 
-      // 预计算的支付系数（缓存）
-      paymentCoefficients: {
+      // 预计算的报价系数（缓存）
+      quotationCoefficients: {
         douyin: 1.155,
         xiaohongshu: 1.21
       }

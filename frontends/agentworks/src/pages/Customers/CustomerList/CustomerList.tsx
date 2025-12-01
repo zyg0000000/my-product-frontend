@@ -1,5 +1,7 @@
 /**
  * 客户列表页面 - 使用 Ant Design Pro (紧凑布局)
+ *
+ * v4.1: 使用 usePlatformConfig Hook 动态获取平台名称
  */
 
 import { useRef, useState, useEffect } from 'react';
@@ -29,6 +31,7 @@ import {
   CUSTOMER_STATUS_NAMES,
 } from '../../../types/customer';
 import { customerApi } from '../../../services/customerApi';
+import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../../components/PageTransition';
 import { logger } from '../../../utils/logger';
@@ -37,6 +40,9 @@ export default function CustomerList() {
   const { message } = App.useApp();
   const navigate = useNavigate();
   const actionRef = useRef<ActionType>(null);
+
+  // v4.1: 使用 usePlatformConfig Hook 获取平台名称
+  const { getPlatformNames } = usePlatformConfig();
 
   // Manual data fetching state
   const [loading, setLoading] = useState(true);
@@ -89,11 +95,12 @@ export default function CustomerList() {
     try {
       const response = await customerApi.deleteCustomer(id);
       if (response.success) {
-        message.success('删除成功');
+        message.success('客户已移至回收站，如需恢复请联系管理员');
         loadCustomers();
       }
     } catch (error) {
-      message.error('删除失败');
+      const errorMessage = error instanceof Error ? error.message : '删除失败';
+      message.error(errorMessage);
     }
   };
 
@@ -121,34 +128,41 @@ export default function CustomerList() {
     }
   };
 
-  // 渲染达人采买策略 - 表格式单行布局（极致紧凑）
+  // 渲染达人采买策略 - 表格式单行布局（v4.1: 使用动态平台名称）
   const renderTalentProcurement = (strategy: any) => {
     if (!strategy?.enabled) return null;
 
-    const platformNames: Record<string, string> = {
-      douyin: '抖音',
-      xiaohongshu: '小红书',
-      kuaishou: '快手',
-    };
+    // v4.1: 使用动态平台名称
+    const platformNames = getPlatformNames();
 
     const pricingModelNames: Record<string, string> = {
-      framework: '框架协议',
-      project: '项目制',
+      framework: '框架折扣',
+      project: '项目比价',
       hybrid: '混合模式',
     };
 
-    const enabledPlatforms = Object.entries(strategy.platformFees || {})
+    const pricingModelColors: Record<string, string> = {
+      framework: 'blue',
+      project: 'default',
+      hybrid: 'orange',
+    };
+
+    // v4.2: 兼容新旧字段名 platformPricingConfigs / platformFees
+    const savedConfigs =
+      strategy.platformPricingConfigs || strategy.platformFees || {};
+    const enabledPlatforms = Object.entries(savedConfigs)
       .filter(([_, config]: [string, any]) => config?.enabled)
       .map(([key, config]: [string, any]) => ({
-        name: platformNames[key] || key,
+        name: platformNames[key as keyof typeof platformNames] || key,
         key,
         config,
-        paymentCoefficient: strategy.paymentCoefficients?.[key],
+        pricingModel: config.pricingModel || 'framework', // v4.0: 平台级定价模式
+        quotationCoefficient: strategy.quotationCoefficients?.[key],
       }));
 
-    // 生成支付系数计算说明（完整计算步骤）
+    // 生成报价系数计算说明（完整计算步骤）
     const generateTooltipContent = (platform: any) => {
-      const { config, paymentCoefficient } = platform;
+      const { config, quotationCoefficient } = platform;
       const baseAmount = 1000; // 使用 1000 作为基数（与后端逻辑一致）
       const discountRate = config.discountRate || 0;
       const platformFeeRate = config.platformFeeRate || 0;
@@ -197,7 +211,7 @@ export default function CustomerList() {
       return (
         <div style={{ width: '340px' }}>
           <div className="text-sm font-semibold text-white mb-3 pb-2 border-b border-gray-600">
-            💡 {platform.name} - 支付系数计算
+            💡 {platform.name} - 报价系数计算
           </div>
 
           {/* 计算步骤 */}
@@ -294,26 +308,27 @@ export default function CustomerList() {
               </span>
             </div>
 
-            {config.validFrom && config.validTo && (
-              <div className="flex justify-between gap-4 text-gray-400">
-                <span className="whitespace-nowrap">有效期:</span>
-                <span className="whitespace-nowrap">
-                  {config.validFrom.substring(0, 7)} ~{' '}
-                  {config.validTo.substring(0, 7)}
-                </span>
-              </div>
-            )}
+            <div className="flex justify-between gap-4 text-gray-400">
+              <span className="whitespace-nowrap">有效期:</span>
+              <span className="whitespace-nowrap">
+                {config.isPermanent
+                  ? '长期有效'
+                  : config.validFrom && config.validTo
+                    ? `${config.validFrom.substring(0, 10)} ~ ${config.validTo.substring(0, 10)}`
+                    : '未设置'}
+              </span>
+            </div>
           </div>
 
           {/* 最终系数 */}
           <div className="border-t border-gray-600 pt-2 mt-2">
             <div className="flex justify-between items-center gap-4">
               <span className="font-semibold text-primary-300 whitespace-nowrap">
-                支付系数:
+                报价系数:
               </span>
               <div className="text-right">
                 <div className="font-bold text-primary-200 text-sm whitespace-nowrap">
-                  {paymentCoefficient?.toFixed(4) ||
+                  {quotationCoefficient?.toFixed(4) ||
                     calculatedCoefficient.toFixed(4)}
                 </div>
                 <div className="text-xs text-gray-400 whitespace-nowrap">
@@ -329,7 +344,7 @@ export default function CustomerList() {
 
     return (
       <div className="px-4 py-2.5 bg-white">
-        {/* 单行展示：标题 + 所有平台 */}
+        {/* 单行展示：标题 + 所有平台 - v4.0: 每个平台显示自己的定价模式 */}
         <div className="flex items-center gap-3 text-sm">
           {/* 标题 */}
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -340,47 +355,57 @@ export default function CustomerList() {
             <span className="font-semibold text-gray-800 text-sm">
               达人采买
             </span>
-            <Tag
-              color="blue"
-              style={{
-                fontSize: '12px',
-                lineHeight: '20px',
-                padding: '0 7px',
-                margin: 0,
-              }}
-            >
-              {pricingModelNames[strategy.pricingModel] ||
-                strategy.pricingModel}
-            </Tag>
           </div>
 
           {/* 分隔线 */}
           <div className="w-px h-4 bg-gray-300 flex-shrink-0"></div>
 
-          {/* 所有平台横向排列 */}
+          {/* 所有平台横向排列 - v4.0: 显示平台级定价模式和系数 */}
           <div className="flex items-center gap-5 flex-1">
-            {enabledPlatforms.map(platform => (
-              <div key={platform.key} className="flex items-center gap-2">
-                <span className="text-gray-600 text-sm font-medium">
-                  {platform.name}
-                </span>
-                <Popover
-                  content={generateTooltipContent(platform)}
-                  placement="top"
-                  trigger="hover"
-                  overlayStyle={{ padding: 0 }}
-                  overlayInnerStyle={{
-                    padding: '12px',
-                    backgroundColor: '#1f2937',
-                    borderRadius: '6px',
-                  }}
-                >
-                  <span className="font-bold text-primary-600 cursor-help border-b border-dashed border-primary-300 text-sm">
-                    {platform.paymentCoefficient?.toFixed(4) || '-'}
+            {enabledPlatforms.map(platform => {
+              const isProjectMode = platform.pricingModel === 'project';
+              return (
+                <div key={platform.key} className="flex items-center gap-2">
+                  <span className="text-gray-600 text-sm font-medium">
+                    {platform.name}
                   </span>
-                </Popover>
-              </div>
-            ))}
+                  <Tag
+                    color={
+                      pricingModelColors[platform.pricingModel] || 'default'
+                    }
+                    style={{
+                      fontSize: '11px',
+                      lineHeight: '18px',
+                      padding: '0 5px',
+                      margin: 0,
+                    }}
+                  >
+                    {pricingModelNames[platform.pricingModel] ||
+                      platform.pricingModel}
+                  </Tag>
+                  {/* 只有 framework/hybrid 模式才显示系数 */}
+                  {!isProjectMode && (
+                    <Popover
+                      content={generateTooltipContent(platform)}
+                      placement="top"
+                      trigger="hover"
+                      styles={{
+                        root: { padding: 0 },
+                        body: {
+                          padding: '12px',
+                          backgroundColor: '#1f2937',
+                          borderRadius: '6px',
+                        },
+                      }}
+                    >
+                      <span className="font-bold text-primary-600 cursor-help border-b border-dashed border-primary-300 text-sm">
+                        {platform.quotationCoefficient?.toFixed(4) || '-'}
+                      </span>
+                    </Popover>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -673,7 +698,7 @@ export default function CustomerList() {
           );
         }
 
-        // 普通客户：显示价格、编辑、删除
+        // 普通客户：显示策略、编辑、删除
         return (
           <Space size="small">
             <Button
@@ -681,10 +706,12 @@ export default function CustomerList() {
               size="small"
               icon={<DollarOutlined />}
               onClick={() =>
-                navigate(`/customers/${record._id || record.code}/pricing`)
+                navigate(
+                  `/customers/${record._id || record.code}/business-strategies`
+                )
               }
             >
-              价格
+              策略
             </Button>
             <Button
               type="link"
@@ -697,9 +724,10 @@ export default function CustomerList() {
               编辑
             </Button>
             <Popconfirm
-              title="确定删除？"
+              title="确定删除该客户？"
+              description="删除后客户将移至回收站，相关数据会保留"
               onConfirm={() => handleDelete(record._id || record.code)}
-              okText="确定"
+              okText="确定删除"
               cancelText="取消"
             >
               <Button type="link" size="small" danger icon={<DeleteOutlined />}>

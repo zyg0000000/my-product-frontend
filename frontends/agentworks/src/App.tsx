@@ -185,8 +185,13 @@ function App() {
                   <Route path="customers/edit/:id" element={<CustomerForm />} />
                   <Route path="customers/:id" element={<CustomerDetail />} />
                   <Route
-                    path="customers/:id/pricing"
+                    path="customers/:id/business-strategies"
                     element={<PricingStrategy />}
+                  />
+                  {/* 兼容旧路由，重定向到新路径 */}
+                  <Route
+                    path="customers/:id/pricing"
+                    element={<Navigate to="../business-strategies" replace />}
                   />
 
                   {/* 其他模块 */}

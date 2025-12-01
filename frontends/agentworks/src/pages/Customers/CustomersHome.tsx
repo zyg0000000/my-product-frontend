@@ -27,7 +27,7 @@ export function CustomersHome() {
     },
     {
       name: '价格策略',
-      description: '配置客户价格策略和支付系数',
+      description: '配置客户价格策略和报价系数',
       icon: CalculatorOutlined,
       path: '/customers/pricing',
       color: 'bg-green-500',

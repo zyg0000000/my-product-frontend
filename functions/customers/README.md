@@ -75,7 +75,7 @@ GET /customers?id=:id
           "douyin": { "enabled": true, "rate": 0.05 },
           "xiaohongshu": { "enabled": true, "rate": 0.10 }
         },
-        "paymentCoefficients": {
+        "quotationCoefficients": {
           "douyin": 1.155,
           "xiaohongshu": 1.21
         }

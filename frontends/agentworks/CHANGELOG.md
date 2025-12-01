@@ -732,7 +732,7 @@ mongosh agentworks_db --file database/agentworks_db/scripts/fix-update-date-to-s
 
 #### 后端修复 (functions/customers/index.js)
 - **NaN 问题根治**
-  - 修复后端计算逻辑缺失税费导致 `paymentCoefficients` 保存为 NaN
+  - 修复后端计算逻辑缺失税费导致 `quotationCoefficients` 保存为 NaN
   - 添加完整的税费计算逻辑（支持含税/不含税两种模式）
   - 严格校验系数有效性，防止 NaN 和异常值 (0 < coefficient < 10)
 

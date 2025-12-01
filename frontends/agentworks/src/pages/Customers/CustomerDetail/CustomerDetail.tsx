@@ -38,6 +38,7 @@ import {
 } from '../../../types/customer';
 import { PageTransition } from '../../../components/PageTransition';
 import { TalentPoolTab } from './TalentPoolTab';
+import { PricingTab } from './PricingTab';
 import { logger } from '../../../utils/logger';
 
 /**
@@ -101,7 +102,9 @@ export function CustomerDetail() {
   if (loading || platformLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Spin size="large" tip="加载中..." />
+        <Spin size="large" tip="加载中...">
+          <div className="p-12" />
+        </Spin>
       </div>
     );
   }
@@ -177,14 +180,11 @@ export function CustomerDetail() {
         </span>
       ),
       children: (
-        <div className="py-8 text-center">
-          <Button
-            type="primary"
-            onClick={() => navigate(`/customers/${id}/pricing`)}
-          >
-            查看价格策略配置
-          </Button>
-        </div>
+        <PricingTab
+          customer={customer}
+          platform={activePlatform}
+          onUpdate={() => loadCustomer(id!)}
+        />
       ),
     },
     {
@@ -211,6 +211,7 @@ export function CustomerDetail() {
         {/* 返回按钮和标题 */}
         <div className="flex items-center gap-4">
           <Button
+            type="default"
             icon={<ArrowLeftOutlined />}
             onClick={() => navigate('/customers/list')}
           >
@@ -270,7 +271,7 @@ export function CustomerDetail() {
         </Card>
 
         {/* 平台 Tab 切换 */}
-        <Card className="shadow-sm" bodyStyle={{ padding: 0 }}>
+        <Card className="shadow-sm" styles={{ body: { padding: 0 } }}>
           <Tabs
             activeKey={activePlatform}
             onChange={key => setActivePlatform(key as Platform)}

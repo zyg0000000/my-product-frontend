@@ -1,7 +1,19 @@
 /**
- * [生产版 v3.0 - 客户管理 RESTful API]
+ * [生产版 v4.2 - 客户管理 RESTful API]
  * 云函数：customers
  * 描述：统一的客户管理 RESTful API，支持客户信息的增删改查和价格策略配置
+ *
+ * --- v4.2 更新日志 (2025-12-02) 🎉 字段重命名 ---
+ * - [重命名] platformFees -> platformPricingConfigs（更准确表达含义）
+ * - [兼容] 读取时优先使用 platformPricingConfigs，回退到 platformFees
+ * - [兼容] 写入时使用新字段名 platformPricingConfigs
+ * ---------------------
+ *
+ * --- v4.0 更新日志 (2025-12-01) 🎉 架构升级 ---
+ * - [重大变更] 每个平台独立定价模式（framework/project/hybrid）
+ * - [数据结构] 移除全局 pricingModel，改为 platformPricingConfigs 内各平台独立设置
+ * - [简化] 移除全局 discount/serviceFee/tax，配置全部在平台级
+ * ---------------------
  *
  * --- v3.0 更新日志 (2025-11-23) 🎉 关键修复 ---
  * - [BUG修复] 修复后端计算逻辑缺失税费导致的 NaN 问题
@@ -218,15 +230,15 @@ async function getCustomerById(id) {
       return errorResponse(404, '客户不存在');
     }
 
-    // v3.0: 不再重新计算支付系数，直接返回数据库中的值
+    // v3.0: 不再重新计算报价系数，直接返回数据库中的值
     // 理由：
-    // 1. 数据库中的 paymentCoefficients 是前端经过严格校验后保存的
+    // 1. 数据库中的 quotationCoefficients 是前端经过严格校验后保存的
     // 2. 重新计算可能因为数据结构不一致导致错误结果
     // 3. 保持数据的真实性，返回实际保存的值
 
     // 已注释：
     // if (customer.businessStrategies?.talentProcurement?.enabled) {
-    //   customer.businessStrategies.talentProcurement.paymentCoefficients =
+    //   customer.businessStrategies.talentProcurement.quotationCoefficients =
     //     calculateAllCoefficients(customer.businessStrategies.talentProcurement);
     // }
 
@@ -254,9 +266,12 @@ async function createCustomer(body, headers = {}) {
     const db = client.db(getDbName());
     const collection = db.collection('customers');
 
-    // 检查名称是否重复
+    // 检查名称是否重复（包括已删除的客户，确保名称全局唯一）
     const existing = await collection.findOne({ name: customerData.name });
     if (existing) {
+      if (existing.status === 'deleted') {
+        return errorResponse(400, '该客户名称已在回收站中，请联系管理员恢复客户或使用其他名称');
+      }
       return errorResponse(400, '客户名称已存在');
     }
 
@@ -320,7 +335,7 @@ async function updateCustomer(id, body, headers = {}) {
       return errorResponse(404, '客户不存在');
     }
 
-    // 如果修改名称，检查是否重复
+    // 如果修改名称，检查是否重复（包括已删除的客户，确保名称全局唯一）
     if (updateData.name && updateData.name !== existingCustomer.name) {
       const duplicate = await collection.findOne({
         name: updateData.name,
@@ -328,6 +343,9 @@ async function updateCustomer(id, body, headers = {}) {
       });
 
       if (duplicate) {
+        if (duplicate.status === 'deleted') {
+          return errorResponse(400, '该客户名称已在回收站中，请联系管理员恢复客户或使用其他名称');
+        }
         return errorResponse(400, '客户名称已存在');
       }
     }
@@ -352,7 +370,7 @@ async function updateCustomer(id, body, headers = {}) {
 
     // 已注释：
     // if (fieldsToUpdate.businessStrategies?.talentProcurement?.enabled) {
-    //   fieldsToUpdate.businessStrategies.talentProcurement.paymentCoefficients =
+    //   fieldsToUpdate.businessStrategies.talentProcurement.quotationCoefficients =
     //     calculateAllCoefficients(fieldsToUpdate.businessStrategies.talentProcurement);
     // }
 
@@ -491,17 +509,33 @@ async function generateCustomerCode(collection) {
 }
 
 /**
- * 获取默认业务策略（v2.0 支持平台级折扣率）
+ * 获取默认业务策略（v4.2 使用 platformPricingConfigs）
+ *
+ * v4.2 变更：
+ * - 字段重命名 platformFees -> platformPricingConfigs
+ *
+ * v4.0 变更：
+ * - 移除全局 pricingModel，改为每个平台独立设置
+ * - 移除全局 discount/serviceFee/tax 配置，全部移到平台级
+ * - 每个平台默认 pricingModel: 'framework'
  */
 function getDefaultBusinessStrategies() {
-  // 动态生成 platformFees，支持所有已配置的平台
-  const platformFees = {};
+  // v4.2: 动态生成 platformPricingConfigs，支持所有已配置的平台
+  const platformPricingConfigs = {};
   TALENT_PLATFORMS.forEach(platform => {
     if (platform.fee !== null) {
-      platformFees[platform.key] = {
+      platformPricingConfigs[platform.key] = {
         enabled: false,
+        pricingModel: 'framework', // v4.0: 每个平台独立定价模式
         platformFeeRate: platform.fee,
-        discountRate: 1.0  // v2.0: 默认平台级折扣率100%（无折扣）
+        discountRate: 1.0,
+        serviceFeeRate: 0,
+        validFrom: null,
+        validTo: null,
+        includesPlatformFee: false,
+        serviceFeeBase: 'beforeDiscount',
+        includesTax: true,
+        taxCalculationBase: 'excludeServiceFee'
       };
     }
   });
@@ -509,34 +543,15 @@ function getDefaultBusinessStrategies() {
   return {
     talentProcurement: {
       enabled: false,
-      pricingModel: 'framework',
-      discount: {
-        rate: 1.0,
-        includesPlatformFee: false,
-        validFrom: null,
-        validTo: null
-      },
-      serviceFee: {
-        rate: 0,
-        calculationBase: 'beforeDiscount'
-      },
-      tax: {
-        rate: 0.06,
-        includesTax: true,
-        calculationBase: 'excludeServiceFee'
-      },
-      platformFees,
-      dimensions: {
-        byPlatform: true,
-        byTalentLevel: false,
-        byContentType: false
-      }
+      // v4.2: 使用新字段名 platformPricingConfigs
+      platformPricingConfigs,
+      quotationCoefficients: {}
     }
   };
 }
 
 /**
- * 计算所有平台的支付系数（v2.0 支持平台级折扣率 + v3.0 支持平台级独立配置）
+ * 计算所有平台的报价系数（v4.2 兼容新旧字段名）
  *
  * 注意：v3.0 后此函数仅用于：
  * 1. 数据验证：验证前端传递的系数是否正确
@@ -548,8 +563,10 @@ function getDefaultBusinessStrategies() {
 function calculateAllCoefficients(strategy) {
   const coefficients = {};
 
+  // v4.2: 兼容新旧字段名
+  const platformConfigs = strategy.platformPricingConfigs || strategy.platformFees || {};
   // 动态支持所有平台
-  Object.entries(strategy.platformFees || {}).forEach(([platform, platformConfig]) => {
+  Object.entries(platformConfigs).forEach(([platform, platformConfig]) => {
     if (platformConfig?.enabled) {
       // v3.0: 优先使用平台级配置，回退到全局配置
       const platformFeeRate = platformConfig.platformFeeRate || platformConfig.rate || 0;
