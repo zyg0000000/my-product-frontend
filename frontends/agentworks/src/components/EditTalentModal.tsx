@@ -306,9 +306,13 @@ export function EditTalentModal({
               tooltip="输入标签后按回车添加，或点击下方常用标签快速添加"
             >
               <TagInput
-                selectedTags={formRef.current?.getFieldValue?.('talentType') || []}
+                selectedTags={
+                  formRef.current?.getFieldValue?.('talentType') || []
+                }
                 availableTags={availableTags}
-                onChange={tags => formRef.current?.setFieldValue?.('talentType', tags)}
+                onChange={tags =>
+                  formRef.current?.setFieldValue?.('talentType', tags)
+                }
                 placeholder="输入分类标签后按回车，如：美妆、时尚等"
                 onError={msg => message.warning(msg)}
               />

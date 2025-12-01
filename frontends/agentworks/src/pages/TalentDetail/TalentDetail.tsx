@@ -160,7 +160,10 @@ export function TalentDetail() {
   };
 
   // 保存价格
-  const handleSavePrice = async (_talentOneId: string, prices: PriceRecord[]) => {
+  const handleSavePrice = async (
+    _talentOneId: string,
+    prices: PriceRecord[]
+  ) => {
     if (!talent) return;
     try {
       await updateTalent({

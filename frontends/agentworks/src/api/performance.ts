@@ -408,7 +408,13 @@ export async function getTalentPerformanceHistory(
  * 列表查询表现数据（分页）
  */
 export async function listTalentPerformance(query: TalentPerformanceQuery) {
-  return get('/talent-performance', query as unknown as Record<string, string | number | boolean | undefined | null>);
+  return get(
+    '/talent-performance',
+    query as unknown as Record<
+      string,
+      string | number | boolean | undefined | null
+    >
+  );
 }
 
 /**

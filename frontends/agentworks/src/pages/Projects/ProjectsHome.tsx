@@ -1,46 +1,463 @@
 /**
- * 项目管理模块首页
+ * 项目管理工作台
+ * 本月概览、需要关注、本周待发布、最近项目
  */
 
-import { FolderIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Card,
+  Row,
+  Col,
+  Statistic,
+  List,
+  Tag,
+  Button,
+  Badge,
+  Space,
+  Spin,
+  Empty,
+  App,
+  Progress,
+} from 'antd';
+import {
+  PlusOutlined,
+  FolderOutlined,
+  ClockCircleOutlined,
+  WarningOutlined,
+  CalendarOutlined,
+  RightOutlined,
+  DollarOutlined,
+} from '@ant-design/icons';
 import { PageTransition } from '../../components/PageTransition';
-import { motion } from 'framer-motion';
+import { projectApi } from '../../services/projectApi';
+import type { ProjectListItem, DashboardOverview } from '../../types/project';
+import {
+  PROJECT_STATUS_COLORS,
+  formatMoney,
+  calculateProgress,
+} from '../../types/project';
+import { PLATFORM_NAMES, type Platform } from '../../types/talent';
+import { ProjectFormModal } from './ProjectList/ProjectFormModal';
+import { logger } from '../../utils/logger';
+
+/**
+ * 平台标签颜色
+ */
+const PLATFORM_COLORS: Record<Platform, string> = {
+  douyin: 'blue',
+  xiaohongshu: 'red',
+  bilibili: 'cyan',
+  kuaishou: 'orange',
+};
 
 export function ProjectsHome() {
+  const navigate = useNavigate();
+  const { message } = App.useApp();
+
+  // 数据状态
+  const [loading, setLoading] = useState(true);
+  const [overview, setOverview] = useState<DashboardOverview | null>(null);
+  const [recentProjects, setRecentProjects] = useState<ProjectListItem[]>([]);
+  const [weeklySchedule, setWeeklySchedule] = useState<
+    Array<{
+      date: string;
+      collaborations: Array<{
+        id: string;
+        talentName: string;
+        projectName: string;
+      }>;
+    }>
+  >([]);
+
+  // 弹窗状态
+  const [formModalOpen, setFormModalOpen] = useState(false);
+
+  /**
+   * 加载工作台数据
+   */
+  const loadDashboard = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      // 并行加载数据
+      const [dashboardRes, projectsRes] = await Promise.all([
+        projectApi.getDashboard(),
+        projectApi.getProjects({ page: 1, pageSize: 8 }),
+      ]);
+
+      if (dashboardRes.success && dashboardRes.data) {
+        setOverview(dashboardRes.data);
+        setWeeklySchedule(dashboardRes.data.weeklySchedule || []);
+      }
+
+      if (projectsRes.success) {
+        setRecentProjects(projectsRes.data.items);
+      }
+    } catch (error) {
+      logger.error('Error loading dashboard:', error);
+      message.error('加载工作台数据失败');
+    } finally {
+      setLoading(false);
+    }
+  }, [message]);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
+
+  /**
+   * 新建项目成功回调
+   */
+  const handleCreateSuccess = () => {
+    setFormModalOpen(false);
+    loadDashboard();
+  };
+
+  /**
+   * 格式化日期为周几
+   */
+  const formatWeekday = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    return weekdays[date.getDay()];
+  };
+
+  /**
+   * 格式化日期显示
+   */
+  const formatDateDisplay = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    return `${date.getMonth() + 1}/${date.getDate()} ${formatWeekday(dateStr)}`;
+  };
+
+  if (loading) {
+    return (
+      <PageTransition>
+        <div className="min-h-screen flex items-center justify-center">
+          <Spin size="large" tip="加载中..." />
+        </div>
+      </PageTransition>
+    );
+  }
+
+  const monthlyOverview = overview?.monthlyOverview || {
+    executingCount: 0,
+    pendingSettlementCount: 0,
+    totalRevenue: 0,
+    profitRate: 0,
+  };
+
+  const alerts = overview?.alerts || [];
+
   return (
     <PageTransition>
       <div className="space-y-6">
-        {/* 页面标题 */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">项目管理</h1>
-          <p className="mt-2 text-lg text-gray-600">
-            管理广告投放项目，跟踪项目执行和效果
-          </p>
+        {/* 页面标题和操作 */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">项目工作台</h1>
+            <p className="mt-1 text-sm text-gray-600">本月项目概览与待办事项</p>
+          </div>
+          <Space>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setFormModalOpen(true)}
+            >
+              新建项目
+            </Button>
+            <Button onClick={() => navigate('/projects/list')}>
+              查看全部项目
+            </Button>
+          </Space>
         </div>
 
-        {/* 开发中提示 */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-          className="card"
-        >
-          <div className="text-center py-12">
-            <motion.div
-              initial={{ rotate: -10, scale: 0.8 }}
-              animate={{ rotate: 0, scale: 1 }}
-              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+        {/* 本月概览 */}
+        <Row gutter={16}>
+          <Col xs={24} sm={12} md={6}>
+            <Card
+              hoverable
+              onClick={() => navigate('/projects/list?status=执行中')}
             >
-              <FolderIcon className="mx-auto h-16 w-16 text-gray-400" />
-            </motion.div>
-            <h3 className="mt-4 text-lg font-semibold text-gray-900">
-              功能开发中
-            </h3>
-            <p className="mt-2 text-gray-600">
-              项目管理模块正在开发中，敬请期待
-            </p>
-          </div>
-        </motion.div>
+              <Statistic
+                title="执行中项目"
+                value={monthlyOverview.executingCount}
+                prefix={<FolderOutlined />}
+                valueStyle={{ color: '#1890ff' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card
+              hoverable
+              onClick={() => navigate('/projects/list?status=待结算')}
+            >
+              <Statistic
+                title="待结算项目"
+                value={monthlyOverview.pendingSettlementCount}
+                prefix={<ClockCircleOutlined />}
+                valueStyle={{
+                  color:
+                    monthlyOverview.pendingSettlementCount > 0
+                      ? '#faad14'
+                      : '#8c8c8c',
+                }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title="本月收入"
+                value={monthlyOverview.totalRevenue / 100}
+                prefix={<DollarOutlined />}
+                precision={2}
+                suffix="元"
+                valueStyle={{ color: '#52c41a' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <div className="flex flex-col items-center">
+                <div className="text-gray-500 mb-2">利润率</div>
+                <Progress
+                  type="circle"
+                  percent={monthlyOverview.profitRate}
+                  size={80}
+                  strokeColor={
+                    monthlyOverview.profitRate >= 20 ? '#52c41a' : '#faad14'
+                  }
+                  format={p => `${p}%`}
+                />
+              </div>
+            </Card>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          {/* 需要关注 */}
+          <Col xs={24} lg={12}>
+            <Card
+              title={
+                <span className="flex items-center gap-2">
+                  <WarningOutlined className="text-orange-500" />
+                  需要关注
+                  {alerts.length > 0 && (
+                    <Badge count={alerts.length} size="small" />
+                  )}
+                </span>
+              }
+              extra={
+                <Button
+                  type="link"
+                  size="small"
+                  onClick={() => navigate('/projects/list')}
+                >
+                  查看全部
+                </Button>
+              }
+              className="h-full"
+            >
+              {alerts.length > 0 ? (
+                <List
+                  size="small"
+                  dataSource={alerts.slice(0, 5)}
+                  renderItem={item => (
+                    <List.Item
+                      className="cursor-pointer hover:bg-gray-50 -mx-3 px-3"
+                      onClick={() => navigate(`/projects/${item.projectId}`)}
+                    >
+                      <div className="flex items-center gap-3 w-full">
+                        <Tag
+                          color={
+                            item.type === 'delay'
+                              ? 'error'
+                              : item.type === 'budget_exceeded'
+                                ? 'warning'
+                                : 'default'
+                          }
+                        >
+                          {item.type === 'delay'
+                            ? '延期'
+                            : item.type === 'budget_exceeded'
+                              ? '超预算'
+                              : '长期待处理'}
+                        </Tag>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium truncate">
+                            {item.projectName}
+                          </div>
+                          <div className="text-xs text-gray-500 truncate">
+                            {item.message}
+                          </div>
+                        </div>
+                        <RightOutlined className="text-gray-400" />
+                      </div>
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                <Empty
+                  description="暂无预警"
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  className="py-8"
+                />
+              )}
+            </Card>
+          </Col>
+
+          {/* 本周待发布 */}
+          <Col xs={24} lg={12}>
+            <Card
+              title={
+                <span className="flex items-center gap-2">
+                  <CalendarOutlined className="text-blue-500" />
+                  本周待发布
+                </span>
+              }
+              className="h-full"
+            >
+              {weeklySchedule.length > 0 ? (
+                <div className="space-y-4">
+                  {weeklySchedule.slice(0, 5).map(day => (
+                    <div key={day.date}>
+                      <div className="text-sm font-medium text-gray-700 mb-2">
+                        {formatDateDisplay(day.date)}
+                        <Badge
+                          count={day.collaborations.length}
+                          size="small"
+                          className="ml-2"
+                          style={{ backgroundColor: '#1890ff' }}
+                        />
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {day.collaborations.slice(0, 4).map(collab => (
+                          <Tag key={collab.id} className="mb-1">
+                            {collab.talentName}
+                          </Tag>
+                        ))}
+                        {day.collaborations.length > 4 && (
+                          <Tag className="mb-1">
+                            +{day.collaborations.length - 4} 更多
+                          </Tag>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <Empty
+                  description="本周暂无待发布"
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  className="py-8"
+                />
+              )}
+            </Card>
+          </Col>
+        </Row>
+
+        {/* 最近项目 */}
+        <Card
+          title={
+            <span className="flex items-center gap-2">
+              <FolderOutlined className="text-primary-500" />
+              最近项目
+            </span>
+          }
+          extra={
+            <Button
+              type="link"
+              size="small"
+              onClick={() => navigate('/projects/list')}
+            >
+              查看全部 <RightOutlined />
+            </Button>
+          }
+        >
+          {recentProjects.length > 0 ? (
+            <Row gutter={[16, 16]}>
+              {recentProjects.map(project => {
+                const progress = calculateProgress(project.stats);
+                return (
+                  <Col xs={24} sm={12} md={8} lg={6} key={project.id}>
+                    <Card
+                      size="small"
+                      hoverable
+                      className="h-full"
+                      onClick={() => navigate(`/projects/${project.id}`)}
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="font-medium text-gray-900 truncate flex-1 pr-2">
+                            {project.name}
+                          </div>
+                          <Tag
+                            color={PROJECT_STATUS_COLORS[project.status]}
+                            className="shrink-0"
+                          >
+                            {project.status}
+                          </Tag>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {project.customerName || project.customerId}
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {project.platforms.map(p => (
+                            <Tag
+                              key={p}
+                              color={PLATFORM_COLORS[p]}
+                              className="text-xs"
+                            >
+                              {PLATFORM_NAMES[p]}
+                            </Tag>
+                          ))}
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-gray-500">
+                            {project.year}年{project.month}月
+                          </span>
+                          <span className="font-medium">
+                            {formatMoney(project.budget)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Progress
+                            percent={progress}
+                            size="small"
+                            className="flex-1"
+                            strokeColor={
+                              progress === 100 ? '#52c41a' : undefined
+                            }
+                          />
+                          <span className="text-xs text-gray-500">
+                            {project.stats?.publishedCount || 0}/
+                            {project.stats?.collaborationCount || 0}
+                          </span>
+                        </div>
+                      </div>
+                    </Card>
+                  </Col>
+                );
+              })}
+            </Row>
+          ) : (
+            <Empty description="暂无项目" image={Empty.PRESENTED_IMAGE_SIMPLE}>
+              <Button type="primary" onClick={() => setFormModalOpen(true)}>
+                创建第一个项目
+              </Button>
+            </Empty>
+          )}
+        </Card>
+
+        {/* 新建项目弹窗 */}
+        <ProjectFormModal
+          open={formModalOpen}
+          editingProject={null}
+          onCancel={() => setFormModalOpen(false)}
+          onSuccess={handleCreateSuccess}
+        />
       </div>
     </PageTransition>
   );

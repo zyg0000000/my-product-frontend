@@ -29,7 +29,13 @@ const RETRYABLE_STATUS_CODES = [408, 429, 500, 502, 503, 504];
 // ========== 类型定义 ==========
 
 /** 请求参数值类型 */
-type RequestParamValue = string | number | boolean | string[] | undefined | null;
+type RequestParamValue =
+  | string
+  | number
+  | boolean
+  | string[]
+  | undefined
+  | null;
 
 /** 请求体数据类型 - 使用泛型约束允许任意对象类型 */
 type RequestBodyData = object;

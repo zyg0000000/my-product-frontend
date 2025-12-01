@@ -22,7 +22,10 @@ export interface FilterState {
 export interface TalentFilterPanelProps {
   // 筛选状态
   filterState: FilterState;
-  onFilterChange: (key: keyof FilterState, value: FilterState[keyof FilterState]) => void;
+  onFilterChange: (
+    key: keyof FilterState,
+    value: FilterState[keyof FilterState]
+  ) => void;
 
   // 可选项数据
   availableTiers: string[];
@@ -251,7 +254,7 @@ export function TalentFilterPanel({
         tabIndex={0}
         aria-expanded={isExpanded}
         aria-label={isExpanded ? '收起筛选条件' : '展开筛选条件'}
-        onKeyDown={(e) => {
+        onKeyDown={e => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             onToggleExpand();
@@ -332,7 +335,9 @@ export function TalentFilterPanel({
                     allowClear
                     placeholder="选择客户..."
                     value={selectedCustomerId}
-                    onChange={value => onFilterChange('selectedCustomerId', value)}
+                    onChange={value =>
+                      onFilterChange('selectedCustomerId', value)
+                    }
                     options={customers.map(c => ({
                       value: c._id || c.code,
                       label: c.name,
@@ -385,7 +390,9 @@ export function TalentFilterPanel({
                       type="number"
                       placeholder="最小"
                       value={rebateMin}
-                      onChange={e => onFilterChange('rebateMin', e.target.value)}
+                      onChange={e =>
+                        onFilterChange('rebateMin', e.target.value)
+                      }
                       style={{ width: '50%' }}
                     />
                     <span className="self-center text-gray-400">-</span>
@@ -393,7 +400,9 @@ export function TalentFilterPanel({
                       type="number"
                       placeholder="最大"
                       value={rebateMax}
-                      onChange={e => onFilterChange('rebateMax', e.target.value)}
+                      onChange={e =>
+                        onFilterChange('rebateMax', e.target.value)
+                      }
                       style={{ width: '50%' }}
                     />
                   </div>

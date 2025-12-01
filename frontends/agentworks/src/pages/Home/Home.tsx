@@ -69,7 +69,10 @@ export function Home() {
                 className="group relative flex flex-col items-start rounded-lg border-2 border-gray-200 bg-white p-6 text-left transition-all hover:border-primary-500 hover:shadow-lg"
               >
                 <div className={`rounded-lg ${action.color} p-3`}>
-                  <action.icon className="h-6 w-6 text-white" aria-hidden="true" />
+                  <action.icon
+                    className="h-6 w-6 text-white"
+                    aria-hidden="true"
+                  />
                 </div>
                 <h3 className="mt-4 text-lg font-semibold text-gray-900">
                   {action.name}
@@ -108,7 +111,9 @@ export function Home() {
                     <span className="text-xs text-gray-500">2025-11-30</span>
                   </div>
                   <p className="mt-1 text-sm text-gray-600">
-                    类型安全增强、API 层重试机制、组件架构拆分、可访问性改进（WCAG AA）、console 日志清理
+                    类型安全增强、API
+                    层重试机制、组件架构拆分、可访问性改进（WCAG AA）、console
+                    日志清理
                   </p>
                 </div>
               </div>

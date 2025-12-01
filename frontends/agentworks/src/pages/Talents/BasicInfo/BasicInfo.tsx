@@ -20,7 +20,11 @@ import {
   TeamOutlined,
 } from '@ant-design/icons';
 import { logger } from '../../../utils/logger';
-import { updateTalent, deleteTalent, deleteTalentAll } from '../../../api/talent';
+import {
+  updateTalent,
+  deleteTalent,
+  deleteTalentAll,
+} from '../../../api/talent';
 import type { Talent, Platform } from '../../../types/talent';
 import { PLATFORM_NAMES } from '../../../types/talent';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';

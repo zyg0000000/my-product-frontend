@@ -43,6 +43,16 @@ const ProjectsHome = lazy(() =>
     default: m.ProjectsHome,
   }))
 );
+const ProjectList = lazy(() =>
+  import('./pages/Projects/ProjectList').then(m => ({
+    default: m.ProjectList,
+  }))
+);
+const ProjectDetail = lazy(() =>
+  import('./pages/Projects/ProjectDetail').then(m => ({
+    default: m.ProjectDetail,
+  }))
+);
 const AnalyticsHome = lazy(() =>
   import('./pages/Analytics/AnalyticsHome').then(m => ({
     default: m.AnalyticsHome,
@@ -181,7 +191,11 @@ function App() {
 
                   {/* 其他模块 */}
                   <Route path="clients" element={<ClientsHome />} />
+
+                  {/* 项目管理模块 */}
                   <Route path="projects" element={<ProjectsHome />} />
+                  <Route path="projects/list" element={<ProjectList />} />
+                  <Route path="projects/:id" element={<ProjectDetail />} />
                   <Route path="analytics" element={<AnalyticsHome />} />
                   <Route
                     path="analytics/talent-trends"

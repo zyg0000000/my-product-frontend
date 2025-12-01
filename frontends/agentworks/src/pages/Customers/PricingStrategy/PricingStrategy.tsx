@@ -257,7 +257,10 @@ export default function PricingStrategy() {
     // 构建保存数据
     const strategy = {
       enabled: true,
-      pricingModel: (values.pricingModel || 'framework') as 'framework' | 'project' | 'hybrid',
+      pricingModel: (values.pricingModel || 'framework') as
+        | 'framework'
+        | 'project'
+        | 'hybrid',
       platformFees: platformFees,
       paymentCoefficients: paymentCoefficients, // 保存计算出的支付系数（仅当前快照）
     };
@@ -588,7 +591,9 @@ export default function PricingStrategy() {
                                   ]
                                 : undefined,
                             onChange: (
-                              dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null
+                              dates:
+                                | [dayjs.Dayjs | null, dayjs.Dayjs | null]
+                                | null
                             ) => {
                               if (dates && dates[0] && dates[1]) {
                                 const validFrom = dates[0].format('YYYY-MM-DD');

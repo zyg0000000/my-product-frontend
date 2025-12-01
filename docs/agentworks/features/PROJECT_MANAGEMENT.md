@@ -1649,7 +1649,132 @@ const project = await callApi(
 
 ---
 
-**文档版本**: v1.1
+---
+
+## 十七、开发进度与待优化项
+
+### 17.1 已完成功能（Phase 1-7）
+
+| Phase | 功能 | 状态 | 完成日期 |
+|-------|------|------|----------|
+| 1 | 类型定义 + API 服务 | ✅ 完成 | 2024-12-01 |
+| 2 | 项目列表页 | ✅ 完成 | 2024-12-01 |
+| 3 | 项目详情页 + 合作达人 Tab | ✅ 完成 | 2024-12-01 |
+| 4 | 执行追踪 Tab | ✅ 完成 | 2024-12-01 |
+| 5 | 财务管理 Tab | ✅ 完成 | 2024-12-01 |
+| 6 | 效果验收 Tab | ✅ 完成 | 2024-12-01 |
+| 7 | 项目工作台 | ✅ 完成 | 2024-12-01 |
+
+### 17.2 待优化项
+
+#### 高优先级
+
+**1. 项目类型系统重构**
+- **当前状态**：`type` 字段为硬编码的单选值（ProjectFormModal.tsx 第109-113行）
+- **目标设计**：
+  - 一级类型（businessTypes）：多选，从客户 `businessStrategies` 读取
+    - talentProcurement → 达人采买
+    - adPlacement → 广告投流
+    - contentProduction → 内容制作
+  - 二级类型（labels）：客户特有标签，可选多选
+- **涉及文件**：
+  - `types/project.ts` - 添加 BusinessType 类型，移除 type，新增 businessTypes 和 labels
+  - `types/customer.ts` - 添加 projectLabels 字段（可选）
+  - `ProjectFormModal.tsx` - 业务类型改为 Checkbox.Group
+  - `ProjectList.tsx` / `ProjectDetail.tsx` - 显示调整
+
+#### 中优先级
+
+**2. 平台筛选功能**
+- 各 Tab 保留了 `platforms` 参数，待实现筛选逻辑
+- 涉及文件：CollaborationsTab、ExecutionTab、FinancialTab、EffectTab
+
+**3. 达人选择优化**
+- 当前仅支持基础搜索，可增加高级筛选
+- 涉及文件：CollaborationFormModal.tsx
+
+#### 低优先级
+
+**4. 效果数据自动同步**
+- 当前手动录入，可对接数据源自动拉取
+
+**5. 日历视图**
+- 执行追踪 Tab 的日历模式
+
+**6. 数据导出**
+- Excel 导出功能
+
+---
+
+## 十八、新对话启动提示词
+
+在新对话中继续优化项目管理模块时，可以使用以下提示词模板：
+
+### 通用模板
+
+```
+我需要继续优化 AgentWorks 项目管理模块的功能。
+
+背景：
+- 项目管理模块已完成基础开发（Phase 1-7）
+- 代码位于 frontends/agentworks/src/pages/Projects/
+- 详细文档见 docs/agentworks/features/PROJECT_MANAGEMENT.md
+
+本次优化目标：
+[描述具体要优化的功能点]
+
+请先阅读相关代码文件，然后提出修改方案。
+```
+
+### 具体任务示例
+
+#### 项目类型系统优化
+```
+我需要继续优化 AgentWorks 项目管理模块的功能。
+
+背景：
+- 项目管理模块已完成基础开发（Phase 1-7）
+- 代码位于 frontends/agentworks/src/pages/Projects/
+- 详细文档见 docs/agentworks/features/PROJECT_MANAGEMENT.md
+
+本次优化目标：将项目类型从单选改为多选业务类型
+- 一级类型（businessTypes）从客户 businessStrategies 读取，支持多选
+- 二级标签（labels）为客户特有配置，可选多选
+
+涉及文件：
+- ProjectFormModal.tsx（第109-113行有硬编码需移除）
+- types/project.ts
+- types/customer.ts（可能需要）
+
+请先阅读相关代码文件，然后提出修改方案。
+```
+
+#### 平台筛选功能
+```
+我需要继续优化 AgentWorks 项目管理模块的功能。
+
+背景：
+- 项目管理模块已完成基础开发（Phase 1-7）
+- 代码位于 frontends/agentworks/src/pages/Projects/
+- 详细文档见 docs/agentworks/features/PROJECT_MANAGEMENT.md
+
+本次优化目标：在项目详情页各 Tab 实现平台筛选功能
+- 各 Tab 已预留 platforms 参数
+- 需要在表格上方添加平台筛选器
+- 筛选后只显示对应平台的合作记录
+
+涉及文件：
+- CollaborationsTab.tsx
+- ExecutionTab.tsx
+- FinancialTab.tsx
+- EffectTab.tsx
+
+请先阅读相关代码文件，然后提出修改方案。
+```
+
+---
+
+**文档版本**: v1.2
 **创建日期**: 2025-11-30
-**最后更新**: 2025-11-30
+**最后更新**: 2024-12-01
 **维护团队**: AgentWorks Team

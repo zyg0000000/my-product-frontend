@@ -47,7 +47,12 @@ const navigation: NavItem[] = [
     icon: BuildingOfficeIcon,
     children: [{ name: '客户列表', path: '/customers/list' }],
   },
-  { name: '项目管理', path: '/projects', icon: FolderIcon },
+  {
+    name: '项目管理',
+    path: '/projects',
+    icon: FolderIcon,
+    children: [{ name: '项目列表', path: '/projects/list' }],
+  },
   {
     name: '数据分析',
     path: '/analytics',
@@ -70,6 +75,7 @@ export function Sidebar() {
   const [expandedMenus, setExpandedMenus] = useState<string[]>([
     '达人管理',
     '客户管理',
+    '项目管理',
     '数据分析',
     '系统设置',
   ]);
@@ -175,7 +181,11 @@ export function Sidebar() {
                           ? 'text-primary-500 hover:bg-primary-100'
                           : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
                       }`}
-                      aria-label={isExpanded ? `收起${item.name}子菜单` : `展开${item.name}子菜单`}
+                      aria-label={
+                        isExpanded
+                          ? `收起${item.name}子菜单`
+                          : `展开${item.name}子菜单`
+                      }
                       aria-expanded={isExpanded}
                     >
                       <ChevronDownIcon

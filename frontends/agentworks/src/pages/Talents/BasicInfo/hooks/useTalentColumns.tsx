@@ -18,15 +18,27 @@ import {
 import type { Talent, Platform, PriceType } from '../../../../types/talent';
 import type { Agency } from '../../../../types/agency';
 import { AGENCY_INDIVIDUAL_ID } from '../../../../types/agency';
-import { formatPrice, formatRebate, getLatestPricesMap } from '../../../../utils/formatters';
-import type { TalentTierConfig, LinkConfig } from '../../../../api/platformConfig';
+import {
+  formatPrice,
+  formatRebate,
+  getLatestPricesMap,
+} from '../../../../utils/formatters';
+import type {
+  TalentTierConfig,
+  LinkConfig,
+} from '../../../../api/platformConfig';
 
 export interface UseTalentColumnsOptions {
   platform: Platform;
   selectedPriceTier: string | null;
   agencies: Agency[];
   getTalentTiers: (platform: Platform) => TalentTierConfig[];
-  getPlatformConfigByKey: (platform: Platform) => { links?: LinkConfig[] | null; link?: { template: string; idField: string } | null } | undefined;
+  getPlatformConfigByKey: (platform: Platform) =>
+    | {
+        links?: LinkConfig[] | null;
+        link?: { template: string; idField: string } | null;
+      }
+    | undefined;
   onMenuClick: (key: string, record: Talent) => void;
 }
 
@@ -338,7 +350,14 @@ export function useTalentColumns({
         ),
       },
     ],
-    [platform, selectedPriceTier, getAgencyName, getPlatformLinks, getTalentTiers, onMenuClick]
+    [
+      platform,
+      selectedPriceTier,
+      getAgencyName,
+      getPlatformLinks,
+      getTalentTiers,
+      onMenuClick,
+    ]
   );
 
   return columns;

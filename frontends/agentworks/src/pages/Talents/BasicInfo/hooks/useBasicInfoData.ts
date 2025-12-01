@@ -18,7 +18,9 @@ interface UseBasicInfoDataProps {
   selectedPlatform: Platform;
   configLoading: boolean;
   platformsLength: number;
-  getPlatformPriceTypes: (platform: Platform) => { key: string; label: string }[];
+  getPlatformPriceTypes: (
+    platform: Platform
+  ) => { key: string; label: string }[];
 }
 
 interface UseBasicInfoDataReturn {
@@ -37,7 +39,10 @@ interface UseBasicInfoDataReturn {
   // 筛选
   filterState: FilterState;
   setFilterState: React.Dispatch<React.SetStateAction<FilterState>>;
-  handleFilterChange: (key: keyof FilterState, value: FilterState[keyof FilterState]) => void;
+  handleFilterChange: (
+    key: keyof FilterState,
+    value: FilterState[keyof FilterState]
+  ) => void;
   handleResetFilters: () => void;
   handleSearch: () => void;
 
@@ -85,15 +90,18 @@ export function useBasicInfoData({
   const [currentPage, setCurrentPage] = useState(1);
 
   // 筛选状态
-  const [filterState, setFilterState] = useState<FilterState>(initialFilterState);
+  const [filterState, setFilterState] =
+    useState<FilterState>(initialFilterState);
 
   // 价格档位状态
-  const [selectedPriceTier, setSelectedPriceTier] = useState<string | null>(() => {
-    const platformPriceTypes = getPlatformPriceTypes(selectedPlatform);
-    return platformPriceTypes && platformPriceTypes.length > 0
-      ? platformPriceTypes[0].key
-      : null;
-  });
+  const [selectedPriceTier, setSelectedPriceTier] = useState<string | null>(
+    () => {
+      const platformPriceTypes = getPlatformPriceTypes(selectedPlatform);
+      return platformPriceTypes && platformPriceTypes.length > 0
+        ? platformPriceTypes[0].key
+        : null;
+    }
+  );
 
   // 批量选择状态
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);

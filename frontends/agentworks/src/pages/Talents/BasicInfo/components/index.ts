@@ -1,1 +1,5 @@
-export { TalentFilterPanel, type FilterState, type TalentFilterPanelProps } from './TalentFilterPanel';
+export {
+  TalentFilterPanel,
+  type FilterState,
+  type TalentFilterPanelProps,
+} from './TalentFilterPanel';
