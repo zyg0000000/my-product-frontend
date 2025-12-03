@@ -247,15 +247,18 @@ export function TalentSelectorModal({
       }
     >
       {/* 搜索框 */}
-      <div className="mb-4">
-        <Input.Search
+      <div className="mb-4 flex gap-2">
+        <Input
           placeholder="搜索达人昵称..."
           value={searchValue}
           onChange={e => setSearchValue(e.target.value)}
-          onSearch={handleSearch}
-          enterButton={<SearchOutlined />}
+          onPressEnter={handleSearch}
           allowClear
+          className="flex-1"
         />
+        <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+          搜索
+        </Button>
       </div>
 
       {/* 达人列表 */}

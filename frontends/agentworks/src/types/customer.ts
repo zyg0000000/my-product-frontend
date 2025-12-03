@@ -120,6 +120,7 @@ export interface Customer {
   updatedAt?: Date;
   createdBy?: string;
   updatedBy?: string;
+  deletedAt?: Date; // 软删除时间
 }
 
 // 创建客户请求

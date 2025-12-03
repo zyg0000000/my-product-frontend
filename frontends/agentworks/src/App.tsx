@@ -58,6 +58,11 @@ const AnalyticsHome = lazy(() =>
     default: m.AnalyticsHome,
   }))
 );
+const TalentPanorama = lazy(() =>
+  import('./pages/Analytics/TalentPanorama').then(m => ({
+    default: m.TalentPanorama,
+  }))
+);
 const SettingsHome = lazy(() =>
   import('./pages/Settings/SettingsHome').then(m => ({
     default: m.SettingsHome,
@@ -81,6 +86,11 @@ const PerformanceConfig = lazy(() =>
 const PlatformConfig = lazy(() =>
   import('./pages/Settings/PlatformConfig').then(m => ({
     default: m.PlatformConfig,
+  }))
+);
+const TagManagement = lazy(() =>
+  import('./pages/Settings/TagManagement').then(m => ({
+    default: m.TagManagement,
   }))
 );
 const CustomersHome = lazy(() =>
@@ -203,6 +213,10 @@ function App() {
                   <Route path="projects/:id" element={<ProjectDetail />} />
                   <Route path="analytics" element={<AnalyticsHome />} />
                   <Route
+                    path="analytics/talent-panorama"
+                    element={<TalentPanorama />}
+                  />
+                  <Route
                     path="analytics/talent-trends"
                     element={<PerformanceAnalytics />}
                   />
@@ -231,6 +245,10 @@ function App() {
                   <Route
                     path="settings/platform-config"
                     element={<PlatformConfig />}
+                  />
+                  <Route
+                    path="settings/tag-management"
+                    element={<TagManagement />}
                   />
 
                   <Route path="*" element={<Navigate to="/" replace />} />

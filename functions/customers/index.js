@@ -1,7 +1,12 @@
 /**
- * [生产版 v4.2 - 客户管理 RESTful API]
+ * [生产版 v4.3 - 客户管理 RESTful API]
  * 云函数：customers
  * 描述：统一的客户管理 RESTful API，支持客户信息的增删改查和价格策略配置
+ *
+ * --- v4.3 更新日志 (2025-12-02) 🔒 权限预留 ---
+ * - [新增] 权限预留字段：organizationId, departmentId
+ * - [说明] 为后续权限系统做准备，当前仅存储不做过滤
+ * ---------------------
  *
  * --- v4.2 更新日志 (2025-12-02) 🎉 字段重命名 ---
  * - [重命名] platformFees -> platformPricingConfigs（更准确表达含义）
@@ -290,7 +295,10 @@ async function createCustomer(body, headers = {}) {
       createdAt: new Date(),
       updatedAt: new Date(),
       createdBy: headers['user-id'] || 'system',
-      updatedBy: headers['user-id'] || 'system'
+      updatedBy: headers['user-id'] || 'system',
+      // 权限预留字段 (v4.3)
+      organizationId: headers['organization-id'] || null,
+      departmentId: headers['department-id'] || null
     };
 
     // 插入数据

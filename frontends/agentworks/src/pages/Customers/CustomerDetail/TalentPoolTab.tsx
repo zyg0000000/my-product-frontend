@@ -1,33 +1,50 @@
 /**
- * 达人池 Tab 组件
+ * 达人池 Tab 组件 (v2.0)
  *
  * 显示客户在某平台的达人池列表
  * 支持：
  * - 达人列表展示
  * - 添加达人（弹窗选择）
  * - 移除达人
- * - 标签和备注管理
+ * - 结构化标签管理（重要程度 + 业务标签）
+ * - 标签筛选
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Space, Popconfirm, Tag, App, Empty } from 'antd';
+import {
+  Button,
+  Space,
+  Popconfirm,
+  Tag,
+  App,
+  Empty,
+  Select,
+  Modal,
+  Form,
+  Input,
+  Radio,
+} from 'antd';
 import {
   PlusOutlined,
-  DeleteOutlined,
-  EyeOutlined,
   ReloadOutlined,
+  FilterOutlined,
+  TagsOutlined,
 } from '@ant-design/icons';
 import {
   getCustomerTalents,
   removeCustomerTalent,
+  updateCustomerTalent,
+  batchUpdateTags,
 } from '../../../api/customerTalents';
 import type { CustomerTalentWithInfo } from '../../../types/customerTalent';
+import { getNormalizedTags } from '../../../types/customerTalent';
 import type { Platform } from '../../../types/talent';
-import { formatFansCount } from '../../../utils/formatters';
 import { TalentSelectorModal } from '../../../components/TalentSelectorModal';
+import { TalentTagEditor } from '../shared/TalentTagEditor';
+import { useTagConfigs } from '../../../hooks/useTagConfigs';
 import { logger } from '../../../utils/logger';
 
 interface TalentPoolTabProps {
@@ -45,6 +62,14 @@ export function TalentPoolTab({
   const navigate = useNavigate();
   const actionRef = useRef<ActionType>(null);
 
+  // 标签配置
+  const { getImportanceLevels, getBusinessTags } = useTagConfigs();
+  const importanceLevels = useMemo(
+    () => getImportanceLevels(),
+    [getImportanceLevels]
+  );
+  const businessTags = useMemo(() => getBusinessTags(), [getBusinessTags]);
+
   // 状态
   const [loading, setLoading] = useState(false);
   const [talents, setTalents] = useState<CustomerTalentWithInfo[]>([]);
@@ -52,6 +77,27 @@ export function TalentPoolTab({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [selectorVisible, setSelectorVisible] = useState(false);
+
+  // 筛选状态
+  const [filterImportance, setFilterImportance] = useState<string | undefined>(
+    undefined
+  );
+  const [filterBusinessTags, setFilterBusinessTags] = useState<string[]>([]);
+
+  // 编辑弹窗状态
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingTalent, setEditingTalent] =
+    useState<CustomerTalentWithInfo | null>(null);
+  const [editForm] = Form.useForm();
+  const [saving, setSaving] = useState(false);
+
+  // 多选状态
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+
+  // 批量打标弹窗状态
+  const [batchTagModalVisible, setBatchTagModalVisible] = useState(false);
+  const [batchTagForm] = Form.useForm();
+  const [batchTagSaving, setBatchTagSaving] = useState(false);
 
   // 加载达人池数据
   const loadTalents = async () => {
@@ -80,6 +126,29 @@ export function TalentPoolTab({
     loadTalents();
   }, [customerId, platform, currentPage, pageSize]);
 
+  // 前端过滤后的数据
+  const filteredTalents = useMemo(() => {
+    let result = talents;
+
+    // 按重要程度筛选
+    if (filterImportance) {
+      result = result.filter(t => {
+        const tags = getNormalizedTags(t.tags);
+        return tags.importance === filterImportance;
+      });
+    }
+
+    // 按业务标签筛选（任意匹配）
+    if (filterBusinessTags.length > 0) {
+      result = result.filter(t => {
+        const tags = getNormalizedTags(t.tags);
+        return filterBusinessTags.some(tag => tags.businessTags.includes(tag));
+      });
+    }
+
+    return result;
+  }, [talents, filterImportance, filterBusinessTags]);
+
   // 移除达人
   const handleRemove = async (id: string) => {
     try {
@@ -98,13 +167,79 @@ export function TalentPoolTab({
     onRefresh?.();
   };
 
+  // 打开编辑弹窗
+  const handleEdit = (record: CustomerTalentWithInfo) => {
+    setEditingTalent(record);
+    const normalizedTags = getNormalizedTags(record.tags);
+    editForm.setFieldsValue({
+      tags: normalizedTags,
+      notes: record.notes || '',
+    });
+    setEditModalVisible(true);
+  };
+
+  // 保存编辑
+  const handleSaveEdit = async () => {
+    if (!editingTalent?._id) return;
+
+    try {
+      setSaving(true);
+      const values = await editForm.validateFields();
+      await updateCustomerTalent(editingTalent._id, {
+        tags: values.tags,
+        notes: values.notes,
+      });
+      message.success('保存成功');
+      setEditModalVisible(false);
+      setEditingTalent(null);
+      loadTalents();
+    } catch (error) {
+      logger.error('Failed to save:', error);
+      message.error('保存失败');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // 打开批量打标弹窗
+  const handleOpenBatchTag = () => {
+    batchTagForm.setFieldsValue({
+      tags: { importance: null, businessTags: [] },
+      mode: 'merge',
+    });
+    setBatchTagModalVisible(true);
+  };
+
+  // 批量打标
+  const handleBatchTag = async () => {
+    if (selectedRowKeys.length === 0) return;
+
+    try {
+      setBatchTagSaving(true);
+      const values = await batchTagForm.validateFields();
+      const result = await batchUpdateTags({
+        ids: selectedRowKeys as string[],
+        tags: values.tags,
+        mode: values.mode,
+      });
+      message.success(`已更新 ${result.modifiedCount} 个达人的标签`);
+      setBatchTagModalVisible(false);
+      setSelectedRowKeys([]);
+      loadTalents();
+    } catch (error) {
+      logger.error('Batch tag failed:', error);
+      message.error('批量打标失败');
+    } finally {
+      setBatchTagSaving(false);
+    }
+  };
+
   // 表格列定义
   const columns: ProColumns<CustomerTalentWithInfo>[] = [
     {
       title: '达人昵称',
       dataIndex: ['talentInfo', 'name'],
       width: 180,
-      fixed: 'left',
       render: (_, record) => (
         <span className="font-medium">
           {record.talentInfo?.name || record.talentOneId}
@@ -112,19 +247,9 @@ export function TalentPoolTab({
       ),
     },
     {
-      title: '粉丝数',
-      dataIndex: ['talentInfo', 'fansCount'],
-      width: 120,
-      align: 'right',
-      render: (_, record) =>
-        record.talentInfo?.fansCount
-          ? formatFansCount(record.talentInfo.fansCount)
-          : '-',
-    },
-    {
       title: '达人层级',
       dataIndex: ['talentInfo', 'talentTier'],
-      width: 100,
+      width: 80,
       align: 'center',
       render: (_, record) => {
         const tier = record.talentInfo?.talentTier;
@@ -138,46 +263,95 @@ export function TalentPoolTab({
       },
     },
     {
-      title: '标签',
+      title: '重要程度',
+      dataIndex: 'tags',
+      width: 90,
+      align: 'center',
+      render: (_, record) => {
+        const tags = getNormalizedTags(record.tags);
+        if (!tags.importance) return <span className="text-gray-400">-</span>;
+        const level = importanceLevels.find(l => l.key === tags.importance);
+        return level ? (
+          <Tag
+            style={{
+              backgroundColor: level.bgColor,
+              color: level.textColor,
+              borderColor: level.textColor,
+              margin: 0,
+            }}
+          >
+            {level.name}
+          </Tag>
+        ) : (
+          <span className="text-gray-400">-</span>
+        );
+      },
+    },
+    {
+      title: '业务标签',
       dataIndex: 'tags',
       width: 200,
-      render: (_, record) =>
-        record.tags?.length > 0 ? (
-          <Space size={[4, 4]} wrap>
-            {record.tags.map((tag, i) => (
-              <Tag key={i} color="blue">
-                {tag}
-              </Tag>
-            ))}
+      render: (_, record) => {
+        const tags = getNormalizedTags(record.tags);
+        if (!tags.businessTags?.length)
+          return <span className="text-gray-400">-</span>;
+        return (
+          <Space size={4} wrap>
+            {tags.businessTags.slice(0, 3).map(tagKey => {
+              const tag = businessTags.find(t => t.key === tagKey);
+              return tag ? (
+                <Tag
+                  key={tagKey}
+                  style={{
+                    backgroundColor: tag.bgColor,
+                    color: tag.textColor,
+                    borderColor: tag.textColor,
+                    margin: 0,
+                  }}
+                >
+                  {tag.name}
+                </Tag>
+              ) : null;
+            })}
+            {tags.businessTags.length > 3 && (
+              <span className="text-gray-400 text-xs">
+                +{tags.businessTags.length - 3}
+              </span>
+            )}
           </Space>
-        ) : (
-          '-'
-        ),
+        );
+      },
     },
     {
       title: '备注',
       dataIndex: 'notes',
-      width: 200,
+      width: 150,
       ellipsis: true,
-      render: (_, record) => record.notes || '-',
+      render: (_, record) =>
+        record.notes || <span className="text-gray-400">-</span>,
     },
     {
       title: '添加时间',
       dataIndex: 'addedAt',
-      width: 160,
-      valueType: 'dateTime',
+      width: 100,
+      render: (_, record) => {
+        if (!record.addedAt) return '-';
+        const date = new Date(record.addedAt);
+        return `${date.getMonth() + 1}/${date.getDate()}`;
+      },
     },
     {
       title: '操作',
       valueType: 'option',
       width: 140,
-      fixed: 'right',
       render: (_, record) => (
-        <Space size="small">
+        <Space size={0}>
+          <Button type="link" size="small" onClick={() => handleEdit(record)}>
+            编辑
+          </Button>
           <Button
             type="link"
             size="small"
-            icon={<EyeOutlined />}
             onClick={() =>
               navigate(`/talents/${record.talentOneId}/${record.platform}`)
             }
@@ -185,12 +359,12 @@ export function TalentPoolTab({
             详情
           </Button>
           <Popconfirm
-            title="确定从达人池移除？"
+            title="确定移除？"
             onConfirm={() => handleRemove(record._id!)}
             okText="确定"
             cancelText="取消"
           >
-            <Button type="link" size="small" danger icon={<DeleteOutlined />}>
+            <Button type="link" size="small" danger>
               移除
             </Button>
           </Popconfirm>
@@ -225,20 +399,97 @@ export function TalentPoolTab({
     );
   }
 
+  // 是否有筛选条件
+  const hasFilter = filterImportance || filterBusinessTags.length > 0;
+
   return (
     <div>
+      {/* 筛选区域 */}
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg flex items-center gap-4 flex-wrap">
+        <Space>
+          <FilterOutlined className="text-gray-500" />
+          <span className="text-sm text-gray-600">筛选:</span>
+        </Space>
+        <Select
+          placeholder="重要程度"
+          value={filterImportance}
+          onChange={setFilterImportance}
+          allowClear
+          style={{ width: 120 }}
+          options={importanceLevels.map(level => ({
+            value: level.key,
+            label: <Tag color={level.color}>{level.name}</Tag>,
+          }))}
+        />
+        <Select
+          mode="multiple"
+          placeholder="业务标签"
+          value={filterBusinessTags}
+          onChange={setFilterBusinessTags}
+          allowClear
+          style={{ minWidth: 200 }}
+          maxTagCount={2}
+          options={businessTags.map(tag => ({
+            value: tag.key,
+            label: tag.name,
+          }))}
+        />
+        {hasFilter && (
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              setFilterImportance(undefined);
+              setFilterBusinessTags([]);
+            }}
+          >
+            清除筛选
+          </Button>
+        )}
+        <span className="text-sm text-gray-500 ml-auto">
+          {hasFilter
+            ? `筛选结果: ${filteredTalents.length}/${total}`
+            : `共 ${total} 个达人`}
+        </span>
+      </div>
+
       <ProTable<CustomerTalentWithInfo>
         columns={columns}
         actionRef={actionRef}
-        dataSource={talents}
+        dataSource={filteredTalents}
         loading={loading}
         rowKey="_id"
         search={false}
         options={false}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: setSelectedRowKeys,
+          preserveSelectedRowKeys: true,
+        }}
+        tableAlertRender={({ selectedRowKeys: keys }) => (
+          <Space size="middle">
+            <span>已选择 {keys.length} 个达人</span>
+          </Space>
+        )}
+        tableAlertOptionRender={() => (
+          <Space size="middle">
+            <Button
+              type="primary"
+              size="small"
+              icon={<TagsOutlined />}
+              onClick={handleOpenBatchTag}
+            >
+              批量打标
+            </Button>
+            <Button size="small" onClick={() => setSelectedRowKeys([])}>
+              取消选择
+            </Button>
+          </Space>
+        )}
         pagination={{
           current: currentPage,
           pageSize,
-          total,
+          total: hasFilter ? filteredTalents.length : total,
           showSizeChanger: true,
           showQuickJumper: true,
           showTotal: t => `共 ${t} 个达人`,
@@ -265,7 +516,7 @@ export function TalentPoolTab({
             刷新
           </Button>,
         ]}
-        scroll={{ x: 1100 }}
+        scroll={{ x: 950 }}
         size="middle"
       />
 
@@ -276,6 +527,74 @@ export function TalentPoolTab({
         onClose={() => setSelectorVisible(false)}
         onSuccess={handleAddSuccess}
       />
+
+      {/* 编辑标签/备注弹窗 */}
+      <Modal
+        title={`编辑 - ${editingTalent?.talentInfo?.name || editingTalent?.talentOneId || ''}`}
+        open={editModalVisible}
+        onCancel={() => {
+          setEditModalVisible(false);
+          setEditingTalent(null);
+          editForm.resetFields();
+        }}
+        onOk={handleSaveEdit}
+        confirmLoading={saving}
+        okText="保存"
+        cancelText="取消"
+        width={480}
+        destroyOnClose
+      >
+        <Form form={editForm} layout="vertical" className="mt-4">
+          <Form.Item name="tags" label="标签">
+            <TalentTagEditor layout="vertical" />
+          </Form.Item>
+          <Form.Item name="notes" label="备注">
+            <Input.TextArea
+              placeholder="输入备注信息"
+              rows={2}
+              maxLength={200}
+              showCount
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 批量打标弹窗 */}
+      <Modal
+        title={`批量打标 (${selectedRowKeys.length}个)`}
+        open={batchTagModalVisible}
+        onCancel={() => {
+          setBatchTagModalVisible(false);
+          batchTagForm.resetFields();
+        }}
+        onOk={handleBatchTag}
+        confirmLoading={batchTagSaving}
+        okText="确认"
+        cancelText="取消"
+        width={480}
+        destroyOnClose
+      >
+        <Form form={batchTagForm} layout="vertical" className="mt-4">
+          <Form.Item name="tags" label="标签">
+            <TalentTagEditor layout="vertical" />
+          </Form.Item>
+          <Form.Item
+            name="mode"
+            label="更新模式"
+            initialValue="merge"
+            extra={
+              <span className="text-gray-400 text-xs">
+                合并：保留原有标签，追加新标签；替换：清除原有标签，使用新标签
+              </span>
+            }
+          >
+            <Radio.Group>
+              <Radio value="merge">合并</Radio>
+              <Radio value="replace">替换</Radio>
+            </Radio.Group>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }

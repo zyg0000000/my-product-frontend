@@ -205,7 +205,97 @@ agentworks_db/
 
 ---
 
-### 4. field_mappings（字段映射配置）
+### 4. customer_talents（客户达人池）⭐ v2.3 新增
+
+多对多关联表，存储客户与达人的关联关系，支持标签管理。
+
+```javascript
+{
+  _id: ObjectId("..."),
+  customerId: "CUS202401001",            // 客户ID
+  talentOneId: "talent_00000001",        // 达人 oneId
+  platform: "douyin",                     // 平台
+
+  // 标签数据（key 存储）
+  tags: {
+    importance: "core",                   // 重要程度 key
+    businessTags: ["long_term", "new"]    // 业务标签 key 数组
+  },
+  notes: "合作意向强",                    // 备注
+
+  // 权限预留字段
+  organizationId: null,
+  departmentId: null,
+
+  // 审计字段
+  addedBy: "user_001",
+  addedAt: ISODate("..."),
+  updatedBy: "user_001",
+  updatedAt: ISODate("...")
+}
+```
+
+**索引**：
+- `customerId + talentOneId + platform` (unique) - 防止重复关联
+- `customerId + platform` - 按客户+平台查询
+- `talentOneId + platform` - 按达人查询所属客户
+
+---
+
+### 5. system_config（系统配置）⭐ v2.3 新增
+
+存储全局配置，如标签定义。
+
+```javascript
+{
+  _id: ObjectId("..."),
+  configType: "talent_tags",              // 配置类型
+  version: 2,                             // 配置版本
+
+  // 重要程度配置
+  importanceLevels: [
+    {
+      key: "core",                        // 存储 key
+      name: "核心",                       // 显示名称
+      order: 1,
+      bgColor: "#fef2f2",                 // 背景色
+      textColor: "#dc2626"                // 文字色
+    },
+    {
+      key: "important",
+      name: "重点",
+      order: 2,
+      bgColor: "#fff7ed",
+      textColor: "#ea580c"
+    }
+    // ... 更多级别
+  ],
+
+  // 业务标签配置
+  businessTags: [
+    {
+      key: "long_term",
+      name: "长期合作",
+      order: 1,
+      bgColor: "#eff6ff",
+      textColor: "#2563eb"
+    }
+    // ... 更多标签
+  ],
+
+  updatedAt: ISODate("..."),
+  updatedBy: "user_001"
+}
+```
+
+**用途**：
+- 标签选项动态配置
+- 标签颜色自定义
+- key/name 双向映射
+
+---
+
+### 6. field_mappings（字段映射配置）
 
 定义飞书表格导入时的字段映射规则，包含计算字段配置
 
@@ -392,5 +482,5 @@ mongosh "mongodb+srv://..." --file scripts/migrate-dimension-configs-v1.2.js
 ---
 
 **维护者**：产品团队
-**最后更新**：2025-11-28
-**版本**：v2.2
+**最后更新**：2025-12-03
+**版本**：v2.3

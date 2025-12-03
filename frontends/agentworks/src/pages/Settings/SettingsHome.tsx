@@ -16,6 +16,7 @@ import {
   SettingOutlined,
   DatabaseOutlined,
   RightOutlined,
+  TagsOutlined,
 } from '@ant-design/icons';
 import { PageTransition } from '../../components/PageTransition';
 
@@ -47,6 +48,14 @@ export function SettingsHome() {
       icon: <SettingOutlined className="text-2xl text-green-600" />,
       path: '/settings/platform-config',
       status: 'beta',
+    },
+    {
+      key: 'tag-management',
+      title: '达人标签配置',
+      description: '管理达人重要程度等级和业务标签，标签配置全局生效',
+      icon: <TagsOutlined className="text-2xl text-purple-600" />,
+      path: '/settings/tag-management',
+      status: 'active',
     },
   ];
 

@@ -9,16 +9,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Tabs,
-  Badge,
-  Spin,
-  Button,
-  Tag,
-  Descriptions,
-  Card,
-  Empty,
-} from 'antd';
+import { Tabs, Spin, Button, Tag, Descriptions, Card, Empty } from 'antd';
 import {
   ArrowLeftOutlined,
   EditOutlined,
@@ -136,21 +127,7 @@ export function CustomerDetail() {
   // 平台 Tab 项
   const platformTabs = platformConfigs.map(config => ({
     key: config.platform,
-    label: (
-      <span className="flex items-center gap-2">
-        {config.name}
-        <Badge
-          count={talentStats?.platformStats?.[config.platform] || 0}
-          showZero
-          style={{
-            backgroundColor:
-              (talentStats?.platformStats?.[config.platform] || 0) > 0
-                ? '#1890ff'
-                : '#d9d9d9',
-          }}
-        />
-      </span>
-    ),
+    label: config.name,
   }));
 
   // 内容区 Tab 项

@@ -400,6 +400,34 @@ VITE_ENV=production
 - 存储加密：敏感字段加密
 - 访问控制：角色权限（计划）
 
+### 权限预留规范 ⭐ v3.9.0 新增
+
+为后续权限系统实现预留的数据层字段：
+
+```typescript
+// 所有集合必须包含
+interface BaseDocument {
+  createdBy: string;       // 创建人 userId
+  updatedBy: string;       // 最后更新人
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// 资源类集合额外包含
+interface ResourceDocument extends BaseDocument {
+  organizationId?: string; // 组织隔离（预留）
+  departmentId?: string;   // 部门隔离（预留）
+  visibility?: 'private' | 'department' | 'organization' | 'public';
+}
+```
+
+**已实施集合**：
+- `customers` - 客户管理
+- `customer_talents` - 客户达人池
+- `talents` - 达人信息
+
+详细规范请查看 **[权限预留规范文档](./PERMISSION_RESERVATION_SPEC.md)**
+
 ---
 
 ## 📈 扩展性设计

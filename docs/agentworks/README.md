@@ -207,7 +207,13 @@ POST   /api/agencies/:id/batch-update-rebate  // 批量更新返点
 
 ## 📦 版本历史
 
-### 最新版本: v3.8.0 (2025-11-30)
+### 最新版本: v3.9.0 (2025-12-03)
+
+**v3.9.0 更新**:
+- ✅ 达人全景功能（多视角、模块化筛选）
+- ✅ 客户达人池标签管理（重要程度、业务标签）
+- ✅ 标签配置动态化（颜色、选项可配置）
+- ✅ 权限预留规范实施
 
 **v3.8.0 更新**:
 - ✅ 客户达人池功能
@@ -221,6 +227,7 @@ POST   /api/agencies/:id/batch-update-rebate  // 批量更新返点
 - ✅ 返点系统（双模式）
 - ✅ 时间序列化价格管理
 - ✅ 客户管理与达人池
+- ✅ 达人全景分析
 
 ### 版本发布文档
 - [v2.5.0 搜索系统](./releases/PR_v2.5.0_SEARCH_AND_DOCS.md)
@@ -293,6 +300,10 @@ git push origin main
 - **[自动化功能](./features/AUTOMATION.md)** - 自动化能力
 - **[项目日报](./features/PROJECT_REPORT.md)** - 日报功能
 - **[客户达人池](./features/CUSTOMER_TALENT_POOL.md)** - 客户资源管理
+- **[达人全景](./features/TALENT_PANORAMA.md)** - 全景分析
+
+### 架构规范
+- **[权限预留规范](./PERMISSION_RESERVATION_SPEC.md)** - 数据层权限预留
 
 ### 外部资源
 - **[数据库设计](../../database/agentworks_db/README.md)** - v2.0 数据库
@@ -337,9 +348,9 @@ git push origin main
 
 ---
 
-**产品版本**: v3.8.0
-**文档版本**: v2.1
-**最后更新**: 2025-11-30
+**产品版本**: v3.9.0
+**文档版本**: v2.2
+**最后更新**: 2025-12-03
 **维护团队**: AgentWorks Team
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

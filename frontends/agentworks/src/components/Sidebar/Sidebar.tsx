@@ -57,7 +57,10 @@ const navigation: NavItem[] = [
     name: '数据分析',
     path: '/analytics',
     icon: ChartBarIcon,
-    children: [{ name: '达人效果趋势', path: '/analytics/talent-trends' }],
+    children: [
+      { name: '达人全景', path: '/analytics/talent-panorama' },
+      { name: '达人效果趋势', path: '/analytics/talent-trends' },
+    ],
   },
   {
     name: '系统设置',
@@ -65,7 +68,8 @@ const navigation: NavItem[] = [
     icon: Cog6ToothIcon,
     children: [
       { name: '达人表现配置', path: '/settings/performance-config' },
-      { name: '平台配置', path: '/settings/platform-config' },
+      { name: '达人标签配置', path: '/settings/tag-management' },
+      { name: '平台参数配置', path: '/settings/platform-config' },
     ],
   },
 ];
