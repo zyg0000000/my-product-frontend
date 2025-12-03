@@ -1,0 +1,59 @@
+{
+    "collection": "counters",
+    "description": "计数器集合 - 用于生成自增序列（如 oneId）",
+    "database": "agentworks_db",
+    "version": "1.0",
+    "lastUpdated": "2025-12-04",
+    "author": "产品团队",
+    "fields": {
+        "_id": {
+            "type": "String",
+            "description": "计数器名称（作为主键）",
+            "required": true,
+            "example": "talent_oneId",
+            "comment": "使用字符串作为 _id，直接表示计数器用途"
+        },
+        "sequence_value": {
+            "type": "Integer",
+            "description": "当前序列值",
+            "required": true,
+            "min": 0,
+            "example": 2,
+            "comment": "每次获取新 ID 时递增"
+        },
+        "description": {
+            "type": "String",
+            "description": "计数器描述",
+            "required": false,
+            "example": "oneId 自增序列（格式：talent_00000001）"
+        },
+        "createdAt": {
+            "type": "Date",
+            "description": "创建时间",
+            "required": false
+        }
+    },
+    "notes": [
+        "【核心设计】使用 MongoDB 原子操作实现自增序列",
+        "【ID生成】配合 findAndModify 或 findOneAndUpdate 操作获取下一个序列值",
+        "【oneId 格式】talent_oneId 计数器用于生成 talent_XXXXXXXX 格式的达人统一ID",
+        "【原子性】使用 $inc 操作保证并发安全"
+    ],
+    "examples": [
+        {
+            "description": "示例：达人 oneId 计数器",
+            "data": {
+                "_id": "talent_oneId",
+                "sequence_value": 2,
+                "description": "oneId 自增序列（格式：talent_00000001）",
+                "createdAt": "2025-11-11T16:38:08.964Z"
+            }
+        }
+    ],
+    "useCases": [
+        {
+            "name": "获取下一个 oneId",
+            "code": "const result = await db.collection('counters').findOneAndUpdate(\n  { _id: 'talent_oneId' },\n  { $inc: { sequence_value: 1 } },\n  { returnDocument: 'after', upsert: true }\n);\nconst oneId = `talent_${String(result.value.sequence_value).padStart(8, '0')}`;"
+        }
+    ]
+}

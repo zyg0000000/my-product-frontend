@@ -1,9 +1,9 @@
 {
     "collection": "talents",
-    "description": "达人档案集合（v2.1 多平台版本）- 每个达人+平台组合是一条记录",
+    "description": "达人档案集合（v2.2 多平台版本）- 每个达人+平台组合是一条记录",
     "database": "agentworks_db",
-    "version": "2.1",
-    "lastUpdated": "2025-11-15",
+    "version": "2.2",
+    "lastUpdated": "2025-12-04",
     "author": "产品团队",
     "fields": {
         "_id": {
@@ -69,6 +69,23 @@
             "comment": "individual=野生达人（独立），其他值为机构ID（指向 agencies 集合的某条记录）",
             "addedIn": "v2.1 (2025-11-15)",
             "updatedIn": "v2.2 (2025-11-16) - 移除 belongType 字段，统一使用 agencyId"
+        },
+        "rebateMode": {
+            "type": "String",
+            "description": "返点模式",
+            "required": false,
+            "default": "independent",
+            "enum": ["independent", "agency"],
+            "comment": "independent=独立返点（使用 currentRebate 配置），agency=机构统一返点",
+            "addedIn": "v2.2 (2025-12-04)"
+        },
+        "dbVersion": {
+            "type": "String",
+            "description": "数据库版本标记",
+            "required": false,
+            "enum": ["v1", "v2"],
+            "comment": "标记数据版本，v2 为新版多平台架构",
+            "addedIn": "v2.2 (2025-12-04)"
         },
         "currentRebate": {
             "type": "Object",
@@ -168,7 +185,14 @@
                 "xingtuId": {
                     "type": "String",
                     "description": "星图平台 ID（仅抖音）",
-                    "platform": "douyin"
+                    "platform": "douyin",
+                    "example": "6852516526931574798"
+                },
+                "uid": {
+                    "type": "String",
+                    "description": "抖音 UID（仅抖音）",
+                    "platform": "douyin",
+                    "example": "58180322231"
                 },
                 "starLevel": {
                     "type": "Integer",
@@ -199,44 +223,18 @@
         },
         "performanceData": {
             "type": "Object",
-            "description": "该平台的表现数据",
+            "description": "该平台的表现数据（已迁移至 talent_performance 集合）",
             "required": false,
+            "deprecated": true,
+            "deprecatedNote": "表现数据已迁移至独立的 talent_performance 集合，此字段仅保留 lastUpdated 用于同步时间戳",
             "properties": {
-                "avgPlayCount": {
-                    "type": "Integer",
-                    "description": "平均播放量"
-                },
-                "avgLikeCount": {
-                    "type": "Integer",
-                    "description": "平均点赞数"
-                },
-                "avgCommentCount": {
-                    "type": "Integer",
-                    "description": "平均评论数"
-                },
-                "cpm": {
-                    "type": "Integer",
-                    "description": "CPM 费率（千次播放成本，单位：分）"
-                },
-                "audienceAge": {
-                    "type": "Object",
-                    "description": "受众年龄分布",
-                    "properties": {
-                        "18_23": { "type": "Double", "description": "18-23岁占比" },
-                        "24_30": { "type": "Double", "description": "24-30岁占比" },
-                        "31_40": { "type": "Double", "description": "31-40岁占比" },
-                        "40_plus": { "type": "Double", "description": "40岁以上占比" }
-                    }
-                },
-                "audienceGender": {
-                    "type": "Object",
-                    "description": "受众性别分布",
-                    "properties": {
-                        "male": { "type": "Double", "description": "男性占比" },
-                        "female": { "type": "Double", "description": "女性占比" }
-                    }
+                "lastUpdated": {
+                    "type": "Date",
+                    "description": "最后更新时间",
+                    "example": "2025-11-29T04:21:44.929Z"
                 }
-            }
+            },
+            "comment": "v2.1 起表现数据存储在 talent_performance 集合，通过 oneId + platform 关联"
         },
         "schedules": {
             "type": "Array",
@@ -361,65 +359,96 @@
         }
     ],
     "notes": [
-        "【核心设计】v2.1 多平台架构：每个"达人+平台"是一条独立记录",
+        "【核心设计】v2.2 多平台架构：每个"达人+平台"是一条独立记录",
         "【oneId 系统】同一个真实达人在不同平台共享同一个 oneId",
         "【唯一约束】(oneId, platform) 联合唯一，确保一个达人在一个平台只有一条记录",
         "【平台扩展】通过 platformSpecific 字段存储平台特有数据，易于扩展新平台",
         "【合并追溯】oneIdHistory 记录达人合并历史，支持后期发现重复达人并合并",
         "【价格独立】不同平台的价格独立存储，互不影响",
         "【时间序列】prices 采用数组结构，支持按月记录历史变化",
-        "【价格类型】抖音：video_60plus, video_20to60, video_1to20, live；小红书：video, image",
+        "【价格类型】抖音：video_60plus, video_21_60, video_1_20；小红书：video, image",
         "【价格唯一键】prices 数组中 (year, month, type) 联合唯一",
         "【数据隔离】与 v1（kol_data）完全独立，不影响旧系统",
-        "【v2.1 新增】belongType 字段：区分野生达人和机构达人",
+        "【v2.1 新增】agencyId 字段：机构ID，individual 表示野生达人",
         "【v2.1 新增】currentRebate 字段：实时返点配置，精度2位小数（0-100%）",
         "【v2.1 新增】返点历史记录迁移至独立集合 rebate_configs，支持完整审计追溯",
+        "【v2.2 新增】rebateMode 字段：返点模式（independent/agency）",
+        "【v2.2 新增】dbVersion 字段：数据库版本标记",
+        "【v2.2 新增】platformSpecific.uid 字段：抖音 UID",
+        "【表现数据】已迁移至 talent_performance 集合，通过 oneId + platform 关联",
         "【返点管理】支持立即生效和下次合作生效两种模式",
         "【返点来源】default=系统默认10%, personal=个人配置, rule=规则触发, agency=机构统一"
     ],
     "examples": [
         {
-            "description": "示例1：张三的抖音账号（含价格和返点历史）",
+            "description": "示例1：实际生产数据（抖音达人）",
             "data": {
                 "oneId": "talent_00000001",
                 "platform": "douyin",
-                "platformAccountId": "dy_123456",
-                "name": "张三的美食日记",
-                "fansCount": 1000000,
+                "platformAccountId": "6852516526931574798",
+                "name": "欣宇的搞笑日常 😎",
+                "fansCount": null,
+                "talentType": ["剧情搞笑"],
+                "talentTier": "尾部",
+                "agencyId": "individual",
+                "rebateMode": "independent",
+                "currentRebate": {
+                    "rate": 5,
+                    "source": "agency",
+                    "effectiveDate": "2025-11-29",
+                    "lastUpdated": "2025-11-29T04:13:53.320Z"
+                },
                 "prices": [
-                    { "year": 2025, "month": 1, "type": "video_60plus", "price": 5000000, "status": "confirmed" },
-                    { "year": 2025, "month": 1, "type": "video_20to60", "price": 3000000, "status": "confirmed" },
-                    { "year": 2025, "month": 1, "type": "video_1to20", "price": 1000000, "status": "confirmed" },
-                    { "year": 2025, "month": 1, "type": "live", "price": 8000000, "status": "confirmed" },
-                    { "year": 2025, "month": 2, "type": "video_60plus", "price": 5500000, "status": "confirmed" },
-                    { "year": 2025, "month": 2, "type": "video_20to60", "price": 3200000, "status": "confirmed" }
+                    { "year": 2025, "month": 9, "type": "video_60plus", "price": 7000000, "status": "confirmed" },
+                    { "year": 2025, "month": 9, "type": "video_21_60", "price": 6000000, "status": "confirmed" },
+                    { "year": 2025, "month": 9, "type": "video_1_20", "price": 5000000, "status": "confirmed" },
+                    { "year": 2025, "month": 10, "type": "video_60plus", "price": 7000000, "status": "confirmed" },
+                    { "year": 2025, "month": 10, "type": "video_21_60", "price": 6000000, "status": "confirmed" },
+                    { "year": 2025, "month": 10, "type": "video_1_20", "price": 5000000, "status": "confirmed" },
+                    { "year": 2025, "month": 11, "type": "video_60plus", "price": 7000000, "status": "confirmed" },
+                    { "year": 2025, "month": 11, "type": "video_21_60", "price": 6000000, "status": "confirmed" },
+                    { "year": 2025, "month": 11, "type": "video_1_20", "price": 5000000, "status": "confirmed" }
                 ],
                 "platformSpecific": {
-                    "xingtuId": "123456",
-                    "starLevel": 5
+                    "xingtuId": "6852516526931574798",
+                    "uid": "58180322231"
                 },
-                "status": "active"
+                "status": "active",
+                "performanceData": {
+                    "lastUpdated": "2025-11-29T04:21:44.929Z"
+                },
+                "createdAt": "2025-11-29T04:13:53.320Z",
+                "updatedAt": "2025-11-29T04:21:44.929Z"
             }
         },
         {
-            "description": "示例2：张三的小红书账号（同一人，不同平台）",
+            "description": "示例2：小红书达人",
             "data": {
                 "oneId": "talent_00000001",
                 "platform": "xiaohongshu",
                 "platformAccountId": "xhs_789012",
                 "name": "小张爱做菜",
                 "fansCount": 500000,
+                "talentType": ["美食", "探店"],
+                "talentTier": "腰部",
+                "agencyId": "agency_001",
+                "rebateMode": "agency",
+                "currentRebate": {
+                    "rate": 15,
+                    "source": "agency",
+                    "effectiveDate": "2025-01-01",
+                    "lastUpdated": "2025-01-01T00:00:00Z"
+                },
                 "prices": [
                     { "year": 2025, "month": 1, "type": "video", "price": 3000000, "status": "confirmed" },
-                    { "year": 2025, "month": 1, "type": "image", "price": 2000000, "status": "confirmed" },
-                    { "year": 2025, "month": 2, "type": "video", "price": 3200000, "status": "confirmed" },
-                    { "year": 2025, "month": 2, "type": "image", "price": 2100000, "status": "confirmed" }
+                    { "year": 2025, "month": 1, "type": "image", "price": 2000000, "status": "confirmed" }
                 ],
                 "platformSpecific": {
-                    "mcnName": "某MCN机构",
-                    "contentTags": ["美食", "探店"]
+                    "mcnName": "某MCN机构"
                 },
-                "status": "active"
+                "status": "active",
+                "createdAt": "2025-01-01T00:00:00Z",
+                "updatedAt": "2025-01-15T10:30:00Z"
             }
         }
     ]

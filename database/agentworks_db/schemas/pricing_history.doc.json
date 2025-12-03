@@ -1,0 +1,190 @@
+{
+    "collection": "pricing_history",
+    "description": "价格策略变更历史集合 - 记录客户价格策略的所有变更",
+    "database": "agentworks_db",
+    "version": "1.0",
+    "lastUpdated": "2025-12-04",
+    "author": "产品团队",
+    "fields": {
+        "_id": {
+            "type": "ObjectId",
+            "description": "MongoDB 文档 ID",
+            "required": true,
+            "auto": true
+        },
+        "customerId": {
+            "type": "ObjectId",
+            "description": "客户 ObjectId",
+            "required": true,
+            "comment": "关联到 customers 集合的 _id"
+        },
+        "customerCode": {
+            "type": "String",
+            "description": "客户编码",
+            "required": true,
+            "example": "CUS20250001",
+            "comment": "冗余存储，便于查询"
+        },
+        "customerName": {
+            "type": "String",
+            "description": "客户名称",
+            "required": true,
+            "example": "抖音商城",
+            "comment": "冗余存储，便于展示"
+        },
+        "changeType": {
+            "type": "String",
+            "description": "变更类型",
+            "required": true,
+            "enum": ["strategy_update", "discount_change", "fee_change", "platform_enable", "platform_disable"],
+            "comment": "strategy_update=策略更新, discount_change=折扣变更, fee_change=费率变更, platform_enable=启用平台, platform_disable=禁用平台"
+        },
+        "beforeValue": {
+            "type": "Object",
+            "description": "变更前的值",
+            "required": true,
+            "comment": "记录变更前的完整配置或部分字段"
+        },
+        "afterValue": {
+            "type": "Object",
+            "description": "变更后的值",
+            "required": true,
+            "comment": "记录变更后的完整配置或部分字段"
+        },
+        "changedAt": {
+            "type": "Date",
+            "description": "变更时间",
+            "required": true
+        },
+        "changedBy": {
+            "type": "String",
+            "description": "变更人ID",
+            "required": true,
+            "default": "system"
+        }
+    },
+    "indexes": [
+        {
+            "name": "idx_customerId",
+            "fields": { "customerId": 1 },
+            "description": "按客户ID查询变更历史"
+        },
+        {
+            "name": "idx_customerCode",
+            "fields": { "customerCode": 1 },
+            "description": "按客户编码查询变更历史"
+        },
+        {
+            "name": "idx_changedAt",
+            "fields": { "changedAt": -1 },
+            "description": "按变更时间倒序"
+        },
+        {
+            "name": "idx_changeType",
+            "fields": { "changeType": 1 },
+            "description": "按变更类型筛选"
+        },
+        {
+            "name": "idx_customerId_changedAt",
+            "fields": { "customerId": 1, "changedAt": -1 },
+            "description": "按客户+时间查询（主要查询场景）"
+        }
+    ],
+    "relations": [
+        {
+            "collection": "customers",
+            "type": "many-to-one",
+            "localField": "customerId",
+            "foreignField": "_id",
+            "description": "关联到客户"
+        }
+    ],
+    "notes": [
+        "【核心设计】记录客户价格策略的所有变更，支持审计追溯",
+        "【完整快照】beforeValue 和 afterValue 存储变更前后的完整配置",
+        "【不可删除】历史记录只增不删，保证审计完整性",
+        "【冗余存储】customerCode 和 customerName 冗余存储，便于查询和展示",
+        "【变更追踪】每次客户策略变更时自动写入历史记录"
+    ],
+    "examples": [
+        {
+            "description": "示例：策略更新记录",
+            "data": {
+                "customerId": "ObjectId('6927e522374ff3acf6197028')",
+                "customerCode": "CUS20250001",
+                "customerName": "抖音商城",
+                "changeType": "strategy_update",
+                "beforeValue": {
+                    "talentProcurement": {
+                        "enabled": false,
+                        "pricingModel": "framework",
+                        "discount": {
+                            "rate": 1,
+                            "includesPlatformFee": false,
+                            "validFrom": null,
+                            "validTo": null
+                        },
+                        "serviceFee": {
+                            "rate": 0,
+                            "calculationBase": "beforeDiscount"
+                        },
+                        "tax": {
+                            "rate": 0.06,
+                            "includesTax": true,
+                            "calculationBase": "excludeServiceFee"
+                        },
+                        "platformFees": {
+                            "douyin": {
+                                "enabled": false,
+                                "platformFeeRate": 0.05,
+                                "discountRate": 1
+                            },
+                            "xiaohongshu": {
+                                "enabled": false,
+                                "platformFeeRate": 0.1,
+                                "discountRate": 1
+                            }
+                        }
+                    }
+                },
+                "afterValue": {
+                    "talentProcurement": {
+                        "enabled": true,
+                        "pricingModel": "framework",
+                        "platformFees": {
+                            "douyin": {
+                                "enabled": true,
+                                "platformFeeRate": 0.05,
+                                "discountRate": 0.95,
+                                "serviceFeeRate": 0,
+                                "validFrom": null,
+                                "validTo": null,
+                                "includesPlatformFee": false,
+                                "serviceFeeBase": "beforeDiscount",
+                                "includesTax": true,
+                                "taxCalculationBase": "excludeServiceFee"
+                            },
+                            "xiaohongshu": {
+                                "enabled": false,
+                                "platformFeeRate": 0.1,
+                                "discountRate": 1,
+                                "serviceFeeRate": 0,
+                                "validFrom": null,
+                                "validTo": null,
+                                "includesPlatformFee": false,
+                                "serviceFeeBase": "beforeDiscount",
+                                "includesTax": true,
+                                "taxCalculationBase": "excludeServiceFee"
+                            }
+                        },
+                        "paymentCoefficients": {
+                            "douyin": 1
+                        }
+                    }
+                },
+                "changedAt": "2025-11-27T05:45:40.733Z",
+                "changedBy": "system"
+            }
+        }
+    ]
+}

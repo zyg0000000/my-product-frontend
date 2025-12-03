@@ -1,6 +1,8 @@
-# AgentWorks Database (v2.2)
+# AgentWorks Database (v2.4)
 
 > **新一代多平台广告代理项目管理数据库**，对应前端 `frontends/agentworks/`
+>
+> **更新于 2025-12-04** - 从生产数据库同步 Schema 文档
 
 ---
 
@@ -9,8 +11,9 @@
 - **数据库名称**: `agentworks_db`
 - **数据库类型**: MongoDB (NoSQL)
 - **关联前端**: `frontends/agentworks/`
-- **版本**: v2.2
+- **版本**: v2.4
 - **状态**: 生产中 ✅
+- **集合数量**: 11 个
 
 ### 连接信息
 
@@ -482,5 +485,5 @@ mongosh "mongodb+srv://..." --file scripts/migrate-dimension-configs-v1.2.js
 ---
 
 **维护者**：产品团队
-**最后更新**：2025-12-03
-**版本**：v2.3
+**最后更新**：2025-12-04
+**版本**：v2.4

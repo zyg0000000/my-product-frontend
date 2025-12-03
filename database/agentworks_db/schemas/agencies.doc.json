@@ -1,0 +1,234 @@
+{
+    "collection": "agencies",
+    "description": "机构管理集合 - 存储达人机构信息和返点配置",
+    "database": "agentworks_db",
+    "version": "1.0",
+    "lastUpdated": "2025-12-04",
+    "author": "产品团队",
+    "fields": {
+        "_id": {
+            "type": "ObjectId",
+            "description": "MongoDB 文档 ID",
+            "required": true,
+            "auto": true
+        },
+        "id": {
+            "type": "String",
+            "description": "机构ID（业务唯一标识）",
+            "required": true,
+            "unique": true,
+            "example": "individual",
+            "comment": "individual 为系统预设的野生达人机构"
+        },
+        "name": {
+            "type": "String",
+            "description": "机构名称",
+            "required": true,
+            "example": "野生达人"
+        },
+        "type": {
+            "type": "String",
+            "description": "机构类型",
+            "required": true,
+            "enum": ["individual", "agency", "mcn"],
+            "comment": "individual=野生达人（无机构），agency=普通机构，mcn=MCN机构"
+        },
+        "contactInfo": {
+            "type": "Object",
+            "description": "联系信息",
+            "required": false,
+            "properties": {
+                "contactPerson": {
+                    "type": "String",
+                    "description": "联系人姓名",
+                    "example": "系统管理员"
+                },
+                "phone": {
+                    "type": "String",
+                    "description": "联系电话"
+                },
+                "email": {
+                    "type": "String",
+                    "description": "邮箱"
+                },
+                "address": {
+                    "type": "String",
+                    "description": "地址"
+                }
+            }
+        },
+        "rebateConfig": {
+            "type": "Object",
+            "description": "返点配置",
+            "required": false,
+            "properties": {
+                "baseRebate": {
+                    "type": "Double",
+                    "description": "基础返点率（百分比数字）",
+                    "min": 0,
+                    "max": 100,
+                    "example": 5,
+                    "comment": "5 表示 5%"
+                },
+                "tieredRules": {
+                    "type": "Array",
+                    "description": "阶梯返点规则",
+                    "itemType": "Object",
+                    "default": [],
+                    "comment": "按合作金额/次数等条件的阶梯返点"
+                },
+                "specialRules": {
+                    "type": "Array",
+                    "description": "特殊返点规则",
+                    "itemType": "Object",
+                    "default": [],
+                    "comment": "特定条件下的返点规则"
+                }
+            }
+        },
+        "description": {
+            "type": "String",
+            "description": "机构描述",
+            "required": false,
+            "example": "系统预设机构，用于管理无机构归属的独立达人"
+        },
+        "status": {
+            "type": "String",
+            "description": "机构状态",
+            "required": true,
+            "default": "active",
+            "enum": ["active", "inactive", "archived"],
+            "comment": "active=活跃, inactive=暂停合作, archived=已归档"
+        },
+        "statistics": {
+            "type": "Object",
+            "description": "统计数据（缓存）",
+            "required": false,
+            "properties": {
+                "talentCount": {
+                    "type": "Integer",
+                    "description": "旗下达人数量",
+                    "default": 0
+                },
+                "totalRevenue": {
+                    "type": "Integer",
+                    "description": "累计合作金额（单位：分）",
+                    "default": 0
+                },
+                "lastUpdated": {
+                    "type": "Date",
+                    "description": "统计更新时间"
+                }
+            },
+            "comment": "统计数据为缓存，定期更新"
+        },
+        "createdAt": {
+            "type": "Date",
+            "description": "创建时间",
+            "required": true,
+            "default": "now"
+        },
+        "updatedAt": {
+            "type": "Date",
+            "description": "更新时间",
+            "required": true,
+            "default": "now"
+        }
+    },
+    "indexes": [
+        {
+            "name": "idx_id",
+            "fields": { "id": 1 },
+            "unique": true,
+            "description": "机构ID唯一索引"
+        },
+        {
+            "name": "idx_name",
+            "fields": { "name": 1 },
+            "description": "机构名称索引（搜索用）"
+        },
+        {
+            "name": "idx_type",
+            "fields": { "type": 1 },
+            "description": "机构类型索引"
+        },
+        {
+            "name": "idx_status",
+            "fields": { "status": 1 },
+            "description": "状态索引"
+        }
+    ],
+    "relations": [
+        {
+            "collection": "talents",
+            "type": "one-to-many",
+            "localField": "id",
+            "foreignField": "agencyId",
+            "description": "机构旗下的达人"
+        }
+    ],
+    "notes": [
+        "【核心设计】管理达人机构信息和统一返点配置",
+        "【系统预设】id='individual' 为系统预设的野生达人机构，不可删除",
+        "【返点管理】rebateConfig 定义机构统一返点率",
+        "【达人关联】通过 talents.agencyId 关联机构旗下达人",
+        "【统计缓存】statistics 字段为缓存数据，需定期更新"
+    ],
+    "examples": [
+        {
+            "description": "示例1：系统预设的野生达人机构",
+            "data": {
+                "id": "individual",
+                "name": "野生达人",
+                "type": "individual",
+                "contactInfo": {
+                    "contactPerson": "系统管理员"
+                },
+                "rebateConfig": {
+                    "baseRebate": 5,
+                    "tieredRules": [],
+                    "specialRules": []
+                },
+                "description": "系统预设机构，用于管理无机构归属的独立达人",
+                "status": "active",
+                "statistics": {
+                    "talentCount": 0,
+                    "totalRevenue": 0,
+                    "lastUpdated": "2025-11-16T04:50:47.325Z"
+                },
+                "createdAt": "2025-11-16T04:50:47.325Z",
+                "updatedAt": "2025-11-16T04:50:47.325Z"
+            }
+        },
+        {
+            "description": "示例2：普通MCN机构",
+            "data": {
+                "id": "agency_001",
+                "name": "某MCN机构",
+                "type": "mcn",
+                "contactInfo": {
+                    "contactPerson": "李四",
+                    "phone": "13800138000",
+                    "email": "mcn@example.com"
+                },
+                "rebateConfig": {
+                    "baseRebate": 15,
+                    "tieredRules": [
+                        { "minAmount": 100000000, "rebate": 18, "description": "月合作金额>100万，返点18%" },
+                        { "minAmount": 500000000, "rebate": 20, "description": "月合作金额>500万，返点20%" }
+                    ],
+                    "specialRules": []
+                },
+                "description": "优质MCN机构，旗下达人质量高",
+                "status": "active",
+                "statistics": {
+                    "talentCount": 50,
+                    "totalRevenue": 1000000000,
+                    "lastUpdated": "2025-12-01T00:00:00Z"
+                },
+                "createdAt": "2025-01-01T00:00:00Z",
+                "updatedAt": "2025-12-01T00:00:00Z"
+            }
+        }
+    ]
+}

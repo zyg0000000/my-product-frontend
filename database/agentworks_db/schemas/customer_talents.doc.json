@@ -1,9 +1,9 @@
 {
     "collection": "customer_talents",
-    "description": "客户达人池关联集合 - 实现客户与达人的多对多关联关系",
+    "description": "客户达人池关联集合 - 实现客户与达人的多对多关联关系（v2.0 结构化标签版本）",
     "database": "agentworks_db",
-    "version": "1.0",
-    "lastUpdated": "2025-11-30",
+    "version": "2.0",
+    "lastUpdated": "2025-12-04",
     "author": "产品团队",
     "fields": {
         "_id": {
@@ -17,7 +17,7 @@
             "description": "客户编码",
             "required": true,
             "pattern": "^CUS[0-9]{8}$",
-            "example": "CUS202401001",
+            "example": "CUS20250001",
             "comment": "关联到 customers 集合的 code 字段"
         },
         "talentOneId": {
@@ -36,18 +36,35 @@
             "comment": "指定达人在哪个平台的账号被添加到客户池"
         },
         "tags": {
-            "type": "Array",
-            "description": "自定义标签",
+            "type": "Object",
+            "description": "结构化标签（v2.0 新版本）",
             "required": false,
-            "default": [],
-            "itemType": "String",
-            "example": ["核心", "备选", "测试"],
-            "comment": "客户自定义的达人分类标签"
+            "default": { "importance": null, "businessTags": [] },
+            "properties": {
+                "importance": {
+                    "type": "String",
+                    "description": "重要程度（单选）",
+                    "required": false,
+                    "enum": ["core", "key", "normal", "backup", "observe", null],
+                    "comment": "core=核心, key=重点, normal=常规, backup=备选, observe=观察"
+                },
+                "businessTags": {
+                    "type": "Array",
+                    "description": "业务标签（多选）",
+                    "required": false,
+                    "default": [],
+                    "itemType": "String",
+                    "example": ["long_term", "new_talent", "testing"],
+                    "comment": "存储 key 值，显示时通过 system_config 查询对应名称"
+                }
+            },
+            "comment": "v2.0 重构为结构化存储，支持重要程度和业务标签分离管理"
         },
         "notes": {
             "type": "String",
             "description": "备注",
             "required": false,
+            "default": "",
             "maxLength": 500,
             "comment": "关于该达人与客户关系的备注信息"
         },
@@ -72,6 +89,20 @@
             "required": true,
             "default": "now"
         },
+        "updatedBy": {
+            "type": "String",
+            "description": "更新人ID",
+            "required": false,
+            "comment": "记录最后更新的操作人",
+            "addedIn": "v2.0 (2025-12-02)"
+        },
+        "updatedAt": {
+            "type": "Date",
+            "description": "更新时间",
+            "required": false,
+            "comment": "记录最后更新时间",
+            "addedIn": "v2.0 (2025-12-02)"
+        },
         "removedAt": {
             "type": "Date",
             "description": "移除时间",
@@ -90,6 +121,39 @@
             "description": "最近合作时间",
             "required": false,
             "comment": "统计缓存，未来扩展用"
+        },
+        "organizationId": {
+            "type": "String",
+            "description": "组织ID",
+            "required": false,
+            "default": null,
+            "comment": "权限预留字段，未来多租户支持",
+            "addedIn": "v2.0 (2025-12-02)"
+        },
+        "departmentId": {
+            "type": "String",
+            "description": "部门ID",
+            "required": false,
+            "default": null,
+            "comment": "权限预留字段，未来部门权限支持",
+            "addedIn": "v2.0 (2025-12-02)"
+        },
+        "_tagsMigratedAt": {
+            "type": "Date",
+            "description": "标签迁移时间戳",
+            "required": false,
+            "internal": true,
+            "comment": "记录从旧版数组格式迁移到新版结构化格式的时间",
+            "addedIn": "v2.0 (2025-12-02)"
+        },
+        "_tagsOldFormat": {
+            "type": "Array",
+            "description": "旧版标签备份",
+            "required": false,
+            "internal": true,
+            "itemType": "String",
+            "comment": "迁移时备份的旧版字符串数组标签",
+            "addedIn": "v2.0 (2025-12-02)"
         }
     },
     "indexes": [
@@ -129,6 +193,11 @@
             "localField": "talentOneId",
             "foreignField": "oneId",
             "description": "关联到达人（需同时匹配 platform）"
+        },
+        {
+            "collection": "system_config",
+            "type": "lookup",
+            "description": "通过 configType='talent_tags' 查询标签配置，获取 key 对应的显示名称和颜色"
         }
     ],
     "notes": [
@@ -137,35 +206,73 @@
         "【三元组唯一】(customerId, talentOneId, platform) 联合唯一",
         "【软删除】通过 status=removed 实现软删除，保留历史记录",
         "【双向查询】支持通过客户查达人，也支持通过达人查所属客户",
-        "【扩展预留】tags 和 notes 字段支持客户自定义管理达人",
+        "【v2.0 重构】tags 字段从字符串数组重构为结构化对象 { importance, businessTags }",
+        "【标签配置】标签的显示名称、颜色等配置存储在 system_config 集合（configType='talent_tags'）",
+        "【标签存储】tags 中存储的是 key 值，前端显示时需要查询配置获取对应的 name",
+        "【迁移兼容】_tagsMigratedAt 和 _tagsOldFormat 字段用于标签格式迁移的审计追踪",
+        "【权限预留】organizationId 和 departmentId 为未来多租户/部门权限预留",
         "【统计缓存】cooperationCount 和 lastCooperationDate 为未来扩展预留"
     ],
     "examples": [
         {
-            "description": "示例1：某品牌添加抖音达人到达人池",
+            "description": "示例1：实际生产数据（v2.0 结构化标签）",
             "data": {
-                "customerId": "CUS202401001",
-                "talentOneId": "talent_00000123",
+                "customerId": "CUS20250001",
+                "talentOneId": "talent_00000002",
                 "platform": "douyin",
-                "tags": ["核心", "美食"],
-                "notes": "2024年合作效果好",
+                "tags": {
+                    "importance": "backup",
+                    "businessTags": ["new_talent"]
+                },
+                "notes": "",
                 "status": "active",
-                "addedBy": "user_001",
-                "addedAt": "2025-11-30T10:00:00Z"
+                "addedBy": "system",
+                "addedAt": "2025-11-30T04:20:04.625Z",
+                "cooperationCount": 0,
+                "_tagsMigratedAt": "2025-12-02T08:16:55.523Z",
+                "_tagsOldFormat": [],
+                "updatedAt": "2025-12-02T10:11:00.743Z",
+                "updatedBy": "system"
             }
         },
         {
-            "description": "示例2：同一客户添加同一达人的小红书账号",
+            "description": "示例2：带完整标签的记录",
             "data": {
-                "customerId": "CUS202401001",
-                "talentOneId": "talent_00000123",
-                "platform": "xiaohongshu",
-                "tags": ["备选"],
-                "notes": "",
+                "customerId": "CUS20250001",
+                "talentOneId": "talent_00000001",
+                "platform": "douyin",
+                "tags": {
+                    "importance": "core",
+                    "businessTags": ["long_term", "high_quality", "fast_response"]
+                },
+                "notes": "2024年合作效果好，响应速度快",
                 "status": "active",
                 "addedBy": "user_001",
-                "addedAt": "2025-11-30T10:05:00Z"
+                "addedAt": "2025-11-30T10:00:00Z",
+                "updatedBy": "user_001",
+                "updatedAt": "2025-12-01T15:30:00Z",
+                "cooperationCount": 5,
+                "lastCooperationDate": "2025-12-01T00:00:00Z",
+                "organizationId": null,
+                "departmentId": null
             }
+        }
+    ],
+    "changelog": [
+        {
+            "version": "2.0",
+            "date": "2025-12-02",
+            "changes": [
+                "tags 字段从字符串数组重构为结构化对象 { importance, businessTags }",
+                "新增 updatedBy、updatedAt 字段",
+                "新增 organizationId、departmentId 权限预留字段",
+                "新增 _tagsMigratedAt、_tagsOldFormat 迁移追踪字段"
+            ]
+        },
+        {
+            "version": "1.0",
+            "date": "2025-11-30",
+            "changes": ["初始版本"]
         }
     ]
 }

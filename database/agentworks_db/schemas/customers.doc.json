@@ -1,0 +1,335 @@
+{
+    "collection": "customers",
+    "description": "客户管理集合 - 存储客户基础信息和业务策略配置",
+    "database": "agentworks_db",
+    "version": "1.0",
+    "lastUpdated": "2025-12-04",
+    "author": "产品团队",
+    "fields": {
+        "_id": {
+            "type": "ObjectId",
+            "description": "MongoDB 文档 ID",
+            "required": true,
+            "auto": true
+        },
+        "code": {
+            "type": "String",
+            "description": "客户编码（唯一标识）",
+            "required": true,
+            "unique": true,
+            "pattern": "^CUS[0-9]{8}$",
+            "example": "CUS20250001",
+            "comment": "格式：CUS + 8位数字，全局唯一"
+        },
+        "name": {
+            "type": "String",
+            "description": "客户名称",
+            "required": true,
+            "example": "抖音商城"
+        },
+        "level": {
+            "type": "String",
+            "description": "客户级别",
+            "required": false,
+            "enum": ["VIP", "A", "B", "C", "普通"],
+            "default": "普通",
+            "example": "VIP"
+        },
+        "status": {
+            "type": "String",
+            "description": "客户状态",
+            "required": true,
+            "default": "active",
+            "enum": ["active", "inactive", "archived"],
+            "comment": "active=活跃, inactive=暂停合作, archived=已归档"
+        },
+        "industry": {
+            "type": "String",
+            "description": "所属行业",
+            "required": false,
+            "example": "互联网"
+        },
+        "contacts": {
+            "type": "Array",
+            "description": "联系人列表",
+            "required": false,
+            "default": [],
+            "itemType": "Object",
+            "itemSchema": {
+                "name": {
+                    "type": "String",
+                    "description": "联系人姓名",
+                    "required": true,
+                    "example": "张三"
+                },
+                "isPrimary": {
+                    "type": "Boolean",
+                    "description": "是否为主要联系人",
+                    "required": false,
+                    "default": false
+                },
+                "phone": {
+                    "type": "String",
+                    "description": "联系电话",
+                    "required": false
+                },
+                "email": {
+                    "type": "String",
+                    "description": "邮箱",
+                    "required": false
+                },
+                "wechat": {
+                    "type": "String",
+                    "description": "微信号",
+                    "required": false
+                },
+                "role": {
+                    "type": "String",
+                    "description": "职位角色",
+                    "required": false
+                }
+            }
+        },
+        "businessStrategies": {
+            "type": "Object",
+            "description": "业务策略配置",
+            "required": false,
+            "properties": {
+                "talentProcurement": {
+                    "type": "Object",
+                    "description": "达人采购策略",
+                    "properties": {
+                        "enabled": {
+                            "type": "Boolean",
+                            "description": "是否启用达人采购",
+                            "default": false
+                        },
+                        "platformPricingConfigs": {
+                            "type": "Object",
+                            "description": "各平台定价配置",
+                            "comment": "按平台独立配置定价策略",
+                            "properties": {
+                                "douyin": {
+                                    "type": "Object",
+                                    "description": "抖音平台配置",
+                                    "properties": {
+                                        "enabled": {
+                                            "type": "Boolean",
+                                            "description": "是否启用该平台",
+                                            "default": false
+                                        },
+                                        "pricingModel": {
+                                            "type": "String",
+                                            "description": "定价模式",
+                                            "enum": ["framework", "project", "hybrid"],
+                                            "comment": "framework=框架合同, project=项目制, hybrid=混合模式"
+                                        },
+                                        "platformFeeRate": {
+                                            "type": "Double",
+                                            "description": "平台费率（小数）",
+                                            "example": 0.05,
+                                            "comment": "5% = 0.05"
+                                        },
+                                        "discountRate": {
+                                            "type": "Double",
+                                            "description": "折扣率（小数）",
+                                            "example": 0.795,
+                                            "comment": "79.5% = 0.795"
+                                        },
+                                        "serviceFeeRate": {
+                                            "type": "Double",
+                                            "description": "服务费率（小数）",
+                                            "example": 0,
+                                            "default": 0
+                                        },
+                                        "validFrom": {
+                                            "type": "String",
+                                            "description": "生效日期",
+                                            "example": "2025-09-01"
+                                        },
+                                        "validTo": {
+                                            "type": "String",
+                                            "description": "失效日期",
+                                            "example": "2026-08-31"
+                                        },
+                                        "isPermanent": {
+                                            "type": "Boolean",
+                                            "description": "是否永久有效",
+                                            "default": false
+                                        },
+                                        "includesPlatformFee": {
+                                            "type": "Boolean",
+                                            "description": "报价是否包含平台费",
+                                            "default": true
+                                        },
+                                        "serviceFeeBase": {
+                                            "type": "String",
+                                            "description": "服务费计算基数",
+                                            "enum": ["beforeDiscount", "afterDiscount"],
+                                            "default": "beforeDiscount"
+                                        },
+                                        "includesTax": {
+                                            "type": "Boolean",
+                                            "description": "报价是否含税",
+                                            "default": true
+                                        },
+                                        "taxCalculationBase": {
+                                            "type": "String",
+                                            "description": "税费计算基数",
+                                            "enum": ["includeServiceFee", "excludeServiceFee"],
+                                            "default": "excludeServiceFee"
+                                        }
+                                    }
+                                },
+                                "xiaohongshu": {
+                                    "type": "Object",
+                                    "description": "小红书平台配置",
+                                    "comment": "结构同 douyin"
+                                }
+                            }
+                        },
+                        "quotationCoefficients": {
+                            "type": "Object",
+                            "description": "报价系数（按平台）",
+                            "comment": "用于计算最终报价的系数",
+                            "properties": {
+                                "douyin": {
+                                    "type": "Double",
+                                    "description": "抖音报价系数",
+                                    "example": 0.8347
+                                },
+                                "xiaohongshu": {
+                                    "type": "Double",
+                                    "description": "小红书报价系数",
+                                    "example": 0.9
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "createdBy": {
+            "type": "String",
+            "description": "创建人ID",
+            "required": false,
+            "default": "system"
+        },
+        "createdAt": {
+            "type": "Date",
+            "description": "创建时间",
+            "required": true,
+            "default": "now"
+        },
+        "updatedBy": {
+            "type": "String",
+            "description": "更新人ID",
+            "required": false
+        },
+        "updatedAt": {
+            "type": "Date",
+            "description": "更新时间",
+            "required": true,
+            "default": "now"
+        }
+    },
+    "indexes": [
+        {
+            "name": "idx_code",
+            "fields": { "code": 1 },
+            "unique": true,
+            "description": "客户编码唯一索引"
+        },
+        {
+            "name": "idx_name",
+            "fields": { "name": 1 },
+            "description": "客户名称索引（搜索用）"
+        },
+        {
+            "name": "idx_status",
+            "fields": { "status": 1 },
+            "description": "状态索引"
+        },
+        {
+            "name": "idx_level",
+            "fields": { "level": 1 },
+            "description": "客户级别索引"
+        },
+        {
+            "name": "idx_createdAt",
+            "fields": { "createdAt": -1 },
+            "description": "按创建时间倒序"
+        }
+    ],
+    "relations": [
+        {
+            "collection": "customer_talents",
+            "type": "one-to-many",
+            "localField": "code",
+            "foreignField": "customerId",
+            "description": "客户的达人池"
+        },
+        {
+            "collection": "pricing_history",
+            "type": "one-to-many",
+            "localField": "_id",
+            "foreignField": "customerId",
+            "description": "客户的价格策略变更历史"
+        }
+    ],
+    "notes": [
+        "【核心设计】存储客户基础信息和业务策略配置",
+        "【唯一标识】code 字段为客户唯一编码，格式 CUS + 8位数字",
+        "【联系人】支持多联系人，通过 isPrimary 标记主要联系人",
+        "【定价策略】businessStrategies.talentProcurement.platformPricingConfigs 按平台独立配置",
+        "【平台独立】每个平台可以有独立的定价模式、费率和有效期",
+        "【报价系数】quotationCoefficients 用于计算最终客户报价",
+        "【状态管理】通过 status 字段管理客户生命周期"
+    ],
+    "examples": [
+        {
+            "description": "示例1：实际生产数据",
+            "data": {
+                "code": "CUS20250001",
+                "name": "抖音商城",
+                "level": "VIP",
+                "status": "active",
+                "industry": "互联网",
+                "contacts": [
+                    {
+                        "isPrimary": true,
+                        "name": "张三"
+                    }
+                ],
+                "businessStrategies": {
+                    "talentProcurement": {
+                        "enabled": true,
+                        "platformPricingConfigs": {
+                            "douyin": {
+                                "enabled": true,
+                                "pricingModel": "framework",
+                                "platformFeeRate": 0.05,
+                                "discountRate": 0.795,
+                                "serviceFeeRate": 0,
+                                "validFrom": "2025-09-01",
+                                "validTo": "2026-08-31",
+                                "isPermanent": false,
+                                "includesPlatformFee": true,
+                                "serviceFeeBase": "beforeDiscount",
+                                "includesTax": true,
+                                "taxCalculationBase": "excludeServiceFee"
+                            }
+                        },
+                        "quotationCoefficients": {
+                            "douyin": 0.8347
+                        }
+                    }
+                },
+                "createdAt": "2025-11-27T05:44:02.187Z",
+                "updatedAt": "2025-12-02T05:13:14.904Z",
+                "createdBy": "system",
+                "updatedBy": "system"
+            }
+        }
+    ]
+}

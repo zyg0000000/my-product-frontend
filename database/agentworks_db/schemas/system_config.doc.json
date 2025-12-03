@@ -1,0 +1,428 @@
+{
+    "collection": "system_config",
+    "description": "系统配置集合 - 存储平台配置、标签配置等全局系统配置",
+    "database": "agentworks_db",
+    "version": "1.0",
+    "lastUpdated": "2025-12-04",
+    "author": "产品团队",
+    "fields": {
+        "_id": {
+            "type": "ObjectId",
+            "description": "MongoDB 文档 ID",
+            "required": true,
+            "auto": true
+        },
+        "configType": {
+            "type": "String",
+            "description": "配置类型",
+            "required": true,
+            "enum": ["platform", "talent_tags"],
+            "comment": "platform=平台配置, talent_tags=达人标签配置"
+        }
+    },
+    "configTypes": {
+        "platform": {
+            "description": "平台配置 - 定义各平台的业务配置",
+            "fields": {
+                "platform": {
+                    "type": "String",
+                    "description": "平台标识",
+                    "required": true,
+                    "enum": ["douyin", "xiaohongshu", "bilibili", "kuaishou"],
+                    "example": "douyin"
+                },
+                "name": {
+                    "type": "String",
+                    "description": "平台显示名称",
+                    "required": true,
+                    "example": "抖音"
+                },
+                "enabled": {
+                    "type": "Boolean",
+                    "description": "是否启用",
+                    "required": true,
+                    "default": false
+                },
+                "color": {
+                    "type": "String",
+                    "description": "平台主题色",
+                    "example": "blue"
+                },
+                "order": {
+                    "type": "Integer",
+                    "description": "排序序号",
+                    "example": 1
+                },
+                "accountId": {
+                    "type": "Object",
+                    "description": "账号ID配置",
+                    "properties": {
+                        "label": {
+                            "type": "String",
+                            "description": "账号ID标签",
+                            "example": "星图ID"
+                        },
+                        "placeholder": {
+                            "type": "String",
+                            "description": "输入提示",
+                            "example": "请输入星图ID"
+                        },
+                        "helpText": {
+                            "type": "String",
+                            "description": "帮助文本",
+                            "example": "星图ID是抖音平台的唯一标识，可在星图后台查看"
+                        }
+                    }
+                },
+                "priceTypes": {
+                    "type": "Array",
+                    "description": "价格类型配置",
+                    "itemType": "Object",
+                    "itemSchema": {
+                        "key": {
+                            "type": "String",
+                            "description": "价格类型key",
+                            "example": "video_60plus"
+                        },
+                        "label": {
+                            "type": "String",
+                            "description": "显示名称",
+                            "example": "60s+"
+                        },
+                        "required": {
+                            "type": "Boolean",
+                            "description": "是否必填",
+                            "default": true
+                        },
+                        "bgColor": {
+                            "type": "String",
+                            "description": "背景色",
+                            "example": "#dbeafe"
+                        },
+                        "textColor": {
+                            "type": "String",
+                            "description": "文字色",
+                            "example": "#1e40af"
+                        },
+                        "order": {
+                            "type": "Integer",
+                            "description": "排序"
+                        }
+                    }
+                },
+                "specificFields": {
+                    "type": "Object",
+                    "description": "平台特有字段配置",
+                    "comment": "定义该平台特有的字段"
+                },
+                "talentTiers": {
+                    "type": "Array",
+                    "description": "达人层级配置",
+                    "itemType": "Object",
+                    "itemSchema": {
+                        "key": {
+                            "type": "String",
+                            "description": "层级key",
+                            "example": "top"
+                        },
+                        "label": {
+                            "type": "String",
+                            "description": "显示名称",
+                            "example": "头部"
+                        },
+                        "bgColor": {
+                            "type": "String",
+                            "description": "背景色"
+                        },
+                        "textColor": {
+                            "type": "String",
+                            "description": "文字色"
+                        },
+                        "order": {
+                            "type": "Integer",
+                            "description": "排序"
+                        },
+                        "isDefault": {
+                            "type": "Boolean",
+                            "description": "是否默认",
+                            "default": false
+                        }
+                    }
+                },
+                "business": {
+                    "type": "Object",
+                    "description": "业务配置",
+                    "properties": {
+                        "fee": {
+                            "type": "Double",
+                            "description": "平台费率",
+                            "example": 0.05
+                        },
+                        "defaultRebate": {
+                            "type": "Double",
+                            "description": "默认返点率",
+                            "example": 15
+                        },
+                        "minRebate": {
+                            "type": "Double",
+                            "description": "最小返点率",
+                            "default": 0
+                        },
+                        "maxRebate": {
+                            "type": "Double",
+                            "description": "最大返点率",
+                            "default": 100
+                        }
+                    }
+                },
+                "features": {
+                    "type": "Object",
+                    "description": "功能开关",
+                    "properties": {
+                        "priceManagement": {
+                            "type": "Boolean",
+                            "description": "价格管理",
+                            "default": false
+                        },
+                        "performanceTracking": {
+                            "type": "Boolean",
+                            "description": "表现追踪",
+                            "default": false
+                        },
+                        "rebateManagement": {
+                            "type": "Boolean",
+                            "description": "返点管理",
+                            "default": false
+                        },
+                        "dataImport": {
+                            "type": "Boolean",
+                            "description": "数据导入",
+                            "default": false
+                        }
+                    }
+                },
+                "links": {
+                    "type": "Array",
+                    "description": "相关链接",
+                    "itemType": "String",
+                    "default": []
+                },
+                "dbVersion": {
+                    "type": "String",
+                    "description": "数据库版本标记",
+                    "example": "v2"
+                },
+                "version": {
+                    "type": "Integer",
+                    "description": "配置版本号",
+                    "example": 11
+                },
+                "createdBy": {
+                    "type": "String",
+                    "description": "创建人"
+                },
+                "createdAt": {
+                    "type": "Date",
+                    "description": "创建时间"
+                },
+                "updatedAt": {
+                    "type": "Date",
+                    "description": "更新时间"
+                }
+            }
+        },
+        "talent_tags": {
+            "description": "达人标签配置 - 定义客户达人池的标签选项",
+            "fields": {
+                "importanceLevels": {
+                    "type": "Array",
+                    "description": "重要程度配置（单选）",
+                    "itemType": "Object",
+                    "itemSchema": {
+                        "key": {
+                            "type": "String",
+                            "description": "重要程度key",
+                            "enum": ["core", "key", "normal", "backup", "observe"],
+                            "example": "core"
+                        },
+                        "name": {
+                            "type": "String",
+                            "description": "显示名称",
+                            "example": "核心"
+                        },
+                        "bgColor": {
+                            "type": "String",
+                            "description": "背景色",
+                            "example": "#fee2e2"
+                        },
+                        "textColor": {
+                            "type": "String",
+                            "description": "文字色",
+                            "example": "#dc2626"
+                        },
+                        "sortOrder": {
+                            "type": "Integer",
+                            "description": "排序序号"
+                        },
+                        "description": {
+                            "type": "String",
+                            "description": "说明",
+                            "example": "必须维护的核心达人，不可替代"
+                        }
+                    }
+                },
+                "businessTags": {
+                    "type": "Array",
+                    "description": "业务标签配置（多选）",
+                    "itemType": "Object",
+                    "itemSchema": {
+                        "key": {
+                            "type": "String",
+                            "description": "业务标签key",
+                            "example": "long_term"
+                        },
+                        "name": {
+                            "type": "String",
+                            "description": "显示名称",
+                            "example": "长期合作"
+                        },
+                        "bgColor": {
+                            "type": "String",
+                            "description": "背景色",
+                            "example": "#dcfce7"
+                        },
+                        "textColor": {
+                            "type": "String",
+                            "description": "文字色",
+                            "example": "#16a34a"
+                        },
+                        "sortOrder": {
+                            "type": "Integer",
+                            "description": "排序序号"
+                        }
+                    }
+                },
+                "version": {
+                    "type": "Integer",
+                    "description": "配置版本号",
+                    "example": 2
+                },
+                "createdBy": {
+                    "type": "String",
+                    "description": "创建人"
+                },
+                "createdAt": {
+                    "type": "Date",
+                    "description": "创建时间"
+                },
+                "updatedBy": {
+                    "type": "String",
+                    "description": "更新人"
+                },
+                "updatedAt": {
+                    "type": "Date",
+                    "description": "更新时间"
+                }
+            }
+        }
+    },
+    "indexes": [
+        {
+            "name": "idx_configType",
+            "fields": { "configType": 1 },
+            "description": "配置类型索引"
+        },
+        {
+            "name": "idx_configType_platform",
+            "fields": { "configType": 1, "platform": 1 },
+            "unique": true,
+            "sparse": true,
+            "description": "平台配置唯一索引（仅对 configType=platform 生效）"
+        }
+    ],
+    "notes": [
+        "【核心设计】存储系统全局配置，通过 configType 区分不同类型的配置",
+        "【平台配置】configType='platform' 存储各平台的业务配置",
+        "【标签配置】configType='talent_tags' 存储达人标签的选项配置",
+        "【key/name 映射】标签配置提供 key 和 name 的双向映射",
+        "【颜色配置】支持自定义背景色和文字色，用于前端展示",
+        "【版本管理】每次更新递增 version 字段"
+    ],
+    "examples": [
+        {
+            "description": "示例1：抖音平台配置",
+            "data": {
+                "configType": "platform",
+                "platform": "douyin",
+                "name": "抖音",
+                "enabled": true,
+                "color": "blue",
+                "order": 1,
+                "accountId": {
+                    "label": "星图ID",
+                    "placeholder": "请输入星图ID",
+                    "helpText": "星图ID是抖音平台的唯一标识，可在星图后台查看"
+                },
+                "priceTypes": [
+                    { "key": "video_60plus", "label": "60s+", "required": true, "bgColor": "#dbeafe", "textColor": "#1e40af", "order": 1 },
+                    { "key": "video_21_60", "label": "21-60s", "required": true, "bgColor": "#e0e7ff", "textColor": "#4338ca", "order": 2 },
+                    { "key": "video_1_20", "label": "1-20s", "required": true, "bgColor": "#ddd6fe", "textColor": "#6b21a8", "order": 3 }
+                ],
+                "specificFields": {
+                    "uid": { "label": "抖音UID", "type": "string", "required": false }
+                },
+                "talentTiers": [
+                    { "key": "top", "label": "头部", "bgColor": "#fef3c7", "textColor": "#92400e", "order": 1, "isDefault": false },
+                    { "key": "middle", "label": "腰部", "bgColor": "#dbeafe", "textColor": "#1e40af", "order": 2, "isDefault": false },
+                    { "key": "tail", "label": "尾部", "bgColor": "#dcfce7", "textColor": "#166534", "order": 3, "isDefault": true }
+                ],
+                "business": {
+                    "fee": 0.05,
+                    "defaultRebate": 15,
+                    "minRebate": 0,
+                    "maxRebate": 100
+                },
+                "features": {
+                    "priceManagement": true,
+                    "performanceTracking": true,
+                    "rebateManagement": true,
+                    "dataImport": true
+                },
+                "dbVersion": "v2",
+                "version": 11,
+                "createdBy": "system",
+                "createdAt": "2025-11-23T15:05:45.874Z",
+                "updatedAt": "2025-12-03T15:42:51.115Z"
+            }
+        },
+        {
+            "description": "示例2：达人标签配置",
+            "data": {
+                "configType": "talent_tags",
+                "importanceLevels": [
+                    { "key": "core", "name": "核心", "bgColor": "#fee2e2", "textColor": "#dc2626", "sortOrder": 1, "description": "必须维护的核心达人，不可替代" },
+                    { "key": "key", "name": "重点", "bgColor": "#ffedd5", "textColor": "#ea580c", "sortOrder": 2, "description": "重点关注的优质达人" },
+                    { "key": "normal", "name": "常规", "bgColor": "#dbeafe", "textColor": "#2563eb", "sortOrder": 3, "description": "正常合作的达人" },
+                    { "key": "backup", "name": "备选", "bgColor": "#cffafe", "textColor": "#0891b2", "sortOrder": 4, "description": "可替代的备选达人" },
+                    { "key": "observe", "name": "观察", "bgColor": "#f3f4f6", "textColor": "#6b7280", "sortOrder": 5, "description": "观察期/待评估达人" }
+                ],
+                "businessTags": [
+                    { "key": "long_term", "name": "长期合作", "bgColor": "#dcfce7", "textColor": "#16a34a", "sortOrder": 1 },
+                    { "key": "new_talent", "name": "新晋达人", "bgColor": "#f3e8ff", "textColor": "#9333ea", "sortOrder": 2 },
+                    { "key": "testing", "name": "测试中", "bgColor": "#ffedd5", "textColor": "#ea580c", "sortOrder": 3 },
+                    { "key": "paused", "name": "暂停合作", "bgColor": "#fee2e2", "textColor": "#dc2626", "sortOrder": 4 },
+                    { "key": "price_sensitive", "name": "价格敏感", "bgColor": "#fff1e6", "textColor": "#d4380d", "sortOrder": 5 },
+                    { "key": "fast_response", "name": "响应快", "bgColor": "#ecfccb", "textColor": "#65a30d", "sortOrder": 6 },
+                    { "key": "high_quality", "name": "内容质量高", "bgColor": "#fef9c3", "textColor": "#ca8a04", "sortOrder": 7 },
+                    { "key": "cooperative", "name": "配合度高", "bgColor": "#cffafe", "textColor": "#0891b2", "sortOrder": 8 },
+                    { "key": "busy_schedule", "name": "档期紧张", "bgColor": "#fce7f3", "textColor": "#db2777", "sortOrder": 9 }
+                ],
+                "version": 2,
+                "createdAt": "2025-12-02T08:16:27.449Z",
+                "updatedAt": "2025-12-02T08:27:23.748Z",
+                "createdBy": "system",
+                "updatedBy": "system_upgrade"
+            }
+        }
+    ]
+}
