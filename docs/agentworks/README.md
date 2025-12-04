@@ -94,7 +94,7 @@ npm run dev
 - 价格档位配置
 - 平台差异化配置
 
-**文档**: [平台配置详细文档](./features/PLATFORM_CONFIG_FEATURE_GUIDE.md)
+**文档**: [平台配置详细文档](./features/settings/PLATFORM_CONFIG.md)
 
 ### 5. 返点系统
 **模式**:
@@ -295,12 +295,14 @@ git push origin main
 - **[组件库](./COMPONENT_LIBRARY.md)** - 组件使用
 
 ### 功能文档
-- **[平台配置](./features/PLATFORM_CONFIG_FEATURE_GUIDE.md)** - 配置系统
+- **[功能文档索引](./features/INDEX.md)** - 全部功能文档目录
+- **[达人全景](./features/analytics/TALENT_PANORAMA.md)** - 多视角达人分析
+- **[客户达人池](./features/customers/CUSTOMER_TALENT_POOL.md)** - 客户资源管理
+- **[定价策略](./features/customers/PRICING_STRATEGY.md)** - 客户定价配置
+- **[平台配置](./features/settings/PLATFORM_CONFIG.md)** - 平台参数管理
+- **[标签管理](./features/settings/TAG_MANAGEMENT.md)** - 达人标签配置
 - **[多价格系统](./features/MULTI_PRICE_SYSTEM.md)** - 价格管理
 - **[自动化功能](./features/AUTOMATION.md)** - 自动化能力
-- **[项目日报](./features/PROJECT_REPORT.md)** - 日报功能
-- **[客户达人池](./features/CUSTOMER_TALENT_POOL.md)** - 客户资源管理
-- **[达人全景](./features/TALENT_PANORAMA.md)** - 全景分析
 
 ### 架构规范
 - **[权限预留规范](./PERMISSION_RESERVATION_SPEC.md)** - 数据层权限预留
@@ -350,7 +352,7 @@ git push origin main
 
 **产品版本**: v3.9.0
 **文档版本**: v2.2
-**最后更新**: 2025-12-03
+**最后更新**: 2025-12-05
 **维护团队**: AgentWorks Team
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
