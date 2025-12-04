@@ -6,7 +6,7 @@
  * @date 2025-12-04
  */
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { Platform } from '@/types/talent';
 import {
   type FieldDefinition,
@@ -232,8 +232,6 @@ export function usePanoramaColumns(
       rebate: { selected: 0, total: 0 },
       metrics: { selected: 0, total: 0 },
       audience: { selected: 0, total: 0 },
-      aiFeatures: { selected: 0, total: 0 },
-      prediction: { selected: 0, total: 0 },
       customer: { selected: 0, total: 0 },
     };
 

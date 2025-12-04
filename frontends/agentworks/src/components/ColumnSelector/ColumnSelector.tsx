@@ -37,8 +37,6 @@ import {
   PercentageOutlined,
   BarChartOutlined,
   PieChartOutlined,
-  RobotOutlined,
-  LineChartOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
 import type { CheckboxChangeEvent } from 'antd/es/checkbox';
@@ -83,8 +81,6 @@ const CATEGORY_ICONS: Record<FieldCategory, React.ReactNode> = {
   rebate: <PercentageOutlined />,
   metrics: <BarChartOutlined />,
   audience: <PieChartOutlined />,
-  aiFeatures: <RobotOutlined />,
-  prediction: <LineChartOutlined />,
   customer: <TeamOutlined />,
 };
 
@@ -118,8 +114,6 @@ export function ColumnSelector({
       rebate: [],
       metrics: [],
       audience: [],
-      aiFeatures: [],
-      prediction: [],
       customer: [],
     };
 
