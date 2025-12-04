@@ -22,12 +22,7 @@ import { Button, App, Tag, Form } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { logger } from '../../../utils/logger';
 import { createTalent, getTalents } from '../../../api/talent';
-import type {
-  Platform,
-  TalentTier,
-  TalentStatus,
-  Talent,
-} from '../../../types/talent';
+import type { Platform, TalentStatus, Talent } from '../../../types/talent';
 import { PLATFORM_NAMES } from '../../../types/talent';
 import { AGENCY_INDIVIDUAL_ID } from '../../../types/agency';
 import { AgencySelector } from '../../../components/AgencySelector';
@@ -39,7 +34,6 @@ interface FormData {
   name: string;
   fansCount?: number;
   agencyId: string;
-  talentTier?: TalentTier;
   talentType: string[];
   status: TalentStatus;
   // 平台特定字段（动态，从配置读取）
@@ -64,7 +58,6 @@ export function CreateTalent() {
   const {
     getPlatformList,
     getPlatformNames,
-    getTalentTiers,
     getPlatformConfigByKey,
     loading: configLoading,
   } = usePlatformConfig(false);
@@ -159,7 +152,6 @@ export function CreateTalent() {
         name: values.name,
         fansCount: values.fansCount,
         agencyId: values.agencyId || AGENCY_INDIVIDUAL_ID,
-        talentTier: values.talentTier,
         talentType:
           values.talentType?.length > 0 ? values.talentType : undefined,
         status: values.status,
@@ -277,16 +269,6 @@ export function CreateTalent() {
                 parser: value =>
                   value ? parseInt(value.replace(/\$\s?|(,*)/g, '')) || 0 : 0,
               }}
-            />
-
-            <ProFormSelect
-              name="talentTier"
-              label="达人层级"
-              placeholder="请选择达人层级"
-              options={getTalentTiers(selectedPlatform).map(tier => ({
-                label: tier.label,
-                value: tier.label,
-              }))}
             />
 
             <ProFormSelect

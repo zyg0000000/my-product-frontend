@@ -15,7 +15,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { getPlatformConfigs } from '../api/platformConfig';
-import type { PlatformConfig, TalentTierConfig } from '../api/platformConfig';
+import type { PlatformConfig } from '../api/platformConfig';
 import type { Platform } from '../types/talent';
 import { logger } from '../utils/logger';
 import { getErrorMessage } from '../types/api';
@@ -221,29 +221,6 @@ export function usePlatformConfig(includeDisabled = false) {
   };
 
   /**
-   * 获取平台的达人等级列表
-   * @param platform - 平台标识
-   * @returns 达人等级配置数组（按 order 排序）
-   */
-  const getTalentTiers = (platform: Platform): TalentTierConfig[] => {
-    const config = getPlatformConfigByKey(platform);
-    const tiers = config?.talentTiers || [];
-    return [...tiers].sort((a, b) => a.order - b.order);
-  };
-
-  /**
-   * 获取平台的默认达人等级
-   * @param platform - 平台标识
-   * @returns 默认达人等级配置或 undefined
-   */
-  const getDefaultTalentTier = (
-    platform: Platform
-  ): TalentTierConfig | undefined => {
-    const tiers = getTalentTiers(platform);
-    return tiers.find(t => t.isDefault) || tiers[0];
-  };
-
-  /**
    * 刷新配置（清除缓存并重新加载）
    */
   const refreshConfigs = () => {
@@ -264,8 +241,6 @@ export function usePlatformConfig(includeDisabled = false) {
     hasFeature,
     getPlatformConfigByKey,
     getPlatformPriceTypes,
-    getTalentTiers,
-    getDefaultTalentTier,
     refreshConfigs,
   };
 }

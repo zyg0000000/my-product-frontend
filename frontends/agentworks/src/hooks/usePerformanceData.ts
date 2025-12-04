@@ -25,7 +25,6 @@ type FilterParamValue = string | string[] | number | boolean | undefined | null;
 // 筛选参数类型
 export interface PerformanceFilterParams {
   searchTerm?: string;
-  tiers?: string[] | string; // 支持数组或逗号分隔字符串
   types?: string[] | string; // 内容标签筛选
   // 数值区间筛选
   cpmMin?: number;
@@ -97,22 +96,6 @@ export function usePerformanceData(
         // 添加搜索参数
         if (filters.searchTerm) {
           params.search = filters.searchTerm;
-        }
-
-        // 处理 tiers 参数（可能是数组或逗号分隔字符串）
-        if (filters.tiers) {
-          if (Array.isArray(filters.tiers) && filters.tiers.length > 0) {
-            params.tiers = filters.tiers;
-          } else if (
-            typeof filters.tiers === 'string' &&
-            filters.tiers.trim()
-          ) {
-            // 字符串格式转数组
-            params.tiers = filters.tiers
-              .split(',')
-              .map((s: string) => s.trim())
-              .filter(Boolean);
-          }
         }
 
         // 处理 types 参数（内容标签，可能是数组或逗号分隔字符串）

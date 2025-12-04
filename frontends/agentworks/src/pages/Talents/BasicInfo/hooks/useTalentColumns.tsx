@@ -23,16 +23,12 @@ import {
   formatRebate,
   getLatestPricesMap,
 } from '../../../../utils/formatters';
-import type {
-  TalentTierConfig,
-  LinkConfig,
-} from '../../../../api/platformConfig';
+import type { LinkConfig } from '../../../../api/platformConfig';
 
 export interface UseTalentColumnsOptions {
   platform: Platform;
   selectedPriceTier: string | null;
   agencies: Agency[];
-  getTalentTiers: (platform: Platform) => TalentTierConfig[];
   getPlatformConfigByKey: (platform: Platform) =>
     | {
         links?: LinkConfig[] | null;
@@ -67,7 +63,6 @@ export function useTalentColumns({
   platform,
   selectedPriceTier,
   agencies,
-  getTalentTiers,
   getPlatformConfigByKey,
   onMenuClick,
 }: UseTalentColumnsOptions): ProColumns<Talent>[] {
@@ -167,36 +162,6 @@ export function useTalentColumns({
         key: 'agencyId',
         width: 100,
         render: (_, record) => <Tag>{getAgencyName(record.agencyId)}</Tag>,
-      },
-      {
-        title: '达人层级',
-        dataIndex: 'talentTier',
-        key: 'talentTier',
-        width: 100,
-        render: (_, record) => {
-          if (!record.talentTier) {
-            return <span className="text-gray-400 text-xs">-</span>;
-          }
-          // 从配置中获取该等级的颜色
-          const tierConfig = getTalentTiers(platform).find(
-            t => t.label === record.talentTier
-          );
-          if (tierConfig) {
-            return (
-              <Tag
-                style={{
-                  backgroundColor: tierConfig.bgColor,
-                  color: tierConfig.textColor,
-                  border: 'none',
-                }}
-              >
-                {record.talentTier}
-              </Tag>
-            );
-          }
-          // 兜底：如果没找到配置，使用默认样式
-          return <Tag>{record.talentTier}</Tag>;
-        },
       },
       {
         title: '内容标签',
@@ -350,14 +315,7 @@ export function useTalentColumns({
         ),
       },
     ],
-    [
-      platform,
-      selectedPriceTier,
-      getAgencyName,
-      getPlatformLinks,
-      getTalentTiers,
-      onMenuClick,
-    ]
+    [platform, selectedPriceTier, getAgencyName, getPlatformLinks, onMenuClick]
   );
 
   return columns;

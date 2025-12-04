@@ -10,7 +10,6 @@
  */
 export interface TalentFilters {
   searchTerm: string;
-  tiers: string[]; // 达人层级
   tags: string[]; // 内容标签
   rebateRange: [string, string]; // 返点率区间 [min, max]，空字符串表示不限
   priceRange: [string, string]; // 价格区间 [min, max]，空字符串表示不限
@@ -22,7 +21,6 @@ export interface TalentFilters {
  */
 export const EMPTY_FILTERS: TalentFilters = {
   searchTerm: '',
-  tiers: [],
   tags: [],
   rebateRange: ['', ''],
   priceRange: ['', ''],
@@ -39,11 +37,6 @@ export function buildFilterParams(filters: TalentFilters) {
   // 搜索词
   if (filters.searchTerm.trim()) {
     params.searchTerm = filters.searchTerm.trim();
-  }
-
-  // 层级筛选
-  if (filters.tiers.length > 0) {
-    params.tiers = filters.tiers;
   }
 
   // 标签筛选
@@ -134,7 +127,6 @@ export function validateFilters(filters: TalentFilters): string | null {
 export function isFiltersEmpty(filters: TalentFilters): boolean {
   return (
     !filters.searchTerm.trim() &&
-    filters.tiers.length === 0 &&
     filters.tags.length === 0 &&
     !filters.rebateRange[0].trim() &&
     !filters.rebateRange[1].trim() &&
@@ -151,7 +143,6 @@ export function countActiveFilters(filters: TalentFilters): number {
   let count = 0;
 
   if (filters.searchTerm.trim()) count++;
-  if (filters.tiers.length > 0) count++;
   if (filters.tags.length > 0) count++;
   if (filters.rebateRange[0].trim() || filters.rebateRange[1].trim()) count++;
   if (filters.priceRange[0].trim() || filters.priceRange[1].trim()) count++;

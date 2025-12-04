@@ -56,7 +56,6 @@ interface UseBasicInfoDataReturn {
 
   // 方法
   loadTalents: () => Promise<void>;
-  getUniqueTalentTiers: () => string[];
   getUniqueTalentTypes: () => string[];
 }
 
@@ -64,7 +63,6 @@ const PAGE_SIZE = 15;
 
 const initialFilterState: FilterState = {
   searchTerm: '',
-  selectedTiers: [],
   selectedTags: [],
   rebateMin: '',
   rebateMax: '',
@@ -141,7 +139,6 @@ export function useBasicInfoData({
         sortBy: 'name' | 'updatedAt' | 'createdAt' | 'fansCount';
         order: 'asc' | 'desc';
         searchTerm?: string;
-        tiers?: string[];
         tags?: string[];
         rebateMin?: number;
         rebateMax?: number;
@@ -159,7 +156,6 @@ export function useBasicInfoData({
       // 使用 ref 获取最新的 filterState
       const {
         searchTerm,
-        selectedTiers,
         selectedTags,
         rebateMin,
         rebateMax,
@@ -169,7 +165,6 @@ export function useBasicInfoData({
       } = filterStateRef.current;
 
       if (searchTerm) params.searchTerm = searchTerm;
-      if (selectedTiers.length > 0) params.tiers = selectedTiers;
       if (selectedTags.length > 0) params.tags = selectedTags;
       if (rebateMin) params.rebateMin = parseFloat(rebateMin);
       if (rebateMax) params.rebateMax = parseFloat(rebateMax);
@@ -241,17 +236,6 @@ export function useBasicInfoData({
     loadCustomers();
   }, []);
 
-  // 获取唯一的达人层级
-  const getUniqueTalentTiers = useCallback((): string[] => {
-    const tiers = new Set<string>();
-    talents.forEach(talent => {
-      if (talent.talentTier) {
-        tiers.add(talent.talentTier);
-      }
-    });
-    return Array.from(tiers).sort();
-  }, [talents]);
-
   // 获取唯一的内容标签
   const getUniqueTalentTypes = useCallback((): string[] => {
     const types = new Set<string>();
@@ -313,7 +297,6 @@ export function useBasicInfoData({
 
     // 方法
     loadTalents,
-    getUniqueTalentTiers,
     getUniqueTalentTypes,
   };
 }

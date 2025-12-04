@@ -1,8 +1,13 @@
 /**
  * @file bulkCreateTalents.js
+ * @version 7.0
  * @description
- * 云函数: bulkCreateTalents (v6 - 野生达人返点修复)
+ * 云函数: bulkCreateTalents (v7 - 移除 talentTier)
  * 负责处理批量创建新达人的请求。
+ *
+ * --- v7 更新日志 (2025-12-04) ---
+ * - [移除] v2 分支不再处理 talentTier 字段（talentTier 业务逻辑已移除）
+ * - [说明] talentTier 应改为客户维度管理，不再是达人平台维度
  *
  * --- v6 更新日志 (2025-11-26) ---
  * - [BUG修复] 野生达人的默认返点率改为从 agencies 集合读取，不再硬编码为 0
@@ -272,7 +277,6 @@ async function handleV2Create(collection, talentsData, platform, headers) {
     const name = row.name || row.nickname || row['达人昵称'] || row['昵称'] || row['名称'];
     const platformAccountId = getPlatformAccountId(row);
     const uid = row.uid || row['UID'] || row['抖音UID'];
-    const talentTier = row.talentTier || row['达人层级'] || null; // 由前端传入，无默认值
     const agencyId = row.agencyId || 'individual'; // 默认野生达人
 
     // 校验必填字段
@@ -356,7 +360,6 @@ async function handleV2Create(collection, talentsData, platform, headers) {
       name: name,
       fansCount: row.fansCount ? parseInt(row.fansCount, 10) : null,
       talentType: [], // 不录入，后期更新
-      talentTier: talentTier,
       agencyId: agencyId, // 'individual' = 野生达人
       rebateMode: isWildTalent ? 'independent' : 'sync', // 野生达人固定独立模式，机构达人默认同步
       currentRebate: {

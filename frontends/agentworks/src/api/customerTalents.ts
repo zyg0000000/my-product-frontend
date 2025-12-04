@@ -203,8 +203,6 @@ export interface PanoramaSearchParams {
   // --- 基础筛选 ---
   /** 搜索词（达人名称/OneID） */
   searchTerm?: string;
-  /** 达人层级（多选） */
-  tiers?: string[];
   /** 返点范围 - 最小值（小数，如 0.1 = 10%） */
   rebateMin?: number;
   /** 返点范围 - 最大值 */
@@ -229,6 +227,14 @@ export interface PanoramaSearchParams {
   // --- 表现筛选 ---
   /** 表现数据筛选（字段名 -> {min, max}） */
   performanceFilters?: Record<string, { min?: number; max?: number }>;
+
+  // --- 字段选择（v2.4 新增） ---
+  /**
+   * 请求返回的字段列表
+   * 不传则返回默认字段（oneId, name, platform, rebate, prices, contentTags, followerCount, customerRelations）
+   * 可选字段请参考 FIELD_WHITELIST（后端定义）或 PANORAMA_FIELDS（前端配置）
+   */
+  fields?: string[];
 }
 
 /**
@@ -257,8 +263,6 @@ export interface PanoramaTalentItem {
   name: string;
   /** 平台 */
   platform: Platform;
-  /** 达人层级 */
-  talentTier?: string;
   /** 返点比例 */
   rebate?: number;
   /** 价格信息 */
@@ -296,13 +300,15 @@ export interface PanoramaSearchResponse {
   viewMode?: ViewMode;
   /** 已选客户列表（客户视角模式） */
   selectedCustomers?: string[] | null;
+  /** 实际返回的字段列表（v2.4 新增） */
+  fields?: string[];
 }
 
 /**
  * 达人全景搜索
  *
  * 支持多维度筛选：
- * - 基础筛选：搜索词、达人层级、返点范围、价格范围、内容标签
+ * - 基础筛选：搜索词、返点范围、价格范围、内容标签
  * - 客户筛选：客户名称、重要程度、业务标签（需先选择客户）
  * - 表现筛选：从 dimension_config 配置的表现维度
  *
@@ -320,7 +326,6 @@ export async function panoramaSearch(
     pageSize: params.pageSize?.toString(),
     // 基础筛选
     searchTerm: params.searchTerm,
-    tiers: params.tiers?.join(','),
     rebateMin: params.rebateMin?.toString(),
     rebateMax: params.rebateMax?.toString(),
     priceMin: params.priceMin?.toString(),
@@ -335,6 +340,8 @@ export async function panoramaSearch(
     performanceFilters: params.performanceFilters
       ? JSON.stringify(params.performanceFilters)
       : undefined,
+    // 字段选择（v2.4 新增）
+    fields: params.fields?.join(','),
   };
 
   // 移除 undefined 值

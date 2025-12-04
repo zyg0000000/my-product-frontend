@@ -1,15 +1,19 @@
 /**
  * @file getTalentFilterOptions.js
- * @version 1.1
+ * @version 1.2
  * @description
  * 云函数: getTalentFilterOptions (生产版)
  * 专为"近期表现"和"达人库"等页面的筛选器提供动态选项。
  *
  * 功能特性:
- * - 实时查询数据库中所有不重复的 `talentTier` (达人层级)。
  * - 实时查询数据库中所有不重复的 `talentType` (达人类型)。
  * - 高效轻量，只返回筛选所需的最少数据。
+ * - v1.2: v2 分支不再返回 talentTier（返回空数组），v1 保持原样
  * - v1.1: 支持 dbVersion 参数切换数据库 (默认v1=kol_data, v2=agentworks_db)
+ *
+ * --- v1.2 更新日志 (2025-12-04) ---
+ * - [移除] v2 分支 tiers 返回空数组（talentTier 业务逻辑已移除）
+ * - [说明] talentTier 应改为客户维度管理，不再是达人平台维度
  *
  * 触发器: API 网关, GET /talents/filter-options
  */
@@ -67,29 +71,33 @@ exports.handler = async (event, context) => {
     console.log(`[getTalentFilterOptions] 使用数据库: ${dbName} (dbVersion=${dbVersion})`);
 
     const dbClient = await connectToDatabase();
-    const collection = dbClient.db(dbName).collection(TALENTS_COLLECTION);
+    const db = dbClient.db(dbName);
+    const talentsCollection = db.collection(TALENTS_COLLECTION);
 
-    // 1. 使用 Promise.all 并行执行两个独立的数据库查询
-    const [tiers, types] = await Promise.all([
-        // 使用 distinct 高效获取所有不重复的 'talentTier' 值
-        collection.distinct('talentTier'),
-        // distinct 同样适用于数组字段，会自动展开并去重
-        collection.distinct('talentType')
-    ]);
+    // v2 版本不再返回层级（已移除），v1 版本仍用 distinct
+    let tiers;
+    if (dbVersion === 'v2') {
+      // v2: talentTier 已移除，返回空数组
+      tiers = [];
+    } else {
+      // v1: 使用 distinct 从 talents 集合获取
+      tiers = await talentsCollection.distinct('talentTier');
+      tiers = tiers.filter(tier => tier).sort();
+    }
 
-    // 2. 清理数据：过滤掉 null, undefined 或空字符串等无效值
-    const cleanTiers = tiers.filter(tier => tier);
+    // talentType 仍然从 talents 集合获取（因为是动态数据）
+    const types = await talentsCollection.distinct('talentType');
     const cleanTypes = types.filter(type => type);
 
-    // 3. 组装并返回响应
+    // 组装并返回响应
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
         data: {
-          tiers: cleanTiers.sort(), // 按字母顺序排序
-          types: cleanTypes.sort()  // 按字母顺序排序
+          tiers: tiers,
+          types: cleanTypes.sort()
         }
       })
     };

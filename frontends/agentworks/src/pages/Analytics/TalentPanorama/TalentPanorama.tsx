@@ -13,15 +13,21 @@ import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Tabs, Button, App, Alert, Tag, Tooltip } from 'antd';
-import { SearchOutlined, ReloadOutlined } from '@ant-design/icons';
+import {
+  SearchOutlined,
+  ReloadOutlined,
+  SettingOutlined,
+} from '@ant-design/icons';
 import type { Platform } from '../../../types/talent';
 import { PLATFORM_NAMES } from '../../../types/talent';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 import { usePanoramaData } from '../../../hooks/usePanoramaData';
 import { usePanoramaFilters } from '../../../hooks/usePanoramaFilters';
+import { usePanoramaColumns } from '../../../hooks/usePanoramaColumns';
 import { useTagConfigs } from '../../../hooks/useTagConfigs';
 import { ModularFilterPanel } from '../../../components/FilterPanel';
 import { ViewModeSelector } from '../../../components/ViewModeSelector';
+import { ColumnSelector } from '../../../components/ColumnSelector';
 import {
   BasicInfoModule,
   CustomerTagModule,
@@ -35,6 +41,10 @@ import type {
 } from '../../../api/customerTalents';
 import type { PanoramaSearchParams } from '../../../api/customerTalents';
 import type { FilterModule } from '../../../types/filterModule';
+import {
+  getFieldById,
+  type FieldDefinition,
+} from '../../../config/panoramaFields';
 
 /**
  * 格式化价格
@@ -78,6 +88,13 @@ export function TalentPanorama() {
   const [viewMode, setViewMode] = useState<ViewMode>('all');
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
 
+  // 列选择器状态
+  const [columnSelectorOpen, setColumnSelectorOpen] = useState(false);
+  const columnsConfig = usePanoramaColumns({
+    platform: selectedPlatform,
+    viewMode,
+  });
+
   // 根据视角模式动态决定筛选模块
   const activeModules = useMemo<FilterModule[]>(() => {
     if (viewMode === 'customer' && selectedCustomers.length > 0) {
@@ -99,6 +116,7 @@ export function TalentPanorama() {
     buildQueryParams,
   } = usePanoramaFilters({
     modules: activeModules,
+    platform: selectedPlatform,
   });
 
   // 数据管理
@@ -116,11 +134,14 @@ export function TalentPanorama() {
   } = usePanoramaData(selectedPlatform);
 
   // 首次加载和视角/客户变化时执行搜索
+  // 注意：handleSearch 不应放入依赖数组，否则会导致无限循环
+  // 因为 handleSearch 依赖 columnsConfig.selectedFields，而我们只想在平台/视角/客户变化时触发搜索
   useEffect(() => {
     if (!filtersLoading) {
       handleSearch();
     }
-  }, [selectedPlatform, filtersLoading, viewMode, selectedCustomers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPlatform, filtersLoading, viewMode, selectedCustomers.length]);
 
   // 执行搜索
   const handleSearch = useCallback(() => {
@@ -131,7 +152,6 @@ export function TalentPanorama() {
       'platform' | 'page' | 'pageSize'
     > = {
       searchTerm: queryParams.searchTerm as string | undefined,
-      tiers: queryParams.tiers as string[] | undefined,
       rebateMin: queryParams.rebateMin as number | undefined,
       rebateMax: queryParams.rebateMax as number | undefined,
       priceMin: queryParams.priceMin as number | undefined,
@@ -147,9 +167,17 @@ export function TalentPanorama() {
       performanceFilters: queryParams.performanceFilters as
         | Record<string, { min?: number; max?: number }>
         | undefined,
+      // 传递选中的字段列表
+      fields: columnsConfig.selectedFields,
     };
     search(apiParams);
-  }, [buildQueryParams, search, viewMode, selectedCustomers]);
+  }, [
+    buildQueryParams,
+    search,
+    viewMode,
+    selectedCustomers,
+    columnsConfig.selectedFields,
+  ]);
 
   // 重置筛选
   const handleReset = useCallback(() => {
@@ -188,204 +216,356 @@ export function TalentPanorama() {
     resetFilters();
   };
 
-  // 表格列配置（根据视角模式动态调整）
-  const columns: ProColumns<PanoramaTalentItem>[] = useMemo(() => {
-    const baseColumns: ProColumns<PanoramaTalentItem>[] = [
-      {
-        title: '达人名称',
-        dataIndex: 'name',
-        key: 'name',
-        width: 150,
-        fixed: 'left',
-        render: (_, record) => (
-          <a
-            onClick={() => navigate(`/talents/${record.oneId}`)}
-            className="font-medium text-primary-600 hover:text-primary-800 cursor-pointer"
-          >
-            {record.name || 'N/A'}
-          </a>
-        ),
-      },
-      {
-        title: 'OneID',
-        dataIndex: 'oneId',
-        key: 'oneId',
-        width: 120,
-        ellipsis: true,
-      },
-      {
-        title: '层级',
-        dataIndex: 'talentTier',
-        key: 'talentTier',
-        width: 80,
-        render: (_, record) => record.talentTier || 'N/A',
-      },
-      {
-        title: '返点',
-        dataIndex: 'rebate',
-        key: 'rebate',
-        width: 80,
-        render: (_, record) => formatPercent(record.rebate),
-      },
-      {
-        title: '60s+视频报价',
-        dataIndex: ['prices', 'video_60plus'],
-        key: 'price_60plus',
-        width: 120,
-        render: (_, record) => formatPrice(record.prices?.video_60plus),
-      },
-      {
-        title: '21-60s视频报价',
-        dataIndex: ['prices', 'video_21_60'],
-        key: 'price_21_60',
-        width: 130,
-        render: (_, record) => formatPrice(record.prices?.video_21_60),
-      },
-      {
-        title: '粉丝数',
-        dataIndex: 'followerCount',
-        key: 'followerCount',
-        width: 100,
-        render: (_, record) => formatNumber(record.followerCount),
-      },
-      {
-        title: '内容标签',
-        dataIndex: 'contentTags',
-        key: 'contentTags',
-        width: 150,
-        ellipsis: true,
-        render: (_, record) =>
-          record.contentTags?.length ? record.contentTags.join(', ') : 'N/A',
-      },
-    ];
+  /**
+   * 根据字段定义生成 ProTable 列配置
+   */
+  const buildColumnFromField = useCallback(
+    (field: FieldDefinition): ProColumns<PanoramaTalentItem> | null => {
+      const baseColumn: ProColumns<PanoramaTalentItem> = {
+        title: field.name,
+        dataIndex: field.id,
+        key: field.id,
+        width: field.width || 100,
+        ellipsis: field.type === 'array' || field.type === 'string',
+      };
 
-    // 客户视角模式：添加客户关系列
-    if (viewMode === 'customer' && selectedCustomers.length > 0) {
-      baseColumns.push(
-        {
-          title: '关注客户',
-          dataIndex: 'customerRelations',
-          key: 'customerRelations',
-          width: 150,
-          render: (_, record) => {
-            const relations = record.customerRelations;
-            if (!relations || relations.length === 0) return '-';
+      // 特殊字段处理
+      switch (field.id) {
+        case 'name':
+          return {
+            ...baseColumn,
+            fixed: 'left',
+            render: (_, record) => (
+              <a
+                onClick={() => navigate(`/talents/${record.oneId}`)}
+                className="font-medium text-primary-600 hover:text-primary-800 cursor-pointer"
+              >
+                {record.name || 'N/A'}
+              </a>
+            ),
+          };
 
-            if (relations.length === 1) {
-              return relations[0].customerName;
-            }
+        case 'rebate':
+          return {
+            ...baseColumn,
+            render: (_, record) => formatPercent(record.rebate),
+          };
 
-            return (
-              <Tooltip title={relations.map(r => r.customerName).join(', ')}>
-                <span>
-                  {relations[0].customerName}
-                  <Tag className="ml-1" color="blue">
-                    +{relations.length - 1}
-                  </Tag>
-                </span>
-              </Tooltip>
-            );
-          },
-        },
-        {
-          title: '重要程度',
-          dataIndex: 'customerRelations',
-          key: 'importance',
-          width: 100,
-          render: (_, record) => {
-            const relations = record.customerRelations;
-            if (!relations || relations.length === 0) return '-';
+        case 'prices':
+          // 价格是一个对象，展示三种报价
+          return {
+            ...baseColumn,
+            render: (_, record) => {
+              const prices = record.prices;
+              if (!prices) return 'N/A';
+              const parts: string[] = [];
+              if (prices.video_60plus)
+                parts.push(`60s+: ${formatPrice(prices.video_60plus)}`);
+              if (prices.video_21_60)
+                parts.push(`21-60s: ${formatPrice(prices.video_21_60)}`);
+              if (prices.video_under_20)
+                parts.push(`1-20s: ${formatPrice(prices.video_under_20)}`);
+              return parts.length > 0 ? (
+                <Tooltip title={parts.join(' | ')}>
+                  <span>{formatPrice(prices.video_60plus)}</span>
+                </Tooltip>
+              ) : (
+                'N/A'
+              );
+            },
+          };
 
-            // 显示第一个客户的重要程度
-            const importance = relations[0]?.importance;
-            if (!importance) return '-';
+        case 'followerCount':
+        case 'fansCount':
+        case 'avgPlayCount':
+        case 'avgLikeCount':
+        case 'avgCommentCount':
+        case 'avgShareCount':
+        case 'worksCount':
+        case 'newWorksCount':
+        case 'cpm':
+          return {
+            ...baseColumn,
+            render: (_, record) => {
+              const value =
+                (record as any)[field.id] ??
+                (record as any).performance?.[field.id];
+              return formatNumber(value);
+            },
+          };
 
-            // 从配置中查找颜色（按 name 匹配）
-            const config = tagConfigs.importanceLevels.find(
-              item => item.name === importance
-            );
-            if (config?.bgColor && config?.textColor) {
+        case 'fansChange':
+          return {
+            ...baseColumn,
+            render: (_, record) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const value = (record as any).performance?.fansChange;
+              if (value === null || value === undefined) return 'N/A';
+              const sign = value > 0 ? '+' : '';
+              const color =
+                value > 0 ? 'text-green-600' : value < 0 ? 'text-red-600' : '';
               return (
-                <Tag
-                  style={{
-                    backgroundColor: config.bgColor,
-                    color: config.textColor,
-                    border: 'none',
-                  }}
-                >
-                  {importance}
-                </Tag>
+                <span className={color}>
+                  {sign}
+                  {formatNumber(value)}
+                </span>
               );
-            }
-            return <Tag>{importance}</Tag>;
-          },
-        },
-        {
-          title: '业务标签',
-          dataIndex: 'customerRelations',
-          key: 'businessTags',
-          width: 180,
-          ellipsis: true,
-          render: (_, record) => {
-            const relations = record.customerRelations;
-            if (!relations || relations.length === 0) return '-';
+            },
+          };
 
-            // 合并所有客户的业务标签（去重）
-            const allTags = new Set<string>();
-            relations.forEach(r => {
-              r.businessTags?.forEach(tag => allTags.add(tag));
-            });
+        case 'engagementRate':
+        case 'audienceGenderMale':
+        case 'audienceGenderFemale':
+        case 'audienceAge18_23':
+        case 'audienceAge24_30':
+        case 'audienceAge31_40':
+        case 'audienceAge41_50':
+        case 'audienceAge50Plus':
+        case 'fansGrowthRate7d':
+        case 'fansGrowthRate30d':
+          return {
+            ...baseColumn,
+            render: (_, record) => {
+              const value =
+                (record as any)[field.id] ??
+                (record as any).performance?.[field.id];
+              return formatPercent(value);
+            },
+          };
 
-            if (allTags.size === 0) return '-';
+        case 'contentTags':
+          return {
+            ...baseColumn,
+            render: (_, record) =>
+              record.contentTags?.length
+                ? record.contentTags.join(', ')
+                : 'N/A',
+          };
 
-            const tagArray = Array.from(allTags);
+        case 'customerRelations':
+          return {
+            ...baseColumn,
+            render: (_, record) => {
+              const relations = record.customerRelations;
+              if (!relations || relations.length === 0) return '-';
 
-            // 渲染带颜色的标签
-            const renderTag = (tag: string) => {
-              const config = tagConfigs.businessTags.find(
-                item => item.name === tag
-              );
-              if (config?.bgColor && config?.textColor) {
-                return (
-                  <Tag
-                    key={tag}
-                    className="mr-1"
-                    style={{
-                      backgroundColor: config.bgColor,
-                      color: config.textColor,
-                      border: 'none',
-                    }}
-                  >
-                    {tag}
-                  </Tag>
-                );
+              if (relations.length === 1) {
+                return relations[0].customerName;
               }
+
               return (
-                <Tag key={tag} className="mr-1">
-                  {tag}
-                </Tag>
+                <Tooltip title={relations.map(r => r.customerName).join(', ')}>
+                  <span>
+                    {relations[0].customerName}
+                    <Tag className="ml-1" color="blue">
+                      +{relations.length - 1}
+                    </Tag>
+                  </span>
+                </Tooltip>
               );
-            };
+            },
+          };
 
-            if (tagArray.length <= 2) {
-              return tagArray.map(renderTag);
-            }
+        case 'platform':
+        case 'platformAccountId':
+        case 'agencyId':
+        case 'xingtuId':
+        case 'mcnName':
+        case 'status':
+        case 'rebateSource':
+          return {
+            ...baseColumn,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            render: (_, record) => (record as any)[field.id] || 'N/A',
+          };
 
-            return (
-              <Tooltip title={tagArray.join(', ')}>
-                <span>
-                  {tagArray.slice(0, 2).map(renderTag)}
-                  <Tag color="blue">+{tagArray.length - 2}</Tag>
-                </span>
-              </Tooltip>
-            );
-          },
+        case 'starLevel':
+        case 'viralPotential':
+        case 'contentQualityScore':
+        case 'audienceQualityScore':
+        case 'commercialValueScore':
+        case 'cooperationCount':
+          return {
+            ...baseColumn,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            render: (_, record) => formatNumber((record as any)[field.id]),
+          };
+
+        case 'createdAt':
+        case 'updatedAt':
+        case 'rebateEffectiveDate':
+        case 'lastCooperationDate':
+        case 'addedAt':
+          return {
+            ...baseColumn,
+            render: (_, record) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const value = (record as any)[field.id];
+              if (!value) return 'N/A';
+              return new Date(value).toLocaleDateString('zh-CN');
+            },
+          };
+
+        default:
+          // 默认处理
+          return {
+            ...baseColumn,
+
+            render: (_, record) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const value = (record as any)[field.id];
+              if (value === null || value === undefined) return 'N/A';
+              if (Array.isArray(value)) return value.join(', ') || 'N/A';
+              if (typeof value === 'object') return JSON.stringify(value);
+              return String(value);
+            },
+          };
+      }
+    },
+    [navigate]
+  );
+
+  /**
+   * 客户视角下的重要程度列
+   */
+  const importanceColumn: ProColumns<PanoramaTalentItem> = useMemo(
+    () => ({
+      title: '重要程度',
+      dataIndex: 'customerRelations',
+      key: 'importance',
+      width: 100,
+      render: (_, record) => {
+        const relations = record.customerRelations;
+        if (!relations || relations.length === 0) return '-';
+
+        const importance = relations[0]?.importance;
+        if (!importance) return '-';
+
+        const config = tagConfigs.importanceLevels.find(
+          item => item.name === importance
+        );
+        if (config?.bgColor && config?.textColor) {
+          return (
+            <Tag
+              style={{
+                backgroundColor: config.bgColor,
+                color: config.textColor,
+                border: 'none',
+              }}
+            >
+              {importance}
+            </Tag>
+          );
         }
-      );
+        return <Tag>{importance}</Tag>;
+      },
+    }),
+    [tagConfigs.importanceLevels]
+  );
+
+  /**
+   * 客户视角下的业务标签列
+   */
+  const businessTagsColumn: ProColumns<PanoramaTalentItem> = useMemo(
+    () => ({
+      title: '业务标签',
+      dataIndex: 'customerRelations',
+      key: 'businessTags',
+      width: 180,
+      ellipsis: true,
+      render: (_, record) => {
+        const relations = record.customerRelations;
+        if (!relations || relations.length === 0) return '-';
+
+        const allTags = new Set<string>();
+        relations.forEach(r => {
+          r.businessTags?.forEach(tag => allTags.add(tag));
+        });
+
+        if (allTags.size === 0) return '-';
+
+        const tagArray = Array.from(allTags);
+
+        const renderTag = (tag: string) => {
+          const config = tagConfigs.businessTags.find(
+            item => item.name === tag
+          );
+          if (config?.bgColor && config?.textColor) {
+            return (
+              <Tag
+                key={tag}
+                className="mr-1"
+                style={{
+                  backgroundColor: config.bgColor,
+                  color: config.textColor,
+                  border: 'none',
+                }}
+              >
+                {tag}
+              </Tag>
+            );
+          }
+          return (
+            <Tag key={tag} className="mr-1">
+              {tag}
+            </Tag>
+          );
+        };
+
+        if (tagArray.length <= 2) {
+          return tagArray.map(renderTag);
+        }
+
+        return (
+          <Tooltip title={tagArray.join(', ')}>
+            <span>
+              {tagArray.slice(0, 2).map(renderTag)}
+              <Tag color="blue">+{tagArray.length - 2}</Tag>
+            </span>
+          </Tooltip>
+        );
+      },
+    }),
+    [tagConfigs.businessTags]
+  );
+
+  // 表格列配置（根据 selectedFields 动态生成）
+  const columns: ProColumns<PanoramaTalentItem>[] = useMemo(() => {
+    const result: ProColumns<PanoramaTalentItem>[] = [];
+
+    // 根据用户选择的字段生成列
+    for (const fieldId of columnsConfig.selectedFields) {
+      const field = getFieldById(fieldId);
+      if (!field) continue;
+
+      // 客户关系字段特殊处理（包含重要程度和业务标签）
+      if (fieldId === 'customerRelations') {
+        const col = buildColumnFromField(field);
+        if (col) result.push(col);
+
+        // 客户视角下自动添加重要程度和业务标签列
+        if (viewMode === 'customer' && selectedCustomers.length > 0) {
+          result.push(importanceColumn);
+          result.push(businessTagsColumn);
+        }
+        continue;
+      }
+
+      const column = buildColumnFromField(field);
+      if (column) {
+        result.push(column);
+      }
     }
 
-    return baseColumns;
-  }, [navigate, viewMode, selectedCustomers.length, tagConfigs]);
+    return result;
+  }, [
+    columnsConfig.selectedFields,
+    buildColumnFromField,
+    viewMode,
+    selectedCustomers.length,
+    importanceColumn,
+    businessTagsColumn,
+  ]);
 
   const loading = configLoading || filtersLoading || dataLoading;
 
@@ -492,6 +672,18 @@ export function TalentPanorama() {
             toolbar={{
               actions: [
                 <Button
+                  key="columns"
+                  icon={<SettingOutlined />}
+                  onClick={() => setColumnSelectorOpen(true)}
+                >
+                  列设置
+                  {columnsConfig.hasCustomSelection && (
+                    <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary-100 text-primary-700 rounded">
+                      {columnsConfig.selectedCount}
+                    </span>
+                  )}
+                </Button>,
+                <Button
                   key="refresh"
                   icon={<ReloadOutlined />}
                   onClick={() => {
@@ -519,7 +711,7 @@ export function TalentPanorama() {
                 return true;
               },
               density: false,
-              setting: true,
+              setting: false, // 使用自定义列选择器，禁用 ProTable 内置设置
             }}
             scroll={{ x: viewMode === 'customer' ? 1800 : 1500 }}
             size="middle"
@@ -547,6 +739,21 @@ export function TalentPanorama() {
             }}
           />
         )}
+
+        {/* 列选择器抽屉 */}
+        <ColumnSelector
+          open={columnSelectorOpen}
+          onClose={() => setColumnSelectorOpen(false)}
+          availableFields={columnsConfig.availableFields}
+          fieldsByCategory={columnsConfig.fieldsByCategory}
+          selectedFields={columnsConfig.selectedFields}
+          onToggleField={columnsConfig.toggleField}
+          onToggleCategory={columnsConfig.toggleCategory}
+          onResetToDefault={columnsConfig.resetToDefault}
+          categoryStats={columnsConfig.categoryStats}
+          categories={columnsConfig.categories}
+          hasCustomSelection={columnsConfig.hasCustomSelection}
+        />
       </div>
     </PageTransition>
   );

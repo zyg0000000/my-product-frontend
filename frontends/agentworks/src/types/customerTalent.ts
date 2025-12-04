@@ -2,7 +2,7 @@
  * 客户达人池相关类型定义
  */
 
-import type { Platform, TalentTier } from './talent';
+import type { Platform } from './talent';
 
 /**
  * 客户达人池关联记录状态
@@ -98,7 +98,6 @@ export interface CustomerTalentWithInfo extends CustomerTalent {
     platform: Platform;
     name: string;
     fansCount?: number;
-    talentTier?: TalentTier;
     talentType?: string[];
     agencyId?: string;
   };

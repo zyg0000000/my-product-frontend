@@ -108,11 +108,6 @@ export interface RebateRecord {
 }
 
 /**
- * 达人等级
- */
-export type TalentTier = '头部' | '腰部' | '尾部';
-
-/**
  * 达人状态
  */
 export type TalentStatus = 'active' | 'inactive' | 'archived';
@@ -179,7 +174,6 @@ export interface Talent {
   name: string;
   fansCount?: number;
   talentType?: string[];
-  talentTier?: TalentTier;
   agencyId?: string; // 机构ID（AGENCY_INDIVIDUAL_ID表示野生达人）
   rebateMode?: RebateMode; // 返点模式（野生达人永远是independent）
   currentRebate?: CurrentRebate; // 当前返点配置

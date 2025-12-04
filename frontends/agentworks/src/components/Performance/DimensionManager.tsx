@@ -555,13 +555,11 @@ interface PriceTypeConfig {
   label: string;
 }
 
-// 判断是否为动态加载枚举选项的字段
+// 判断是否为动态加载枚举选项的字段（仅 talentType 需要从 API 获取选项）
 function isDynamicEnumField(dimension: DimensionConfig): boolean {
   return (
     dimension.id === 'talentType' ||
-    dimension.id === 'talentTier' ||
-    dimension.targetPath?.includes('talentType') ||
-    dimension.targetPath?.includes('talentTier')
+    dimension.targetPath?.includes('talentType')
   );
 }
 
@@ -860,7 +858,7 @@ function DimensionEditForm({
                       };
                       onChange(newDimension);
 
-                      // 选择枚举时自动加载选项
+                      // 选择枚举时自动加载选项（仅 talentType 支持）
                       if (
                         value === 'enum' &&
                         (!dimension.filterOptions ||
@@ -875,11 +873,6 @@ function DimensionEditForm({
                               dimension.id === 'talentType'
                             ) {
                               options = res.data.types || [];
-                            } else if (
-                              dimension.targetPath?.includes('talentTier') ||
-                              dimension.id === 'talentTier'
-                            ) {
-                              options = res.data.tiers || [];
                             }
                             if (options.length > 0) {
                               onChange({
@@ -950,12 +943,8 @@ function DimensionEditForm({
                           </span>
                         </div>
                         <p className="mt-1 text-xs text-green-600">
-                          列表页面筛选器会自动从 API 获取最新的选项值（
-                          {dimension.id === 'talentType' ||
-                          dimension.targetPath?.includes('talentType')
-                            ? '达人类型/内容标签'
-                            : '达人层级'}
-                          ），无需在此手动配置。
+                          列表页面筛选器会自动从 API
+                          获取最新的选项值（达人类型/内容标签），无需在此手动配置。
                         </p>
                       </div>
                     ) : (
@@ -977,7 +966,7 @@ function DimensionEditForm({
                                   const res =
                                     await getTalentFilterOptions('v2');
                                   if (res.success && res.data) {
-                                    // 根据 targetPath 判断使用哪个字段的选项
+                                    // 根据 targetPath 判断使用哪个字段的选项（仅 talentType 支持）
                                     let options: string[] = [];
                                     if (
                                       dimension.targetPath?.includes(
@@ -986,13 +975,6 @@ function DimensionEditForm({
                                       dimension.id === 'talentType'
                                     ) {
                                       options = res.data.types || [];
-                                    } else if (
-                                      dimension.targetPath?.includes(
-                                        'talentTier'
-                                      ) ||
-                                      dimension.id === 'talentTier'
-                                    ) {
-                                      options = res.data.tiers || [];
                                     } else {
                                       message.warning(
                                         '当前字段暂不支持自动加载，请手动输入选项'

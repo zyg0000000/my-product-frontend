@@ -25,12 +25,6 @@ export interface TalentStatsResponse {
       archived?: number;
       [key: string]: number | undefined;
     };
-    tierStats: {
-      头部?: number;
-      腰部?: number;
-      尾部?: number;
-      [key: string]: number | undefined;
-    };
     typeStats: Array<{
       type: string;
       count: number;

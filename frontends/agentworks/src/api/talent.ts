@@ -19,7 +19,6 @@ export interface GetTalentsParams {
 
   // 筛选参数（v3.3 新增）
   searchTerm?: string; // 搜索（名称/OneID）
-  tiers?: string[]; // 达人层级（前端数组）
   tags?: string[]; // 内容标签（前端数组）
   rebateMin?: number; // 返点率下限（百分比）
   rebateMax?: number; // 返点率上限（百分比）
@@ -65,12 +64,6 @@ export async function getTalents(
 ): Promise<GetTalentsResponse> {
   // 将数组参数转换为逗号分隔的字符串（后端要求）
   const queryParams: any = { ...params };
-
-  if (Array.isArray(params?.tiers) && params.tiers.length > 0) {
-    queryParams.tiers = params.tiers.join(',');
-  } else {
-    delete queryParams.tiers;
-  }
 
   if (Array.isArray(params?.tags) && params.tags.length > 0) {
     queryParams.tags = params.tags.join(',');
@@ -194,7 +187,6 @@ export interface SearchTalentsParams {
 
   // 基础搜索
   search?: string; // 名称/ID 搜索
-  tiers?: string[]; // 达人层级
   types?: string[]; // 达人类型
 
   // 高级筛选（灵活操作符）
@@ -222,7 +214,6 @@ export interface SearchTalentsParams {
  * Dashboard 统计数据
  */
 export interface DashboardStats {
-  tierDistribution: Array<{ tier: string; count: number }>;
   cpmDistribution: Array<{ _id: number | string; count: number }>;
   maleAudienceDistribution: Array<{ _id: number | string; count: number }>;
   femaleAudienceDistribution: Array<{ _id: number | string; count: number }>;
@@ -277,7 +268,6 @@ export interface BulkCreateTalentItem {
   name: string; // 达人昵称（必填）
   platformAccountId: string; // 平台账号ID（必填，如星图ID）
   uid?: string; // 平台UID（可选）
-  talentTier?: string; // 达人层级（可选，默认"常规达人"）
   agencyId?: string; // 机构ID（可选，默认"individual"野生达人）
 }
 
@@ -337,14 +327,13 @@ export async function bulkCreateTalents(
 export interface FilterOptionsResponse {
   success: boolean;
   data?: {
-    tiers: string[]; // 达人层级选项
-    types: string[]; // 内容标签选项
+    types: string[]; // 内容标签/达人类型选项
   };
   message?: string;
 }
 
 /**
- * 获取达人筛选选项（达人层级、内容标签等的唯一值列表）
+ * 获取达人筛选选项（内容标签等的唯一值列表）
  * 用于动态填充筛选器的枚举选项
  * @param dbVersion 数据库版本（必填）: v1=kol_data (byteproject), v2=agentworks_db (agentworks)
  */

@@ -9,19 +9,13 @@
  * 5. 简化状态管理，使用 Form.useForm()
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Modal, Space, App } from 'antd';
 import { ProForm, ProFormText, ProFormRadio } from '@ant-design/pro-components';
 import type { ProFormInstance } from '@ant-design/pro-components';
-import { useRef } from 'react';
 import { ProCard } from '@ant-design/pro-components';
 import { logger } from '../utils/logger';
-import type {
-  Talent,
-  Platform,
-  TalentTier,
-  TalentStatus,
-} from '../types/talent';
+import type { Talent, Platform, TalentStatus } from '../types/talent';
 import { PLATFORM_NAMES } from '../types/talent';
 import { AGENCY_INDIVIDUAL_ID } from '../types/agency';
 import { TagInput } from './TagInput';
@@ -44,7 +38,6 @@ interface FormData {
   platformAccountId: string;
   name: string;
   agencyId: string;
-  talentTier?: TalentTier;
   talentType: string[];
   status: TalentStatus;
   // 平台特定字段
@@ -63,22 +56,27 @@ export function EditTalentModal({
   const { message } = App.useApp();
   // 使用 ProFormInstance ref 替代 Form.useForm，避免 "not connected" 警告
   const formRef = useRef<ProFormInstance<FormData>>(null);
-  const { getTalentTiers } = usePlatformConfig(false);
+  // 使用 state 管理 talentType，避免在渲染时访问 ref
+  const [currentTalentType, setCurrentTalentType] = useState<string[]>([]);
+  usePlatformConfig(false);
 
   // 当弹窗打开时，初始化表单数据
+  // 这里需要同步 talent prop 到内部 state，是 useEffect + setState 的正确使用场景
   useEffect(() => {
     if (isOpen && talent && formRef.current) {
+      const talentType = talent.talentType || [];
       formRef.current.setFieldsValue({
         platformAccountId: talent.platformAccountId || '',
         name: talent.name || '',
         agencyId: talent.agencyId || AGENCY_INDIVIDUAL_ID,
-        talentTier: talent.talentTier,
-        talentType: talent.talentType || [],
+        talentType,
         status: talent.status || 'active',
         platformSpecific: {
           uid: talent.platformSpecific?.uid || '',
         },
       });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCurrentTalentType(talentType);
     }
   }, [isOpen, talent]);
 
@@ -131,7 +129,6 @@ export function EditTalentModal({
         platformAccountId: values.platformAccountId,
         name: values.name,
         agencyId: values.agencyId,
-        talentTier: values.talentTier,
         talentType:
           values.talentType && values.talentType.length > 0
             ? values.talentType
@@ -265,25 +262,8 @@ export function EditTalentModal({
         {/* 达人分类与属性卡片 */}
         <ProCard title="达人分类与属性" headerBordered>
           <div className="space-y-4">
-            {/* 第一行：达人等级和状态 */}
+            {/* 第一行：状态 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* 达人等级 */}
-              <ProFormRadio.Group
-                name="talentTier"
-                label="达人等级"
-                options={
-                  talent?.platform
-                    ? getTalentTiers(talent.platform).map(tier => ({
-                        label: tier.label,
-                        value: tier.label,
-                      }))
-                    : []
-                }
-                fieldProps={{
-                  optionType: 'default',
-                }}
-              />
-
               {/* 状态 */}
               <ProFormRadio.Group
                 name="status"
@@ -306,13 +286,12 @@ export function EditTalentModal({
               tooltip="输入标签后按回车添加，或点击下方常用标签快速添加"
             >
               <TagInput
-                selectedTags={
-                  formRef.current?.getFieldValue?.('talentType') || []
-                }
+                selectedTags={currentTalentType}
                 availableTags={availableTags}
-                onChange={tags =>
-                  formRef.current?.setFieldValue?.('talentType', tags)
-                }
+                onChange={tags => {
+                  setCurrentTalentType(tags);
+                  formRef.current?.setFieldValue?.('talentType', tags);
+                }}
                 placeholder="输入分类标签后按回车，如：美妆、时尚等"
                 onError={msg => message.warning(msg)}
               />

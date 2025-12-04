@@ -46,16 +46,6 @@ export function useTalentFilters() {
   };
 
   /**
-   * 切换层级选择
-   */
-  const toggleTier = (tier: string) => {
-    const newTiers = filters.tiers.includes(tier)
-      ? filters.tiers.filter(t => t !== tier)
-      : [...filters.tiers, tier];
-    updateFilters({ tiers: newTiers });
-  };
-
-  /**
    * 切换标签选择
    */
   const toggleTag = (tag: string) => {
@@ -95,7 +85,6 @@ export function useTalentFilters() {
     updateFilters,
     resetFilters,
     setSearchTerm,
-    toggleTier,
     toggleTag,
     setRebateRange,
     setPriceRange,

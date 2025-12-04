@@ -115,40 +115,6 @@
                     "description": "平台特有字段配置",
                     "comment": "定义该平台特有的字段"
                 },
-                "talentTiers": {
-                    "type": "Array",
-                    "description": "达人层级配置",
-                    "itemType": "Object",
-                    "itemSchema": {
-                        "key": {
-                            "type": "String",
-                            "description": "层级key",
-                            "example": "top"
-                        },
-                        "label": {
-                            "type": "String",
-                            "description": "显示名称",
-                            "example": "头部"
-                        },
-                        "bgColor": {
-                            "type": "String",
-                            "description": "背景色"
-                        },
-                        "textColor": {
-                            "type": "String",
-                            "description": "文字色"
-                        },
-                        "order": {
-                            "type": "Integer",
-                            "description": "排序"
-                        },
-                        "isDefault": {
-                            "type": "Boolean",
-                            "description": "是否默认",
-                            "default": false
-                        }
-                    }
-                },
                 "business": {
                     "type": "Object",
                     "description": "业务配置",
@@ -371,11 +337,6 @@
                 "specificFields": {
                     "uid": { "label": "抖音UID", "type": "string", "required": false }
                 },
-                "talentTiers": [
-                    { "key": "top", "label": "头部", "bgColor": "#fef3c7", "textColor": "#92400e", "order": 1, "isDefault": false },
-                    { "key": "middle", "label": "腰部", "bgColor": "#dbeafe", "textColor": "#1e40af", "order": 2, "isDefault": false },
-                    { "key": "tail", "label": "尾部", "bgColor": "#dcfce7", "textColor": "#166534", "order": 3, "isDefault": true }
-                ],
                 "business": {
                     "fee": 0.05,
                     "defaultRebate": 15,

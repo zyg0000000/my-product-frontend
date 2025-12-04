@@ -16,7 +16,6 @@ export interface TalentListItem {
   nickname?: string;
   name?: string;
   platformAccountId?: string;
-  talentTier?: string;
   fansCount?: number;
 }
 
@@ -70,7 +69,6 @@ class TalentApiService {
             nickname: t.name, // Talent 类型使用 name 字段
             name: t.name,
             platformAccountId: t.platformAccountId,
-            talentTier: t.talentTier,
             fansCount: t.fansCount,
           })
         );

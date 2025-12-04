@@ -86,32 +86,6 @@ const douyinConfig = {
     rebateManagement: true,
     dataImport: true
   },
-  talentTiers: [
-    {
-      key: 'top',
-      label: '头部',
-      bgColor: '#fef3c7',
-      textColor: '#92400e',
-      order: 1,
-      isDefault: false
-    },
-    {
-      key: 'middle',
-      label: '腰部',
-      bgColor: '#dbeafe',
-      textColor: '#1e40af',
-      order: 2,
-      isDefault: false
-    },
-    {
-      key: 'tail',
-      label: '尾部',
-      bgColor: '#dcfce7',
-      textColor: '#166534',
-      order: 3,
-      isDefault: true
-    }
-  ],
   createdBy: 'system',
   version: 2,
   updatedAt: new Date()
@@ -162,7 +136,6 @@ const xiaohongshuConfig = {
     rebateManagement: true,
     dataImport: true
   },
-  talentTiers: [],
   createdBy: 'system',
   version: 2,
   updatedAt: new Date()
@@ -195,7 +168,6 @@ const configs = db.system_config.find({ configType: 'platform' }).toArray();
 configs.forEach(config => {
   print(`📌 ${config.name} (${config.platform})`);
   print(`   - 价格类型: ${config.priceTypes?.length || 0} 个`);
-  print(`   - 达人等级: ${config.talentTiers?.length || 0} 个`);
   print(`   - specificFields: ${Object.keys(config.specificFields || {}).length} 个`);
   print(`   - 外链配置: ${config.link ? '已配置' : '未配置'}`);
   print('');

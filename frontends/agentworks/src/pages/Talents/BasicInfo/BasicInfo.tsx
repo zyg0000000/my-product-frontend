@@ -49,7 +49,6 @@ export function BasicInfo() {
   // 使用平台配置 Hook（只获取启用的平台）
   const {
     getPlatformList,
-    getTalentTiers,
     getPlatformPriceTypes,
     getPlatformConfigByKey,
     loading: configLoading,
@@ -81,7 +80,6 @@ export function BasicInfo() {
     selectedRowKeys,
     setSelectedRowKeys,
     loadTalents,
-    getUniqueTalentTiers,
     getUniqueTalentTypes,
   } = useBasicInfoData({
     selectedPlatform,
@@ -148,7 +146,6 @@ export function BasicInfo() {
     platform: selectedPlatform,
     selectedPriceTier,
     agencies,
-    getTalentTiers,
     getPlatformConfigByKey,
     onMenuClick: handleMenuClick,
   });
@@ -271,7 +268,6 @@ export function BasicInfo() {
         <TalentFilterPanel
           filterState={filterState}
           onFilterChange={handleFilterChange}
-          availableTiers={getUniqueTalentTiers()}
           availableTags={getUniqueTalentTypes()}
           customers={customers}
           totalTalents={totalTalents}

@@ -37,23 +37,10 @@ db.talents.createIndex(
 );
 print('✓ 索引 1 创建成功\n');
 
-// 索引 2: 层级筛选索引
-// 用途: 支持按平台 + 达人层级筛选
-// 查询示例: { platform: 'douyin', talentTier: '头部' }
-print('创建索引 2: { platform: 1, talentTier: 1 }');
-db.talents.createIndex(
-  { platform: 1, talentTier: 1 },
-  {
-    name: 'idx_platform_tier',
-    background: true
-  }
-);
-print('✓ 索引 2 创建成功\n');
-
-// 索引 3: 标签筛选索引
+// 索引 2: 标签筛选索引
 // 用途: 支持按平台 + 内容标签筛选
 // 查询示例: { platform: 'douyin', talentType: { $in: ['美妆', '时尚'] } }
-print('创建索引 3: { platform: 1, talentType: 1 }');
+print('创建索引 2: { platform: 1, talentType: 1 }');
 db.talents.createIndex(
   { platform: 1, talentType: 1 },
   {
@@ -61,12 +48,12 @@ db.talents.createIndex(
     background: true
   }
 );
-print('✓ 索引 3 创建成功\n');
+print('✓ 索引 2 创建成功\n');
 
-// 索引 4: 机构筛选索引
+// 索引 3: 机构筛选索引
 // 用途: 支持按平台 + 机构ID筛选
 // 查询示例: { platform: 'douyin', agencyId: 'agency_xxx' }
-print('创建索引 4: { platform: 1, agencyId: 1 }');
+print('创建索引 3: { platform: 1, agencyId: 1 }');
 db.talents.createIndex(
   { platform: 1, agencyId: 1 },
   {
@@ -74,12 +61,12 @@ db.talents.createIndex(
     background: true
   }
 );
-print('✓ 索引 4 创建成功\n');
+print('✓ 索引 3 创建成功\n');
 
-// 索引 5: 返点率筛选索引
+// 索引 4: 返点率筛选索引
 // 用途: 支持按平台 + 返点率区间筛选
 // 查询示例: { platform: 'douyin', 'currentRebate.rate': { $gte: 10, $lte: 30 } }
-print('创建索引 5: { platform: 1, "currentRebate.rate": 1 }');
+print('创建索引 4: { platform: 1, "currentRebate.rate": 1 }');
 db.talents.createIndex(
   { platform: 1, 'currentRebate.rate': 1 },
   {
@@ -87,12 +74,12 @@ db.talents.createIndex(
     background: true
   }
 );
-print('✓ 索引 5 创建成功\n');
+print('✓ 索引 4 创建成功\n');
 
-// 索引 6: 全文搜索索引
+// 索引 5: 全文搜索索引
 // 用途: 支持按名称和 OneID 搜索
 // 注意: MongoDB 每个集合只能有一个文本索引，需要先删除旧的
-print('创建索引 6: { name: "text", oneId: "text" }');
+print('创建索引 5: { name: "text", oneId: "text" }');
 try {
   // 先删除旧的文本索引（如果存在）
   try {
@@ -115,17 +102,17 @@ try {
       }
     }
   );
-  print('✓ 索引 6 创建成功\n');
+  print('✓ 索引 5 创建成功\n');
 } catch (e) {
-  print('⚠️ 索引 6 创建失败: ' + e.message);
+  print('⚠️ 索引 5 创建失败: ' + e.message);
   print('  提示: 如果已存在文本索引，请手动删除后重试\n');
 }
 
-// 索引 7: OneID 查询索引
+// 索引 6: OneID 查询索引
 // 用途: 支持按 oneId 精确查询（单个达人详情）
 // 查询示例: { oneId: 'talent_00000123' }
 // 注意: 该索引可能已作为唯一索引存在
-print('创建索引 7: { oneId: 1, platform: 1 }');
+print('创建索引 6: { oneId: 1, platform: 1 }');
 try {
   db.talents.createIndex(
     { oneId: 1, platform: 1 },
@@ -134,12 +121,12 @@ try {
       background: true
     }
   );
-  print('✓ 索引 7 创建成功\n');
+  print('✓ 索引 6 创建成功\n');
 } catch (e) {
   if (e.codeName === 'IndexKeySpecsConflict' || e.code === 85) {
-    print('⚠️ 索引 7 已存在（可能是唯一索引），跳过创建\n');
+    print('⚠️ 索引 6 已存在（可能是唯一索引），跳过创建\n');
   } else {
-    print('⚠️ 索引 7 创建失败: ' + e.message + '\n');
+    print('⚠️ 索引 6 创建失败: ' + e.message + '\n');
   }
 }
 

@@ -10,7 +10,6 @@ import type { Customer } from '../../../../types/customer';
 
 export interface FilterState {
   searchTerm: string;
-  selectedTiers: string[];
   selectedTags: string[];
   rebateMin: string;
   rebateMax: string;
@@ -28,7 +27,6 @@ export interface TalentFilterPanelProps {
   ) => void;
 
   // 可选项数据
-  availableTiers: string[];
   availableTags: string[];
   customers: Customer[];
 
@@ -47,7 +45,6 @@ export interface TalentFilterPanelProps {
 export function TalentFilterPanel({
   filterState,
   onFilterChange,
-  availableTiers,
   availableTags,
   customers,
   totalTalents,
@@ -58,7 +55,6 @@ export function TalentFilterPanel({
 }: TalentFilterPanelProps) {
   const {
     searchTerm,
-    selectedTiers,
     selectedTags,
     rebateMin,
     rebateMax,
@@ -66,17 +62,6 @@ export function TalentFilterPanel({
     priceMax,
     selectedCustomerId,
   } = filterState;
-
-  // 处理层级筛选 - 使用 useCallback 避免重复创建
-  const handleTierChange = useCallback(
-    (tier: string) => {
-      const newTiers = selectedTiers.includes(tier)
-        ? selectedTiers.filter(t => t !== tier)
-        : [...selectedTiers, tier];
-      onFilterChange('selectedTiers', newTiers);
-    },
-    [selectedTiers, onFilterChange]
-  );
 
   // 处理标签筛选 - 使用 useCallback 避免重复创建
   const handleTagChange = useCallback(
@@ -93,7 +78,6 @@ export function TalentFilterPanel({
   const hasActiveFilters = useMemo(() => {
     return !!(
       searchTerm ||
-      selectedTiers.length > 0 ||
       selectedTags.length > 0 ||
       rebateMin ||
       rebateMax ||
@@ -103,7 +87,6 @@ export function TalentFilterPanel({
     );
   }, [
     searchTerm,
-    selectedTiers.length,
     selectedTags.length,
     rebateMin,
     rebateMax,
@@ -117,7 +100,7 @@ export function TalentFilterPanel({
     const data: Array<{
       id: string;
       label: string;
-      type: 'search' | 'tier' | 'tag' | 'rebate' | 'price' | 'customer';
+      type: 'search' | 'tag' | 'rebate' | 'price' | 'customer';
       value?: string;
     }> = [];
 
@@ -129,16 +112,6 @@ export function TalentFilterPanel({
         type: 'search',
       });
     }
-
-    // 达人层级
-    selectedTiers.forEach(tier => {
-      data.push({
-        id: `tier-${tier}`,
-        label: `层级: ${tier}`,
-        type: 'tier',
-        value: tier,
-      });
-    });
 
     // 内容标签
     selectedTags.forEach(tag => {
@@ -199,7 +172,6 @@ export function TalentFilterPanel({
     return data;
   }, [
     searchTerm,
-    selectedTiers,
     selectedTags,
     rebateMin,
     rebateMax,
@@ -215,12 +187,6 @@ export function TalentFilterPanel({
       switch (type) {
         case 'search':
           onFilterChange('searchTerm', '');
-          break;
-        case 'tier':
-          if (value) {
-            const newTiers = selectedTiers.filter(t => t !== value);
-            onFilterChange('selectedTiers', newTiers);
-          }
           break;
         case 'tag':
           if (value) {
@@ -241,7 +207,7 @@ export function TalentFilterPanel({
           break;
       }
     },
-    [selectedTiers, selectedTags, onFilterChange]
+    [selectedTags, onFilterChange]
   );
 
   return (
@@ -411,34 +377,7 @@ export function TalentFilterPanel({
 
               {/* 其他筛选区 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* 达人层级筛选 */}
-                {availableTiers.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      达人层级
-                    </label>
-                    <div
-                      className="border border-gray-200 rounded-md bg-gray-50"
-                      style={{ height: '144px' }}
-                    >
-                      <div className="p-3 h-full overflow-y-auto">
-                        <div className="space-y-2">
-                          {availableTiers.map(tier => (
-                            <Checkbox
-                              key={tier}
-                              checked={selectedTiers.includes(tier)}
-                              onChange={() => handleTierChange(tier)}
-                            >
-                              {tier}
-                            </Checkbox>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 内容标签筛选 - 优化展示 */}
+                {/* 内容标签筛选 */}
                 {availableTags.length > 0 && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">

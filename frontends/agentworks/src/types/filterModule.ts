@@ -8,6 +8,7 @@
  */
 
 import type { ReactNode } from 'react';
+import type { Platform } from './talent';
 
 /**
  * 筛选值类型
@@ -153,6 +154,15 @@ export interface FilterModule {
    * 支持静态返回或异步加载
    */
   getFilterConfigs: () => FilterConfig[] | Promise<FilterConfig[]>;
+
+  /**
+   * 按平台获取筛选配置（可选）
+   * 如果实现此方法，将优先于 getFilterConfigs 使用
+   * 用于支持不同平台显示不同的筛选维度
+   */
+  getFilterConfigsForPlatform?: (
+    platform: Platform
+  ) => FilterConfig[] | Promise<FilterConfig[]>;
 
   /**
    * 构建 API 查询参数

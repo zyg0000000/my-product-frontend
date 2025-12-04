@@ -17,10 +17,13 @@ import type {
   FilterState,
   UsePanoramaFiltersResult,
 } from '../types/filterModule';
+import type { Platform } from '../types/talent';
 
 interface UsePanoramaFiltersOptions {
   /** 筛选模块列表 */
   modules: FilterModule[];
+  /** 当前平台（用于加载平台特定的筛选配置） */
+  platform?: Platform;
   /** 初始筛选状态 */
   initialFilters?: FilterState;
 }
@@ -30,6 +33,7 @@ interface UsePanoramaFiltersOptions {
  */
 export function usePanoramaFilters({
   modules,
+  platform,
   initialFilters = {},
 }: UsePanoramaFiltersOptions): UsePanoramaFiltersResult {
   // 筛选状态
@@ -48,6 +52,7 @@ export function usePanoramaFilters({
   );
 
   // 加载所有模块的筛选配置
+  // 当 platform 变化时重新加载配置
   useEffect(() => {
     const loadConfigs = async () => {
       setLoading(true);
@@ -56,7 +61,15 @@ export function usePanoramaFilters({
 
         await Promise.all(
           enabledModules.map(async module => {
-            const configs = await Promise.resolve(module.getFilterConfigs());
+            // 优先使用平台特定的配置加载方法
+            let configs: FilterConfig[];
+            if (platform && module.getFilterConfigsForPlatform) {
+              configs = await Promise.resolve(
+                module.getFilterConfigsForPlatform(platform)
+              );
+            } else {
+              configs = await Promise.resolve(module.getFilterConfigs());
+            }
             configsMap[module.id] = configs.sort((a, b) => a.order - b.order);
           })
         );
@@ -70,7 +83,7 @@ export function usePanoramaFilters({
     };
 
     loadConfigs();
-  }, [enabledModules]);
+  }, [enabledModules, platform]);
 
   // 按模块分组的筛选配置
   const filtersByModule = useMemo(() => {

@@ -2,8 +2,7 @@
  * 基础信息筛选模块
  *
  * 包含达人基础属性筛选：
- * - 搜索（按达人名称/OneID）
- * - 达人层级（头部/腰部/尾部）
+ * - 搜索（按达人名称/OneID/平台账号ID，精确匹配）
  * - 返点范围
  * - 价格范围
  * - 内容标签
@@ -29,13 +28,13 @@ export const BasicInfoModule: FilterModule = {
   icon: createElement(SearchOutlined),
 
   getFilterConfigs: (): FilterConfig[] => [
-    // 第一行：固定字段（达人昵称、价格、返点）
+    // 第一行：固定字段（搜索、价格、返点）
     {
       id: 'searchTerm',
-      name: '达人昵称',
+      name: '搜索',
       type: 'text',
       order: 1,
-      placeholder: '输入达人昵称或 OneID...',
+      placeholder: '输入达人昵称、OneID 或平台账号ID（精确匹配）',
       layout: { group: 'inline-fixed', rowGroup: 'row1', flex: 2 },
     },
     {
@@ -62,23 +61,7 @@ export const BasicInfoModule: FilterModule = {
       },
       layout: { group: 'inline-fixed', rowGroup: 'row1', flex: 1.5 },
     },
-    // 第二行：动态字段（层级、内容标签，可能新增）
-    {
-      id: 'talentTier',
-      name: '达人层级',
-      type: 'enum',
-      order: 4,
-      enumOptions: async () => {
-        try {
-          const res = await getTalentFilterOptions('v2');
-          return res.success && res.data?.tiers ? res.data.tiers : [];
-        } catch {
-          return ['头部', '腰部', '尾部'];
-        }
-      },
-      multiple: true,
-      layout: { group: 'inline-flex', rowGroup: 'row2' },
-    },
+    // 第二行：动态字段（内容标签，可能新增）
     {
       id: 'contentTags',
       name: '内容标签',
@@ -103,11 +86,6 @@ export const BasicInfoModule: FilterModule = {
     // 搜索词
     if (filters.searchTerm?.text?.trim()) {
       params.searchTerm = filters.searchTerm.text.trim();
-    }
-
-    // 达人层级
-    if (filters.talentTier?.selected?.length) {
-      params.tiers = filters.talentTier.selected;
     }
 
     // 返点范围

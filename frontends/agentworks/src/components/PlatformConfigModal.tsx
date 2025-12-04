@@ -25,7 +25,6 @@ import {
   Input,
   Popconfirm,
   ColorPicker,
-  Radio,
 } from 'antd';
 import {
   ProForm,
@@ -44,7 +43,6 @@ import {
 import type {
   PlatformConfig,
   PriceTypeConfig,
-  TalentTierConfig,
   LinkConfig,
 } from '../api/platformConfig';
 import {
@@ -71,7 +69,6 @@ export function PlatformConfigModal({
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
-  const [talentTiers, setTalentTiers] = useState<TalentTierConfig[]>([]);
   const [priceTypes, setPriceTypes] = useState<PriceTypeConfig[]>([]);
 
   // 初始化表单数据
@@ -96,7 +93,6 @@ export function PlatformConfigModal({
           rebateManagement: true,
           dataImport: true,
         });
-        setTalentTiers([]);
         setPriceTypes([]);
       } else if (config) {
         // 编辑模式：加载现有配置
@@ -132,8 +128,6 @@ export function PlatformConfigModal({
           rebateManagement: config.features?.rebateManagement,
           dataImport: config.features?.dataImport,
         });
-        // 加载达人等级配置
-        setTalentTiers(config.talentTiers || []);
         // 加载价格类型配置
         setPriceTypes(config.priceTypes || []);
       }
@@ -201,7 +195,6 @@ export function PlatformConfigModal({
             ...pt, // 覆盖用户编辑的字段
           };
         }),
-        talentTiers: talentTiers,
         // specificFields: 编辑模式下必须保留
         specificFields: isCreating ? {} : config?.specificFields || {},
       };
@@ -485,156 +478,6 @@ export function PlatformConfigModal({
             <p className="text-xs text-primary-700">
               💡 <strong>说明</strong>:
               类型标识(key)用于数据存储，请使用英文小写和下划线（如：video_60plus）
-            </p>
-          </div>
-        </ProCard>
-      ),
-    },
-    // 达人等级配置 Tab
-    {
-      key: 'talentTiers',
-      label: '达人等级',
-      children: (
-        <ProCard>
-          <div className="mb-4 flex justify-between items-center">
-            <p className="text-sm text-gray-600">
-              配置该平台的达人等级分类（如：头部、腰部、尾部）
-            </p>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              size="small"
-              onClick={() => {
-                const newTier: TalentTierConfig = {
-                  key: `tier_${Date.now()}`,
-                  label: '',
-                  bgColor: '#e5e7eb',
-                  textColor: '#374151',
-                  order: talentTiers.length + 1,
-                  isDefault: talentTiers.length === 0,
-                };
-                setTalentTiers([...talentTiers, newTier]);
-              }}
-            >
-              新增等级
-            </Button>
-          </div>
-
-          {talentTiers.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
-              暂无达人等级配置，点击上方按钮添加
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {talentTiers
-                .sort((a, b) => a.order - b.order)
-                .map(tier => (
-                  <div
-                    key={tier.key}
-                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                  >
-                    <HolderOutlined className="text-gray-400 cursor-move" />
-
-                    <Input
-                      placeholder="等级名称"
-                      value={tier.label}
-                      onChange={e => {
-                        const updated = talentTiers.map(t =>
-                          t.key === tier.key
-                            ? { ...t, label: e.target.value }
-                            : t
-                        );
-                        setTalentTiers(updated);
-                      }}
-                      style={{ width: 120 }}
-                    />
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">背景:</span>
-                      <ColorPicker
-                        value={tier.bgColor}
-                        size="small"
-                        onChange={color => {
-                          const updated = talentTiers.map(t =>
-                            t.key === tier.key
-                              ? { ...t, bgColor: color.toHexString() }
-                              : t
-                          );
-                          setTalentTiers(updated);
-                        }}
-                      />
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">文字:</span>
-                      <ColorPicker
-                        value={tier.textColor}
-                        size="small"
-                        onChange={color => {
-                          const updated = talentTiers.map(t =>
-                            t.key === tier.key
-                              ? { ...t, textColor: color.toHexString() }
-                              : t
-                          );
-                          setTalentTiers(updated);
-                        }}
-                      />
-                    </div>
-
-                    <Tag
-                      style={{
-                        backgroundColor: tier.bgColor,
-                        color: tier.textColor,
-                        border: 'none',
-                      }}
-                    >
-                      {tier.label || '预览'}
-                    </Tag>
-
-                    <Radio
-                      checked={tier.isDefault}
-                      onChange={() => {
-                        const updated = talentTiers.map(t => ({
-                          ...t,
-                          isDefault: t.key === tier.key,
-                        }));
-                        setTalentTiers(updated);
-                      }}
-                    >
-                      <span className="text-xs">默认</span>
-                    </Radio>
-
-                    <div className="flex-1" />
-
-                    <Popconfirm
-                      title="确定删除该等级？"
-                      onConfirm={() => {
-                        const updated = talentTiers
-                          .filter(t => t.key !== tier.key)
-                          .map((t, i) => ({ ...t, order: i + 1 }));
-                        // 如果删除的是默认项，将第一项设为默认
-                        if (tier.isDefault && updated.length > 0) {
-                          updated[0].isDefault = true;
-                        }
-                        setTalentTiers(updated);
-                      }}
-                    >
-                      <Button
-                        type="text"
-                        danger
-                        icon={<DeleteOutlined />}
-                        size="small"
-                      />
-                    </Popconfirm>
-                  </div>
-                ))}
-            </div>
-          )}
-
-          <div className="mt-4 p-3 bg-primary-50 rounded-lg">
-            <p className="text-xs text-primary-700">
-              💡 <strong>说明</strong>:
-              设置为"默认"的等级将在批量创建达人时自动使用
             </p>
           </div>
         </ProCard>

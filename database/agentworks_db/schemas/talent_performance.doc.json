@@ -177,434 +177,9 @@
                         "new_white_collar": { "type": "Double", "description": "新锐白领（小数）", "example": 0.2498 },
                         "urban_blue_collar": { "type": "Double", "description": "都市蓝领（小数）", "example": 0.1553 }
                     }
-                },
-                "fansCount": {
-                    "type": "Integer",
-                    "description": "粉丝数（旧字段，保留兼容）",
-                    "deprecated": true,
-                    "min": 0,
-                    "comment": "建议使用 followers 字段"
-                },
-                "fansChange": {
-                    "type": "Integer",
-                    "description": "粉丝变化（旧字段，保留兼容）",
-                    "deprecated": true,
-                    "comment": "建议使用 follower_growth 字段"
-                },
-                "avgPlayCount": {
-                    "type": "Integer",
-                    "description": "平均播放量（旧字段，保留兼容）",
-                    "deprecated": true,
-                    "comment": "建议使用 expected_plays 字段"
-                },
-                "engagementRate": {
-                    "type": "Double",
-                    "description": "互动率（旧字段，保留兼容）",
-                    "deprecated": true,
-                    "comment": "建议使用 interaction_rate_30d 字段"
-                },
-                "cpm": {
-                    "type": "Integer",
-                    "description": "CPM（旧字段，保留兼容）",
-                    "deprecated": true,
-                    "comment": "建议使用 cpm_60s_expected 字段"
                 }
             },
-            "comment": "v1.2 起 metrics 结构对齐飞书表格字段，受众数据嵌套在 metrics 中而非独立的 audience 字段"
-        },
-        "audience": {
-            "type": "Object",
-            "description": "受众画像数据",
-            "required": false,
-            "properties": {
-                "gender": {
-                    "type": "Object",
-                    "description": "性别分布",
-                    "properties": {
-                        "male": {
-                            "type": "Double",
-                            "description": "男性占比（%）",
-                            "min": 0,
-                            "max": 100,
-                            "example": 35.5
-                        },
-                        "female": {
-                            "type": "Double",
-                            "description": "女性占比（%）",
-                            "min": 0,
-                            "max": 100,
-                            "example": 64.5
-                        }
-                    }
-                },
-                "age": {
-                    "type": "Object",
-                    "description": "年龄分布（与飞书配置字段对齐）",
-                    "properties": {
-                        "18_23": {
-                            "type": "Double",
-                            "description": "18-23岁占比（小数，0-1）",
-                            "example": 0.25,
-                            "feishuField": "18-23岁"
-                        },
-                        "24_30": {
-                            "type": "Double",
-                            "description": "24-30岁占比（小数，0-1）",
-                            "example": 0.352,
-                            "feishuField": "24-30岁"
-                        },
-                        "31_40": {
-                            "type": "Double",
-                            "description": "31-40岁占比（小数，0-1）",
-                            "example": 0.223,
-                            "feishuField": "31-40岁"
-                        },
-                        "41_50": {
-                            "type": "Double",
-                            "description": "41-50岁占比（小数，0-1）",
-                            "example": 0.12,
-                            "feishuField": "41-50岁"
-                        },
-                        "50_plus": {
-                            "type": "Double",
-                            "description": "50岁以上占比（小数，0-1）",
-                            "example": 0.055,
-                            "feishuField": "50岁以上"
-                        }
-                    },
-                    "comment": "所有比例为小数（0-1），前端显示时 *100 转为百分比"
-                },
-                "location": {
-                    "type": "Object",
-                    "description": "地域分布（Top 省份）",
-                    "properties": {
-                        "top1": {
-                            "type": "Object",
-                            "properties": {
-                                "province": { "type": "String", "example": "广东" },
-                                "percentage": { "type": "Double", "example": 15.2 }
-                            }
-                        },
-                        "top2": {
-                            "type": "Object",
-                            "properties": {
-                                "province": { "type": "String", "example": "浙江" },
-                                "percentage": { "type": "Double", "example": 12.8 }
-                            }
-                        },
-                        "top3": {
-                            "type": "Object",
-                            "properties": {
-                                "province": { "type": "String", "example": "江苏" },
-                                "percentage": { "type": "Double", "example": 10.5 }
-                            }
-                        }
-                    }
-                },
-                "deviceType": {
-                    "type": "Object",
-                    "description": "设备类型分布",
-                    "properties": {
-                        "ios": {
-                            "type": "Double",
-                            "description": "iOS占比（%）",
-                            "example": 45.0
-                        },
-                        "android": {
-                            "type": "Double",
-                            "description": "Android占比（%）",
-                            "example": 55.0
-                        }
-                    }
-                },
-                "activeTime": {
-                    "type": "Object",
-                    "description": "活跃时段分布",
-                    "properties": {
-                        "peakHours": {
-                            "type": "Array",
-                            "description": "峰值时段（24小时制）",
-                            "itemType": "Integer",
-                            "example": [12, 20, 21, 22]
-                        },
-                        "weekdayVsWeekend": {
-                            "type": "Object",
-                            "properties": {
-                                "weekday": { "type": "Double", "example": 60.0 },
-                                "weekend": { "type": "Double", "example": 40.0 }
-                            }
-                        }
-                    }
-                },
-                "crowdPackage": {
-                    "type": "Object",
-                    "description": "人群包分析（抖音八大人群）",
-                    "comment": "与飞书同步字段对齐，所有比例为小数（0-1）",
-                    "properties": {
-                        "town_middle_aged": {
-                            "type": "Double",
-                            "description": "小镇中老年占比（小数，0-1）",
-                            "example": 0.15,
-                            "feishuField": "小镇中老年"
-                        },
-                        "senior_middle_class": {
-                            "type": "Double",
-                            "description": "资深中产占比（小数，0-1）",
-                            "example": 0.12,
-                            "feishuField": "资深中产"
-                        },
-                        "z_era": {
-                            "type": "Double",
-                            "description": "Z世代占比（小数，0-1）",
-                            "example": 0.18,
-                            "feishuField": "Z世代"
-                        },
-                        "urban_silver": {
-                            "type": "Double",
-                            "description": "都市银发占比（小数，0-1）",
-                            "example": 0.08,
-                            "feishuField": "都市银发"
-                        },
-                        "town_youth": {
-                            "type": "Double",
-                            "description": "小镇青年占比（小数，0-1）",
-                            "example": 0.20,
-                            "feishuField": "小镇青年"
-                        },
-                        "exquisite_mom": {
-                            "type": "Double",
-                            "description": "精致妈妈占比（小数，0-1）",
-                            "example": 0.10,
-                            "feishuField": "精致妈妈"
-                        },
-                        "new_white_collar": {
-                            "type": "Double",
-                            "description": "新锐白领占比（小数，0-1）",
-                            "example": 0.09,
-                            "feishuField": "新锐白领"
-                        },
-                        "urban_blue_collar": {
-                            "type": "Double",
-                            "description": "都市蓝领占比（小数，0-1）",
-                            "example": 0.08,
-                            "feishuField": "都市蓝领"
-                        }
-                    }
-                }
-            }
-        },
-        "aiFeatures": {
-            "type": "Object",
-            "description": "AI 特征数据（用于模型训练）",
-            "required": false,
-            "properties": {
-                "contentFeatures": {
-                    "type": "Object",
-                    "description": "内容特征",
-                    "properties": {
-                        "avgVideoDuration": {
-                            "type": "Integer",
-                            "description": "平均视频时长（秒）",
-                            "example": 45
-                        },
-                        "postFrequency": {
-                            "type": "Double",
-                            "description": "发布频率（篇/周）",
-                            "example": 3.5
-                        },
-                        "contentCategories": {
-                            "type": "Array",
-                            "description": "内容类别分布",
-                            "itemType": "Object",
-                            "example": [
-                                { "category": "美食", "percentage": 60.0 },
-                                { "category": "探店", "percentage": 30.0 },
-                                { "category": "生活", "percentage": 10.0 }
-                            ]
-                        },
-                        "topHashtags": {
-                            "type": "Array",
-                            "description": "热门话题标签",
-                            "itemType": "String",
-                            "example": ["美食推荐", "探店vlog", "家常菜"]
-                        }
-                    }
-                },
-                "growthFeatures": {
-                    "type": "Object",
-                    "description": "增长特征",
-                    "properties": {
-                        "fansGrowthRate7d": {
-                            "type": "Double",
-                            "description": "7日粉丝增长率（%）",
-                            "example": 2.5
-                        },
-                        "fansGrowthRate30d": {
-                            "type": "Double",
-                            "description": "30日粉丝增长率（%）",
-                            "example": 8.0
-                        },
-                        "engagementTrend7d": {
-                            "type": "Double",
-                            "description": "7日互动率变化（%）",
-                            "example": 0.3,
-                            "comment": "正数上升，负数下降"
-                        },
-                        "viralPotential": {
-                            "type": "Double",
-                            "description": "爆款潜力指数（0-100）",
-                            "min": 0,
-                            "max": 100,
-                            "example": 72.5,
-                            "comment": "基于历史爆款率计算"
-                        }
-                    }
-                },
-                "qualityFeatures": {
-                    "type": "Object",
-                    "description": "质量特征",
-                    "properties": {
-                        "contentQualityScore": {
-                            "type": "Double",
-                            "description": "内容质量评分（0-100）",
-                            "min": 0,
-                            "max": 100,
-                            "example": 85.0
-                        },
-                        "audienceQualityScore": {
-                            "type": "Double",
-                            "description": "粉丝质量评分（0-100）",
-                            "min": 0,
-                            "max": 100,
-                            "example": 78.5,
-                            "comment": "基于活跃度、真实度等计算"
-                        },
-                        "commercialValueScore": {
-                            "type": "Double",
-                            "description": "商业价值评分（0-100）",
-                            "min": 0,
-                            "max": 100,
-                            "example": 82.0
-                        }
-                    }
-                },
-                "embedding": {
-                    "type": "Array",
-                    "description": "达人特征向量（用于相似度计算）",
-                    "itemType": "Double",
-                    "comment": "128维或256维浮点数组，由模型生成",
-                    "example": "[0.123, -0.456, 0.789, ...]"
-                }
-            }
-        },
-        "prediction": {
-            "type": "Object",
-            "description": "AI 预测数据",
-            "required": false,
-            "properties": {
-                "predictedAt": {
-                    "type": "Date",
-                    "description": "预测生成时间",
-                    "example": "2025-11-26T10:30:00Z"
-                },
-                "modelVersion": {
-                    "type": "String",
-                    "description": "模型版本",
-                    "example": "v1.2.0"
-                },
-                "nextMonthFans": {
-                    "type": "Object",
-                    "description": "下月粉丝预测",
-                    "properties": {
-                        "predicted": { "type": "Integer", "example": 1050000 },
-                        "confidence": { "type": "Double", "example": 0.85 },
-                        "lower": { "type": "Integer", "example": 1020000 },
-                        "upper": { "type": "Integer", "example": 1080000 }
-                    }
-                },
-                "nextMonthEngagement": {
-                    "type": "Object",
-                    "description": "下月互动率预测",
-                    "properties": {
-                        "predicted": { "type": "Double", "example": 5.5 },
-                        "confidence": { "type": "Double", "example": 0.78 }
-                    }
-                },
-                "priceRecommendation": {
-                    "type": "Object",
-                    "description": "价格建议",
-                    "properties": {
-                        "suggestedPrice": {
-                            "type": "Integer",
-                            "description": "建议价格（单位：分）",
-                            "example": 5200000
-                        },
-                        "priceRange": {
-                            "type": "Object",
-                            "properties": {
-                                "min": { "type": "Integer", "example": 4800000 },
-                                "max": { "type": "Integer", "example": 5600000 }
-                            }
-                        },
-                        "reasoning": {
-                            "type": "String",
-                            "description": "定价理由",
-                            "example": "基于粉丝增长趋势、互动率稳定性及同类达人对比"
-                        }
-                    }
-                },
-                "riskAssessment": {
-                    "type": "Object",
-                    "description": "风险评估",
-                    "properties": {
-                        "overallRisk": {
-                            "type": "String",
-                            "enum": ["low", "medium", "high"],
-                            "example": "low"
-                        },
-                        "factors": {
-                            "type": "Array",
-                            "itemType": "Object",
-                            "example": [
-                                { "factor": "粉丝稳定性", "level": "low", "note": "近30天波动<5%" },
-                                { "factor": "内容一致性", "level": "low", "note": "内容方向稳定" }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "platformSpecificMetrics": {
-            "type": "Object",
-            "description": "平台特有指标",
-            "required": false,
-            "properties": {
-                "douyin": {
-                    "type": "Object",
-                    "description": "抖音特有指标",
-                    "properties": {
-                        "xingtuScore": { "type": "Integer", "description": "星图指数" },
-                        "liveViewCount": { "type": "Integer", "description": "直播观看人数" },
-                        "liveGmv": { "type": "Integer", "description": "直播GMV（分）" }
-                    }
-                },
-                "xiaohongshu": {
-                    "type": "Object",
-                    "description": "小红书特有指标",
-                    "properties": {
-                        "collectCount": { "type": "Integer", "description": "收藏数" },
-                        "noteScore": { "type": "Double", "description": "笔记评分" }
-                    }
-                },
-                "bilibili": {
-                    "type": "Object",
-                    "description": "B站特有指标",
-                    "properties": {
-                        "coinCount": { "type": "Integer", "description": "投币数" },
-                        "danmakuCount": { "type": "Integer", "description": "弹幕数" }
-                    }
-                }
-            }
+            "comment": "v1.2 起 metrics 结构对齐飞书表格字段，受众数据嵌套在 metrics 中"
         },
         "metadata": {
             "type": "Object",
@@ -699,7 +274,7 @@
         }
     ],
     "notes": [
-        "【设计目标】支持 AI 训练和数据预测的时序数据集合",
+        "【设计目标】达人表现数据时序集合，支持历史趋势分析",
         "【核心特性】独立存储，不嵌入 talents 集合，便于大规模数据分析",
         "【时序设计】每条记录是某达人某平台某天的数据快照",
         "【快照类型】支持 daily/weekly/monthly 三种粒度",
@@ -709,16 +284,13 @@
         "【字段命名】使用飞书字段名如 followers、expected_plays、interaction_rate_30d",
         "【人群包】metrics.crowdPackage 支持抖音八大人群分析",
         "【比例格式】所有百分比数据以小数（0-1）存储，前端显示时 *100 转为百分比",
-        "【AI 特征】aiFeatures 字段专门为机器学习设计",
-        "【预测数据】prediction 字段存储 AI 模型输出",
         "【唯一约束】(oneId, platform, snapshotType, snapshotDate) 联合唯一",
-        "【扩展性】platformSpecificMetrics 支持各平台特有指标",
         "【数据质量】metadata.dataQuality 标记数据完整度",
         "【更新追溯】lastUpdated 记录飞书同步时间，用于前端展示"
     ],
     "examples": [
         {
-            "description": "示例1：实际生产数据（飞书同步）",
+            "description": "示例：实际生产数据（飞书同步）",
             "data": {
                 "snapshotId": "perf_6852516526931574798_douyin_20251129_ozlvkd",
                 "oneId": "talent_00000001",
@@ -727,8 +299,16 @@
                 "snapshotDate": "2025-09-28",
                 "snapshotType": "daily",
                 "dataSource": "feishu",
-                "audience": {},
                 "metrics": {
+                    "followers": 2037428,
+                    "follower_growth": -3921,
+                    "expected_plays": 3577547,
+                    "connected_users": 3710338,
+                    "interaction_rate_30d": 0.03,
+                    "completion_rate_30d": 0.19,
+                    "spread_index": 79.05,
+                    "viral_rate": 0,
+                    "cpm_60s_expected": 19.57,
                     "audienceGender": {
                         "male": 0.8565,
                         "female": 0.1435
@@ -749,62 +329,11 @@
                         "exquisite_mom": 0.018,
                         "new_white_collar": 0.2498,
                         "urban_blue_collar": 0.1553
-                    },
-                    "followers": 2037428,
-                    "expected_plays": 3577547,
-                    "interaction_rate_30d": 0.03,
-                    "completion_rate_30d": 0.19,
-                    "spread_index": 79.05,
-                    "connected_users": 3710338,
-                    "viral_rate": 0,
-                    "follower_growth": -3921,
-                    "cpm_60s_expected": 19.57
+                    }
                 },
                 "lastUpdated": "2025-11-29T04:19:14.892Z",
                 "createdAt": "2025-11-29T04:19:14.893Z",
                 "updatedAt": "2025-11-29T04:19:14.893Z"
-            }
-        },
-        {
-            "description": "示例2：AI 预测数据",
-            "data": {
-                "snapshotId": "perf_pred20251126ab",
-                "oneId": "talent_00000001",
-                "platform": "douyin",
-                "snapshotDate": "2025-12-01",
-                "snapshotType": "monthly",
-                "dataSource": "predicted",
-                "metrics": {
-                    "followers": 1050000,
-                    "expected_plays": 520000,
-                    "interaction_rate_30d": 0.055
-                },
-                "prediction": {
-                    "predictedAt": "2025-11-26T10:30:00Z",
-                    "modelVersion": "v1.2.0",
-                    "nextMonthFans": {
-                        "predicted": 1050000,
-                        "confidence": 0.85,
-                        "lower": 1020000,
-                        "upper": 1080000
-                    },
-                    "priceRecommendation": {
-                        "suggestedPrice": 5200000,
-                        "priceRange": { "min": 4800000, "max": 5600000 },
-                        "reasoning": "基于粉丝增长趋势、互动率稳定性及同类达人对比"
-                    },
-                    "riskAssessment": {
-                        "overallRisk": "low",
-                        "factors": [
-                            { "factor": "粉丝稳定性", "level": "low", "note": "近30天波动<5%" }
-                        ]
-                    }
-                },
-                "metadata": {
-                    "dataQuality": "estimated"
-                },
-                "createdAt": "2025-11-26T10:30:00Z",
-                "updatedAt": "2025-11-26T10:30:00Z"
             }
         }
     ],
@@ -820,14 +349,6 @@
         {
             "name": "获取某平台所有达人的最新快照（批量分析）",
             "aggregation": "db.talent_performance.aggregate([{ $match: { platform: 'douyin', snapshotType: 'daily' } }, { $sort: { snapshotDate: -1 } }, { $group: { _id: '$oneId', latestSnapshot: { $first: '$$ROOT' } } }])"
-        },
-        {
-            "name": "查询 AI 预测数据",
-            "query": "db.talent_performance.find({ oneId: 'talent_00000001', dataSource: 'predicted' }).sort({ snapshotDate: -1 })"
-        },
-        {
-            "name": "导出训练数据集",
-            "aggregation": "db.talent_performance.find({ snapshotType: 'daily', dataSource: { $in: ['api', 'crawler'] }, 'aiFeatures.embedding': { $exists: true } })"
         }
     ]
 }

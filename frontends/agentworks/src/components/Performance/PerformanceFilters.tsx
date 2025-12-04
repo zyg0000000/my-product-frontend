@@ -419,7 +419,7 @@ function TextFilter({
 
 /**
  * 枚举多选筛选器
- * 支持动态从 API 加载选项（talentType/talentTier）
+ * 支持动态从 API 加载选项（talentType）
  */
 function EnumFilter({
   dimension,
@@ -433,12 +433,10 @@ function EnumFilter({
   const [dynamicOptions, setDynamicOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // 判断是否需要动态加载
+  // 判断是否需要动态加载（仅 talentType 需要从 API 获取选项）
   const needsDynamicLoad =
     dimension.id === 'talentType' ||
-    dimension.id === 'talentTier' ||
-    dimension.targetPath?.includes('talentType') ||
-    dimension.targetPath?.includes('talentTier');
+    dimension.targetPath?.includes('talentType');
 
   // 动态加载选项
   useEffect(() => {
@@ -454,11 +452,6 @@ function EnumFilter({
             dimension.targetPath?.includes('talentType')
           ) {
             setDynamicOptions(res.data.types || []);
-          } else if (
-            dimension.id === 'talentTier' ||
-            dimension.targetPath?.includes('talentTier')
-          ) {
-            setDynamicOptions(res.data.tiers || []);
           }
         }
       } catch {

@@ -54,13 +54,6 @@
             "example": ["美妆", "时尚", "美食"],
             "comment": "根据该平台的内容类型标注"
         },
-        "talentTier": {
-            "type": "String",
-            "description": "达人等级（该平台）",
-            "required": false,
-            "enum": ["头部", "腰部", "尾部"],
-            "comment": "根据该平台的粉丝量和影响力划分"
-        },
         "agencyId": {
             "type": "String",
             "description": "所属机构ID",
@@ -182,44 +175,14 @@
             "description": "平台特有字段（动态扩展）",
             "required": false,
             "properties": {
-                "xingtuId": {
-                    "type": "String",
-                    "description": "星图平台 ID（仅抖音）",
-                    "platform": "douyin",
-                    "example": "6852516526931574798"
-                },
                 "uid": {
                     "type": "String",
                     "description": "抖音 UID（仅抖音）",
                     "platform": "douyin",
                     "example": "58180322231"
-                },
-                "starLevel": {
-                    "type": "Integer",
-                    "description": "星图等级（仅抖音）",
-                    "platform": "douyin",
-                    "min": 1,
-                    "max": 5
-                },
-                "mcnName": {
-                    "type": "String",
-                    "description": "MCN 机构名称（小红书常用）",
-                    "platform": "xiaohongshu"
-                },
-                "contentTags": {
-                    "type": "Array",
-                    "description": "内容标签（小红书特有）",
-                    "itemType": "String",
-                    "platform": "xiaohongshu"
-                },
-                "upLevel": {
-                    "type": "String",
-                    "description": "UP 主等级（仅B站）",
-                    "platform": "bilibili",
-                    "example": "LV6"
                 }
             },
-            "comment": "各平台特有字段可灵活添加，不影响核心结构"
+            "comment": "各平台特有字段可灵活添加。xingtuId 已废弃，统一使用顶层 platformAccountId"
         },
         "performanceData": {
             "type": "Object",
@@ -389,7 +352,6 @@
                 "name": "欣宇的搞笑日常 😎",
                 "fansCount": null,
                 "talentType": ["剧情搞笑"],
-                "talentTier": "尾部",
                 "agencyId": "individual",
                 "rebateMode": "independent",
                 "currentRebate": {
@@ -422,7 +384,7 @@
             }
         },
         {
-            "description": "示例2：小红书达人",
+            "description": "示例2：小红书达人（预留结构，当前无生产数据）",
             "data": {
                 "oneId": "talent_00000001",
                 "platform": "xiaohongshu",
@@ -430,7 +392,6 @@
                 "name": "小张爱做菜",
                 "fansCount": 500000,
                 "talentType": ["美食", "探店"],
-                "talentTier": "腰部",
                 "agencyId": "agency_001",
                 "rebateMode": "agency",
                 "currentRebate": {
@@ -443,9 +404,7 @@
                     { "year": 2025, "month": 1, "type": "video", "price": 3000000, "status": "confirmed" },
                     { "year": 2025, "month": 1, "type": "image", "price": 2000000, "status": "confirmed" }
                 ],
-                "platformSpecific": {
-                    "mcnName": "某MCN机构"
-                },
+                "platformSpecific": {},
                 "status": "active",
                 "createdAt": "2025-01-01T00:00:00Z",
                 "updatedAt": "2025-01-15T10:30:00Z"

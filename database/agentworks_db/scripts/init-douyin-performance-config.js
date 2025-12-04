@@ -35,7 +35,6 @@ const fieldMappingConfig = {
     { excelHeader: '星图ID', targetPath: 'platformAccountId', format: 'text', required: true, order: 1 },
     { excelHeader: '达人昵称', targetPath: 'name', format: 'text', required: false, order: 2 },
     { excelHeader: '达人UID', targetPath: 'platformSpecific.uid', format: 'text', required: false, order: 3 },
-    { excelHeader: '达人层级', targetPath: 'talentTier', format: 'text', required: false, order: 4 },
 
     // 价格信息（存入 prices 数组）
     { excelHeader: '60s+报价', targetPath: 'prices', format: 'number', required: false, order: 5, priceType: 'video_60plus' },
@@ -67,7 +66,7 @@ const fieldMappingConfig = {
     { excelHeader: '新锐白领粉丝比例', targetPath: 'performanceData.crowdPackage.new_white_collar', format: 'percentage', required: false, order: 46 },
     { excelHeader: '都市蓝领粉丝比例', targetPath: 'performanceData.crowdPackage.urban_blue_collar', format: 'percentage', required: false, order: 47 }
   ],
-  totalMappings: 23,
+  totalMappings: 22,
   createdAt: new Date(),
   updatedAt: new Date(),
   createdBy: 'system'
@@ -97,8 +96,7 @@ const dimensionConfig = {
     { id: 'name', name: '达人昵称', type: 'text', category: '基础信息', targetPath: 'name', required: true, defaultVisible: true, sortable: true, width: 150, order: 1, filterable: true, filterType: 'text', filterOrder: 1 },
     { id: 'xingtuId', name: '星图ID', type: 'text', category: '基础信息', targetPath: 'platformAccountId', defaultVisible: true, sortable: false, width: 120, order: 2 },
     { id: 'platformAccountId', name: '抖音UID', type: 'text', category: '基础信息', targetPath: 'platformSpecific.uid', defaultVisible: false, sortable: false, width: 120, order: 3 },
-    { id: 'talentTier', name: '达人层级', type: 'text', category: '基础信息', targetPath: 'talentTier', defaultVisible: true, sortable: true, width: 100, order: 4, filterable: true, filterType: 'enum', filterOrder: 2, filterOptions: ['头部', '腰部', '尾部'] },
-    { id: 'price', name: '报价', type: 'price', category: '基础信息', targetPath: 'prices', defaultVisible: true, sortable: true, width: 120, order: 5 },
+    { id: 'price', name: '报价', type: 'price', category: '基础信息', targetPath: 'prices', defaultVisible: true, sortable: true, width: 120, order: 4 },
 
     // 核心绩效
     { id: 'cpm', name: '60s+ 预期CPM', type: 'number', category: '核心绩效', targetPath: 'performanceData.cpm', defaultVisible: true, sortable: true, width: 120, order: 10, filterable: true, filterType: 'range', filterOrder: 3 },
@@ -133,8 +131,8 @@ const dimensionConfig = {
     { name: '受众分析-年龄', order: 4, icon: 'calendar' },
     { name: '人群包分析', order: 5, icon: 'group' }
   ],
-  defaultVisibleIds: ['name', 'xingtuId', 'talentTier', 'price', 'cpm', 'snapshotDate', 'maleRatio', 'femaleRatio'],
-  totalDimensions: 21,
+  defaultVisibleIds: ['name', 'xingtuId', 'price', 'cpm', 'snapshotDate', 'maleRatio', 'femaleRatio'],
+  totalDimensions: 20,
   createdAt: new Date(),
   updatedAt: new Date()
 };

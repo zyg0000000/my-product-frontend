@@ -22,7 +22,6 @@ import { logger } from '../utils/logger';
 interface TalentItem {
   oneId: string;
   name: string;
-  talentTier?: string;
   platform: Platform;
   isAdded?: boolean;
 }
@@ -92,7 +91,6 @@ export function TalentSelectorModal({
         const talentList = response.data.talents.map((t: any) => ({
           oneId: t.oneId,
           name: t.name,
-          talentTier: t.talentTier,
           platform: t.platform,
           isAdded: existingIds.has(t.oneId),
         }));
@@ -187,21 +185,6 @@ export function TalentSelectorModal({
           )}
         </div>
       ),
-    },
-    {
-      title: '层级',
-      dataIndex: 'talentTier',
-      width: 100,
-      align: 'center',
-      render: tier => {
-        if (!tier) return '-';
-        const colorMap: Record<string, string> = {
-          头部: 'red',
-          腰部: 'orange',
-          尾部: 'blue',
-        };
-        return <Tag color={colorMap[tier] || 'default'}>{tier}</Tag>;
-      },
     },
   ];
 

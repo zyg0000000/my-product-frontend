@@ -12,13 +12,17 @@
 import { LineChartOutlined } from '@ant-design/icons';
 import { createElement } from 'react';
 import { getDimensionConfigs } from '../../api/performance';
-import type { DimensionConfig, DimensionConfigDoc } from '../../api/performance';
+import type {
+  DimensionConfig,
+  DimensionConfigDoc,
+} from '../../api/performance';
 import type {
   FilterModule,
   FilterConfig,
   FilterState,
   FilterType,
 } from '../../types/filterModule';
+import type { Platform } from '../../types/talent';
 
 /**
  * 基础信息字段路径黑名单
@@ -27,7 +31,6 @@ import type {
 const BASIC_INFO_FIELD_PATHS = [
   'name',
   'oneId',
-  'talentTier',
   'rebate',
   'prices',
   'contentTags',
@@ -75,6 +78,56 @@ function convertToFilterConfig(dim: DimensionConfig): FilterConfig {
 }
 
 /**
+ * 从 dimension_config 加载平台特定的筛选配置
+ * @param platform 平台标识（可选，不传则加载所有平台配置）
+ */
+async function loadFilterConfigsForPlatform(
+  platform?: Platform
+): Promise<FilterConfig[]> {
+  try {
+    // 从 API 获取维度配置，传入平台参数
+    const res = (await getDimensionConfigs(platform)) as {
+      success: boolean;
+      data: DimensionConfigDoc[] | DimensionConfigDoc;
+    };
+
+    if (!res.success || !res.data) {
+      return getDefaultFilterConfigs();
+    }
+
+    // 获取第一个激活的配置文档
+    const configDocs = Array.isArray(res.data) ? res.data : [res.data];
+    const activeDoc = configDocs.find(
+      (doc: DimensionConfigDoc) => doc.isActive
+    );
+
+    if (!activeDoc?.dimensions) {
+      return getDefaultFilterConfigs();
+    }
+
+    // 过滤出可筛选的维度并转换
+    // 条件：1. filterable=true  2. 来自 talent_performance 集合  3. 不在基础信息黑名单中
+    const filterableDimensions = activeDoc.dimensions.filter(
+      (dim: DimensionConfig) =>
+        dim.filterable === true &&
+        dim.targetCollection === 'talent_performance' &&
+        !BASIC_INFO_FIELD_PATHS.some(path => dim.targetPath.startsWith(path))
+    );
+
+    if (filterableDimensions.length === 0) {
+      return getDefaultFilterConfigs();
+    }
+
+    return filterableDimensions
+      .map(convertToFilterConfig)
+      .sort((a: FilterConfig, b: FilterConfig) => a.order - b.order);
+  } catch (error) {
+    console.error('Failed to load dimension configs:', error);
+    return getDefaultFilterConfigs();
+  }
+}
+
+/**
  * 表现数据筛选模块
  */
 export const PerformanceModule: FilterModule = {
@@ -84,48 +137,16 @@ export const PerformanceModule: FilterModule = {
   enabled: true,
   icon: createElement(LineChartOutlined),
 
+  // 默认获取配置（不指定平台，用于向后兼容）
   getFilterConfigs: async (): Promise<FilterConfig[]> => {
-    try {
-      // 从 API 获取维度配置
-      const res = (await getDimensionConfigs()) as {
-        success: boolean;
-        data: DimensionConfigDoc[] | DimensionConfigDoc;
-      };
+    return loadFilterConfigsForPlatform();
+  },
 
-      if (!res.success || !res.data) {
-        return getDefaultFilterConfigs();
-      }
-
-      // 获取第一个激活的配置文档
-      const configDocs = Array.isArray(res.data) ? res.data : [res.data];
-      const activeDoc = configDocs.find(
-        (doc: DimensionConfigDoc) => doc.isActive
-      );
-
-      if (!activeDoc?.dimensions) {
-        return getDefaultFilterConfigs();
-      }
-
-      // 过滤出可筛选的维度并转换
-      // 条件：1. filterable=true  2. 来自 talent_performance 集合  3. 不在基础信息黑名单中
-      const filterableDimensions = activeDoc.dimensions.filter(
-        (dim: DimensionConfig) =>
-          dim.filterable === true &&
-          dim.targetCollection === 'talent_performance' &&
-          !BASIC_INFO_FIELD_PATHS.some(path => dim.targetPath.startsWith(path))
-      );
-
-      if (filterableDimensions.length === 0) {
-        return getDefaultFilterConfigs();
-      }
-
-      return filterableDimensions
-        .map(convertToFilterConfig)
-        .sort((a: FilterConfig, b: FilterConfig) => a.order - b.order);
-    } catch (error) {
-      console.error('Failed to load dimension configs:', error);
-      return getDefaultFilterConfigs();
-    }
+  // 按平台获取配置（优先使用）
+  getFilterConfigsForPlatform: async (
+    platform: Platform
+  ): Promise<FilterConfig[]> => {
+    return loadFilterConfigsForPlatform(platform);
   },
 
   buildQueryParams: (filters: FilterState) => {
@@ -143,10 +164,8 @@ export const PerformanceModule: FilterModule = {
 
       // 枚举筛选
       if (value.selected?.length) {
-        // 特殊处理达人层级和类型
-        if (filterId === 'talentTier') {
-          params.tiers = value.selected;
-        } else if (filterId === 'talentType') {
+        // 特殊处理达人类型
+        if (filterId === 'talentType') {
           params.types = value.selected;
         } else {
           params[`filter_${filterId}`] = value.selected;

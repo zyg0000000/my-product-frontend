@@ -1,7 +1,18 @@
 /**
- * [生产版 v2.3 - 客户达人池 RESTful API]
+ * [生产版 v2.5 - 客户达人池 RESTful API]
  * 云函数：customerTalents
+ * @version 2.5
  * 描述：统一的客户达人池 RESTful API，实现客户与达人的多对多关联管理
+ *
+ * --- v2.5 更新日志 (2025-12-04) ---
+ * - [移除] 从 FIELD_WHITELIST 和 DEFAULT_FIELDS 中移除 talentTier 字段
+ * - [移除] panoramaSearch 不再支持 tiers 筛选参数
+ * - [说明] talentTier 应改为客户维度管理，不再是达人平台维度
+ *
+ * --- v2.4 更新日志 (2025-12-04) ---
+ * - [新功能] panoramaSearch 支持 fields 参数动态选择返回字段
+ * - [新功能] 支持 60+ 可选字段（基础信息/价格/返点/表现/受众/客户关系）
+ * - [优化] 按需返回字段，减少数据传输
  *
  * --- v2.3.1 更新日志 (2025-12-03) ---
  * - [修复] 标签配置查询条件统一为 configType: 'talent_tags'
@@ -47,7 +58,92 @@
 const { MongoClient, ObjectId } = require('mongodb');
 
 // 版本号
-const VERSION = '2.3.1';
+const VERSION = '2.4';
+
+// ========== 字段白名单配置（防止注入攻击） ==========
+/**
+ * 可选字段定义（v2.5 基于生产数据库实际字段清理）
+ * 分类：basic(基础), price(价格), rebate(返点), metrics(表现), audience(受众), customer(客户)
+ *
+ * 注意：以下字段已移除（生产数据库无数据）：
+ * - talents: starLevel, mcnName（无小红书/B站数据）
+ * - performance.metrics: fansCount, fansChange, avgPlayCount, engagementRate, cpm（deprecated）
+ * - performance.metrics: avgLikeCount, avgCommentCount, avgShareCount, worksCount, newWorksCount（不存在）
+ * - performance.audience: 整个对象为空 {}
+ * - performance.aiFeatures: 无数据
+ * - performance.prediction: 无数据
+ */
+const FIELD_WHITELIST = {
+  // ========== 基础信息字段（来自 talents 集合）==========
+  oneId: { source: 'talents', path: '$oneId', category: 'basic' },
+  name: { source: 'talents', path: '$name', category: 'basic' },
+  platform: { source: 'talents', path: '$platform', category: 'basic' },
+  followerCount: { source: 'talents', path: '$fansCount', category: 'basic' },
+  contentTags: { source: 'talents', path: '$talentType', category: 'basic' },
+  platformAccountId: { source: 'talents', path: '$platformAccountId', category: 'basic' },
+  agencyId: { source: 'talents', path: '$agencyId', category: 'basic' },
+  status: { source: 'talents', path: '$status', category: 'basic' },
+  createdAt: { source: 'talents', path: '$createdAt', category: 'basic' },
+  updatedAt: { source: 'talents', path: '$updatedAt', category: 'basic' },
+  // 平台特有字段（仅抖音有数据，xingtuId 已废弃）
+  uid: { source: 'talents', path: '$platformSpecific.uid', category: 'basic' },
+
+  // ========== 返点字段 ==========
+  rebate: { source: 'talents', path: 'computed:rebate', category: 'rebate' },
+  rebateSource: { source: 'talents', path: '$currentRebate.source', category: 'rebate' },
+  rebateEffectiveDate: { source: 'talents', path: '$currentRebate.effectiveDate', category: 'rebate' },
+
+  // ========== 价格字段（需要特殊处理）==========
+  prices: { source: 'talents', path: 'computed:prices', category: 'price' },
+
+  // ========== 表现数据字段（来自 talent_performance.metrics，v1.2 字段名）==========
+  // 核心指标
+  followers: { source: 'performance', path: '$performance.metrics.followers', category: 'metrics' },
+  followerGrowth: { source: 'performance', path: '$performance.metrics.follower_growth', category: 'metrics' },
+  expectedPlays: { source: 'performance', path: '$performance.metrics.expected_plays', category: 'metrics' },
+  connectedUsers: { source: 'performance', path: '$performance.metrics.connected_users', category: 'metrics' },
+  interactionRate30d: { source: 'performance', path: '$performance.metrics.interaction_rate_30d', category: 'metrics' },
+  completionRate30d: { source: 'performance', path: '$performance.metrics.completion_rate_30d', category: 'metrics' },
+  spreadIndex: { source: 'performance', path: '$performance.metrics.spread_index', category: 'metrics' },
+  viralRate: { source: 'performance', path: '$performance.metrics.viral_rate', category: 'metrics' },
+  cpm60sExpected: { source: 'performance', path: '$performance.metrics.cpm_60s_expected', category: 'metrics' },
+
+  // ========== 受众画像字段（v1.2 嵌套在 metrics 中）==========
+  audienceGenderMale: { source: 'performance', path: '$performance.metrics.audienceGender.male', category: 'audience' },
+  audienceGenderFemale: { source: 'performance', path: '$performance.metrics.audienceGender.female', category: 'audience' },
+  audienceAge18_23: { source: 'performance', path: '$performance.metrics.audienceAge.18_23', category: 'audience' },
+  audienceAge24_30: { source: 'performance', path: '$performance.metrics.audienceAge.24_30', category: 'audience' },
+  audienceAge31_40: { source: 'performance', path: '$performance.metrics.audienceAge.31_40', category: 'audience' },
+  audienceAge41_50: { source: 'performance', path: '$performance.metrics.audienceAge.41_50', category: 'audience' },
+  audienceAge50Plus: { source: 'performance', path: '$performance.metrics.audienceAge.50_plus', category: 'audience' },
+  // 人群包（抖音八大人群）
+  crowdPackageTownMiddleAged: { source: 'performance', path: '$performance.metrics.crowdPackage.town_middle_aged', category: 'audience' },
+  crowdPackageSeniorMiddleClass: { source: 'performance', path: '$performance.metrics.crowdPackage.senior_middle_class', category: 'audience' },
+  crowdPackageZEra: { source: 'performance', path: '$performance.metrics.crowdPackage.z_era', category: 'audience' },
+  crowdPackageUrbanSilver: { source: 'performance', path: '$performance.metrics.crowdPackage.urban_silver', category: 'audience' },
+  crowdPackageTownYouth: { source: 'performance', path: '$performance.metrics.crowdPackage.town_youth', category: 'audience' },
+  crowdPackageExquisiteMom: { source: 'performance', path: '$performance.metrics.crowdPackage.exquisite_mom', category: 'audience' },
+  crowdPackageNewWhiteCollar: { source: 'performance', path: '$performance.metrics.crowdPackage.new_white_collar', category: 'audience' },
+  crowdPackageUrbanBlueCollar: { source: 'performance', path: '$performance.metrics.crowdPackage.urban_blue_collar', category: 'audience' },
+
+  // ========== 客户关系字段（特殊处理）==========
+  customerRelations: { source: 'customer_talents', path: 'computed:customerRelations', category: 'customer' },
+  cooperationCount: { source: 'customer_talents', path: '$customerRelations.cooperationCount', category: 'customer' },
+  lastCooperationDate: { source: 'customer_talents', path: '$customerRelations.lastCooperationDate', category: 'customer' },
+  addedAt: { source: 'customer_talents', path: '$customerRelations.addedAt', category: 'customer' }
+};
+
+// 默认字段列表
+const DEFAULT_FIELDS = [
+  'oneId', 'name', 'platform', 'rebate', 'prices',
+  'contentTags', 'followerCount', 'customerRelations'
+];
+
+// 默认表现数据字段（v1.2 实际有数据的字段）
+const DEFAULT_PERFORMANCE_FIELDS = [
+  'followers', 'followerGrowth', 'expectedPlays', 'connectedUsers',
+  'interactionRate30d', 'completionRate30d', 'spreadIndex', 'viralRate', 'cpm60sExpected'
+];
 
 // 环境变量
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
@@ -745,9 +841,10 @@ async function batchUpdateTags(body, headers = {}) {
  * GET /customerTalents?action=panoramaSearch&platform=xxx
  *
  * 支持多维度筛选：
- * - 基础筛选：searchTerm, tiers, rebateMin/Max, priceMin/Max, contentTags
+ * - 基础筛选：searchTerm, rebateMin/Max, priceMin/Max, contentTags
  * - 客户筛选：customerName, importance, businessTags（需先选客户）
  * - 表现筛选：performanceFilters (JSON字符串)
+ * - 字段选择：fields (逗号分隔的字段ID列表，支持动态返回所需字段)
  */
 async function panoramaSearch(queryParams = {}) {
   let client;
@@ -757,7 +854,6 @@ async function panoramaSearch(queryParams = {}) {
       platform,
       // 基础筛选
       searchTerm,
-      tiers,
       rebateMin,
       rebateMax,
       priceMin,
@@ -770,10 +866,15 @@ async function panoramaSearch(queryParams = {}) {
       businessTags,
       // 表现筛选（JSON字符串）
       performanceFilters: performanceFiltersStr,
+      // 字段选择（新增 v2.4）
+      fields: fieldsParam,
       // 分页
       page = 1,
       pageSize = 20
     } = queryParams;
+
+    // 解析请求的字段列表
+    const requestedFields = parseRequestedFields(fieldsParam);
 
     // 平台必填
     if (!platform) {
@@ -791,18 +892,14 @@ async function panoramaSearch(queryParams = {}) {
       platform
     };
 
-    // 搜索词
+    // 搜索词（精确匹配：达人昵称、OneID、平台账号ID）
     if (searchTerm && searchTerm.trim()) {
+      const term = searchTerm.trim();
       baseMatch.$or = [
-        { name: { $regex: searchTerm.trim(), $options: 'i' } },
-        { oneId: { $regex: searchTerm.trim(), $options: 'i' } }
+        { name: term },              // 精确匹配达人昵称
+        { oneId: term },             // 精确匹配 OneID
+        { platformAccountId: term }  // 精确匹配平台账号ID
       ];
-    }
-
-    // 达人层级
-    if (tiers) {
-      const tierArray = Array.isArray(tiers) ? tiers : tiers.split(',');
-      baseMatch.talentTier = { $in: tierArray };
     }
 
     // 返点范围（数据库存储为百分比数字，如5表示5%，筛选参数为小数如0.05）
@@ -933,7 +1030,7 @@ async function panoramaSearch(queryParams = {}) {
       }
     }
 
-    // 3. 表现筛选（如果有）
+    // 3. 表现筛选（如果有）或请求了表现字段
     let performanceFilters = null;
     if (performanceFiltersStr) {
       try {
@@ -945,7 +1042,11 @@ async function panoramaSearch(queryParams = {}) {
       }
     }
 
-    if (performanceFilters && Object.keys(performanceFilters).length > 0) {
+    // 判断是否需要关联 performance 集合（筛选条件或请求了表现字段）
+    const needsPerformance = (performanceFilters && Object.keys(performanceFilters).length > 0) ||
+      needsPerformanceLookup(requestedFields);
+
+    if (needsPerformance) {
       // 关联 talent_performance 集合
       pipeline.push({
         $lookup: {
@@ -973,22 +1074,24 @@ async function panoramaSearch(queryParams = {}) {
         $unwind: { path: '$performance', preserveNullAndEmptyArrays: true }
       });
 
-      // 添加表现筛选条件
-      const perfMatch = {};
-      Object.entries(performanceFilters).forEach(([field, range]) => {
-        if (range.min !== undefined || range.max !== undefined) {
-          perfMatch[`performance.metrics.${field}`] = {};
-          if (range.min !== undefined) {
-            perfMatch[`performance.metrics.${field}`].$gte = parseFloat(range.min);
+      // 添加表现筛选条件（如果有）
+      if (performanceFilters && Object.keys(performanceFilters).length > 0) {
+        const perfMatch = {};
+        Object.entries(performanceFilters).forEach(([field, range]) => {
+          if (range.min !== undefined || range.max !== undefined) {
+            perfMatch[`performance.metrics.${field}`] = {};
+            if (range.min !== undefined) {
+              perfMatch[`performance.metrics.${field}`].$gte = parseFloat(range.min);
+            }
+            if (range.max !== undefined) {
+              perfMatch[`performance.metrics.${field}`].$lte = parseFloat(range.max);
+            }
           }
-          if (range.max !== undefined) {
-            perfMatch[`performance.metrics.${field}`].$lte = parseFloat(range.max);
-          }
-        }
-      });
+        });
 
-      if (Object.keys(perfMatch).length > 0) {
-        pipeline.push({ $match: perfMatch });
+        if (Object.keys(perfMatch).length > 0) {
+          pipeline.push({ $match: perfMatch });
+        }
       }
     }
 
@@ -1036,105 +1139,10 @@ async function panoramaSearch(queryParams = {}) {
     pipeline.push({ $skip: skip });
     pipeline.push({ $limit: parseInt(pageSize) });
 
-    // 7. 投影（选择返回字段，映射数据库字段到API字段）
-    pipeline.push({
-      $project: {
-        oneId: 1,
-        name: 1,
-        platform: 1,
-        talentTier: 1,
-        // rebate: 从 currentRebate.rate 映射
-        rebate: {
-          $cond: {
-            if: '$currentRebate.rate',
-            then: { $divide: ['$currentRebate.rate', 100] }, // 转换为小数
-            else: null
-          }
-        },
-        // prices: 从数组格式转换为对象格式（取最新月份）
-        prices: {
-          $let: {
-            vars: {
-              latestPrices: {
-                $filter: {
-                  input: { $ifNull: ['$prices', []] },
-                  as: 'p',
-                  cond: {
-                    $eq: [
-                      { $concat: [{ $toString: '$$p.year' }, '-', { $toString: '$$p.month' }] },
-                      {
-                        $max: {
-                          $map: {
-                            input: { $ifNull: ['$prices', []] },
-                            as: 'item',
-                            in: { $concat: [{ $toString: '$$item.year' }, '-', { $toString: '$$item.month' }] }
-                          }
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            },
-            in: {
-              video_60plus: {
-                $let: {
-                  vars: {
-                    found: { $arrayElemAt: [{ $filter: { input: '$$latestPrices', as: 'x', cond: { $eq: ['$$x.type', 'video_60plus'] } } }, 0] }
-                  },
-                  in: '$$found.price'
-                }
-              },
-              video_21_60: {
-                $let: {
-                  vars: {
-                    found: { $arrayElemAt: [{ $filter: { input: '$$latestPrices', as: 'x', cond: { $eq: ['$$x.type', 'video_21_60'] } } }, 0] }
-                  },
-                  in: '$$found.price'
-                }
-              },
-              video_under_20: {
-                $let: {
-                  vars: {
-                    found: { $arrayElemAt: [{ $filter: { input: '$$latestPrices', as: 'x', cond: { $eq: ['$$x.type', 'video_1_20'] } } }, 0] }
-                  },
-                  in: '$$found.price'
-                }
-              }
-            }
-          }
-        },
-        // contentTags: 映射自 talentType
-        contentTags: '$talentType',
-        followerCount: '$fansCount',
-        // 客户关系数据（多客户模式返回数组，全量模式不返回）
-        customerRelations: {
-          $cond: {
-            if: { $gt: [{ $size: { $ifNull: ['$customerRelations', []] } }, 0] },
-            then: {
-              $map: {
-                input: '$customerRelations',
-                as: 'rel',
-                in: {
-                  customerId: '$$rel.customerId',
-                  importance: '$$rel.tags.importance',
-                  businessTags: '$$rel.tags.businessTags',
-                  notes: '$$rel.notes'
-                }
-              }
-            },
-            else: null
-          }
-        },
-        performance: {
-          $cond: {
-            if: '$performance',
-            then: '$performance.metrics',
-            else: null
-          }
-        }
-      }
-    });
+    // 7. 投影（根据请求的字段动态构建）
+    const dynamicProjection = buildDynamicProjection(requestedFields, hasCustomerFilter);
+    console.log(`[v${VERSION}] 动态投影字段: ${requestedFields.join(', ')}`);
+    pipeline.push({ $project: dynamicProjection });
 
     // 执行查询
     let results = await db.collection('talents').aggregate(pipeline).toArray();
@@ -1197,7 +1205,9 @@ async function panoramaSearch(queryParams = {}) {
       totalPages: Math.ceil(total / parseInt(pageSize)),
       // 返回当前查询模式
       viewMode: hasCustomerFilter ? 'customer' : 'all',
-      selectedCustomers: hasCustomerFilter ? customerNameList : null
+      selectedCustomers: hasCustomerFilter ? customerNameList : null,
+      // 返回实际使用的字段列表（v2.4新增）
+      fields: requestedFields
     });
 
   } catch (error) {
@@ -1206,6 +1216,176 @@ async function panoramaSearch(queryParams = {}) {
   } finally {
     if (client) await client.close();
   }
+}
+
+// ========== 动态字段处理函数 ==========
+
+/**
+ * 解析请求的字段列表
+ * @param {string|string[]|undefined} fieldsParam - 字段参数（逗号分隔或数组）
+ * @returns {string[]} 字段ID列表
+ */
+function parseRequestedFields(fieldsParam) {
+  if (!fieldsParam) {
+    return DEFAULT_FIELDS;
+  }
+
+  let fieldList;
+  if (Array.isArray(fieldsParam)) {
+    fieldList = fieldsParam;
+  } else if (typeof fieldsParam === 'string') {
+    fieldList = fieldsParam.split(',').map(f => f.trim()).filter(Boolean);
+  } else {
+    return DEFAULT_FIELDS;
+  }
+
+  // 过滤有效字段（只允许白名单内的字段）
+  const validFields = fieldList.filter(f => FIELD_WHITELIST[f]);
+
+  // 如果没有有效字段，返回默认字段
+  return validFields.length > 0 ? validFields : DEFAULT_FIELDS;
+}
+
+/**
+ * 检查是否需要关联 performance 集合
+ * @param {string[]} fields - 请求的字段列表
+ * @returns {boolean}
+ */
+function needsPerformanceLookup(fields) {
+  return fields.some(f => {
+    const config = FIELD_WHITELIST[f];
+    return config && config.source === 'performance';
+  });
+}
+
+/**
+ * 构建动态投影对象
+ * @param {string[]} fields - 请求的字段列表
+ * @param {boolean} hasCustomerFilter - 是否有客户筛选
+ * @returns {Object} MongoDB $project 对象
+ */
+function buildDynamicProjection(fields, hasCustomerFilter) {
+  const projection = { _id: 0 };
+
+  for (const fieldId of fields) {
+    const config = FIELD_WHITELIST[fieldId];
+    if (!config) continue;
+
+    // 处理特殊计算字段
+    if (config.path.startsWith('computed:')) {
+      const computedType = config.path.replace('computed:', '');
+      switch (computedType) {
+        case 'rebate':
+          projection.rebate = {
+            $cond: {
+              if: '$currentRebate.rate',
+              then: { $divide: ['$currentRebate.rate', 100] },
+              else: null
+            }
+          };
+          break;
+        case 'prices':
+          projection.prices = buildPricesProjection();
+          break;
+        case 'customerRelations':
+          projection.customerRelations = buildCustomerRelationsProjection(hasCustomerFilter);
+          break;
+        default:
+          break;
+      }
+    } else {
+      // 普通字段直接映射
+      projection[fieldId] = config.path;
+    }
+  }
+
+  return projection;
+}
+
+/**
+ * 构建价格投影（从数组格式转换为对象格式）
+ */
+function buildPricesProjection() {
+  return {
+    $let: {
+      vars: {
+        latestPrices: {
+          $filter: {
+            input: { $ifNull: ['$prices', []] },
+            as: 'p',
+            cond: {
+              $eq: [
+                { $concat: [{ $toString: '$$p.year' }, '-', { $toString: '$$p.month' }] },
+                {
+                  $max: {
+                    $map: {
+                      input: { $ifNull: ['$prices', []] },
+                      as: 'item',
+                      in: { $concat: [{ $toString: '$$item.year' }, '-', { $toString: '$$item.month' }] }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      in: {
+        video_60plus: {
+          $let: {
+            vars: {
+              found: { $arrayElemAt: [{ $filter: { input: '$$latestPrices', as: 'x', cond: { $eq: ['$$x.type', 'video_60plus'] } } }, 0] }
+            },
+            in: '$$found.price'
+          }
+        },
+        video_21_60: {
+          $let: {
+            vars: {
+              found: { $arrayElemAt: [{ $filter: { input: '$$latestPrices', as: 'x', cond: { $eq: ['$$x.type', 'video_21_60'] } } }, 0] }
+            },
+            in: '$$found.price'
+          }
+        },
+        video_under_20: {
+          $let: {
+            vars: {
+              found: { $arrayElemAt: [{ $filter: { input: '$$latestPrices', as: 'x', cond: { $eq: ['$$x.type', 'video_1_20'] } } }, 0] }
+            },
+            in: '$$found.price'
+          }
+        }
+      }
+    }
+  };
+}
+
+/**
+ * 构建客户关系投影
+ * @param {boolean} hasCustomerFilter - 是否有客户筛选
+ */
+function buildCustomerRelationsProjection(hasCustomerFilter) {
+  return {
+    $cond: {
+      if: { $gt: [{ $size: { $ifNull: ['$customerRelations', []] } }, 0] },
+      then: {
+        $map: {
+          input: '$customerRelations',
+          as: 'rel',
+          in: {
+            customerId: '$$rel.customerId',
+            importance: '$$rel.tags.importance',
+            businessTags: '$$rel.tags.businessTags',
+            notes: '$$rel.notes',
+            cooperationCount: '$$rel.cooperationCount',
+            lastCooperationDate: '$$rel.lastCooperationDate',
+            addedAt: '$$rel.addedAt'
+          }
+        }
+      },
+      else: null
+    }
+  };
 }
 
 /**

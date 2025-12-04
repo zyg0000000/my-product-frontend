@@ -247,22 +247,6 @@ export function TalentPoolTab({
       ),
     },
     {
-      title: '达人层级',
-      dataIndex: ['talentInfo', 'talentTier'],
-      width: 80,
-      align: 'center',
-      render: (_, record) => {
-        const tier = record.talentInfo?.talentTier;
-        if (!tier) return '-';
-        const colorMap: Record<string, string> = {
-          头部: 'red',
-          腰部: 'orange',
-          尾部: 'blue',
-        };
-        return <Tag color={colorMap[tier] || 'default'}>{tier}</Tag>;
-      },
-    },
-    {
       title: '重要程度',
       dataIndex: 'tags',
       width: 90,

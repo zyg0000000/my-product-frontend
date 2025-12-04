@@ -50,8 +50,7 @@ export function BatchCreateTalentModal({
   initialPlatform,
 }: BatchCreateTalentModalProps) {
   const { message } = App.useApp();
-  const { getPlatformList, getPlatformConfigByKey, getDefaultTalentTier } =
-    usePlatformConfig(false);
+  const { getPlatformList, getPlatformConfigByKey } = usePlatformConfig(false);
   const platforms = getPlatformList();
 
   // 平台选择
@@ -421,15 +420,10 @@ export function BatchCreateTalentModal({
     setSubmitting(true);
 
     try {
-      // 获取该平台的默认达人等级
-      const defaultTier = getDefaultTalentTier(selectedPlatform);
-      const defaultTierLabel = defaultTier?.label || '尾部';
-
       const talents: BulkCreateTalentItem[] = validData.map(row => ({
         name: row.name,
         platformAccountId: row.platformAccountId,
         uid: row.uid || undefined,
-        talentTier: defaultTierLabel,
         agencyId: 'individual', // 默认归属野生达人
       }));
 
@@ -768,11 +762,7 @@ export function BatchCreateTalentModal({
                   首行必须为表头，列顺序任意（单次最多100条）
                 </div>
                 <div className="text-xs text-gray-500 mb-2">
-                  默认值：达人层级 ={' '}
-                  <strong>
-                    {getDefaultTalentTier(selectedPlatform)?.label || '未配置'}
-                  </strong>{' '}
-                  | 返点 ={' '}
+                  默认值：返点 ={' '}
                   <strong>
                     {wildTalentRebateRate !== null
                       ? `${wildTalentRebateRate}%`
