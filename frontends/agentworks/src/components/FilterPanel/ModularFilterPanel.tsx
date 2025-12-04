@@ -38,6 +38,7 @@ interface ActiveFilterTag {
  */
 export function ModularFilterPanel({
   modules,
+  filtersByModule,
   filters,
   onFilterChange,
   onReset,
@@ -59,16 +60,24 @@ export function ModularFilterPanel({
     });
     return initial;
   });
-  // 已加载的配置
-  const [loadedConfigs, setLoadedConfigs] = useState<
+
+  // 使用传入的配置（优先）或回退到本地加载
+  // 如果父组件传入了 filtersByModule，直接使用；否则自己加载（向后兼容）
+  const [localConfigs, setLocalConfigs] = useState<
     Record<string, FilterConfig[]>
   >({});
-  const [configsLoading, setConfigsLoading] = useState(true);
+  const [localConfigsLoading, setLocalConfigsLoading] =
+    useState(!filtersByModule);
 
-  // 加载配置
+  // 仅在未传入 filtersByModule 时自行加载配置（向后兼容）
   useState(() => {
+    if (filtersByModule) {
+      // 使用传入的配置，不需要本地加载
+      return;
+    }
+
     const loadConfigs = async () => {
-      setConfigsLoading(true);
+      setLocalConfigsLoading(true);
       const configsMap: Record<string, FilterConfig[]> = {};
 
       await Promise.all(
@@ -86,12 +95,16 @@ export function ModularFilterPanel({
         })
       );
 
-      setLoadedConfigs(configsMap);
-      setConfigsLoading(false);
+      setLocalConfigs(configsMap);
+      setLocalConfigsLoading(false);
     };
 
     loadConfigs();
   });
+
+  // 最终使用的配置：优先使用传入的，否则使用本地加载的
+  const loadedConfigs = filtersByModule || localConfigs;
+  const configsLoading = filtersByModule ? false : localConfigsLoading;
 
   // 计算是否有激活的筛选
   const hasActiveFilters = useMemo(() => {

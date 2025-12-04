@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
-import { Input, DatePicker, Spin } from 'antd';
+import { Input, DatePicker, Spin, Select } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import type { FilterConfig, FilterValue } from '../../types/filterModule';
 
@@ -84,6 +84,16 @@ export function FilterRenderer({
     case 'date':
       return (
         <DateFilter
+          config={config}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+        />
+      );
+
+    case 'compound':
+      return (
+        <CompoundFilter
           config={config}
           value={value}
           onChange={onChange}
@@ -302,6 +312,131 @@ function DateFilter({
         placeholder={['开始日期', '结束日期']}
         className="w-full"
       />
+    </div>
+  );
+}
+
+/**
+ * 复合筛选器
+ * 支持"选择器 + 子筛选"模式，如：选择价格档位 + 输入价格范围
+ */
+function CompoundFilter({
+  config,
+  value,
+  onChange,
+  disabled,
+}: FilterRendererProps) {
+  const { compoundConfig } = config;
+
+  if (!compoundConfig) {
+    return null;
+  }
+
+  const { selector, subFilter } = compoundConfig;
+  const options = selector.options || [];
+
+  // 当前选择器值，默认为第一个选项或配置的默认值
+  const currentSelectorValue =
+    value?.selectorValue || selector.defaultValue || options[0]?.key || '';
+
+  // 处理选择器变化
+  const handleSelectorChange = (newKey: string) => {
+    onChange({
+      ...value,
+      selectorValue: newKey,
+    });
+  };
+
+  // 处理子筛选器变化（范围值）
+  const handleSubFilterChange = (field: 'min' | 'max', newValue: string) => {
+    onChange({
+      ...value,
+      selectorValue: currentSelectorValue, // 确保选择器值始终存在
+      [field]: newValue,
+    });
+  };
+
+  // 渲染子筛选器
+  const renderSubFilter = () => {
+    if (subFilter.type === 'range') {
+      const rangeConfig = subFilter.config;
+      const unit = rangeConfig?.unit || '';
+      const isPercentage = rangeConfig?.isPercentage;
+
+      return (
+        <div className="flex items-center gap-2 flex-1">
+          <Input
+            type="number"
+            value={value?.min || ''}
+            onChange={e => handleSubFilterChange('min', e.target.value)}
+            placeholder={`最小${isPercentage ? '' : unit}`}
+            disabled={disabled}
+            min={rangeConfig?.min}
+            max={rangeConfig?.max}
+            step={rangeConfig?.step}
+            className="w-20"
+          />
+          <span className="text-gray-400">-</span>
+          <Input
+            type="number"
+            value={value?.max || ''}
+            onChange={e => handleSubFilterChange('max', e.target.value)}
+            placeholder={`最大${isPercentage ? '' : unit}`}
+            disabled={disabled}
+            min={rangeConfig?.min}
+            max={rangeConfig?.max}
+            step={rangeConfig?.step}
+            className="w-20"
+          />
+          {unit && <span className="text-gray-400 text-xs">{unit}</span>}
+        </div>
+      );
+    }
+
+    if (subFilter.type === 'text') {
+      return (
+        <Input
+          value={value?.text || ''}
+          onChange={e =>
+            onChange({
+              ...value,
+              selectorValue: currentSelectorValue,
+              text: e.target.value,
+            })
+          }
+          placeholder={config.placeholder || '请输入...'}
+          disabled={disabled}
+          allowClear
+          className="flex-1"
+        />
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <div className="space-y-1">
+      <label className="block text-xs font-medium text-gray-600">
+        {config.name}
+      </label>
+      <div className="flex items-center gap-2">
+        {/* 选择器 */}
+        <Select
+          value={currentSelectorValue}
+          onChange={handleSelectorChange}
+          disabled={disabled || options.length === 0}
+          placeholder={selector.placeholder || '请选择'}
+          style={{ minWidth: 100 }}
+          size="middle"
+          options={options.map(opt => ({
+            value: opt.key,
+            label: opt.label,
+          }))}
+        />
+        {/* 子筛选器 */}
+        {renderSubFilter()}
+      </div>
     </div>
   );
 }

@@ -211,6 +211,8 @@ export interface PanoramaSearchParams {
   priceMin?: number;
   /** 价格范围 - 最大值 */
   priceMax?: number;
+  /** 价格档位类型（如 video_60plus, video_21_60, video_1_20）v2.6 新增 */
+  priceType?: string;
   /** 内容标签（多选） */
   contentTags?: string[];
 
@@ -330,6 +332,7 @@ export async function panoramaSearch(
     rebateMax: params.rebateMax?.toString(),
     priceMin: params.priceMin?.toString(),
     priceMax: params.priceMax?.toString(),
+    priceType: params.priceType, // v2.6: 价格档位类型
     contentTags: params.contentTags?.join(','),
     // 客户筛选（多客户模式用 customerNames，单客户向后兼容用 customerName）
     customerNames: params.customerNames?.join(','),

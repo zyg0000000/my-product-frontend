@@ -15,6 +15,8 @@ import type {
   FilterConfig,
   FilterValue,
   FilterState,
+  FilterContext,
+  ViewMode,
   UsePanoramaFiltersResult,
 } from '../types/filterModule';
 import type { Platform } from '../types/talent';
@@ -24,6 +26,10 @@ interface UsePanoramaFiltersOptions {
   modules: FilterModule[];
   /** 当前平台（用于加载平台特定的筛选配置） */
   platform?: Platform;
+  /** 当前视角模式 */
+  viewMode?: ViewMode;
+  /** 选中的客户ID列表（客户视角时使用） */
+  customerIds?: string[];
   /** 初始筛选状态 */
   initialFilters?: FilterState;
 }
@@ -34,6 +40,8 @@ interface UsePanoramaFiltersOptions {
 export function usePanoramaFilters({
   modules,
   platform,
+  viewMode = 'all',
+  customerIds,
   initialFilters = {},
 }: UsePanoramaFiltersOptions): UsePanoramaFiltersResult {
   // 筛选状态
@@ -52,24 +60,25 @@ export function usePanoramaFilters({
   );
 
   // 加载所有模块的筛选配置
-  // 当 platform 变化时重新加载配置
+  // 当 platform 或 viewMode 变化时重新加载配置
+  // 注意：直接在 useEffect 内部构建 context，确保使用最新的值
   useEffect(() => {
     const loadConfigs = async () => {
       setLoading(true);
       try {
         const configsMap: Record<string, FilterConfig[]> = {};
 
+        // 直接构建 context，确保使用当前的 platform 值
+        const context: FilterContext | undefined = platform
+          ? { platform, viewMode, customerIds }
+          : undefined;
+
         await Promise.all(
           enabledModules.map(async module => {
-            // 优先使用平台特定的配置加载方法
-            let configs: FilterConfig[];
-            if (platform && module.getFilterConfigsForPlatform) {
-              configs = await Promise.resolve(
-                module.getFilterConfigsForPlatform(platform)
-              );
-            } else {
-              configs = await Promise.resolve(module.getFilterConfigs());
-            }
+            // 使用新的 getFilterConfigs(context) 接口
+            const configs = await Promise.resolve(
+              module.getFilterConfigs(context)
+            );
             configsMap[module.id] = configs.sort((a, b) => a.order - b.order);
           })
         );
@@ -83,7 +92,7 @@ export function usePanoramaFilters({
     };
 
     loadConfigs();
-  }, [enabledModules, platform]);
+  }, [enabledModules, platform, viewMode, customerIds]);
 
   // 按模块分组的筛选配置
   const filtersByModule = useMemo(() => {
@@ -115,7 +124,7 @@ export function usePanoramaFilters({
       if (value.selected && value.selected.length > 0) {
         count++;
       }
-      // 数值区间
+      // 数值区间（包括复合筛选的范围部分）
       if (value.min || value.max) {
         count++;
       }
@@ -123,6 +132,8 @@ export function usePanoramaFilters({
       if (value.dateRange && value.dateRange.length === 2) {
         count++;
       }
+      // 复合筛选的选择器值（只有当 selectorValue 配合 min/max 使用时才算激活）
+      // 注：selectorValue 单独存在不计入，因为需要配合范围值使用
     });
 
     return {
@@ -214,8 +225,12 @@ export function isFilterValueEmpty(value: FilterValue | undefined): boolean {
   const hasSelected = value.selected && value.selected.length > 0;
   const hasRange = value.min || value.max;
   const hasDateRange = value.dateRange && value.dateRange.length === 2;
+  // 复合筛选：只有当有范围值时才算非空（selectorValue 单独存在不算）
+  const hasCompoundValue = value.selectorValue && (value.min || value.max);
 
-  return !hasText && !hasSelected && !hasRange && !hasDateRange;
+  return (
+    !hasText && !hasSelected && !hasRange && !hasDateRange && !hasCompoundValue
+  );
 }
 
 /**
@@ -253,6 +268,23 @@ export function formatFilterValue(
         return `${value.dateRange[0]} ~ ${value.dateRange[1]}`;
       }
       return '';
+
+    case 'compound': {
+      // 复合筛选：显示选择器值 + 范围值
+      const unit = config.compoundConfig?.subFilter.config?.unit || '';
+      const selectorLabel = value.selectorValue || '';
+      let rangeText = '';
+      if (value.min && value.max) {
+        rangeText = `${value.min}${unit} - ${value.max}${unit}`;
+      } else if (value.min) {
+        rangeText = `≥ ${value.min}${unit}`;
+      } else if (value.max) {
+        rangeText = `≤ ${value.max}${unit}`;
+      }
+      return selectorLabel && rangeText
+        ? `${selectorLabel}: ${rangeText}`
+        : rangeText;
+    }
 
     default:
       return '';

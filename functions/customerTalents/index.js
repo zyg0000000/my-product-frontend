@@ -1,8 +1,16 @@
 /**
- * [生产版 v2.5 - 客户达人池 RESTful API]
+ * [生产版 v2.7 - 客户达人池 RESTful API]
  * 云函数：customerTalents
- * @version 2.5
+ * @version 2.7
  * 描述：统一的客户达人池 RESTful API，实现客户与达人的多对多关联管理
+ *
+ * --- v2.7 更新日志 (2025-12-04) ---
+ * - [修复] followerCount 字段来源从 talents.fansCount 改为 performance.metrics.followers
+ * - [说明] talents.fansCount 无实际数据，粉丝数应从 talent_performance 快照获取
+ *
+ * --- v2.6 更新日志 (2025-12-04) ---
+ * - [新功能] panoramaSearch 支持 priceType 参数指定价格档位筛选
+ * - [说明] priceType 可选值：video_60plus, video_21_60, video_1_20, video, image
  *
  * --- v2.5 更新日志 (2025-12-04) ---
  * - [移除] 从 FIELD_WHITELIST 和 DEFAULT_FIELDS 中移除 talentTier 字段
@@ -58,7 +66,7 @@
 const { MongoClient, ObjectId } = require('mongodb');
 
 // 版本号
-const VERSION = '2.4';
+const VERSION = '2.7';
 
 // ========== 字段白名单配置（防止注入攻击） ==========
 /**
@@ -78,7 +86,8 @@ const FIELD_WHITELIST = {
   oneId: { source: 'talents', path: '$oneId', category: 'basic' },
   name: { source: 'talents', path: '$name', category: 'basic' },
   platform: { source: 'talents', path: '$platform', category: 'basic' },
-  followerCount: { source: 'talents', path: '$fansCount', category: 'basic' },
+  // followerCount 实际来自 performance.metrics.followers（talents.fansCount 无数据）
+  followerCount: { source: 'performance', path: '$performance.metrics.followers', category: 'basic' },
   contentTags: { source: 'talents', path: '$talentType', category: 'basic' },
   platformAccountId: { source: 'talents', path: '$platformAccountId', category: 'basic' },
   agencyId: { source: 'talents', path: '$agencyId', category: 'basic' },
@@ -841,10 +850,14 @@ async function batchUpdateTags(body, headers = {}) {
  * GET /customerTalents?action=panoramaSearch&platform=xxx
  *
  * 支持多维度筛选：
- * - 基础筛选：searchTerm, rebateMin/Max, priceMin/Max, contentTags
+ * - 基础筛选：searchTerm, rebateMin/Max, priceMin/Max, priceType, contentTags
  * - 客户筛选：customerName, importance, businessTags（需先选客户）
  * - 表现筛选：performanceFilters (JSON字符串)
  * - 字段选择：fields (逗号分隔的字段ID列表，支持动态返回所需字段)
+ *
+ * v2.6 新增：
+ * - priceType: 指定价格档位筛选（如 video_60plus, video_21_60, video_1_20, video, image）
+ *   当与 priceMin/priceMax 配合使用时，仅筛选指定档位的价格
  */
 async function panoramaSearch(queryParams = {}) {
   let client;
@@ -858,6 +871,7 @@ async function panoramaSearch(queryParams = {}) {
       rebateMax,
       priceMin,
       priceMax,
+      priceType,        // 新增 v2.6：指定价格档位筛选（如 video_60plus, video_21_60）
       contentTags,
       // 客户筛选（支持单个或多个）
       customerName,      // 单客户（向后兼容）
@@ -1096,36 +1110,29 @@ async function panoramaSearch(queryParams = {}) {
     }
 
     // 4. 价格筛选（prices 是数组格式 [{year, month, type, price}]）
-    // 筛选任意价格类型在范围内的达人
+    // v2.6: 支持 priceType 参数指定档位筛选
     if (priceMin || priceMax) {
       const priceMatch = {};
 
-      if (priceMin && priceMax) {
-        // 同时指定 min 和 max：至少有一个价格在范围内
-        priceMatch.prices = {
-          $elemMatch: {
-            price: { $gte: parseFloat(priceMin), $lte: parseFloat(priceMax) }
-          }
-        };
-      } else if (priceMin) {
-        // 只指定 min：至少有一个价格 >= min
-        priceMatch.prices = {
-          $elemMatch: {
-            price: { $gte: parseFloat(priceMin) }
-          }
-        };
-      } else if (priceMax) {
-        // 只指定 max：至少有一个价格 <= max
-        priceMatch.prices = {
-          $elemMatch: {
-            price: { $lte: parseFloat(priceMax) }
-          }
-        };
+      // 构建 $elemMatch 条件
+      const elemMatchCondition = {};
+
+      // 如果指定了价格档位，添加 type 筛选条件
+      if (priceType) {
+        elemMatchCondition.type = priceType;
       }
 
-      if (Object.keys(priceMatch).length > 0) {
-        pipeline.push({ $match: priceMatch });
+      // 添加价格范围条件
+      if (priceMin && priceMax) {
+        elemMatchCondition.price = { $gte: parseFloat(priceMin), $lte: parseFloat(priceMax) };
+      } else if (priceMin) {
+        elemMatchCondition.price = { $gte: parseFloat(priceMin) };
+      } else if (priceMax) {
+        elemMatchCondition.price = { $lte: parseFloat(priceMax) };
       }
+
+      priceMatch.prices = { $elemMatch: elemMatchCondition };
+      pipeline.push({ $match: priceMatch });
     }
 
     // 5. 计算总数
@@ -1331,6 +1338,7 @@ function buildPricesProjection() {
         }
       },
       in: {
+        // 抖音价格档位
         video_60plus: {
           $let: {
             vars: {
@@ -1347,10 +1355,27 @@ function buildPricesProjection() {
             in: '$$found.price'
           }
         },
-        video_under_20: {
+        video_1_20: {
           $let: {
             vars: {
               found: { $arrayElemAt: [{ $filter: { input: '$$latestPrices', as: 'x', cond: { $eq: ['$$x.type', 'video_1_20'] } } }, 0] }
+            },
+            in: '$$found.price'
+          }
+        },
+        // 小红书价格档位
+        video: {
+          $let: {
+            vars: {
+              found: { $arrayElemAt: [{ $filter: { input: '$$latestPrices', as: 'x', cond: { $eq: ['$$x.type', 'video'] } } }, 0] }
+            },
+            in: '$$found.price'
+          }
+        },
+        image: {
+          $let: {
+            vars: {
+              found: { $arrayElemAt: [{ $filter: { input: '$$latestPrices', as: 'x', cond: { $eq: ['$$x.type', 'image'] } } }, 0] }
             },
             in: '$$found.price'
           }

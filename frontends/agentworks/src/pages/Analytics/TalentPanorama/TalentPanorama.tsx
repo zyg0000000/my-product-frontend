@@ -12,11 +12,13 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns } from '@ant-design/pro-components';
-import { Tabs, Button, App, Alert, Tag, Tooltip } from 'antd';
+import { Tabs, Button, App, Alert, Tag, Tooltip, Dropdown } from 'antd';
+import type { MenuProps } from 'antd';
 import {
   SearchOutlined,
   ReloadOutlined,
   SettingOutlined,
+  CaretDownOutlined,
 } from '@ant-design/icons';
 import type { Platform } from '../../../types/talent';
 import { PLATFORM_NAMES } from '../../../types/talent';
@@ -47,11 +49,13 @@ import {
 } from '../../../config/panoramaFields';
 
 /**
- * 格式化价格
+ * 格式化价格（从分转换为元）
  */
 function formatPrice(price: number | null | undefined): string {
   if (price === null || price === undefined) return 'N/A';
-  return `¥${price.toLocaleString()}`;
+  // 价格存储单位为分，需要除以100转换为元
+  const yuan = price / 100;
+  return `¥${yuan.toLocaleString()}`;
 }
 
 /**
@@ -88,6 +92,10 @@ export function TalentPanorama() {
   const [viewMode, setViewMode] = useState<ViewMode>('all');
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
 
+  // 价格档位显示状态（用于价格列切换显示）
+  const [displayPriceType, setDisplayPriceType] =
+    useState<string>('video_60plus');
+
   // 列选择器状态
   const [columnSelectorOpen, setColumnSelectorOpen] = useState(false);
   const columnsConfig = usePanoramaColumns({
@@ -108,6 +116,7 @@ export function TalentPanorama() {
   // 筛选模块管理
   const {
     modules,
+    filtersByModule,
     filters,
     hasActiveFilters,
     loading: filtersLoading,
@@ -156,6 +165,7 @@ export function TalentPanorama() {
       rebateMax: queryParams.rebateMax as number | undefined,
       priceMin: queryParams.priceMin as number | undefined,
       priceMax: queryParams.priceMax as number | undefined,
+      priceType: queryParams.priceType as string | undefined, // 价格档位类型
       contentTags: queryParams.contentTags as string[] | undefined,
       // 客户视角参数
       customerNames:
@@ -199,6 +209,8 @@ export function TalentPanorama() {
   const handlePlatformChange = (platform: Platform) => {
     setSelectedPlatform(platform);
     resetFilters();
+    // 重置价格档位到对应平台的默认值
+    setDisplayPriceType(platform === 'xiaohongshu' ? 'video' : 'video_60plus');
   };
 
   // 处理视角模式切换
@@ -251,29 +263,80 @@ export function TalentPanorama() {
             render: (_, record) => formatPercent(record.rebate),
           };
 
-        case 'prices':
-          // 价格是一个对象，展示三种报价
+        case 'prices': {
+          // 价格列：单列显示，支持切换档位
+          // 根据平台获取价格档位配置
+          const priceTypeLabels: Record<string, string> = {
+            video_60plus: '60s+',
+            video_21_60: '21-60s',
+            video_1_20: '1-20s',
+            video: '视频笔记',
+            image: '图文笔记',
+          };
+
+          // 根据平台构建下拉菜单
+          const priceTypeMenuItems: MenuProps['items'] =
+            selectedPlatform === 'xiaohongshu'
+              ? [
+                  { key: 'video', label: '视频笔记' },
+                  { key: 'image', label: '图文笔记' },
+                ]
+              : [
+                  { key: 'video_60plus', label: '60s+' },
+                  { key: 'video_21_60', label: '21-60s' },
+                  { key: 'video_1_20', label: '1-20s' },
+                ];
+
           return {
             ...baseColumn,
+            title: (
+              <Dropdown
+                menu={{
+                  items: priceTypeMenuItems,
+                  selectedKeys: [displayPriceType],
+                  onClick: ({ key }) => setDisplayPriceType(key),
+                }}
+                trigger={['click']}
+              >
+                <span className="cursor-pointer flex items-center gap-1">
+                  报价({priceTypeLabels[displayPriceType] || displayPriceType})
+                  <CaretDownOutlined className="text-xs" />
+                </span>
+              </Dropdown>
+            ),
             render: (_, record) => {
               const prices = record.prices;
               if (!prices) return 'N/A';
-              const parts: string[] = [];
+
+              // 显示当前选中档位的价格
+              const currentPrice =
+                prices[displayPriceType as keyof typeof prices];
+
+              // 构建 Tooltip 显示所有档位
+              const allPrices: string[] = [];
               if (prices.video_60plus)
-                parts.push(`60s+: ${formatPrice(prices.video_60plus)}`);
+                allPrices.push(`60s+: ${formatPrice(prices.video_60plus)}`);
               if (prices.video_21_60)
-                parts.push(`21-60s: ${formatPrice(prices.video_21_60)}`);
-              if (prices.video_under_20)
-                parts.push(`1-20s: ${formatPrice(prices.video_under_20)}`);
-              return parts.length > 0 ? (
-                <Tooltip title={parts.join(' | ')}>
-                  <span>{formatPrice(prices.video_60plus)}</span>
+                allPrices.push(`21-60s: ${formatPrice(prices.video_21_60)}`);
+              if (prices.video_1_20)
+                allPrices.push(`1-20s: ${formatPrice(prices.video_1_20)}`);
+              if (prices.video)
+                allPrices.push(`视频: ${formatPrice(prices.video)}`);
+              if (prices.image)
+                allPrices.push(`图文: ${formatPrice(prices.image)}`);
+
+              return (
+                <Tooltip
+                  title={
+                    allPrices.length > 0 ? allPrices.join(' | ') : '暂无报价'
+                  }
+                >
+                  <span>{formatPrice(currentPrice as number | undefined)}</span>
                 </Tooltip>
-              ) : (
-                'N/A'
               );
             },
           };
+        }
 
         case 'followerCount':
         case 'fansCount':
@@ -422,7 +485,7 @@ export function TalentPanorama() {
           };
       }
     },
-    [navigate]
+    [navigate, displayPriceType, selectedPlatform]
   );
 
   /**
@@ -614,6 +677,7 @@ export function TalentPanorama() {
         {!filtersLoading && (
           <ModularFilterPanel
             modules={modules}
+            filtersByModule={filtersByModule}
             filters={filters}
             onFilterChange={updateFilter}
             onReset={handleReset}

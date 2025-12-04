@@ -42,6 +42,16 @@ export type FieldType =
   | 'object';
 
 /**
+ * 价格显示配置
+ */
+export interface PriceDisplayConfig {
+  /** 默认显示的价格档位 */
+  defaultPriceType: string;
+  /** 是否在列头显示档位标签 */
+  showPriceTypeLabel?: boolean;
+}
+
+/**
  * 字段定义接口
  */
 export interface FieldDefinition {
@@ -67,6 +77,8 @@ export interface FieldDefinition {
   formatter?: string;
   /** 是否仅客户视角可用 */
   customerViewOnly?: boolean;
+  /** 价格显示配置（仅 prices 字段使用） */
+  priceDisplayConfig?: PriceDisplayConfig;
 }
 
 /**
@@ -211,11 +223,15 @@ export const PANORAMA_FIELDS: FieldDefinition[] = [
     name: '视频报价',
     category: 'price',
     type: 'object',
-    width: 200,
+    width: 120,
     defaultVisible: true,
     order: 1,
-    description: '包含60s+/21-60s/1-20s报价',
+    description: '视频报价（可切换档位查看）',
     formatter: 'formatPrices',
+    priceDisplayConfig: {
+      defaultPriceType: 'video_60plus',
+      showPriceTypeLabel: true,
+    },
   },
 
   // ===== 返点信息 =====

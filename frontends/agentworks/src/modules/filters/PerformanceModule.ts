@@ -21,6 +21,7 @@ import type {
   FilterConfig,
   FilterState,
   FilterType,
+  FilterContext,
 } from '../../types/filterModule';
 import type { Platform } from '../../types/talent';
 
@@ -137,15 +138,12 @@ export const PerformanceModule: FilterModule = {
   enabled: true,
   icon: createElement(LineChartOutlined),
 
-  // 默认获取配置（不指定平台，用于向后兼容）
-  getFilterConfigs: async (): Promise<FilterConfig[]> => {
-    return loadFilterConfigsForPlatform();
-  },
-
-  // 按平台获取配置（优先使用）
-  getFilterConfigsForPlatform: async (
-    platform: Platform
+  // 获取配置（支持上下文感知）
+  getFilterConfigs: async (
+    context?: FilterContext
   ): Promise<FilterConfig[]> => {
+    // 从上下文获取平台，如果没有则使用默认值
+    const platform = context?.platform;
     return loadFilterConfigsForPlatform(platform);
   },
 

@@ -24,6 +24,8 @@ export interface FilterValue {
   max?: string;
   /** 日期范围 */
   dateRange?: [string, string];
+  /** 复合筛选 - 选择器值（如价格档位 key） */
+  selectorValue?: string;
 }
 
 /**
@@ -34,7 +36,64 @@ export type FilterState = Record<string, FilterValue>;
 /**
  * 筛选条件类型
  */
-export type FilterType = 'text' | 'enum' | 'range' | 'date' | 'custom';
+export type FilterType =
+  | 'text'
+  | 'enum'
+  | 'range'
+  | 'date'
+  | 'compound'
+  | 'custom';
+
+/**
+ * 视角模式
+ */
+export type ViewMode = 'all' | 'customer';
+
+/**
+ * 筛选上下文
+ * 用于传递筛选器所需的上下文信息，支持上下文感知的动态筛选配置
+ */
+export interface FilterContext {
+  /** 当前平台（影响价格档位选项等） */
+  platform: Platform;
+  /** 当前视角模式 */
+  viewMode: ViewMode;
+  /** 选中的客户ID列表（客户视角时使用） */
+  customerIds?: string[];
+}
+
+/**
+ * 复合筛选选择器选项
+ */
+export interface CompoundSelectorOption {
+  /** 选项值 */
+  key: string;
+  /** 显示标签 */
+  label: string;
+}
+
+/**
+ * 复合筛选配置
+ * 支持"选择器 + 子筛选"模式，如：选择价格档位 + 输入价格范围
+ */
+export interface CompoundConfig {
+  /** 选择器配置 */
+  selector: {
+    /** 选项列表 */
+    options: CompoundSelectorOption[];
+    /** 默认选中值 */
+    defaultValue?: string;
+    /** 占位符 */
+    placeholder?: string;
+  };
+  /** 子筛选器配置 */
+  subFilter: {
+    /** 子筛选类型 */
+    type: 'range' | 'text';
+    /** 范围筛选配置（当 type='range' 时） */
+    config?: RangeConfig;
+  };
+}
 
 /**
  * 范围筛选配置
@@ -103,6 +162,8 @@ export interface FilterConfig {
   enumOptions?: string[] | (() => Promise<string[]>);
   /** 范围筛选配置 */
   rangeConfig?: RangeConfig;
+  /** 复合筛选配置（当 type='compound' 时使用） */
+  compoundConfig?: CompoundConfig;
   /** 自定义渲染器 */
   customRenderer?: React.ComponentType<FilterRendererProps>;
 
@@ -150,15 +211,17 @@ export interface FilterModule {
   icon?: ReactNode;
 
   /**
-   * 获取筛选条件配置
+   * 获取筛选条件配置（支持上下文感知）
+   * @param context - 筛选上下文，包含平台、视角模式等信息
    * 支持静态返回或异步加载
    */
-  getFilterConfigs: () => FilterConfig[] | Promise<FilterConfig[]>;
+  getFilterConfigs: (
+    context?: FilterContext
+  ) => FilterConfig[] | Promise<FilterConfig[]>;
 
   /**
-   * 按平台获取筛选配置（可选）
-   * 如果实现此方法，将优先于 getFilterConfigs 使用
-   * 用于支持不同平台显示不同的筛选维度
+   * @deprecated 使用 getFilterConfigs(context) 替代
+   * 按平台获取筛选配置（保留用于向后兼容）
    */
   getFilterConfigsForPlatform?: (
     platform: Platform
@@ -203,6 +266,8 @@ export type FilterModuleRegistry = FilterModule[];
 export interface ModularFilterPanelProps {
   /** 筛选模块列表 */
   modules: FilterModule[];
+  /** 按模块分组的筛选配置（从 usePanoramaFilters 传入，已根据平台加载） */
+  filtersByModule?: Record<string, FilterConfig[]>;
   /** 当前筛选状态 */
   filters: FilterState;
   /** 筛选变化回调 */
