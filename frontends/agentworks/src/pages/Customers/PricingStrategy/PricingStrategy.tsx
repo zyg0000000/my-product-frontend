@@ -890,7 +890,7 @@ export default function PricingStrategy() {
                   trigger="hover"
                   styles={{
                     root: { padding: 0 },
-                    body: {
+                    inner: {
                       padding: '12px',
                       backgroundColor: '#1f2937',
                       borderRadius: '6px',

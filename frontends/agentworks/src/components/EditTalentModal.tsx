@@ -11,9 +11,13 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { Modal, Space, App } from 'antd';
-import { ProForm, ProFormText, ProFormRadio } from '@ant-design/pro-components';
+import {
+  ProForm,
+  ProFormText,
+  ProFormRadio,
+  ProCard,
+} from '@ant-design/pro-components';
 import type { ProFormInstance } from '@ant-design/pro-components';
-import { ProCard } from '@ant-design/pro-components';
 import { logger } from '../utils/logger';
 import type { Talent, Platform, TalentStatus } from '../types/talent';
 import { PLATFORM_NAMES } from '../types/talent';
@@ -55,7 +59,7 @@ export function EditTalentModal({
 }: EditTalentModalProps) {
   const { message } = App.useApp();
   // 使用 ProFormInstance ref 替代 Form.useForm，避免 "not connected" 警告
-  const formRef = useRef<ProFormInstance<FormData>>(null);
+  const formRef = useRef<ProFormInstance<FormData> | undefined>(undefined);
   // 使用 state 管理 talentType，避免在渲染时访问 ref
   const [currentTalentType, setCurrentTalentType] = useState<string[]>([]);
   usePlatformConfig(false);

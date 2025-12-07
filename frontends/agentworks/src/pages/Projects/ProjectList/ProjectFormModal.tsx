@@ -71,6 +71,15 @@ interface ProjectFormModalProps {
 }
 
 /**
+ * 平台 KPI 状态（用于组件内部状态管理）
+ */
+interface PlatformKPIState {
+  enabled: boolean;
+  enabledKPIs: string[];
+  targets: Record<string, number>;
+}
+
+/**
  * KPI 元数据（硬编码）
  * 实际 KPI 的启用/禁用从客户配置读取
  */
@@ -810,7 +819,7 @@ export function ProjectFormModal({
                   showSearch
                   filterOption={false}
                   onSearch={loadCustomers}
-                  onChange={handleCustomerChange}
+                  onChange={(value: string) => handleCustomerChange(value)}
                   loading={customerLoading}
                   notFoundContent={
                     customerLoading ? <Spin size="small" /> : '暂无数据'

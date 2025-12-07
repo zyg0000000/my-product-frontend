@@ -293,6 +293,9 @@ export interface ProjectListItem {
   /** @deprecated 兼容旧数据 */
   discount?: number;
 
+  // v4.5: 按平台 KPI 配置
+  platformKPIConfigs?: ProjectKPIConfigs;
+
   stats?: ProjectStats;
   createdAt: string;
 }

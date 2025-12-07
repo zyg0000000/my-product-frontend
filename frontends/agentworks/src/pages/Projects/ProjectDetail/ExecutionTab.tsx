@@ -228,7 +228,7 @@ export function ExecutionTab({
       width: 140,
       fixed: 'left',
       ellipsis: true,
-      hideInSearch: true,
+      search: false,
       render: (_, record) => record.talentName || record.talentOneId,
     },
     {
@@ -259,7 +259,7 @@ export function ExecutionTab({
       title: '执行金额',
       dataIndex: 'amount',
       width: 110,
-      hideInSearch: true,
+      search: false,
       render: (_, record) => (
         <span className="font-medium">{formatMoney(record.amount)}</span>
       ),
@@ -268,7 +268,7 @@ export function ExecutionTab({
       title: '计划发布',
       dataIndex: 'plannedReleaseDate',
       width: 140,
-      hideInSearch: true,
+      search: false,
       render: (_, record) => {
         const delayed = isDelayed(
           record.plannedReleaseDate,
@@ -301,7 +301,7 @@ export function ExecutionTab({
       title: '实际发布',
       dataIndex: 'actualReleaseDate',
       width: 140,
-      hideInSearch: true,
+      search: false,
       render: (_, record) => (
         <DatePicker
           value={
@@ -324,7 +324,7 @@ export function ExecutionTab({
       title: '延期状态',
       dataIndex: 'delayStatus',
       width: 90,
-      hideInSearch: true,
+      search: false,
       render: (_, record) => {
         const delayed = isDelayed(
           record.plannedReleaseDate,
@@ -347,7 +347,7 @@ export function ExecutionTab({
       title: '星图任务ID',
       dataIndex: 'taskId',
       width: 140,
-      hideInSearch: true,
+      search: false,
       ellipsis: true,
       render: (_, record) => record.taskId || '-',
     },
@@ -355,7 +355,7 @@ export function ExecutionTab({
       title: '视频链接',
       dataIndex: 'videoUrl',
       width: 200,
-      hideInSearch: true,
+      search: false,
       render: (_, record) => (
         <Space size="small">
           <Input

@@ -175,7 +175,7 @@ export function CollaborationsTab({
       width: 140,
       fixed: 'left',
       ellipsis: true,
-      hideInSearch: true,
+      search: false,
       render: (_, record) => (
         <a
           className="text-primary-600 hover:text-primary-700 font-medium cursor-pointer"
@@ -213,14 +213,14 @@ export function CollaborationsTab({
       title: '达人来源',
       dataIndex: 'talentSource',
       width: 100,
-      hideInSearch: true,
+      search: false,
       render: (_, record) => record.talentSource || '-',
     },
     {
       title: '执行金额',
       dataIndex: 'amount',
       width: 120,
-      hideInSearch: true,
+      search: false,
       render: (_, record) => (
         <span className="font-medium">{formatMoney(record.amount)}</span>
       ),
@@ -229,7 +229,7 @@ export function CollaborationsTab({
       title: '返点率',
       dataIndex: 'rebateRate',
       width: 80,
-      hideInSearch: true,
+      search: false,
       render: (_, record) =>
         record.rebateRate ? `${record.rebateRate}%` : '-',
     },
@@ -237,7 +237,7 @@ export function CollaborationsTab({
       title: '计划发布',
       dataIndex: 'plannedReleaseDate',
       width: 110,
-      hideInSearch: true,
+      search: false,
       render: (_, record) => {
         const delayed = isDelayed(
           record.plannedReleaseDate,
@@ -259,14 +259,14 @@ export function CollaborationsTab({
       title: '实际发布',
       dataIndex: 'actualReleaseDate',
       width: 110,
-      hideInSearch: true,
+      search: false,
       render: (_, record) => record.actualReleaseDate || '-',
     },
     {
       title: '视频链接',
       dataIndex: 'videoUrl',
       width: 100,
-      hideInSearch: true,
+      search: false,
       render: (_, record) =>
         record.videoUrl ? (
           <a

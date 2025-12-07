@@ -635,7 +635,7 @@ export function PerformanceAnalytics() {
               )}
             </div>
           }
-          bordered
+          className="border border-gray-200"
         >
           {loading ? (
             <div className="flex items-center justify-center h-96">

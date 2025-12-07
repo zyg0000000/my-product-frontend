@@ -393,7 +393,7 @@ export default function CustomerList() {
                       trigger="hover"
                       styles={{
                         root: { padding: 0 },
-                        body: {
+                        inner: {
                           padding: '12px',
                           backgroundColor: '#1f2937',
                           borderRadius: '6px',
@@ -519,7 +519,7 @@ export default function CustomerList() {
       width: 140,
       fixed: 'left',
       copyable: true,
-      hideInSearch: true,
+      search: false,
     },
     {
       title: '客户名称',
@@ -587,14 +587,14 @@ export default function CustomerList() {
       width: 110,
       align: 'center',
       ellipsis: true,
-      hideInSearch: true,
+      search: false,
     },
     {
       title: '主要联系人',
       dataIndex: 'contacts',
       width: 140,
       align: 'center',
-      hideInSearch: true,
+      search: false,
       render: (_, record) => {
         const contact =
           record.contacts?.find(c => c.isPrimary) || record.contacts?.[0];
@@ -614,7 +614,7 @@ export default function CustomerList() {
       dataIndex: 'businessStrategies',
       width: 200,
       align: 'center',
-      hideInSearch: true,
+      search: false,
       render: (_, record) => {
         const types = [];
         if (record.businessStrategies?.talentProcurement?.enabled) {
@@ -652,7 +652,7 @@ export default function CustomerList() {
       dataIndex: 'createdAt',
       width: 160,
       valueType: 'dateTime',
-      hideInSearch: true,
+      search: false,
       sorter: true,
     },
     {

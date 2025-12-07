@@ -30,7 +30,8 @@ AgentWorks 是一个多平台达人管理系统，支持抖音、小红书、B�
 ### 前端技术
 - **框架**：React 18 + TypeScript
 - **构建工具**：Vite 5
-- **UI 框架**：Ant Design Pro 2.x + Ant Design 5.x（v3.0 新增）
+- **UI 框架**：Ant Design Pro 3.x-beta + Ant Design 6.x（v4.0 升级）
+- **动画库**：framer-motion 12.x
 - **样式方案**：Tailwind CSS 3 + Ant Design（混合模式）
 - **路由管理**：React Router 6
 - **状态管理**：React Hooks + Context API
@@ -667,6 +668,65 @@ ls -lh dist/
 echo "✅ 所有检查通过，可以部署！"
 ```
 
+#### antd v6 / pro-components v3 API 迁移指南（2025-12）
+
+升级到 antd 6.x 和 @ant-design/pro-components 3.x-beta 后，以下 API 已变更：
+
+**1. Popover styles API**
+```tsx
+// ❌ antd v5 (旧)
+<Popover styles={{ body: { padding: 12 } }}>
+
+// ✅ antd v6 (新)
+<Popover styles={{ inner: { padding: 12 } }}>
+```
+
+**2. ProColumns hideInSearch**
+```tsx
+// ❌ pro-components v2 (旧)
+const columns: ProColumns[] = [
+  { title: '名称', dataIndex: 'name', hideInSearch: true }
+];
+
+// ✅ pro-components v3 (新)
+const columns: ProColumns[] = [
+  { title: '名称', dataIndex: 'name', search: false }
+];
+```
+
+**3. ProCard bordered**
+```tsx
+// ❌ pro-components v2 (旧)
+<ProCard bordered>内容</ProCard>
+
+// ✅ pro-components v3 (新) - 使用 Tailwind 替代
+<ProCard className="border border-gray-200">内容</ProCard>
+```
+
+**4. framer-motion ease 类型**
+```tsx
+// ❌ framer-motion v11 (旧)
+const variants = {
+  hidden: { opacity: 0, transition: { ease: [0.22, 1, 0.36, 1] } }
+};
+
+// ✅ framer-motion v12 (新) - 使用字符串
+const variants = {
+  hidden: { opacity: 0, transition: { ease: 'easeOut' } }
+};
+```
+
+**5. ProFormInstance ref 类型**
+```tsx
+// ❌ 旧写法
+const formRef = useRef<ProFormInstance<FormData>>(null);
+
+// ✅ 新写法 - 允许 undefined
+const formRef = useRef<ProFormInstance<FormData> | undefined>(undefined);
+```
+
+> 📌 **注意**：项目使用 `.npmrc` 配置 `legacy-peer-deps=true` 绕过 pro-components v3 beta 的 peer dependency 警告（requires antd ^5.11.2 但项目使用 antd 6.x）
+
 #### Cloudflare 特殊要求
 
 **文件大小限制**：
@@ -790,6 +850,6 @@ git push origin main
 ---
 
 **维护者**: Claude Code
-**最后更新**: 2025-11-28
+**最后更新**: 2025-12-08
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

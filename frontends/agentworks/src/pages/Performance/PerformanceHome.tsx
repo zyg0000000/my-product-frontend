@@ -156,7 +156,7 @@ export function PerformanceHome() {
         width: dim.width || 120,
         fixed: isUpdateDate ? 'right' : dim.pinned ? 'left' : undefined,
         ellipsis: true,
-        hideInSearch: true, // 筛选器独立，不使用 ProTable 内置搜索
+        search: false, // 筛选器独立，不使用 ProTable 内置搜索
       };
 
       // 特殊处理：达人名称（带链接）
