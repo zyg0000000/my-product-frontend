@@ -27,12 +27,20 @@ export function PageSkeleton({ active = true }: PageSkeletonProps) {
       {/* Content Skeleton */}
       <div className="px-6">
         <ProCard ghost gutter={[16, 16]}>
-          <ProCard colSpan={16} layout="center" className="border border-gray-200">
+          <ProCard
+            colSpan={16}
+            layout="center"
+            className="border border-gray-200"
+          >
             <div className="w-full p-4 space-y-4">
               <Skeleton active={active} paragraph={{ rows: 6 }} />
             </div>
           </ProCard>
-          <ProCard colSpan={8} layout="center" className="border border-gray-200">
+          <ProCard
+            colSpan={8}
+            layout="center"
+            className="border border-gray-200"
+          >
             <div className="w-full p-4 space-y-4">
               <Skeleton active={active} paragraph={{ rows: 4 }} />
             </div>
