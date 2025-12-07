@@ -672,16 +672,20 @@ echo "✅ 所有检查通过，可以部署！"
 
 升级到 antd 6.x 和 @ant-design/pro-components 3.x-beta 后，以下 API 已变更：
 
-**1. Popover styles API (antd v6)**
+**1. Popover 样式 API（跨版本兼容）**
 ```tsx
-// ✅ antd v6 使用 inner
-<Popover styles={{ inner: { padding: 12 } }}>
+// ✅ 推荐：使用 overlayInnerStyle（antd v4/v5/v6 通用）
+<Popover overlayInnerStyle={{ padding: 12, backgroundColor: '#1f2937' }}>
 
-// ❌ antd v5 使用 body（已废弃）
+// ⚠️ antd v6 专用：styles.inner
+// <Popover styles={{ inner: { padding: 12 } }}>
+
+// ❌ antd v5 已废弃：styles.body
 // <Popover styles={{ body: { padding: 12 } }}>
 ```
 
-> 📌 项目使用 `overrides` 强制所有包使用 antd v6，确保 Cloudflare 部署环境一致
+> 📌 **重要**：由于 Cloudflare 部署环境的 npm 版本（10.x）可能不完全支持 `overrides` 字段，
+> 导致 pro-components 可能安装 antd v5。因此项目统一使用 `overlayInnerStyle` 确保跨版本兼容。
 
 **2. ProColumns hideInSearch**
 ```tsx
@@ -729,6 +733,18 @@ const formRef = useRef<ProFormInstance<FormData> | undefined>(undefined);
 ```
 
 > 📌 **注意**：项目使用 `package.json` 的 `overrides` 字段强制所有包使用 antd v6，同时使用 `.npmrc` 配置 `legacy-peer-deps=true` 绕过 pro-components v3 beta 的 peer dependency 警告
+
+#### 版本兼容性说明
+
+| 环境 | npm 版本 | antd 实际版本 | 说明 |
+|------|----------|---------------|------|
+| 本地开发 | 11.x | v6.0.1 | `overrides` 完全生效 |
+| Cloudflare | 10.x | 可能 v5.x | `overrides` 不完全生效 |
+
+**兼容性策略**：
+- 代码层面使用跨版本兼容的 API（如 `overlayInnerStyle`）
+- 避免使用仅在特定版本存在的 API
+- TypeScript 类型检查通过即可部署
 
 #### Cloudflare 特殊要求
 
