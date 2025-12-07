@@ -3,7 +3,7 @@
  * 展示项目效果数据，支持 T+7 和 T+21 两种时间维度
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
 import {
@@ -29,19 +29,10 @@ import {
 } from '@ant-design/icons';
 import type { Collaboration, EffectMetrics } from '../../../types/project';
 import { formatMoney, centsToYuan } from '../../../types/project';
-import { PLATFORM_NAMES, type Platform } from '../../../types/talent';
+import type { Platform } from '../../../types/talent';
 import { projectApi } from '../../../services/projectApi';
 import { logger } from '../../../utils/logger';
-
-/**
- * 平台标签颜色
- */
-const PLATFORM_COLORS: Record<Platform, string> = {
-  douyin: 'blue',
-  xiaohongshu: 'red',
-  bilibili: 'cyan',
-  kuaishou: 'orange',
-};
+import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 
 /**
  * 效果汇总统计
@@ -76,6 +67,11 @@ export function EffectTab({
   void _platforms;
   const { message } = App.useApp();
   const actionRef = useRef<ActionType>(null);
+
+  // 平台配置
+  const { getPlatformNames, getPlatformColors } = usePlatformConfig();
+  const platformNames = useMemo(() => getPlatformNames(), [getPlatformNames]);
+  const platformColors = useMemo(() => getPlatformColors(), [getPlatformColors]);
 
   // 数据状态
   const [loading, setLoading] = useState(true);
@@ -278,8 +274,8 @@ export function EffectTab({
       dataIndex: 'talentPlatform',
       width: 90,
       render: (_, record) => (
-        <Tag color={PLATFORM_COLORS[record.talentPlatform]}>
-          {PLATFORM_NAMES[record.talentPlatform]}
+        <Tag color={platformColors[record.talentPlatform] || 'default'}>
+          {platformNames[record.talentPlatform] || record.talentPlatform}
         </Tag>
       ),
     },

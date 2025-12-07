@@ -40,7 +40,12 @@
             "type": "String",
             "description": "平台类型",
             "required": true,
-            "enum": ["douyin", "xiaohongshu", "bilibili", "kuaishou"],
+            "enum": [
+                "douyin",
+                "xiaohongshu",
+                "bilibili",
+                "kuaishou"
+            ],
             "comment": "与 talents.platform 一致"
         },
         "snapshotDate": {
@@ -54,7 +59,11 @@
             "type": "String",
             "description": "快照类型",
             "required": true,
-            "enum": ["daily", "weekly", "monthly"],
+            "enum": [
+                "daily",
+                "weekly",
+                "monthly"
+            ],
             "default": "daily",
             "comment": "daily=每日快照, weekly=周汇总, monthly=月汇总"
         },
@@ -62,7 +71,13 @@
             "type": "String",
             "description": "数据来源",
             "required": true,
-            "enum": ["api", "crawler", "manual", "feishu", "predicted"],
+            "enum": [
+                "api",
+                "crawler",
+                "manual",
+                "feishu",
+                "predicted"
+            ],
             "default": "feishu",
             "comment": "api=平台API, crawler=爬虫采集, manual=人工录入, feishu=飞书同步, predicted=AI预测"
         },
@@ -157,198 +172,281 @@
                     "type": "Object",
                     "description": "受众年龄分布（嵌套在 metrics 中）",
                     "properties": {
-                        "18_23": { "type": "Double", "description": "18-23岁占比（小数）", "example": 0.3637 },
-                        "24_30": { "type": "Double", "description": "24-30岁占比（小数）", "example": 0.299 },
-                        "31_40": { "type": "Double", "description": "31-40岁占比（小数）", "example": 0.1422 },
-                        "41_50": { "type": "Double", "description": "41-50岁占比（小数）", "example": 0.038 },
-                        "50_plus": { "type": "Double", "description": "50岁以上占比（小数）", "example": 0.0252 }
+                        "18_23": {
+                            "type": "Double",
+                            "description": "18-23岁占比（小数）",
+                            "example": 0.3637
+                        },
+                        "24_30": {
+                            "type": "Double",
+                            "description": "24-30岁占比（小数）",
+                            "example": 0.299
+                        },
+                        "31_40": {
+                            "type": "Double",
+                            "description": "31-40岁占比（小数）",
+                            "example": 0.1422
+                        },
+                        "41_50": {
+                            "type": "Double",
+                            "description": "41-50岁占比（小数）",
+                            "example": 0.038
+                        },
+                        "50_plus": {
+                            "type": "Double",
+                            "description": "50岁以上占比（小数）",
+                            "example": 0.0252
+                        }
                     }
                 },
                 "crowdPackage": {
                     "type": "Object",
                     "description": "抖音八大人群包（嵌套在 metrics 中）",
                     "properties": {
-                        "town_middle_aged": { "type": "Double", "description": "小镇中老年（小数）", "example": 0.023 },
-                        "senior_middle_class": { "type": "Double", "description": "资深中产（小数）", "example": 0.0151 },
-                        "z_era": { "type": "Double", "description": "Z世代（小数）", "example": 0.2546 },
-                        "urban_silver": { "type": "Double", "description": "都市银发（小数）", "example": 0.0108 },
-                        "town_youth": { "type": "Double", "description": "小镇青年（小数）", "example": 0.2733 },
-                        "exquisite_mom": { "type": "Double", "description": "精致妈妈（小数）", "example": 0.018 },
-                        "new_white_collar": { "type": "Double", "description": "新锐白领（小数）", "example": 0.2498 },
-                        "urban_blue_collar": { "type": "Double", "description": "都市蓝领（小数）", "example": 0.1553 }
+                        "town_middle_aged": {
+                            "type": "Double",
+                            "description": "小镇中老年（小数）",
+                            "example": 0.023
+                        },
+                        "senior_middle_class": {
+                            "type": "Double",
+                            "description": "资深中产（小数）",
+                            "example": 0.0151
+                        },
+                        "z_era": {
+                            "type": "Double",
+                            "description": "Z世代（小数）",
+                            "example": 0.2546
+                        },
+                        "urban_silver": {
+                            "type": "Double",
+                            "description": "都市银发（小数）",
+                            "example": 0.0108
+                        },
+                        "town_youth": {
+                            "type": "Double",
+                            "description": "小镇青年（小数）",
+                            "example": 0.2733
+                        },
+                        "exquisite_mom": {
+                            "type": "Double",
+                            "description": "精致妈妈（小数）",
+                            "example": 0.018
+                        },
+                        "new_white_collar": {
+                            "type": "Double",
+                            "description": "新锐白领（小数）",
+                            "example": 0.2498
+                        },
+                        "urban_blue_collar": {
+                            "type": "Double",
+                            "description": "都市蓝领（小数）",
+                            "example": 0.1553
+                        }
                     }
-                }
-            },
-            "comment": "v1.2 起 metrics 结构对齐飞书表格字段，受众数据嵌套在 metrics 中"
-        },
-        "metadata": {
-            "type": "Object",
-            "description": "元数据",
-            "required": false,
-            "properties": {
-                "crawlJobId": {
-                    "type": "String",
-                    "description": "采集任务ID"
-                },
-                "processingTime": {
-                    "type": "Integer",
-                    "description": "处理耗时（毫秒）"
-                },
-                "dataQuality": {
-                    "type": "String",
-                    "enum": ["complete", "partial", "estimated"],
-                    "description": "数据完整度"
-                },
-                "notes": {
-                    "type": "String",
-                    "description": "备注"
                 }
             }
         },
-        "lastUpdated": {
-            "type": "Date",
-            "description": "数据更新时间（飞书同步时间）",
-            "required": false,
-            "example": "2025-11-26T08:00:00Z",
-            "comment": "记录数据最后一次从飞书同步的时间，用于前端展示"
-        },
-        "createdAt": {
-            "type": "Date",
-            "description": "记录创建时间",
-            "required": true,
-            "default": "now"
-        },
-        "updatedAt": {
-            "type": "Date",
-            "description": "记录更新时间",
-            "required": true,
-            "default": "now"
+        "comment": "v1.2 起 metrics 结构对齐飞书表格字段，受众数据嵌套在 metrics 中"
+    },
+    "metadata": {
+        "type": "Object",
+        "description": "元数据",
+        "required": false,
+        "properties": {
+            "crawlJobId": {
+                "type": "String",
+                "description": "采集任务ID"
+            },
+            "processingTime": {
+                "type": "Integer",
+                "description": "处理耗时（毫秒）"
+            },
+            "dataQuality": {
+                "type": "String",
+                "enum": [
+                    "complete",
+                    "partial",
+                    "estimated"
+                ],
+                "description": "数据完整度"
+            },
+            "notes": {
+                "type": "String",
+                "description": "备注"
+            }
         }
     },
-    "indexes": [
-        {
-            "name": "idx_snapshotId",
-            "fields": { "snapshotId": 1 },
-            "unique": true,
-            "description": "快照ID唯一索引"
+    "lastUpdated": {
+        "type": "Date",
+        "description": "数据更新时间（飞书同步时间）",
+        "required": false,
+        "example": "2025-11-26T08:00:00Z",
+        "comment": "记录数据最后一次从飞书同步的时间，用于前端展示"
+    },
+    "createdAt": {
+        "type": "Date",
+        "description": "记录创建时间",
+        "required": true,
+        "default": "now"
+    },
+    "updatedAt": {
+        "type": "Date",
+        "description": "记录更新时间",
+        "required": true,
+        "default": "now"
+    }
+},
+"indexes": [
+    {
+        "name": "idx_snapshotId",
+        "fields": {
+            "snapshotId": 1
         },
-        {
-            "name": "idx_oneId_platform_date",
-            "fields": { "oneId": 1, "platform": 1, "snapshotDate": -1 },
-            "description": "核心查询索引：查询某达人某平台的历史数据"
+        "unique": true,
+        "description": "快照ID唯一索引"
+    },
+    {
+        "name": "idx_oneId_platform_date",
+        "fields": {
+            "oneId": 1,
+            "platform": 1,
+            "snapshotDate": -1
         },
-        {
-            "name": "idx_oneId_platform_type_date",
-            "fields": { "oneId": 1, "platform": 1, "snapshotType": 1, "snapshotDate": -1 },
-            "unique": true,
-            "description": "唯一约束：同一达人+平台+类型+日期只能有一条记录"
+        "description": "核心查询索引：查询某达人某平台的历史数据"
+    },
+    {
+        "name": "idx_oneId_platform_type_date",
+        "fields": {
+            "oneId": 1,
+            "platform": 1,
+            "snapshotType": 1,
+            "snapshotDate": -1
         },
-        {
-            "name": "idx_snapshotDate",
-            "fields": { "snapshotDate": -1 },
-            "description": "按日期倒序（用于批量处理）"
+        "unique": true,
+        "description": "唯一约束：同一达人+平台+类型+日期只能有一条记录"
+    },
+    {
+        "name": "idx_snapshotDate",
+        "fields": {
+            "snapshotDate": -1
         },
-        {
-            "name": "idx_dataSource",
-            "fields": { "dataSource": 1 },
-            "description": "按数据来源筛选"
+        "description": "按日期倒序（用于批量处理）"
+    },
+    {
+        "name": "idx_dataSource",
+        "fields": {
+            "dataSource": 1
         },
-        {
-            "name": "idx_platform_date",
-            "fields": { "platform": 1, "snapshotDate": -1 },
-            "description": "按平台和日期查询（用于平台级分析）"
+        "description": "按数据来源筛选"
+    },
+    {
+        "name": "idx_platform_date",
+        "fields": {
+            "platform": 1,
+            "snapshotDate": -1
         },
-        {
-            "name": "idx_createdAt",
-            "fields": { "createdAt": -1 },
-            "description": "按创建时间倒序"
-        }
-    ],
-    "relations": [
-        {
-            "collection": "talents",
-            "type": "many-to-one",
-            "localKey": ["oneId", "platform"],
-            "foreignKey": ["oneId", "platform"],
-            "description": "关联到达人档案"
-        }
-    ],
-    "notes": [
-        "【设计目标】达人表现数据时序集合，支持历史趋势分析",
-        "【核心特性】独立存储，不嵌入 talents 集合，便于大规模数据分析",
-        "【时序设计】每条记录是某达人某平台某天的数据快照",
-        "【快照类型】支持 daily/weekly/monthly 三种粒度",
-        "【数据来源】区分 api/crawler/manual/feishu/predicted 五种来源",
-        "【飞书同步】主要数据来源为飞书表格同步（dataSource=feishu）",
-        "【v1.2 重构】metrics 字段结构对齐飞书表格，受众数据嵌套在 metrics 中",
-        "【字段命名】使用飞书字段名如 followers、expected_plays、interaction_rate_30d",
-        "【人群包】metrics.crowdPackage 支持抖音八大人群分析",
-        "【比例格式】所有百分比数据以小数（0-1）存储，前端显示时 *100 转为百分比",
-        "【唯一约束】(oneId, platform, snapshotType, snapshotDate) 联合唯一",
-        "【数据质量】metadata.dataQuality 标记数据完整度",
-        "【更新追溯】lastUpdated 记录飞书同步时间，用于前端展示"
-    ],
-    "examples": [
-        {
-            "description": "示例：实际生产数据（飞书同步）",
-            "data": {
-                "snapshotId": "perf_6852516526931574798_douyin_20251129_ozlvkd",
-                "oneId": "talent_00000001",
-                "platform": "douyin",
-                "platformAccountId": "6852516526931574798",
-                "snapshotDate": "2025-09-28",
-                "snapshotType": "daily",
-                "dataSource": "feishu",
-                "metrics": {
-                    "followers": 2037428,
-                    "follower_growth": -3921,
-                    "expected_plays": 3577547,
-                    "connected_users": 3710338,
-                    "interaction_rate_30d": 0.03,
-                    "completion_rate_30d": 0.19,
-                    "spread_index": 79.05,
-                    "viral_rate": 0,
-                    "cpm_60s_expected": 19.57,
-                    "audienceGender": {
-                        "male": 0.8565,
-                        "female": 0.1435
-                    },
-                    "audienceAge": {
-                        "18_23": 0.3637,
-                        "24_30": 0.299,
-                        "31_40": 0.1422,
-                        "41_50": 0.038,
-                        "50_plus": 0.0252
-                    },
-                    "crowdPackage": {
-                        "town_middle_aged": 0.023,
-                        "senior_middle_class": 0.0151,
-                        "z_era": 0.2546,
-                        "urban_silver": 0.0108,
-                        "town_youth": 0.2733,
-                        "exquisite_mom": 0.018,
-                        "new_white_collar": 0.2498,
-                        "urban_blue_collar": 0.1553
-                    }
+        "description": "按平台和日期查询（用于平台级分析）"
+    },
+    {
+        "name": "idx_createdAt",
+        "fields": {
+            "createdAt": -1
+        },
+        "description": "按创建时间倒序"
+    }
+],
+"relations": [
+    {
+        "collection": "talents",
+        "type": "many-to-one",
+        "localKey": [
+            "oneId",
+            "platform"
+        ],
+        "foreignKey": [
+            "oneId",
+            "platform"
+        ],
+        "description": "关联到达人档案"
+    }
+],
+"notes": [
+    "【设计目标】达人表现数据时序集合，支持历史趋势分析",
+    "【核心特性】独立存储，不嵌入 talents 集合，便于大规模数据分析",
+    "【时序设计】每条记录是某达人某平台某天的数据快照",
+    "【快照类型】支持 daily/weekly/monthly 三种粒度",
+    "【数据来源】区分 api/crawler/manual/feishu/predicted 五种来源",
+    "【飞书同步】主要数据来源为飞书表格同步（dataSource=feishu）",
+    "【v1.2 重构】metrics 字段结构对齐飞书表格，受众数据嵌套在 metrics 中",
+    "【字段命名】使用飞书字段名如 followers、expected_plays、interaction_rate_30d",
+    "【人群包】metrics.crowdPackage 支持抖音八大人群分析",
+    "【比例格式】所有百分比数据以小数（0-1）存储，前端显示时 *100 转为百分比",
+    "【唯一约束】(oneId, platform, snapshotType, snapshotDate) 联合唯一",
+    "【数据质量】metadata.dataQuality 标记数据完整度",
+    "【更新追溯】lastUpdated 记录飞书同步时间，用于前端展示"
+],
+"examples": [
+    {
+        "description": "示例：实际生产数据（飞书同步）",
+        "data": {
+            "snapshotId": "perf_6852516526931574798_douyin_20251129_ozlvkd",
+            "oneId": "talent_00000001",
+            "platform": "douyin",
+            "platformAccountId": "6852516526931574798",
+            "snapshotDate": "2025-09-28",
+            "snapshotType": "daily",
+            "dataSource": "feishu",
+            "metrics": {
+                "followers": 2037428,
+                "follower_growth": -3921,
+                "expected_plays": 3577547,
+                "connected_users": 3710338,
+                "interaction_rate_30d": 0.03,
+                "completion_rate_30d": 0.19,
+                "spread_index": 79.05,
+                "viral_rate": 0,
+                "cpm_60s_expected": 19.57,
+                "audienceGender": {
+                    "male": 0.8565,
+                    "female": 0.1435
                 },
-                "lastUpdated": "2025-11-29T04:19:14.892Z",
-                "createdAt": "2025-11-29T04:19:14.893Z",
-                "updatedAt": "2025-11-29T04:19:14.893Z"
-            }
+                "audienceAge": {
+                    "18_23": 0.3637,
+                    "24_30": 0.299,
+                    "31_40": 0.1422,
+                    "41_50": 0.038,
+                    "50_plus": 0.0252
+                },
+                "crowdPackage": {
+                    "town_middle_aged": 0.023,
+                    "senior_middle_class": 0.0151,
+                    "z_era": 0.2546,
+                    "urban_silver": 0.0108,
+                    "town_youth": 0.2733,
+                    "exquisite_mom": 0.018,
+                    "new_white_collar": 0.2498,
+                    "urban_blue_collar": 0.1553
+                }
+            },
+            "lastUpdated": "2025-11-29T04:19:14.892Z",
+            "createdAt": "2025-11-29T04:19:14.893Z",
+            "updatedAt": "2025-11-29T04:19:14.893Z"
         }
-    ],
-    "useCases": [
-        {
-            "name": "获取达人最新表现数据",
-            "query": "db.talent_performance.findOne({ oneId: 'talent_00000001', platform: 'douyin', snapshotType: 'daily' }, { sort: { snapshotDate: -1 } })"
-        },
-        {
-            "name": "获取达人30天历史数据（用于趋势分析）",
-            "query": "db.talent_performance.find({ oneId: 'talent_00000001', platform: 'douyin', snapshotType: 'daily', snapshotDate: { $gte: '2025-10-26' } }).sort({ snapshotDate: 1 })"
-        },
-        {
-            "name": "获取某平台所有达人的最新快照（批量分析）",
-            "aggregation": "db.talent_performance.aggregate([{ $match: { platform: 'douyin', snapshotType: 'daily' } }, { $sort: { snapshotDate: -1 } }, { $group: { _id: '$oneId', latestSnapshot: { $first: '$$ROOT' } } }])"
-        }
-    ]
+    }
+],
+"useCases": [
+    {
+        "name": "获取达人最新表现数据",
+        "query": "db.talent_performance.findOne({ oneId: 'talent_00000001', platform: 'douyin', snapshotType: 'daily' }, { sort: { snapshotDate: -1 } })"
+    },
+    {
+        "name": "获取达人30天历史数据（用于趋势分析）",
+        "query": "db.talent_performance.find({ oneId: 'talent_00000001', platform: 'douyin', snapshotType: 'daily', snapshotDate: { $gte: '2025-10-26' } }).sort({ snapshotDate: 1 })"
+    },
+    {
+        "name": "获取某平台所有达人的最新快照（批量分析）",
+        "aggregation": "db.talent_performance.aggregate([{ $match: { platform: 'douyin', snapshotType: 'daily' } }, { $sort: { snapshotDate: -1 } }, { $group: { _id: '$oneId', latestSnapshot: { $first: '$$ROOT' } } }])"
+    }
+]
 }

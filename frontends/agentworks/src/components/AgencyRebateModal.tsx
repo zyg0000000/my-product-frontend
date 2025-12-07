@@ -353,7 +353,7 @@ export function AgencyRebateModal({
                   precision: 2,
                   min: REBATE_VALIDATION.min,
                   max: REBATE_VALIDATION.max,
-                  addonAfter: '%',
+                  suffix: '%',
                 }}
                 rules={[
                   { required: true, message: '请输入返点率' },

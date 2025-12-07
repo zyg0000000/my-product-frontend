@@ -1774,7 +1774,144 @@ const project = await callApi(
 
 ---
 
-**文档版本**: v1.2
+---
+
+## 十九、平台配置动态化（v1.3）
+
+### 19.1 概述
+
+项目管理模块已完成平台配置动态化改造，所有平台相关配置（名称、颜色、选项列表）统一从 `usePlatformConfig` Hook 获取，不再使用硬编码常量。
+
+### 19.2 改造范围
+
+以下文件已完成动态化改造：
+
+| 文件 | 改造内容 |
+|------|----------|
+| `ProjectList.tsx` | 平台筛选 valueEnum、平台名称、平台颜色 |
+| `ProjectFormModal.tsx` | 平台选项列表 |
+| `ProjectsHome.tsx` | 平台名称、平台颜色显示 |
+| `ProjectDetail.tsx` | 项目基本信息中的平台显示 |
+| `ExecutionTab.tsx` | 合作记录平台筛选和显示 |
+| `CollaborationsTab.tsx` | 合作记录平台显示 |
+| `CollaborationFormModal.tsx` | 达人搜索结果平台名称 |
+| `EffectTab.tsx` | 效果数据平台显示 |
+| `FinancialTab.tsx` | 财务数据平台显示 |
+
+### 19.3 使用模式
+
+所有页面统一使用以下模式获取平台配置：
+
+```typescript
+import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
+
+function MyComponent() {
+  // 获取平台配置
+  const { configs: platformConfigs, getPlatformNames, getPlatformColors } = usePlatformConfig();
+
+  // 生成平台选项 (用于 Select/Checkbox)
+  const platformOptions = useMemo(() => {
+    return platformConfigs.map(c => ({
+      label: c.name,
+      value: c.platform,
+    }));
+  }, [platformConfigs]);
+
+  // 生成 ProTable valueEnum (用于筛选)
+  const platformValueEnum = useMemo(() => {
+    return platformConfigs.reduce((acc, c) => {
+      acc[c.platform] = { text: c.name };
+      return acc;
+    }, {} as Record<string, { text: string }>);
+  }, [platformConfigs]);
+
+  // 获取平台名称和颜色映射
+  const platformNames = useMemo(() => getPlatformNames(), [getPlatformNames]);
+  const platformColors = useMemo(() => getPlatformColors(), [getPlatformColors]);
+
+  // 使用示例（带 fallback）
+  return (
+    <Tag color={platformColors[platform] || 'default'}>
+      {platformNames[platform] || platform}
+    </Tag>
+  );
+}
+```
+
+### 19.4 Hook 扩展
+
+`usePlatformConfig` Hook 新增了 `getPlatformColors` 方法：
+
+```typescript
+// hooks/usePlatformConfig.ts
+const getPlatformColors = (): Record<Platform, string> => {
+  return configs.reduce(
+    (acc, c) => {
+      acc[c.platform] = c.color;
+      return acc;
+    },
+    {} as Record<Platform, string>
+  );
+};
+
+return {
+  configs,
+  loading,
+  error,
+  getPlatformNames,
+  getPlatformColors,  // 新增
+  getPlatformList,
+  getPlatformsByFeature,
+  hasFeature,
+  getPlatformConfigByKey,
+  getPlatformPriceTypes,
+  refreshConfigs,
+};
+```
+
+### 19.5 优势
+
+1. **单一数据源**：所有平台配置来自 `system_config` 集合
+2. **热更新支持**：修改数据库配置后，24小时内自动生效（或手动刷新）
+3. **新平台兼容**：新增平台只需数据库配置，无需修改前端代码
+4. **颜色一致性**：全局统一的平台颜色配置
+
+---
+
+## 二十、搜索模块优化（v1.3）
+
+### 20.1 财务周期搜索
+
+项目列表支持按业务周期或财务周期进行搜索：
+
+- **业务周期**：使用 `year` + `month` 字段
+- **财务周期**：使用 `financialYear` + `financialMonth` 字段
+
+通过搜索区域的「财务周期」勾选框切换搜索模式。
+
+### 20.2 UpdateProject 字段补全
+
+`UpdateProjectRequest` 接口新增周期字段：
+
+```typescript
+export interface UpdateProjectRequest {
+  id: string;
+  name?: string;
+  // ...其他字段
+
+  // 业务周期
+  year?: number;
+  month?: number;
+
+  // 财务周期
+  financialYear?: number;
+  financialMonth?: number;
+}
+```
+
+---
+
+**文档版本**: v1.3
 **创建日期**: 2025-11-30
-**最后更新**: 2024-12-01
+**最后更新**: 2025-12-08
 **维护团队**: AgentWorks Team

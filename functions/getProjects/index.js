@@ -1,8 +1,27 @@
 /**
  * @file getprojects_2.js
- * @version 4.9-tracking-status
- * @description 支持新的 trackingStatus 字段
- * * --- 更新日志 (v4.9) ---
+ * @version 6.2-kpi-configs
+ * @description 支持 dbVersion 参数切换数据库（v1=kol_data, v2=agentworks_db）
+ *
+ * --- 更新日志 (v6.2) ---
+ * - [字段新增] 添加 platformKPIConfigs、platformDiscounts、platformPricingModes、platformQuotationCoefficients
+ * - [Bug修复] 编辑项目时能正确加载已保存的 KPI 配置
+ *
+ * --- 更新日志 (v6.1) ---
+ * - [字段新增] 在 $project 中添加 projectCode、businessType、businessTag 字段返回
+ * - [AgentWorks] 支持项目列表页显示项目编号和业务类型
+ *
+ * --- 更新日志 (v6.0) ---
+ * - [字段新增] 仅 dbVersion=v2 时，添加 customerId、customerName、platforms 字段返回
+ * - [数据关联] 仅 dbVersion=v2 时，新增 customers 集合 lookup 以获取客户名称
+ * - [AgentWorks] 修复项目列表页不显示客户和平台信息的问题
+ * - [兼容性] byteproject (v1) 不受影响，不执行 customers lookup
+ *
+ * --- 更新日志 (v5.0) ---
+ * - [架构升级] 新增 dbVersion 参数支持，v2 使用 agentworks_db 数据库
+ * - [AgentWorks] 前端通过 dbVersion=v2 参数访问 AgentWorks 专用数据库
+ *
+ * --- 更新日志 (v4.9) ---
  * - [字段升级] 在 simple 和 full 视图中都返回 trackingStatus 字段
  * - [向后兼容] 继续返回 trackingEnabled 字段以兼容旧前端
  * * --- 更新日志 (v4.8.2) ---
@@ -25,12 +44,15 @@
  */
 const { MongoClient } = require('mongodb');
 
-// --- 环境变量与数据库连接 (保持不变) ---
+// --- 环境变量与数据库连接 ---
 const MONGO_URI = process.env.MONGO_URI;
-const DB_NAME = process.env.MONGO_DB_NAME || 'kol_data';
+// [v5.0] 支持 dbVersion 参数切换数据库
+const DB_NAME_V1 = process.env.MONGO_DB_NAME || 'kol_data';
+const DB_NAME_V2 = 'agentworks_db';
 const PROJECTS_COLLECTION = 'projects';
 const COLLABS_COLLECTION = 'collaborations';
 const TALENTS_COLLECTION = 'talents'; // [v4.8 新增]
+const CUSTOMERS_COLLECTION = 'customers'; // [v6.0 新增] 用于关联客户名称
 const RATES_COLLECTION = 'projectCapitalRates';
 const API_GATEWAY_BASE_URL = process.env.API_GATEWAY_BASE_URL;
 
@@ -89,7 +111,11 @@ exports.handler = async (event, context) => {
     if (event.queryStringParameters) { queryParams = event.queryStringParameters; }
     if (event.body) { try { Object.assign(queryParams, JSON.parse(event.body)); } catch (e) { /* ignore */ } }
 
-    const { projectId, view } = queryParams;
+    const { projectId, view, dbVersion } = queryParams;
+
+    // [v5.0] 根据 dbVersion 参数选择数据库
+    const DB_NAME = dbVersion === 'v2' ? DB_NAME_V2 : DB_NAME_V1;
+    console.log(`[getProjects] 使用数据库: ${DB_NAME} (dbVersion=${dbVersion || 'v1'})`);
 
     const dbClient = await connectToDatabase();
     const projectsCollection = dbClient.db(DB_NAME).collection(PROJECTS_COLLECTION);
@@ -106,6 +132,7 @@ exports.handler = async (event, context) => {
       }).toArray();
     } else {
       // --- 完整视图逻辑 ---
+      // [v6.0] 动态构建聚合管道，根据 dbVersion 条件性添加 customers lookup
       const aggregationPipeline = [
         { $match: baseMatch },
         { $project: { _id: 0 } },
@@ -160,8 +187,29 @@ exports.handler = async (event, context) => {
             }
           }
         },
+      ];
 
-        // [v4.6 修正] 关联正确的配置集合
+      // [v6.0 新增] 仅在 dbVersion=v2 (AgentWorks) 时关联 customers 集合
+      if (dbVersion === 'v2') {
+        aggregationPipeline.push(
+          {
+            $lookup: {
+              from: CUSTOMERS_COLLECTION,
+              localField: 'customerId',
+              foreignField: 'code',  // [v6.0 修正] customers 使用 code 字段作为主键
+              as: 'customerData'
+            }
+          },
+          {
+            $addFields: {
+              customerName: { $arrayElemAt: ['$customerData.name', 0] }
+            }
+          }
+        );
+      }
+
+      // [v4.6 修正] 关联正确的配置集合
+      aggregationPipeline.push(
         { $lookup: { from: CAPITAL_RATES_COLLECTION, localField: 'capitalRateId', foreignField: 'values.id', as: 'capitalRateInfo' } },
         { $unwind: { path: '$capitalRateInfo', preserveNullAndEmptyArrays: true } },
         {
@@ -328,13 +376,20 @@ exports.handler = async (event, context) => {
             }
         },
         // [v4.8] 先移除临时的 talentsData 字段
-        { $unset: 'talentsData' },
+        // [v6.0] 同时移除临时的 customerData 字段
+        { $unset: ['talentsData', 'customerData'] },
 
         {
           $project: {
              _id: 0, id: 1, name: 1, qianchuanId: 1, type: 1, year: 1, month: 1, financialYear: 1, financialMonth: 1,
             status: 1, discount: 1, capitalRateId: 1, adjustments: 1, auditLog: 1, createdAt: 1, updatedAt: 1, budget: 1,
             benchmarkCPM: 1,
+            // [v6.1 新增] 项目编号和业务类型
+            projectCode: 1, businessType: 1, businessTag: 1,
+            // [v6.0 新增] 客户和平台信息
+            customerId: 1, customerName: 1, platforms: 1,
+            // [v6.2 新增] KPI 配置（编辑项目时需要）
+            platformKPIConfigs: 1, platformDiscounts: 1, platformPricingModes: 1, platformQuotationCoefficients: 1,
             // [v4.9 新增] 添加 trackingStatus 字段，保留 trackingEnabled 以兼容旧前端
             trackingEnabled: 1,
             trackingStatus: 1,
@@ -351,7 +406,7 @@ exports.handler = async (event, context) => {
             "metrics.operationalProfit": 1, "metrics.operationalMargin": 1
           }
         }
-      ];
+      );
 
       projectsData = await projectsCollection.aggregate(aggregationPipeline).toArray();
     }

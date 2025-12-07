@@ -159,8 +159,8 @@ docs/archive/
 
 ---
 
-**文档版本**: v2.0
-**最后更新**: 2025-11-24
+**文档版本**: v2.1
+**最后更新**: 2025-12-08
 **维护者**: AgentWorks 团队
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

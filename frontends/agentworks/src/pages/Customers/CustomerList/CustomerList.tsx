@@ -29,6 +29,8 @@ import type {
 import {
   CUSTOMER_LEVEL_NAMES,
   CUSTOMER_STATUS_NAMES,
+  CUSTOMER_LEVEL_VALUE_ENUM,
+  CUSTOMER_STATUS_VALUE_ENUM,
 } from '../../../types/customer';
 import { customerApi } from '../../../services/customerApi';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
@@ -543,12 +545,7 @@ export default function CustomerList() {
       width: 110,
       align: 'center',
       valueType: 'select',
-      valueEnum: {
-        VIP: { text: 'VIP' },
-        large: { text: '大型' },
-        medium: { text: '中型' },
-        small: { text: '小型' },
-      },
+      valueEnum: CUSTOMER_LEVEL_VALUE_ENUM,
       render: (_, record) => {
         const colorMap: Record<CustomerLevel, string> = {
           VIP: 'gold',
@@ -569,11 +566,7 @@ export default function CustomerList() {
       width: 110,
       align: 'center',
       valueType: 'select',
-      valueEnum: {
-        active: { text: '活跃' },
-        inactive: { text: '停用' },
-        deleted: { text: '已删除' },
-      },
+      valueEnum: CUSTOMER_STATUS_VALUE_ENUM,
       render: (_, record) => {
         const colorMap: Record<CustomerStatus, string> = {
           active: 'success',

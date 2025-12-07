@@ -497,7 +497,7 @@ export function PlatformConfigModal({
                 min: 0,
                 max: 100,
                 precision: 2,
-                addonAfter: '%',
+                suffix: '%',
               }}
               extra="平台收取的服务费率，null 表示未配置"
             />
@@ -510,7 +510,7 @@ export function PlatformConfigModal({
                 min: 0,
                 max: 100,
                 precision: 2,
-                addonAfter: '%',
+                suffix: '%',
               }}
             />
           </div>

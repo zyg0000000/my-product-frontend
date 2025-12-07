@@ -6,7 +6,7 @@
  * - Tab 切换栏（合作达人 | 执行追踪 | 财务管理 | 效果验收）
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Tabs,
@@ -30,8 +30,6 @@ import {
 } from '@ant-design/icons';
 import { projectApi } from '../../../services/projectApi';
 import type { Project, ProjectStats } from '../../../types/project';
-import type { Platform } from '../../../types/talent';
-import { PLATFORM_NAMES } from '../../../types/talent';
 import {
   PROJECT_STATUS_COLORS,
   formatMoney,
@@ -44,16 +42,7 @@ import { FinancialTab } from './FinancialTab';
 import { EffectTab } from './EffectTab';
 import { ProjectFormModal } from '../ProjectList/ProjectFormModal';
 import { logger } from '../../../utils/logger';
-
-/**
- * 平台标签颜色
- */
-const PLATFORM_COLORS: Record<Platform, string> = {
-  douyin: 'blue',
-  xiaohongshu: 'red',
-  bilibili: 'cyan',
-  kuaishou: 'orange',
-};
+import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 
 /**
  * 项目详情页主组件
@@ -62,6 +51,11 @@ export function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { message } = App.useApp();
+
+  // 平台配置
+  const { getPlatformNames, getPlatformColors } = usePlatformConfig();
+  const platformNames = useMemo(() => getPlatformNames(), [getPlatformNames]);
+  const platformColors = useMemo(() => getPlatformColors(), [getPlatformColors]);
 
   // 状态
   const [project, setProject] = useState<Project | null>(null);
@@ -206,9 +200,9 @@ export function ProjectDetail() {
         <div className="flex items-center gap-4">
           <Button
             icon={<ArrowLeftOutlined />}
-            onClick={() => navigate('/projects/list')}
+            onClick={() => navigate(-1)}
           >
-            返回列表
+            返回
           </Button>
           <h1 className="text-2xl font-bold text-gray-900 m-0">项目详情</h1>
         </div>
@@ -252,8 +246,8 @@ export function ProjectDetail() {
             <Descriptions.Item label="投放平台">
               <Space size={[4, 4]} wrap>
                 {project.platforms.map(platform => (
-                  <Tag key={platform} color={PLATFORM_COLORS[platform]}>
-                    {PLATFORM_NAMES[platform]}
+                  <Tag key={platform} color={platformColors[platform] || 'default'}>
+                    {platformNames[platform] || platform}
                   </Tag>
                 ))}
               </Space>
@@ -320,6 +314,8 @@ export function ProjectDetail() {
           editingProject={{
             id: project.id,
             name: project.name,
+            businessType: project.businessType,
+            businessTag: project.businessTag,
             type: project.type,
             status: project.status,
             customerId: project.customerId,
@@ -328,6 +324,8 @@ export function ProjectDetail() {
             month: project.month,
             budget: project.budget,
             platforms: project.platforms,
+            platformDiscounts: project.platformDiscounts,
+            discount: project.discount,
             stats: project.stats,
             createdAt: project.createdAt,
           }}

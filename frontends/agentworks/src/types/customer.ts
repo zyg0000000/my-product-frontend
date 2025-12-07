@@ -50,6 +50,42 @@ export interface PlatformFeeConfig {
   taxCalculationBase?: 'excludeServiceFee' | 'includeServiceFee'; // 税费计算基准 - framework/hybrid 模式可选
 }
 
+/**
+ * 平台级 KPI 配置（v4.5）
+ * 每个平台独立配置 KPI 考核
+ */
+export interface PlatformKPIConfig {
+  /** 是否启用 KPI 考核 */
+  enabled: boolean;
+  /** 启用的 KPI 指标 keys（如 ['cpm', 'cpe']） */
+  enabledKPIs: string[];
+  /** 默认目标值（项目创建时继承） */
+  defaultTargets?: Record<string, number>;
+}
+
+/**
+ * 客户级 KPI 配置（v4.5）
+ * @deprecated 建议使用 platformKPIConfigs 按平台配置
+ */
+export interface CustomerKPIConfig {
+  /** 是否启用 KPI 考核 */
+  enabled: boolean;
+  /** 启用的 KPI 指标 keys（如 ['cpm', 'cpe']） */
+  enabledKPIs: string[];
+  /** 默认目标值（项目创建时继承） */
+  defaultTargets?: Record<string, number>;
+}
+
+/**
+ * 按平台的 KPI 配置映射（v4.5）
+ */
+export interface PlatformKPIConfigs {
+  [key: string]: PlatformKPIConfig | undefined;
+  douyin?: PlatformKPIConfig;
+  xiaohongshu?: PlatformKPIConfig;
+  kuaishou?: PlatformKPIConfig;
+}
+
 // 达人采买业务策略（v4.2: platformFees 改名为 platformPricingConfigs）
 export interface TalentProcurementStrategy {
   enabled: boolean;
@@ -78,23 +114,50 @@ export interface TalentProcurementStrategy {
     xiaohongshu?: number;
     kuaishou?: number;
   };
+  // v4.4: 二级业务标签（按平台，客户自定义）
+  platformBusinessTags?: {
+    [key: string]: string[] | undefined;
+    douyin?: string[];
+    xiaohongshu?: string[];
+    kuaishou?: string[];
+  };
+  // v4.5: 按平台的 KPI 配置（推荐）
+  platformKPIConfigs?: PlatformKPIConfigs;
+  /** @deprecated 已弃用，请使用 platformKPIConfigs */
+  kpiConfig?: CustomerKPIConfig;
 }
 
 /**
- * 广告投放业务策略（预留，待实现）
+ * 广告投放业务策略（v4.4: 添加业务标签，定价策略预留）
  */
 export interface AdPlacementStrategy {
   enabled: boolean;
-  // 预留字段，后续根据业务需求扩展
+  // v4.4: 二级业务标签（按平台，客户自定义）
+  platformBusinessTags?: {
+    [key: string]: string[] | undefined;
+    douyin?: string[];
+    xiaohongshu?: string[];
+    kuaishou?: string[];
+  };
+  // 预留：未来添加定价策略
+  // platformPricingConfigs?: { [key: string]: PlatformFeeConfig | undefined };
   [key: string]: unknown;
 }
 
 /**
- * 内容制作业务策略（预留，待实现）
+ * 内容制作业务策略（v4.4: 添加业务标签，定价策略预留）
  */
 export interface ContentProductionStrategy {
   enabled: boolean;
-  // 预留字段，后续根据业务需求扩展
+  // v4.4: 二级业务标签（按平台，客户自定义）
+  platformBusinessTags?: {
+    [key: string]: string[] | undefined;
+    douyin?: string[];
+    xiaohongshu?: string[];
+    kuaishou?: string[];
+  };
+  // 预留：未来添加定价策略
+  // platformPricingConfigs?: { [key: string]: PlatformFeeConfig | undefined };
   [key: string]: unknown;
 }
 
@@ -153,9 +216,59 @@ export const CUSTOMER_LEVEL_NAMES: Record<CustomerLevel, string> = {
   small: '小型',
 };
 
+// v4.4: 一级业务类型定义
+export type BusinessTypeKey = 'talentProcurement' | 'adPlacement' | 'contentProduction';
+
+export interface BusinessTypeConfig {
+  key: BusinessTypeKey;
+  name: string;
+  hasPricing: boolean; // 是否有定价策略
+}
+
+export const BUSINESS_TYPES: Record<BusinessTypeKey, BusinessTypeConfig> = {
+  talentProcurement: { key: 'talentProcurement', name: '达人采买', hasPricing: true },
+  adPlacement: { key: 'adPlacement', name: '广告投流', hasPricing: false },
+  contentProduction: { key: 'contentProduction', name: '内容制作', hasPricing: false },
+};
+
+export const BUSINESS_TYPE_OPTIONS: Array<{ label: string; value: BusinessTypeKey }> = [
+  { label: '达人采买', value: 'talentProcurement' },
+  { label: '广告投流', value: 'adPlacement' },
+  { label: '内容制作', value: 'contentProduction' },
+];
+
 export const CUSTOMER_STATUS_NAMES: Record<CustomerStatus, string> = {
   active: '活跃',
   inactive: '停用',
   suspended: '暂停',
   deleted: '已删除',
+};
+
+/**
+ * 客户级别 ProTable valueEnum 配置
+ */
+export const CUSTOMER_LEVEL_VALUE_ENUM: Record<CustomerLevel, { text: string }> = {
+  VIP: { text: 'VIP' },
+  large: { text: '大型' },
+  medium: { text: '中型' },
+  small: { text: '小型' },
+};
+
+/**
+ * 客户状态 ProTable valueEnum 配置
+ */
+export const CUSTOMER_STATUS_VALUE_ENUM: Record<CustomerStatus, { text: string }> = {
+  active: { text: '活跃' },
+  inactive: { text: '停用' },
+  suspended: { text: '暂停' },
+  deleted: { text: '已删除' },
+};
+
+/**
+ * 业务类型 ProTable valueEnum 配置
+ */
+export const BUSINESS_TYPE_VALUE_ENUM: Record<BusinessTypeKey, { text: string }> = {
+  talentProcurement: { text: '达人采买' },
+  adPlacement: { text: '广告投流' },
+  contentProduction: { text: '内容制作' },
 };

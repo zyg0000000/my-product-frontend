@@ -1,36 +1,162 @@
 /**
- * 客户详情页
+ * 客户详情页 (v4.4 重构版)
+ *
+ * 职责：纯展示 + 功能入口导航
+ * 路径：/customers/:id
  *
  * 页面结构：
  * - 顶部：客户基本信息卡片
- * - 平台 Tab 切换栏（抖音 | 小红书 | ...）
- * - 内容区 Tab（达人池 | 价格策略 | 合作历史）
+ * - 中部：统计概览卡片
+ * - 下部：功能入口卡片（达人池、业务策略、合作历史）
  */
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Tabs, Spin, Button, Tag, Descriptions, Card, Empty } from 'antd';
+import { Spin, Button, Tag, Descriptions, Card, Empty, App } from 'antd';
 import {
   ArrowLeftOutlined,
   EditOutlined,
   TeamOutlined,
   DollarOutlined,
   HistoryOutlined,
+  RightOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
 } from '@ant-design/icons';
+import { motion } from 'framer-motion';
 import { customerApi } from '../../../services/customerApi';
 import { getCustomerTalentStats } from '../../../api/customerTalents';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 import type { Customer } from '../../../types/customer';
 import type { CustomerTalentStats } from '../../../types/customerTalent';
-import type { Platform } from '../../../types/talent';
 import {
   CUSTOMER_LEVEL_NAMES,
   CUSTOMER_STATUS_NAMES,
 } from '../../../types/customer';
-import { PageTransition } from '../../../components/PageTransition';
-import { TalentPoolTab } from './TalentPoolTab';
-import { PricingTab } from './PricingTab';
 import { logger } from '../../../utils/logger';
+
+/**
+ * 动画变体
+ */
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+};
+
+const cardHoverVariants = {
+  rest: { scale: 1 },
+  hover: {
+    scale: 1.02,
+    transition: { duration: 0.3, ease: 'easeOut' },
+  },
+};
+
+/**
+ * 功能入口卡片组件
+ */
+interface FeatureCardProps {
+  icon: React.ReactNode;
+  iconBg: string;
+  title: string;
+  description: string;
+  stats?: React.ReactNode;
+  status?: 'configured' | 'pending' | 'disabled';
+  onClick: () => void;
+}
+
+function FeatureCard({
+  icon,
+  iconBg,
+  title,
+  description,
+  stats,
+  status,
+  onClick,
+}: FeatureCardProps) {
+  const statusConfig = {
+    configured: { color: '#10b981', text: '已配置', icon: <CheckCircleOutlined /> },
+    pending: { color: '#f59e0b', text: '待配置', icon: <ClockCircleOutlined /> },
+    disabled: { color: '#9ca3af', text: '开发中', icon: <ClockCircleOutlined /> },
+  };
+
+  const statusInfo = status ? statusConfig[status] : null;
+
+  return (
+    <motion.div
+      variants={itemVariants}
+      initial="rest"
+      whileHover="hover"
+      className="h-full"
+    >
+      <motion.div variants={cardHoverVariants}>
+        <Card
+          className="h-full border-0 shadow-card cursor-pointer transition-shadow duration-300 hover:shadow-soft group"
+          styles={{ body: { padding: 24 } }}
+          onClick={onClick}
+        >
+          <div className="flex flex-col h-full min-h-[220px]">
+            {/* 头部：图标 + 状态 */}
+            <div className="flex items-start justify-between mb-4">
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm"
+                style={{ background: iconBg }}
+              >
+                <span className="text-xl text-white">{icon}</span>
+              </div>
+              {statusInfo && (
+                <Tag
+                  className="flex items-center gap-1 rounded-full px-2.5 py-0.5 border-0 text-xs"
+                  style={{
+                    backgroundColor: `${statusInfo.color}15`,
+                    color: statusInfo.color,
+                  }}
+                >
+                  {statusInfo.icon}
+                  <span className="ml-0.5">{statusInfo.text}</span>
+                </Tag>
+              )}
+            </div>
+
+            {/* 标题 + 描述 */}
+            <h3 className="text-base font-semibold text-gray-900 mb-1.5 group-hover:text-primary-600 transition-colors">
+              {title}
+            </h3>
+            <p className="text-sm text-gray-500 mb-3 line-clamp-2">{description}</p>
+
+            {/* 统计信息 - 固定高度区域 */}
+            <div className="h-10 mb-3">
+              {stats}
+            </div>
+
+            {/* 底部操作提示 */}
+            <div className="flex items-center text-sm text-primary-600 font-medium group-hover:translate-x-1 transition-transform mt-auto">
+              进入管理
+              <RightOutlined className="ml-1 text-xs" />
+            </div>
+          </div>
+        </Card>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 /**
  * 客户详情页主组件
@@ -38,27 +164,29 @@ import { logger } from '../../../utils/logger';
 export function CustomerDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { message } = App.useApp();
 
   // 状态
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
-  const [talentStats, setTalentStats] = useState<CustomerTalentStats | null>(
-    null
-  );
-  const [activePlatform, setActivePlatform] = useState<Platform>('douyin');
-  const [activeContentTab, setActiveContentTab] = useState('talentPool');
+  const [talentStats, setTalentStats] = useState<CustomerTalentStats | null>(null);
 
   // 平台配置
-  const { configs: platformConfigs, loading: platformLoading } =
-    usePlatformConfig();
+  const { configs: platformConfigs, loading: platformLoading } = usePlatformConfig();
 
   // 加载客户信息
   useEffect(() => {
     if (id) {
       loadCustomer(id);
-      loadTalentStats(id);
     }
   }, [id]);
+
+  // 客户信息加载完成后，加载统计数据
+  useEffect(() => {
+    if (customer?.code) {
+      loadTalentStats(customer.code);
+    }
+  }, [customer?.code]);
 
   const loadCustomer = async (customerId: string) => {
     try {
@@ -66,33 +194,29 @@ export function CustomerDetail() {
       const response = await customerApi.getCustomerById(customerId);
       if (response.success && response.data) {
         setCustomer(response.data);
+      } else {
+        message.error('客户信息加载失败');
       }
     } catch (error) {
       logger.error('Failed to load customer:', error);
+      message.error('客户信息加载失败');
     } finally {
       setLoading(false);
     }
   };
 
-  const loadTalentStats = async (customerId: string) => {
+  const loadTalentStats = async (customerCode: string) => {
     try {
-      const stats = await getCustomerTalentStats(customerId);
+      const stats = await getCustomerTalentStats(customerCode);
       setTalentStats(stats);
     } catch (error) {
       logger.error('Failed to load talent stats:', error);
     }
   };
 
-  // 刷新达人池统计（供子组件调用）
-  const refreshTalentStats = () => {
-    if (customer?.code) {
-      loadTalentStats(customer.code);
-    }
-  };
-
   if (loading || platformLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-[60vh] flex items-center justify-center">
         <Spin size="large" tip="加载中...">
           <div className="p-12" />
         </Spin>
@@ -102,7 +226,7 @@ export function CustomerDetail() {
 
   if (!customer) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-[60vh] flex items-center justify-center">
         <Empty description="客户不存在" />
       </div>
     );
@@ -124,89 +248,43 @@ export function CustomerDetail() {
     deleted: 'error',
   };
 
-  // 平台 Tab 项
-  const platformTabs = platformConfigs.map(config => ({
-    key: config.platform,
-    label: config.name,
-  }));
+  // 检查业务策略配置状态
+  const hasTalentProcurement =
+    customer.businessStrategies?.talentProcurement?.enabled ?? false;
 
-  // 内容区 Tab 项
-  const contentTabs = [
-    {
-      key: 'talentPool',
-      label: (
-        <span className="flex items-center gap-1">
-          <TeamOutlined />
-          达人池
-        </span>
-      ),
-      children: (
-        <TalentPoolTab
-          customerId={customer.code}
-          platform={activePlatform}
-          onRefresh={refreshTalentStats}
-        />
-      ),
-    },
-    {
-      key: 'pricing',
-      label: (
-        <span className="flex items-center gap-1">
-          <DollarOutlined />
-          价格策略
-        </span>
-      ),
-      children: (
-        <PricingTab
-          customer={customer}
-          platform={activePlatform}
-          onUpdate={() => loadCustomer(id!)}
-        />
-      ),
-    },
-    {
-      key: 'history',
-      label: (
-        <span className="flex items-center gap-1">
-          <HistoryOutlined />
-          合作历史
-        </span>
-      ),
-      children: (
-        <Empty
-          description="功能开发中"
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          className="py-12"
-        />
-      ),
-    },
-  ];
+  // 统计信息
+  const totalTalents = talentStats?.totalCount || 0;
 
   return (
-    <PageTransition>
-      <div className="space-y-6">
-        {/* 返回按钮和标题 */}
-        <div className="flex items-center gap-4">
-          <Button
-            type="default"
-            icon={<ArrowLeftOutlined />}
-            onClick={() => navigate('/customers/list')}
-          >
-            返回列表
-          </Button>
-          <h1 className="text-2xl font-bold text-gray-900 m-0">客户详情</h1>
-        </div>
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="space-y-6"
+    >
+      {/* 返回按钮和标题 */}
+      <motion.div variants={itemVariants} className="flex items-center gap-4">
+        <Button
+          type="default"
+          icon={<ArrowLeftOutlined />}
+          onClick={() => navigate(-1)}
+        >
+          返回
+        </Button>
+        <h1 className="text-2xl font-bold text-gray-900 m-0">客户详情</h1>
+      </motion.div>
 
-        {/* 客户基本信息卡片 */}
+      {/* 客户基本信息卡片 */}
+      <motion.div variants={itemVariants}>
         <Card
-          className="shadow-sm"
+          className="shadow-card border-0"
           extra={
             <Button
               type="primary"
               icon={<EditOutlined />}
               onClick={() => navigate(`/customers/edit/${id}`)}
             >
-              编辑
+              编辑信息
             </Button>
           }
         >
@@ -239,41 +317,71 @@ export function CustomerDetail() {
                   ` (${customer.contacts[0].position})`}
               </Descriptions.Item>
             )}
-            <Descriptions.Item label="达人池总数">
-              <span className="font-semibold text-primary-600">
-                {talentStats?.totalCount || 0} 人
-              </span>
-            </Descriptions.Item>
           </Descriptions>
         </Card>
+      </motion.div>
 
-        {/* 平台 Tab 切换 */}
-        <Card className="shadow-sm" styles={{ body: { padding: 0 } }}>
-          <Tabs
-            activeKey={activePlatform}
-            onChange={key => setActivePlatform(key as Platform)}
-            items={platformTabs}
-            tabBarStyle={{
-              marginBottom: 0,
-              paddingLeft: 16,
-              paddingRight: 16,
-              borderBottom: '1px solid #f0f0f0',
-            }}
-            size="large"
-          />
+      {/* 功能入口卡片 */}
+      <motion.div variants={itemVariants}>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">功能模块</h2>
+      </motion.div>
 
-          {/* 内容区 Tab */}
-          <div className="p-4">
-            <Tabs
-              activeKey={activeContentTab}
-              onChange={setActiveContentTab}
-              items={contentTabs}
-              type="card"
-            />
-          </div>
-        </Card>
-      </div>
-    </PageTransition>
+      <motion.div
+        variants={containerVariants}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
+        {/* 达人池管理 */}
+        <FeatureCard
+          icon={<TeamOutlined />}
+          iconBg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+          title="达人池管理"
+          description="管理该客户的专属达人池，添加、移除达人，设置标签和分类"
+          status={totalTalents > 0 ? 'configured' : 'pending'}
+          stats={
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold text-gray-900 tabular-nums">
+                {totalTalents}
+              </span>
+              <span className="text-sm text-gray-500">位达人</span>
+            </div>
+          }
+          onClick={() => navigate(`/customers/${id}/talent-pool`)}
+        />
+
+        {/* 业务策略配置 */}
+        <FeatureCard
+          icon={<DollarOutlined />}
+          iconBg="linear-gradient(135deg, #11998e 0%, #38ef7d 100%)"
+          title="业务策略配置"
+          description="配置达人采买、广告投流、内容制作等业务的定价策略和业务标签"
+          status={hasTalentProcurement ? 'configured' : 'pending'}
+          stats={
+            hasTalentProcurement ? (
+              <div className="flex items-center gap-1.5">
+                <Tag color="green" className="m-0">达人采买</Tag>
+                {customer.businessStrategies?.adPlacement?.enabled && (
+                  <Tag color="orange" className="m-0">广告投流</Tag>
+                )}
+              </div>
+            ) : (
+              <span className="text-sm text-gray-400">暂未配置</span>
+            )
+          }
+          onClick={() => navigate(`/customers/${id}/business-strategies`)}
+        />
+
+        {/* 合作历史 */}
+        <FeatureCard
+          icon={<HistoryOutlined />}
+          iconBg="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+          title="合作历史"
+          description="查看与该客户的项目合作记录、结算历史和关键里程碑"
+          status="disabled"
+          stats={<span className="text-sm text-gray-400">功能开发中</span>}
+          onClick={() => message.info('合作历史功能开发中')}
+        />
+      </motion.div>
+    </motion.div>
   );
 }
 

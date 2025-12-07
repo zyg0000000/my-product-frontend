@@ -14,6 +14,16 @@ export const PLATFORM_NAMES: Record<Platform, string> = {
 };
 
 /**
+ * 平台 ProTable valueEnum 配置
+ */
+export const PLATFORM_VALUE_ENUM: Record<Platform, { text: string }> = {
+  douyin: { text: '抖音' },
+  xiaohongshu: { text: '小红书' },
+  bilibili: { text: 'B站' },
+  kuaishou: { text: '快手' },
+};
+
+/**
  * 价格类型（根据平台不同）
  */
 export type PriceType =

@@ -4,34 +4,59 @@
  */
 
 import type { Platform } from './talent';
+import type { BusinessTypeKey, PricingModel } from './customer';
 
 // ============================================================================
 // 项目相关类型
 // ============================================================================
 
 /**
- * 项目状态
+ * 项目状态（英文 key，数据库存储格式）
  */
-export type ProjectStatus = '执行中' | '待结算' | '已收款' | '已终结';
+export type ProjectStatus = 'executing' | 'pending_settlement' | 'settled' | 'closed';
 
 /**
  * 项目状态选项
  */
 export const PROJECT_STATUS_OPTIONS: ProjectStatus[] = [
-  '执行中',
-  '待结算',
-  '已收款',
-  '已终结',
+  'executing',
+  'pending_settlement',
+  'settled',
+  'closed',
 ];
+
+/**
+ * 项目状态中文映射
+ */
+export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
+  executing: '执行中',
+  pending_settlement: '待结算',
+  settled: '已收款',
+  closed: '已终结',
+};
 
 /**
  * 项目状态颜色映射（Ant Design Badge/Tag 颜色）
  */
 export const PROJECT_STATUS_COLORS: Record<ProjectStatus, string> = {
-  执行中: 'processing',
-  待结算: 'warning',
-  已收款: 'success',
-  已终结: 'default',
+  executing: 'processing',
+  pending_settlement: 'warning',
+  settled: 'success',
+  closed: 'default',
+};
+
+/**
+ * 项目状态 ProTable valueEnum 配置
+ * 用于 ProTable 筛选列的 valueEnum 属性
+ */
+export const PROJECT_STATUS_VALUE_ENUM: Record<
+  ProjectStatus,
+  { text: string; status: 'Processing' | 'Warning' | 'Success' | 'Default' }
+> = {
+  executing: { text: PROJECT_STATUS_LABELS.executing, status: 'Processing' },
+  pending_settlement: { text: PROJECT_STATUS_LABELS.pending_settlement, status: 'Warning' },
+  settled: { text: PROJECT_STATUS_LABELS.settled, status: 'Success' },
+  closed: { text: PROJECT_STATUS_LABELS.closed, status: 'Default' },
 };
 
 /**
@@ -80,12 +105,95 @@ export interface ProjectStats {
 }
 
 /**
- * 项目完整信息
+ * 平台折扣率配置（v4.4: 按平台存储）
+ */
+export interface PlatformDiscounts {
+  [key: string]: number | undefined;
+  douyin?: number;
+  xiaohongshu?: number;
+  kuaishou?: number;
+  bilibili?: number;
+}
+
+/**
+ * 平台定价模式快照（v4.5: 记录创建时的定价模式）
+ */
+export interface PlatformPricingModes {
+  [key: string]: PricingModel | undefined;
+  douyin?: PricingModel;
+  xiaohongshu?: PricingModel;
+  kuaishou?: PricingModel;
+  bilibili?: PricingModel;
+}
+
+/**
+ * 平台报价系数快照（v4.5: 记录创建时的报价系数）
+ * 只有 framework/hybrid 模式的平台才有报价系数
+ */
+export interface PlatformQuotationCoefficients {
+  [key: string]: number | undefined;
+  douyin?: number;
+  xiaohongshu?: number;
+  kuaishou?: number;
+  bilibili?: number;
+}
+
+/**
+ * 单平台 KPI 配置（v4.5）
+ */
+export interface PlatformProjectKPIConfig {
+  /** 是否启用 KPI 考核 */
+  enabled: boolean;
+  /** 启用的 KPI 指标 keys */
+  enabledKPIs: string[];
+  /** 目标值 */
+  targets?: Record<string, number>;
+  /** 实际值（执行后填入） */
+  actuals?: Record<string, number>;
+}
+
+/**
+ * 按平台的项目 KPI 配置（v4.5）
+ */
+export interface ProjectKPIConfigs {
+  [key: string]: PlatformProjectKPIConfig | undefined;
+  douyin?: PlatformProjectKPIConfig;
+  xiaohongshu?: PlatformProjectKPIConfig;
+  kuaishou?: PlatformProjectKPIConfig;
+  bilibili?: PlatformProjectKPIConfig;
+}
+
+/**
+ * 项目 KPI 配置（v4.5）
+ * @deprecated 建议使用 ProjectKPIConfigs 按平台配置
+ */
+export interface ProjectKPIConfig {
+  /** 是否启用 KPI 考核 */
+  enabled: boolean;
+  /** 启用的 KPI 指标 keys */
+  enabledKPIs: string[];
+  /** 目标值 */
+  targets?: Record<string, number>;
+  /** 实际值（执行后填入） */
+  actuals?: Record<string, number>;
+}
+
+/**
+ * 项目完整信息（v4.5: 新增 platformPricingModes, kpiConfig）
  */
 export interface Project {
   id: string;
+  /** 项目编号（手动填写，如 PRJ202512001） */
+  projectCode?: string;
   name: string;
-  type: string; // 项目类型（由客户配置决定）
+
+  // v4.4: 业务类型改造
+  businessType: BusinessTypeKey; // 一级业务类型
+  businessTag?: string; // 二级业务标签（可选，如 '常规秒杀'）
+
+  /** @deprecated 请使用 businessTag，保留用于兼容旧数据 */
+  type?: string; // 原项目类型字段
+
   status: ProjectStatus;
 
   // 客户关联
@@ -100,9 +208,30 @@ export interface Project {
 
   // 财务信息
   budget: number; // 预算（分）
-  discount?: number; // 折扣率 (0-1)
+
+  // v4.4: 折扣率改为按平台存储（创建时从客户策略读取的快照）
+  platformDiscounts?: PlatformDiscounts; // 按平台折扣率 { douyin: 0.795, xiaohongshu: 0.9 }
+
+  // v4.5: 定价模式快照（用于判断折扣来源）
+  platformPricingModes?: PlatformPricingModes; // { douyin: 'framework', xiaohongshu: 'project' }
+
+  // v4.5: 报价系数快照（只有 framework/hybrid 模式的平台才有）
+  platformQuotationCoefficients?: PlatformQuotationCoefficients;
+
+  /** @deprecated 请使用 platformDiscounts，保留用于兼容旧数据 */
+  discount?: number; // 原全局折扣率 (0-1)
+
+  // v4.5: 按平台的 KPI 配置（推荐）
+  platformKPIConfigs?: ProjectKPIConfigs;
+  /** @deprecated 请使用 platformKPIConfigs */
+  kpiConfig?: ProjectKPIConfig;
+
+  /** @deprecated 请使用 kpiConfig.targets.cpm，保留用于兼容旧数据 */
   benchmarkCPM?: number; // 基准 CPM
+
   capitalRateId?: string; // 资金费率配置ID
+
+  /** @deprecated v4.5 已移除 */
   qianchuanId?: string; // 千川ID
 
   // 多平台支持
@@ -123,52 +252,137 @@ export interface Project {
 }
 
 /**
- * 项目列表项（用于列表页显示）
+ * 项目列表项（用于列表页显示）（v4.4: 新增业务类型字段）
  */
 export interface ProjectListItem {
   id: string;
+  /** 项目编号（手动填写） */
+  projectCode?: string;
   name: string;
-  type: string;
+
+  // v4.4: 业务类型
+  businessType: BusinessTypeKey;
+  businessTag?: string;
+
+  /** @deprecated 兼容旧数据 */
+  type?: string;
+
   status: ProjectStatus;
   customerId: string;
   customerName?: string;
+  /** 业务周期-年（面向客户） */
   year: number;
+  /** 业务周期-月（面向客户） */
   month: number;
+  /** 财务周期-年（面向公司财务） */
+  financialYear?: number;
+  /** 财务周期-月（面向公司财务） */
+  financialMonth?: number;
   budget: number;
   platforms: Platform[];
+
+  // v4.4: 按平台折扣率
+  platformDiscounts?: PlatformDiscounts;
+  /** @deprecated 兼容旧数据 */
+  discount?: number;
+
   stats?: ProjectStats;
   createdAt: string;
 }
 
 /**
- * 创建项目请求
+ * 创建项目请求（v4.5: 新增 platformPricingModes, kpiConfig）
  */
 export interface CreateProjectRequest {
+  /** 项目编号（手动填写，可选） */
+  projectCode?: string;
   name: string;
-  type: string;
   customerId: string;
+  /** 业务周期-年（面向客户） */
   year: number;
+  /** 业务周期-月（面向客户） */
   month: number;
+  /** 财务周期-年（面向公司财务） */
+  financialYear: number;
+  /** 财务周期-月（面向公司财务） */
+  financialMonth: number;
   budget: number;
   platforms: Platform[];
+
+  // v4.4: 业务类型（必填）
+  businessType: BusinessTypeKey;
+  businessTag?: string; // 二级业务标签（可选）
+
+  // v4.4: 按平台折扣率（从客户策略读取的快照）
+  platformDiscounts?: PlatformDiscounts;
+
+  // v4.5: 定价模式快照
+  platformPricingModes?: PlatformPricingModes;
+
+  // v4.5: 报价系数快照
+  platformQuotationCoefficients?: PlatformQuotationCoefficients;
+
+  // v4.5: 按平台 KPI 配置
+  platformKPIConfigs?: ProjectKPIConfigs;
+  /** @deprecated 请使用 platformKPIConfigs */
+  kpiConfig?: ProjectKPIConfig;
+
+  /** @deprecated 请使用 platformDiscounts */
   discount?: number;
+
+  /** @deprecated 请使用 businessTag */
+  type?: string;
+
+  /** @deprecated 请使用 platformKPIConfigs */
   benchmarkCPM?: number;
-  qianchuanId?: string;
 }
 
 /**
- * 更新项目请求
+ * 更新项目请求（v4.5: 新增 platformKPIConfigs）
  */
 export interface UpdateProjectRequest {
+  /** 项目编号（手动填写） */
+  projectCode?: string;
   name?: string;
-  type?: string;
   status?: ProjectStatus;
   budget?: number;
-  discount?: number;
-  benchmarkCPM?: number;
-  qianchuanId?: string;
   platforms?: Platform[];
   adjustments?: Adjustment[];
+
+  // 业务周期
+  year?: number;
+  month?: number;
+
+  // 财务周期
+  financialYear?: number;
+  financialMonth?: number;
+
+  // v4.4: 业务类型
+  businessType?: BusinessTypeKey;
+  businessTag?: string;
+
+  // v4.4: 按平台折扣率
+  platformDiscounts?: PlatformDiscounts;
+
+  // v4.5: 定价模式快照
+  platformPricingModes?: PlatformPricingModes;
+
+  // v4.5: 报价系数快照
+  platformQuotationCoefficients?: PlatformQuotationCoefficients;
+
+  // v4.5: 按平台 KPI 配置
+  platformKPIConfigs?: ProjectKPIConfigs;
+  /** @deprecated 请使用 platformKPIConfigs */
+  kpiConfig?: ProjectKPIConfig;
+
+  /** @deprecated 请使用 platformDiscounts */
+  discount?: number;
+
+  /** @deprecated 请使用 businessTag */
+  type?: string;
+
+  /** @deprecated 请使用 platformKPIConfigs */
+  benchmarkCPM?: number;
 }
 
 // ============================================================================
@@ -204,6 +418,19 @@ export const COLLABORATION_STATUS_COLORS: Record<CollaborationStatus, string> =
     客户已定档: 'warning',
     视频已发布: 'success',
   };
+
+/**
+ * 合作状态 ProTable valueEnum 配置
+ */
+export const COLLABORATION_STATUS_VALUE_ENUM: Record<
+  CollaborationStatus,
+  { text: string; status: 'Default' | 'Processing' | 'Warning' | 'Success' }
+> = {
+  待提报工作台: { text: '待提报工作台', status: 'Default' },
+  工作台已提交: { text: '工作台已提交', status: 'Processing' },
+  客户已定档: { text: '客户已定档', status: 'Warning' },
+  视频已发布: { text: '视频已发布', status: 'Success' },
+};
 
 /**
  * 订单类型
@@ -415,11 +642,16 @@ export interface GetProjectsParams {
   page?: number;
   pageSize?: number;
   keyword?: string; // 项目名称搜索
+  projectCode?: string; // 项目编号精准搜索
   status?: ProjectStatus;
   customerId?: string;
-  year?: number;
-  month?: number;
+  customerKeyword?: string; // 客户名称模糊搜索
+  year?: number; // 业务周期-年
+  month?: number; // 业务周期-月
+  financialYear?: number; // 财务周期-年
+  financialMonth?: number; // 财务周期-月
   platforms?: Platform[];
+  businessType?: BusinessTypeKey; // 业务类型筛选
 }
 
 /**
@@ -524,4 +756,29 @@ export function isDelayed(
     return new Date() > new Date(plannedDate);
   }
   return false;
+}
+
+/**
+ * 生成年份 valueEnum（动态：当前年 -2 ~ +1 年）
+ * 用于 ProTable 筛选列的 valueEnum 属性
+ */
+export function generateYearValueEnum(): Record<number, { text: string }> {
+  const currentYear = new Date().getFullYear();
+  const years: Record<number, { text: string }> = {};
+  for (let y = currentYear - 2; y <= currentYear + 1; y++) {
+    years[y] = { text: `${y}年` };
+  }
+  return years;
+}
+
+/**
+ * 生成月份 valueEnum（固定：1-12月）
+ * 用于 ProTable 筛选列的 valueEnum 属性
+ */
+export function generateMonthValueEnum(): Record<number, { text: string }> {
+  const months: Record<number, { text: string }> = {};
+  for (let m = 1; m <= 12; m++) {
+    months[m] = { text: `${m}月` };
+  }
+  return months;
 }

@@ -308,7 +308,7 @@ export function RebateManagementModal({
                     min: REBATE_VALIDATION.min,
                     max: REBATE_VALIDATION.max,
                     step: REBATE_VALIDATION.step,
-                    addonAfter: '%',
+                    suffix: '%',
                     size: 'middle',
                   }}
                   extra={`范围: ${REBATE_VALIDATION.min}-${REBATE_VALIDATION.max}%，最多${REBATE_VALIDATION.precision}位小数`}

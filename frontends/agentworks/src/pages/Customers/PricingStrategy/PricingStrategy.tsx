@@ -20,12 +20,16 @@ import {
   Empty,
   Spin,
   Switch,
+  Card,
 } from 'antd';
 import {
   PlusOutlined,
   QuestionCircleOutlined,
   CheckOutlined,
   CloseOutlined,
+  TagsOutlined,
+  DollarOutlined,
+  AimOutlined,
 } from '@ant-design/icons';
 import { customerApi } from '../../../services/customerApi';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
@@ -44,6 +48,9 @@ import {
   type TalentProcurementStrategy,
 } from '../shared/talentProcurement';
 import { TalentProcurementForm } from '../shared/TalentProcurementForm';
+import { BusinessTagsEditor, type PlatformBusinessTags } from './BusinessTagsEditor';
+import { KPIConfigEditor } from './KPIConfigEditor';
+import type { CustomerKPIConfig, PlatformKPIConfigs } from '../../../types/customer';
 
 // 客户数据类型
 interface CustomerData {
@@ -51,9 +58,14 @@ interface CustomerData {
   code?: string;
   name?: string;
   businessStrategies?: {
-    talentProcurement?: TalentProcurementStrategy;
-    adPlacement?: { enabled?: boolean };
-    contentProduction?: { enabled?: boolean };
+    talentProcurement?: TalentProcurementStrategy & {
+      platformBusinessTags?: PlatformBusinessTags;
+      platformKPIConfigs?: PlatformKPIConfigs;
+      /** @deprecated 使用 platformKPIConfigs */
+      kpiConfig?: CustomerKPIConfig;
+    };
+    adPlacement?: { enabled?: boolean; platformBusinessTags?: PlatformBusinessTags };
+    contentProduction?: { enabled?: boolean; platformBusinessTags?: PlatformBusinessTags };
   };
 }
 
@@ -83,6 +95,8 @@ export default function PricingStrategy() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('talentProcurement');
+  // v4.4: 子级 Tab（业务标签 / 定价配置 / KPI考核）
+  const [activeSubTab, setActiveSubTab] = useState<'tags' | 'pricing' | 'kpi'>('pricing');
 
   // 编辑模式状态
   const [isEditing, setIsEditing] = useState(false);
@@ -102,9 +116,18 @@ export default function PricingStrategy() {
   const [platformPricingConfigs, setPlatformPricingConfigs] =
     useState<PlatformPricingConfigs>({});
 
+  // v4.4: 业务标签状态
+  const [platformBusinessTags, setPlatformBusinessTags] =
+    useState<PlatformBusinessTags>({});
+
+  // v4.5: 按平台的 KPI 配置状态
+  const [platformKPIConfigs, setPlatformKPIConfigs] = useState<PlatformKPIConfigs>({});
+
   // 原始数据快照（用于检测变化）
   const [originalSnapshot, setOriginalSnapshot] = useState<{
     platformPricingConfigs: PlatformPricingConfigs;
+    platformBusinessTags: PlatformBusinessTags;
+    platformKPIConfigs: PlatformKPIConfigs;
   } | null>(null);
 
   // 在 id 或 enabledPlatforms 变化时加载客户数据
@@ -155,9 +178,19 @@ export default function PricingStrategy() {
           setPlatformPricingConfigs(loadedConfigs);
           setCoefficients(calculateAllCoefficients(loadedConfigs));
 
+          // v4.4: 加载业务标签
+          const loadedTags = strategy.platformBusinessTags || {};
+          setPlatformBusinessTags(loadedTags);
+
+          // v4.5: 加载按平台的 KPI 配置
+          const loadedPlatformKPIConfigs: PlatformKPIConfigs = strategy.platformKPIConfigs || {};
+          setPlatformKPIConfigs(loadedPlatformKPIConfigs);
+
           // 保存原始快照用于变化检测
           setOriginalSnapshot({
             platformPricingConfigs: JSON.parse(JSON.stringify(loadedConfigs)),
+            platformBusinessTags: JSON.parse(JSON.stringify(loadedTags)),
+            platformKPIConfigs: JSON.parse(JSON.stringify(loadedPlatformKPIConfigs)),
           });
         }
       }
@@ -178,6 +211,7 @@ export default function PricingStrategy() {
   const hasStrategyChanged = (): boolean => {
     if (!originalSnapshot) return true;
 
+    // 检查平台配置变化
     const originalKeys = Object.keys(originalSnapshot.platformPricingConfigs);
     const currentKeys = Object.keys(platformPricingConfigs);
 
@@ -208,6 +242,20 @@ export default function PricingStrategy() {
       ) {
         return true;
       }
+    }
+
+    // v4.4: 检查业务标签变化
+    const originalTagsStr = JSON.stringify(originalSnapshot.platformBusinessTags || {});
+    const currentTagsStr = JSON.stringify(platformBusinessTags || {});
+    if (originalTagsStr !== currentTagsStr) {
+      return true;
+    }
+
+    // v4.5: 检查按平台 KPI 配置变化
+    const originalKpiStr = JSON.stringify(originalSnapshot.platformKPIConfigs || {});
+    const currentKpiStr = JSON.stringify(platformKPIConfigs || {});
+    if (originalKpiStr !== currentKpiStr) {
+      return true;
     }
 
     return false;
@@ -275,10 +323,13 @@ export default function PricingStrategy() {
       c => c?.enabled
     );
 
+    // v4.4: 包含业务标签; v4.5: 包含按平台 KPI 配置
     const strategy = {
       enabled: hasEnabledPlatform,
       platformPricingConfigs: platformPricingConfigs,
       quotationCoefficients: quotationCoefficients,
+      platformBusinessTags: platformBusinessTags,
+      platformKPIConfigs: platformKPIConfigs,
     };
 
     try {
@@ -454,7 +505,8 @@ export default function PricingStrategy() {
         <PageHeader
           title="业务策略中心"
           description="请先在平台配置中启用价格管理功能"
-          onBack={() => navigate('/customers/list')}
+          onBack={() => navigate(-1)}
+          backText="返回"
         />
         <ProCard>
           <Empty
@@ -845,16 +897,29 @@ export default function PricingStrategy() {
       <PageHeader
         title="业务策略中心"
         description={`客户：${customer?.name || ''} (${customer?.code || ''})`}
-        onBack={() => navigate('/customers/list')}
+        onBack={() => navigate(-1)}
+        backText="返回"
       />
 
-      {/* 业务类型 Tabs */}
-      <ProCard>
-        <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
+      {/* 业务类型 Tabs - 使用与 PerformanceConfig 一致的嵌套结构 */}
+      <Card className="shadow-sm" styles={{ body: { padding: 0 } }}>
+        {/* 主级 Tab：业务类型切换 */}
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={tabItems}
+          tabBarStyle={{
+            marginBottom: 0,
+            paddingLeft: 16,
+            paddingRight: 16,
+            borderBottom: '1px solid #f0f0f0',
+          }}
+          size="large"
+        />
 
         {/* 达人采买业务 */}
         {activeTab === 'talentProcurement' && (
-          <>
+          <div className="p-4">
             {/* 未配置状态 */}
             {!isConfigured && !isEditing && (
               <div className="text-center py-12">
@@ -873,91 +938,239 @@ export default function PricingStrategy() {
               </div>
             )}
 
-            {/* 已配置 - 只读模式 */}
-            {isConfigured && !isEditing && (
-              <div className="space-y-4">
-                <ProCard
-                  title="平台配置"
-                  headerBordered
-                  extra={
-                    <Button
-                      type="primary"
-                      icon={<PlusOutlined />}
-                      onClick={handleStartCreate}
-                    >
-                      添加平台
-                    </Button>
-                  }
-                >
-                  {configuredPlatformConfigsList.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-4">
-                      {configuredPlatformConfigsList.map(
-                        renderReadOnlyPlatformCard
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-center py-6 text-gray-400">
-                      暂无平台配置
-                    </div>
-                  )}
-                </ProCard>
-              </div>
+            {/* 已配置 - 使用子级 Tab */}
+            {(isConfigured || isEditing) && (
+              <Tabs
+                activeKey={activeSubTab}
+                onChange={key => setActiveSubTab(key as 'tags' | 'pricing' | 'kpi')}
+                type="card"
+                items={[
+                  {
+                    key: 'pricing',
+                    label: (
+                      <span className="flex items-center">
+                        <DollarOutlined className="mr-1" />
+                        定价配置
+                      </span>
+                    ),
+                    children: isEditing ? (
+                      // 编辑模式
+                      <div className="space-y-4">
+                        <TalentProcurementForm
+                          enabledPlatforms={enabledPlatforms}
+                          selectedPlatform={selectedPlatform}
+                          onPlatformChange={setSelectedPlatform}
+                          platformPricingConfigs={platformPricingConfigs}
+                          onConfigChange={handleConfigChange}
+                          getPlatformName={getPlatformName}
+                          getPlatformConfigByKey={key =>
+                            getPlatformConfigByKey(key as any)
+                          }
+                        />
+                        {/* 底部操作栏 */}
+                        <div className="flex justify-end gap-3 bg-gray-50 p-4 rounded-lg">
+                          <Button
+                            icon={<CloseOutlined />}
+                            onClick={handleCancelEdit}
+                            disabled={saving}
+                          >
+                            取消
+                          </Button>
+                          <Button
+                            type="primary"
+                            icon={<CheckOutlined />}
+                            onClick={handleSave}
+                            loading={saving}
+                          >
+                            保存配置
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      // 只读模式
+                      <div className="space-y-4">
+                        <div className="flex justify-end">
+                          <Button
+                            type="primary"
+                            icon={<PlusOutlined />}
+                            onClick={handleStartCreate}
+                          >
+                            编辑配置
+                          </Button>
+                        </div>
+                        {configuredPlatformConfigsList.length > 0 ? (
+                          <div className="grid grid-cols-2 gap-4">
+                            {configuredPlatformConfigsList.map(
+                              renderReadOnlyPlatformCard
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-center py-6 text-gray-400">
+                            暂无平台配置
+                          </div>
+                        )}
+                      </div>
+                    ),
+                  },
+                  {
+                    key: 'tags',
+                    label: (
+                      <span className="flex items-center">
+                        <TagsOutlined className="mr-1" />
+                        业务标签
+                      </span>
+                    ),
+                    children: isEditing ? (
+                      // 编辑模式
+                      <div className="space-y-4">
+                        <div className="text-sm text-gray-500 mb-4">
+                          配置用于项目创建时选择的二级业务标签，可跨平台复用相同标签名称
+                        </div>
+                        <BusinessTagsEditor
+                          enabledPlatforms={enabledPlatforms.map(p => ({
+                            platform: p.platform,
+                            name: getPlatformName(p.platform),
+                          }))}
+                          value={platformBusinessTags}
+                          onChange={setPlatformBusinessTags}
+                          getPlatformName={getPlatformName}
+                        />
+                        {/* 底部操作栏 */}
+                        <div className="flex justify-end gap-3 bg-gray-50 p-4 rounded-lg">
+                          <Button
+                            icon={<CloseOutlined />}
+                            onClick={handleCancelEdit}
+                            disabled={saving}
+                          >
+                            取消
+                          </Button>
+                          <Button
+                            type="primary"
+                            icon={<CheckOutlined />}
+                            onClick={handleSave}
+                            loading={saving}
+                          >
+                            保存配置
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      // 只读模式
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-start">
+                          <div className="text-sm text-gray-500">
+                            用于项目创建时选择的二级业务标签，可跨平台复用相同标签名称
+                          </div>
+                          <Button
+                            type="link"
+                            onClick={handleStartCreate}
+                          >
+                            编辑标签
+                          </Button>
+                        </div>
+                        <BusinessTagsEditor
+                          enabledPlatforms={enabledPlatforms.map(p => ({
+                            platform: p.platform,
+                            name: getPlatformName(p.platform),
+                          }))}
+                          value={platformBusinessTags}
+                          getPlatformName={getPlatformName}
+                          readOnly
+                        />
+                      </div>
+                    ),
+                  },
+                  {
+                    key: 'kpi',
+                    label: (
+                      <span className="flex items-center">
+                        <AimOutlined className="mr-1" />
+                        KPI 考核
+                        {Object.values(platformKPIConfigs).some(c => c?.enabled) && (
+                          <Tag color="green" className="ml-2 text-xs">
+                            已启用
+                          </Tag>
+                        )}
+                      </span>
+                    ),
+                    children: isEditing ? (
+                      // 编辑模式
+                      <div className="space-y-4">
+                        <KPIConfigEditor
+                          enabledPlatforms={enabledPlatforms.map(p => ({
+                            platform: p.platform,
+                            name: getPlatformName(p.platform),
+                          }))}
+                          value={platformKPIConfigs}
+                          onChange={setPlatformKPIConfigs}
+                          getPlatformName={getPlatformName}
+                        />
+                        {/* 底部操作栏 */}
+                        <div className="flex justify-end gap-3 bg-gray-50 p-4 rounded-lg">
+                          <Button
+                            icon={<CloseOutlined />}
+                            onClick={handleCancelEdit}
+                            disabled={saving}
+                          >
+                            取消
+                          </Button>
+                          <Button
+                            type="primary"
+                            icon={<CheckOutlined />}
+                            onClick={handleSave}
+                            loading={saving}
+                          >
+                            保存配置
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      // 只读模式
+                      <div className="space-y-4">
+                        <div className="flex justify-end">
+                          <Button
+                            type="link"
+                            onClick={handleStartCreate}
+                          >
+                            编辑 KPI 配置
+                          </Button>
+                        </div>
+                        <KPIConfigEditor
+                          enabledPlatforms={enabledPlatforms.map(p => ({
+                            platform: p.platform,
+                            name: getPlatformName(p.platform),
+                          }))}
+                          value={platformKPIConfigs}
+                          getPlatformName={getPlatformName}
+                          readOnly
+                        />
+                      </div>
+                    ),
+                  },
+                ]}
+              />
             )}
-
-            {/* 编辑模式 - 使用共用表单组件 */}
-            {isEditing && (
-              <div className="space-y-4">
-                <ProCard title="平台配置" headerBordered>
-                  <TalentProcurementForm
-                    enabledPlatforms={enabledPlatforms}
-                    selectedPlatform={selectedPlatform}
-                    onPlatformChange={setSelectedPlatform}
-                    platformPricingConfigs={platformPricingConfigs}
-                    onConfigChange={handleConfigChange}
-                    getPlatformName={getPlatformName}
-                    getPlatformConfigByKey={key =>
-                      getPlatformConfigByKey(key as any)
-                    }
-                  />
-                </ProCard>
-
-                {/* 底部操作栏 */}
-                <div className="flex justify-end gap-3 bg-gray-50 p-4 rounded-lg">
-                  <Button
-                    icon={<CloseOutlined />}
-                    onClick={handleCancelEdit}
-                    disabled={saving}
-                  >
-                    取消
-                  </Button>
-                  <Button
-                    type="primary"
-                    icon={<CheckOutlined />}
-                    onClick={handleSave}
-                    loading={saving}
-                  >
-                    保存配置
-                  </Button>
-                </div>
-              </div>
-            )}
-          </>
+          </div>
         )}
 
         {/* 广告投流业务（开发中） */}
         {activeTab === 'adPlacement' && (
-          <div className="text-center py-12 text-gray-500">
-            广告投流业务配置功能开发中...
+          <div className="p-4">
+            <div className="text-center py-12 text-gray-500">
+              广告投流业务配置功能开发中...
+            </div>
           </div>
         )}
 
         {/* 内容制作业务（开发中） */}
         {activeTab === 'contentProduction' && (
-          <div className="text-center py-12 text-gray-500">
-            内容制作业务配置功能开发中...
+          <div className="p-4">
+            <div className="text-center py-12 text-gray-500">
+              内容制作业务配置功能开发中...
+            </div>
           </div>
         )}
-      </ProCard>
+      </Card>
     </div>
   );
 }

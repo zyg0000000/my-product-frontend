@@ -16,8 +16,8 @@
             "type": "String",
             "description": "配置类型",
             "required": true,
-            "enum": ["platform", "talent_tags"],
-            "comment": "platform=平台配置, talent_tags=达人标签配置"
+            "enum": ["platform", "talent_tags", "project"],
+            "comment": "platform=平台配置, talent_tags=达人标签配置, project=项目管理配置"
         }
     },
     "configTypes": {
@@ -290,6 +290,122 @@
                     "description": "更新时间"
                 }
             }
+        },
+        "project": {
+            "description": "项目管理配置 - 定义项目状态和交付KPI指标",
+            "fields": {
+                "statuses": {
+                    "type": "Array",
+                    "description": "项目状态配置",
+                    "itemType": "Object",
+                    "itemSchema": {
+                        "key": {
+                            "type": "String",
+                            "description": "状态key",
+                            "enum": ["executing", "pending_settlement", "settled", "closed"],
+                            "example": "executing"
+                        },
+                        "name": {
+                            "type": "String",
+                            "description": "显示名称",
+                            "example": "执行中"
+                        },
+                        "color": {
+                            "type": "String",
+                            "description": "Ant Design 颜色预设",
+                            "example": "processing"
+                        },
+                        "isDefault": {
+                            "type": "Boolean",
+                            "description": "是否为创建项目时的默认状态",
+                            "default": false
+                        },
+                        "sortOrder": {
+                            "type": "Integer",
+                            "description": "排序序号"
+                        }
+                    }
+                },
+                "availableKPIs": {
+                    "type": "Array",
+                    "description": "可用的交付KPI指标定义",
+                    "itemType": "Object",
+                    "itemSchema": {
+                        "key": {
+                            "type": "String",
+                            "description": "指标key",
+                            "example": "cpm"
+                        },
+                        "name": {
+                            "type": "String",
+                            "description": "指标显示名称",
+                            "example": "CPM"
+                        },
+                        "unit": {
+                            "type": "String",
+                            "description": "单位",
+                            "example": "元"
+                        },
+                        "description": {
+                            "type": "String",
+                            "description": "指标说明",
+                            "example": "千次播放成本"
+                        },
+                        "targetDirection": {
+                            "type": "String",
+                            "description": "目标优化方向",
+                            "enum": ["lower_better", "higher_better"],
+                            "example": "lower_better"
+                        },
+                        "formula": {
+                            "type": "Object",
+                            "description": "计算公式（用于自动计算）",
+                            "properties": {
+                                "numerator": {
+                                    "type": "String",
+                                    "description": "分子字段",
+                                    "example": "cost"
+                                },
+                                "denominator": {
+                                    "type": "String",
+                                    "description": "分母字段",
+                                    "example": "plays"
+                                },
+                                "multiplier": {
+                                    "type": "Number",
+                                    "description": "乘数",
+                                    "example": 1000
+                                }
+                            }
+                        },
+                        "sortOrder": {
+                            "type": "Integer",
+                            "description": "排序序号"
+                        }
+                    }
+                },
+                "version": {
+                    "type": "Integer",
+                    "description": "配置版本号",
+                    "example": 1
+                },
+                "createdBy": {
+                    "type": "String",
+                    "description": "创建人"
+                },
+                "createdAt": {
+                    "type": "Date",
+                    "description": "创建时间"
+                },
+                "updatedBy": {
+                    "type": "String",
+                    "description": "更新人"
+                },
+                "updatedAt": {
+                    "type": "Date",
+                    "description": "更新时间"
+                }
+            }
         }
     },
     "indexes": [
@@ -310,8 +426,10 @@
         "【核心设计】存储系统全局配置，通过 configType 区分不同类型的配置",
         "【平台配置】configType='platform' 存储各平台的业务配置",
         "【标签配置】configType='talent_tags' 存储达人标签的选项配置",
+        "【项目配置】configType='project' 存储项目状态和交付KPI指标定义",
         "【key/name 映射】标签配置提供 key 和 name 的双向映射",
         "【颜色配置】支持自定义背景色和文字色，用于前端展示",
+        "【KPI公式】availableKPIs.formula 定义自动计算公式，支持分子/分母/乘数",
         "【版本管理】每次更新递增 version 字段"
     ],
     "examples": [
@@ -383,6 +501,58 @@
                 "updatedAt": "2025-12-02T08:27:23.748Z",
                 "createdBy": "system",
                 "updatedBy": "system_upgrade"
+            }
+        },
+        {
+            "description": "示例3：项目管理配置",
+            "data": {
+                "configType": "project",
+                "statuses": [
+                    { "key": "executing", "name": "执行中", "color": "processing", "isDefault": true, "sortOrder": 1 },
+                    { "key": "pending_settlement", "name": "待结算", "color": "warning", "sortOrder": 2 },
+                    { "key": "settled", "name": "已结算", "color": "success", "sortOrder": 3 },
+                    { "key": "closed", "name": "已完结", "color": "default", "sortOrder": 4 }
+                ],
+                "availableKPIs": [
+                    {
+                        "key": "cpm",
+                        "name": "CPM",
+                        "unit": "元",
+                        "description": "千次播放成本",
+                        "targetDirection": "lower_better",
+                        "formula": { "numerator": "cost", "denominator": "plays", "multiplier": 1000 },
+                        "sortOrder": 1
+                    },
+                    {
+                        "key": "cpe",
+                        "name": "CPE",
+                        "unit": "元",
+                        "description": "单次互动成本",
+                        "targetDirection": "lower_better",
+                        "formula": { "numerator": "cost", "denominator": "engagements" },
+                        "sortOrder": 2
+                    },
+                    {
+                        "key": "cpc",
+                        "name": "CPC",
+                        "unit": "元",
+                        "description": "单次点击成本",
+                        "targetDirection": "lower_better",
+                        "formula": { "numerator": "cost", "denominator": "clicks" },
+                        "sortOrder": 3
+                    },
+                    {
+                        "key": "roi",
+                        "name": "ROI",
+                        "unit": "%",
+                        "description": "投资回报率",
+                        "targetDirection": "higher_better",
+                        "sortOrder": 4
+                    }
+                ],
+                "version": 1,
+                "createdAt": "2025-12-07T00:00:00.000Z",
+                "createdBy": "system"
             }
         }
     ]

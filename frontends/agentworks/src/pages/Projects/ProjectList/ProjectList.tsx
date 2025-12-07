@@ -2,17 +2,16 @@
  * 项目列表页面
  */
 
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Space, Popconfirm, Progress, App } from 'antd';
+import { Button, Tag, Space, App, Checkbox } from 'antd';
 import {
   PlusOutlined,
+  ReloadOutlined,
   EyeOutlined,
   EditOutlined,
-  DeleteOutlined,
-  ReloadOutlined,
 } from '@ant-design/icons';
 import type {
   ProjectListItem,
@@ -21,30 +20,40 @@ import type {
 } from '../../../types/project';
 import {
   PROJECT_STATUS_COLORS,
+  PROJECT_STATUS_LABELS,
+  PROJECT_STATUS_VALUE_ENUM,
   formatMoney,
-  calculateProgress,
+  generateYearValueEnum,
+  generateMonthValueEnum,
 } from '../../../types/project';
-import { PLATFORM_NAMES, type Platform } from '../../../types/talent';
+import type { Platform } from '../../../types/talent';
+import { BUSINESS_TYPES, BUSINESS_TYPE_VALUE_ENUM, type BusinessTypeKey } from '../../../types/customer';
 import { projectApi } from '../../../services/projectApi';
 import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../../components/PageTransition';
 import { logger } from '../../../utils/logger';
 import { ProjectFormModal } from './ProjectFormModal';
-
-/**
- * 平台标签颜色
- */
-const PLATFORM_COLORS: Record<Platform, string> = {
-  douyin: 'blue',
-  xiaohongshu: 'red',
-  bilibili: 'cyan',
-  kuaishou: 'orange',
-};
+import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 
 export function ProjectList() {
   const { message } = App.useApp();
   const navigate = useNavigate();
   const actionRef = useRef<ActionType>(null);
+
+  // 平台配置
+  const { configs: platformConfigs, getPlatformNames, getPlatformColors } = usePlatformConfig();
+
+  // 动态生成平台 valueEnum
+  const platformValueEnum = useMemo(() => {
+    return platformConfigs.reduce((acc, c) => {
+      acc[c.platform] = { text: c.name };
+      return acc;
+    }, {} as Record<string, { text: string }>);
+  }, [platformConfigs]);
+
+  // 动态获取平台名称和颜色映射
+  const platformNames = useMemo(() => getPlatformNames(), [getPlatformNames]);
+  const platformColors = useMemo(() => getPlatformColors(), [getPlatformColors]);
 
   // 数据状态
   const [loading, setLoading] = useState(true);
@@ -54,10 +63,14 @@ export function ProjectList() {
   const [pageSize, setPageSize] = useState(20);
 
   // 筛选状态
-  const [keyword, setKeyword] = useState('');
+  const [projectCodeFilter, setProjectCodeFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | ''>('');
   const [yearFilter, setYearFilter] = useState<number | undefined>();
   const [monthFilter, setMonthFilter] = useState<number | undefined>();
+  const [useFinancialPeriod, setUseFinancialPeriod] = useState(false); // 是否按财务周期搜索
+  const [platformFilter, setPlatformFilter] = useState<Platform | undefined>();
+  const [businessTypeFilter, setBusinessTypeFilter] = useState<BusinessTypeKey | undefined>();
+  const [customerNameFilter, setCustomerNameFilter] = useState<string>('');
 
   // 弹窗状态
   const [formModalOpen, setFormModalOpen] = useState(false);
@@ -74,10 +87,16 @@ export function ProjectList() {
       const params: GetProjectsParams = {
         page: currentPage,
         pageSize: pageSize,
-        keyword: keyword || undefined,
+        projectCode: projectCodeFilter || undefined,
         status: statusFilter || undefined,
-        year: yearFilter,
-        month: monthFilter,
+        // 根据勾选状态决定按业务周期还是财务周期搜索
+        year: useFinancialPeriod ? undefined : yearFilter,
+        month: useFinancialPeriod ? undefined : monthFilter,
+        financialYear: useFinancialPeriod ? yearFilter : undefined,
+        financialMonth: useFinancialPeriod ? monthFilter : undefined,
+        platforms: platformFilter ? [platformFilter] : undefined,
+        businessType: businessTypeFilter,
+        customerKeyword: customerNameFilter || undefined,
       };
 
       const response = await projectApi.getProjects(params);
@@ -101,31 +120,20 @@ export function ProjectList() {
   }, [
     currentPage,
     pageSize,
-    keyword,
+    projectCodeFilter,
     statusFilter,
     yearFilter,
     monthFilter,
+    useFinancialPeriod,
+    platformFilter,
+    businessTypeFilter,
+    customerNameFilter,
     message,
   ]);
 
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
-
-  /**
-   * 删除项目
-   */
-  const handleDelete = async (id: string) => {
-    try {
-      const response = await projectApi.deleteProject(id);
-      if (response.success) {
-        message.success('删除成功');
-        loadProjects();
-      }
-    } catch (error) {
-      message.error('删除失败');
-    }
-  };
 
   /**
    * 新建项目
@@ -152,39 +160,26 @@ export function ProjectList() {
     loadProjects();
   };
 
-  /**
-   * 生成年份选项（当前年 ± 2 年）
-   */
-  const getYearOptions = () => {
-    const currentYear = new Date().getFullYear();
-    const years: Record<number, { text: string }> = {};
-    for (let y = currentYear - 2; y <= currentYear + 1; y++) {
-      years[y] = { text: `${y}年` };
-    }
-    return years;
-  };
-
-  /**
-   * 生成月份选项
-   */
-  const getMonthOptions = () => {
-    const months: Record<number, { text: string }> = {};
-    for (let m = 1; m <= 12; m++) {
-      months[m] = { text: `${m}月` };
-    }
-    return months;
-  };
 
   const columns: ProColumns<ProjectListItem>[] = [
     {
+      title: '项目编号',
+      dataIndex: 'projectCode',
+      width: 110,
+      ellipsis: true,
+      valueType: 'text',
+      fieldProps: {
+        placeholder: '精确匹配',
+      },
+      render: (_, record) => record.projectCode || '-',
+    },
+    {
       title: '项目名称',
       dataIndex: 'name',
-      width: 220,
+      width: 160,
       fixed: 'left',
       ellipsis: true,
-      formItemProps: {
-        label: '搜索',
-      },
+      search: false,
       render: (_, record) => (
         <a
           className="text-primary-600 hover:text-primary-700 font-medium cursor-pointer"
@@ -197,21 +192,36 @@ export function ProjectList() {
     {
       title: '客户',
       dataIndex: 'customerName',
-      width: 140,
+      width: 100,
       ellipsis: true,
-      hideInSearch: true,
+      valueType: 'text',
+      fieldProps: {
+        placeholder: '输入客户名称',
+      },
       render: (_, record) => record.customerName || '-',
+    },
+    {
+      title: '业务类型',
+      dataIndex: 'businessType',
+      width: 90,
+      valueType: 'select',
+      valueEnum: BUSINESS_TYPE_VALUE_ENUM,
+      render: (_, record) => {
+        const config = BUSINESS_TYPES[record.businessType];
+        return config?.name || record.businessType || '-';
+      },
     },
     {
       title: '平台',
       dataIndex: 'platforms',
-      width: 180,
-      hideInSearch: true,
+      width: 120,
+      valueType: 'select',
+      valueEnum: platformValueEnum,
       render: (_, record) => (
         <Space size={[4, 4]} wrap>
-          {record.platforms.map(platform => (
-            <Tag key={platform} color={PLATFORM_COLORS[platform]}>
-              {PLATFORM_NAMES[platform]}
+          {(record.platforms || []).map(platform => (
+            <Tag key={platform} color={platformColors[platform] || 'default'}>
+              {platformNames[platform] || platform}
             </Tag>
           ))}
         </Space>
@@ -220,86 +230,52 @@ export function ProjectList() {
     {
       title: '状态',
       dataIndex: 'status',
-      width: 100,
+      width: 80,
       valueType: 'select',
-      valueEnum: {
-        执行中: { text: '执行中', status: 'Processing' },
-        待结算: { text: '待结算', status: 'Warning' },
-        已收款: { text: '已收款', status: 'Success' },
-        已终结: { text: '已终结', status: 'Default' },
-      },
+      valueEnum: PROJECT_STATUS_VALUE_ENUM,
       render: (_, record) => (
-        <Tag color={PROJECT_STATUS_COLORS[record.status]}>{record.status}</Tag>
+        <Tag color={PROJECT_STATUS_COLORS[record.status]}>
+          {PROJECT_STATUS_LABELS[record.status]}
+        </Tag>
       ),
     },
     {
       title: '年份',
       dataIndex: 'year',
-      width: 90,
+      width: 70,
       valueType: 'select',
-      valueEnum: getYearOptions(),
+      valueEnum: generateYearValueEnum(),
       render: (_, record) => `${record.year}年`,
     },
     {
       title: '月份',
       dataIndex: 'month',
-      width: 80,
+      width: 60,
       valueType: 'select',
-      valueEnum: getMonthOptions(),
+      valueEnum: generateMonthValueEnum(),
       render: (_, record) => `${record.month}月`,
     },
     {
       title: '预算',
       dataIndex: 'budget',
-      width: 120,
-      hideInSearch: true,
+      width: 100,
+      search: false,
       render: (_, record) => (
         <span className="font-medium">{formatMoney(record.budget)}</span>
       ),
     },
     {
-      title: '合作数',
-      dataIndex: ['stats', 'collaborationCount'],
-      width: 80,
-      hideInSearch: true,
-      render: (_, record) => record.stats?.collaborationCount ?? 0,
-    },
-    {
-      title: '进度',
-      dataIndex: 'progress',
-      width: 140,
-      hideInSearch: true,
-      render: (_, record) => {
-        const progress = calculateProgress(record.stats);
-        const published = record.stats?.publishedCount ?? 0;
-        const total = record.stats?.collaborationCount ?? 0;
-        return (
-          <div className="flex items-center gap-2">
-            <Progress
-              percent={progress}
-              size="small"
-              style={{ width: 80 }}
-              strokeColor={progress === 100 ? '#52c41a' : undefined}
-            />
-            <span className="text-xs text-gray-500">
-              {published}/{total}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
       title: '创建时间',
       dataIndex: 'createdAt',
-      width: 160,
-      valueType: 'dateTime',
-      hideInSearch: true,
+      width: 100,
+      valueType: 'date',
+      search: false,
       sorter: true,
     },
     {
       title: '操作',
       valueType: 'option',
-      width: 180,
+      width: 110,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
@@ -319,17 +295,6 @@ export function ProjectList() {
           >
             编辑
           </Button>
-          <Popconfirm
-            title="确定删除该项目？"
-            description="删除后关联的合作记录也将被删除"
-            onConfirm={() => handleDelete(record.id)}
-            okText="确定"
-            cancelText="取消"
-          >
-            <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
         </Space>
       ),
     },
@@ -373,21 +338,36 @@ export function ProjectList() {
               span: 6,
               defaultCollapsed: false,
               optionRender: (_searchConfig, _formProps, dom) => [
+                <Checkbox
+                  key="financialPeriod"
+                  checked={useFinancialPeriod}
+                  onChange={e => setUseFinancialPeriod(e.target.checked)}
+                  style={{ marginRight: 16, whiteSpace: 'nowrap' }}
+                >
+                  财务周期
+                </Checkbox>,
                 ...dom.reverse(),
               ],
             }}
             onSubmit={params => {
-              setKeyword(params.name || '');
+              setProjectCodeFilter((params.projectCode as string) || '');
               setStatusFilter((params.status as ProjectStatus) || '');
               setYearFilter(params.year ? Number(params.year) : undefined);
               setMonthFilter(params.month ? Number(params.month) : undefined);
+              setPlatformFilter((params.platforms as Platform) || undefined);
+              setBusinessTypeFilter((params.businessType as BusinessTypeKey) || undefined);
+              setCustomerNameFilter((params.customerName as string) || '');
               setCurrentPage(1);
             }}
             onReset={() => {
-              setKeyword('');
+              setProjectCodeFilter('');
               setStatusFilter('');
               setYearFilter(undefined);
               setMonthFilter(undefined);
+              setUseFinancialPeriod(false);
+              setPlatformFilter(undefined);
+              setBusinessTypeFilter(undefined);
+              setCustomerNameFilter('');
               setCurrentPage(1);
             }}
             dateFormatter="string"
@@ -409,7 +389,7 @@ export function ProjectList() {
                 刷新
               </Button>,
             ]}
-            scroll={{ x: 1500 }}
+            scroll={{ x: 1200 }}
             options={{
               reload: false,
               density: false,

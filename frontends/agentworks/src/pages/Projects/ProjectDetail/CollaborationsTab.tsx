@@ -3,7 +3,7 @@
  * 展示项目下的所有合作记录，支持添加、编辑、删除
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
@@ -21,23 +21,15 @@ import type {
 } from '../../../types/project';
 import {
   COLLABORATION_STATUS_COLORS,
+  COLLABORATION_STATUS_VALUE_ENUM,
   formatMoney,
   isDelayed,
 } from '../../../types/project';
-import { PLATFORM_NAMES, type Platform } from '../../../types/talent';
+import type { Platform } from '../../../types/talent';
 import { projectApi } from '../../../services/projectApi';
 import { CollaborationFormModal } from './CollaborationFormModal';
 import { logger } from '../../../utils/logger';
-
-/**
- * 平台标签颜色
- */
-const PLATFORM_COLORS: Record<Platform, string> = {
-  douyin: 'blue',
-  xiaohongshu: 'red',
-  bilibili: 'cyan',
-  kuaishou: 'orange',
-};
+import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 
 interface CollaborationsTabProps {
   projectId: string;
@@ -53,6 +45,11 @@ export function CollaborationsTab({
   const { message } = App.useApp();
   const navigate = useNavigate();
   const actionRef = useRef<ActionType>(null);
+
+  // 平台配置
+  const { getPlatformNames, getPlatformColors } = usePlatformConfig();
+  const platformNames = useMemo(() => getPlatformNames(), [getPlatformNames]);
+  const platformColors = useMemo(() => getPlatformColors(), [getPlatformColors]);
 
   // 数据状态
   const [loading, setLoading] = useState(true);
@@ -163,7 +160,7 @@ export function CollaborationsTab({
   const getPlatformOptions = () => {
     const options: Record<string, { text: string }> = {};
     platforms.forEach(p => {
-      options[p] = { text: PLATFORM_NAMES[p] };
+      options[p] = { text: platformNames[p] || p };
     });
     return options;
   };
@@ -192,8 +189,8 @@ export function CollaborationsTab({
       valueType: 'select',
       valueEnum: getPlatformOptions(),
       render: (_, record) => (
-        <Tag color={PLATFORM_COLORS[record.talentPlatform]}>
-          {PLATFORM_NAMES[record.talentPlatform]}
+        <Tag color={platformColors[record.talentPlatform] || 'default'}>
+          {platformNames[record.talentPlatform] || record.talentPlatform}
         </Tag>
       ),
     },
@@ -202,12 +199,7 @@ export function CollaborationsTab({
       dataIndex: 'status',
       width: 120,
       valueType: 'select',
-      valueEnum: {
-        待提报工作台: { text: '待提报工作台', status: 'Default' },
-        工作台已提交: { text: '工作台已提交', status: 'Processing' },
-        客户已定档: { text: '客户已定档', status: 'Warning' },
-        视频已发布: { text: '视频已发布', status: 'Success' },
-      },
+      valueEnum: COLLABORATION_STATUS_VALUE_ENUM,
       render: (_, record) => (
         <Tag color={COLLABORATION_STATUS_COLORS[record.status]}>
           {record.status}

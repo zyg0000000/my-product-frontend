@@ -221,6 +221,20 @@ export function usePlatformConfig(includeDisabled = false) {
   };
 
   /**
+   * 获取平台颜色映射对象
+   * @returns { douyin: 'blue', xiaohongshu: 'red', ... }
+   */
+  const getPlatformColors = (): Record<Platform, string> => {
+    return configs.reduce(
+      (acc, c) => {
+        acc[c.platform] = c.color;
+        return acc;
+      },
+      {} as Record<Platform, string>
+    );
+  };
+
+  /**
    * 刷新配置（清除缓存并重新加载）
    */
   const refreshConfigs = () => {
@@ -236,6 +250,7 @@ export function usePlatformConfig(includeDisabled = false) {
 
     // 工具方法
     getPlatformNames,
+    getPlatformColors,
     getPlatformList,
     getPlatformsByFeature,
     hasFeature,

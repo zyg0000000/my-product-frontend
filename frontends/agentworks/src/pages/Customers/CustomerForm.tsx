@@ -99,7 +99,8 @@ export default function CustomerForm() {
       {/* 页面头部 */}
       <PageHeader
         title={isEditMode ? '编辑客户' : '新增客户'}
-        onBack={() => navigate('/customers/list')}
+        onBack={() => navigate(-1)}
+        backText="返回"
       />
 
       {/* 表单区域 */}

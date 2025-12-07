@@ -3,7 +3,7 @@
  * 展示项目财务信息，支持批量设置日期和调整项管理
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
 import {
@@ -36,19 +36,10 @@ import type {
   CollaborationAdjustment,
 } from '../../../types/project';
 import { formatMoney, centsToYuan, yuanToCents } from '../../../types/project';
-import { PLATFORM_NAMES, type Platform } from '../../../types/talent';
+import type { Platform } from '../../../types/talent';
 import { projectApi } from '../../../services/projectApi';
 import { logger } from '../../../utils/logger';
-
-/**
- * 平台标签颜色
- */
-const PLATFORM_COLORS: Record<Platform, string> = {
-  douyin: 'blue',
-  xiaohongshu: 'red',
-  bilibili: 'cyan',
-  kuaishou: 'orange',
-};
+import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 
 /**
  * 财务统计数据
@@ -77,6 +68,11 @@ export function FinancialTab({
   void _platforms;
   const { message } = App.useApp();
   const actionRef = useRef<ActionType>(null);
+
+  // 平台配置
+  const { getPlatformNames, getPlatformColors } = usePlatformConfig();
+  const platformNames = useMemo(() => getPlatformNames(), [getPlatformNames]);
+  const platformColors = useMemo(() => getPlatformColors(), [getPlatformColors]);
 
   // 数据状态
   const [loading, setLoading] = useState(true);
@@ -350,8 +346,8 @@ export function FinancialTab({
       dataIndex: 'talentPlatform',
       width: 90,
       render: (_, record) => (
-        <Tag color={PLATFORM_COLORS[record.talentPlatform]}>
-          {PLATFORM_NAMES[record.talentPlatform]}
+        <Tag color={platformColors[record.talentPlatform] || 'default'}>
+          {platformNames[record.talentPlatform] || record.talentPlatform}
         </Tag>
       ),
     },

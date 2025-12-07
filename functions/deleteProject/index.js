@@ -1,15 +1,21 @@
 /**
- * [生产版 v1.0]
+ * [生产版 v2.0-dbversion-support]
  * 云函数：deleteProject
  * 描述：删除一个指定的项目，并级联删除所有相关的合作记录。
  * 触发器：API 网关, 通过 DELETE /delete-project 调用。
+ *
+ * --- 更新日志 (v2.0) ---
+ * - [架构升级] 新增 dbVersion 参数支持，v2 使用 agentworks_db 数据库
+ * - [AgentWorks] 前端通过 dbVersion=v2 参数访问 AgentWorks 专用数据库
  */
 
 const { MongoClient } = require('mongodb');
 
 // 从环境变量中获取数据库连接字符串
 const MONGO_URI = process.env.MONGO_URI;
-const DB_NAME = process.env.MONGO_DB_NAME || 'kol_data';
+// [v2.0] 支持 dbVersion 参数切换数据库
+const DB_NAME_V1 = process.env.MONGO_DB_NAME || 'kol_data';
+const DB_NAME_V2 = 'agentworks_db';
 const COLLABS_COLLECTION = 'collaborations';
 const PROJECTS_COLLECTION = 'projects';
 
@@ -47,11 +53,15 @@ exports.handler = async (event, context) => {
         inputData = event.queryStringParameters;
     }
 
-    const { projectId } = inputData;
+    const { projectId, dbVersion } = inputData;
 
     if (!projectId) {
       return { statusCode: 400, headers, body: JSON.stringify({ success: false, message: '请求体中缺少必要的字段 (projectId)。' }) };
     }
+
+    // [v2.0] 根据 dbVersion 参数选择数据库
+    const DB_NAME = dbVersion === 'v2' ? DB_NAME_V2 : DB_NAME_V1;
+    console.log(`[deleteProject] 使用数据库: ${DB_NAME} (dbVersion=${dbVersion || 'v1'})`);
 
     const dbClient = await connectToDatabase();
     const collabsCollection = dbClient.db(DB_NAME).collection(COLLABS_COLLECTION);

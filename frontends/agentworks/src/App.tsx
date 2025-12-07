@@ -110,6 +110,11 @@ const CustomerDetail = lazy(() =>
     default: m.CustomerDetail,
   }))
 );
+const TalentPoolPage = lazy(() =>
+  import('./pages/Customers/TalentPoolPage/TalentPoolPage').then(m => ({
+    default: m.TalentPoolPage,
+  }))
+);
 
 /**
  * 加载中组件
@@ -194,6 +199,10 @@ function App() {
                   <Route path="customers/new" element={<CustomerForm />} />
                   <Route path="customers/edit/:id" element={<CustomerForm />} />
                   <Route path="customers/:id" element={<CustomerDetail />} />
+                  <Route
+                    path="customers/:id/talent-pool"
+                    element={<TalentPoolPage />}
+                  />
                   <Route
                     path="customers/:id/business-strategies"
                     element={<PricingStrategy />}

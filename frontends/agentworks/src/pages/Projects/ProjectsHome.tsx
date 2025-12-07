@@ -3,7 +3,7 @@
  * 本月概览、需要关注、本周待发布、最近项目
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Card,
@@ -37,23 +37,18 @@ import {
   formatMoney,
   calculateProgress,
 } from '../../types/project';
-import { PLATFORM_NAMES, type Platform } from '../../types/talent';
 import { ProjectFormModal } from './ProjectList/ProjectFormModal';
 import { logger } from '../../utils/logger';
-
-/**
- * 平台标签颜色
- */
-const PLATFORM_COLORS: Record<Platform, string> = {
-  douyin: 'blue',
-  xiaohongshu: 'red',
-  bilibili: 'cyan',
-  kuaishou: 'orange',
-};
+import { usePlatformConfig } from '../../hooks/usePlatformConfig';
 
 export function ProjectsHome() {
   const navigate = useNavigate();
   const { message } = App.useApp();
+
+  // 平台配置
+  const { getPlatformNames, getPlatformColors } = usePlatformConfig();
+  const platformNames = useMemo(() => getPlatformNames(), [getPlatformNames]);
+  const platformColors = useMemo(() => getPlatformColors(), [getPlatformColors]);
 
   // 数据状态
   const [loading, setLoading] = useState(true);
@@ -407,10 +402,10 @@ export function ProjectsHome() {
                           {project.platforms.map(p => (
                             <Tag
                               key={p}
-                              color={PLATFORM_COLORS[p]}
+                              color={platformColors[p] || 'default'}
                               className="text-xs"
                             >
-                              {PLATFORM_NAMES[p]}
+                              {platformNames[p] || p}
                             </Tag>
                           ))}
                         </div>

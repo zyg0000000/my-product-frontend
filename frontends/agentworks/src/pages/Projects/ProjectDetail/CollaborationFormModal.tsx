@@ -3,7 +3,7 @@
  * 新建和编辑合作达人记录
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Modal,
   Form,
@@ -28,10 +28,11 @@ import {
   yuanToCents,
   centsToYuan,
 } from '../../../types/project';
-import { PLATFORM_NAMES, type Platform } from '../../../types/talent';
+import type { Platform } from '../../../types/talent';
 import { projectApi } from '../../../services/projectApi';
 import { talentApi, type TalentListItem } from '../../../services/talentApi';
 import { logger } from '../../../utils/logger';
+import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 
 interface CollaborationFormModalProps {
   open: boolean;
@@ -62,6 +63,10 @@ export function CollaborationFormModal({
   const { message } = App.useApp();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+
+  // 平台配置
+  const { getPlatformNames } = usePlatformConfig();
+  const platformNames = useMemo(() => getPlatformNames(), [getPlatformNames]);
 
   // 达人搜索状态
   const [talentLoading, setTalentLoading] = useState(false);
@@ -94,7 +99,7 @@ export function CollaborationFormModal({
         if (response.success) {
           const options = response.data.items.map((t: TalentListItem) => ({
             value: `${t.oneId}__${t.platform}`,
-            label: `${t.nickname || t.oneId} (${PLATFORM_NAMES[t.platform]})`,
+            label: `${t.nickname || t.oneId} (${platformNames[t.platform] || t.platform})`,
             platform: t.platform,
           }));
           setTalentOptions(options);
@@ -151,7 +156,7 @@ export function CollaborationFormModal({
         setTalentOptions([
           {
             value: `${editingCollaboration.talentOneId}__${editingCollaboration.talentPlatform}`,
-            label: `${editingCollaboration.talentName || editingCollaboration.talentOneId} (${PLATFORM_NAMES[editingCollaboration.talentPlatform]})`,
+            label: `${editingCollaboration.talentName || editingCollaboration.talentOneId} (${platformNames[editingCollaboration.talentPlatform] || editingCollaboration.talentPlatform})`,
             platform: editingCollaboration.talentPlatform,
           },
         ]);
@@ -248,7 +253,7 @@ export function CollaborationFormModal({
    * 平台筛选选项
    */
   const platformOptions = platforms.map(p => ({
-    label: PLATFORM_NAMES[p],
+    label: platformNames[p] || p,
     value: p,
   }));
 
