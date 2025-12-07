@@ -672,14 +672,16 @@ echo "✅ 所有检查通过，可以部署！"
 
 升级到 antd 6.x 和 @ant-design/pro-components 3.x-beta 后，以下 API 已变更：
 
-**1. Popover styles API**
+**1. Popover styles API (antd v6)**
 ```tsx
-// ✅ 使用 body (兼容 antd v5，Cloudflare 部署环境)
-<Popover styles={{ body: { padding: 12 } }}>
+// ✅ antd v6 使用 inner
+<Popover styles={{ inner: { padding: 12 } }}>
 
-// ⚠️ inner 仅在 antd v6 可用，但 Cloudflare 可能使用 v5
-// <Popover styles={{ inner: { padding: 12 } }}>  // 不要使用
+// ❌ antd v5 使用 body（已废弃）
+// <Popover styles={{ body: { padding: 12 } }}>
 ```
+
+> 📌 项目使用 `overrides` 强制所有包使用 antd v6，确保 Cloudflare 部署环境一致
 
 **2. ProColumns hideInSearch**
 ```tsx
@@ -726,7 +728,7 @@ const formRef = useRef<ProFormInstance<FormData>>(null);
 const formRef = useRef<ProFormInstance<FormData> | undefined>(undefined);
 ```
 
-> 📌 **注意**：项目使用 `.npmrc` 配置 `legacy-peer-deps=true` 绕过 pro-components v3 beta 的 peer dependency 警告（requires antd ^5.11.2 但项目使用 antd 6.x）
+> 📌 **注意**：项目使用 `package.json` 的 `overrides` 字段强制所有包使用 antd v6，同时使用 `.npmrc` 配置 `legacy-peer-deps=true` 绕过 pro-components v3 beta 的 peer dependency 警告
 
 #### Cloudflare 特殊要求
 
