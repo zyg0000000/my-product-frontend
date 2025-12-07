@@ -48,9 +48,15 @@ import {
   type TalentProcurementStrategy,
 } from '../shared/talentProcurement';
 import { TalentProcurementForm } from '../shared/TalentProcurementForm';
-import { BusinessTagsEditor, type PlatformBusinessTags } from './BusinessTagsEditor';
+import {
+  BusinessTagsEditor,
+  type PlatformBusinessTags,
+} from './BusinessTagsEditor';
 import { KPIConfigEditor } from './KPIConfigEditor';
-import type { CustomerKPIConfig, PlatformKPIConfigs } from '../../../types/customer';
+import type {
+  CustomerKPIConfig,
+  PlatformKPIConfigs,
+} from '../../../types/customer';
 
 // 客户数据类型
 interface CustomerData {
@@ -64,8 +70,14 @@ interface CustomerData {
       /** @deprecated 使用 platformKPIConfigs */
       kpiConfig?: CustomerKPIConfig;
     };
-    adPlacement?: { enabled?: boolean; platformBusinessTags?: PlatformBusinessTags };
-    contentProduction?: { enabled?: boolean; platformBusinessTags?: PlatformBusinessTags };
+    adPlacement?: {
+      enabled?: boolean;
+      platformBusinessTags?: PlatformBusinessTags;
+    };
+    contentProduction?: {
+      enabled?: boolean;
+      platformBusinessTags?: PlatformBusinessTags;
+    };
   };
 }
 
@@ -96,7 +108,9 @@ export default function PricingStrategy() {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('talentProcurement');
   // v4.4: 子级 Tab（业务标签 / 定价配置 / KPI考核）
-  const [activeSubTab, setActiveSubTab] = useState<'tags' | 'pricing' | 'kpi'>('pricing');
+  const [activeSubTab, setActiveSubTab] = useState<'tags' | 'pricing' | 'kpi'>(
+    'pricing'
+  );
 
   // 编辑模式状态
   const [isEditing, setIsEditing] = useState(false);
@@ -121,7 +135,8 @@ export default function PricingStrategy() {
     useState<PlatformBusinessTags>({});
 
   // v4.5: 按平台的 KPI 配置状态
-  const [platformKPIConfigs, setPlatformKPIConfigs] = useState<PlatformKPIConfigs>({});
+  const [platformKPIConfigs, setPlatformKPIConfigs] =
+    useState<PlatformKPIConfigs>({});
 
   // 原始数据快照（用于检测变化）
   const [originalSnapshot, setOriginalSnapshot] = useState<{
@@ -183,14 +198,17 @@ export default function PricingStrategy() {
           setPlatformBusinessTags(loadedTags);
 
           // v4.5: 加载按平台的 KPI 配置
-          const loadedPlatformKPIConfigs: PlatformKPIConfigs = strategy.platformKPIConfigs || {};
+          const loadedPlatformKPIConfigs: PlatformKPIConfigs =
+            strategy.platformKPIConfigs || {};
           setPlatformKPIConfigs(loadedPlatformKPIConfigs);
 
           // 保存原始快照用于变化检测
           setOriginalSnapshot({
             platformPricingConfigs: JSON.parse(JSON.stringify(loadedConfigs)),
             platformBusinessTags: JSON.parse(JSON.stringify(loadedTags)),
-            platformKPIConfigs: JSON.parse(JSON.stringify(loadedPlatformKPIConfigs)),
+            platformKPIConfigs: JSON.parse(
+              JSON.stringify(loadedPlatformKPIConfigs)
+            ),
           });
         }
       }
@@ -245,14 +263,18 @@ export default function PricingStrategy() {
     }
 
     // v4.4: 检查业务标签变化
-    const originalTagsStr = JSON.stringify(originalSnapshot.platformBusinessTags || {});
+    const originalTagsStr = JSON.stringify(
+      originalSnapshot.platformBusinessTags || {}
+    );
     const currentTagsStr = JSON.stringify(platformBusinessTags || {});
     if (originalTagsStr !== currentTagsStr) {
       return true;
     }
 
     // v4.5: 检查按平台 KPI 配置变化
-    const originalKpiStr = JSON.stringify(originalSnapshot.platformKPIConfigs || {});
+    const originalKpiStr = JSON.stringify(
+      originalSnapshot.platformKPIConfigs || {}
+    );
     const currentKpiStr = JSON.stringify(platformKPIConfigs || {});
     if (originalKpiStr !== currentKpiStr) {
       return true;
@@ -942,7 +964,9 @@ export default function PricingStrategy() {
             {(isConfigured || isEditing) && (
               <Tabs
                 activeKey={activeSubTab}
-                onChange={key => setActiveSubTab(key as 'tags' | 'pricing' | 'kpi')}
+                onChange={key =>
+                  setActiveSubTab(key as 'tags' | 'pricing' | 'kpi')
+                }
                 type="card"
                 items={[
                   {
@@ -1061,10 +1085,7 @@ export default function PricingStrategy() {
                           <div className="text-sm text-gray-500">
                             用于项目创建时选择的二级业务标签，可跨平台复用相同标签名称
                           </div>
-                          <Button
-                            type="link"
-                            onClick={handleStartCreate}
-                          >
+                          <Button type="link" onClick={handleStartCreate}>
                             编辑标签
                           </Button>
                         </div>
@@ -1086,7 +1107,9 @@ export default function PricingStrategy() {
                       <span className="flex items-center">
                         <AimOutlined className="mr-1" />
                         KPI 考核
-                        {Object.values(platformKPIConfigs).some(c => c?.enabled) && (
+                        {Object.values(platformKPIConfigs).some(
+                          c => c?.enabled
+                        ) && (
                           <Tag color="green" className="ml-2 text-xs">
                             已启用
                           </Tag>
@@ -1128,10 +1151,7 @@ export default function PricingStrategy() {
                       // 只读模式
                       <div className="space-y-4">
                         <div className="flex justify-end">
-                          <Button
-                            type="link"
-                            onClick={handleStartCreate}
-                          >
+                          <Button type="link" onClick={handleStartCreate}>
                             编辑 KPI 配置
                           </Button>
                         </div>

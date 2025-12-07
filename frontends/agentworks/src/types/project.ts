@@ -13,7 +13,11 @@ import type { BusinessTypeKey, PricingModel } from './customer';
 /**
  * 项目状态（英文 key，数据库存储格式）
  */
-export type ProjectStatus = 'executing' | 'pending_settlement' | 'settled' | 'closed';
+export type ProjectStatus =
+  | 'executing'
+  | 'pending_settlement'
+  | 'settled'
+  | 'closed';
 
 /**
  * 项目状态选项
@@ -54,7 +58,10 @@ export const PROJECT_STATUS_VALUE_ENUM: Record<
   { text: string; status: 'Processing' | 'Warning' | 'Success' | 'Default' }
 > = {
   executing: { text: PROJECT_STATUS_LABELS.executing, status: 'Processing' },
-  pending_settlement: { text: PROJECT_STATUS_LABELS.pending_settlement, status: 'Warning' },
+  pending_settlement: {
+    text: PROJECT_STATUS_LABELS.pending_settlement,
+    status: 'Warning',
+  },
   settled: { text: PROJECT_STATUS_LABELS.settled, status: 'Success' },
   closed: { text: PROJECT_STATUS_LABELS.closed, status: 'Default' },
 };

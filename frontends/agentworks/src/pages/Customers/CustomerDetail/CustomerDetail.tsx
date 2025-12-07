@@ -92,9 +92,21 @@ function FeatureCard({
   onClick,
 }: FeatureCardProps) {
   const statusConfig = {
-    configured: { color: '#10b981', text: '已配置', icon: <CheckCircleOutlined /> },
-    pending: { color: '#f59e0b', text: '待配置', icon: <ClockCircleOutlined /> },
-    disabled: { color: '#9ca3af', text: '开发中', icon: <ClockCircleOutlined /> },
+    configured: {
+      color: '#10b981',
+      text: '已配置',
+      icon: <CheckCircleOutlined />,
+    },
+    pending: {
+      color: '#f59e0b',
+      text: '待配置',
+      icon: <ClockCircleOutlined />,
+    },
+    disabled: {
+      color: '#9ca3af',
+      text: '开发中',
+      icon: <ClockCircleOutlined />,
+    },
   };
 
   const statusInfo = status ? statusConfig[status] : null;
@@ -139,12 +151,12 @@ function FeatureCard({
             <h3 className="text-base font-semibold text-gray-900 mb-1.5 group-hover:text-primary-600 transition-colors">
               {title}
             </h3>
-            <p className="text-sm text-gray-500 mb-3 line-clamp-2">{description}</p>
+            <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+              {description}
+            </p>
 
             {/* 统计信息 - 固定高度区域 */}
-            <div className="h-10 mb-3">
-              {stats}
-            </div>
+            <div className="h-10 mb-3">{stats}</div>
 
             {/* 底部操作提示 */}
             <div className="flex items-center text-sm text-primary-600 font-medium group-hover:translate-x-1 transition-transform mt-auto">
@@ -169,10 +181,12 @@ export function CustomerDetail() {
   // 状态
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
-  const [talentStats, setTalentStats] = useState<CustomerTalentStats | null>(null);
+  const [talentStats, setTalentStats] = useState<CustomerTalentStats | null>(
+    null
+  );
 
   // 平台配置
-  const { configs: platformConfigs, loading: platformLoading } = usePlatformConfig();
+  const { loading: platformLoading } = usePlatformConfig();
 
   // 加载客户信息
   useEffect(() => {
@@ -358,9 +372,13 @@ export function CustomerDetail() {
           stats={
             hasTalentProcurement ? (
               <div className="flex items-center gap-1.5">
-                <Tag color="green" className="m-0">达人采买</Tag>
+                <Tag color="green" className="m-0">
+                  达人采买
+                </Tag>
                 {customer.businessStrategies?.adPlacement?.enabled && (
-                  <Tag color="orange" className="m-0">广告投流</Tag>
+                  <Tag color="orange" className="m-0">
+                    广告投流
+                  </Tag>
                 )}
               </div>
             ) : (

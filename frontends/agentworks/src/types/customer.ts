@@ -217,7 +217,10 @@ export const CUSTOMER_LEVEL_NAMES: Record<CustomerLevel, string> = {
 };
 
 // v4.4: 一级业务类型定义
-export type BusinessTypeKey = 'talentProcurement' | 'adPlacement' | 'contentProduction';
+export type BusinessTypeKey =
+  | 'talentProcurement'
+  | 'adPlacement'
+  | 'contentProduction';
 
 export interface BusinessTypeConfig {
   key: BusinessTypeKey;
@@ -226,12 +229,23 @@ export interface BusinessTypeConfig {
 }
 
 export const BUSINESS_TYPES: Record<BusinessTypeKey, BusinessTypeConfig> = {
-  talentProcurement: { key: 'talentProcurement', name: '达人采买', hasPricing: true },
+  talentProcurement: {
+    key: 'talentProcurement',
+    name: '达人采买',
+    hasPricing: true,
+  },
   adPlacement: { key: 'adPlacement', name: '广告投流', hasPricing: false },
-  contentProduction: { key: 'contentProduction', name: '内容制作', hasPricing: false },
+  contentProduction: {
+    key: 'contentProduction',
+    name: '内容制作',
+    hasPricing: false,
+  },
 };
 
-export const BUSINESS_TYPE_OPTIONS: Array<{ label: string; value: BusinessTypeKey }> = [
+export const BUSINESS_TYPE_OPTIONS: Array<{
+  label: string;
+  value: BusinessTypeKey;
+}> = [
   { label: '达人采买', value: 'talentProcurement' },
   { label: '广告投流', value: 'adPlacement' },
   { label: '内容制作', value: 'contentProduction' },
@@ -247,7 +261,10 @@ export const CUSTOMER_STATUS_NAMES: Record<CustomerStatus, string> = {
 /**
  * 客户级别 ProTable valueEnum 配置
  */
-export const CUSTOMER_LEVEL_VALUE_ENUM: Record<CustomerLevel, { text: string }> = {
+export const CUSTOMER_LEVEL_VALUE_ENUM: Record<
+  CustomerLevel,
+  { text: string }
+> = {
   VIP: { text: 'VIP' },
   large: { text: '大型' },
   medium: { text: '中型' },
@@ -257,7 +274,10 @@ export const CUSTOMER_LEVEL_VALUE_ENUM: Record<CustomerLevel, { text: string }> 
 /**
  * 客户状态 ProTable valueEnum 配置
  */
-export const CUSTOMER_STATUS_VALUE_ENUM: Record<CustomerStatus, { text: string }> = {
+export const CUSTOMER_STATUS_VALUE_ENUM: Record<
+  CustomerStatus,
+  { text: string }
+> = {
   active: { text: '活跃' },
   inactive: { text: '停用' },
   suspended: { text: '暂停' },
@@ -267,7 +287,10 @@ export const CUSTOMER_STATUS_VALUE_ENUM: Record<CustomerStatus, { text: string }
 /**
  * 业务类型 ProTable valueEnum 配置
  */
-export const BUSINESS_TYPE_VALUE_ENUM: Record<BusinessTypeKey, { text: string }> = {
+export const BUSINESS_TYPE_VALUE_ENUM: Record<
+  BusinessTypeKey,
+  { text: string }
+> = {
   talentProcurement: { text: '达人采买' },
   adPlacement: { text: '广告投流' },
   contentProduction: { text: '内容制作' },

@@ -101,7 +101,9 @@ class ProjectApi {
         );
       }
       if (params.status) {
-        items = items.filter((p: ProjectListItem) => p.status === params.status);
+        items = items.filter(
+          (p: ProjectListItem) => p.status === params.status
+        );
       }
       if (params.year) {
         items = items.filter((p: ProjectListItem) => p.year === params.year);

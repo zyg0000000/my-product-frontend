@@ -27,7 +27,11 @@ import {
   generateMonthValueEnum,
 } from '../../../types/project';
 import type { Platform } from '../../../types/talent';
-import { BUSINESS_TYPES, BUSINESS_TYPE_VALUE_ENUM, type BusinessTypeKey } from '../../../types/customer';
+import {
+  BUSINESS_TYPES,
+  BUSINESS_TYPE_VALUE_ENUM,
+  type BusinessTypeKey,
+} from '../../../types/customer';
 import { projectApi } from '../../../services/projectApi';
 import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../../components/PageTransition';
@@ -41,19 +45,29 @@ export function ProjectList() {
   const actionRef = useRef<ActionType>(null);
 
   // 平台配置
-  const { configs: platformConfigs, getPlatformNames, getPlatformColors } = usePlatformConfig();
+  const {
+    configs: platformConfigs,
+    getPlatformNames,
+    getPlatformColors,
+  } = usePlatformConfig();
 
   // 动态生成平台 valueEnum
   const platformValueEnum = useMemo(() => {
-    return platformConfigs.reduce((acc, c) => {
-      acc[c.platform] = { text: c.name };
-      return acc;
-    }, {} as Record<string, { text: string }>);
+    return platformConfigs.reduce(
+      (acc, c) => {
+        acc[c.platform] = { text: c.name };
+        return acc;
+      },
+      {} as Record<string, { text: string }>
+    );
   }, [platformConfigs]);
 
   // 动态获取平台名称和颜色映射
   const platformNames = useMemo(() => getPlatformNames(), [getPlatformNames]);
-  const platformColors = useMemo(() => getPlatformColors(), [getPlatformColors]);
+  const platformColors = useMemo(
+    () => getPlatformColors(),
+    [getPlatformColors]
+  );
 
   // 数据状态
   const [loading, setLoading] = useState(true);
@@ -69,7 +83,9 @@ export function ProjectList() {
   const [monthFilter, setMonthFilter] = useState<number | undefined>();
   const [useFinancialPeriod, setUseFinancialPeriod] = useState(false); // 是否按财务周期搜索
   const [platformFilter, setPlatformFilter] = useState<Platform | undefined>();
-  const [businessTypeFilter, setBusinessTypeFilter] = useState<BusinessTypeKey | undefined>();
+  const [businessTypeFilter, setBusinessTypeFilter] = useState<
+    BusinessTypeKey | undefined
+  >();
   const [customerNameFilter, setCustomerNameFilter] = useState<string>('');
 
   // 弹窗状态
@@ -159,7 +175,6 @@ export function ProjectList() {
     setEditingProject(null);
     loadProjects();
   };
-
 
   const columns: ProColumns<ProjectListItem>[] = [
     {
@@ -355,7 +370,9 @@ export function ProjectList() {
               setYearFilter(params.year ? Number(params.year) : undefined);
               setMonthFilter(params.month ? Number(params.month) : undefined);
               setPlatformFilter((params.platforms as Platform) || undefined);
-              setBusinessTypeFilter((params.businessType as BusinessTypeKey) || undefined);
+              setBusinessTypeFilter(
+                (params.businessType as BusinessTypeKey) || undefined
+              );
               setCustomerNameFilter((params.customerName as string) || '');
               setCurrentPage(1);
             }}

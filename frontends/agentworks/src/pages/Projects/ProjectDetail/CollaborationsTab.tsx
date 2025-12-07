@@ -49,7 +49,10 @@ export function CollaborationsTab({
   // 平台配置
   const { getPlatformNames, getPlatformColors } = usePlatformConfig();
   const platformNames = useMemo(() => getPlatformNames(), [getPlatformNames]);
-  const platformColors = useMemo(() => getPlatformColors(), [getPlatformColors]);
+  const platformColors = useMemo(
+    () => getPlatformColors(),
+    [getPlatformColors]
+  );
 
   // 数据状态
   const [loading, setLoading] = useState(true);

@@ -46,11 +46,21 @@ export function BusinessTagsEditor({
   const inputRef = useRef<InputRef>(null);
 
   // 当平台列表变化时，确保 activePlatform 有效
+  // 使用 useMemo 来计算是否需要重置，避免在 useEffect 中调用 setState
+  const validActivePlatform =
+    enabledPlatforms.length > 0
+      ? enabledPlatforms.find(p => p.platform === activePlatform)
+        ? activePlatform
+        : enabledPlatforms[0].platform
+      : '';
+
+  // 只在需要时更新
   useEffect(() => {
-    if (enabledPlatforms.length > 0 && !enabledPlatforms.find(p => p.platform === activePlatform)) {
-      setActivePlatform(enabledPlatforms[0].platform);
+    if (validActivePlatform !== activePlatform && validActivePlatform) {
+      setActivePlatform(validActivePlatform);
     }
-  }, [enabledPlatforms, activePlatform]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [validActivePlatform]);
 
   // 输入框显示时自动聚焦
   useEffect(() => {
@@ -122,7 +132,7 @@ export function BusinessTagsEditor({
 
     return (
       <Space size={[8, 8]} wrap className="py-2">
-        {currentTags.map((tag) => {
+        {currentTags.map(tag => {
           const isLongTag = tag.length > 10;
           const tagElem = (
             <Tag

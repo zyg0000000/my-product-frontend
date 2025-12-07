@@ -6,13 +6,25 @@
  */
 
 import { useState } from 'react';
-import { Switch, InputNumber, Card, Empty, Tooltip, Tag, Tabs, Badge } from 'antd';
+import {
+  Switch,
+  InputNumber,
+  Card,
+  Empty,
+  Tooltip,
+  Tag,
+  Tabs,
+  Badge,
+} from 'antd';
 import {
   QuestionCircleOutlined,
   ArrowUpOutlined,
   ArrowDownOutlined,
 } from '@ant-design/icons';
-import type { PlatformKPIConfig, PlatformKPIConfigs } from '../../../types/customer';
+import type {
+  PlatformKPIConfig,
+  PlatformKPIConfigs,
+} from '../../../types/customer';
 
 /**
  * KPI 元数据定义
@@ -106,7 +118,10 @@ export function KPIConfigEditor({
   };
 
   // 更新某个平台的配置
-  const updatePlatformConfig = (platform: string, config: PlatformKPIConfig) => {
+  const updatePlatformConfig = (
+    platform: string,
+    config: PlatformKPIConfig
+  ) => {
     onChange?.({
       ...value,
       [platform]: config,
@@ -126,7 +141,11 @@ export function KPIConfigEditor({
   };
 
   // 处理单个 KPI 启用/禁用
-  const handleKPIToggle = (platform: string, kpiKey: string, checked: boolean) => {
+  const handleKPIToggle = (
+    platform: string,
+    kpiKey: string,
+    checked: boolean
+  ) => {
     const currentConfig = getCurrentPlatformConfig(platform);
     const newEnabledKPIs = checked
       ? [...currentConfig.enabledKPIs, kpiKey]
@@ -146,7 +165,11 @@ export function KPIConfigEditor({
   };
 
   // 处理默认目标值变化
-  const handleTargetChange = (platform: string, kpiKey: string, targetValue: number | null) => {
+  const handleTargetChange = (
+    platform: string,
+    kpiKey: string,
+    targetValue: number | null
+  ) => {
     const currentConfig = getCurrentPlatformConfig(platform);
     const newDefaultTargets = { ...currentConfig.defaultTargets };
     if (targetValue === null || targetValue === undefined) {
@@ -209,7 +232,8 @@ export function KPIConfigEditor({
         {config.enabled && (
           <div className="space-y-3">
             <div className="text-sm text-gray-500 mb-2">
-              选择该平台需要考核的 KPI 指标，并设置默认目标值（项目创建时可覆盖）
+              选择该平台需要考核的 KPI
+              指标，并设置默认目标值（项目创建时可覆盖）
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -238,7 +262,9 @@ export function KPIConfigEditor({
                           <Switch
                             size="small"
                             checked={isEnabled}
-                            onChange={checked => handleKPIToggle(platform, kpi.key, checked)}
+                            onChange={checked =>
+                              handleKPIToggle(platform, kpi.key, checked)
+                            }
                           />
                         )}
                         <span
@@ -270,7 +296,9 @@ export function KPIConfigEditor({
                           <InputNumber
                             size="small"
                             value={targetValue}
-                            onChange={val => handleTargetChange(platform, kpi.key, val)}
+                            onChange={val =>
+                              handleTargetChange(platform, kpi.key, val)
+                            }
                             placeholder="可选"
                             min={0}
                             precision={kpi.unit === '%' ? 1 : 2}
@@ -318,10 +346,7 @@ export function KPIConfigEditor({
 
   if (enabledPlatforms.length === 0) {
     return (
-      <Empty
-        description="请先配置平台"
-        image={Empty.PRESENTED_IMAGE_SIMPLE}
-      />
+      <Empty description="请先配置平台" image={Empty.PRESENTED_IMAGE_SIMPLE} />
     );
   }
 
@@ -340,7 +365,9 @@ export function KPIConfigEditor({
             <Badge count={kpiCount} size="small" color="blue" />
           )}
           {isEnabled && kpiCount === 0 && (
-            <Tag color="orange" className="text-xs ml-1">已启用</Tag>
+            <Tag color="orange" className="text-xs ml-1">
+              已启用
+            </Tag>
           )}
         </span>
       ),

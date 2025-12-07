@@ -35,7 +35,6 @@ import type {
   PlatformPricingModes,
   PlatformQuotationCoefficients,
   ProjectKPIConfigs,
-  PlatformProjectKPIConfig,
 } from '../../../types/project';
 import { yuanToCents, centsToYuan } from '../../../types/project';
 import type { Platform } from '../../../types/talent';
@@ -71,12 +70,14 @@ interface ProjectFormModalProps {
   onSuccess: () => void;
 }
 
-
 /**
  * KPI 元数据（硬编码）
  * 实际 KPI 的启用/禁用从客户配置读取
  */
-const KPI_METADATA: Record<string, { name: string; unit: string; description: string }> = {
+const KPI_METADATA: Record<
+  string,
+  { name: string; unit: string; description: string }
+> = {
   cpm: { name: 'CPM', unit: '元', description: '千次播放成本' },
   cpe: { name: 'CPE', unit: '元', description: '单次互动成本' },
   cpc: { name: 'CPC', unit: '元', description: '单次点击成本' },
@@ -146,7 +147,14 @@ export function ProjectFormModal({
   // 按平台的 KPI 配置状态
   // key: platform, value: { enabled, enabledKPIs, targets }
   const [platformKPIStates, setPlatformKPIStates] = useState<
-    Record<string, { enabled: boolean; enabledKPIs: string[]; targets: Record<string, number> }>
+    Record<
+      string,
+      {
+        enabled: boolean;
+        enabledKPIs: string[];
+        targets: Record<string, number>;
+      }
+    >
   >({});
 
   const isEdit = !!editingProject;
@@ -158,7 +166,10 @@ export function ProjectFormModal({
     if (!selectedCustomer?.businessStrategies?.talentProcurement) {
       return null;
     }
-    return selectedCustomer.businessStrategies.talentProcurement.platformKPIConfigs || null;
+    return (
+      selectedCustomer.businessStrategies.talentProcurement
+        .platformKPIConfigs || null
+    );
   }, [selectedCustomer]);
 
   /**
@@ -325,33 +336,36 @@ export function ProjectFormModal({
    * 加载客户列表
    * @returns 返回客户选项列表
    */
-  const loadCustomers = useCallback(async (searchTerm?: string): Promise<CustomerOption[]> => {
-    try {
-      setCustomerLoading(true);
-      const response = await customerApi.getCustomers({
-        page: 1,
-        pageSize: 50,
-        searchTerm,
-        status: 'active',
-      });
+  const loadCustomers = useCallback(
+    async (searchTerm?: string): Promise<CustomerOption[]> => {
+      try {
+        setCustomerLoading(true);
+        const response = await customerApi.getCustomers({
+          page: 1,
+          pageSize: 50,
+          searchTerm,
+          status: 'active',
+        });
 
-      if (response.success) {
-        const options: CustomerOption[] = response.data.customers.map(c => ({
-          value: c.code,
-          label: c.name,
-          businessStrategies: c.businessStrategies,
-        }));
-        setCustomerOptions(options);
-        return options;
+        if (response.success) {
+          const options: CustomerOption[] = response.data.customers.map(c => ({
+            value: c.code,
+            label: c.name,
+            businessStrategies: c.businessStrategies,
+          }));
+          setCustomerOptions(options);
+          return options;
+        }
+        return [];
+      } catch (error) {
+        logger.error('Error loading customers:', error);
+        return [];
+      } finally {
+        setCustomerLoading(false);
       }
-      return [];
-    } catch (error) {
-      logger.error('Error loading customers:', error);
-      return [];
-    } finally {
-      setCustomerLoading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   /**
    * 客户选择变化
@@ -426,7 +440,14 @@ export function ProjectFormModal({
       return;
     }
 
-    const newStates: Record<string, { enabled: boolean; enabledKPIs: string[]; targets: Record<string, number> }> = {};
+    const newStates: Record<
+      string,
+      {
+        enabled: boolean;
+        enabledKPIs: string[];
+        targets: Record<string, number>;
+      }
+    > = {};
 
     platforms.forEach(platform => {
       const customerConfig = customerPlatformKPIConfigs[platform];
@@ -435,7 +456,9 @@ export function ProjectFormModal({
         newStates[platform] = {
           enabled: true,
           enabledKPIs: customerConfig.enabledKPIs || [],
-          targets: customerConfig.defaultTargets ? { ...customerConfig.defaultTargets } : {},
+          targets: customerConfig.defaultTargets
+            ? { ...customerConfig.defaultTargets }
+            : {},
         };
       }
     });
@@ -482,7 +505,8 @@ export function ProjectFormModal({
             month: editingProject.month,
             // 财务周期：优先使用已保存的值，否则默认等于业务周期
             financialYear: editingProject.financialYear || editingProject.year,
-            financialMonth: editingProject.financialMonth || editingProject.month,
+            financialMonth:
+              editingProject.financialMonth || editingProject.month,
             budget: centsToYuan(editingProject.budget),
           };
 
@@ -565,30 +589,32 @@ export function ProjectFormModal({
       // 转换折扣率为小数，并收集定价模式和报价系数快照
       let platformDiscounts: PlatformDiscounts | undefined;
       let platformPricingModes: PlatformPricingModes | undefined;
-      let platformQuotationCoefficients: PlatformQuotationCoefficients | undefined;
+      let platformQuotationCoefficients:
+        | PlatformQuotationCoefficients
+        | undefined;
 
       if (values.platformDiscounts) {
         platformDiscounts = {};
         platformPricingModes = {};
         platformQuotationCoefficients = {};
 
-        Object.entries(values.platformDiscounts).forEach(
-          ([platform, rate]) => {
-            if (rate !== undefined && rate !== null) {
-              platformDiscounts![platform] = (rate as number) / 100;
-              // 存储定价模式快照
-              const config = getPlatformPricingConfig(platform as Platform);
-              if (config) {
-                platformPricingModes![platform] = config.pricingModel;
-              }
-              // 存储报价系数快照（只有 framework/hybrid 模式才有）
-              const coefficient = getPlatformQuotationCoefficient(platform as Platform);
-              if (coefficient !== null) {
-                platformQuotationCoefficients![platform] = coefficient;
-              }
+        Object.entries(values.platformDiscounts).forEach(([platform, rate]) => {
+          if (rate !== undefined && rate !== null) {
+            platformDiscounts![platform] = (rate as number) / 100;
+            // 存储定价模式快照
+            const config = getPlatformPricingConfig(platform as Platform);
+            if (config) {
+              platformPricingModes![platform] = config.pricingModel;
+            }
+            // 存储报价系数快照（只有 framework/hybrid 模式才有）
+            const coefficient = getPlatformQuotationCoefficient(
+              platform as Platform
+            );
+            if (coefficient !== null) {
+              platformQuotationCoefficients![platform] = coefficient;
             }
           }
-        );
+        });
 
         // 如果没有任何报价系数，设为 undefined
         if (Object.keys(platformQuotationCoefficients).length === 0) {
@@ -756,9 +782,7 @@ export function ProjectFormModal({
               <Form.Item
                 name="projectCode"
                 label="项目编号"
-                rules={[
-                  { max: 50, message: '项目编号不能超过50字符' },
-                ]}
+                rules={[{ max: 50, message: '项目编号不能超过50字符' }]}
               >
                 <Input placeholder="例如：PRJ202512001" />
               </Form.Item>
@@ -1005,7 +1029,9 @@ export function ProjectFormModal({
 
                   {/* 平台名称 + 定价模式标签 */}
                   <div className="flex items-center gap-2 min-w-[120px]">
-                    <span className={isSelected ? 'font-medium' : 'text-gray-500'}>
+                    <span
+                      className={isSelected ? 'font-medium' : 'text-gray-500'}
+                    >
                       {opt.label}
                     </span>
                     {isSelected && getPricingModeTag(platform)}
@@ -1041,11 +1067,14 @@ export function ProjectFormModal({
 
                       {/* 报价系数（只有 framework/hybrid 模式才显示） */}
                       {(() => {
-                        const coefficient = getPlatformQuotationCoefficient(platform);
+                        const coefficient =
+                          getPlatformQuotationCoefficient(platform);
                         if (coefficient === null) return null;
                         return (
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500">报价系数:</span>
+                            <span className="text-sm text-gray-500">
+                              报价系数:
+                            </span>
                             <span className="font-medium text-blue-600">
                               {coefficient.toFixed(4)}
                             </span>
@@ -1100,8 +1129,12 @@ export function ProjectFormModal({
                   {/* 平台标题 + 开关 */}
                   <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
                     <span className="flex items-center gap-2">
-                      <span className="font-medium">{platformNames[platform] || platform}</span>
-                      <Tag color="green" className="text-xs">客户已配置</Tag>
+                      <span className="font-medium">
+                        {platformNames[platform] || platform}
+                      </span>
+                      <Tag color="green" className="text-xs">
+                        客户已配置
+                      </Tag>
                     </span>
                     <Switch
                       size="small"
@@ -1112,10 +1145,13 @@ export function ProjectFormModal({
                           [platform]: {
                             ...prev[platform],
                             enabled: checked,
-                            enabledKPIs: checked ? (customerConfig.enabledKPIs || []) : [],
-                            targets: checked && customerConfig.defaultTargets
-                              ? { ...customerConfig.defaultTargets }
-                              : {},
+                            enabledKPIs: checked
+                              ? customerConfig.enabledKPIs || []
+                              : [],
+                            targets:
+                              checked && customerConfig.defaultTargets
+                                ? { ...customerConfig.defaultTargets }
+                                : {},
                           },
                         }));
                       }}
@@ -1128,7 +1164,9 @@ export function ProjectFormModal({
                     <div className="pl-4">
                       {/* 考核指标选择 */}
                       <div className="mb-3">
-                        <div className="text-sm text-gray-500 mb-2">考核指标：</div>
+                        <div className="text-sm text-gray-500 mb-2">
+                          考核指标：
+                        </div>
                         <Checkbox.Group
                           value={state.enabledKPIs}
                           onChange={values => {
@@ -1191,7 +1229,11 @@ export function ProjectFormModal({
                                       }}
                                     />
                                     <Input
-                                      style={{ width: 40, pointerEvents: 'none', textAlign: 'center' }}
+                                      style={{
+                                        width: 40,
+                                        pointerEvents: 'none',
+                                        textAlign: 'center',
+                                      }}
                                       defaultValue={kpi.unit}
                                       disabled
                                     />

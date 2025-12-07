@@ -55,7 +55,10 @@ export function ProjectDetail() {
   // 平台配置
   const { getPlatformNames, getPlatformColors } = usePlatformConfig();
   const platformNames = useMemo(() => getPlatformNames(), [getPlatformNames]);
-  const platformColors = useMemo(() => getPlatformColors(), [getPlatformColors]);
+  const platformColors = useMemo(
+    () => getPlatformColors(),
+    [getPlatformColors]
+  );
 
   // 状态
   const [project, setProject] = useState<Project | null>(null);
@@ -198,10 +201,7 @@ export function ProjectDetail() {
       <div className="space-y-6">
         {/* 返回按钮和标题 */}
         <div className="flex items-center gap-4">
-          <Button
-            icon={<ArrowLeftOutlined />}
-            onClick={() => navigate(-1)}
-          >
+          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
             返回
           </Button>
           <h1 className="text-2xl font-bold text-gray-900 m-0">项目详情</h1>
@@ -246,7 +246,10 @@ export function ProjectDetail() {
             <Descriptions.Item label="投放平台">
               <Space size={[4, 4]} wrap>
                 {project.platforms.map(platform => (
-                  <Tag key={platform} color={platformColors[platform] || 'default'}>
+                  <Tag
+                    key={platform}
+                    color={platformColors[platform] || 'default'}
+                  >
                     {platformNames[platform] || platform}
                   </Tag>
                 ))}

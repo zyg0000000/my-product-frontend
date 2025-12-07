@@ -13,9 +13,10 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com',
+        target:
+          'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        rewrite: path => path.replace(/^\/api/, ''),
       },
     },
   },

@@ -14,12 +14,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Tabs, Spin, Empty, Card, Statistic, Tag, App } from 'antd';
-import {
-  TeamOutlined,
-  UserOutlined,
-  StarOutlined,
-} from '@ant-design/icons';
+import { Tabs, Spin, Empty, Card, Tag, App } from 'antd';
+import { TeamOutlined, UserOutlined, StarOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import { customerApi } from '../../../services/customerApi';
 import { getCustomerTalentStats } from '../../../api/customerTalents';
@@ -92,7 +88,9 @@ function StatsCard({
               <span className="text-2xl font-semibold text-gray-900 tabular-nums">
                 {value}
               </span>
-              {suffix && <span className="text-sm text-gray-400">{suffix}</span>}
+              {suffix && (
+                <span className="text-sm text-gray-400">{suffix}</span>
+              )}
             </div>
           </div>
         </div>
@@ -112,11 +110,14 @@ export function TalentPoolPage() {
   // 状态
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
-  const [talentStats, setTalentStats] = useState<CustomerTalentStats | null>(null);
+  const [talentStats, setTalentStats] = useState<CustomerTalentStats | null>(
+    null
+  );
   const [activePlatform, setActivePlatform] = useState<Platform>('douyin');
 
   // 平台配置
-  const { configs: platformConfigs, loading: platformLoading } = usePlatformConfig();
+  const { configs: platformConfigs, loading: platformLoading } =
+    usePlatformConfig();
 
   // 加载客户信息
   useEffect(() => {
@@ -212,7 +213,8 @@ export function TalentPoolPage() {
 
   // 统计数据
   const totalCount = talentStats?.totalCount || 0;
-  const currentPlatformCount = talentStats?.platformStats?.[activePlatform] || 0;
+  const currentPlatformCount =
+    talentStats?.platformStats?.[activePlatform] || 0;
   // 重点达人数暂时使用 0（后端未提供此字段）
   const importantCount = 0;
 
