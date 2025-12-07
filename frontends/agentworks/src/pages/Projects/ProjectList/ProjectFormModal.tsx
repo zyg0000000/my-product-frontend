@@ -1001,9 +1001,7 @@ export function ProjectFormModal({
                   formatter={value =>
                     `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
                   }
-                  parser={value =>
-                    Number(value?.replace(/,/g, '') || 0) as 0
-                  }
+                  parser={value => Number(value?.replace(/,/g, '') || 0) as 0}
                 />
               </Form.Item>
             </Col>
@@ -1229,8 +1227,13 @@ export function ProjectFormModal({
                                         setPlatformKPIStates(prev => {
                                           const currentTargets =
                                             prev[platform]?.targets || {};
-                                          const newTargets = { ...currentTargets };
-                                          if (value !== null && value !== undefined) {
+                                          const newTargets = {
+                                            ...currentTargets,
+                                          };
+                                          if (
+                                            value !== null &&
+                                            value !== undefined
+                                          ) {
                                             newTargets[kpiKey] = value;
                                           } else {
                                             delete newTargets[kpiKey];
