@@ -245,7 +245,7 @@ export function BasicInfo() {
 
   return (
     <PageTransition>
-      <div className="space-y-4">
+      <div className="space-y-6">
         {/* 页面标题 */}
         <div>
           <h1 className="text-2xl font-bold text-gray-900">基础信息</h1>

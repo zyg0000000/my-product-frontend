@@ -21,7 +21,6 @@ import {
   App,
 } from 'antd';
 import {
-  ArrowLeftOutlined,
   EditOutlined,
   TeamOutlined,
   ScheduleOutlined,
@@ -36,6 +35,7 @@ import {
   calculateProgress,
 } from '../../../types/project';
 import { PageTransition } from '../../../components/PageTransition';
+import { PageHeader } from '../../../components/PageHeader';
 import { CollaborationsTab } from './CollaborationsTab';
 import { ExecutionTab } from './ExecutionTab';
 import { FinancialTab } from './FinancialTab';
@@ -199,27 +199,24 @@ export function ProjectDetail() {
   return (
     <PageTransition>
       <div className="space-y-6">
-        {/* 返回按钮和标题 */}
-        <div className="flex items-center gap-4">
-          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
-            返回
-          </Button>
-          <h1 className="text-2xl font-bold text-gray-900 m-0">项目详情</h1>
-        </div>
-
-        {/* 项目基本信息卡片 */}
-        <Card
-          className="shadow-sm"
+        {/* 页面头部 */}
+        <PageHeader
+          title="项目详情"
+          onBack={() => navigate(-1)}
+          backText="返回"
           extra={
             <Button
               type="primary"
               icon={<EditOutlined />}
               onClick={() => setEditModalOpen(true)}
             >
-              编辑
+              编辑项目
             </Button>
           }
-        >
+        />
+
+        {/* 项目基本信息卡片 */}
+        <Card className="shadow-card">
           <Descriptions column={{ xs: 1, sm: 2, md: 3, lg: 4 }} size="middle">
             <Descriptions.Item label="项目名称" span={2}>
               <span className="font-semibold text-lg">{project.name}</span>
@@ -302,7 +299,7 @@ export function ProjectDetail() {
         </Card>
 
         {/* Tab 切换 */}
-        <Card className="shadow-sm">
+        <Card className="shadow-card">
           <Tabs
             activeKey={activeTab}
             onChange={setActiveTab}
