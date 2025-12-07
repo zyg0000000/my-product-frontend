@@ -393,7 +393,7 @@ export default function CustomerList() {
                       trigger="hover"
                       styles={{
                         root: { padding: 0 },
-                        inner: {
+                        body: {
                           padding: '12px',
                           backgroundColor: '#1f2937',
                           borderRadius: '6px',

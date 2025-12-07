@@ -56,7 +56,7 @@ const itemVariants = {
     y: 0,
     transition: {
       duration: 0.5,
-      ease: 'easeOut',
+      ease: 'easeOut' as const,
     },
   },
 };
@@ -65,7 +65,7 @@ const cardHoverVariants = {
   rest: { scale: 1 },
   hover: {
     scale: 1.02,
-    transition: { duration: 0.3, ease: 'easeOut' },
+    transition: { duration: 0.3, ease: 'easeOut' as const },
   },
 };
 

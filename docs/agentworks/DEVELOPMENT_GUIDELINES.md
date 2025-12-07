@@ -674,11 +674,11 @@ echo "✅ 所有检查通过，可以部署！"
 
 **1. Popover styles API**
 ```tsx
-// ❌ antd v5 (旧)
+// ✅ 使用 body (兼容 antd v5，Cloudflare 部署环境)
 <Popover styles={{ body: { padding: 12 } }}>
 
-// ✅ antd v6 (新)
-<Popover styles={{ inner: { padding: 12 } }}>
+// ⚠️ inner 仅在 antd v6 可用，但 Cloudflare 可能使用 v5
+// <Popover styles={{ inner: { padding: 12 } }}>  // 不要使用
 ```
 
 **2. ProColumns hideInSearch**
@@ -705,14 +705,15 @@ const columns: ProColumns[] = [
 
 **4. framer-motion ease 类型**
 ```tsx
-// ❌ framer-motion v11 (旧)
+// ❌ framer-motion v12 不接受数组或普通字符串
 const variants = {
-  hidden: { opacity: 0, transition: { ease: [0.22, 1, 0.36, 1] } }
+  hidden: { opacity: 0, transition: { ease: [0.22, 1, 0.36, 1] } }  // 错误
+  // 或 ease: 'easeOut'  // 也可能报错（类型推断问题）
 };
 
-// ✅ framer-motion v12 (新) - 使用字符串
+// ✅ framer-motion v12 - 使用 as const 断言
 const variants = {
-  hidden: { opacity: 0, transition: { ease: 'easeOut' } }
+  hidden: { opacity: 0, transition: { ease: 'easeOut' as const } }
 };
 ```
 

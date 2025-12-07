@@ -550,11 +550,13 @@ export function ProjectFormModal({
             const kpiStates: Record<string, PlatformKPIState> = {};
             Object.entries(editingProject.platformKPIConfigs).forEach(
               ([platform, config]) => {
-                kpiStates[platform] = {
-                  enabled: config.enabled,
-                  enabledKPIs: config.enabledKPIs || [],
-                  targets: config.targets || {},
-                };
+                if (config) {
+                  kpiStates[platform] = {
+                    enabled: config.enabled,
+                    enabledKPIs: config.enabledKPIs || [],
+                    targets: config.targets || {},
+                  };
+                }
               }
             );
             setPlatformKPIStates(kpiStates);
@@ -999,10 +1001,9 @@ export function ProjectFormModal({
                   formatter={value =>
                     `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
                   }
-                  parser={value => {
-                    const num = Number(value?.replace(/,/g, ''));
-                    return isNaN(num) ? 0 : num;
-                  }}
+                  parser={value =>
+                    Number(value?.replace(/,/g, '') || 0) as 0
+                  }
                 />
               </Form.Item>
             </Col>
@@ -1225,16 +1226,23 @@ export function ProjectFormModal({
                                       precision={2}
                                       value={state.targets[kpiKey]}
                                       onChange={value => {
-                                        setPlatformKPIStates(prev => ({
-                                          ...prev,
-                                          [platform]: {
-                                            ...prev[platform],
-                                            targets: {
-                                              ...prev[platform]?.targets,
-                                              [kpiKey]: value ?? undefined,
+                                        setPlatformKPIStates(prev => {
+                                          const currentTargets =
+                                            prev[platform]?.targets || {};
+                                          const newTargets = { ...currentTargets };
+                                          if (value !== null && value !== undefined) {
+                                            newTargets[kpiKey] = value;
+                                          } else {
+                                            delete newTargets[kpiKey];
+                                          }
+                                          return {
+                                            ...prev,
+                                            [platform]: {
+                                              ...prev[platform],
+                                              targets: newTargets,
                                             },
-                                          },
-                                        }));
+                                          };
+                                        });
                                       }}
                                     />
                                     <Input
