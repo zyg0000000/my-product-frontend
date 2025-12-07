@@ -915,13 +915,10 @@ export function TalentProcurementCard({
                                 })}
                                 placement="top"
                                 trigger="hover"
-                                styles={{
-                                  root: { padding: 0 },
-                                  inner: {
-                                    padding: '12px',
-                                    backgroundColor: '#1f2937',
-                                    borderRadius: '6px',
-                                  },
+                                overlayInnerStyle={{
+                                  padding: '12px',
+                                  backgroundColor: '#1f2937',
+                                  borderRadius: '6px',
                                 }}
                               >
                                 <span className="font-bold text-blue-600 cursor-help border-b border-dashed border-blue-300 flex items-center gap-1">
