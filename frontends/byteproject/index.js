@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 const isFinalState = project.status === '已终结';
                 const nextStatusMap = { '执行中': '待结算', '待结算': '已收款', '已收款': '已终结' };
-                const prevStatusMap = { '待结算': '执行中', '已收款': '待结算' };
+                const prevStatusMap = { '待结算': '执行中', '已收款': '待结算', '已终结': '已收款' };
                 const nextStatus = nextStatusMap[project.status];
                 const prevStatus = prevStatusMap[project.status];
 

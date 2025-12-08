@@ -1,9 +1,10 @@
 /**
  * @file state-manager.js
  * @description 状态管理模块 - 管理应用程序的所有状态
+ * @version 2.0 - Added batch edit mode state
  */
 
-import { ITEMS_PER_PAGE_KEY } from './constants.js';
+import { ITEMS_PER_PAGE_KEY, BATCH_MODE } from './constants.js';
 
 // --- 状态变量 ---
 export let allProjects = [];
@@ -14,6 +15,10 @@ export let currentPage = 1;
 export let itemsPerPage = parseInt(localStorage.getItem(ITEMS_PER_PAGE_KEY) || '15');
 export let openRowId = null;
 export let currentUploadTaskId = null;
+
+// 批量编辑模式状态
+export let batchMode = BATCH_MODE.OFF;
+export let selectedTaskIds = new Set();
 
 // --- 状态更新函数 ---
 
@@ -101,4 +106,82 @@ export function updateTask(taskId, updates) {
     if (task) {
         Object.assign(task, updates);
     }
+}
+
+// ========== 批量编辑模式相关函数 ==========
+
+/**
+ * 设置批量编辑模式
+ * @param {string} mode - 模式 (BATCH_MODE.ON 或 BATCH_MODE.OFF)
+ */
+export function setBatchMode(mode) {
+    batchMode = mode;
+    if (mode === BATCH_MODE.OFF) {
+        selectedTaskIds.clear();
+    }
+}
+
+/**
+ * 获取批量编辑模式状态
+ * @returns {string} - 当前模式
+ */
+export function getBatchMode() {
+    return batchMode;
+}
+
+/**
+ * 切换任务选中状态
+ * @param {string} taskId - 任务ID
+ */
+export function toggleTaskSelection(taskId) {
+    if (selectedTaskIds.has(taskId)) {
+        selectedTaskIds.delete(taskId);
+    } else {
+        selectedTaskIds.add(taskId);
+    }
+}
+
+/**
+ * 设置任务选中状态
+ * @param {string} taskId - 任务ID
+ * @param {boolean} selected - 是否选中
+ */
+export function setTaskSelection(taskId, selected) {
+    if (selected) {
+        selectedTaskIds.add(taskId);
+    } else {
+        selectedTaskIds.delete(taskId);
+    }
+}
+
+/**
+ * 全选当前页任务
+ * @param {Array} taskIds - 要选中的任务ID数组
+ */
+export function selectAllTasks(taskIds) {
+    taskIds.forEach(id => selectedTaskIds.add(id));
+}
+
+/**
+ * 清空所有选中
+ */
+export function clearAllSelections() {
+    selectedTaskIds.clear();
+}
+
+/**
+ * 获取选中的任务ID数组
+ * @returns {Array} - 选中的任务ID数组
+ */
+export function getSelectedTaskIds() {
+    return Array.from(selectedTaskIds);
+}
+
+/**
+ * 检查任务是否被选中
+ * @param {string} taskId - 任务ID
+ * @returns {boolean} - 是否选中
+ */
+export function isTaskSelected(taskId) {
+    return selectedTaskIds.has(taskId);
 }

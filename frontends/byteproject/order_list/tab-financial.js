@@ -55,7 +55,11 @@ export class FinancialTab {
             adjustmentForm: document.getElementById('adjustment-form'),
             adjustmentModalTitle: document.getElementById('adjustment-modal-title'),
             editingAdjustmentIdInput: document.getElementById('editing-adjustment-id'),
-            adjustmentTypeSelect: document.getElementById('adjustment-type')
+            adjustmentTypeSelect: document.getElementById('adjustment-type'),
+
+            // Excel 导入相关
+            excelImportBtn: document.getElementById('excel-import-btn'),
+            excelFileInput: document.getElementById('excel-file-input')
         };
 
         // 绑定事件处理器
@@ -63,12 +67,65 @@ export class FinancialTab {
         this.handleChange = this.handleChange.bind(this);
         this.handleBatchAction = this.handleBatchAction.bind(this);
         this.handleAdjustmentSubmit = this.handleAdjustmentSubmit.bind(this);
+        this.handleExcelImport = this.handleExcelImport.bind(this);
+    }
+
+    /**
+     * 绑定全局事件（只执行一次，不依赖数据）
+     */
+    bindGlobalEvents() {
+        // 防止重复绑定
+        if (this._globalEventsBound) return;
+        this._globalEventsBound = true;
+
+        const { excelImportBtn, excelFileInput, batchActionSelect, batchDateInput, executeBatchBtn, addAdjustmentBtn, closeAdjustmentModalBtn, adjustmentForm, selectAllCheckbox } = this.elements;
+
+        // Excel 导入事件
+        if (excelImportBtn && excelFileInput) {
+            excelImportBtn.addEventListener('click', () => excelFileInput.click());
+            excelFileInput.addEventListener('change', this.handleExcelImport);
+        }
+
+        // 批量操作下拉框改变事件
+        if (batchActionSelect) {
+            batchActionSelect.addEventListener('change', () => {
+                if (batchDateInput) {
+                    batchDateInput.classList.toggle('hidden', !batchActionSelect.value);
+                }
+                if (executeBatchBtn) {
+                    executeBatchBtn.disabled = !batchActionSelect.value;
+                }
+            });
+        }
+
+        if (executeBatchBtn) {
+            executeBatchBtn.addEventListener('click', this.handleBatchAction);
+        }
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', () => this.handleSelectAll());
+        }
+
+        if (addAdjustmentBtn) {
+            addAdjustmentBtn.addEventListener('click', () => this.openAdjustmentModal());
+        }
+
+        if (closeAdjustmentModalBtn) {
+            closeAdjustmentModalBtn.addEventListener('click', () => this.closeAdjustmentModal());
+        }
+
+        if (adjustmentForm) {
+            adjustmentForm.addEventListener('submit', this.handleAdjustmentSubmit);
+        }
     }
 
     /**
      * 加载数据
      */
     async load() {
+        // 首次加载时绑定全局事件
+        this.bindGlobalEvents();
+
         this.showLoading();
 
         try {
@@ -405,47 +462,16 @@ export class FinancialTab {
     }
 
     /**
-     * 绑定事件
+     * 绑定表格事件（每次渲染后调用，使用事件委托）
      */
     bindEvents() {
-        const { listBody, selectAllCheckbox, batchActionSelect, batchDateInput, executeBatchBtn, addAdjustmentBtn, closeAdjustmentModalBtn, adjustmentForm } = this.elements;
+        const { listBody } = this.elements;
 
-        if (listBody) {
+        // 使用事件委托，只需绑定一次
+        if (listBody && !listBody._bindEventsAttached) {
             listBody.addEventListener('click', this.handleClick);
             listBody.addEventListener('change', this.handleChange);
-        }
-
-        if (selectAllCheckbox) {
-            selectAllCheckbox.addEventListener('change', () => this.handleSelectAll());
-        }
-
-        // 批量操作下拉框改变事件
-        if (batchActionSelect) {
-            batchActionSelect.addEventListener('change', () => {
-                const { batchDateInput, executeBatchBtn } = this.elements;
-                if (batchDateInput) {
-                    batchDateInput.classList.toggle('hidden', !batchActionSelect.value);
-                }
-                if (executeBatchBtn) {
-                    executeBatchBtn.disabled = !batchActionSelect.value;
-                }
-            });
-        }
-
-        if (executeBatchBtn) {
-            executeBatchBtn.addEventListener('click', this.handleBatchAction);
-        }
-
-        if (addAdjustmentBtn) {
-            addAdjustmentBtn.addEventListener('click', () => this.openAdjustmentModal());
-        }
-
-        if (closeAdjustmentModalBtn) {
-            closeAdjustmentModalBtn.addEventListener('click', () => this.closeAdjustmentModal());
-        }
-
-        if (adjustmentForm) {
-            adjustmentForm.addEventListener('submit', this.handleAdjustmentSubmit);
+            listBody._bindEventsAttached = true;
         }
     }
 
@@ -761,6 +787,304 @@ export class FinancialTab {
                 loading.close();
             }
         });
+    }
+
+    // ==================== Excel 导入功能 ====================
+
+    /**
+     * 处理 Excel 文件导入
+     */
+    async handleExcelImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // 重置 input 以便可以重复选择同一文件
+        event.target.value = '';
+
+        if (this.project.status === '已终结') {
+            Modal.showAlert('项目已终结，无法导入数据。');
+            return;
+        }
+
+        const loading = Modal.showLoading('正在解析 Excel 文件...');
+
+        try {
+            // 解析 Excel 文件
+            const excelData = await this.parseExcelFile(file);
+
+            if (excelData.length === 0) {
+                loading.close();
+                Modal.showAlert('Excel 文件中没有有效数据。');
+                return;
+            }
+
+            // 加载所有合作记录用于匹配
+            const allCollabs = await this.loadAllCollaborationsForMatching();
+
+            // 匹配数据
+            const matchResult = this.matchCollaborations(excelData, allCollabs);
+
+            loading.close();
+
+            // 显示导入预览弹窗
+            this.showImportPreview(matchResult);
+
+        } catch (error) {
+            loading.close();
+            console.error('Excel 导入失败:', error);
+            Modal.showAlert('Excel 文件解析失败，请检查文件格式。');
+        }
+    }
+
+    /**
+     * 解析 Excel 文件
+     * 注意：Excel 可能有两行表头（第1行是分组标题，第2行是列名），需要智能检测
+     */
+    async parseExcelFile(file) {
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+        // 先尝试默认方式解析（第1行为表头）
+        let jsonData = XLSX.utils.sheet_to_json(sheet);
+
+        // 检查是否能找到达人名称列
+        const hasValidHeader = jsonData.length > 0 && jsonData.some(row =>
+            row['发布达人名称（不可修改）'] || row['发布达人名称'] || row['达人昵称'] || row['达人名称']
+        );
+
+        // 如果默认方式找不到，尝试跳过第1行（从第2行开始作为表头）
+        if (!hasValidHeader) {
+            jsonData = XLSX.utils.sheet_to_json(sheet, { range: 1 });
+        }
+
+        return jsonData.map(row => ({
+            // 支持多种可能的列名格式
+            talentName: row['发布达人名称（不可修改）'] || row['发布达人名称'] || row['达人昵称'] || row['达人名称'],
+            orderDate: this.parseExcelDate(row['下单日期（不可修改）'] || row['下单日期'])
+        })).filter(item => item.talentName && item.orderDate);
+    }
+
+    /**
+     * 解析 Excel 日期格式
+     */
+    parseExcelDate(value) {
+        if (!value) return null;
+
+        // 如果是数字（Excel 日期序列号）
+        if (typeof value === 'number') {
+            const date = XLSX.SSF.parse_date_code(value);
+            return `${date.y}-${String(date.m).padStart(2, '0')}-${String(date.d).padStart(2, '0')}`;
+        }
+
+        // 如果是字符串，尝试解析
+        const strValue = String(value).trim();
+
+        // 尝试解析 YYYY-MM-DD 格式
+        if (/^\d{4}-\d{2}-\d{2}$/.test(strValue)) {
+            return strValue;
+        }
+
+        // 尝试解析 YYYY/MM/DD 格式
+        if (/^\d{4}\/\d{1,2}\/\d{1,2}$/.test(strValue)) {
+            const parts = strValue.split('/');
+            return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+        }
+
+        // 尝试通过 Date 对象解析
+        const parsed = new Date(strValue);
+        if (!isNaN(parsed.getTime())) {
+            return parsed.toISOString().split('T')[0];
+        }
+
+        return null;
+    }
+
+    /**
+     * 加载所有合作记录用于匹配
+     */
+    async loadAllCollaborationsForMatching() {
+        const requiredStatuses = ['客户已定档', '视频已发布'];
+        const response = await API.request('/collaborations', 'GET', {
+            projectId: this.projectId,
+            limit: 9999,
+            statuses: requiredStatuses.join(',')
+        });
+        return response.data || [];
+    }
+
+    /**
+     * 匹配合作记录
+     */
+    matchCollaborations(excelData, allCollabs) {
+        const results = {
+            matched: [],
+            unmatched: [],
+            duplicates: []
+        };
+
+        excelData.forEach(item => {
+            const matches = allCollabs.filter(
+                c => c.talentInfo?.nickname === item.talentName
+            );
+
+            if (matches.length === 1) {
+                results.matched.push({
+                    collab: matches[0],
+                    orderDate: item.orderDate,
+                    talentName: item.talentName
+                });
+            } else if (matches.length > 1) {
+                results.duplicates.push({
+                    talentName: item.talentName,
+                    count: matches.length
+                });
+            } else {
+                results.unmatched.push(item.talentName);
+            }
+        });
+
+        return results;
+    }
+
+    /**
+     * 显示导入预览弹窗
+     */
+    showImportPreview(matchResult) {
+        const { matched, unmatched, duplicates } = matchResult;
+
+        // 创建弹窗
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        modal.id = 'excel-import-modal';
+
+        const unmatchedHtml = unmatched.length > 0
+            ? `<div class="flex items-start gap-2 text-yellow-700 bg-yellow-50 p-3 rounded-lg">
+                <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <div>
+                    <span class="font-medium">未找到达人: ${unmatched.length} 条</span>
+                    <p class="text-sm mt-1">${unmatched.slice(0, 5).join('、')}${unmatched.length > 5 ? ` 等${unmatched.length}人` : ''}</p>
+                </div>
+            </div>`
+            : '';
+
+        const duplicatesHtml = duplicates.length > 0
+            ? `<div class="flex items-start gap-2 text-red-700 bg-red-50 p-3 rounded-lg">
+                <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                    <span class="font-medium">达人重复: ${duplicates.length} 条</span>
+                    <p class="text-sm mt-1">${duplicates.slice(0, 3).map(d => `${d.talentName}(${d.count}个同名)`).join('、')}</p>
+                </div>
+            </div>`
+            : '';
+
+        const matchedTableHtml = matched.length > 0
+            ? `<div class="mt-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">匹配成功的记录：</h4>
+                <div class="max-h-60 overflow-y-auto border rounded-lg">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr>
+                                <th class="px-4 py-2 text-left">达人昵称</th>
+                                <th class="px-4 py-2 text-left">原下单日期</th>
+                                <th class="px-4 py-2 text-left">新下单日期</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${matched.map(item => `
+                                <tr class="border-t">
+                                    <td class="px-4 py-2">${item.talentName}</td>
+                                    <td class="px-4 py-2 text-gray-500">${item.collab.orderDate || '无'}</td>
+                                    <td class="px-4 py-2 font-medium text-green-600">${item.orderDate}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>`
+            : '';
+
+        modal.innerHTML = `
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+                <div class="px-6 py-4 border-b flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-900">Excel 导入预览</h3>
+                    <button id="close-import-modal-btn" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto flex-1">
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2 text-green-700 bg-green-50 p-3 rounded-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="font-medium">匹配成功: ${matched.length} 条</span>
+                        </div>
+                        ${unmatchedHtml}
+                        ${duplicatesHtml}
+                    </div>
+                    ${matchedTableHtml}
+                </div>
+                <div class="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
+                    <button id="cancel-import-btn" class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">取消</button>
+                    <button id="confirm-import-btn" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400" ${matched.length === 0 ? 'disabled' : ''}>
+                        确认导入 ${matched.length} 条
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // 绑定事件
+        const closeModal = () => modal.remove();
+
+        modal.querySelector('#close-import-modal-btn').addEventListener('click', closeModal);
+        modal.querySelector('#cancel-import-btn').addEventListener('click', closeModal);
+        modal.querySelector('#confirm-import-btn').addEventListener('click', async () => {
+            closeModal();
+            await this.executeImport(matched);
+        });
+
+        // 点击背景关闭
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+    }
+
+    /**
+     * 执行批量导入
+     */
+    async executeImport(matchedItems) {
+        const loading = Modal.showLoading(`正在导入 ${matchedItems.length} 条记录...`);
+
+        try {
+            const updatePromises = matchedItems.map(item =>
+                API.request('/update-collaboration', 'PUT', {
+                    id: item.collab.id,
+                    orderDate: item.orderDate
+                })
+            );
+
+            await Promise.all(updatePromises);
+
+            loading.close();
+            Modal.showAlert(`成功导入 ${matchedItems.length} 条下单日期！`, '导入成功', () => {
+                this.load();
+                // 触发项目数据刷新
+                document.dispatchEvent(new CustomEvent('refreshProject'));
+            });
+        } catch (error) {
+            loading.close();
+            console.error('批量导入失败:', error);
+            Modal.showAlert('部分数据导入失败，请刷新页面查看结果。');
+        }
     }
 }
 

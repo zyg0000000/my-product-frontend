@@ -1,0 +1,9 @@
+{
+  "name": "get-batch-project-performance-function",
+  "version": "1.0.0",
+  "description": "Batch API to aggregate performance data for multiple projects.",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^4.1.0"
+  }
+}

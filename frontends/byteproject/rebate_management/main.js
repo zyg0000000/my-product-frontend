@@ -1,6 +1,6 @@
 /**
  * @file main.js
- * @version 5.1-modularized
+ * @version 6.0 - Added batch edit mode and quick recovery
  * @description 返点管理页面主入口模块 - 协调所有子模块
  */
 
@@ -20,13 +20,23 @@ import {
     displayedTasks,
     currentPage,
     itemsPerPage,
-    openRowId
+    openRowId,
+    toggleTaskSelection,
+    setTaskSelection
 } from './state-manager.js';
 import { renderDashboard } from './dashboard.js';
 import { renderTable } from './table-renderer.js';
 import { renderProjectFilter, applyFilters } from './filter-panel.js';
 import { handleSaveRebate, handleDeleteRecord } from './details-panel.js';
 import { handleImageUpload, handleDeleteScreenshot, initImageViewer, showImageViewer } from './image-handler.js';
+import {
+    enterBatchMode,
+    exitBatchMode,
+    selectAllPendingTasks,
+    clearSelections,
+    batchFullRecovery,
+    quickFullRecovery
+} from './batch-operations.js';
 
 /**
  * 加载初始数据
@@ -95,6 +105,14 @@ function renderPage() {
     applyFilters();
     renderDashboard();
     renderTable();
+}
+
+/**
+ * 触发数据刷新事件
+ */
+function triggerDataRefresh() {
+    const event = new CustomEvent('rebate-data-changed');
+    document.dispatchEvent(event);
 }
 
 /**
@@ -208,6 +226,49 @@ async function initializePage() {
             const fileUrl = target.dataset.url;
             await handleDeleteScreenshot(index, fileUrl);
         }
+        // 快速全额回收按钮
+        else if (target.closest('.quick-recovery-btn')) {
+            const quickTaskId = target.dataset.taskId;
+            await quickFullRecovery(quickTaskId, triggerDataRefresh);
+        }
+    });
+
+    // 批量选择复选框事件（事件委托）
+    rebateListBody.addEventListener('change', (e) => {
+        if (e.target.classList.contains('batch-select-checkbox')) {
+            const taskId = e.target.dataset.taskId;
+            setTaskSelection(taskId, e.target.checked);
+            // 更新工具栏显示选中数量
+            renderTable();
+        }
+    });
+
+    // 批量操作工具栏事件（事件委托）
+    const batchToolbarContainer = document.getElementById('batch-toolbar-container');
+    batchToolbarContainer.addEventListener('click', async (e) => {
+        const target = e.target.closest('button');
+        if (!target) return;
+
+        // 进入批量编辑模式
+        if (target.id === 'enter-batch-mode-btn') {
+            enterBatchMode(renderTable);
+        }
+        // 退出批量编辑模式
+        else if (target.id === 'exit-batch-mode-btn') {
+            exitBatchMode(renderTable);
+        }
+        // 全选待回收
+        else if (target.id === 'select-all-pending-btn') {
+            selectAllPendingTasks(renderTable);
+        }
+        // 清空选择
+        else if (target.id === 'clear-selection-btn') {
+            clearSelections(renderTable);
+        }
+        // 批量全额回收
+        else if (target.id === 'batch-full-recovery-btn') {
+            await batchFullRecovery(triggerDataRefresh);
+        }
     });
 
     // 监听实收金额输入变化
@@ -241,7 +302,23 @@ async function initializePage() {
 
     // 监听数据变更事件（从 details-panel.js 触发）
     document.addEventListener('rebate-data-changed', async () => {
+        // 1. 保存当前筛选状态
+        const savedFilters = {
+            project: document.getElementById('project-filter').value,
+            status: document.getElementById('status-filter').value,
+            search: document.getElementById('talent-search').value
+        };
+
+        // 2. 重新加载数据
         await loadInitialData();
+
+        // 3. 恢复筛选状态
+        document.getElementById('project-filter').value = savedFilters.project;
+        document.getElementById('status-filter').value = savedFilters.status;
+        document.getElementById('talent-search').value = savedFilters.search;
+
+        // 4. 重新应用筛选并渲染
+        renderPage();
     });
 }
 

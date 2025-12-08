@@ -1,17 +1,21 @@
 /**
  * @module kpi-calculator
  * @description KPI calculation functions aligned with index.js logic
+ * @version 2.0 - Added view mode support for customer/financial views
  */
 
-import { getFilters } from './state-manager.js';
-import { TIME_DIMENSIONS } from './constants.js';
+import { getFilters, getViewMode } from './state-manager.js';
+import { TIME_DIMENSIONS, VIEW_MODES } from './constants.js';
 
 /**
  * Calculates KPI summary from filtered projects
  * @param {Array} projects - Array of filtered project objects
- * @returns {Object} KPI summary object with all calculated metrics
+ * @param {string} viewMode - Optional view mode override ('customer' or 'financial')
+ * @returns {Object} KPI summary object with metrics based on view mode
  */
-export function calculateKpiSummary(projects) {
+export function calculateKpiSummary(projects, viewMode = null) {
+  const currentViewMode = viewMode || getViewMode();
+
   // Aggregate metrics from all projects
   const aggregated = projects.reduce((acc, project) => {
     const metrics = project.metrics || {};
@@ -63,7 +67,18 @@ export function calculateKpiSummary(projects) {
     ? 0
     : (aggregated.totalIncome / aggregated.projectBudget) * 100;
 
-  // Return formatted KPI summary object
+  // Return different metrics based on view mode
+  if (currentViewMode === VIEW_MODES.CUSTOMER) {
+    // Customer view: only business metrics, hide profit-related info
+    return {
+      totalProjects: aggregated.totalProjects,
+      totalCollaborators: aggregated.totalCollaborators,
+      totalIncomeAgg: aggregated.totalIncome,
+      fundsOccupationCost: aggregated.totalFundsOccupationCost
+    };
+  }
+
+  // Financial view: return all metrics
   return {
     totalProjects: aggregated.totalProjects,
     totalCollaborators: aggregated.totalCollaborators,
@@ -83,9 +98,11 @@ export function calculateKpiSummary(projects) {
 /**
  * Calculates monthly trend data for charts
  * @param {Array} projects - Array of filtered project objects
- * @returns {Array} Array of monthly trend data objects
+ * @param {string} viewMode - Optional view mode override ('customer' or 'financial')
+ * @returns {Array} Array of monthly trend data objects with all metrics
  */
-export function calculateMonthlyTrend(projects) {
+export function calculateMonthlyTrend(projects, viewMode = null) {
+  const currentViewMode = viewMode || getViewMode();
   const filters = getFilters();
   const timeDimension = filters.timeDimension;
   const yearField = timeDimension === TIME_DIMENSIONS.FINANCIAL ? 'financialYear' : 'year';
@@ -108,14 +125,16 @@ export function calculateMonthlyTrend(projects) {
       monthlyMap[key] = {
         year,
         month,
-        projects: [],
+        projectIds: new Set(),
         totalIncome: 0,
-        operationalProfit: 0
+        operationalProfit: 0,
+        collaboratorCount: 0,
+        fundsOccupationCost: 0
       };
     }
 
-    // Add project to monthly group
-    monthlyMap[key].projects.push(project);
+    // Track unique projects
+    monthlyMap[key].projectIds.add(project.id);
 
     // Aggregate metrics
     const metrics = project.metrics || {};
@@ -125,6 +144,12 @@ export function calculateMonthlyTrend(projects) {
     if (metrics.operationalProfit) {
       monthlyMap[key].operationalProfit += metrics.operationalProfit;
     }
+    if (metrics.totalCollaborators) {
+      monthlyMap[key].collaboratorCount += metrics.totalCollaborators;
+    }
+    if (metrics.fundsOccupationCost) {
+      monthlyMap[key].fundsOccupationCost += metrics.fundsOccupationCost;
+    }
   });
 
   // Convert to array and calculate margins
@@ -133,11 +158,21 @@ export function calculateMonthlyTrend(projects) {
       ? 0
       : (item.operationalProfit / item.totalIncome) * 100;
 
-    return {
+    const result = {
       month: `${item.year}-${item.month}`,
       totalIncome: item.totalIncome,
-      margin: margin
+      collaboratorCount: item.collaboratorCount,
+      fundsOccupationCost: item.fundsOccupationCost,
+      projectCount: item.projectIds.size
     };
+
+    // Only include margin for financial view
+    if (currentViewMode === VIEW_MODES.FINANCIAL) {
+      result.margin = margin;
+      result.operationalProfit = item.operationalProfit;
+    }
+
+    return result;
   });
 
   // Sort by year and month

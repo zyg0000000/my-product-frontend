@@ -1,12 +1,27 @@
 /**
  * @file getProjectPerformance.js
- * @version 3.3-t21-complete
- * @description 效果看板API (T+21数据补全版)
- * * --- 更新日志 (v3.3) ---
- * - [T+21数据补全] 新增T+21的所有详细子指标，包括点赞、评论、分享、组件数据、完播率和触达分布
- * - [数据对齐] T+21现在拥有与T+7完全相同的数据维度
- * - [计算字段] 为T+21新增 interactions, interactionRate, likeToViewRatio, completionViews, totalReach 等衍生指标
+ * @version 3.4-status-filter
+ * @description 效果看板API (状态筛选版)
+ *
+ * --- 更新日志 (v3.4) ---
+ * - [状态筛选] T+7业务概览：只计算"视频已发布"或"客户已定档"状态的合作
+ * - [状态筛选] T+21效果达成：只计算"视频已发布"状态的合作
+ * - [执行金额] T+21达成率计算使用已发布合作的执行金额
+ *
+ * --- 更新日志 (v3.3) ---
+ * - [T+21数据补全] 新增T+21的所有详细子指标
  */
+
+// 合作状态常量
+const COLLAB_STATUS = {
+    VIDEO_PUBLISHED: '视频已发布',
+    CUSTOMER_SCHEDULED: '客户已定档',
+    WORKBENCH_SUBMITTED: '工作台已提交',
+    PENDING_WORKBENCH: '待提报工作台'
+};
+
+// 效果达成统计：仅"视频已发布"状态的合作
+const EFFECT_VALID_STATUS = COLLAB_STATUS.VIDEO_PUBLISHED;
 const { MongoClient } = require('mongodb');
 
 const MONGO_URI = process.env.MONGO_URI;
@@ -71,8 +86,10 @@ exports.handler = async (event, context) => {
         const talentData = collaborations.map(collab => {
             const work = works.find(w => w.collaborationId === collab.id) || {};
             const talentInfo = talents.find(t => t.id === collab.talentId);
-            
-            if (collab.publishDate) {
+            const collabStatus = collab.status || '';
+
+            // 只有视频已发布的合作才记录发布日期用于T+21计算
+            if (collabStatus === COLLAB_STATUS.VIDEO_PUBLISHED && collab.publishDate) {
                 const currentPublishDate = new Date(collab.publishDate);
                 if (!lastPublishDate || currentPublishDate > lastPublishDate) {
                     lastPublishDate = currentPublishDate;
@@ -80,6 +97,9 @@ exports.handler = async (event, context) => {
             }
 
             const executionAmount = (Number(collab.amount) || 0) * projectDiscount * 1.05;
+
+            // 判断是否符合效果达成统计条件（仅视频已发布）
+            const isEffectValid = collabStatus === EFFECT_VALID_STATUS;
 
             // --- T+7 Metrics ---
             const t7_views = work.t7_totalViews || 0;
@@ -129,16 +149,19 @@ exports.handler = async (event, context) => {
                 id: collab.id,
                 talentName: talentInfo?.nickname || '未知达人',
                 publishDate: collab.publishDate,
+                status: collabStatus,
                 executionAmount,
-                
+                // 状态标志：是否纳入效果达成统计
+                isEffectValid,
+
                 // T+7 完整指标
                 t7_views, t7_likes, t7_comments, t7_shares, t7_interactions,
                 t7_componentClicks, t7_componentImpressions,
                 t7_completionRate, t7_completionViews,
                 t7_totalReach,
                 t7_cpm, t7_cpe, t7_ctr, t7_interactionRate, t7_likeToViewRatio,
-                
-                // T+21 完整指标（新增）
+
+                // T+21 完整指标
                 t21_views, t21_likes, t21_comments, t21_shares, t21_interactions,
                 t21_componentClicks, t21_componentImpressions,
                 t21_completionRate, t21_completionViews,
@@ -148,49 +171,51 @@ exports.handler = async (event, context) => {
         });
 
         const overall = talentData.reduce((acc, talent) => {
+            // 效果达成统计：只计算"视频已发布"状态的合作
+            if (!talent.isEffectValid) {
+                return acc;
+            }
+
+            // 累计执行金额
             acc.totalExecutionAmount += talent.executionAmount;
-            
+
             // T+7 汇总
             acc.t7_totalViews += talent.t7_views;
             acc.t7_totalInteractions += talent.t7_interactions;
             acc.t7_totalComponentClicks += talent.t7_componentClicks;
             acc.t7_totalComponentImpressions += talent.t7_componentImpressions;
-            
+
             // T+21 汇总
-            if (talent.t21_views !== null && talent.t21_views !== undefined) {
-                acc.t21_totalViews += talent.t21_views;
-                acc.t21_totalInteractions += talent.t21_interactions;
-            } else {
-                acc.hasMissingT21 = true;
-            }
+            acc.t21_totalViews += talent.t21_views;
+            acc.t21_totalInteractions += talent.t21_interactions;
             return acc;
         }, {
-            totalExecutionAmount: 0, 
+            totalExecutionAmount: 0,
             t7_totalViews: 0, t7_totalInteractions: 0,
             t7_totalComponentClicks: 0, t7_totalComponentImpressions: 0,
-            t21_totalViews: 0, t21_totalInteractions: 0,
-            hasMissingT21: false
+            t21_totalViews: 0, t21_totalInteractions: 0
         });
 
         overall.t7_cpm = overall.t7_totalViews > 0 ? (overall.totalExecutionAmount / overall.t7_totalViews) * 1000 : 0;
         overall.t7_cpe = overall.t7_totalInteractions > 0 ? (overall.totalExecutionAmount / overall.t7_totalInteractions) : 0;
         overall.t7_ctr = overall.t7_totalComponentImpressions > 0 ? overall.t7_totalComponentClicks / overall.t7_totalComponentImpressions : 0;
 
-        if (overall.hasMissingT21) {
-            overall.t21_totalViews = null;
-            overall.t21_totalInteractions = null;
-            overall.t21_cpm = null;
-            overall.targetViews = null;
-            overall.viewsGap = null;
-        } else {
-            overall.t21_cpm = overall.t21_totalViews > 0 ? (overall.totalExecutionAmount / overall.t21_totalViews) * 1000 : 0;
+        // T+21 指标计算 - totalExecutionAmount 已经只包含"视频已发布"状态的合作
+        if (overall.t21_totalViews > 0 && overall.totalExecutionAmount > 0) {
+            overall.t21_cpm = (overall.totalExecutionAmount / overall.t21_totalViews) * 1000;
             if (benchmarkCPM && benchmarkCPM > 0) {
+                // 目标播放量 = 视频已发布合作执行金额 / 基准CPM * 1000
                 overall.targetViews = (overall.totalExecutionAmount / benchmarkCPM) * 1000;
                 overall.viewsGap = overall.t21_totalViews - overall.targetViews;
             } else {
                 overall.targetViews = null;
                 overall.viewsGap = null;
             }
+        } else {
+            // 没有效果数据时
+            overall.t21_cpm = null;
+            overall.targetViews = null;
+            overall.viewsGap = null;
         }
         
         const deliveryDate = addDays(lastPublishDate, 21);

@@ -1,10 +1,23 @@
 /**
  * @file table-renderer.js
  * @description 表格渲染模块
+ * @version 2.0 - Added batch mode and quick recovery support
  */
 
-import { displayedTasks, currentPage, itemsPerPage, openRowId, getTaskById } from './state-manager.js';
+import { displayedTasks, currentPage, itemsPerPage, openRowId, getTaskById, getBatchMode, isTaskSelected } from './state-manager.js';
 import { renderPagination } from './pagination.js';
+import { BATCH_MODE } from './constants.js';
+import { renderBatchToolbar } from './batch-operations.js';
+
+/**
+ * 渲染批量操作工具栏
+ */
+export function renderBatchToolbarUI() {
+    const toolbarContainer = document.getElementById('batch-toolbar-container');
+    if (toolbarContainer) {
+        toolbarContainer.innerHTML = renderBatchToolbar();
+    }
+}
 
 /**
  * 渲染表格主体
@@ -13,12 +26,21 @@ export function renderTable() {
     const rebateListBody = document.getElementById('rebate-list-body');
     rebateListBody.innerHTML = '';
 
+    // 渲染批量操作工具栏
+    renderBatchToolbarUI();
+
+    const isBatchMode = getBatchMode() === BATCH_MODE.ON;
     const totalPages = Math.ceil(displayedTasks.length / itemsPerPage);
     if (currentPage > totalPages) currentPage = totalPages || 1;
     const paginatedTasks = displayedTasks.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+    // 更新表头（添加/移除复选框列）
+    updateTableHeader(isBatchMode);
+
+    const colSpan = isBatchMode ? 9 : 8;
+
     if (paginatedTasks.length === 0) {
-        rebateListBody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-gray-500">未找到符合条件的返点任务。</td></tr>`;
+        rebateListBody.innerHTML = `<tr><td colspan="${colSpan}" class="text-center py-12 text-gray-500">未找到符合条件的返点任务。</td></tr>`;
     } else {
         paginatedTasks.forEach(task => {
             const isDetailsOpen = openRowId === task.id;
@@ -43,7 +65,21 @@ export function renderTable() {
                 ? `¥ ${recoveredAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
                 : 'N/A';
 
+            // 复选框列（仅批量模式显示）
+            const checkboxCell = isBatchMode
+                ? `<td class="px-4 py-4 text-center">
+                     <input type="checkbox" class="batch-select-checkbox w-4 h-4 text-indigo-600 rounded border-gray-300"
+                            data-task-id="${task.id}" ${isTaskSelected(task.id) ? 'checked' : ''}>
+                   </td>`
+                : '';
+
+            // 快速回收按钮（仅待回收状态显示）
+            const quickRecoveryBtn = !isRecovered
+                ? `<button class="quick-recovery-btn ml-2 px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200" data-task-id="${task.id}" title="一键全额回收">✓ 全额</button>`
+                : '';
+
             row.innerHTML = `
+                ${checkboxCell}
                 <td class="px-6 py-4 font-medium"><a href="order_list.html?projectId=${task.projectId}&from=rebate_management" class="text-blue-600 hover:underline">${task.projectName}</a></td>
                 <td class="px-6 py-4 font-semibold text-gray-900">${task.talentName}</td>
                 <td class="px-6 py-4">${task.talentSource}</td>
@@ -53,6 +89,7 @@ export function renderTable() {
                 <td class="px-6 py-4">${statusHtml}</td>
                 <td class="px-6 py-4 text-center">
                     <button class="font-medium text-blue-600 hover:underline toggle-details-btn">${isDetailsOpen ? '收起' : (isRecovered ? '查看/修改' : '录入信息')}</button>
+                    ${quickRecoveryBtn}
                 </td>
             `;
             rebateListBody.appendChild(row);
@@ -60,7 +97,7 @@ export function renderTable() {
             if (isDetailsOpen) {
                 const detailsRow = document.createElement('tr');
                 detailsRow.className = 'details-row open';
-                detailsRow.innerHTML = renderDetailsRowContent(task);
+                detailsRow.innerHTML = renderDetailsRowContent(task, isBatchMode);
                 rebateListBody.appendChild(detailsRow);
             }
         });
@@ -69,11 +106,36 @@ export function renderTable() {
 }
 
 /**
+ * 更新表头（添加/移除复选框列）
+ * @param {boolean} isBatchMode - 是否为批量模式
+ */
+function updateTableHeader(isBatchMode) {
+    const thead = document.querySelector('#rebate-list-body')?.closest('table')?.querySelector('thead tr');
+    if (!thead) return;
+
+    const existingCheckboxHeader = thead.querySelector('.batch-checkbox-header');
+
+    if (isBatchMode && !existingCheckboxHeader) {
+        // 添加复选框列头
+        const th = document.createElement('th');
+        th.scope = 'col';
+        th.className = 'batch-checkbox-header px-4 py-3 text-center';
+        th.innerHTML = '<span class="text-xs">选择</span>';
+        thead.insertBefore(th, thead.firstChild);
+    } else if (!isBatchMode && existingCheckboxHeader) {
+        // 移除复选框列头
+        existingCheckboxHeader.remove();
+    }
+}
+
+/**
  * 渲染详情行内容
  * @param {Object} task - 任务对象
+ * @param {boolean} isBatchMode - 是否为批量模式
  * @returns {string} - HTML 内容
  */
-export function renderDetailsRowContent(task) {
+export function renderDetailsRowContent(task, isBatchMode = false) {
+    const colSpan = isBatchMode ? 9 : 8;
     const isRecovered = task.recoveredAmount != null;
     const recoveredAmountNum = parseFloat(task.recoveredAmount);
     const hasDiscrepancy = !isNaN(recoveredAmountNum) && Math.abs(recoveredAmountNum - task.receivable) > 0.01;
@@ -119,7 +181,7 @@ export function renderDetailsRowContent(task) {
     }
 
     return `
-        <td colspan="8" class="p-0">
+        <td colspan="${colSpan}" class="p-0">
             <div class="bg-blue-50 p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     <div class="space-y-4">
