@@ -284,7 +284,7 @@ function calculateEffectSummary(effectResults) {
   let totalActualInteractions = 0;
   let totalExecutionAmount = 0;
   let weightedTargetCPM = 0;
-  let weightedActualCPM = 0;
+  let totalExecutionAmountWithBenchmark = 0;  // 有基准CPM的项目的执行金额总和
   let validProjectCount = 0;
   let skippedCount = 0;
 
@@ -359,11 +359,12 @@ function calculateEffectSummary(effectResults) {
     validProjectCount++;
 
     // 只有设置了基准CPM的项目才纳入目标播放量和CPM统计
-    if (targetViews > 0) {
+    if (targetViews > 0 && benchmarkCPM > 0) {
       totalTargetViews += targetViews;
       // Weighted average for CPM (只计算有基准CPM的项目)
+      // 加权公式：Σ(benchmarkCPM × executionAmount) / Σ(executionAmount)
       weightedTargetCPM += benchmarkCPM * executionAmount;
-      weightedActualCPM += actualCPM * executionAmount;
+      totalExecutionAmountWithBenchmark += executionAmount;
     } else {
       // 记录没有设置基准CPM的项目（仅用于调试）
       excludedProjects.noTargetViews.push({
@@ -405,9 +406,10 @@ function calculateEffectSummary(effectResults) {
   // 计算实际CPM：总执行金额 / 总播放量 * 1000（与达人视角一致）
   const actualCPM = totalActualViews > 0 ? (totalExecutionAmount / totalActualViews) * 1000 : 0;
 
-  // 目标CPM：只计算设置了基准CPM的项目的加权平均
-  const targetCPM = weightedTargetCPM > 0 && totalTargetViews > 0
-    ? weightedTargetCPM / (totalTargetViews / 1000)  // 加权目标CPM
+  // 目标CPM：设置了基准CPM的项目的加权平均
+  // 公式：Σ(benchmarkCPM × executionAmount) / Σ(executionAmount)
+  const targetCPM = totalExecutionAmountWithBenchmark > 0
+    ? weightedTargetCPM / totalExecutionAmountWithBenchmark
     : 0;
 
   return {
