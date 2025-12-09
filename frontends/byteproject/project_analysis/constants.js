@@ -29,12 +29,28 @@ export const TIME_DIMENSIONS = {
 };
 
 /**
+ * Data period options (T+7 vs T+21)
+ * @constant {Object}
+ */
+export const DATA_PERIODS = {
+  T7: 't7',
+  T21: 't21'
+};
+
+/**
+ * Default data period
+ * @constant {string}
+ */
+export const DEFAULT_DATA_PERIOD = DATA_PERIODS.T7;
+
+/**
  * View mode options
  * @constant {Object}
  */
 export const VIEW_MODES = {
   CUSTOMER: 'customer',    // 客户视角（默认）- 隐藏利润相关指标
-  FINANCIAL: 'financial'   // 财务视角（内部）- 显示完整指标
+  FINANCIAL: 'financial',  // 财务视角（内部）- 显示完整指标
+  TALENT: 'talent'         // 达人视角 - 按达人维度分析合作数据
 };
 
 /**
@@ -110,7 +126,7 @@ export const CHART_CONFIG = {
 };
 
 /**
- * Effect performance metric options
+ * Effect performance metric options (parameterized for T+7/T+21)
  * @constant {Object}
  */
 export const EFFECT_METRIC_OPTIONS = {
@@ -118,18 +134,62 @@ export const EFFECT_METRIC_OPTIONS = {
     id: 'views',
     label: '播放量',
     targetField: 'targetViews',
-    actualField: 't21_totalViews',
+    actualFieldBase: 'totalViews',  // 实际字段基础名，将组合成 t7_totalViews 或 t21_totalViews
     format: 'number',
-    targetLabel: '目标播放量',
-    actualLabel: '实际播放量(T+21)'
+    targetLabel: '目标播放量'
   },
   cpm: {
     id: 'cpm',
     label: 'CPM',
     targetField: 'benchmarkCPM',
-    actualField: 't21_cpm',
+    actualFieldBase: 'cpm',  // 实际字段基础名，将组合成 t7_cpm 或 t21_cpm
     format: 'currency',
-    targetLabel: '目标CPM',
-    actualLabel: '实际CPM(T+21)'
+    targetLabel: '目标CPM'
   }
+};
+
+/**
+ * Helper function to get actual field name based on data period
+ * @param {string} baseField - Base field name (e.g., 'totalViews', 'cpm')
+ * @param {string} period - Data period ('t7' or 't21')
+ * @returns {string} Full field name (e.g., 't21_totalViews')
+ */
+export function getActualFieldName(baseField, period) {
+  return `${period}_${baseField}`;
+}
+
+/**
+ * Helper function to get display label with period
+ * @param {string} baseLabel - Base label (e.g., '实际播放量')
+ * @param {string} period - Data period ('t7' or 't21')
+ * @returns {string} Label with period (e.g., '实际播放量(T+21)')
+ */
+export function getActualLabel(baseLabel, period) {
+  const periodLabel = period === 't7' ? 'T+7' : 'T+21';
+  return `${baseLabel}(${periodLabel})`;
+}
+
+/**
+ * Talent view sort options
+ * @constant {Object}
+ */
+export const TALENT_SORT_OPTIONS = {
+  COLLABORATIONS: 'collaborations',
+  VIEWS: 'views',
+  CPM: 'cpm'
+};
+
+/**
+ * Valid collaboration statuses for talent view
+ * @constant {Array}
+ */
+export const VALID_COLLAB_STATUSES = ['视频已发布', '客户已定档'];
+
+/**
+ * External URL templates
+ * @constant {Object}
+ */
+export const EXTERNAL_URLS = {
+  XINGTU_PROFILE: 'https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/',
+  DOUYIN_VIDEO: 'https://www.douyin.com/video/'
 };

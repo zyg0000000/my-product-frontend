@@ -4,7 +4,7 @@
  * @version 2.0 - Added view mode, project selection, and chart field state
  */
 
-import { DEFAULT_FILTERS, TIME_DIMENSIONS, VIEW_MODES, DEFAULT_CHART_FIELDS } from './constants.js';
+import { DEFAULT_FILTERS, TIME_DIMENSIONS, VIEW_MODES, DEFAULT_CHART_FIELDS, DATA_PERIODS, DEFAULT_DATA_PERIOD } from './constants.js';
 
 /**
  * Application state
@@ -27,7 +27,9 @@ const state = {
     year: '',
     monthStart: '',
     monthEnd: ''
-  }
+  },
+  // 数据周期（T+7 或 T+21）
+  dataPeriod: DEFAULT_DATA_PERIOD       // 默认 T+21
 };
 
 /**
@@ -99,10 +101,10 @@ export function getState() {
 
 /**
  * Sets the current view mode
- * @param {string} mode - View mode ('customer' or 'financial')
+ * @param {string} mode - View mode ('customer', 'financial', or 'talent')
  */
 export function setViewMode(mode) {
-  if (mode === VIEW_MODES.CUSTOMER || mode === VIEW_MODES.FINANCIAL) {
+  if (mode === VIEW_MODES.CUSTOMER || mode === VIEW_MODES.FINANCIAL || mode === VIEW_MODES.TALENT) {
     state.viewMode = mode;
   }
 }
@@ -162,6 +164,7 @@ export function resetAllState() {
   state.chartFields = { ...DEFAULT_CHART_FIELDS };
   state.effectPerformanceData = {};
   state.effectMetric = 'views';
+  state.dataPeriod = DEFAULT_DATA_PERIOD;
   applyCurrentFilters();
 }
 
@@ -243,6 +246,43 @@ export function setEffectFilters(filters) {
  */
 export function getEffectFilters() {
   return { ...state.effectFilters };
+}
+
+// ========== Data Period Management (T+7 / T+21) ==========
+
+/**
+ * Sets the current data period
+ * @param {string} period - Data period ('t7' or 't21')
+ */
+export function setDataPeriod(period) {
+  if (period === DATA_PERIODS.T7 || period === DATA_PERIODS.T21) {
+    state.dataPeriod = period;
+  }
+}
+
+/**
+ * Gets the current data period
+ * @returns {string} Current data period ('t7' or 't21')
+ */
+export function getDataPeriod() {
+  return state.dataPeriod;
+}
+
+/**
+ * Gets the field name with current data period prefix
+ * @param {string} baseField - Base field name (e.g., 'totalViews', 'cpm')
+ * @returns {string} Full field name (e.g., 't21_totalViews')
+ */
+export function getPeriodFieldName(baseField) {
+  return `${state.dataPeriod}_${baseField}`;
+}
+
+/**
+ * Gets the display label for current data period
+ * @returns {string} Display label ('T+7' or 'T+21')
+ */
+export function getPeriodLabel() {
+  return state.dataPeriod === DATA_PERIODS.T7 ? 'T+7' : 'T+21';
 }
 
 /**

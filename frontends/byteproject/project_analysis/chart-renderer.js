@@ -5,8 +5,8 @@
  */
 
 import { formatCurrency, formatPercent, formatNumber } from './utils.js';
-import { CHART_CONFIG, VIEW_MODES, CHART_FIELD_OPTIONS, EFFECT_METRIC_OPTIONS } from './constants.js';
-import { getViewMode, getChartFields, setChartFields, getEffectMetric, getEffectChartView } from './state-manager.js';
+import { CHART_CONFIG, VIEW_MODES, CHART_FIELD_OPTIONS, EFFECT_METRIC_OPTIONS, getActualFieldName, getActualLabel } from './constants.js';
+import { getViewMode, getChartFields, setChartFields, getEffectMetric, getEffectChartView, getDataPeriod, getPeriodLabel } from './state-manager.js';
 
 // Chart instance storage
 let monthlyTrendChart = null;
@@ -349,6 +349,11 @@ export function destroyChart() {
 export function renderEffectPerformanceChart(monthlyEffectData, metric = null) {
   const currentMetric = metric || getEffectMetric();
   const metricConfig = EFFECT_METRIC_OPTIONS[currentMetric];
+  const dataPeriod = getDataPeriod();
+
+  // 动态生成实际字段名和标签
+  const actualField = getActualFieldName(metricConfig.actualFieldBase, dataPeriod);
+  const actualLabel = getActualLabel('实际' + metricConfig.label, dataPeriod);
 
   const section = document.getElementById('effect-performance-section');
   const container = document.getElementById('effect-chart-container');
@@ -392,7 +397,7 @@ export function renderEffectPerformanceChart(monthlyEffectData, metric = null) {
 
   const labels = monthlyEffectData.map(d => d.month);
   const targetData = monthlyEffectData.map(d => d[metricConfig.targetField] || 0);
-  const actualData = monthlyEffectData.map(d => d[metricConfig.actualField] || 0);
+  const actualData = monthlyEffectData.map(d => d[actualField] || 0);
 
   effectPerformanceChart = new Chart(ctx, {
     type: 'bar',
@@ -407,7 +412,7 @@ export function renderEffectPerformanceChart(monthlyEffectData, metric = null) {
           borderWidth: 1
         },
         {
-          label: metricConfig.actualLabel,
+          label: actualLabel,
           data: actualData,
           backgroundColor: CHART_CONFIG.COLORS.ACTUAL_BAR,
           borderColor: CHART_CONFIG.COLORS.ACTUAL_BAR_BORDER,
@@ -518,7 +523,7 @@ export function renderEffectPerformanceChart(monthlyEffectData, metric = null) {
               </div>
               <div style="display: flex; align-items: center;">
                 <span style="display: inline-block; width: 12px; height: 12px; background: ${CHART_CONFIG.COLORS.ACTUAL_BAR}; border: 1px solid ${CHART_CONFIG.COLORS.ACTUAL_BAR_BORDER}; margin-right: 8px; border-radius: 2px;"></span>
-                <span>${metricConfig.actualLabel}: ${formatValue(actual)}</span>
+                <span>${actualLabel}: ${formatValue(actual)}</span>
               </div>
             `;
 

@@ -1,9 +1,14 @@
 <!--
   * @file project_analysis.html
-  * @version 3.0 - Business View Mode
-  * @description Added customer/financial view toggle, project selector, and chart field selection.
+  * @version 4.0 - Talent Collaboration View
+  * @description Added talent view with ranking table and works chart.
   *
   * @changelog
+  * - v4.0 (2025-12-09):
+  * - [FEATURE] Added talent view mode (达人视角)
+  * - [FEATURE] Added talent ranking table with collaboration counts
+  * - [FEATURE] Added talent works chart with video links
+  * - [FEATURE] Added xingtu profile link support
   * - v3.0 (2025-12-08):
   * - [FEATURE] Added view mode toggle (customer/financial view)
   * - [FEATURE] Added project multi-select dropdown
@@ -27,6 +32,11 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f7f8fc;
+        }
+
+        /* 全局隐藏样式 - 确保 hidden class 优先级最高 */
+        .hidden {
+            display: none !important;
         }
 
         /* KPI 卡片 hover 效果 */
@@ -114,8 +124,8 @@
             background: white;
             border: 1px solid #e5e7eb;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            z-index: 50;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
         }
         .dropdown-menu.hidden {
             display: none;
@@ -232,6 +242,31 @@
         .tooltip-icon:hover .tooltip-content {
             display: block;
         }
+
+        /* Pagination Button Styles */
+        .pagination-btn {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            color: #374151;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .pagination-btn:hover:not(:disabled) {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        .pagination-btn.active {
+            background: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -264,82 +299,168 @@
         </div>
 
         <div id="analysis-content" class="hidden space-y-6">
-            <!-- Customer View KPI Section (default visible) -->
-            <div id="kpi-customer-view" class="space-y-6">
-                <!-- 业务概览 - 标题 + 筛选 + 视角切换整合 -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200/80 overflow-hidden">
-                    <!-- 头部：标题 + 视角切换 -->
-                    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                        <h2 class="text-lg font-semibold text-gray-800">业务概览</h2>
+            <!-- 公共头部区域：标题 + 视角切换 + 筛选 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200/80">
+                <!-- 头部：标题 + 视角切换 -->
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                    <h2 class="text-lg font-semibold text-gray-800">业务概览</h2>
+                    <div class="flex items-center gap-6">
+                        <!-- 数据周期切换 -->
+                        <div class="view-mode-toggle">
+                            <span class="text-sm font-medium text-gray-500 mr-2">数据周期：</span>
+                            <div class="toggle-buttons" id="data-period-toggle">
+                                <button data-period="t7" class="active">T+7</button>
+                                <button data-period="t21">T+21</button>
+                            </div>
+                        </div>
+                        <!-- 视角切换 -->
                         <div class="view-mode-toggle">
                             <span class="text-sm font-medium text-gray-500 mr-2">视角：</span>
                             <div class="toggle-buttons">
                                 <button id="view-customer" class="active">客户视角</button>
+                                <button id="view-talent">达人视角</button>
                                 <button id="view-financial">财务视角</button>
                             </div>
                         </div>
                     </div>
-                    <!-- 筛选区域 -->
-                    <div id="biz-filters" class="px-5 py-3 bg-gray-50/50">
-                        <div class="flex flex-wrap items-center gap-4">
-                            <!-- 时间维度（单选按钮） -->
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-medium text-gray-500">时间维度:</span>
-                                <div class="toggle-buttons sm" id="time-dimension-toggle">
-                                    <button type="button" data-value="customer" class="active">客户月份</button>
-                                    <button type="button" data-value="financial">财务月份</button>
-                                </div>
+                </div>
+                <!-- 业务筛选区域（客户/财务视角） -->
+                <div id="biz-filters" class="px-5 py-3 bg-gray-50/50">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <!-- 时间维度（单选按钮） -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-medium text-gray-500">时间维度:</span>
+                            <div class="toggle-buttons sm" id="time-dimension-toggle">
+                                <button type="button" data-value="customer" class="active">客户月份</button>
+                                <button type="button" data-value="financial">财务月份</button>
                             </div>
-                            <!-- 年份 -->
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-medium text-gray-500">年份:</span>
-                                <select id="filter-year" class="text-sm rounded-md border-gray-300 shadow-sm py-1 px-2"></select>
-                            </div>
-                            <!-- 月份区间 -->
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-medium text-gray-500">月份:</span>
-                                <select id="filter-month-start" class="text-sm rounded-md border-gray-300 shadow-sm py-1 px-2"></select>
-                                <span class="text-gray-400">-</span>
-                                <select id="filter-month-end" class="text-sm rounded-md border-gray-300 shadow-sm py-1 px-2"></select>
-                            </div>
-                            <!-- 项目类型 -->
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-medium text-gray-500">类型:</span>
-                                <select id="filter-project-type" class="text-sm rounded-md border-gray-300 shadow-sm py-1 px-2"></select>
-                            </div>
-                            <!-- 项目选择 -->
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-medium text-gray-500">项目:</span>
-                                <div id="project-selector" class="multi-select-dropdown" style="min-width: 220px;">
-                                    <button type="button" class="dropdown-toggle py-1 px-2" id="project-dropdown-btn">
-                                        <span id="selected-projects-text" class="text-sm">全部项目</span>
-                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                        </svg>
-                                    </button>
-                                    <div class="dropdown-menu hidden" id="project-dropdown-menu">
-                                        <div class="dropdown-search">
-                                            <input type="text" placeholder="搜索项目..." id="project-search-input">
-                                        </div>
-                                        <div class="dropdown-options" id="project-options"></div>
-                                        <div class="dropdown-footer">
-                                            <button type="button" id="select-all-projects">全选</button>
-                                            <button type="button" id="clear-all-projects">清空</button>
-                                        </div>
+                        </div>
+                        <!-- 年份 -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-medium text-gray-500">年份:</span>
+                            <select id="filter-year" class="text-sm rounded-md border-gray-300 shadow-sm py-1 px-2"></select>
+                        </div>
+                        <!-- 月份区间 -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-medium text-gray-500">月份:</span>
+                            <select id="filter-month-start" class="text-sm rounded-md border-gray-300 shadow-sm py-1 px-2"></select>
+                            <span class="text-gray-400">-</span>
+                            <select id="filter-month-end" class="text-sm rounded-md border-gray-300 shadow-sm py-1 px-2"></select>
+                        </div>
+                        <!-- 项目类型 -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-medium text-gray-500">类型:</span>
+                            <select id="filter-project-type" class="text-sm rounded-md border-gray-300 shadow-sm py-1 px-2"></select>
+                        </div>
+                        <!-- 项目选择 -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-medium text-gray-500">项目:</span>
+                            <div id="project-selector" class="multi-select-dropdown" style="min-width: 220px;">
+                                <button type="button" class="dropdown-toggle py-1 px-2" id="project-dropdown-btn">
+                                    <span id="selected-projects-text" class="text-sm">全部项目</span>
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div class="dropdown-menu hidden" id="project-dropdown-menu">
+                                    <div class="dropdown-search">
+                                        <input type="text" placeholder="搜索项目..." id="project-search-input">
+                                    </div>
+                                    <div class="dropdown-options" id="project-options"></div>
+                                    <div class="dropdown-footer">
+                                        <button type="button" id="select-all-projects">全选</button>
+                                        <button type="button" id="clear-all-projects">清空</button>
                                     </div>
                                 </div>
                             </div>
-                            <!-- 操作按钮 -->
-                            <div class="flex gap-2 ml-auto">
-                                <button id="reset-filters-btn" class="px-3 py-1 bg-white border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-all">
-                                    重置
-                                </button>
-                                <button id="apply-filters-btn" class="px-3 py-1 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 transition-all">
-                                    筛选
-                                </button>
-                            </div>
+                        </div>
+                        <!-- 操作按钮 -->
+                        <div class="flex gap-2 ml-auto">
+                            <button id="reset-filters-btn" class="px-3 py-1 bg-white border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-all">
+                                重置
+                            </button>
+                            <button id="apply-filters-btn" class="px-3 py-1 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 transition-all">
+                                筛选
+                            </button>
                         </div>
                     </div>
+                </div>
+                <!-- 达人筛选区域（达人视角专属） -->
+                <div id="talent-filters" class="px-5 py-3 bg-gray-50/50 hidden">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <!-- 项目多选 -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-medium text-gray-500">项目:</span>
+                            <div id="talent-project-selector" class="multi-select-dropdown" style="min-width: 200px;">
+                                <button type="button" class="dropdown-toggle py-1 px-2" id="talent-project-dropdown-btn">
+                                    <span id="talent-selected-projects-text" class="text-sm">全部项目</span>
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div class="dropdown-menu hidden" id="talent-project-dropdown-menu">
+                                    <div class="dropdown-search">
+                                        <input type="text" placeholder="搜索项目..." id="talent-project-search-input">
+                                    </div>
+                                    <div class="dropdown-options" id="talent-project-options"></div>
+                                    <div class="dropdown-footer">
+                                        <button type="button" id="talent-select-all-projects">全选</button>
+                                        <button type="button" id="talent-clear-all-projects">清空</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 达人搜索 -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-medium text-gray-500">达人:</span>
+                            <input type="text" id="talent-search-input" placeholder="搜索达人名称..."
+                                   class="text-sm rounded-md border-gray-300 shadow-sm py-1 px-2 w-36">
+                        </div>
+                        <!-- 合作次数筛选 -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-medium text-gray-500">合作次数:</span>
+                            <select id="talent-collab-count-filter" class="text-sm rounded-md border-gray-300 shadow-sm py-1 px-2">
+                                <option value="">不限</option>
+                                <option value="3">≥3次</option>
+                                <option value="5">≥5次</option>
+                                <option value="10">≥10次</option>
+                            </select>
+                        </div>
+                        <!-- CPM区间筛选 -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-medium text-gray-500">CPM:</span>
+                            <select id="talent-cpm-filter" class="text-sm rounded-md border-gray-300 shadow-sm py-1 px-2">
+                                <option value="">不限</option>
+                                <option value="0-10">＜¥10</option>
+                                <option value="10-20">¥10-20</option>
+                                <option value="20-50">¥20-50</option>
+                                <option value="50-">＞¥50</option>
+                            </select>
+                        </div>
+                        <!-- 发布时间范围 -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-medium text-gray-500">发布时间:</span>
+                            <input type="date" id="talent-date-start" class="text-sm rounded-md border-gray-300 shadow-sm py-1 px-2">
+                            <span class="text-gray-400">-</span>
+                            <input type="date" id="talent-date-end" class="text-sm rounded-md border-gray-300 shadow-sm py-1 px-2">
+                        </div>
+                        <!-- 操作按钮 -->
+                        <div class="flex gap-2 ml-auto">
+                            <button id="talent-reset-filters-btn" class="px-3 py-1 bg-white border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50 transition-all">
+                                重置
+                            </button>
+                            <button id="talent-apply-filters-btn" class="px-3 py-1 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 transition-all">
+                                筛选
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer View KPI Section (default visible) -->
+            <div id="kpi-customer-view" class="space-y-6">
+                <!-- 客户视角 KPI 卡片 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200/80 overflow-hidden">
                     <!-- KPI 卡片区域 -->
                     <div class="p-5">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -488,7 +609,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
                                         </svg>
                                     </div>
-                                    <h4 class="text-sm font-semibold text-gray-600">T+21 总播放量</h4>
+                                    <h4 id="effect-views-label" class="text-sm font-semibold text-gray-600">总播放量</h4>
                                 </div>
                                 <p id="kpi-total-views" class="text-2xl font-bold text-cyan-600 mt-1">--</p>
                                 <p id="kpi-views-gap" class="text-xs text-gray-500 mt-2">距目标: --</p>
@@ -699,11 +820,204 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ========== 达人视角内容区域 ========== -->
+            <div id="talent-view-section" class="hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200/80 overflow-hidden">
+                <!-- 达人视角 KPI 卡片 -->
+                <div class="p-5 border-b border-gray-100">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="kpi-card bg-gray-50/80 p-4 rounded-lg border border-gray-100">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <div class="p-2 bg-purple-100 rounded-lg">
+                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="text-sm font-semibold text-gray-600">合作达人数</h4>
+                            </div>
+                            <p id="talent-kpi-count" class="text-2xl font-bold text-gray-900 mt-1">0</p>
+                        </div>
+                        <div class="kpi-card bg-gray-50/80 p-4 rounded-lg border border-gray-100">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <div class="p-2 bg-blue-100 rounded-lg">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="text-sm font-semibold text-gray-600">有效合作数</h4>
+                            </div>
+                            <p id="talent-kpi-collaborations" class="text-2xl font-bold text-gray-900 mt-1">0</p>
+                        </div>
+                        <div class="kpi-card bg-gray-50/80 p-4 rounded-lg border border-gray-100">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <div class="p-2 bg-cyan-100 rounded-lg">
+                                    <svg class="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                </div>
+                                <h4 id="talent-views-label" class="text-sm font-semibold text-gray-600">总播放量</h4>
+                            </div>
+                            <p id="talent-kpi-views" class="text-2xl font-bold text-cyan-600 mt-1">--</p>
+                        </div>
+                        <div class="kpi-card bg-gray-50/80 p-4 rounded-lg border border-gray-100">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <div class="p-2 bg-amber-100 rounded-lg">
+                                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="text-sm font-semibold text-gray-600">平均CPM</h4>
+                            </div>
+                            <p id="talent-kpi-cpm" class="text-2xl font-bold text-amber-600 mt-1">--</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 达人排行榜区域 -->
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">达人合作排行榜</h3>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs text-gray-500">排序：</span>
+                            <select id="talent-sort-select" class="text-sm rounded-md border-gray-300 shadow-sm py-1 px-2">
+                                <option value="collaborations">合作次数</option>
+                                <option value="views">总播放量</option>
+                                <option value="cpm">平均CPM</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 排行榜表格 -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-12">排名</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">达人昵称</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">星图ID</th>
+                                    <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">合作次数</th>
+                                    <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">播放量</th>
+                                    <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">完播率</th>
+                                    <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">组件点击率</th>
+                                    <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">CPM</th>
+                                    <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="talent-ranking-body" class="bg-white divide-y divide-gray-200">
+                                <!-- 达人排行榜数据将通过JS动态填充 -->
+                            </tbody>
+                        </table>
+                        <p id="talent-no-data" class="hidden text-center py-10 text-gray-500">暂无达人合作数据</p>
+                    </div>
+                    <!-- 分页区域 -->
+                    <div id="talent-pagination" class="px-5 py-4 border-t border-gray-100"></div>
+                </div>
+
+            </div>
+            </div>
+
+            <!-- 达人详情弹窗 -->
+            <div id="talent-detail-modal" class="fixed inset-0 z-50 hidden">
+                <!-- 背景遮罩 -->
+                <div id="talent-modal-backdrop" class="absolute inset-0 bg-black/50"></div>
+                <!-- 弹窗内容 -->
+                <div class="absolute inset-4 md:inset-8 lg:inset-12 bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden">
+                    <!-- 弹窗头部 -->
+                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-white">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 id="talent-modal-title" class="text-lg font-semibold text-gray-800">达人作品数据</h3>
+                                <span id="talent-modal-stats" class="text-sm text-gray-500"></span>
+                            </div>
+                        </div>
+                        <button id="talent-modal-close" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- 弹窗主体 -->
+                    <div class="flex-1 overflow-auto p-6">
+                        <!-- 汇总统计卡片 -->
+                        <div id="talent-modal-summary" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
+                            <!-- 统计卡片将通过JS动态填充 -->
+                        </div>
+
+                        <!-- 图表区域 -->
+                        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                            <!-- 图表控制栏 -->
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-sm font-medium text-gray-700">趋势图表</h4>
+                                <div class="flex items-center gap-4">
+                                    <!-- 左轴维度选择 -->
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-gray-500">左轴:</span>
+                                        <select id="talent-chart-left-axis" class="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                                            <option value="views" selected>播放量</option>
+                                            <option value="interactions">互动量</option>
+                                            <option value="likes">点赞数</option>
+                                            <option value="comments">评论数</option>
+                                            <option value="shares">分享数</option>
+                                        </select>
+                                    </div>
+                                    <!-- 右轴维度选择 -->
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-gray-500">右轴:</span>
+                                        <select id="talent-chart-right-axis" class="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                                            <option value="">不显示</option>
+                                            <option value="cpm" selected>CPM</option>
+                                            <option value="completionRate">完播率</option>
+                                            <option value="componentCTR">组件点击率</option>
+                                            <option value="interactionRate">互动率</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="h-64 bg-white rounded">
+                                <canvas id="talent-works-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- 作品明细表格 -->
+                        <div class="bg-white rounded-lg border border-gray-200">
+                            <div class="px-4 py-3 border-b border-gray-200">
+                                <h4 class="text-sm font-medium text-gray-700">作品明细</h4>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-3 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">项目名称</th>
+                                            <th class="px-3 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">发布日期</th>
+                                            <th class="px-3 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">播放量</th>
+                                            <th class="px-3 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">完播率</th>
+                                            <th class="px-3 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">组件点击率</th>
+                                            <th class="px-3 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">互动量</th>
+                                            <th class="px-3 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">CPM</th>
+                                            <th class="px-3 py-2.5 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">视频</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="talent-works-body" class="bg-white divide-y divide-gray-200">
+                                        <!-- 作品明细数据将通过JS动态填充 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
-    
+
     <script src="sidebar.js" defer></script>
-    <script type="module" src="project_analysis/main.js"></script>
+    <script type="module" src="project_analysis/main.js?v=5.2"></script>
 </body>
 </html>
 

@@ -1,12 +1,16 @@
 /**
  * @file getBatchProjectPerformance.js
- * @version 1.1.0-status-filter
+ * @version 1.2.0-talent-view
  * @description 批量效果看板API - 一次请求获取多个项目的效果数据
  *
  * 设计目的：
  * - 解决前端并发请求导致的数据库连接池耗尽问题
  * - 复用单个数据库连接处理多个项目
  * - 使用 $in 操作符批量查询，减少数据库往返
+ *
+ * v1.2.0 更新：
+ * - 新增 talentId、xingtuId 字段支持达人视角
+ * - 新增 platformWorkId 字段支持视频链接跳转
  *
  * v1.1.0 更新：
  * - 效果达成只统计"视频已发布"状态的合作
@@ -120,10 +124,14 @@ function calculateProjectPerformance(project, collaborations, works, talents) {
 
         return {
             id: collab.id,
+            talentId: collab.talentId,
             talentName: talentInfo?.nickname || '未知达人',
+            xingtuId: talentInfo?.xingtuId || null,
             publishDate: collab.publishDate,
             status: collabStatus,
             executionAmount,
+            // 视频链接相关
+            platformWorkId: work.platformWorkId || null,
             // 状态标志：是否纳入效果达成统计
             isEffectValid,
 
@@ -196,9 +204,11 @@ function calculateProjectPerformance(project, collaborations, works, talents) {
     return {
         overall: {
             benchmarkCPM,
+            lastPublishDate: lastPublishDate ? lastPublishDate.toISOString().split('T')[0] : null,
             deliveryDate,
             targetViews: overall.targetViews,
             viewsGap: overall.viewsGap,
+            totalExecutionAmount: overall.totalExecutionAmount,  // 用于CPM计算，与达人视角保持一致
             t7_totalViews: overall.t7_totalViews,
             t7_totalInteractions: overall.t7_totalInteractions,
             t7_cpm: overall.t7_cpm,

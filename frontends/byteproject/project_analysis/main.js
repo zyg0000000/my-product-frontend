@@ -1,15 +1,16 @@
 /**
  * @module main
  * @description Main initialization and coordination module for project analysis
- * @version 5.0 - Added effect performance chart for customer view
+ * @version 6.0 - Added talent collaboration view
  */
 
-import { API_ENDPOINTS, VIEW_MODES } from './constants.js';
+import { API_ENDPOINTS, VIEW_MODES, DATA_PERIODS } from './constants.js';
 import { apiRequest } from './api.js';
-import { updateProjects, getFilteredProjects, getProjects, setViewMode, getViewMode, setChartFields, getChartFields, setEffectPerformanceData, getAllEffectPerformanceData, setEffectMetric, getEffectMetric, setEffectChartView, getEffectChartView, getEffectFilters } from './state-manager.js';
+import { updateProjects, getFilteredProjects, getProjects, setViewMode, getViewMode, setChartFields, getChartFields, setEffectPerformanceData, getAllEffectPerformanceData, setEffectMetric, getEffectMetric, setEffectChartView, getEffectChartView, getEffectFilters, setDataPeriod, getDataPeriod, getPeriodFieldName } from './state-manager.js';
 import { populateFilterOptions, applyFilters, resetFilters, getCurrentFilterValues, initProjectSelector, resetProjectSelector, setTimeDimension, applyEffectFilters } from './filter.js';
 import { calculateKpiSummary, calculateMonthlyTrend } from './kpi-calculator.js';
 import { renderChart, renderKpiCards, updateChartFields, renderEffectPerformanceChart, renderEffectByProjectChart, showEffectChartLoading, destroyEffectChart, renderEffectKpiCards } from './chart-renderer.js';
+import { initTalentViewElements, showTalentViewSection, hideTalentViewSection, aggregateTalentData, sortTalents, renderTalentKpiCards, renderTalentRankingTable, getCurrentTalentSort, destroyTalentWorksChart, initTalentProjectSelector, setAllTalents } from './talent-view.js';
 
 /**
  * DOM elements cache
@@ -23,6 +24,10 @@ const elements = {
   // View mode elements
   viewCustomerBtn: null,
   viewFinancialBtn: null,
+  viewTalentBtn: null,
+  // View content sections
+  kpiCustomerView: null,
+  kpiFinancialView: null,
   // Chart field selectors
   chartLeftAxis: null,
   chartRightAxis: null,
@@ -33,7 +38,12 @@ const elements = {
   effectViewToggle: null,
   // New filter elements
   timeDimensionToggle: null,
-  effectFilterApply: null
+  effectFilterApply: null,
+  // Filter sections
+  bizFilters: null,
+  talentFiltersSection: null,
+  // Data period toggle
+  dataPeriodToggle: null
 };
 
 /**
@@ -48,6 +58,10 @@ function initializeElements() {
   // View mode elements
   elements.viewCustomerBtn = document.getElementById('view-customer');
   elements.viewFinancialBtn = document.getElementById('view-financial');
+  elements.viewTalentBtn = document.getElementById('view-talent');
+  // View content sections
+  elements.kpiCustomerView = document.getElementById('kpi-customer-view');
+  elements.kpiFinancialView = document.getElementById('kpi-financial-view');
   // Chart field selectors
   elements.chartLeftAxis = document.getElementById('chart-left-axis');
   elements.chartRightAxis = document.getElementById('chart-right-axis');
@@ -59,6 +73,11 @@ function initializeElements() {
   // New filter elements
   elements.timeDimensionToggle = document.getElementById('time-dimension-toggle');
   elements.effectFilterApply = document.getElementById('effect-filter-apply');
+  // Filter sections
+  elements.bizFilters = document.getElementById('biz-filters');
+  elements.talentFiltersSection = document.getElementById('talent-filters');
+  // Data period toggle
+  elements.dataPeriodToggle = document.getElementById('data-period-toggle');
 }
 
 /**
@@ -138,9 +157,22 @@ export async function fetchAndRenderData() {
  */
 export function renderAnalysis() {
   const viewMode = getViewMode();
+  console.log('[renderAnalysis] Current view mode:', viewMode, 'Is TALENT?', viewMode === VIEW_MODES.TALENT);
 
   // Get filtered projects from state
   const filteredProjects = getFilteredProjects();
+
+  // Handle talent view separately
+  if (viewMode === VIEW_MODES.TALENT) {
+    console.log('[renderAnalysis] Entering TALENT branch, calling renderTalentView...');
+    // Hide effect chart section
+    if (elements.effectPerformanceSection) {
+      elements.effectPerformanceSection.classList.add('hidden');
+    }
+    // Render talent-specific view
+    renderTalentView();
+    return;
+  }
 
   // Calculate KPI summary based on view mode
   const kpiSummary = calculateKpiSummary(filteredProjects, viewMode);
@@ -192,6 +224,10 @@ async function fetchAndRenderEffectChart(projects) {
     projects.forEach(project => {
       const data = results[project.id];
       if (data && data.overall) {
+        // Debug: verify talents array is present when storing
+        if (!data.talents || data.talents.length === 0) {
+          console.warn(`[Effect Data] Project ${project.id} has no talents array`);
+        }
         setEffectPerformanceData(project.id, data);
         validResults.push({ projectId: project.id, data, project });
       } else if (errors[project.id]) {
@@ -254,54 +290,125 @@ function calculateEffectSummary(effectResults) {
 
   const today = new Date();
 
+  // 获取当前数据周期
+  const currentPeriod = getDataPeriod();
+  const periodDays = currentPeriod === 't7' ? 7 : 21;
+  const periodLabel = currentPeriod === 't7' ? 'T+7' : 'T+21';
+
+  // 获取动态字段名
+  const viewsField = getPeriodFieldName('totalViews');
+  const interactionsField = getPeriodFieldName('totalInteractions');
+  const cpmField = getPeriodFieldName('cpm');
+
+  // 调试：记录被排除的项目
+  const excludedProjects = {
+    noDeliveryDate: [],
+    deliveryDateNotReached: [],
+    noTargetViews: []
+  };
+
   effectResults.forEach(({ data, project }) => {
     if (!data?.overall) return;
 
-    // Check if T+21 delivery date has passed
-    // deliveryDate = lastPublishDate + 21 days
-    const deliveryDate = data.overall.deliveryDate;
+    // 从 API 直接获取 lastPublishDate（最后发布日期）
+    const lastPublishDate = data.overall.lastPublishDate;
+    const actualViews = data.overall[viewsField] || 0;
 
-    // If no deliveryDate, project hasn't completed publishing yet - skip it
-    if (!deliveryDate) {
+    // If no lastPublishDate, project hasn't completed publishing yet - skip it
+    if (!lastPublishDate) {
       skippedCount++;
+      excludedProjects.noDeliveryDate.push({
+        name: project.name || project.id,
+        id: project.id,
+        views: actualViews
+      });
       return;
     }
 
-    const deliveryDateObj = new Date(deliveryDate);
-    if (deliveryDateObj > today) {
-      // T+21 not yet reached, skip this project
+    // 根据数据周期计算交付日期
+    // T+7: lastPublishDate + 7天
+    // T+21: lastPublishDate + 21天
+    const lastPublishDateObj = new Date(lastPublishDate);
+    const checkDeliveryDate = new Date(lastPublishDateObj);
+    checkDeliveryDate.setDate(checkDeliveryDate.getDate() + periodDays);
+    const checkDeliveryDateStr = checkDeliveryDate.toISOString().split('T')[0];
+
+    if (checkDeliveryDate > today) {
+      // 交付日期未到，跳过此项目
       skippedCount++;
+      excludedProjects.deliveryDateNotReached.push({
+        name: project.name || project.id,
+        id: project.id,
+        deliveryDate: checkDeliveryDateStr,
+        views: actualViews
+      });
       return;
     }
 
     const targetViews = data.overall.targetViews || 0;
-    const actualViews = data.overall.t21_totalViews || 0;
-    const actualInteractions = data.overall.t21_totalInteractions || 0;
+    const actualInteractions = data.overall[interactionsField] || 0;
     const benchmarkCPM = data.overall.benchmarkCPM || 0;
-    const actualCPM = data.overall.t21_cpm || 0;
-    const executionAmount = project.metrics?.totalExpense || 0;
+    const actualCPM = data.overall[cpmField] || 0;
+    // 使用 API 返回的 totalExecutionAmount（与达人视角一致）
+    const executionAmount = data.overall.totalExecutionAmount || 0;
 
-    // Always accumulate interactions for valid projects
+    // 所有已交付项目都纳入播放量和互动量统计
+    totalActualViews += actualViews;
     totalActualInteractions += actualInteractions;
+    totalExecutionAmount += executionAmount;
+    validProjectCount++;
 
-    // Only count if we have target views (means benchmarkCPM was set)
+    // 只有设置了基准CPM的项目才纳入目标播放量和CPM统计
     if (targetViews > 0) {
       totalTargetViews += targetViews;
-      totalActualViews += actualViews;
-      totalExecutionAmount += executionAmount;
-
-      // Weighted average for CPM
+      // Weighted average for CPM (只计算有基准CPM的项目)
       weightedTargetCPM += benchmarkCPM * executionAmount;
       weightedActualCPM += actualCPM * executionAmount;
-      validProjectCount++;
+    } else {
+      // 记录没有设置基准CPM的项目（仅用于调试）
+      excludedProjects.noTargetViews.push({
+        name: project.name || project.id,
+        id: project.id,
+        views: actualViews,
+        benchmarkCPM
+      });
     }
   });
 
-  console.log(`[Effect KPI] Valid projects with T+21 data: ${validProjectCount}, skipped (not yet T+21): ${skippedCount}`);
+  // 输出详细的排除项目信息
+  console.log(`[Effect KPI] ========== 客户视角数据过滤详情 (${periodLabel}) ==========`);
+  console.log(`[Effect KPI] 数据周期: ${periodLabel}, 交付天数: ${periodDays}天`);
+  console.log(`[Effect KPI] 总项目数: ${effectResults.length}`);
+  console.log(`[Effect KPI] 纳入统计: ${validProjectCount}`);
+  console.log(`[Effect KPI] 被排除: ${effectResults.length - validProjectCount}`);
 
-  // Calculate weighted average CPM
-  const targetCPM = totalExecutionAmount > 0 ? weightedTargetCPM / totalExecutionAmount : 0;
-  const actualCPM = totalExecutionAmount > 0 ? weightedActualCPM / totalExecutionAmount : 0;
+  if (excludedProjects.noDeliveryDate.length > 0) {
+    const totalViews = excludedProjects.noDeliveryDate.reduce((sum, p) => sum + p.views, 0);
+    console.log(`[Effect KPI] 无交付日期 (${excludedProjects.noDeliveryDate.length}个, 播放量${(totalViews/100000000).toFixed(2)}亿):`,
+      excludedProjects.noDeliveryDate.map(p => p.name));
+  }
+
+  if (excludedProjects.deliveryDateNotReached.length > 0) {
+    const totalViews = excludedProjects.deliveryDateNotReached.reduce((sum, p) => sum + p.views, 0);
+    console.log(`[Effect KPI] 交付日期未到 (${excludedProjects.deliveryDateNotReached.length}个, 播放量${(totalViews/100000000).toFixed(2)}亿):`,
+      excludedProjects.deliveryDateNotReached.map(p => `${p.name}(${p.deliveryDate})`));
+  }
+
+  if (excludedProjects.noTargetViews.length > 0) {
+    const totalViews = excludedProjects.noTargetViews.reduce((sum, p) => sum + p.views, 0);
+    console.log(`[Effect KPI] 无目标播放量 (${excludedProjects.noTargetViews.length}个, 播放量${(totalViews/100000000).toFixed(2)}亿):`,
+      excludedProjects.noTargetViews.map(p => p.name));
+  }
+
+  console.log(`[Effect KPI] ==========================================`);
+
+  // 计算实际CPM：总执行金额 / 总播放量 * 1000（与达人视角一致）
+  const actualCPM = totalActualViews > 0 ? (totalExecutionAmount / totalActualViews) * 1000 : 0;
+
+  // 目标CPM：只计算设置了基准CPM的项目的加权平均
+  const targetCPM = weightedTargetCPM > 0 && totalTargetViews > 0
+    ? weightedTargetCPM / (totalTargetViews / 1000)  // 加权目标CPM
+    : 0;
 
   return {
     targetViews: totalTargetViews,
@@ -325,22 +432,32 @@ function calculateProjectEffectData(effectResults) {
   const projectData = [];
   const today = new Date();
 
+  // 获取动态字段名
+  const viewsField = getPeriodFieldName('totalViews');
+  const cpmField = getPeriodFieldName('cpm');
+
+  // 获取当前数据周期
+  const currentPeriod = getDataPeriod();
+  const periodDays = currentPeriod === 't7' ? 7 : 21;
+
   effectResults.forEach(({ data, project }) => {
     if (!data?.overall) return;
 
-    // Check if T+21 delivery date has passed
-    const deliveryDate = data.overall.deliveryDate;
-    if (!deliveryDate) return;
+    // 使用 lastPublishDate 计算交付日期
+    const lastPublishDate = data.overall.lastPublishDate;
+    if (!lastPublishDate) return;
 
-    const deliveryDateObj = new Date(deliveryDate);
+    const lastPublishDateObj = new Date(lastPublishDate);
+    const deliveryDateObj = new Date(lastPublishDateObj);
+    deliveryDateObj.setDate(deliveryDateObj.getDate() + periodDays);
     if (deliveryDateObj > today) return;
 
     const targetViews = data.overall.targetViews || 0;
     if (targetViews <= 0) return;
 
-    const actualViews = data.overall.t21_totalViews || 0;
+    const actualViews = data.overall[viewsField] || 0;
     const benchmarkCPM = data.overall.benchmarkCPM || 0;
-    const actualCPM = data.overall.t21_cpm || 0;
+    const actualCPM = data.overall[cpmField] || 0;
 
     // Calculate achievement rates
     const viewsRate = targetViews > 0 ? (actualViews / targetViews) : 0;
@@ -356,7 +473,8 @@ function calculateProjectEffectData(effectResults) {
       benchmarkCPM,
       actualCPM: actualCPM,
       cpmRate,
-      executionAmount: project.metrics?.totalExpense || 0
+      // 使用 API 返回的 totalExecutionAmount（与达人视角一致）
+      executionAmount: data.overall.totalExecutionAmount || 0
     });
   });
 
@@ -376,18 +494,29 @@ function calculateMonthlyEffectTrend(effectResults) {
   const monthlyMap = new Map();
   const today = new Date();
 
+  // 获取动态字段名
+  const viewsField = getPeriodFieldName('totalViews');
+  const cpmField = getPeriodFieldName('cpm');
+
+  // 获取当前数据周期
+  const currentPeriod = getDataPeriod();
+  const periodDays = currentPeriod === 't7' ? 7 : 21;
+
   effectResults.forEach(({ data, project }) => {
     if (!data?.overall) return;
 
-    // Check if T+21 delivery date has passed (same filter as calculateEffectSummary)
-    const deliveryDate = data.overall.deliveryDate;
+    // 使用 lastPublishDate 计算交付日期（与 calculateEffectSummary 保持一致）
+    const lastPublishDate = data.overall.lastPublishDate;
 
-    // If no deliveryDate, project hasn't completed publishing yet - skip it
-    if (!deliveryDate) return;
+    // If no lastPublishDate, project hasn't completed publishing yet - skip it
+    if (!lastPublishDate) return;
 
-    const deliveryDateObj = new Date(deliveryDate);
+    const lastPublishDateObj = new Date(lastPublishDate);
+    const deliveryDateObj = new Date(lastPublishDateObj);
+    deliveryDateObj.setDate(deliveryDateObj.getDate() + periodDays);
+
     if (deliveryDateObj > today) {
-      // T+21 not yet reached, skip this project
+      // 交付日期未到，跳过此项目
       return;
     }
 
@@ -411,9 +540,9 @@ function calculateMonthlyEffectTrend(effectResults) {
       monthlyMap.set(monthKey, {
         month: monthKey,
         targetViews: 0,
-        t21_totalViews: 0,
+        [viewsField]: 0,
         benchmarkCPM: 0,
-        t21_cpm: 0,
+        [cpmField]: 0,
         projectCount: 0,
         // For weighted average of CPM
         totalExecutionAmount: 0
@@ -424,15 +553,16 @@ function calculateMonthlyEffectTrend(effectResults) {
 
     // Sum up views
     monthData.targetViews += data.overall.targetViews || 0;
-    monthData.t21_totalViews += data.overall.t21_totalViews || 0;
+    monthData[viewsField] += data.overall[viewsField] || 0;
 
-    // For CPM, we need weighted average based on execution amount (totalExpense)
-    const executionAmount = project.metrics?.totalExpense || 0;
+    // For CPM, we need weighted average based on execution amount
+    // 使用 API 返回的 totalExecutionAmount（与达人视角一致）
+    const executionAmount = data.overall.totalExecutionAmount || 0;
     monthData.totalExecutionAmount += executionAmount;
 
     // Accumulate for weighted average
     monthData.benchmarkCPM += (data.overall.benchmarkCPM || 0) * executionAmount;
-    monthData.t21_cpm += (data.overall.t21_cpm || 0) * executionAmount;
+    monthData[cpmField] += (data.overall[cpmField] || 0) * executionAmount;
 
     monthData.projectCount++;
   });
@@ -441,7 +571,7 @@ function calculateMonthlyEffectTrend(effectResults) {
   monthlyMap.forEach((monthData) => {
     if (monthData.totalExecutionAmount > 0) {
       monthData.benchmarkCPM = monthData.benchmarkCPM / monthData.totalExecutionAmount;
-      monthData.t21_cpm = monthData.t21_cpm / monthData.totalExecutionAmount;
+      monthData[cpmField] = monthData[cpmField] / monthData.totalExecutionAmount;
     }
   });
 
@@ -572,7 +702,7 @@ function handleEffectFilterApply() {
 /**
  * Updates UI elements based on view mode
  * @private
- * @param {string} mode - View mode ('customer' or 'financial')
+ * @param {string} mode - View mode ('customer', 'financial', or 'talent')
  */
 function updateViewModeUI(mode) {
   // Update toggle button states
@@ -582,10 +712,50 @@ function updateViewModeUI(mode) {
   if (elements.viewFinancialBtn) {
     elements.viewFinancialBtn.classList.toggle('active', mode === VIEW_MODES.FINANCIAL);
   }
+  if (elements.viewTalentBtn) {
+    elements.viewTalentBtn.classList.toggle('active', mode === VIEW_MODES.TALENT);
+  }
+
+  // Show/hide view content sections based on mode - 使用直接样式设置确保生效
+  if (elements.kpiCustomerView) {
+    if (mode !== VIEW_MODES.CUSTOMER) {
+      elements.kpiCustomerView.style.display = 'none';
+    } else {
+      elements.kpiCustomerView.style.display = '';
+    }
+  }
+  if (elements.kpiFinancialView) {
+    if (mode !== VIEW_MODES.FINANCIAL) {
+      elements.kpiFinancialView.style.display = 'none';
+    } else {
+      elements.kpiFinancialView.style.display = '';
+    }
+  }
 
   // Show/hide chart field selectors (only for customer view)
   if (elements.chartFieldSelectors) {
     elements.chartFieldSelectors.classList.toggle('hidden', mode !== VIEW_MODES.CUSTOMER);
+  }
+
+  // Show/hide effect performance section (only for customer view)
+  if (elements.effectPerformanceSection) {
+    elements.effectPerformanceSection.classList.toggle('hidden', mode !== VIEW_MODES.CUSTOMER);
+  }
+
+  // Show/hide talent view section
+  if (mode === VIEW_MODES.TALENT) {
+    showTalentViewSection();
+  } else {
+    hideTalentViewSection();
+    destroyTalentWorksChart();
+  }
+
+  // Toggle filter sections based on view mode
+  if (elements.bizFilters) {
+    elements.bizFilters.classList.toggle('hidden', mode === VIEW_MODES.TALENT);
+  }
+  if (elements.talentFiltersSection) {
+    elements.talentFiltersSection.classList.toggle('hidden', mode !== VIEW_MODES.TALENT);
   }
 }
 
@@ -595,6 +765,7 @@ function updateViewModeUI(mode) {
  * @param {string} mode - View mode to switch to
  */
 function switchViewMode(mode) {
+  console.log('[switchViewMode] Switching to mode:', mode);
   setViewMode(mode);
   updateViewModeUI(mode);
   renderAnalysis();
@@ -643,6 +814,27 @@ function handleResetFilters() {
 }
 
 /**
+ * Updates UI labels based on current data period
+ * @private
+ * @param {string} period - Data period ('t7' or 't21')
+ */
+function updatePeriodLabels(period) {
+  const periodLabel = period === 't7' ? 'T+7' : 'T+21';
+
+  // Update effect views label (客户视角)
+  const effectViewsLabel = document.getElementById('effect-views-label');
+  if (effectViewsLabel) {
+    effectViewsLabel.textContent = `总播放量(${periodLabel})`;
+  }
+
+  // Update talent views label (达人视角)
+  const talentViewsLabel = document.getElementById('talent-views-label');
+  if (talentViewsLabel) {
+    talentViewsLabel.textContent = `总播放量(${periodLabel})`;
+  }
+}
+
+/**
  * Sets up event listeners for UI interactions
  * @private
  */
@@ -688,6 +880,36 @@ function setupEventListeners() {
   if (elements.viewFinancialBtn) {
     elements.viewFinancialBtn.addEventListener('click', () => switchViewMode(VIEW_MODES.FINANCIAL));
   }
+  if (elements.viewTalentBtn) {
+    elements.viewTalentBtn.addEventListener('click', () => switchViewMode(VIEW_MODES.TALENT));
+  }
+
+  // Data period toggle (T+7 / T+21)
+  if (elements.dataPeriodToggle) {
+    elements.dataPeriodToggle.addEventListener('click', (e) => {
+      const button = e.target.closest('button');
+      if (button) {
+        const period = button.getAttribute('data-period');
+        if (period && (period === DATA_PERIODS.T7 || period === DATA_PERIODS.T21)) {
+          // Update button states
+          const buttons = elements.dataPeriodToggle.querySelectorAll('button');
+          buttons.forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-period') === period);
+          });
+          // Update state and re-render
+          setDataPeriod(period);
+          // Update dynamic labels
+          updatePeriodLabels(period);
+          renderAnalysis();
+        }
+      }
+    });
+  }
+
+  // Talent sort change event
+  document.addEventListener('talentSortChange', (e) => {
+    rerenderTalentView(e.detail.sortBy);
+  });
 
   // Chart field selectors
   if (elements.chartLeftAxis) {
@@ -716,6 +938,124 @@ function setupEventListeners() {
   }
 }
 
+// ========== Talent View Functions ==========
+
+/**
+ * Cached talent effect results for re-sorting
+ * @private
+ */
+let cachedTalentEffectResults = [];
+
+/**
+ * Fetches effect data and renders talent view
+ * @private
+ */
+async function renderTalentView() {
+  const filteredProjects = getFilteredProjects();
+  console.log('[Talent View] Filtered projects:', filteredProjects?.length);
+
+  if (!filteredProjects || filteredProjects.length === 0) {
+    renderTalentKpiCards({ uniqueTalentCount: 0, totalCollaborations: 0, totalViews: 0, avgCPM: 0 });
+    renderTalentRankingTable([]);
+    return;
+  }
+
+  try {
+    // Check if we have cached effect data
+    const allEffectData = getAllEffectPerformanceData();
+    let effectResults = [];
+
+    filteredProjects.forEach(project => {
+      const data = allEffectData[project.id];
+      if (data) {
+        effectResults.push({ projectId: project.id, data, project });
+      }
+    });
+
+    console.log('[Talent View] Cache check:', {
+      cachedProjectIds: Object.keys(allEffectData),
+      filteredProjectIds: filteredProjects.map(p => p.id),
+      matchedCount: effectResults.length
+    });
+
+    // If no cached data, fetch from API
+    if (effectResults.length === 0) {
+      console.log('[Talent View] No cached data, fetching from API...');
+      const projectIds = filteredProjects.map(p => p.id);
+      const response = await apiRequest(API_ENDPOINTS.BATCH_PROJECT_PERFORMANCE, {
+        method: 'POST',
+        body: { projectIds }
+      });
+
+      const { results, errors } = response;
+      console.log('[Talent View] API response:', { resultsCount: Object.keys(results || {}).length, errors });
+
+      filteredProjects.forEach(project => {
+        const data = results[project.id];
+        if (data && data.talents) {
+          setEffectPerformanceData(project.id, data);
+          effectResults.push({ projectId: project.id, data, project });
+        } else if (errors && errors[project.id]) {
+          console.warn(`Failed to fetch talent data for project ${project.id}:`, errors[project.id]);
+        }
+      });
+    }
+
+    // Debug: check if talents array exists in data
+    if (effectResults.length > 0) {
+      const sampleData = effectResults[0].data;
+      console.log('[Talent View] Sample data structure:', {
+        hasOverall: !!sampleData?.overall,
+        hasTalents: !!sampleData?.talents,
+        talentsCount: sampleData?.talents?.length,
+        sampleTalent: sampleData?.talents?.[0]
+      });
+    }
+
+    // Cache results for re-sorting
+    cachedTalentEffectResults = effectResults;
+
+    // Initialize talent project selector with all projects (使用所有项目，不仅是筛选后的)
+    const allProjects = getProjects();
+    initTalentProjectSelector(allProjects);
+
+    // Aggregate talent data
+    const { talents, summary } = aggregateTalentData(effectResults);
+    console.log('[Talent View] Aggregated:', { talentsCount: talents.length, summary });
+
+    // Store all talents for filtering
+    setAllTalents(talents);
+
+    // Render KPI cards
+    renderTalentKpiCards(summary);
+
+    // Sort and render ranking table
+    const sortBy = getCurrentTalentSort();
+    const sortedTalents = sortTalents(talents, sortBy);
+    renderTalentRankingTable(sortedTalents);
+
+  } catch (error) {
+    console.error('Failed to render talent view:', error);
+    renderTalentKpiCards({ uniqueTalentCount: 0, totalCollaborations: 0, totalViews: 0, avgCPM: 0 });
+    renderTalentRankingTable([]);
+  }
+}
+
+/**
+ * Re-renders talent view with new sort order
+ * @private
+ * @param {string} sortBy - Sort field ('collaborations', 'views', 'cpm')
+ */
+function rerenderTalentView(sortBy) {
+  if (cachedTalentEffectResults.length === 0) return;
+
+  const { talents, summary } = aggregateTalentData(cachedTalentEffectResults);
+  renderTalentKpiCards(summary);
+
+  const sortedTalents = sortTalents(talents, sortBy);
+  renderTalentRankingTable(sortedTalents);
+}
+
 /**
  * Main initialization function
  * Called when DOM is ready
@@ -724,8 +1064,14 @@ function initializePage() {
   // Initialize DOM element references
   initializeElements();
 
+  // Initialize talent view elements
+  initTalentViewElements();
+
   // Set up event listeners
   setupEventListeners();
+
+  // Initialize period labels with default value
+  updatePeriodLabels(getDataPeriod());
 
   // Load data and render initial view
   fetchAndRenderData();
