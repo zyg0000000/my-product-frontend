@@ -48,6 +48,7 @@ export interface LinkConfig {
   label: string; // 显示标签，限2个中文字，如"星图"、"抖音"
   template: string; // URL模板，使用 {id} 作为占位符
   idField: string; // ID字段名，如"xingtuId"
+  showInTalentName?: boolean; // 是否在达人昵称后显示，默认 true
 }
 
 /**

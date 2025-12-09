@@ -44,6 +44,7 @@ import { getNormalizedTags } from '../../../types/customerTalent';
 import type { Platform } from '../../../types/talent';
 import { TalentSelectorModal } from '../../../components/TalentSelectorModal';
 import { TalentTagEditor } from '../shared/TalentTagEditor';
+import { TalentNameWithLinks } from '../../../components/TalentNameWithLinks';
 import { useTagConfigs } from '../../../hooks/useTagConfigs';
 import { logger } from '../../../utils/logger';
 
@@ -239,11 +240,14 @@ export function TalentPoolTab({
     {
       title: '达人昵称',
       dataIndex: ['talentInfo', 'name'],
-      width: 180,
+      width: 220,
       render: (_, record) => (
-        <span className="font-medium">
-          {record.talentInfo?.name || record.talentOneId}
-        </span>
+        <TalentNameWithLinks
+          name={record.talentInfo?.name || record.talentOneId}
+          platform={platform}
+          platformAccountId={record.talentInfo?.platformAccountId}
+          platformSpecific={record.talentInfo?.platformSpecific}
+        />
       ),
     },
     {

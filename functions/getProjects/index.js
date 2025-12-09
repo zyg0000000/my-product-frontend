@@ -1,7 +1,10 @@
 /**
  * @file getprojects_2.js
- * @version 6.2-kpi-configs
+ * @version 6.3
  * @description 支持 dbVersion 参数切换数据库（v1=kol_data, v2=agentworks_db）
+ *
+ * --- 更新日志 (v6.3) ---
+ * - [Bug修复] talents lookup 的 foreignField 从 'id' 改为 'oneId'，修复 agentworks_db 中达人信息关联失败的问题
  *
  * --- 更新日志 (v6.2) ---
  * - [字段新增] 添加 platformKPIConfigs、platformDiscounts、platformPricingModes、platformQuotationCoefficients
@@ -148,11 +151,12 @@ exports.handler = async (event, context) => {
         },
 
         // [v4.8 新增] 关联 talents 集合以获取达人信息
+        // [v6.3 修复] foreignField 从 'id' 改为 'oneId'，匹配 agentworks_db 实际字段
         {
           $lookup: {
             from: TALENTS_COLLECTION,
             localField: 'collaborations.talentId',
-            foreignField: 'id',  // 假设 talents 集合使用 'id' 作为主键
+            foreignField: 'oneId',
             as: 'talentsData'
           }
         },

@@ -38,6 +38,10 @@ import type {
 import { formatMoney, centsToYuan, yuanToCents } from '../../../types/project';
 import type { Platform } from '../../../types/talent';
 import { projectApi } from '../../../services/projectApi';
+import {
+  TalentNameWithLinks,
+  fromCollaboration,
+} from '../../../components/TalentNameWithLinks';
 import { logger } from '../../../utils/logger';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 
@@ -339,10 +343,10 @@ export function FinancialTab({
     {
       title: '达人',
       dataIndex: 'talentName',
-      width: 120,
+      width: 200,
       fixed: 'left',
       ellipsis: true,
-      render: (_, record) => record.talentName || record.talentOneId,
+      render: (_, record) => <TalentNameWithLinks {...fromCollaboration(record)} />,
     },
     {
       title: '平台',

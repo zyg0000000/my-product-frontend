@@ -402,9 +402,14 @@ export function ProjectFormModal({
           setCustomerOptions(prev =>
             prev.map(c => (c.value === customerId ? customer! : c))
           );
+        } else {
+          message.error('加载客户配置失败');
+          return;
         }
       } catch (error) {
         logger.error('Error loading customer details:', error);
+        message.error('加载客户配置失败');
+        return;
       }
     }
 
@@ -585,7 +590,10 @@ export function ProjectFormModal({
         }
       };
 
-      initForm();
+      initForm().catch(error => {
+        logger.error('Failed to initialize form:', error);
+        message.error('表单初始化失败');
+      });
     }
   }, [open, editingProject, form, loadCustomers]);
 

@@ -19,6 +19,10 @@ import { formatPrice } from '../../utils/formatters';
 import { usePlatformConfig } from '../../hooks/usePlatformConfig';
 import { TableSkeleton } from '../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../components/PageTransition';
+import {
+  TalentNameWithLinks,
+  fromTalentPerformance,
+} from '../../components/TalentNameWithLinks';
 
 /**
  * 获取指定类型的最新价格
@@ -49,16 +53,6 @@ function getNestedValue(obj: any, path: string): any {
   return current;
 }
 
-/**
- * 获取平台达人的外链
- */
-function getPlatformLink(talent: Talent): string | null {
-  if (talent.platform === 'douyin') {
-    if (!talent.platformAccountId) return null;
-    return `https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/${talent.platformAccountId}`;
-  }
-  return null;
-}
 
 export function PerformanceHome() {
   const { message } = App.useApp();
@@ -159,26 +153,11 @@ export function PerformanceHome() {
         search: false, // 筛选器独立，不使用 ProTable 内置搜索
       };
 
-      // 特殊处理：达人名称（带链接）
+      // 特殊处理：达人名称（带外链按钮）
       if (dim.targetPath === 'name') {
-        column.render = (_, record) => {
-          const platformLink = getPlatformLink(record);
-          const name = record.name || 'N/A';
-
-          if (platformLink) {
-            return (
-              <a
-                href={platformLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-primary-600 hover:text-primary-800 hover:underline"
-              >
-                {name}
-              </a>
-            );
-          }
-          return <span className="font-medium text-gray-900">{name}</span>;
-        };
+        column.render = (_, record) => (
+          <TalentNameWithLinks {...fromTalentPerformance(record)} />
+        );
       }
 
       // 特殊处理：价格类型

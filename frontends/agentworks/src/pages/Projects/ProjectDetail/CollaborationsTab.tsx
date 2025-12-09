@@ -28,6 +28,10 @@ import {
 import type { Platform } from '../../../types/talent';
 import { projectApi } from '../../../services/projectApi';
 import { CollaborationFormModal } from './CollaborationFormModal';
+import {
+  TalentNameWithLinks,
+  fromCollaboration,
+} from '../../../components/TalentNameWithLinks';
 import { logger } from '../../../utils/logger';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 
@@ -172,17 +176,16 @@ export function CollaborationsTab({
     {
       title: '达人',
       dataIndex: 'talentName',
-      width: 140,
+      width: 200,
       fixed: 'left',
       ellipsis: true,
       search: false,
       render: (_, record) => (
-        <a
-          className="text-primary-600 hover:text-primary-700 font-medium cursor-pointer"
-          onClick={() => handleViewTalent(record)}
-        >
-          {record.talentName || record.talentOneId}
-        </a>
+        <TalentNameWithLinks
+          {...fromCollaboration(record)}
+          onNameClick={() => handleViewTalent(record)}
+          nameAsLink
+        />
       ),
     },
     {

@@ -4,7 +4,7 @@
  */
 
 import { useMemo, useCallback } from 'react';
-import { Button, Dropdown, Space, Tag, Tooltip } from 'antd';
+import { Button, Dropdown, Space, Tag } from 'antd';
 import type { ProColumns } from '@ant-design/pro-components';
 import {
   EditOutlined,
@@ -23,6 +23,7 @@ import {
   formatRebate,
   getLatestPricesMap,
 } from '../../../../utils/formatters';
+import { TalentNameWithLinks } from '../../../../components/TalentNameWithLinks';
 import type { LinkConfig } from '../../../../api/platformConfig';
 
 export interface UseTalentColumnsOptions {
@@ -78,49 +79,6 @@ export function useTalentColumns({
     [agencies]
   );
 
-  // 获取平台所有外链（支持多链接配置）- 使用 useCallback 包装
-  const getPlatformLinks = useCallback(
-    (talent: Talent): Array<{ name: string; label: string; url: string }> => {
-      const config = getPlatformConfigByKey(talent.platform);
-      if (!config) return [];
-
-      // 兼容旧数据：如果有 links 用 links，否则从 link 转换
-      const linksConfig: LinkConfig[] =
-        config.links ||
-        (config.link
-          ? [
-              {
-                name: '外链',
-                label: '链接',
-                template: config.link.template,
-                idField: config.link.idField,
-              },
-            ]
-          : []);
-
-      return linksConfig
-        .map(link => {
-          // 优先从 platformSpecific 获取 ID，回退到 platformAccountId
-          const platformSpecificData = talent.platformSpecific as
-            | Record<string, string>
-            | undefined;
-          const idValue =
-            platformSpecificData?.[link.idField] || talent.platformAccountId;
-          if (!idValue) return null;
-          return {
-            name: link.name,
-            label: link.label,
-            url: link.template.replace('{id}', idValue),
-          };
-        })
-        .filter(
-          (item): item is { name: string; label: string; url: string } =>
-            item !== null
-        );
-    },
-    [getPlatformConfigByKey]
-  );
-
   const columns: ProColumns<Talent>[] = useMemo(
     () => [
       {
@@ -130,31 +88,14 @@ export function useTalentColumns({
         width: 220,
         fixed: 'left',
         ellipsis: true,
-        render: (_, record) => {
-          const links = getPlatformLinks(record);
-          return (
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-gray-900">{record.name}</span>
-              {links.length > 0 && (
-                <div className="flex items-center gap-1">
-                  {links.map((link, i) => (
-                    <Tooltip key={i} title={link.name}>
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={e => e.stopPropagation()}
-                        className="px-1.5 py-0.5 text-xs font-medium bg-primary-100 text-primary-700 rounded hover:bg-primary-200 transition-colors"
-                      >
-                        {link.label}
-                      </a>
-                    </Tooltip>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        },
+        render: (_, record) => (
+          <TalentNameWithLinks
+            name={record.name}
+            platform={record.platform}
+            platformAccountId={record.platformAccountId}
+            platformSpecific={record.platformSpecific}
+          />
+        ),
       },
       {
         title: '商业属性',
@@ -315,7 +256,7 @@ export function useTalentColumns({
         ),
       },
     ],
-    [platform, selectedPriceTier, getAgencyName, getPlatformLinks, onMenuClick]
+    [platform, selectedPriceTier, getAgencyName, onMenuClick]
   );
 
   return columns;

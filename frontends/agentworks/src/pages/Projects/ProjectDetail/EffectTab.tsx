@@ -31,6 +31,10 @@ import type { Collaboration, EffectMetrics } from '../../../types/project';
 import { formatMoney, centsToYuan } from '../../../types/project';
 import type { Platform } from '../../../types/talent';
 import { projectApi } from '../../../services/projectApi';
+import {
+  TalentNameWithLinks,
+  fromCollaboration,
+} from '../../../components/TalentNameWithLinks';
 import { logger } from '../../../utils/logger';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 
@@ -247,6 +251,8 @@ export function EffectTab({
         });
         loadCollaborations();
         onRefresh?.();
+      } else {
+        message.error('保存失败');
       }
     } catch (error) {
       message.error('保存失败');
@@ -267,10 +273,10 @@ export function EffectTab({
     {
       title: '达人',
       dataIndex: 'talentName',
-      width: 120,
+      width: 200,
       fixed: 'left',
       ellipsis: true,
-      render: (_, record) => record.talentName || record.talentOneId,
+      render: (_, record) => <TalentNameWithLinks {...fromCollaboration(record)} />,
     },
     {
       title: '平台',

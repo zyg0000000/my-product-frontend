@@ -1,5 +1,79 @@
 # AgentWorks 更新日志
 
+## v3.9.0 (2025-12-10) ✨ - 达人外链组件抽取与扩展
+
+### ✨ 新功能：TalentNameWithLinks 可复用组件
+
+#### 功能概述
+抽取达人名称+外链为可复用组件，统一 10+ 个页面的达人名称显示，支持外链配置控制显示位置。
+
+#### 核心功能
+- **TalentNameWithLinks 组件**
+  - 显示达人名称
+  - 根据平台配置自动渲染外链按钮（如"星图"）
+  - 支持名称点击回调（跳转详情页）
+  - 支持 `nameAsLink` 链接样式
+
+- **useTalentLinks Hook**
+  - `getTalentNameLinks()` - 获取应在昵称后显示的外链
+  - `getAllLinks()` - 获取所有外链（不过滤）
+  - `generateLinkUrl()` - 根据模板生成链接 URL
+
+- **外链配置扩展**
+  - 新增 `showInTalentName` 字段（默认 true）
+  - 勾选后在达人昵称后显示此外链
+  - 支持在平台配置管理页面配置
+
+#### 已改造页面（7个）
+| 页面 | 路径 | 改造内容 |
+|------|------|---------|
+| 近期表现 | /performance/list | 使用 TalentNameWithLinks |
+| 客户达人池 | /customers/{id}/talent-pool | 使用 TalentNameWithLinks |
+| 项目-合作达人 | /projects/{id}/collaborations | 使用 TalentNameWithLinks |
+| 项目-执行追踪 | /projects/{id}/execution | 使用 TalentNameWithLinks |
+| 项目-效果验收 | /projects/{id}/effect | 使用 TalentNameWithLinks |
+| 项目-财务管理 | /projects/{id}/financial | 使用 TalentNameWithLinks |
+| 达人基础信息 | /talents/basic-info | 重构 useTalentColumns |
+
+#### 辅助函数
+- `fromCollaboration()` - 从合作记录构建 Props
+- `fromTalentPerformance()` - 从表现数据构建 Props
+
+### 🐛 Bug 修复
+
+#### getProjects 云函数修复 (v6.3)
+- **问题**: talents lookup 使用错误的 foreignField (`id`)
+- **修复**: 改为 `oneId`，匹配 agentworks_db 实际字段
+- **影响**: 修复项目详情页合作达人信息关联失败
+
+#### ProjectFormModal 错误处理
+- 添加 `initForm()` 的 `.catch()` 错误处理
+- 客户数据加载失败时提前返回，不设置无效数据
+
+#### EffectTab/ExecutionTab 错误提示
+- 保存/更新失败时显示错误消息
+
+### 📁 修改文件清单
+
+**新增文件** (2个):
+- `src/components/TalentNameWithLinks.tsx` - 可复用组件
+- `src/hooks/useTalentLinks.ts` - 外链生成 Hook
+
+**修改文件** (11个):
+- `src/api/platformConfig.ts` - LinkConfig 添加 showInTalentName
+- `src/components/PlatformConfigModal.tsx` - 添加勾选项 UI
+- `src/pages/Performance/PerformanceHome.tsx` - 使用新组件
+- `src/pages/Customers/CustomerDetail/TalentPoolTab.tsx` - 使用新组件
+- `src/pages/Projects/ProjectDetail/CollaborationsTab.tsx` - 使用新组件
+- `src/pages/Projects/ProjectDetail/ExecutionTab.tsx` - 使用新组件 + Bug修复
+- `src/pages/Projects/ProjectDetail/EffectTab.tsx` - 使用新组件 + Bug修复
+- `src/pages/Projects/ProjectDetail/FinancialTab.tsx` - 使用新组件
+- `src/pages/Projects/ProjectList/ProjectFormModal.tsx` - Bug修复
+- `src/pages/Talents/BasicInfo/hooks/useTalentColumns.tsx` - 重构使用新组件
+- `functions/getProjects/index.js` - v6.3 修复 talents lookup
+
+---
+
 ## v3.8.0 (2025-11-30) ✨ - 客户达人池 + 通知系统统一
 
 ### ✨ 新功能：客户达人池
@@ -1266,6 +1340,6 @@ mongosh agentworks_db --file database/agentworks_db/scripts/fix-update-date-to-s
 ---
 
 **维护者**: Claude Code
-**最后更新**: 2025-11-21
+**最后更新**: 2025-12-10
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

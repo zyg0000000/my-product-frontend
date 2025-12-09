@@ -33,6 +33,7 @@ import {
   ProFormSelect,
   ProFormTextArea,
   ProFormList,
+  ProFormCheckbox,
 } from '@ant-design/pro-components';
 import { ProCard } from '@ant-design/pro-components';
 import {
@@ -581,16 +582,14 @@ export function PlatformConfigModal({
               }}
               itemRender={({ listDom, action }) => (
                 <div className="mb-3 p-4 border border-gray-200 rounded-lg bg-gray-50/50 hover:border-primary-300 transition-colors">
-                  <div className="flex gap-3">
+                  <div className="flex items-end gap-3">
                     <div className="flex-1">{listDom}</div>
-                    <div className="flex items-start pt-6 text-gray-400 hover:text-red-500">
-                      {action}
-                    </div>
+                    <div>{action}</div>
                   </div>
                 </div>
               )}
             >
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-5 gap-3">
                 <ProFormText
                   name="name"
                   label="链接名称"
@@ -625,6 +624,15 @@ export function PlatformConfigModal({
                   fieldProps={{ size: 'small' }}
                   tooltip="达人数据中对应的字段名"
                 />
+                <ProFormCheckbox
+                  name="showInTalentName"
+                  label="显示位置"
+                  initialValue={true}
+                  fieldProps={{ defaultChecked: true }}
+                  tooltip="勾选后在达人昵称后显示此外链"
+                >
+                  昵称后显示
+                </ProFormCheckbox>
               </div>
             </ProFormList>
           </div>

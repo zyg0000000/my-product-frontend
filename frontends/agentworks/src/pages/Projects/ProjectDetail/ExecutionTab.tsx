@@ -41,6 +41,10 @@ import {
 } from '../../../types/project';
 import type { Platform } from '../../../types/talent';
 import { projectApi } from '../../../services/projectApi';
+import {
+  TalentNameWithLinks,
+  fromCollaboration,
+} from '../../../components/TalentNameWithLinks';
 import { logger } from '../../../utils/logger';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 
@@ -204,6 +208,8 @@ export function ExecutionTab({
       if (response.success) {
         message.success('更新成功');
         loadCollaborations();
+      } else {
+        message.error('更新失败');
       }
     } catch (error) {
       message.error('更新失败');
@@ -225,11 +231,11 @@ export function ExecutionTab({
     {
       title: '达人',
       dataIndex: 'talentName',
-      width: 140,
+      width: 200,
       fixed: 'left',
       ellipsis: true,
       search: false,
-      render: (_, record) => record.talentName || record.talentOneId,
+      render: (_, record) => <TalentNameWithLinks {...fromCollaboration(record)} />,
     },
     {
       title: '平台',
