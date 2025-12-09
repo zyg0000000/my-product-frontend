@@ -53,7 +53,6 @@ function getNestedValue(obj: any, path: string): any {
   return current;
 }
 
-
 export function PerformanceHome() {
   const { message } = App.useApp();
   const navigate = useNavigate();

@@ -346,7 +346,9 @@ export function FinancialTab({
       width: 200,
       fixed: 'left',
       ellipsis: true,
-      render: (_, record) => <TalentNameWithLinks {...fromCollaboration(record)} />,
+      render: (_, record) => (
+        <TalentNameWithLinks {...fromCollaboration(record)} />
+      ),
     },
     {
       title: '平台',

@@ -64,9 +64,10 @@ export function useTalentColumns({
   platform,
   selectedPriceTier,
   agencies,
-  getPlatformConfigByKey,
+  getPlatformConfigByKey: _getPlatformConfigByKey,
   onMenuClick,
 }: UseTalentColumnsOptions): ProColumns<Talent>[] {
+  // Note: _getPlatformConfigByKey 保留用于未来扩展，当前组件使用 TalentNameWithLinks 内部的 hook
   // 获取机构名称 - 使用 useCallback 包装
   const getAgencyName = useCallback(
     (agencyId?: string): string => {

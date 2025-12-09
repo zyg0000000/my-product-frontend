@@ -11,6 +11,9 @@
  * - 项目合作达人列表
  */
 
+/* eslint-disable react-refresh/only-export-components */
+// 辅助函数与组件紧密相关，放在同一文件便于维护
+
 import { Tooltip } from 'antd';
 import { useTalentLinks, type TalentLike } from '../hooks/useTalentLinks';
 import type { Platform } from '../types/talent';
@@ -107,8 +110,15 @@ export function fromCollaboration(collaboration: {
 }): TalentNameWithLinksProps {
   const talentInfo = collaboration.talentInfo;
   return {
-    name: collaboration.talentName || talentInfo?.name || collaboration.talentOneId || 'N/A',
-    platform: collaboration.talentPlatform || talentInfo?.platform || ('douyin' as Platform),
+    name:
+      collaboration.talentName ||
+      talentInfo?.name ||
+      collaboration.talentOneId ||
+      'N/A',
+    platform:
+      collaboration.talentPlatform ||
+      talentInfo?.platform ||
+      ('douyin' as Platform),
     platformAccountId: talentInfo?.platformAccountId,
     platformSpecific: talentInfo?.platformSpecific,
   };

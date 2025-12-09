@@ -235,7 +235,9 @@ export function ExecutionTab({
       fixed: 'left',
       ellipsis: true,
       search: false,
-      render: (_, record) => <TalentNameWithLinks {...fromCollaboration(record)} />,
+      render: (_, record) => (
+        <TalentNameWithLinks {...fromCollaboration(record)} />
+      ),
     },
     {
       title: '平台',
