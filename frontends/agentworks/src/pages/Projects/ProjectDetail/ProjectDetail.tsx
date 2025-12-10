@@ -2,24 +2,13 @@
  * 项目详情页
  *
  * 页面结构：
- * - 顶部：项目基本信息卡片
+ * - 顶部：项目基本信息卡片（优化布局）
  * - Tab 切换栏（合作达人 | 执行追踪 | 财务管理 | 效果验收）
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Tabs,
-  Spin,
-  Button,
-  Tag,
-  Descriptions,
-  Card,
-  Empty,
-  Progress,
-  Space,
-  App,
-} from 'antd';
+import { Tabs, Spin, Button, Tag, Card, Empty, Progress, App } from 'antd';
 import {
   EditOutlined,
   TeamOutlined,
@@ -31,6 +20,7 @@ import { projectApi } from '../../../services/projectApi';
 import type { Project, ProjectStats } from '../../../types/project';
 import {
   PROJECT_STATUS_COLORS,
+  PROJECT_STATUS_LABELS,
   formatMoney,
   calculateProgress,
 } from '../../../types/project';
@@ -43,6 +33,26 @@ import { EffectTab } from './EffectTab';
 import { ProjectFormModal } from '../ProjectList/ProjectFormModal';
 import { logger } from '../../../utils/logger';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
+
+/**
+ * 信息项组件 - 统一的标签+值布局
+ */
+function InfoItem({
+  label,
+  children,
+  className = '',
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <div className="text-xs text-gray-400 mb-1 tracking-wide">{label}</div>
+      <div className="text-sm text-gray-800">{children}</div>
+    </div>
+  );
+}
 
 /**
  * 项目详情页主组件
@@ -215,87 +225,127 @@ export function ProjectDetail() {
           }
         />
 
-        {/* 项目基本信息卡片 */}
-        <Card className="shadow-card">
-          <Descriptions column={{ xs: 1, sm: 2, md: 3, lg: 4 }} size="middle">
-            <Descriptions.Item label="项目名称" span={2}>
-              <span className="font-semibold text-lg">{project.name}</span>
-            </Descriptions.Item>
-            <Descriptions.Item label="当前状态">
-              <Tag color={PROJECT_STATUS_COLORS[project.status]}>
-                {project.status}
-              </Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="项目类型">
-              <Tag>{project.type}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="所属客户">
-              <a
-                className="text-primary-600 hover:text-primary-700 cursor-pointer"
-                onClick={() => navigate(`/customers/${project.customerId}`)}
+        {/* 项目基本信息卡片 - 优化布局 */}
+        <Card className="shadow-card overflow-hidden">
+          {/* 顶部区域：项目名称 + 状态 */}
+          <div className="flex items-start justify-between pb-5 border-b border-gray-100">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-xl font-semibold text-gray-900 truncate">
+                  {project.name}
+                </h1>
+                {project.businessTag && (
+                  <Tag className="shrink-0">{project.businessTag}</Tag>
+                )}
+              </div>
+              <div className="flex items-center gap-4 text-sm text-gray-500">
+                <span>
+                  所属客户：
+                  <a
+                    className="text-primary-600 hover:text-primary-700 cursor-pointer font-medium"
+                    onClick={() => navigate(`/customers/${project.customerId}`)}
+                  >
+                    {project.customerName || project.customerId}
+                  </a>
+                </span>
+                <span className="text-gray-300">|</span>
+                <span>执行时间：{project.year}年{project.month}月</span>
+              </div>
+            </div>
+            <div className="shrink-0 text-right">
+              <div className="text-xs text-gray-400 mb-1.5">当前状态</div>
+              <Tag
+                color={PROJECT_STATUS_COLORS[project.status]}
+                className="text-sm px-3 py-0.5"
               >
-                {project.customerName || project.customerId}
-              </a>
-            </Descriptions.Item>
-            <Descriptions.Item label="执行时间">
-              {project.year}年{project.month}月
-            </Descriptions.Item>
-            <Descriptions.Item label="投放平台">
-              <Space size={[4, 4]} wrap>
+                {PROJECT_STATUS_LABELS[project.status] || project.status}
+              </Tag>
+            </div>
+          </div>
+
+          {/* 中间区域：核心指标 Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 py-5 border-b border-gray-100">
+            <InfoItem label="投放平台">
+              <div className="flex flex-wrap gap-1">
                 {project.platforms.map(platform => (
                   <Tag
                     key={platform}
                     color={platformColors[platform] || 'default'}
+                    className="text-xs"
                   >
                     {platformNames[platform] || platform}
                   </Tag>
                 ))}
-              </Space>
-            </Descriptions.Item>
-            <Descriptions.Item label="项目预算">
+              </div>
+            </InfoItem>
+
+            <InfoItem label="项目预算">
               <span className="font-semibold text-primary-600">
                 {formatMoney(project.budget)}
               </span>
-            </Descriptions.Item>
-            <Descriptions.Item label="合作达人">
-              <span className="font-medium">
-                {stats.collaborationCount || 0} 人
-              </span>
-            </Descriptions.Item>
-            <Descriptions.Item label="执行金额">
-              <span className="font-medium">
+            </InfoItem>
+
+            <InfoItem label="执行金额">
+              <span className="font-semibold">
                 {formatMoney(stats.totalAmount || 0)}
               </span>
-            </Descriptions.Item>
-            <Descriptions.Item label="执行进度" span={2}>
-              <div className="flex items-center gap-3 max-w-xs">
+            </InfoItem>
+
+            <InfoItem label="合作达人">
+              <span className="font-semibold">
+                {stats.collaborationCount || 0}
+                <span className="font-normal text-gray-400 ml-0.5">人</span>
+              </span>
+            </InfoItem>
+
+            <InfoItem label="执行进度" className="col-span-2 sm:col-span-1 lg:col-span-2">
+              <div className="flex items-center gap-3">
                 <Progress
                   percent={progress}
                   size="small"
-                  strokeColor={progress === 100 ? '#52c41a' : undefined}
+                  strokeColor={progress === 100 ? '#52c41a' : '#3b82f6'}
+                  className="flex-1 max-w-[200px]"
                 />
-                <span className="text-xs text-gray-500 whitespace-nowrap">
-                  {stats.publishedCount || 0}/{stats.collaborationCount || 0}{' '}
-                  已发布
+                <span className="text-xs text-gray-500 whitespace-nowrap shrink-0">
+                  {stats.publishedCount || 0}/{stats.collaborationCount || 0} 已发布
                 </span>
               </div>
-            </Descriptions.Item>
-            {project.discount && (
-              <Descriptions.Item label="折扣率">
-                {(project.discount * 100).toFixed(1)}%
-              </Descriptions.Item>
-            )}
-            {project.benchmarkCPM && (
-              <Descriptions.Item label="基准CPM">
-                {project.benchmarkCPM}
-              </Descriptions.Item>
-            )}
-            {project.qianchuanId && (
-              <Descriptions.Item label="千川ID">
-                {project.qianchuanId}
-              </Descriptions.Item>
-            )}
-          </Descriptions>
+            </InfoItem>
+          </div>
+
+          {/* 底部区域：补充信息（如果有的话） */}
+          {(project.platformDiscounts || project.discount || project.benchmarkCPM) && (
+            <div className="flex flex-wrap gap-x-8 gap-y-2 pt-4 text-xs text-gray-500">
+              {project.platforms.map(platform => {
+                const discount = project.platformDiscounts?.[platform];
+                if (!discount) return null;
+                return (
+                  <span key={platform}>
+                    {platformNames[platform] || platform}折扣率：
+                    <span className="text-gray-700 font-medium">
+                      {(discount * 100).toFixed(1)}%
+                    </span>
+                  </span>
+                );
+              })}
+              {project.discount && !project.platformDiscounts && (
+                <span>
+                  折扣率：
+                  <span className="text-gray-700 font-medium">
+                    {(project.discount * 100).toFixed(1)}%
+                  </span>
+                </span>
+              )}
+              {project.benchmarkCPM && (
+                <span>
+                  基准CPM：
+                  <span className="text-gray-700 font-medium">
+                    {project.benchmarkCPM}
+                  </span>
+                </span>
+              )}
+            </div>
+          )}
         </Card>
 
         {/* Tab 切换 */}
