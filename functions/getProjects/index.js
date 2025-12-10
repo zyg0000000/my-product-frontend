@@ -1,7 +1,11 @@
 /**
  * @file getprojects_2.js
- * @version 6.3
+ * @version 6.4
  * @description 支持 dbVersion 参数切换数据库（v1=kol_data, v2=agentworks_db）
+ *
+ * --- 更新日志 (v6.4) ---
+ * - [Bug修复] 修复 v6.3 导致 kol_data (v1) 达人信息关联失败的问题
+ * - [实现] 根据 dbVersion 动态选择 talents lookup 字段：v1 用 'id'，v2 用 'oneId'
  *
  * --- 更新日志 (v6.3) ---
  * - [Bug修复] talents lookup 的 foreignField 从 'id' 改为 'oneId'，修复 agentworks_db 中达人信息关联失败的问题
@@ -151,17 +155,18 @@ exports.handler = async (event, context) => {
         },
 
         // [v4.8 新增] 关联 talents 集合以获取达人信息
-        // [v6.3 修复] foreignField 从 'id' 改为 'oneId'，匹配 agentworks_db 实际字段
+        // [v6.4 修复] 根据 dbVersion 选择正确的 foreignField：v1 用 'id'，v2 用 'oneId'
         {
           $lookup: {
             from: TALENTS_COLLECTION,
             localField: 'collaborations.talentId',
-            foreignField: 'oneId',
+            foreignField: dbVersion === 'v2' ? 'oneId' : 'id',
             as: 'talentsData'
           }
         },
 
         // [v4.8 新增] 将 talentInfo 嵌入到每个 collaboration 中
+        // [v6.4 修复] filter 条件也需要根据 dbVersion 选择正确的字段
         {
           $addFields: {
             collaborations: {
@@ -178,7 +183,9 @@ exports.handler = async (event, context) => {
                             $filter: {
                               input: '$talentsData',
                               as: 'talent',
-                              cond: { $eq: ['$$talent.id', '$$collab.talentId'] }
+                              cond: dbVersion === 'v2'
+                                ? { $eq: ['$$talent.oneId', '$$collab.talentId'] }
+                                : { $eq: ['$$talent.id', '$$collab.talentId'] }
                             }
                           },
                           0

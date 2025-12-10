@@ -21,7 +21,7 @@ export const PRESET_DIMENSIONS = [
     { id: 'xingtuId', name: '达人星图ID', type: 'text', required: false, visible: false, sortable: false, category: '基础信息' },
     { id: 'uid', name: '达人UID', type: 'text', required: false, visible: false, sortable: false, category: '基础信息' },
     { id: 'talentTier', name: '达人层级', type: 'text', required: false, visible: true, sortable: true, category: '基础信息' },
-    { id: 'talentType', name: '达人类型', type: 'text', required: false, visible: true, sortable: true, category: '基础信息' },
+    { id: 'talentType', name: '内容标签', type: 'array', required: false, visible: true, sortable: false, category: '基础信息' },
 
     // 核心绩效
     { id: 'cpm60s', name: '60s+预期CPM', type: 'number', visible: true, sortable: true, category: '核心绩效' },
@@ -58,7 +58,7 @@ export const COLUMN_MAP = {
     '达人星图ID': { key: 'xingtuId', type: 'top' },
     '达人UID': { key: 'uid', type: 'top' },
     '达人层级': { key: 'talentTier', type: 'top' },
-    '达人类型': { key: 'talentType', type: 'top' },
+    '内容标签': { key: 'talentType', type: 'top' },
 
     // 核心绩效映射
     '60s+预期CPM': { key: 'cpm60s', type: 'performance', format: 'number' },

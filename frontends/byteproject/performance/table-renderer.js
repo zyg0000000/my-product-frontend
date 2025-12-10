@@ -4,7 +4,7 @@
  */
 
 import { dimensions, sortConfig, totalTalents, itemsPerPage, updateSortConfig, updateCurrentPage } from './state-manager.js';
-import { formatDate, formatPercentage, handleEmptyValue } from './utils.js';
+import { formatDate, formatPercentage, handleEmptyValue, formatArrayAsTags } from './utils.js';
 import { renderPagination } from './pagination.js';
 
 /**
@@ -121,8 +121,11 @@ function createTableBody(talentsToRender) {
             if (col.id === 'nickname' && talent.xingtuId && talent.xingtuId !== 'N/A') {
                 cell.innerHTML = `<a href="https://www.xingtu.cn/ad/creator/author-homepage/douyin-video/${talent.xingtuId}"
                     target="_blank" class="text-blue-600 hover:underline">${displayValue}</a>`;
+            } else if (col.type === 'array' && Array.isArray(cellValue)) {
+                // 数组类型渲染为彩色标签
+                cell.innerHTML = `<div class="flex flex-wrap">${formatArrayAsTags(cellValue)}</div>`;
             } else {
-                cell.textContent = displayValue;
+                cell.textContent = Array.isArray(displayValue) ? displayValue.join(', ') : displayValue;
             }
 
             row.appendChild(cell);

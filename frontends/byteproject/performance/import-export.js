@@ -251,6 +251,9 @@ export async function handleExportAll() {
 
                     if (value === null || value === undefined) {
                         value = '';
+                    } else if (dim.type === 'array' && Array.isArray(value)) {
+                        // 数组类型导出为逗号分隔字符串
+                        value = value.join(',');
                     } else if (dim.type === 'percentage' && !isNaN(parseFloat(value))) {
                         value = `${(parseFloat(value) * 100).toFixed(2)}%`;
                     } else if (dim.id === 'lastUpdated' && value) {
