@@ -16,7 +16,7 @@
 
 import { Tooltip } from 'antd';
 import { useTalentLinks, type TalentLike } from '../hooks/useTalentLinks';
-import type { Platform } from '../types/talent';
+import type { Platform, PlatformSpecific } from '../types/talent';
 
 export interface TalentNameWithLinksProps {
   /** 达人名称 */
@@ -26,7 +26,7 @@ export interface TalentNameWithLinksProps {
   /** 平台账号ID */
   platformAccountId?: string;
   /** 平台特定字段 */
-  platformSpecific?: Record<string, string>;
+  platformSpecific?: PlatformSpecific | Record<string, string>;
   /** 名称点击回调（如跳转到详情页） */
   onNameClick?: () => void;
   /** 是否将名称显示为链接样式 */
@@ -131,7 +131,7 @@ export function fromTalentPerformance(record: {
   name?: string;
   platform?: Platform;
   platformAccountId?: string;
-  platformSpecific?: Record<string, string>;
+  platformSpecific?: PlatformSpecific | Record<string, string>;
 }): TalentNameWithLinksProps {
   return {
     name: record.name || 'N/A',

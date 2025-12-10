@@ -12,7 +12,7 @@
 
 import { useCallback } from 'react';
 import { usePlatformConfig } from './usePlatformConfig';
-import type { Platform } from '../types/talent';
+import type { Platform, PlatformSpecific } from '../types/talent';
 import type { LinkConfig } from '../api/platformConfig';
 
 /**
@@ -30,7 +30,7 @@ export interface TalentLinkItem {
 export interface TalentLike {
   platform: Platform;
   platformAccountId?: string;
-  platformSpecific?: Record<string, string>;
+  platformSpecific?: PlatformSpecific | Record<string, string>;
 }
 
 /**

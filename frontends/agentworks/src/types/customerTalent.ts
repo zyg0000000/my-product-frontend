@@ -100,6 +100,8 @@ export interface CustomerTalentWithInfo extends CustomerTalent {
     fansCount?: number;
     talentType?: string[];
     agencyId?: string;
+    platformAccountId?: string;
+    platformSpecific?: Record<string, string>;
   };
 }
 
