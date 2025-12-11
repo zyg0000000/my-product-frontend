@@ -652,21 +652,41 @@ export function FinancialTab({
     const ext = fileName.split('.').pop()?.toLowerCase();
     switch (ext) {
       case 'pdf':
-        return <FilePdfOutlined style={{ fontSize: 24, color: designTokens.danger[500] }} />;
+        return (
+          <FilePdfOutlined
+            style={{ fontSize: 24, color: designTokens.danger[500] }}
+          />
+        );
       case 'xls':
       case 'xlsx':
-        return <FileExcelOutlined style={{ fontSize: 24, color: designTokens.success[500] }} />;
+        return (
+          <FileExcelOutlined
+            style={{ fontSize: 24, color: designTokens.success[500] }}
+          />
+        );
       case 'png':
       case 'jpg':
       case 'jpeg':
       case 'gif':
-        return <FileImageOutlined style={{ fontSize: 24, color: designTokens.info[500] }} />;
+        return (
+          <FileImageOutlined
+            style={{ fontSize: 24, color: designTokens.info[500] }}
+          />
+        );
       case 'doc':
       case 'docx':
       case 'txt':
-        return <FileTextOutlined style={{ fontSize: 24, color: designTokens.primary[500] }} />;
+        return (
+          <FileTextOutlined
+            style={{ fontSize: 24, color: designTokens.primary[500] }}
+          />
+        );
       default:
-        return <FileOutlined style={{ fontSize: 24, color: designTokens.gray[400] }} />;
+        return (
+          <FileOutlined
+            style={{ fontSize: 24, color: designTokens.gray[400] }}
+          />
+        );
     }
   };
 

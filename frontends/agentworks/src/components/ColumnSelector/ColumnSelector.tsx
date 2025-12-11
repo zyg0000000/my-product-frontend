@@ -156,7 +156,10 @@ export function ColumnSelector({
           <Badge
             count={`${stats.selected}/${stats.total}`}
             style={{
-              backgroundColor: stats.selected > 0 ? 'var(--aw-primary-600, #4f46e5)' : 'var(--aw-gray-300, #d1d5db)',
+              backgroundColor:
+                stats.selected > 0
+                  ? 'var(--aw-primary-600, #4f46e5)'
+                  : 'var(--aw-gray-300, #d1d5db)',
               fontSize: 11,
             }}
           />

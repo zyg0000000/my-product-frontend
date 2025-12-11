@@ -1031,8 +1031,14 @@ export function EffectTab({
                     size={72}
                     strokeColor={
                       cpmAchievement >= 100
-                        ? { '0%': designTokens.success[500], '100%': designTokens.success[600] }
-                        : { '0%': designTokens.warning[500], '100%': designTokens.warning[600] }
+                        ? {
+                            '0%': designTokens.success[500],
+                            '100%': designTokens.success[600],
+                          }
+                        : {
+                            '0%': designTokens.warning[500],
+                            '100%': designTokens.warning[600],
+                          }
                     }
                     format={() => (
                       <span className="text-sm font-semibold">
