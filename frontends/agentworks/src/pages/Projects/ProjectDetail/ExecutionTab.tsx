@@ -579,7 +579,6 @@ export function ExecutionTab({
           saveText: '保存',
           cancelText: '取消',
         }}
-        recordCreatorProps={false}
         pagination={{
           pageSize: 20,
           showSizeChanger: true,
