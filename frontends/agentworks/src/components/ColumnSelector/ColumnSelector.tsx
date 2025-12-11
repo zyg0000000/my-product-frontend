@@ -156,7 +156,7 @@ export function ColumnSelector({
           <Badge
             count={`${stats.selected}/${stats.total}`}
             style={{
-              backgroundColor: stats.selected > 0 ? '#4f46e5' : '#d1d5db',
+              backgroundColor: stats.selected > 0 ? 'var(--aw-primary-600, #4f46e5)' : 'var(--aw-gray-300, #d1d5db)',
               fontSize: 11,
             }}
           />
@@ -269,7 +269,7 @@ export function ColumnSelector({
       onClose={onClose}
       styles={{
         body: { padding: 0 },
-        header: { borderBottom: '1px solid #f0f0f0' },
+        header: { borderBottom: '1px solid var(--aw-gray-100, #f0f0f0)' },
       }}
     >
       {/* 搜索框 */}
@@ -336,19 +336,19 @@ export function ColumnSelector({
           border-radius: 8px;
         }
         .column-selector-collapse .ant-collapse-header:hover {
-          background-color: #f9fafb;
+          background-color: var(--aw-gray-50, #f9fafb);
         }
         .column-selector-collapse .ant-collapse-content-box {
           padding: 8px 0 16px 0 !important;
         }
         .column-selector-collapse .ant-collapse-item {
-          border-bottom: 1px solid #f3f4f6 !important;
+          border-bottom: 1px solid var(--aw-gray-100, #f3f4f6) !important;
         }
         .column-selector-collapse .ant-collapse-item:last-child {
           border-bottom: none !important;
         }
         .column-selector-collapse .ant-collapse-expand-icon {
-          color: #9ca3af;
+          color: var(--aw-gray-400, #9ca3af);
         }
       `}</style>
     </Drawer>

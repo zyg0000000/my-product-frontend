@@ -77,6 +77,7 @@ import {
 } from '../../../components/TalentNameWithLinks';
 import { logger } from '../../../utils/logger';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
+import { designTokens } from '../../../config/antTheme';
 
 // 财务专用样式（复用 EffectTab 设计系统）
 const customStyles = `
@@ -92,11 +93,12 @@ const customStyles = `
   }
 
   .finance-tab-container {
-    --finance-income: #3b82f6;
-    --finance-expense: #ef4444;
-    --finance-profit: #10b981;
-    --finance-adjustment: #f97316;
-    --finance-progress: #8b5cf6;
+    /* 使用全局设计系统变量 */
+    --finance-income: var(--aw-metric-blue, #3b82f6);
+    --finance-expense: var(--aw-danger-500, #ef4444);
+    --finance-profit: var(--aw-success-500, #10b981);
+    --finance-adjustment: var(--aw-metric-orange, #f97316);
+    --finance-progress: var(--aw-metric-purple, #8b5cf6);
   }
 
   .finance-metrics-grid {
@@ -125,7 +127,7 @@ const customStyles = `
 
   .finance-metric-card {
     position: relative;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    background: linear-gradient(135deg, var(--aw-white, #ffffff) 0%, var(--aw-gray-50, #f8fafc) 100%);
     border-radius: 16px;
     padding: 20px;
     border: 1px solid rgba(0, 0, 0, 0.04);
@@ -152,7 +154,7 @@ const customStyles = `
     left: 0;
     right: 0;
     height: 3px;
-    background: var(--accent-color, #3b82f6);
+    background: var(--accent-color, var(--aw-metric-blue, #3b82f6));
     border-radius: 16px 16px 0 0;
   }
 
@@ -178,9 +180,9 @@ const customStyles = `
     align-items: center;
     justify-content: center;
     font-size: 20px;
-    color: white;
+    color: var(--aw-white, white);
     flex-shrink: 0;
-    background: var(--accent-color, #3b82f6);
+    background: var(--accent-color, var(--aw-metric-blue, #3b82f6));
     box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-color) 30%, transparent);
   }
 
@@ -189,32 +191,32 @@ const customStyles = `
     font-weight: 700;
     font-feature-settings: 'tnum' on, 'lnum' on;
     letter-spacing: -0.02em;
-    color: #0f172a;
+    color: var(--aw-gray-900, #0f172a);
     line-height: 1.1;
   }
 
   .finance-metric-value.positive {
-    color: #10b981;
+    color: var(--aw-success-500, #10b981);
   }
 
   .finance-metric-value.negative {
-    color: #ef4444;
+    color: var(--aw-danger-500, #ef4444);
   }
 
   .finance-metric-value.warning {
-    color: #f59e0b;
+    color: var(--aw-warning-500, #f59e0b);
   }
 
   .finance-metric-label {
     font-size: 13px;
-    color: #64748b;
+    color: var(--aw-gray-500, #64748b);
     font-weight: 500;
     margin-bottom: 4px;
   }
 
   .finance-metric-unit {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--aw-gray-400, #94a3b8);
     font-weight: normal;
     margin-left: 4px;
   }
@@ -230,12 +232,12 @@ const customStyles = `
 
   .finance-data-table-wrapper .ant-pro-table-list-toolbar {
     padding: 16px 20px !important;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--aw-gray-100, #f1f5f9);
   }
 
   .finance-data-table-wrapper .ant-pro-table-list-toolbar-title {
     font-weight: 600;
-    color: #0f172a;
+    color: var(--aw-gray-900, #0f172a);
   }
 `;
 
@@ -650,21 +652,21 @@ export function FinancialTab({
     const ext = fileName.split('.').pop()?.toLowerCase();
     switch (ext) {
       case 'pdf':
-        return <FilePdfOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />;
+        return <FilePdfOutlined style={{ fontSize: 24, color: designTokens.danger[500] }} />;
       case 'xls':
       case 'xlsx':
-        return <FileExcelOutlined style={{ fontSize: 24, color: '#52c41a' }} />;
+        return <FileExcelOutlined style={{ fontSize: 24, color: designTokens.success[500] }} />;
       case 'png':
       case 'jpg':
       case 'jpeg':
       case 'gif':
-        return <FileImageOutlined style={{ fontSize: 24, color: '#1890ff' }} />;
+        return <FileImageOutlined style={{ fontSize: 24, color: designTokens.info[500] }} />;
       case 'doc':
       case 'docx':
       case 'txt':
-        return <FileTextOutlined style={{ fontSize: 24, color: '#722ed1' }} />;
+        return <FileTextOutlined style={{ fontSize: 24, color: designTokens.primary[500] }} />;
       default:
-        return <FileOutlined style={{ fontSize: 24, color: '#8c8c8c' }} />;
+        return <FileOutlined style={{ fontSize: 24, color: designTokens.gray[400] }} />;
     }
   };
 

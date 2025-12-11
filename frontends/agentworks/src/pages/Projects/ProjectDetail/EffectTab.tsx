@@ -46,6 +46,7 @@ import {
 } from '../../../components/TalentNameWithLinks';
 import { logger } from '../../../utils/logger';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
+import { designTokens } from '../../../config/antTheme';
 
 // 注入自定义样式
 const customStyles = `
@@ -79,15 +80,16 @@ const customStyles = `
   }
 
   .effect-tab-container {
-    --metric-blue: #3b82f6;
-    --metric-pink: #ec4899;
-    --metric-purple: #8b5cf6;
-    --metric-cyan: #06b6d4;
-    --metric-orange: #f97316;
-    --metric-green: #10b981;
-    --metric-red: #ef4444;
-    --metric-indigo: #6366f1;
-    --metric-amber: #f59e0b;
+    /* 使用全局设计系统变量 */
+    --metric-blue: var(--aw-metric-blue, #3b82f6);
+    --metric-pink: var(--aw-metric-pink, #ec4899);
+    --metric-purple: var(--aw-metric-purple, #8b5cf6);
+    --metric-cyan: var(--aw-metric-cyan, #06b6d4);
+    --metric-orange: var(--aw-metric-orange, #f97316);
+    --metric-green: var(--aw-metric-green, #10b981);
+    --metric-red: var(--aw-danger-500, #ef4444);
+    --metric-indigo: var(--aw-primary-500, #6366f1);
+    --metric-amber: var(--aw-warning-500, #f59e0b);
   }
 
   .metrics-grid {
@@ -124,7 +126,7 @@ const customStyles = `
 
   .metric-card {
     position: relative;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    background: linear-gradient(135deg, var(--aw-white, #ffffff) 0%, var(--aw-gray-50, #f8fafc) 100%);
     border-radius: 16px;
     padding: 20px;
     border: 1px solid rgba(0, 0, 0, 0.04);
@@ -151,7 +153,7 @@ const customStyles = `
     left: 0;
     right: 0;
     height: 3px;
-    background: var(--accent-color, #3b82f6);
+    background: var(--accent-color, var(--aw-metric-blue, #3b82f6));
     border-radius: 16px 16px 0 0;
   }
 
@@ -180,9 +182,9 @@ const customStyles = `
     align-items: center;
     justify-content: center;
     font-size: 20px;
-    color: white;
+    color: var(--aw-white, white);
     flex-shrink: 0;
-    background: var(--accent-color, #3b82f6);
+    background: var(--accent-color, var(--aw-metric-blue, #3b82f6));
     box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-color) 30%, transparent);
   }
 
@@ -191,20 +193,20 @@ const customStyles = `
     font-weight: 700;
     font-feature-settings: 'tnum' on, 'lnum' on;
     letter-spacing: -0.02em;
-    color: #0f172a;
+    color: var(--aw-gray-900, #0f172a);
     line-height: 1.1;
   }
 
   .metric-label {
     font-size: 13px;
-    color: #64748b;
+    color: var(--aw-gray-500, #64748b);
     font-weight: 500;
     margin-bottom: 4px;
   }
 
   .metric-benchmark {
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--aw-gray-400, #94a3b8);
     display: flex;
     align-items: center;
     gap: 4px;
@@ -221,7 +223,7 @@ const customStyles = `
   .progress-ring .ant-progress-text {
     font-size: 14px !important;
     font-weight: 600 !important;
-    color: #0f172a !important;
+    color: var(--aw-gray-900, #0f172a) !important;
   }
 
   .status-badge {
@@ -237,13 +239,13 @@ const customStyles = `
   }
 
   .status-badge.success {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    color: #047857;
+    background: linear-gradient(135deg, var(--aw-success-100, #d1fae5) 0%, var(--aw-success-200, #a7f3d0) 100%);
+    color: var(--aw-success-700, #047857);
   }
 
   .status-badge.warning {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    color: #b45309;
+    background: linear-gradient(135deg, var(--aw-warning-100, #fef3c7) 0%, var(--aw-warning-200, #fde68a) 100%);
+    color: var(--aw-warning-700, #b45309);
   }
 
   .period-tabs .ant-tabs-nav {
@@ -258,7 +260,7 @@ const customStyles = `
   }
 
   .period-tabs .ant-tabs-tab-active {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    background: linear-gradient(135deg, var(--aw-primary-500, #6366f1) 0%, var(--aw-primary-600, #4f46e5) 100%) !important;
   }
 
   .period-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
@@ -276,16 +278,16 @@ const customStyles = `
 
   .data-table-wrapper .ant-pro-table-list-toolbar {
     padding: 16px 20px !important;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--aw-gray-100, #f1f5f9);
   }
 
   .data-table-wrapper .ant-pro-table-list-toolbar-title {
     font-weight: 600;
-    color: #0f172a;
+    color: var(--aw-gray-900, #0f172a);
   }
 
   .empty-state {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    background: linear-gradient(135deg, var(--aw-gray-50, #f8fafc) 0%, var(--aw-gray-100, #f1f5f9) 100%);
     border-radius: 16px;
     padding: 48px;
     text-align: center;
@@ -296,13 +298,13 @@ const customStyles = `
     width: 80px;
     height: 80px;
     margin: 0 auto 16px;
-    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    background: linear-gradient(135deg, var(--aw-gray-200, #e2e8f0) 0%, var(--aw-gray-300, #cbd5e1) 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 32px;
-    color: #94a3b8;
+    color: var(--aw-gray-400, #94a3b8);
   }
 `;
 
@@ -954,8 +956,8 @@ export function EffectTab({
                   percent={recordProgress}
                   size={72}
                   strokeColor={{
-                    '0%': '#6366f1',
-                    '100%': '#4f46e5',
+                    '0%': designTokens.primary[500],
+                    '100%': designTokens.primary[600],
                   }}
                   format={() => (
                     <span className="text-sm font-semibold">
@@ -1029,8 +1031,8 @@ export function EffectTab({
                     size={72}
                     strokeColor={
                       cpmAchievement >= 100
-                        ? { '0%': '#10b981', '100%': '#059669' }
-                        : { '0%': '#f59e0b', '100%': '#d97706' }
+                        ? { '0%': designTokens.success[500], '100%': designTokens.success[600] }
+                        : { '0%': designTokens.warning[500], '100%': designTokens.warning[600] }
                     }
                     format={() => (
                       <span className="text-sm font-semibold">
