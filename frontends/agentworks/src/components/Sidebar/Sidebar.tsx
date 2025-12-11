@@ -113,10 +113,14 @@ export function Sidebar() {
             <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100 tracking-tight">
               AgentWorks
             </h1>
-            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">v3.6</span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
+              v3.6
+            </span>
           </div>
         ) : (
-          <span className="text-lg font-bold text-primary-600 dark:text-primary-400">A</span>
+          <span className="text-lg font-bold text-primary-600 dark:text-primary-400">
+            A
+          </span>
         )}
       </div>
 
@@ -320,10 +324,14 @@ export function Sidebar() {
       {!isCollapsed && (
         <div className="border-t border-gray-100 dark:border-gray-700 px-4 py-3">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-gray-400 dark:text-gray-500">v3.6.0</span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500">
+              v3.6.0
+            </span>
             <div className="flex items-center gap-1">
               <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-[10px] text-gray-400 dark:text-gray-500">在线</span>
+              <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                在线
+              </span>
             </div>
           </div>
         </div>
