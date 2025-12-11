@@ -98,7 +98,7 @@ export function ExecutionTab({
 
   // 行内编辑状态
   const [editableKeys, setEditableKeys] = useState<React.Key[]>([]);
-  const editableFormRef = useRef<EditableFormInstance<Collaboration>>();
+  const editableFormRef = useRef<EditableFormInstance<Collaboration>>(null);
   const [editableForm] = Form.useForm();
 
   // 筛选状态
@@ -193,8 +193,9 @@ export function ExecutionTab({
     _row: Collaboration & {
       plannedReleaseDate?: string | dayjs.Dayjs | null;
       actualReleaseDate?: string | dayjs.Dayjs | null;
+      index?: number;
     },
-    originRow: Collaboration
+    originRow: Collaboration & { index?: number }
   ) => {
     void _row; // 使用 form 数据而非 row 参数
     try {
