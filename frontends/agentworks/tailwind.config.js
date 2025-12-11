@@ -9,6 +9,8 @@
  */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  // 使用 class 策略控制深色模式（通过 JS 添加 .dark 类）
+  darkMode: 'class',
   theme: {
     extend: {
       /* ========================================

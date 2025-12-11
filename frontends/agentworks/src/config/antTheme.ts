@@ -510,6 +510,185 @@ export const antTheme: ThemeConfig = {
 };
 
 /**
+ * 深色模式设计令牌
+ */
+export const darkDesignTokens = {
+  gray: {
+    50: '#0f172a',
+    100: '#1e293b',
+    200: '#334155',
+    300: '#475569',
+    400: '#64748b',
+    500: '#94a3b8',
+    600: '#cbd5e1',
+    700: '#e2e8f0',
+    800: '#f1f5f9',
+    900: '#f8fafc',
+    950: '#ffffff',
+  },
+  primary: {
+    ...designTokens.primary,
+    500: '#818cf8',
+    600: '#6366f1',
+  },
+} as const;
+
+/**
+ * Ant Design 深色主题配置
+ */
+export const darkAntTheme: ThemeConfig = {
+  token: {
+    // 品牌色（深色模式稍微提亮）
+    colorPrimary: darkDesignTokens.primary[600],
+    colorLink: darkDesignTokens.primary[500],
+    colorLinkHover: darkDesignTokens.primary[600],
+    colorLinkActive: darkDesignTokens.primary[700],
+
+    // 功能色
+    colorSuccess: designTokens.success[500],
+    colorWarning: designTokens.warning[500],
+    colorError: designTokens.danger[500],
+    colorInfo: designTokens.info[500],
+
+    // 文字色（反转）
+    colorTextBase: darkDesignTokens.gray[900],
+    colorText: darkDesignTokens.gray[800],
+    colorTextSecondary: darkDesignTokens.gray[600],
+    colorTextTertiary: darkDesignTokens.gray[500],
+    colorTextQuaternary: darkDesignTokens.gray[400],
+
+    // 背景色（深色）
+    colorBgBase: darkDesignTokens.gray[50],
+    colorBgContainer: darkDesignTokens.gray[100],
+    colorBgElevated: darkDesignTokens.gray[200],
+    colorBgLayout: darkDesignTokens.gray[50],
+    colorBgSpotlight: darkDesignTokens.gray[200],
+
+    // 边框色
+    colorBorder: darkDesignTokens.gray[300],
+    colorBorderSecondary: darkDesignTokens.gray[200],
+
+    // 填充色
+    colorFill: darkDesignTokens.gray[200],
+    colorFillSecondary: darkDesignTokens.gray[100],
+    colorFillTertiary: 'rgba(255, 255, 255, 0.08)',
+    colorFillQuaternary: 'rgba(255, 255, 255, 0.04)',
+
+    // 圆角（保持一致）
+    borderRadius: designTokens.radius.md,
+    borderRadiusLG: designTokens.radius.lg,
+    borderRadiusSM: designTokens.radius.sm,
+    borderRadiusXS: 4,
+
+    // 字体（保持一致）
+    fontFamily: designTokens.fontFamily.body,
+    fontSize: designTokens.fontSize.base,
+    fontSizeSM: designTokens.fontSize.sm,
+    fontSizeLG: designTokens.fontSize.lg,
+    fontSizeXL: designTokens.fontSize.xl,
+    fontSizeHeading1: designTokens.fontSize['4xl'],
+    fontSizeHeading2: designTokens.fontSize['3xl'],
+    fontSizeHeading3: designTokens.fontSize['2xl'],
+    fontSizeHeading4: designTokens.fontSize.xl,
+    fontSizeHeading5: designTokens.fontSize.lg,
+
+    // 行高
+    lineHeight: 1.6,
+    lineHeightLG: 1.5,
+    lineHeightSM: 1.5,
+
+    // 控件尺寸
+    controlHeight: designTokens.size.md,
+    controlHeightLG: designTokens.size.lg,
+    controlHeightSM: designTokens.size.sm,
+
+    // 间距
+    padding: 16,
+    paddingLG: 24,
+    paddingSM: 12,
+    paddingXS: 8,
+    paddingXXS: 4,
+
+    margin: 16,
+    marginLG: 24,
+    marginSM: 12,
+    marginXS: 8,
+    marginXXS: 4,
+
+    // 阴影（深色模式使用更深的阴影）
+    boxShadow:
+      '0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px 0 rgba(0, 0, 0, 0.3)',
+    boxShadowSecondary:
+      '0 6px 16px 0 rgba(0, 0, 0, 0.4), 0 3px 6px -4px rgba(0, 0, 0, 0.4), 0 9px 28px 8px rgba(0, 0, 0, 0.25)',
+
+    // 动效
+    motionDurationFast: '0.1s',
+    motionDurationMid: '0.2s',
+    motionDurationSlow: '0.3s',
+    motionEaseInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    motionEaseOut: 'cubic-bezier(0, 0, 0.2, 1)',
+  },
+
+  // 组件级别配置
+  components: {
+    Button: {
+      primaryShadow: '0 2px 8px rgba(99, 102, 241, 0.4)',
+      defaultBg: darkDesignTokens.gray[200],
+      defaultBorderColor: darkDesignTokens.gray[300],
+    },
+
+    Input: {
+      activeBorderColor: darkDesignTokens.primary[500],
+      hoverBorderColor: darkDesignTokens.primary[400],
+      colorBgContainer: darkDesignTokens.gray[100],
+    },
+
+    Select: {
+      optionSelectedBg: 'rgba(99, 102, 241, 0.2)',
+      colorBgContainer: darkDesignTokens.gray[100],
+    },
+
+    Table: {
+      headerBg: darkDesignTokens.gray[200],
+      rowHoverBg: darkDesignTokens.gray[200],
+      borderColor: darkDesignTokens.gray[300],
+    },
+
+    Card: {
+      colorBgContainer: darkDesignTokens.gray[100],
+    },
+
+    Modal: {
+      contentBg: darkDesignTokens.gray[100],
+      headerBg: darkDesignTokens.gray[100],
+    },
+
+    Menu: {
+      itemBg: 'transparent',
+      itemSelectedBg: 'rgba(99, 102, 241, 0.15)',
+      itemHoverBg: darkDesignTokens.gray[200],
+      darkItemBg: darkDesignTokens.gray[50],
+      darkItemSelectedBg: 'rgba(99, 102, 241, 0.2)',
+    },
+
+    Tabs: {
+      itemSelectedColor: darkDesignTokens.primary[500],
+      inkBarColor: darkDesignTokens.primary[500],
+    },
+
+    Tag: {
+      defaultBg: darkDesignTokens.gray[200],
+      defaultColor: darkDesignTokens.gray[700],
+    },
+
+    Tooltip: {
+      colorBgSpotlight: darkDesignTokens.gray[200],
+      colorTextLightSolid: darkDesignTokens.gray[900],
+    },
+  },
+};
+
+/**
  * 导出设计令牌供其他组件使用
  */
 export default antTheme;

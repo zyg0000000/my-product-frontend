@@ -10,7 +10,8 @@ import zhCN from 'antd/locale/zh_CN';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { MainLayout } from './components/Layout/MainLayout';
 import { Home } from './pages/Home/Home';
-import antTheme from './config/antTheme';
+import antTheme, { darkAntTheme } from './config/antTheme';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
 // 懒加载大型页面组件（使用 named export）
 const TalentsHome = lazy(() =>
@@ -136,9 +137,14 @@ function LoadingFallback() {
   );
 }
 
-function App() {
+/**
+ * 主题感知的 ConfigProvider 包装器
+ */
+function ThemedApp() {
+  const { isDark } = useTheme();
+
   return (
-    <ConfigProvider theme={antTheme} locale={zhCN}>
+    <ConfigProvider theme={isDark ? darkAntTheme : antTheme} locale={zhCN}>
       <AntApp>
         <ErrorBoundary>
           <BrowserRouter>
@@ -236,6 +242,17 @@ function App() {
         </ErrorBoundary>
       </AntApp>
     </ConfigProvider>
+  );
+}
+
+/**
+ * 根应用组件（包含 ThemeProvider）
+ */
+function App() {
+  return (
+    <ThemeProvider>
+      <ThemedApp />
+    </ThemeProvider>
   );
 }
 

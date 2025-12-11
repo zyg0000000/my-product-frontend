@@ -15,7 +15,10 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronDownIcon,
+  SunIcon,
+  MoonIcon,
 } from '@heroicons/react/24/outline';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface NavItem {
   name: string;
@@ -84,6 +87,7 @@ export function Sidebar() {
     '系统设置',
   ]);
   const location = useLocation();
+  const { isDark, toggleTheme } = useTheme();
 
   const toggleMenu = (menuName: string) => {
     if (isCollapsed) return;
@@ -98,21 +102,21 @@ export function Sidebar() {
 
   return (
     <div
-      className={`flex h-screen flex-col border-r border-gray-200 bg-white transition-all duration-300 ease-in-out ${
+      className={`flex h-screen flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all duration-300 ease-in-out ${
         isCollapsed ? 'w-16' : 'w-48'
       }`}
     >
       {/* Logo */}
-      <div className="flex h-14 items-center justify-center border-b border-gray-100">
+      <div className="flex h-14 items-center justify-center border-b border-gray-100 dark:border-gray-700">
         {!isCollapsed ? (
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold text-gray-900 tracking-tight">
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100 tracking-tight">
               AgentWorks
             </h1>
-            <span className="text-[10px] text-gray-400 font-medium">v3.6</span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">v3.6</span>
           </div>
         ) : (
-          <span className="text-lg font-bold text-primary-600">A</span>
+          <span className="text-lg font-bold text-primary-600 dark:text-primary-400">A</span>
         )}
       </div>
 
@@ -267,11 +271,36 @@ export function Sidebar() {
         </div>
       </nav>
 
-      {/* 折叠按钮 */}
-      <div className="border-t border-gray-100 p-3">
+      {/* 折叠按钮和主题切换 */}
+      <div className="border-t border-gray-100 dark:border-gray-700 p-3 space-y-2">
+        {/* 主题切换按钮 */}
+        <button
+          onClick={toggleTheme}
+          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-gray-400 transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 ${
+            isCollapsed ? 'justify-center' : ''
+          }`}
+          title={isDark ? '切换到浅色模式' : '切换到深色模式'}
+          aria-label={isDark ? '切换到浅色模式' : '切换到深色模式'}
+        >
+          {isDark ? (
+            <>
+              <SunIcon className="h-4 w-4" aria-hidden="true" />
+              {!isCollapsed && <span className="text-xs">浅色模式</span>}
+            </>
+          ) : (
+            <>
+              <MoonIcon className="h-4 w-4" aria-hidden="true" />
+              {!isCollapsed && <span className="text-xs">深色模式</span>}
+            </>
+          )}
+        </button>
+
+        {/* 折叠按钮 */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-gray-400 transition-all duration-200 hover:bg-gray-50 hover:text-gray-600"
+          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-gray-400 transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 ${
+            isCollapsed ? 'justify-center' : ''
+          }`}
           title={isCollapsed ? '展开侧边栏' : '折叠侧边栏'}
           aria-label={isCollapsed ? '展开侧边栏' : '折叠侧边栏'}
           aria-expanded={!isCollapsed}
@@ -289,12 +318,12 @@ export function Sidebar() {
 
       {/* 底部信息 */}
       {!isCollapsed && (
-        <div className="border-t border-gray-100 px-4 py-3">
+        <div className="border-t border-gray-100 dark:border-gray-700 px-4 py-3">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-gray-400">v3.6.0</span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500">v3.6.0</span>
             <div className="flex items-center gap-1">
               <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-[10px] text-gray-400">在线</span>
+              <span className="text-[10px] text-gray-400 dark:text-gray-500">在线</span>
             </div>
           </div>
         </div>
