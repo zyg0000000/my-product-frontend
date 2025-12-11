@@ -128,24 +128,25 @@ export function useTalentLinks() {
           : []);
 
       // 只返回 showInTalentName !== false 且 idSource 为 talent 的外链
-      return linksConfig
-        .filter(
-          (link): link is LinkConfig =>
-            link != null &&
-            link.showInTalentName !== false &&
-            (link.idSource || 'talent') === 'talent'
-        )
-        .map(link => {
+      const result: TalentLinkItem[] = [];
+      for (const link of linksConfig) {
+        if (
+          link != null &&
+          link.showInTalentName !== false &&
+          (link.idSource || 'talent') === 'talent'
+        ) {
           const url = generateLinkUrl(link, talent);
-          if (!url) return null;
-          return {
-            name: link.name,
-            label: link.label,
-            url,
-            idSource: link.idSource || 'talent',
-          };
-        })
-        .filter((item): item is TalentLinkItem => item !== null);
+          if (url) {
+            result.push({
+              name: link.name,
+              label: link.label,
+              url,
+              idSource: link.idSource || 'talent',
+            });
+          }
+        }
+      }
+      return result;
     },
     [getPlatformConfigByKey, generateLinkUrl]
   );
@@ -172,24 +173,25 @@ export function useTalentLinks() {
 
       // 只返回 showInCollaboration === true 的外链
       // 如果指定了 filterByIdField，还需要过滤 idField 匹配的外链
-      return linksConfig
-        .filter(
-          (link): link is LinkConfig =>
-            link != null &&
-            link.showInCollaboration === true &&
-            (filterByIdField ? link.idField === filterByIdField : true)
-        )
-        .map(link => {
+      const result: TalentLinkItem[] = [];
+      for (const link of linksConfig) {
+        if (
+          link != null &&
+          link.showInCollaboration === true &&
+          (filterByIdField ? link.idField === filterByIdField : true)
+        ) {
           const url = generateLinkUrl(link, talent, collaboration);
-          if (!url) return null;
-          return {
-            name: link.name,
-            label: link.label,
-            url,
-            idSource: link.idSource || 'talent',
-          };
-        })
-        .filter((item): item is TalentLinkItem => item !== null);
+          if (url) {
+            result.push({
+              name: link.name,
+              label: link.label,
+              url,
+              idSource: link.idSource || 'talent',
+            });
+          }
+        }
+      }
+      return result;
     },
     [getPlatformConfigByKey, generateLinkUrl]
   );
@@ -219,19 +221,21 @@ export function useTalentLinks() {
             ]
           : []);
 
-      return linksConfig
-        .filter((link): link is LinkConfig => link != null)
-        .map(link => {
+      const result: TalentLinkItem[] = [];
+      for (const link of linksConfig) {
+        if (link != null) {
           const url = generateLinkUrl(link, talent, collaboration);
-          if (!url) return null;
-          return {
-            name: link.name,
-            label: link.label,
-            url,
-            idSource: link.idSource || 'talent',
-          };
-        })
-        .filter((item): item is TalentLinkItem => item !== null);
+          if (url) {
+            result.push({
+              name: link.name,
+              label: link.label,
+              url,
+              idSource: link.idSource || 'talent',
+            });
+          }
+        }
+      }
+      return result;
     },
     [getPlatformConfigByKey, generateLinkUrl]
   );

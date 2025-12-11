@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { ProTable, EditableProTable } from '@ant-design/pro-components';
+import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
 import type { EditableFormInstance } from '@ant-design/pro-components';
 import { Form } from 'antd';
@@ -190,12 +190,13 @@ export function ExecutionTab({
    */
   const handleSaveRow = async (
     key: React.Key,
-    row: Collaboration & {
+    _row: Collaboration & {
       plannedReleaseDate?: string | dayjs.Dayjs | null;
       actualReleaseDate?: string | dayjs.Dayjs | null;
     },
     originRow: Collaboration
   ) => {
+    void _row; // 使用 form 数据而非 row 参数
     try {
       // 从 antd Form 获取表单值
       const allFormValues = editableForm.getFieldsValue();
@@ -574,7 +575,7 @@ export function ExecutionTab({
           editableKeys,
           onChange: setEditableKeys,
           onSave: handleSaveRow,
-          actionRender: (row, config, dom) => [dom.save, dom.cancel],
+          actionRender: (_row, _config, dom) => [dom.save, dom.cancel],
           saveText: '保存',
           cancelText: '取消',
         }}

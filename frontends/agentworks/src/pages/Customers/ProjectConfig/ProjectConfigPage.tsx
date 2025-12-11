@@ -58,10 +58,21 @@ export function ProjectConfigPage() {
               ...DEFAULT_PROJECT_CONFIG.tabVisibility,
               ...existingConfig.tabVisibility,
             },
-            effectConfig: {
-              ...DEFAULT_PROJECT_CONFIG.effectConfig,
-              ...existingConfig.effectConfig,
-            },
+            effectConfig: existingConfig.effectConfig
+              ? {
+                  enabledPeriods:
+                    existingConfig.effectConfig.enabledPeriods ||
+                    DEFAULT_PROJECT_CONFIG.effectConfig!.enabledPeriods,
+                  enabledMetrics:
+                    existingConfig.effectConfig.enabledMetrics ||
+                    DEFAULT_PROJECT_CONFIG.effectConfig!.enabledMetrics,
+                  benchmarks: {
+                    ...DEFAULT_PROJECT_CONFIG.effectConfig!.benchmarks,
+                    ...existingConfig.effectConfig.benchmarks,
+                  },
+                  customMetrics: existingConfig.effectConfig.customMetrics,
+                }
+              : DEFAULT_PROJECT_CONFIG.effectConfig,
           });
         } else {
           setConfig(DEFAULT_PROJECT_CONFIG);

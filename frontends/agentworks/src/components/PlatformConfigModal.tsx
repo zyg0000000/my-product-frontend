@@ -32,8 +32,6 @@ import {
   ProFormDigit,
   ProFormSelect,
   ProFormTextArea,
-  ProFormList,
-  ProFormCheckbox,
 } from '@ant-design/pro-components';
 import { ProCard } from '@ant-design/pro-components';
 import {

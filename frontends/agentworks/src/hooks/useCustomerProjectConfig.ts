@@ -60,10 +60,21 @@ export function useCustomerProjectConfig(
               ...customerConfig.tabVisibility,
             },
             // 确保 effectConfig 完整
-            effectConfig: {
-              ...DEFAULT_PROJECT_CONFIG.effectConfig,
-              ...customerConfig.effectConfig,
-            },
+            effectConfig: customerConfig.effectConfig
+              ? {
+                  enabledPeriods:
+                    customerConfig.effectConfig.enabledPeriods ||
+                    DEFAULT_PROJECT_CONFIG.effectConfig!.enabledPeriods,
+                  enabledMetrics:
+                    customerConfig.effectConfig.enabledMetrics ||
+                    DEFAULT_PROJECT_CONFIG.effectConfig!.enabledMetrics,
+                  benchmarks: {
+                    ...DEFAULT_PROJECT_CONFIG.effectConfig!.benchmarks,
+                    ...customerConfig.effectConfig.benchmarks,
+                  },
+                  customMetrics: customerConfig.effectConfig.customMetrics,
+                }
+              : DEFAULT_PROJECT_CONFIG.effectConfig,
           });
         } else {
           setConfig(DEFAULT_PROJECT_CONFIG);
