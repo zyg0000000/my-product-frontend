@@ -5,8 +5,11 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { ProTable } from '@ant-design/pro-components';
-import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import type { EditableFormInstance } from '@ant-design/pro-components';
+import type {
+  ProColumns,
+  ActionType,
+  EditableFormInstance,
+} from '@ant-design/pro-components';
 import { Form } from 'antd';
 import {
   Card,
@@ -189,7 +192,7 @@ export function ExecutionTab({
    * 关键：使用 editableForm.getFieldsValue() 获取表单实际输入值
    */
   const handleSaveRow = async (
-    key: React.Key,
+    key: React.Key | React.Key[],
     _row: Collaboration & {
       plannedReleaseDate?: string | dayjs.Dayjs | null;
       actualReleaseDate?: string | dayjs.Dayjs | null;
@@ -198,11 +201,13 @@ export function ExecutionTab({
     originRow: Collaboration & { index?: number }
   ) => {
     void _row; // 使用 form 数据而非 row 参数
+    // 处理 key 可能是数组的情况
+    const actualKey = Array.isArray(key) ? key[0] : key;
     try {
       // 从 antd Form 获取表单值
       const allFormValues = editableForm.getFieldsValue();
       // ProTable editable 会把字段存储为 record[key][fieldName] 的结构
-      const formRowData = allFormValues[key as string] || {};
+      const formRowData = allFormValues[actualKey as string] || {};
 
       console.log('=== handleSaveRow called ===');
       console.log('key:', key);
