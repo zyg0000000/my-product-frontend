@@ -197,7 +197,8 @@ export function PlatformConfigModal({
         },
         // links: 使用新的多链接配置，过滤掉 null/undefined 的无效项
         links: (values.links || []).filter(
-          (link: LinkConfig | null | undefined) => link && link.name && link.template
+          (link: LinkConfig | null | undefined) =>
+            link && link.name && link.template
         ),
         // link: 保留向后兼容（deprecated）
         link: null,
@@ -611,7 +612,9 @@ export function PlatformConfigModal({
                         <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 text-primary-600 text-xs font-semibold">
                           {index + 1}
                         </div>
-                        <span className="text-sm font-medium text-gray-700">外链配置</span>
+                        <span className="text-sm font-medium text-gray-700">
+                          外链配置
+                        </span>
                       </div>
                       <Popconfirm
                         title="确定删除此外链配置？"
@@ -625,7 +628,12 @@ export function PlatformConfigModal({
                         okText="删除"
                         cancelText="取消"
                       >
-                        <Button type="text" danger size="small" icon={<DeleteOutlined />}>
+                        <Button
+                          type="text"
+                          danger
+                          size="small"
+                          icon={<DeleteOutlined />}
+                        >
                           删除
                         </Button>
                       </Popconfirm>
@@ -636,17 +644,28 @@ export function PlatformConfigModal({
                       <div className="grid grid-cols-3 gap-4">
                         <Form.Item
                           name={[field.name, 'name']}
-                          label={<span className="text-xs text-gray-500 font-medium">链接名称</span>}
+                          label={
+                            <span className="text-xs text-gray-500 font-medium">
+                              链接名称
+                            </span>
+                          }
                           rules={[{ required: true, message: '请输入名称' }]}
                         >
                           <Input placeholder="如：星图主页" />
                         </Form.Item>
                         <Form.Item
                           name={[field.name, 'label']}
-                          label={<span className="text-xs text-gray-500 font-medium">显示标签</span>}
+                          label={
+                            <span className="text-xs text-gray-500 font-medium">
+                              显示标签
+                            </span>
+                          }
                           rules={[
                             { required: true, message: '请输入标签' },
-                            { pattern: /^[\u4e00-\u9fa5]{2}$/, message: '限2个中文' },
+                            {
+                              pattern: /^[\u4e00-\u9fa5]{2}$/,
+                              message: '限2个中文',
+                            },
                           ]}
                           tooltip="在列表中显示的标签文字"
                         >
@@ -654,13 +673,20 @@ export function PlatformConfigModal({
                         </Form.Item>
                         <ProFormSelect
                           name={[field.name, 'idSource']}
-                          label={<span className="text-xs text-gray-500 font-medium">数据来源</span>}
+                          label={
+                            <span className="text-xs text-gray-500 font-medium">
+                              数据来源
+                            </span>
+                          }
                           initialValue="talent"
                           tooltip={
                             <div className="space-y-1">
                               {LINK_ID_SOURCE_OPTIONS.map(opt => (
                                 <div key={opt.value}>
-                                  <strong>{opt.icon} {opt.label}</strong>：{opt.description}
+                                  <strong>
+                                    {opt.icon} {opt.label}
+                                  </strong>
+                                  ：{opt.description}
                                 </div>
                               ))}
                             </div>
@@ -677,8 +703,14 @@ export function PlatformConfigModal({
                         <div className="col-span-2">
                           <Form.Item
                             name={[field.name, 'template']}
-                            label={<span className="text-xs text-gray-500 font-medium">URL 模板</span>}
-                            rules={[{ required: true, message: '请输入URL模板' }]}
+                            label={
+                              <span className="text-xs text-gray-500 font-medium">
+                                URL 模板
+                              </span>
+                            }
+                            rules={[
+                              { required: true, message: '请输入URL模板' },
+                            ]}
                             tooltip="使用 {id} 作为动态ID占位符"
                           >
                             <Input placeholder="https://www.example.com/path/{id}" />
@@ -686,7 +718,11 @@ export function PlatformConfigModal({
                         </div>
                         <Form.Item
                           name={[field.name, 'idField']}
-                          label={<span className="text-xs text-gray-500 font-medium">ID 字段名</span>}
+                          label={
+                            <span className="text-xs text-gray-500 font-medium">
+                              ID 字段名
+                            </span>
+                          }
                           rules={[{ required: true, message: '请输入字段名' }]}
                           tooltip="数据源中对应的字段名"
                         >
@@ -695,7 +731,9 @@ export function PlatformConfigModal({
                       </div>
                       {/* 显示位置区 */}
                       <div className="mt-4 pt-4 border-t border-dashed border-gray-200">
-                        <div className="text-xs text-gray-400 font-medium mb-3">显示位置</div>
+                        <div className="text-xs text-gray-400 font-medium mb-3">
+                          显示位置
+                        </div>
                         <div className="flex gap-8">
                           <Form.Item
                             name={[field.name, 'showInTalentName']}
@@ -731,7 +769,9 @@ export function PlatformConfigModal({
                   <div className="text-center py-12 text-gray-400 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
                     <div className="text-3xl mb-2">🔗</div>
                     <div className="text-sm">暂无外链配置</div>
-                    <div className="text-xs mt-1">点击下方「添加外链」按钮创建</div>
+                    <div className="text-xs mt-1">
+                      点击下方「添加外链」按钮创建
+                    </div>
                   </div>
                 )}
 
@@ -789,7 +829,9 @@ export function PlatformConfigModal({
                         type="text"
                         icon={<RightOutlined />}
                         disabled={linkPage >= fields.length - 1}
-                        onClick={() => setLinkPage(p => Math.min(fields.length - 1, p + 1))}
+                        onClick={() =>
+                          setLinkPage(p => Math.min(fields.length - 1, p + 1))
+                        }
                         className="!px-2"
                       />
                     </div>
@@ -807,7 +849,8 @@ export function PlatformConfigModal({
               {LINK_ID_SOURCE_OPTIONS.map((opt, i) => (
                 <span key={opt.value}>
                   {i > 0 && '，'}
-                  <span className="text-blue-600">{opt.label}</span> {opt.description}
+                  <span className="text-blue-600">{opt.label}</span>{' '}
+                  {opt.description}
                 </span>
               ))}
             </div>

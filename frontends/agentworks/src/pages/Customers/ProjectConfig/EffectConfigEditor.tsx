@@ -109,7 +109,9 @@ export function EffectConfigEditor({
   );
 
   return (
-    <div className={`config-editor ${disabled ? 'config-editor--disabled' : ''}`}>
+    <div
+      className={`config-editor ${disabled ? 'config-editor--disabled' : ''}`}
+    >
       {disabled && (
         <div className="config-warning">
           <SafetyCertificateOutlined />
@@ -138,8 +140,14 @@ export function EffectConfigEditor({
               <div
                 key={period.key}
                 className={`config-option-card ${isEnabled ? 'config-option-card--active' : ''}`}
-                style={{ '--option-color': 'var(--config-accent)' } as React.CSSProperties}
-                onClick={() => !disabled && handlePeriodToggle(period.key, !isEnabled)}
+                style={
+                  {
+                    '--option-color': 'var(--config-accent)',
+                  } as React.CSSProperties
+                }
+                onClick={() =>
+                  !disabled && handlePeriodToggle(period.key, !isEnabled)
+                }
               >
                 <div className="config-option-card__checkbox">
                   <Checkbox checked={isEnabled} disabled={disabled} />
@@ -148,7 +156,9 @@ export function EffectConfigEditor({
                   <ClockCircleOutlined />
                 </div>
                 <div className="config-option-card__content">
-                  <span className="config-option-card__label">{period.label}</span>
+                  <span className="config-option-card__label">
+                    {period.label}
+                  </span>
                   <span className="config-option-card__unit">天</span>
                 </div>
               </div>
@@ -157,7 +167,10 @@ export function EffectConfigEditor({
         </div>
 
         {enabledPeriodsCount === 0 && (
-          <div className="config-warning config-warning--error" style={{ marginTop: 12, marginBottom: 0 }}>
+          <div
+            className="config-warning config-warning--error"
+            style={{ marginTop: 12, marginBottom: 0 }}
+          >
             <SafetyCertificateOutlined />
             至少需要选择一个数据周期
           </div>
@@ -183,13 +196,16 @@ export function EffectConfigEditor({
         <div className="config-option-grid config-option-grid--wide">
           {AVAILABLE_EFFECT_METRICS.map(metric => {
             const isEnabled = config.enabledMetrics.includes(metric.key);
-            const colorVar = METRIC_COLORS[metric.key] || 'var(--config-accent)';
+            const colorVar =
+              METRIC_COLORS[metric.key] || 'var(--config-accent)';
             return (
               <div
                 key={metric.key}
                 className={`config-option-card ${isEnabled ? 'config-option-card--active' : ''}`}
                 style={{ '--option-color': colorVar } as React.CSSProperties}
-                onClick={() => !disabled && handleMetricToggle(metric.key, !isEnabled)}
+                onClick={() =>
+                  !disabled && handleMetricToggle(metric.key, !isEnabled)
+                }
               >
                 <div className="config-option-card__checkbox">
                   <Checkbox checked={isEnabled} disabled={disabled} />
@@ -198,9 +214,13 @@ export function EffectConfigEditor({
                   {METRIC_ICONS[metric.key] || <LineChartOutlined />}
                 </div>
                 <div className="config-option-card__content">
-                  <span className="config-option-card__label">{metric.label}</span>
+                  <span className="config-option-card__label">
+                    {metric.label}
+                  </span>
                   {metric.unit && (
-                    <span className="config-option-card__unit">{metric.unit}</span>
+                    <span className="config-option-card__unit">
+                      {metric.unit}
+                    </span>
                   )}
                 </div>
               </div>
@@ -209,7 +229,10 @@ export function EffectConfigEditor({
         </div>
 
         {enabledMetricsCount === 0 && (
-          <div className="config-warning config-warning--error" style={{ marginTop: 12, marginBottom: 0 }}>
+          <div
+            className="config-warning config-warning--error"
+            style={{ marginTop: 12, marginBottom: 0 }}
+          >
             <SafetyCertificateOutlined />
             至少需要选择一个效果指标
           </div>
@@ -291,7 +314,8 @@ export function EffectConfigEditor({
             const metric = AVAILABLE_EFFECT_METRICS.find(m => m.key === key);
             return (
               <Tag key={`benchmark-${key}`} color="green">
-                {metric?.label} 基准: {val}{metric?.unit}
+                {metric?.label} 基准: {val}
+                {metric?.unit}
               </Tag>
             );
           })}

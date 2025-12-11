@@ -189,10 +189,7 @@ export function CreateTalent() {
             <h1 className="text-2xl font-bold text-gray-900">新增达人</h1>
             <p className="mt-1 text-sm text-gray-500">添加新的达人信息到系统</p>
           </div>
-          <Button
-            icon={<ArrowLeftOutlined />}
-            onClick={() => navigate(-1)}
-          >
+          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
             返回
           </Button>
         </div>

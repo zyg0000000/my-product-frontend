@@ -159,7 +159,11 @@ export function CollaborationFormModal({
                   onChange={handleTalentChange}
                   loading={talentLoading}
                   notFoundContent={
-                    talentLoading ? <Spin size="small" /> : '输入昵称或平台ID搜索达人'
+                    talentLoading ? (
+                      <Spin size="small" />
+                    ) : (
+                      '输入昵称或平台ID搜索达人'
+                    )
                   }
                   options={talentOptions}
                   disabled={isEdit}
@@ -167,11 +171,7 @@ export function CollaborationFormModal({
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item
-                name="talentSource"
-                label="达人来源"
-                className="mb-0"
-              >
+              <Form.Item name="talentSource" label="达人来源" className="mb-0">
                 <Select
                   placeholder="选择来源"
                   options={TALENT_SOURCE_OPTIONS}
@@ -276,7 +276,6 @@ export function CollaborationFormModal({
             </Form.Item>
           </Col>
         </Row>
-
       </Form>
     </Modal>
   );

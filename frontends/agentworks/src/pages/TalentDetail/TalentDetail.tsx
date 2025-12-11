@@ -214,10 +214,7 @@ export function TalentDetail() {
     <div className="space-y-6">
       {/* 页面头部 - 与客户详情页风格一致 */}
       <div className="flex items-center gap-4">
-        <Button
-          icon={<ArrowLeftOutlined />}
-          onClick={() => navigate(-1)}
-        >
+        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
           返回
         </Button>
         <h1 className="text-2xl font-bold text-gray-900 m-0">达人详情</h1>

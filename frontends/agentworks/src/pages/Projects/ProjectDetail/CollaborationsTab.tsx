@@ -78,7 +78,9 @@ export function CollaborationsTab({
   // 批量操作状态
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [batchModalOpen, setBatchModalOpen] = useState(false);
-  const [batchStatus, setBatchStatus] = useState<CollaborationStatus | null>(null);
+  const [batchStatus, setBatchStatus] = useState<CollaborationStatus | null>(
+    null
+  );
   const [batchLoading, setBatchLoading] = useState(false);
 
   /**
@@ -423,7 +425,11 @@ export function CollaborationsTab({
       >
         <div className="py-4">
           <p className="text-gray-600 mb-4">
-            已选择 <span className="font-medium text-primary-600">{selectedRowKeys.length}</span> 条记录，将统一更新为：
+            已选择{' '}
+            <span className="font-medium text-primary-600">
+              {selectedRowKeys.length}
+            </span>{' '}
+            条记录，将统一更新为：
           </p>
           <Select
             placeholder="选择目标状态"

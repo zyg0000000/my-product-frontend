@@ -61,7 +61,9 @@ export function TabVisibilityEditor({
   const enabledCount = Object.values(value).filter(Boolean).length;
 
   return (
-    <div className={`config-editor ${disabled ? 'config-editor--disabled' : ''}`}>
+    <div
+      className={`config-editor ${disabled ? 'config-editor--disabled' : ''}`}
+    >
       {disabled && (
         <div className="config-warning">
           <SafetyCertificateOutlined />
@@ -78,7 +80,8 @@ export function TabVisibilityEditor({
           <div>
             <h4 className="config-section__title">Tab 显示控制</h4>
             <p className="config-section__desc">
-              控制项目详情页显示哪些功能模块，关闭的 Tab 对该客户的所有项目不可见
+              控制项目详情页显示哪些功能模块，关闭的 Tab
+              对该客户的所有项目不可见
             </p>
           </div>
         </div>
@@ -97,7 +100,9 @@ export function TabVisibilityEditor({
                 onClick={() => !disabled && handleToggle(key, !isEnabled)}
               >
                 <div className="config-feature-card__header">
-                  <div className={`config-feature-card__icon config-feature-card__icon--${colorClass}`}>
+                  <div
+                    className={`config-feature-card__icon config-feature-card__icon--${colorClass}`}
+                  >
                     {TAB_ICONS[key]}
                   </div>
                   <div onClick={e => e.stopPropagation()}>

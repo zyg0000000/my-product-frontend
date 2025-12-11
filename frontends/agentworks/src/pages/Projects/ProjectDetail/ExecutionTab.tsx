@@ -553,7 +553,9 @@ export function ExecutionTab({
           <Card size="small" className="text-center">
             <Statistic
               title="待填发布日"
-              value={stats.plannedCount - stats.publishedCount - stats.delayedCount}
+              value={
+                stats.plannedCount - stats.publishedCount - stats.delayedCount
+              }
               suffix="条"
               styles={{ content: { color: '#722ed1', fontSize: '18px' } }}
             />

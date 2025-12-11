@@ -302,7 +302,8 @@ export function FinancialTab({
 
   // 使用配置或默认值
   const config = financeConfig || DEFAULT_FINANCE_CONFIG;
-  const enabledMetrics = config.enabledMetrics || DEFAULT_FINANCE_CONFIG.enabledMetrics;
+  const enabledMetrics =
+    config.enabledMetrics || DEFAULT_FINANCE_CONFIG.enabledMetrics;
 
   // 调试：输出接收到的配置
   logger.debug('[FinancialTab] Received financeConfig:', financeConfig);

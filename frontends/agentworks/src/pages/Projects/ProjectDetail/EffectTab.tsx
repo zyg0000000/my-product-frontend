@@ -12,15 +12,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import {
-  Tag,
-  Progress,
-  Tabs,
-  InputNumber,
-  Button,
-  App,
-  Empty,
-} from 'antd';
+import { Tag, Progress, Tabs, InputNumber, Button, App, Empty } from 'antd';
 import {
   PlayCircleOutlined,
   LikeOutlined,
@@ -38,7 +30,10 @@ import {
 import type { Collaboration, EffectMetrics } from '../../../types/project';
 import { formatMoney, centsToYuan } from '../../../types/project';
 import type { Platform } from '../../../types/talent';
-import type { EffectTabConfig, EffectPeriod } from '../../../types/projectConfig';
+import type {
+  EffectTabConfig,
+  EffectPeriod,
+} from '../../../types/projectConfig';
 import {
   AVAILABLE_EFFECT_METRICS,
   EFFECT_PERIOD_OPTIONS,
@@ -617,11 +612,12 @@ export function EffectTab({
     record: Collaboration,
     metricKey: string
   ): number | undefined => {
-    const editValue = editingData[record.id]?.[metricKey as keyof EffectMetrics];
+    const editValue =
+      editingData[record.id]?.[metricKey as keyof EffectMetrics];
     if (editValue !== undefined) return editValue as number;
-    return record.effectData?.[period]?.[
-      metricKey as keyof EffectMetrics
-    ] as number | undefined;
+    return record.effectData?.[period]?.[metricKey as keyof EffectMetrics] as
+      | number
+      | undefined;
   };
 
   /**
@@ -754,9 +750,7 @@ export function EffectTab({
                 size="small"
                 style={{ width: 100 }}
                 prefix="¥"
-                formatter={v =>
-                  `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-                }
+                formatter={v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                 parser={v => Number(v?.replace(/[¥,]/g, '') || 0)}
               />
             );

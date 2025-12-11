@@ -9,13 +9,7 @@
  */
 
 import { useState } from 'react';
-import {
-  Checkbox,
-  InputNumber,
-  Tag,
-  Switch,
-  Tooltip,
-} from 'antd';
+import { Checkbox, InputNumber, Tag, Switch, Tooltip } from 'antd';
 import {
   DollarOutlined,
   BankOutlined,
@@ -80,13 +74,22 @@ export function FinanceConfigEditor({
   disabled,
 }: FinanceConfigEditorProps) {
   const config: FinanceTabConfig = value || DEFAULT_FINANCE_CONFIG;
-  const [expandedCategory, setExpandedCategory] = useState<'basic' | 'advanced' | null>('basic');
+  const [expandedCategory, setExpandedCategory] = useState<
+    'basic' | 'advanced' | null
+  >('basic');
 
   // 按分类分组指标
-  const basicMetrics = AVAILABLE_FINANCE_METRICS.filter(m => m.category === 'basic');
-  const advancedMetrics = AVAILABLE_FINANCE_METRICS.filter(m => m.category === 'advanced');
+  const basicMetrics = AVAILABLE_FINANCE_METRICS.filter(
+    m => m.category === 'basic'
+  );
+  const advancedMetrics = AVAILABLE_FINANCE_METRICS.filter(
+    m => m.category === 'advanced'
+  );
 
-  const handleMetricToggle = (metricKey: FinanceMetricKey, checked: boolean) => {
+  const handleMetricToggle = (
+    metricKey: FinanceMetricKey,
+    checked: boolean
+  ) => {
     const newMetrics = checked
       ? [...config.enabledMetrics, metricKey]
       : config.enabledMetrics.filter(m => m !== metricKey);
@@ -128,7 +131,9 @@ export function FinanceConfigEditor({
   ).length;
 
   return (
-    <div className={`config-editor ${disabled ? 'config-editor--disabled' : ''}`}>
+    <div
+      className={`config-editor ${disabled ? 'config-editor--disabled' : ''}`}
+    >
       {disabled && (
         <div className="config-warning">
           <SafetyCertificateOutlined />
@@ -144,9 +149,7 @@ export function FinanceConfigEditor({
           </div>
           <div>
             <h4 className="config-section__title">高级功能</h4>
-            <p className="config-section__desc">
-              按需开启额外的财务管理功能
-            </p>
+            <p className="config-section__desc">按需开启额外的财务管理功能</p>
           </div>
         </div>
 
@@ -175,7 +178,9 @@ export function FinanceConfigEditor({
                 <label className="config-feature-card__label">
                   月费率
                   <Tooltip title="资金占用费用 = 支出金额 × (月费率/30) × 占用天数">
-                    <InfoCircleOutlined style={{ marginLeft: 4, color: '#94a3b8' }} />
+                    <InfoCircleOutlined
+                      style={{ marginLeft: 4, color: '#94a3b8' }}
+                    />
                   </Tooltip>
                 </label>
                 <InputNumber
@@ -244,10 +249,14 @@ export function FinanceConfigEditor({
         <div className="config-category">
           <div
             className="config-category__header"
-            onClick={() => setExpandedCategory(expandedCategory === 'basic' ? null : 'basic')}
+            onClick={() =>
+              setExpandedCategory(expandedCategory === 'basic' ? null : 'basic')
+            }
           >
             <div className="config-category__title">
-              <span className={`config-category__badge ${enabledBasicCount === 0 ? 'config-category__badge--muted' : ''}`}>
+              <span
+                className={`config-category__badge ${enabledBasicCount === 0 ? 'config-category__badge--muted' : ''}`}
+              >
                 {enabledBasicCount}
               </span>
               基础指标
@@ -255,7 +264,9 @@ export function FinanceConfigEditor({
                 前端实时计算，无需后端支持
               </span>
             </div>
-            <div className={`config-category__arrow ${expandedCategory === 'basic' ? 'config-category__arrow--expanded' : ''}`}>
+            <div
+              className={`config-category__arrow ${expandedCategory === 'basic' ? 'config-category__arrow--expanded' : ''}`}
+            >
               ›
             </div>
           </div>
@@ -269,8 +280,12 @@ export function FinanceConfigEditor({
                     <div
                       key={metric.key}
                       className={`config-option-card ${isEnabled ? 'config-option-card--active' : ''}`}
-                      style={{ '--option-color': colorVar } as React.CSSProperties}
-                      onClick={() => !disabled && handleMetricToggle(metric.key, !isEnabled)}
+                      style={
+                        { '--option-color': colorVar } as React.CSSProperties
+                      }
+                      onClick={() =>
+                        !disabled && handleMetricToggle(metric.key, !isEnabled)
+                      }
                     >
                       <div className="config-option-card__checkbox">
                         <Checkbox checked={isEnabled} disabled={disabled} />
@@ -279,8 +294,12 @@ export function FinanceConfigEditor({
                         {METRIC_ICONS[metric.key]}
                       </div>
                       <div className="config-option-card__content">
-                        <span className="config-option-card__label">{metric.label}</span>
-                        <span className="config-option-card__unit">{metric.unit}</span>
+                        <span className="config-option-card__label">
+                          {metric.label}
+                        </span>
+                        <span className="config-option-card__unit">
+                          {metric.unit}
+                        </span>
                       </div>
                     </div>
                   );
@@ -294,10 +313,16 @@ export function FinanceConfigEditor({
         <div className="config-category config-category--muted">
           <div
             className="config-category__header"
-            onClick={() => setExpandedCategory(expandedCategory === 'advanced' ? null : 'advanced')}
+            onClick={() =>
+              setExpandedCategory(
+                expandedCategory === 'advanced' ? null : 'advanced'
+              )
+            }
           >
             <div className="config-category__title">
-              <span className={`config-category__badge ${enabledAdvancedCount === 0 ? 'config-category__badge--muted' : ''}`}>
+              <span
+                className={`config-category__badge ${enabledAdvancedCount === 0 ? 'config-category__badge--muted' : ''}`}
+              >
                 {enabledAdvancedCount}
               </span>
               高级指标
@@ -305,7 +330,9 @@ export function FinanceConfigEditor({
                 需要额外数据或配置支持
               </span>
             </div>
-            <div className={`config-category__arrow ${expandedCategory === 'advanced' ? 'config-category__arrow--expanded' : ''}`}>
+            <div
+              className={`config-category__arrow ${expandedCategory === 'advanced' ? 'config-category__arrow--expanded' : ''}`}
+            >
               ›
             </div>
           </div>
@@ -314,9 +341,12 @@ export function FinanceConfigEditor({
               <div className="config-option-grid config-option-grid--wide">
                 {advancedMetrics.map(metric => {
                   const isEnabled = config.enabledMetrics.includes(metric.key);
-                  const colorVar = COLOR_TYPE_MAP[metric.colorType || 'expense'];
+                  const colorVar =
+                    COLOR_TYPE_MAP[metric.colorType || 'expense'];
                   // 资金占用指标受开关控制
-                  const isLocked = metric.key === 'fundsOccupation' && !config.enableFundsOccupation;
+                  const isLocked =
+                    metric.key === 'fundsOccupation' &&
+                    !config.enableFundsOccupation;
                   return (
                     <Tooltip
                       key={metric.key}
@@ -324,18 +354,34 @@ export function FinanceConfigEditor({
                     >
                       <div
                         className={`config-option-card ${isEnabled ? 'config-option-card--active' : ''} ${isLocked ? 'config-option-card--locked' : ''}`}
-                        style={{ '--option-color': colorVar } as React.CSSProperties}
-                        onClick={() => !disabled && !isLocked && handleMetricToggle(metric.key, !isEnabled)}
+                        style={
+                          { '--option-color': colorVar } as React.CSSProperties
+                        }
+                        onClick={() =>
+                          !disabled &&
+                          !isLocked &&
+                          handleMetricToggle(metric.key, !isEnabled)
+                        }
                       >
                         <div className="config-option-card__checkbox">
-                          <Checkbox checked={isEnabled} disabled={disabled || isLocked} />
+                          <Checkbox
+                            checked={isEnabled}
+                            disabled={disabled || isLocked}
+                          />
                         </div>
-                        <div className="config-option-card__icon" style={{ color: isLocked ? '#d9d9d9' : colorVar }}>
+                        <div
+                          className="config-option-card__icon"
+                          style={{ color: isLocked ? '#d9d9d9' : colorVar }}
+                        >
                           {METRIC_ICONS[metric.key]}
                         </div>
                         <div className="config-option-card__content">
-                          <span className="config-option-card__label">{metric.label}</span>
-                          <span className="config-option-card__unit">{metric.unit}</span>
+                          <span className="config-option-card__label">
+                            {metric.label}
+                          </span>
+                          <span className="config-option-card__unit">
+                            {metric.unit}
+                          </span>
                         </div>
                         {isLocked && (
                           <div className="config-option-card__lock">
@@ -352,7 +398,10 @@ export function FinanceConfigEditor({
         </div>
 
         {config.enabledMetrics.length === 0 && (
-          <div className="config-warning config-warning--error" style={{ marginTop: 12, marginBottom: 0 }}>
+          <div
+            className="config-warning config-warning--error"
+            style={{ marginTop: 12, marginBottom: 0 }}
+          >
             <SafetyCertificateOutlined />
             至少需要选择一个财务指标
           </div>

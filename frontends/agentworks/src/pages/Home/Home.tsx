@@ -145,9 +145,7 @@ export function Home() {
                 <h1 className="font-display text-3xl font-bold tracking-tight">
                   欢迎使用 AgentWorks
                 </h1>
-                <p className="mt-1 text-primary-100">
-                  多平台达人营销管理系统
-                </p>
+                <p className="mt-1 text-primary-100">多平台达人营销管理系统</p>
               </div>
             </div>
 
