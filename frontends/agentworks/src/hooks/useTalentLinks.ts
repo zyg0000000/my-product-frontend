@@ -61,7 +61,9 @@ export function useTalentLinks() {
         | Record<string, string>
         | undefined;
       // 优先从 platformSpecific 获取，fallback 到 platformAccountId
-      return platformSpecificData?.[idField] || talent.platformAccountId || null;
+      return (
+        platformSpecificData?.[idField] || talent.platformAccountId || null
+      );
     },
     []
   );
@@ -203,7 +205,10 @@ export function useTalentLinks() {
    * @returns 外链列表
    */
   const getAllLinks = useCallback(
-    (talent: TalentLike, collaboration?: CollaborationLike): TalentLinkItem[] => {
+    (
+      talent: TalentLike,
+      collaboration?: CollaborationLike
+    ): TalentLinkItem[] => {
       const config = getPlatformConfigByKey(talent.platform);
       if (!config) return [];
 

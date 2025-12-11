@@ -91,7 +91,10 @@ export function useCollaborationForm({
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | ''>('');
 
   // Tooltip 信息
-  const [tooltips, setTooltips] = useState<TooltipInfo>({ price: '', rebate: '' });
+  const [tooltips, setTooltips] = useState<TooltipInfo>({
+    price: '',
+    rebate: '',
+  });
 
   const isEdit = !!editingCollaboration;
 

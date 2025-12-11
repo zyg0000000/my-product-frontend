@@ -109,7 +109,8 @@ export const designTokens = {
 
   // 字体
   fontFamily: {
-    display: '"Plus Jakarta Sans", "PingFang SC", "Microsoft YaHei", sans-serif',
+    display:
+      '"Plus Jakarta Sans", "PingFang SC", "Microsoft YaHei", sans-serif',
     body: '"DM Sans", "PingFang SC", "Microsoft YaHei", sans-serif',
     mono: '"JetBrains Mono", "SF Mono", Monaco, monospace',
   },

@@ -83,7 +83,11 @@ export function PageSkeleton({
           {/* 表格工具栏骨架 */}
           <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
             <div className="flex items-center gap-2">
-              <Skeleton.Input active={active} size="small" style={{ width: 200 }} />
+              <Skeleton.Input
+                active={active}
+                size="small"
+                style={{ width: 200 }}
+              />
               <Skeleton.Button active={active} size="small" />
             </div>
             <div className="flex items-center gap-2">
