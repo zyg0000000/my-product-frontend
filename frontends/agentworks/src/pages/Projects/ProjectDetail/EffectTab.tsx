@@ -30,6 +30,7 @@ import {
 import type { Collaboration, EffectMetrics } from '../../../types/project';
 import { formatMoney, centsToYuan } from '../../../types/project';
 import type { Platform } from '../../../types/talent';
+import type { EffectTabConfig } from '../../../types/projectConfig';
 import { projectApi } from '../../../services/projectApi';
 import {
   TalentNameWithLinks,
@@ -56,6 +57,8 @@ interface EffectTabProps {
   projectId: string;
   platforms: Platform[];
   benchmarkCPM?: number;
+  /** 客户自定义效果配置（可选，用于阶段二动态指标） */
+  effectConfig?: EffectTabConfig;
   onRefresh?: () => void;
 }
 
@@ -65,10 +68,13 @@ export function EffectTab({
   projectId,
   platforms: _platforms,
   benchmarkCPM,
+  effectConfig: _effectConfig,
   onRefresh,
 }: EffectTabProps) {
   // platforms 参数保留用于后续平台筛选功能
   void _platforms;
+  // effectConfig 预留给阶段二的动态指标渲染
+  void _effectConfig;
   const { message } = App.useApp();
   const actionRef = useRef<ActionType>(null);
 
@@ -271,7 +277,7 @@ export function EffectTab({
 
   const columns: ProColumns<Collaboration>[] = [
     {
-      title: '达人',
+      title: '达人昵称',
       dataIndex: 'talentName',
       width: 200,
       fixed: 'left',
@@ -445,7 +451,7 @@ export function EffectTab({
               value={summary.totalPlays}
               prefix={<PlayCircleOutlined />}
               formatter={v => formatNumber(Number(v))}
-              valueStyle={{ color: '#1890ff' }}
+              styles={{ content: { color: '#1890ff' } }}
             />
           </Card>
         </Col>
@@ -456,7 +462,7 @@ export function EffectTab({
               value={summary.totalLikes}
               prefix={<LikeOutlined />}
               formatter={v => formatNumber(Number(v))}
-              valueStyle={{ color: '#eb2f96' }}
+              styles={{ content: { color: '#eb2f96' } }}
             />
           </Card>
         </Col>
@@ -467,7 +473,7 @@ export function EffectTab({
               value={summary.totalComments}
               prefix={<MessageOutlined />}
               formatter={v => formatNumber(Number(v))}
-              valueStyle={{ color: '#722ed1' }}
+              styles={{ content: { color: '#722ed1' } }}
             />
           </Card>
         </Col>
@@ -478,7 +484,7 @@ export function EffectTab({
               value={summary.totalShares}
               prefix={<ShareAltOutlined />}
               formatter={v => formatNumber(Number(v))}
-              valueStyle={{ color: '#13c2c2' }}
+              styles={{ content: { color: '#13c2c2' } }}
             />
           </Card>
         </Col>

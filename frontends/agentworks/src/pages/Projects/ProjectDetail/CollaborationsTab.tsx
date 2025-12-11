@@ -7,12 +7,11 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Space, Popconfirm, App, Tooltip } from 'antd';
+import { Button, Tag, Space, Popconfirm, App, Modal, Select } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  ExportOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
 import type {
@@ -22,8 +21,8 @@ import type {
 import {
   COLLABORATION_STATUS_COLORS,
   COLLABORATION_STATUS_VALUE_ENUM,
+  COLLABORATION_STATUS_OPTIONS,
   formatMoney,
-  isDelayed,
 } from '../../../types/project';
 import type { Platform } from '../../../types/talent';
 import { projectApi } from '../../../services/projectApi';
@@ -75,6 +74,12 @@ export function CollaborationsTab({
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [editingCollaboration, setEditingCollaboration] =
     useState<Collaboration | null>(null);
+
+  // 批量操作状态
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [batchModalOpen, setBatchModalOpen] = useState(false);
+  const [batchStatus, setBatchStatus] = useState<CollaborationStatus | null>(null);
+  const [batchLoading, setBatchLoading] = useState(false);
 
   /**
    * 加载合作记录
@@ -162,6 +167,44 @@ export function CollaborationsTab({
   };
 
   /**
+   * 批量更新状态
+   */
+  const handleBatchUpdateStatus = async () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning('请先选择记录');
+      return;
+    }
+    if (!batchStatus) {
+      message.warning('请选择状态');
+      return;
+    }
+
+    try {
+      setBatchLoading(true);
+      const response = await projectApi.batchUpdateCollaborations({
+        ids: selectedRowKeys as string[],
+        updates: { status: batchStatus },
+      });
+
+      if (response.success) {
+        message.success(`已更新 ${response.data.updated} 条记录`);
+        setBatchModalOpen(false);
+        setBatchStatus(null);
+        setSelectedRowKeys([]);
+        loadCollaborations();
+        onRefresh?.();
+      } else {
+        message.error('批量更新失败');
+      }
+    } catch (error) {
+      logger.error('Error batch updating collaborations:', error);
+      message.error('批量更新失败');
+    } finally {
+      setBatchLoading(false);
+    }
+  };
+
+  /**
    * 生成平台筛选选项
    */
   const getPlatformOptions = () => {
@@ -174,7 +217,7 @@ export function CollaborationsTab({
 
   const columns: ProColumns<Collaboration>[] = [
     {
-      title: '达人',
+      title: '达人昵称',
       dataIndex: 'talentName',
       width: 200,
       fixed: 'left',
@@ -237,54 +280,6 @@ export function CollaborationsTab({
         record.rebateRate ? `${record.rebateRate}%` : '-',
     },
     {
-      title: '计划发布',
-      dataIndex: 'plannedReleaseDate',
-      width: 110,
-      search: false,
-      render: (_, record) => {
-        const delayed = isDelayed(
-          record.plannedReleaseDate,
-          record.actualReleaseDate,
-          record.status
-        );
-        return record.plannedReleaseDate ? (
-          <Tooltip title={delayed ? '已延期' : undefined}>
-            <span className={delayed ? 'text-red-500' : ''}>
-              {record.plannedReleaseDate}
-            </span>
-          </Tooltip>
-        ) : (
-          '-'
-        );
-      },
-    },
-    {
-      title: '实际发布',
-      dataIndex: 'actualReleaseDate',
-      width: 110,
-      search: false,
-      render: (_, record) => record.actualReleaseDate || '-',
-    },
-    {
-      title: '视频链接',
-      dataIndex: 'videoUrl',
-      width: 100,
-      search: false,
-      render: (_, record) =>
-        record.videoUrl ? (
-          <a
-            href={record.videoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary-600 hover:text-primary-700"
-          >
-            <ExportOutlined /> 查看
-          </a>
-        ) : (
-          '-'
-        ),
-    },
-    {
       title: '操作',
       valueType: 'option',
       width: 140,
@@ -324,6 +319,27 @@ export function CollaborationsTab({
         dataSource={collaborations}
         loading={loading}
         rowKey="id"
+        rowSelection={{
+          selectedRowKeys,
+          onChange: keys => setSelectedRowKeys(keys),
+        }}
+        tableAlertRender={({ selectedRowKeys }) => (
+          <span>已选择 {selectedRowKeys.length} 项</span>
+        )}
+        tableAlertOptionRender={() => (
+          <Space>
+            <Button
+              size="small"
+              onClick={() => setBatchModalOpen(true)}
+              disabled={selectedRowKeys.length === 0}
+            >
+              批量更新状态
+            </Button>
+            <Button size="small" onClick={() => setSelectedRowKeys([])}>
+              取消选择
+            </Button>
+          </Space>
+        )}
         pagination={{
           current: currentPage,
           pageSize: pageSize,
@@ -391,6 +407,36 @@ export function CollaborationsTab({
         }}
         onSuccess={handleFormSuccess}
       />
+
+      {/* 批量更新状态弹窗 */}
+      <Modal
+        title="批量更新状态"
+        open={batchModalOpen}
+        onOk={handleBatchUpdateStatus}
+        onCancel={() => {
+          setBatchModalOpen(false);
+          setBatchStatus(null);
+        }}
+        confirmLoading={batchLoading}
+        okText="确定"
+        cancelText="取消"
+      >
+        <div className="py-4">
+          <p className="text-gray-600 mb-4">
+            已选择 <span className="font-medium text-primary-600">{selectedRowKeys.length}</span> 条记录，将统一更新为：
+          </p>
+          <Select
+            placeholder="选择目标状态"
+            style={{ width: '100%' }}
+            value={batchStatus}
+            onChange={v => setBatchStatus(v)}
+            options={COLLABORATION_STATUS_OPTIONS.map(s => ({
+              label: s,
+              value: s,
+            }))}
+          />
+        </div>
+      </Modal>
     </div>
   );
 }

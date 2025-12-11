@@ -4,8 +4,10 @@
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { ProTable } from '@ant-design/pro-components';
+import { ProTable, EditableProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
+import type { EditableFormInstance } from '@ant-design/pro-components';
+import { Form } from 'antd';
 import {
   Card,
   Tag,
@@ -13,9 +15,6 @@ import {
   Statistic,
   Row,
   Col,
-  Progress,
-  DatePicker,
-  Input,
   App,
   Button,
   Tooltip,
@@ -27,6 +26,7 @@ import {
   ExportOutlined,
   ReloadOutlined,
   CalendarOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import type {
@@ -47,6 +47,7 @@ import {
 } from '../../../components/TalentNameWithLinks';
 import { logger } from '../../../utils/logger';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
+import { useTalentLinks } from '../../../hooks/useTalentLinks';
 
 /**
  * KPI 统计数据
@@ -81,6 +82,9 @@ export function ExecutionTab({
     [getPlatformColors]
   );
 
+  // 外链配置
+  const { getCollaborationLinks } = useTalentLinks();
+
   // 数据状态
   const [loading, setLoading] = useState(true);
   const [collaborations, setCollaborations] = useState<Collaboration[]>([]);
@@ -91,6 +95,11 @@ export function ExecutionTab({
     delayedCount: 0,
     upcomingCount: 0,
   });
+
+  // 行内编辑状态
+  const [editableKeys, setEditableKeys] = useState<React.Key[]>([]);
+  const editableFormRef = useRef<EditableFormInstance<Collaboration>>();
+  const [editableForm] = Form.useForm();
 
   // 筛选状态
   const [platformFilter, setPlatformFilter] = useState<Platform | ''>('');
@@ -176,43 +185,82 @@ export function ExecutionTab({
   }, [loadCollaborations]);
 
   /**
-   * 快速更新发布日期
+   * 行内编辑保存
+   * 关键：使用 editableForm.getFieldsValue() 获取表单实际输入值
    */
-  const handleUpdateDate = async (
-    id: string,
-    field: 'plannedReleaseDate' | 'actualReleaseDate',
-    value: string | null
+  const handleSaveRow = async (
+    key: React.Key,
+    row: Collaboration & {
+      plannedReleaseDate?: string | dayjs.Dayjs | null;
+      actualReleaseDate?: string | dayjs.Dayjs | null;
+    },
+    originRow: Collaboration
   ) => {
     try {
-      const response = await projectApi.updateCollaboration(id, {
-        [field]: value,
-      });
+      // 从 antd Form 获取表单值
+      const allFormValues = editableForm.getFieldsValue();
+      // ProTable editable 会把字段存储为 record[key][fieldName] 的结构
+      const formRowData = allFormValues[key as string] || {};
+
+      console.log('=== handleSaveRow called ===');
+      console.log('key:', key);
+      console.log('originRow:', originRow);
+      console.log('allFormValues:', allFormValues);
+      console.log('formRowData:', formRowData);
+
+      // 使用表单数据，回退到原始数据
+      const taskId = formRowData.taskId ?? originRow.taskId ?? null;
+      const videoId = formRowData.videoId ?? originRow.videoId ?? null;
+      const plannedValue =
+        formRowData.plannedReleaseDate ?? originRow.plannedReleaseDate;
+      const actualValue =
+        formRowData.actualReleaseDate ?? originRow.actualReleaseDate;
+
+      // 处理日期格式
+      let plannedDate: string | null = null;
+      if (plannedValue) {
+        if (dayjs.isDayjs(plannedValue)) {
+          plannedDate = plannedValue.format('YYYY-MM-DD');
+        } else if (typeof plannedValue === 'string') {
+          plannedDate = plannedValue;
+        }
+      }
+
+      let actualDate: string | null = null;
+      if (actualValue) {
+        if (dayjs.isDayjs(actualValue)) {
+          actualDate = actualValue.format('YYYY-MM-DD');
+        } else if (typeof actualValue === 'string') {
+          actualDate = actualValue;
+        }
+      }
+
+      // 构建更新数据
+      const updateData: Record<string, string | null> = {
+        plannedReleaseDate: plannedDate,
+        actualReleaseDate: actualDate,
+        taskId: taskId,
+        videoId: videoId,
+      };
+
+      console.log('updateData to send:', updateData);
+
+      const response = await projectApi.updateCollaboration(
+        originRow.id,
+        updateData
+      );
+      console.log('API response:', response);
+
       if (response.success) {
-        message.success('更新成功');
+        message.success('保存成功');
         loadCollaborations();
         onRefresh?.();
-      }
-    } catch (error) {
-      message.error('更新失败');
-    }
-  };
-
-  /**
-   * 快速更新视频链接
-   */
-  const handleUpdateVideoUrl = async (id: string, value: string) => {
-    try {
-      const response = await projectApi.updateCollaboration(id, {
-        videoUrl: value || undefined,
-      });
-      if (response.success) {
-        message.success('更新成功');
-        loadCollaborations();
       } else {
-        message.error('更新失败');
+        message.error('保存失败');
       }
     } catch (error) {
-      message.error('更新失败');
+      logger.error('Error saving row:', error);
+      message.error('保存失败');
     }
   };
 
@@ -229,12 +277,13 @@ export function ExecutionTab({
 
   const columns: ProColumns<Collaboration>[] = [
     {
-      title: '达人',
+      title: '达人昵称',
       dataIndex: 'talentName',
       width: 200,
       fixed: 'left',
       ellipsis: true,
       search: false,
+      editable: false,
       render: (_, record) => (
         <TalentNameWithLinks {...fromCollaboration(record)} />
       ),
@@ -245,6 +294,7 @@ export function ExecutionTab({
       width: 100,
       valueType: 'select',
       valueEnum: getPlatformOptions(),
+      editable: false,
       render: (_, record) => (
         <Tag color={platformColors[record.talentPlatform] || 'default'}>
           {platformNames[record.talentPlatform] || record.talentPlatform}
@@ -257,6 +307,7 @@ export function ExecutionTab({
       width: 120,
       valueType: 'select',
       valueEnum: COLLABORATION_STATUS_VALUE_ENUM,
+      editable: false,
       render: (_, record) => (
         <Tag color={COLLABORATION_STATUS_COLORS[record.status]}>
           {record.status}
@@ -268,6 +319,7 @@ export function ExecutionTab({
       dataIndex: 'amount',
       width: 110,
       search: false,
+      editable: false,
       render: (_, record) => (
         <span className="font-medium">{formatMoney(record.amount)}</span>
       ),
@@ -277,6 +329,10 @@ export function ExecutionTab({
       dataIndex: 'plannedReleaseDate',
       width: 140,
       search: false,
+      valueType: 'date',
+      fieldProps: {
+        format: 'YYYY-MM-DD',
+      },
       render: (_, record) => {
         const delayed = isDelayed(
           record.plannedReleaseDate,
@@ -284,24 +340,11 @@ export function ExecutionTab({
           record.status
         );
         return (
-          <DatePicker
-            value={
-              record.plannedReleaseDate
-                ? dayjs(record.plannedReleaseDate)
-                : null
-            }
-            onChange={date =>
-              handleUpdateDate(
-                record.id,
-                'plannedReleaseDate',
-                date ? date.format('YYYY-MM-DD') : null
-              )
-            }
-            placeholder="选择日期"
-            size="small"
-            style={{ width: 120 }}
-            status={delayed ? 'error' : undefined}
-          />
+          <span className={delayed ? 'text-red-500 font-medium' : ''}>
+            {record.plannedReleaseDate
+              ? dayjs(record.plannedReleaseDate).format('YYYY-MM-DD')
+              : '-'}
+          </span>
         );
       },
     },
@@ -310,29 +353,21 @@ export function ExecutionTab({
       dataIndex: 'actualReleaseDate',
       width: 140,
       search: false,
-      render: (_, record) => (
-        <DatePicker
-          value={
-            record.actualReleaseDate ? dayjs(record.actualReleaseDate) : null
-          }
-          onChange={date =>
-            handleUpdateDate(
-              record.id,
-              'actualReleaseDate',
-              date ? date.format('YYYY-MM-DD') : null
-            )
-          }
-          placeholder="选择日期"
-          size="small"
-          style={{ width: 120 }}
-        />
-      ),
+      valueType: 'date',
+      fieldProps: {
+        format: 'YYYY-MM-DD',
+      },
+      render: (_, record) =>
+        record.actualReleaseDate
+          ? dayjs(record.actualReleaseDate).format('YYYY-MM-DD')
+          : '-',
     },
     {
       title: '延期状态',
       dataIndex: 'delayStatus',
       width: 90,
       search: false,
+      editable: false,
       render: (_, record) => {
         const delayed = isDelayed(
           record.plannedReleaseDate,
@@ -354,114 +389,172 @@ export function ExecutionTab({
     {
       title: '星图任务ID',
       dataIndex: 'taskId',
-      width: 140,
-      search: false,
-      ellipsis: true,
-      render: (_, record) => record.taskId || '-',
-    },
-    {
-      title: '视频链接',
-      dataIndex: 'videoUrl',
       width: 200,
       search: false,
-      render: (_, record) => (
-        <Space size="small">
-          <Input
-            size="small"
-            placeholder="输入视频链接"
-            defaultValue={record.videoUrl}
-            onBlur={e => {
-              if (e.target.value !== record.videoUrl) {
-                handleUpdateVideoUrl(record.id, e.target.value);
-              }
-            }}
-            onPressEnter={e => {
-              const target = e.target as HTMLInputElement;
-              if (target.value !== record.videoUrl) {
-                handleUpdateVideoUrl(record.id, target.value);
-              }
-            }}
-            style={{ width: 140 }}
-          />
-          {record.videoUrl && (
-            <Tooltip title="打开视频">
-              <a
-                href={record.videoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-600"
-              >
-                <ExportOutlined />
-              </a>
-            </Tooltip>
-          )}
-        </Space>
-      ),
+      valueType: 'text',
+      fieldProps: {
+        placeholder: '输入任务ID',
+      },
+      render: (_, record) => {
+        // 获取 idField='taskId' 的外链
+        const taskLinks = getCollaborationLinks(
+          record.talentPlatform,
+          { videoId: record.videoId, taskId: record.taskId },
+          undefined,
+          'taskId'
+        );
+        return (
+          <Space size="small">
+            <span className="text-gray-600">{record.taskId || '-'}</span>
+            {taskLinks.map(link => (
+              <Tooltip key={link.name} title={link.name}>
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-600"
+                >
+                  <ExportOutlined />
+                </a>
+              </Tooltip>
+            ))}
+          </Space>
+        );
+      },
+    },
+    {
+      title: '视频ID',
+      dataIndex: 'videoId',
+      width: 200,
+      search: false,
+      valueType: 'text',
+      fieldProps: {
+        placeholder: '输入视频ID',
+      },
+      render: (_, record) => {
+        // 获取 idField='videoId' 的外链
+        const videoLinks = getCollaborationLinks(
+          record.talentPlatform,
+          { videoId: record.videoId, taskId: record.taskId },
+          undefined,
+          'videoId'
+        );
+        return (
+          <Space size="small">
+            <span className="text-gray-600">{record.videoId || '-'}</span>
+            {videoLinks.map(link => (
+              <Tooltip key={link.name} title={link.name}>
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-600"
+                >
+                  <ExportOutlined />
+                </a>
+              </Tooltip>
+            ))}
+          </Space>
+        );
+      },
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      width: 120,
+      fixed: 'right',
+      render: (_, record, __, action) => [
+        <Button
+          key="edit"
+          type="link"
+          size="small"
+          icon={<EditOutlined />}
+          onClick={() => {
+            action?.startEditable?.(record.id);
+          }}
+        >
+          编辑
+        </Button>,
+      ],
     },
   ];
 
   return (
     <div className="space-y-6">
-      {/* KPI 面板 */}
+      {/* KPI 面板 - 与 FinancialTab 保持一致的 6 列布局 */}
       <Row gutter={16}>
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={24} sm={12} md={4}>
           <Card size="small" className="text-center">
             <Statistic
               title="计划数"
               value={stats.plannedCount}
               prefix={<CalendarOutlined />}
-              valueStyle={{ color: '#1890ff' }}
+              suffix="条"
+              styles={{ content: { color: '#1890ff', fontSize: '18px' } }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={24} sm={12} md={4}>
           <Card size="small" className="text-center">
             <Statistic
               title="已发布"
               value={stats.publishedCount}
               prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-              suffix={
-                <span className="text-sm text-gray-400">
-                  / {stats.plannedCount}
-                </span>
-              }
+              suffix="条"
+              styles={{ content: { color: '#52c41a', fontSize: '18px' } }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={24} sm={12} md={4}>
           <Card size="small" className="text-center">
-            <div className="mb-2 text-gray-500">发布率</div>
-            <Progress
-              type="circle"
-              percent={stats.publishRate}
-              size={80}
-              strokeColor={stats.publishRate >= 80 ? '#52c41a' : '#faad14'}
+            <Statistic
+              title="发布率"
+              value={stats.publishRate}
+              suffix="%"
+              styles={{
+                content: {
+                  color: stats.publishRate >= 80 ? '#52c41a' : '#faad14',
+                  fontSize: '18px',
+                },
+              }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={24} sm={12} md={4}>
           <Card size="small" className="text-center">
-            <Row gutter={8}>
-              <Col span={12}>
-                <Statistic
-                  title="延期"
-                  value={stats.delayedCount}
-                  prefix={<WarningOutlined />}
-                  valueStyle={{
-                    color: stats.delayedCount > 0 ? '#ff4d4f' : '#8c8c8c',
-                  }}
-                />
-              </Col>
-              <Col span={12}>
-                <Statistic
-                  title="近7天待发"
-                  value={stats.upcomingCount}
-                  prefix={<ClockCircleOutlined />}
-                  valueStyle={{ color: '#faad14' }}
-                />
-              </Col>
-            </Row>
+            <Statistic
+              title="延期"
+              value={stats.delayedCount}
+              prefix={<WarningOutlined />}
+              suffix="条"
+              styles={{
+                content: {
+                  color: stats.delayedCount > 0 ? '#ff4d4f' : '#8c8c8c',
+                  fontSize: '18px',
+                },
+              }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={4}>
+          <Card size="small" className="text-center">
+            <Statistic
+              title="近7天待发"
+              value={stats.upcomingCount}
+              prefix={<ClockCircleOutlined />}
+              suffix="条"
+              styles={{ content: { color: '#faad14', fontSize: '18px' } }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={4}>
+          <Card size="small" className="text-center">
+            <Statistic
+              title="待填发布日"
+              value={stats.plannedCount - stats.publishedCount - stats.delayedCount}
+              suffix="条"
+              styles={{ content: { color: '#722ed1', fontSize: '18px' } }}
+            />
           </Card>
         </Col>
       </Row>
@@ -470,10 +563,22 @@ export function ExecutionTab({
       <ProTable<Collaboration>
         columns={columns}
         actionRef={actionRef}
+        editableFormRef={editableFormRef}
         cardBordered={false}
         dataSource={collaborations}
         loading={loading}
         rowKey="id"
+        editable={{
+          type: 'single',
+          form: editableForm,
+          editableKeys,
+          onChange: setEditableKeys,
+          onSave: handleSaveRow,
+          actionRender: (row, config, dom) => [dom.save, dom.cancel],
+          saveText: '保存',
+          cancelText: '取消',
+        }}
+        recordCreatorProps={false}
         pagination={{
           pageSize: 20,
           showSizeChanger: true,
@@ -504,7 +609,7 @@ export function ExecutionTab({
             刷新
           </Button>,
         ]}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 1400 }}
         options={{
           reload: false,
           density: false,

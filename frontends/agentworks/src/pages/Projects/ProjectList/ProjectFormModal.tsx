@@ -550,7 +550,15 @@ export function ProjectFormModal({
               'talentProcurement'
           );
 
-          // 编辑模式：初始化 KPI 配置状态
+          // 编辑模式：先加载客户详情，再初始化 KPI 状态
+          // 必须等客户详情加载完成后再设置 KPI 状态，否则 UI 无法正确显示
+          await handleCustomerChange(
+            editingProject.customerId,
+            true,
+            loadedOptions
+          );
+
+          // 编辑模式：初始化 KPI 配置状态（在客户详情加载完成后）
           if (editingProject.platformKPIConfigs) {
             const kpiStates: Record<string, PlatformKPIState> = {};
             Object.entries(editingProject.platformKPIConfigs).forEach(
@@ -568,9 +576,6 @@ export function ProjectFormModal({
           } else {
             setPlatformKPIStates({});
           }
-
-          // 编辑模式：加载客户详情但不重置表单字段，传入刚加载的客户列表
-          handleCustomerChange(editingProject.customerId, true, loadedOptions);
         } else {
           // 新建模式
           const now = new Date();

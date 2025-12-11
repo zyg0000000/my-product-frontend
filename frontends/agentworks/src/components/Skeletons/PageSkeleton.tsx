@@ -10,7 +10,7 @@ export function PageSkeleton({ active = true }: PageSkeletonProps) {
     <div className="space-y-6">
       {/* Header Skeleton */}
       <div className="bg-white p-6 border-b border-gray-200">
-        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+        <Space orientation="vertical" size="small" style={{ width: '100%' }}>
           <Skeleton.Input
             active={active}
             size="large"

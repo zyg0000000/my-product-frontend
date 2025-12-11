@@ -216,7 +216,7 @@ export function PlatformConfig() {
         ) : (
           <ProTable<PlatformConfig>
             actionRef={actionRef}
-            rowKey="id"
+            rowKey="platform"
             headerTitle="平台列表"
             toolBarRender={() => [
               <Button

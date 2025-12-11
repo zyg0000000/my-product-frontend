@@ -40,6 +40,14 @@ export interface FieldConfig {
 }
 
 /**
+ * 外链数据来源
+ * @description 指定从哪个数据对象中获取 ID 字段
+ */
+export type LinkIdSource =
+  | 'talent' // 从达人数据获取（platformSpecific 或顶层字段）
+  | 'collaboration'; // 从合作记录获取（如 videoId）
+
+/**
  * 外链配置项
  * @description 单个外链的配置，支持多个外链
  */
@@ -47,8 +55,10 @@ export interface LinkConfig {
   name: string; // 链接名称，如"星图主页"（内部标识）
   label: string; // 显示标签，限2个中文字，如"星图"、"抖音"
   template: string; // URL模板，使用 {id} 作为占位符
-  idField: string; // ID字段名，如"xingtuId"
-  showInTalentName?: boolean; // 是否在达人昵称后显示，默认 true
+  idField: string; // ID字段名，如"xingtuId"、"videoId"
+  idSource?: LinkIdSource; // 数据来源，默认 'talent'
+  showInTalentName?: boolean; // 是否在达人昵称后显示，默认 true（仅 talent 来源有效）
+  showInCollaboration?: boolean; // 是否在合作记录中显示，默认 false
 }
 
 /**

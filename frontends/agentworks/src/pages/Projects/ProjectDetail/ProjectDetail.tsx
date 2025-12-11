@@ -33,6 +33,7 @@ import { EffectTab } from './EffectTab';
 import { ProjectFormModal } from '../ProjectList/ProjectFormModal';
 import { logger } from '../../../utils/logger';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
+import { useCustomerProjectConfig } from '../../../hooks/useCustomerProjectConfig';
 
 /**
  * 信息项组件 - 统一的标签+值布局
@@ -75,8 +76,30 @@ export function ProjectDetail() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('collaborations');
 
+  // 获取客户项目配置（根据项目的 customerId）
+  const { config: projectConfig, loading: configLoading } =
+    useCustomerProjectConfig(project?.customerId);
+
   // 编辑弹窗
   const [editModalOpen, setEditModalOpen] = useState(false);
+
+  // 当配置加载完成后，确保 activeTab 是可见的
+  useEffect(() => {
+    if (!configLoading && projectConfig) {
+      const { tabVisibility } = projectConfig;
+      const visibleTabs = (
+        ['collaborations', 'execution', 'finance', 'effect'] as const
+      ).filter(key => tabVisibility[key]);
+
+      // 如果当前 activeTab 不在可见列表中，切换到第一个可见 Tab
+      if (
+        visibleTabs.length > 0 &&
+        !visibleTabs.includes(activeTab as (typeof visibleTabs)[number])
+      ) {
+        setActiveTab(visibleTabs[0]);
+      }
+    }
+  }, [configLoading, projectConfig, activeTab]);
 
   // 加载项目信息
   const loadProject = useCallback(async () => {
@@ -113,10 +136,12 @@ export function ProjectDetail() {
     loadProject();
   };
 
-  if (loading) {
+  if (loading || configLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Spin size="large" tip="加载中..." />
+        <Spin size="large" tip="加载中...">
+          <div className="p-12" />
+        </Spin>
       </div>
     );
   }
@@ -132,10 +157,14 @@ export function ProjectDetail() {
   const stats = project.stats || ({} as ProjectStats);
   const progress = calculateProgress(stats);
 
-  // Tab 项
-  const tabItems = [
+  // Tab 可见性配置
+  const { tabVisibility } = projectConfig;
+
+  // Tab 项定义（全量）
+  const allTabItems = [
     {
       key: 'collaborations',
+      visible: tabVisibility.collaborations,
       label: (
         <span className="flex items-center gap-1">
           <TeamOutlined />
@@ -157,6 +186,7 @@ export function ProjectDetail() {
     },
     {
       key: 'execution',
+      visible: tabVisibility.execution,
       label: (
         <span className="flex items-center gap-1">
           <ScheduleOutlined />
@@ -173,6 +203,7 @@ export function ProjectDetail() {
     },
     {
       key: 'finance',
+      visible: tabVisibility.finance,
       label: (
         <span className="flex items-center gap-1">
           <DollarOutlined />
@@ -189,6 +220,7 @@ export function ProjectDetail() {
     },
     {
       key: 'effect',
+      visible: tabVisibility.effect,
       label: (
         <span className="flex items-center gap-1">
           <LineChartOutlined />
@@ -200,11 +232,15 @@ export function ProjectDetail() {
           projectId={project.id}
           platforms={project.platforms}
           benchmarkCPM={project.benchmarkCPM}
+          effectConfig={projectConfig.effectConfig}
           onRefresh={refreshProject}
         />
       ),
     },
   ];
+
+  // 根据配置过滤可见的 Tab
+  const tabItems = allTabItems.filter(tab => tab.visible);
 
   return (
     <PageTransition>
@@ -249,7 +285,9 @@ export function ProjectDetail() {
                   </a>
                 </span>
                 <span className="text-gray-300">|</span>
-                <span>执行时间：{project.year}年{project.month}月</span>
+                <span>
+                  执行时间：{project.year}年{project.month}月
+                </span>
               </div>
             </div>
             <div className="shrink-0 text-right">
@@ -298,7 +336,10 @@ export function ProjectDetail() {
               </span>
             </InfoItem>
 
-            <InfoItem label="执行进度" className="col-span-2 sm:col-span-1 lg:col-span-2">
+            <InfoItem
+              label="执行进度"
+              className="col-span-2 sm:col-span-1 lg:col-span-2"
+            >
               <div className="flex items-center gap-3">
                 <Progress
                   percent={progress}
@@ -307,56 +348,24 @@ export function ProjectDetail() {
                   className="flex-1 max-w-[200px]"
                 />
                 <span className="text-xs text-gray-500 whitespace-nowrap shrink-0">
-                  {stats.publishedCount || 0}/{stats.collaborationCount || 0} 已发布
+                  {stats.publishedCount || 0}/{stats.collaborationCount || 0}{' '}
+                  已发布
                 </span>
               </div>
             </InfoItem>
           </div>
 
-          {/* 底部区域：补充信息（如果有的话） */}
-          {(project.platformDiscounts || project.discount || project.benchmarkCPM) && (
-            <div className="flex flex-wrap gap-x-8 gap-y-2 pt-4 text-xs text-gray-500">
-              {project.platforms.map(platform => {
-                const discount = project.platformDiscounts?.[platform];
-                if (!discount) return null;
-                return (
-                  <span key={platform}>
-                    {platformNames[platform] || platform}折扣率：
-                    <span className="text-gray-700 font-medium">
-                      {(discount * 100).toFixed(1)}%
-                    </span>
-                  </span>
-                );
-              })}
-              {project.discount && !project.platformDiscounts && (
-                <span>
-                  折扣率：
-                  <span className="text-gray-700 font-medium">
-                    {(project.discount * 100).toFixed(1)}%
-                  </span>
-                </span>
-              )}
-              {project.benchmarkCPM && (
-                <span>
-                  基准CPM：
-                  <span className="text-gray-700 font-medium">
-                    {project.benchmarkCPM}
-                  </span>
-                </span>
-              )}
-            </div>
-          )}
+          {/* TODO: 底部区域预留给 KPI 卡片 */}
         </Card>
 
-        {/* Tab 切换 */}
-        <Card className="shadow-card">
-          <Tabs
-            activeKey={activeTab}
-            onChange={setActiveTab}
-            items={tabItems}
-            size="large"
-          />
-        </Card>
+        {/* Tab 切换 - 使用 card 类型样式 */}
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={tabItems}
+          type="card"
+          className="project-detail-tabs"
+        />
 
         {/* 编辑弹窗 */}
         <ProjectFormModal
@@ -372,9 +381,12 @@ export function ProjectDetail() {
             customerName: project.customerName,
             year: project.year,
             month: project.month,
+            financialYear: project.financialYear,
+            financialMonth: project.financialMonth,
             budget: project.budget,
             platforms: project.platforms,
             platformDiscounts: project.platformDiscounts,
+            platformKPIConfigs: project.platformKPIConfigs,
             discount: project.discount,
             stats: project.stats,
             createdAt: project.createdAt,

@@ -216,14 +216,9 @@ export function TalentDetail() {
       <div className="flex items-center gap-4">
         <Button
           icon={<ArrowLeftOutlined />}
-          onClick={() => {
-            // 返回到对应平台的基础信息页面，并保持平台选中状态
-            navigate('/talents/basic', {
-              state: { selectedPlatform: platform },
-            });
-          }}
+          onClick={() => navigate(-1)}
         >
-          返回列表
+          返回
         </Button>
         <h1 className="text-2xl font-bold text-gray-900 m-0">达人详情</h1>
       </div>
@@ -262,6 +257,14 @@ export function TalentDetail() {
                   <p className="text-xs text-gray-500">星图ID</p>
                   <p className="mt-1 text-sm font-medium">
                     {talent.platformAccountId}
+                  </p>
+                </div>
+              )}
+              {talent.platformSpecific.uid && (
+                <div>
+                  <p className="text-xs text-gray-500">抖音UID</p>
+                  <p className="mt-1 text-sm font-medium">
+                    {talent.platformSpecific.uid}
                   </p>
                 </div>
               )}

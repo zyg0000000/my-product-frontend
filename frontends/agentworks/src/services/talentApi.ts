@@ -4,11 +4,21 @@
  */
 
 import { searchTalents, type SearchTalentsParams } from '../api/talent';
-import type { Platform, Talent } from '../types/talent';
+import type {
+  Platform,
+  Talent,
+  PriceRecord,
+  CurrentRebate,
+} from '../types/talent';
 import { logger } from '../utils/logger';
 
 /**
- * 达人列表项（简化版）
+ * 野生达人机构ID常量
+ */
+export const AGENCY_INDIVIDUAL_ID = 'individual';
+
+/**
+ * 达人列表项（包含价格和返点信息）
  */
 export interface TalentListItem {
   oneId: string;
@@ -17,6 +27,9 @@ export interface TalentListItem {
   name?: string;
   platformAccountId?: string;
   fansCount?: number;
+  agencyId?: string; // 机构ID
+  prices?: PriceRecord[]; // 价格记录
+  currentRebate?: CurrentRebate; // 当前返点配置
 }
 
 /**
@@ -70,6 +83,9 @@ class TalentApiService {
             name: t.name,
             platformAccountId: t.platformAccountId,
             fansCount: t.fansCount,
+            agencyId: t.agencyId,
+            prices: t.prices,
+            currentRebate: t.currentRebate,
           })
         );
 

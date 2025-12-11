@@ -1,47 +1,32 @@
 /**
  * 合作记录表单弹窗
  * 新建和编辑合作达人记录
+ *
+ * 设计风格：与项目详情页保持统一
+ * - 清晰的分区标题
+ * - 统一的标签样式（小号灰色）
+ * - 简洁的表单布局
+ *
+ * 使用 useCollaborationForm hook 封装业务逻辑
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useEffect } from 'react';
 import {
   Modal,
   Form,
   Input,
   InputNumber,
   Select,
-  DatePicker,
   Row,
   Col,
   Spin,
-  Divider,
-  App,
+  Tooltip,
 } from 'antd';
-import dayjs from 'dayjs';
-import type {
-  Collaboration,
-  CreateCollaborationRequest,
-  TalentSource,
-} from '../../../types/project';
-import {
-  COLLABORATION_STATUS_OPTIONS,
-  yuanToCents,
-  centsToYuan,
-} from '../../../types/project';
+import { InfoCircleOutlined } from '@ant-design/icons';
+import type { Collaboration, TalentSource } from '../../../types/project';
+import { COLLABORATION_STATUS_OPTIONS } from '../../../types/project';
 import type { Platform } from '../../../types/talent';
-import { projectApi } from '../../../services/projectApi';
-import { talentApi, type TalentListItem } from '../../../services/talentApi';
-import { logger } from '../../../utils/logger';
-import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
-
-interface CollaborationFormModalProps {
-  open: boolean;
-  projectId: string;
-  platforms: Platform[];
-  editingCollaboration: Collaboration | null;
-  onCancel: () => void;
-  onSuccess: () => void;
-}
+import { useCollaborationForm } from '../../../hooks/useCollaborationForm';
 
 /**
  * 达人来源选项
@@ -52,6 +37,27 @@ const TALENT_SOURCE_OPTIONS: Array<{ label: string; value: TalentSource }> = [
   { label: '客户指定', value: '客户指定' },
 ];
 
+/**
+ * 分区标题组件
+ */
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2 mb-4 pt-1">
+      <div className="w-1 h-4 bg-primary-500 rounded-full" />
+      <span className="text-sm font-medium text-gray-700">{children}</span>
+    </div>
+  );
+}
+
+interface CollaborationFormModalProps {
+  open: boolean;
+  projectId: string;
+  platforms: Platform[];
+  editingCollaboration: Collaboration | null;
+  onCancel: () => void;
+  onSuccess: () => void;
+}
+
 export function CollaborationFormModal({
   open,
   projectId,
@@ -60,253 +66,72 @@ export function CollaborationFormModal({
   onCancel,
   onSuccess,
 }: CollaborationFormModalProps) {
-  const { message } = App.useApp();
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
 
-  // 平台配置
-  const { getPlatformNames } = usePlatformConfig();
-  const platformNames = useMemo(() => getPlatformNames(), [getPlatformNames]);
+  // 使用封装的业务逻辑 hook
+  const {
+    isEdit,
+    talentLoading,
+    talentOptions,
+    selectedPlatform,
+    tooltips,
+    loading,
+    platformNames,
+    searchTalents,
+    handleTalentChange,
+    setSelectedPlatform,
+    initializeForm,
+    resetForm,
+    handleSubmit,
+  } = useCollaborationForm({
+    form,
+    projectId,
+    editingCollaboration,
+    onSuccess,
+  });
 
-  // 达人搜索状态
-  const [talentLoading, setTalentLoading] = useState(false);
-  const [talentOptions, setTalentOptions] = useState<
-    Array<{ value: string; label: string; platform: Platform }>
-  >([]);
-  const [selectedPlatform, setSelectedPlatform] = useState<Platform | ''>('');
-
-  const isEdit = !!editingCollaboration;
-
-  /**
-   * 搜索达人
-   */
-  const searchTalents = useCallback(
-    async (searchTerm: string) => {
-      if (!searchTerm || searchTerm.length < 2) {
-        setTalentOptions([]);
-        return;
-      }
-
-      try {
-        setTalentLoading(true);
-        const response = await talentApi.getTalents({
-          page: 1,
-          pageSize: 30,
-          keyword: searchTerm,
-          platform: selectedPlatform || undefined,
-        });
-
-        if (response.success) {
-          const options = response.data.items.map((t: TalentListItem) => ({
-            value: `${t.oneId}__${t.platform}`,
-            label: `${t.nickname || t.oneId} (${platformNames[t.platform] || t.platform})`,
-            platform: t.platform,
-          }));
-          setTalentOptions(options);
-        }
-      } catch (error) {
-        logger.error('Error searching talents:', error);
-      } finally {
-        setTalentLoading(false);
-      }
-    },
-    [selectedPlatform]
-  );
-
-  /**
-   * 达人选择变化
-   */
-  const handleTalentChange = (value: string) => {
-    const [oneId, platform] = value.split('__');
-    form.setFieldsValue({
-      talentOneId: oneId,
-      talentPlatform: platform,
-    });
-    setSelectedPlatform(platform as Platform);
-  };
-
-  /**
-   * 初始化表单
-   */
+  // 弹窗打开时初始化表单
   useEffect(() => {
     if (open) {
-      if (editingCollaboration) {
-        // 编辑模式：填充数据
-        form.setFieldsValue({
-          talentSelect: `${editingCollaboration.talentOneId}__${editingCollaboration.talentPlatform}`,
-          talentOneId: editingCollaboration.talentOneId,
-          talentPlatform: editingCollaboration.talentPlatform,
-          talentSource: editingCollaboration.talentSource,
-          status: editingCollaboration.status,
-          amount: centsToYuan(editingCollaboration.amount),
-          rebateRate: editingCollaboration.rebateRate,
-          priceInfo: editingCollaboration.priceInfo,
-          plannedReleaseDate: editingCollaboration.plannedReleaseDate
-            ? dayjs(editingCollaboration.plannedReleaseDate)
-            : undefined,
-          actualReleaseDate: editingCollaboration.actualReleaseDate
-            ? dayjs(editingCollaboration.actualReleaseDate)
-            : undefined,
-          taskId: editingCollaboration.taskId,
-          videoId: editingCollaboration.videoId,
-          videoUrl: editingCollaboration.videoUrl,
-        });
-
-        // 设置达人选项
-        setTalentOptions([
-          {
-            value: `${editingCollaboration.talentOneId}__${editingCollaboration.talentPlatform}`,
-            label: `${editingCollaboration.talentName || editingCollaboration.talentOneId} (${platformNames[editingCollaboration.talentPlatform] || editingCollaboration.talentPlatform})`,
-            platform: editingCollaboration.talentPlatform,
-          },
-        ]);
-        setSelectedPlatform(editingCollaboration.talentPlatform);
-      } else {
-        // 新建模式：设置默认值
-        form.setFieldsValue({
-          status: '待提报工作台',
-          talentSource: '机构达人',
-        });
-        setTalentOptions([]);
-        setSelectedPlatform('');
-      }
+      initializeForm();
     }
-  }, [open, editingCollaboration, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, editingCollaboration]);
 
-  /**
-   * 提交表单
-   */
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      setLoading(true);
-
-      if (isEdit && editingCollaboration) {
-        // 更新
-        const response = await projectApi.updateCollaboration(
-          editingCollaboration.id,
-          {
-            status: values.status,
-            amount: yuanToCents(values.amount),
-            plannedReleaseDate: values.plannedReleaseDate
-              ? values.plannedReleaseDate.format('YYYY-MM-DD')
-              : undefined,
-            actualReleaseDate: values.actualReleaseDate
-              ? values.actualReleaseDate.format('YYYY-MM-DD')
-              : undefined,
-            taskId: values.taskId,
-            videoId: values.videoId,
-            videoUrl: values.videoUrl,
-          }
-        );
-
-        if (response.success) {
-          message.success('更新成功');
-          form.resetFields();
-          onSuccess();
-        } else {
-          message.error(response.message || '更新失败');
-        }
-      } else {
-        // 创建
-        const data: CreateCollaborationRequest = {
-          projectId,
-          talentOneId: values.talentOneId,
-          talentPlatform: values.talentPlatform,
-          amount: yuanToCents(values.amount),
-          plannedReleaseDate: values.plannedReleaseDate
-            ? values.plannedReleaseDate.format('YYYY-MM-DD')
-            : undefined,
-          rebateRate: values.rebateRate,
-          talentSource: values.talentSource,
-        };
-
-        const response = await projectApi.createCollaboration(data);
-
-        if (response.success) {
-          message.success('添加成功');
-          form.resetFields();
-          onSuccess();
-        } else {
-          message.error(response.message || '添加失败');
-        }
-      }
-    } catch (error) {
-      logger.error('Form submit error:', error);
-      message.error('操作失败');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /**
-   * 关闭弹窗
-   */
-  const handleCancel = () => {
-    form.resetFields();
-    setTalentOptions([]);
-    setSelectedPlatform('');
-    onCancel();
-  };
-
-  /**
-   * 平台筛选选项
-   */
+  // 平台筛选选项
   const platformOptions = platforms.map(p => ({
     label: platformNames[p] || p,
     value: p,
   }));
 
+  // 关闭弹窗
+  const handleCancel = () => {
+    resetForm();
+    onCancel();
+  };
+
   return (
     <Modal
-      title={isEdit ? '编辑合作记录' : '添加合作达人'}
+      title={
+        <span className="text-lg font-semibold text-gray-900">
+          {isEdit ? '编辑合作记录' : '添加合作达人'}
+        </span>
+      }
       open={open}
       onOk={handleSubmit}
       onCancel={handleCancel}
       confirmLoading={loading}
-      width={700}
-      destroyOnClose
+      width={680}
+      destroyOnHidden
+      className="collaboration-form-modal"
+      styles={{ body: { padding: '20px 24px' } }}
     >
       <Form
         form={form}
         layout="vertical"
-        className="mt-4"
-        requiredMark="optional"
+        requiredMark={false}
+        className="[&_.ant-form-item-label>label]:text-xs [&_.ant-form-item-label>label]:text-gray-500 [&_.ant-form-item-label>label]:font-normal [&_.ant-form-item]:mb-4"
       >
-        {/* 达人选择（新建时可选，编辑时只读） */}
-        <Row gutter={16}>
-          <Col span={16}>
-            <Form.Item
-              name="talentSelect"
-              label="选择达人"
-              rules={[{ required: !isEdit, message: '请选择达人' }]}
-            >
-              <Select
-                placeholder="输入达人昵称或 ID 搜索"
-                showSearch
-                filterOption={false}
-                onSearch={searchTalents}
-                onChange={handleTalentChange}
-                loading={talentLoading}
-                notFoundContent={
-                  talentLoading ? <Spin size="small" /> : '输入关键词搜索达人'
-                }
-                options={talentOptions}
-                disabled={isEdit}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item name="talentSource" label="达人来源">
-              <Select
-                placeholder="选择来源"
-                options={TALENT_SOURCE_OPTIONS}
-                disabled={isEdit}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
         {/* 隐藏字段 */}
         <Form.Item name="talentOneId" hidden>
           <Input />
@@ -315,31 +140,81 @@ export function CollaborationFormModal({
           <Input />
         </Form.Item>
 
-        {/* 平台筛选（可选，用于缩小搜索范围） */}
-        {!isEdit && platforms.length > 1 && (
+        {/* === 达人信息区域 === */}
+        <SectionTitle>达人信息</SectionTitle>
+        <div className="bg-gray-50/50 rounded-lg p-4 mb-5">
           <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="平台筛选（可选）">
+            <Col span={16}>
+              <Form.Item
+                name="talentSelect"
+                label="选择达人"
+                rules={[{ required: !isEdit, message: '请选择达人' }]}
+                className="mb-0"
+              >
                 <Select
-                  placeholder="不限"
-                  allowClear
-                  options={platformOptions}
-                  value={selectedPlatform || undefined}
-                  onChange={v => setSelectedPlatform(v || '')}
+                  placeholder="输入昵称(模糊) 或 ID(精准)搜索"
+                  showSearch
+                  filterOption={false}
+                  onSearch={searchTalents}
+                  onChange={handleTalentChange}
+                  loading={talentLoading}
+                  notFoundContent={
+                    talentLoading ? <Spin size="small" /> : '输入昵称或平台ID搜索达人'
+                  }
+                  options={talentOptions}
+                  disabled={isEdit}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="talentSource"
+                label="达人来源"
+                className="mb-0"
+              >
+                <Select
+                  placeholder="选择来源"
+                  options={TALENT_SOURCE_OPTIONS}
+                  disabled={isEdit}
                 />
               </Form.Item>
             </Col>
           </Row>
-        )}
 
-        <Divider className="my-4" />
+          {/* 平台筛选（可选，用于缩小搜索范围） */}
+          {!isEdit && platforms.length > 1 && (
+            <Row gutter={16} className="mt-4">
+              <Col span={12}>
+                <Form.Item label="平台筛选" className="mb-0">
+                  <Select
+                    placeholder="全部平台"
+                    allowClear
+                    options={platformOptions}
+                    value={selectedPlatform || undefined}
+                    onChange={v => setSelectedPlatform(v || '')}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          )}
+        </div>
 
-        {/* 执行信息 */}
+        {/* === 执行信息区域 === */}
+        <SectionTitle>执行信息</SectionTitle>
         <Row gutter={16}>
           <Col span={8}>
             <Form.Item
               name="amount"
-              label="执行金额（元）"
+              label={
+                <span className="inline-flex items-center gap-1">
+                  执行金额（元）
+                  {tooltips.price && (
+                    <Tooltip title={tooltips.price}>
+                      <InfoCircleOutlined className="text-gray-400 cursor-help" />
+                    </Tooltip>
+                  )}
+                </span>
+              }
               rules={[
                 { required: true, message: '请输入执行金额' },
                 { type: 'number', min: 0, message: '金额不能为负数' },
@@ -356,7 +231,25 @@ export function CollaborationFormModal({
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item name="rebateRate" label="返点率（%）">
+            <Form.Item
+              name="rebateRate"
+              label={
+                <span className="inline-flex items-center gap-1">
+                  返点率（%）
+                  {tooltips.rebate && (
+                    <Tooltip
+                      title={
+                        <span style={{ whiteSpace: 'pre-line' }}>
+                          {tooltips.rebate}
+                        </span>
+                      }
+                    >
+                      <InfoCircleOutlined className="text-gray-400 cursor-help" />
+                    </Tooltip>
+                  )}
+                </span>
+              }
+            >
               <InputNumber
                 placeholder="例如 30"
                 style={{ width: '100%' }}
@@ -370,7 +263,7 @@ export function CollaborationFormModal({
           <Col span={8}>
             <Form.Item
               name="status"
-              label="状态"
+              label="执行状态"
               rules={[{ required: true, message: '请选择状态' }]}
             >
               <Select
@@ -384,45 +277,6 @@ export function CollaborationFormModal({
           </Col>
         </Row>
 
-        {/* 发布日期 */}
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item name="plannedReleaseDate" label="计划发布日期">
-              <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item name="actualReleaseDate" label="实际发布日期">
-              <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        {/* 任务和视频信息（编辑时显示） */}
-        {isEdit && (
-          <>
-            <Divider className="my-4" />
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item name="taskId" label="星图任务 ID">
-                  <Input placeholder="可选" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item name="videoId" label="视频 ID">
-                  <Input placeholder="可选" />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={24}>
-                <Form.Item name="videoUrl" label="视频链接">
-                  <Input placeholder="https://..." />
-                </Form.Item>
-              </Col>
-            </Row>
-          </>
-        )}
       </Form>
     </Modal>
   );

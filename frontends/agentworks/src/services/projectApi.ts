@@ -268,9 +268,10 @@ class ProjectApi {
   async getCollaborations(
     params: GetCollaborationsParams
   ): Promise<ApiResponse<CollaborationListResponse>> {
-    const queryParams = buildQueryParams(
-      params as unknown as Record<string, unknown>
-    );
+    const queryParams = buildQueryParams({
+      ...params,
+      dbVersion: DB_VERSION,
+    } as unknown as Record<string, unknown>);
     const url = `${API_BASE_URL}/collaborations?${queryParams.toString()}`;
 
     const response = await fetch(url, {
@@ -284,7 +285,26 @@ class ProjectApi {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return response.json();
+    // 后端返回格式: { success, total, page, limit, data: Collaboration[] }
+    // 前端期望格式: { success, data: { items, total, page, pageSize } }
+    const result = await response.json();
+    if (result.success) {
+      return {
+        success: true,
+        data: {
+          items: result.data || [],
+          total: result.total || 0,
+          page: result.page || 1,
+          pageSize: result.limit || params.pageSize || 20,
+        },
+      };
+    }
+
+    return {
+      success: false,
+      data: { items: [], total: 0, page: 1, pageSize: 20 },
+      message: result.message,
+    };
   }
 
   /**
@@ -320,7 +340,7 @@ class ProjectApi {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, dbVersion: DB_VERSION }),
     });
 
     if (!response.ok) {
@@ -337,14 +357,14 @@ class ProjectApi {
     id: string,
     data: UpdateCollaborationRequest
   ): Promise<ApiResponse<Collaboration>> {
-    const url = `${API_BASE_URL}/collaborations?id=${encodeURIComponent(id)}`;
+    const url = `${API_BASE_URL}/update-collaboration`;
 
     const response = await fetch(url, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, id, dbVersion: DB_VERSION }),
     });
 
     if (!response.ok) {
@@ -367,6 +387,7 @@ class ProjectApi {
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ collaborationId: id, dbVersion: DB_VERSION }),
     });
 
     if (!response.ok) {

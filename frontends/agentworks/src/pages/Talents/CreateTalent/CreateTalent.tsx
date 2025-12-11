@@ -191,9 +191,9 @@ export function CreateTalent() {
           </div>
           <Button
             icon={<ArrowLeftOutlined />}
-            onClick={() => navigate('/talents/basic')}
+            onClick={() => navigate(-1)}
           >
-            返回列表
+            返回
           </Button>
         </div>
       </div>

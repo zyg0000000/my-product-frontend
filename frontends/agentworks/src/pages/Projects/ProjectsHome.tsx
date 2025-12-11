@@ -182,7 +182,7 @@ export function ProjectsHome() {
                 title="执行中项目"
                 value={monthlyOverview.executingCount}
                 prefix={<FolderOutlined />}
-                valueStyle={{ color: '#1890ff' }}
+                styles={{ content: { color: '#1890ff' } }}
               />
             </Card>
           </Col>
@@ -195,11 +195,13 @@ export function ProjectsHome() {
                 title="待结算项目"
                 value={monthlyOverview.pendingSettlementCount}
                 prefix={<ClockCircleOutlined />}
-                valueStyle={{
-                  color:
-                    monthlyOverview.pendingSettlementCount > 0
-                      ? '#faad14'
-                      : '#8c8c8c',
+                styles={{
+                  content: {
+                    color:
+                      monthlyOverview.pendingSettlementCount > 0
+                        ? '#faad14'
+                        : '#8c8c8c',
+                  },
                 }}
               />
             </Card>
@@ -212,7 +214,7 @@ export function ProjectsHome() {
                 prefix={<DollarOutlined />}
                 precision={2}
                 suffix="元"
-                valueStyle={{ color: '#52c41a' }}
+                styles={{ content: { color: '#52c41a' } }}
               />
             </Card>
           </Col>

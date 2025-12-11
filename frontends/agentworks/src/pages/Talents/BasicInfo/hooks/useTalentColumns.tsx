@@ -83,7 +83,7 @@ export function useTalentColumns({
   const columns: ProColumns<Talent>[] = useMemo(
     () => [
       {
-        title: '达人名称',
+        title: '达人昵称',
         dataIndex: 'name',
         key: 'name',
         width: 220,

@@ -19,6 +19,7 @@ import {
   TeamOutlined,
   DollarOutlined,
   HistoryOutlined,
+  SettingOutlined,
   RightOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
@@ -342,7 +343,7 @@ export function CustomerDetail() {
 
       <motion.div
         variants={containerVariants}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
       >
         {/* 达人池管理 */}
         <FeatureCard
@@ -386,6 +387,27 @@ export function CustomerDetail() {
             )
           }
           onClick={() => navigate(`/customers/${id}/business-strategies`)}
+        />
+
+        {/* 项目配置管理 */}
+        <FeatureCard
+          icon={<SettingOutlined />}
+          iconBg="linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)"
+          title="项目配置管理"
+          description="配置该客户的项目详情页显示内容，包括 Tab 开关和效果指标"
+          status={customer.projectConfig?.enabled ? 'configured' : 'pending'}
+          stats={
+            customer.projectConfig?.enabled ? (
+              <div className="flex items-center gap-1.5">
+                <Tag color="purple" className="m-0">
+                  已定制
+                </Tag>
+              </div>
+            ) : (
+              <span className="text-sm text-gray-400">使用系统默认</span>
+            )
+          }
+          onClick={() => navigate(`/customers/${id}/project-config`)}
         />
 
         {/* 合作历史 */}

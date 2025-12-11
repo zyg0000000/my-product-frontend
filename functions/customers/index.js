@@ -362,7 +362,8 @@ async function updateCustomer(id, body, headers = {}) {
     const fieldsToUpdate = {};
 
     // 允许更新的字段
-    const allowedFields = ['name', 'level', 'status', 'industry', 'contacts', 'businessStrategies'];
+    // v5.0: 新增 projectConfig（项目配置管理）
+    const allowedFields = ['name', 'level', 'status', 'industry', 'contacts', 'businessStrategies', 'projectConfig'];
     allowedFields.forEach(field => {
       if (updateData[field] !== undefined) {
         fieldsToUpdate[field] = updateData[field];

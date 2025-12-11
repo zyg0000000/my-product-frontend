@@ -341,7 +341,7 @@ export function FinancialTab({
 
   const columns: ProColumns<Collaboration>[] = [
     {
-      title: '达人',
+      title: '达人昵称',
       dataIndex: 'talentName',
       width: 200,
       fixed: 'left',
@@ -521,7 +521,7 @@ export function FinancialTab({
               prefix={<DollarOutlined />}
               precision={2}
               suffix="元"
-              valueStyle={{ color: '#1890ff', fontSize: '18px' }}
+              styles={{ content: { color: '#1890ff', fontSize: '18px' } }}
             />
           </Card>
         </Col>
@@ -532,7 +532,7 @@ export function FinancialTab({
               value={centsToYuan(stats.orderedAmount)}
               precision={2}
               suffix="元"
-              valueStyle={{ color: '#722ed1', fontSize: '18px' }}
+              styles={{ content: { color: '#722ed1', fontSize: '18px' } }}
             />
           </Card>
         </Col>
@@ -543,7 +543,7 @@ export function FinancialTab({
               value={centsToYuan(stats.paidAmount)}
               precision={2}
               suffix="元"
-              valueStyle={{ color: '#faad14', fontSize: '18px' }}
+              styles={{ content: { color: '#faad14', fontSize: '18px' } }}
             />
           </Card>
         </Col>
@@ -554,7 +554,7 @@ export function FinancialTab({
               value={centsToYuan(stats.recoveredAmount)}
               precision={2}
               suffix="元"
-              valueStyle={{ color: '#52c41a', fontSize: '18px' }}
+              styles={{ content: { color: '#52c41a', fontSize: '18px' } }}
             />
           </Card>
         </Col>
@@ -564,9 +564,11 @@ export function FinancialTab({
               title="待下单"
               value={stats.pendingCount}
               suffix="条"
-              valueStyle={{
-                color: stats.pendingCount > 0 ? '#ff4d4f' : '#8c8c8c',
-                fontSize: '18px',
+              styles={{
+                content: {
+                  color: stats.pendingCount > 0 ? '#ff4d4f' : '#8c8c8c',
+                  fontSize: '18px',
+                },
               }}
             />
           </Card>
@@ -578,9 +580,11 @@ export function FinancialTab({
               value={centsToYuan(stats.adjustmentTotal)}
               precision={2}
               suffix="元"
-              valueStyle={{
-                color: stats.adjustmentTotal >= 0 ? '#52c41a' : '#ff4d4f',
-                fontSize: '18px',
+              styles={{
+                content: {
+                  color: stats.adjustmentTotal >= 0 ? '#52c41a' : '#ff4d4f',
+                  fontSize: '18px',
+                },
               }}
               prefix={stats.adjustmentTotal >= 0 ? '+' : ''}
             />

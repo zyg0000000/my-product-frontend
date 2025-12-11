@@ -40,6 +40,8 @@ import {
   PlusOutlined,
   DeleteOutlined,
   HolderOutlined,
+  LeftOutlined,
+  RightOutlined,
 } from '@ant-design/icons';
 import type {
   PlatformConfig,
@@ -51,6 +53,27 @@ import {
   createPlatformConfig,
 } from '../api/platformConfig';
 import { logger } from '../utils/logger';
+
+/**
+ * 数据来源选项配置
+ * 可扩展：新增数据源只需在此添加
+ */
+const LINK_ID_SOURCE_OPTIONS = [
+  {
+    value: 'talent',
+    label: '达人数据',
+    description: '从达人 platformSpecific 获取',
+    icon: '👤',
+  },
+  {
+    value: 'collaboration',
+    label: '合作记录',
+    description: '从合作记录字段获取',
+    icon: '🤝',
+  },
+  // 未来可扩展更多数据源
+  // { value: 'project', label: '项目数据', description: '从项目字段获取', icon: '📁' },
+];
 
 interface PlatformConfigModalProps {
   isOpen: boolean;
@@ -71,6 +94,7 @@ export function PlatformConfigModal({
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
   const [priceTypes, setPriceTypes] = useState<PriceTypeConfig[]>([]);
+  const [linkPage, setLinkPage] = useState(0); // 外链配置当前页（0-indexed）
 
   // 初始化表单数据
   useEffect(() => {
@@ -95,10 +119,12 @@ export function PlatformConfigModal({
           dataImport: true,
         });
         setPriceTypes([]);
+        setLinkPage(0);
       } else if (config) {
         // 编辑模式：加载现有配置
         // 兼容旧数据：如果有 links 用 links，否则从 link 转换
-        const linksData: LinkConfig[] =
+        // 重要：过滤掉数组中的 null/undefined 值
+        const rawLinks =
           config.links ||
           (config.link
             ? [
@@ -110,6 +136,9 @@ export function PlatformConfigModal({
                 },
               ]
             : []);
+        const linksData: LinkConfig[] = rawLinks.filter(
+          (link): link is LinkConfig => link !== null && link !== undefined
+        );
 
         form.setFieldsValue({
           platform: config.platform,
@@ -131,6 +160,7 @@ export function PlatformConfigModal({
         });
         // 加载价格类型配置
         setPriceTypes(config.priceTypes || []);
+        setLinkPage(0);
       }
     }
   }, [isOpen, config, isCreating, form]);
@@ -167,8 +197,10 @@ export function PlatformConfigModal({
           minRebate: config?.business?.minRebate ?? 0,
           maxRebate: config?.business?.maxRebate ?? 100,
         },
-        // links: 使用新的多链接配置
-        links: values.links || [],
+        // links: 使用新的多链接配置，过滤掉 null/undefined 的无效项
+        links: (values.links || []).filter(
+          (link: LinkConfig | null | undefined) => link && link.name && link.template
+        ),
         // link: 保留向后兼容（deprecated）
         link: null,
         // features: 使用表单值，fallback 到原有配置
@@ -563,78 +595,224 @@ export function PlatformConfigModal({
       key: 'links',
       label: '外链配置',
       children: (
-        <div className="space-y-3">
-          {/* 滚动容器 */}
-          <div className="overflow-y-auto" style={{ maxHeight: 300 }}>
-            <ProFormList
-              name="links"
-              creatorButtonProps={{
-                creatorButtonText: '添加外链',
-                type: 'dashed',
-                block: true,
-                icon: <PlusOutlined />,
-                size: 'small',
-              }}
-              min={0}
-              copyIconProps={false}
-              deleteIconProps={{
-                tooltipText: '删除此外链',
-              }}
-              itemRender={({ listDom, action }) => (
-                <div className="mb-3 p-4 border border-gray-200 rounded-lg bg-gray-50/50 hover:border-primary-300 transition-colors">
-                  <div className="flex items-end gap-3">
-                    <div className="flex-1">{listDom}</div>
-                    <div>{action}</div>
+        <div className="space-y-4">
+          {/* Form.List 渲染所有外链，用 CSS 控制显示/隐藏 */}
+          <Form.List name="links">
+            {(fields, { add, remove }) => (
+              <>
+                {/* 渲染所有配置卡片，只显示当前页 */}
+                {fields.map((field, index) => (
+                  <div
+                    key={field.key}
+                    className="rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50/80 shadow-sm"
+                    style={{ display: index === linkPage ? 'block' : 'none' }}
+                  >
+                    {/* 卡片头部 */}
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/60 rounded-t-xl">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 text-primary-600 text-xs font-semibold">
+                          {index + 1}
+                        </div>
+                        <span className="text-sm font-medium text-gray-700">外链配置</span>
+                      </div>
+                      <Popconfirm
+                        title="确定删除此外链配置？"
+                        onConfirm={() => {
+                          remove(field.name);
+                          // 删除后调整页码
+                          if (linkPage >= fields.length - 1 && linkPage > 0) {
+                            setLinkPage(linkPage - 1);
+                          }
+                        }}
+                        okText="删除"
+                        cancelText="取消"
+                      >
+                        <Button type="text" danger size="small" icon={<DeleteOutlined />}>
+                          删除
+                        </Button>
+                      </Popconfirm>
+                    </div>
+                    {/* 卡片内容 */}
+                    <div className="p-5">
+                      {/* 基础信息区 */}
+                      <div className="grid grid-cols-3 gap-4">
+                        <Form.Item
+                          name={[field.name, 'name']}
+                          label={<span className="text-xs text-gray-500 font-medium">链接名称</span>}
+                          rules={[{ required: true, message: '请输入名称' }]}
+                        >
+                          <Input placeholder="如：星图主页" />
+                        </Form.Item>
+                        <Form.Item
+                          name={[field.name, 'label']}
+                          label={<span className="text-xs text-gray-500 font-medium">显示标签</span>}
+                          rules={[
+                            { required: true, message: '请输入标签' },
+                            { pattern: /^[\u4e00-\u9fa5]{2}$/, message: '限2个中文' },
+                          ]}
+                          tooltip="在列表中显示的标签文字"
+                        >
+                          <Input placeholder="2个中文字" maxLength={2} />
+                        </Form.Item>
+                        <ProFormSelect
+                          name={[field.name, 'idSource']}
+                          label={<span className="text-xs text-gray-500 font-medium">数据来源</span>}
+                          initialValue="talent"
+                          tooltip={
+                            <div className="space-y-1">
+                              {LINK_ID_SOURCE_OPTIONS.map(opt => (
+                                <div key={opt.value}>
+                                  <strong>{opt.icon} {opt.label}</strong>：{opt.description}
+                                </div>
+                              ))}
+                            </div>
+                          }
+                          options={LINK_ID_SOURCE_OPTIONS.map(opt => ({
+                            label: `${opt.icon} ${opt.label}`,
+                            value: opt.value,
+                          }))}
+                          fieldProps={{ placeholder: '选择来源' }}
+                        />
+                      </div>
+                      {/* URL 配置区 */}
+                      <div className="grid grid-cols-3 gap-4 mt-1">
+                        <div className="col-span-2">
+                          <Form.Item
+                            name={[field.name, 'template']}
+                            label={<span className="text-xs text-gray-500 font-medium">URL 模板</span>}
+                            rules={[{ required: true, message: '请输入URL模板' }]}
+                            tooltip="使用 {id} 作为动态ID占位符"
+                          >
+                            <Input placeholder="https://www.example.com/path/{id}" />
+                          </Form.Item>
+                        </div>
+                        <Form.Item
+                          name={[field.name, 'idField']}
+                          label={<span className="text-xs text-gray-500 font-medium">ID 字段名</span>}
+                          rules={[{ required: true, message: '请输入字段名' }]}
+                          tooltip="数据源中对应的字段名"
+                        >
+                          <Input placeholder="如：xingtuId" />
+                        </Form.Item>
+                      </div>
+                      {/* 显示位置区 */}
+                      <div className="mt-4 pt-4 border-t border-dashed border-gray-200">
+                        <div className="text-xs text-gray-400 font-medium mb-3">显示位置</div>
+                        <div className="flex gap-8">
+                          <Form.Item
+                            name={[field.name, 'showInTalentName']}
+                            valuePropName="checked"
+                            initialValue={true}
+                            className="mb-0"
+                          >
+                            <Switch
+                              checkedChildren="达人昵称旁"
+                              unCheckedChildren="达人昵称旁"
+                              defaultChecked
+                            />
+                          </Form.Item>
+                          <Form.Item
+                            name={[field.name, 'showInCollaboration']}
+                            valuePropName="checked"
+                            initialValue={false}
+                            className="mb-0"
+                          >
+                            <Switch
+                              checkedChildren="合作记录中"
+                              unCheckedChildren="合作记录中"
+                            />
+                          </Form.Item>
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                ))}
+
+                {/* 空状态 */}
+                {fields.length === 0 && (
+                  <div className="text-center py-12 text-gray-400 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                    <div className="text-3xl mb-2">🔗</div>
+                    <div className="text-sm">暂无外链配置</div>
+                    <div className="text-xs mt-1">点击下方「添加外链」按钮创建</div>
+                  </div>
+                )}
+
+                {/* 翻页控制 + 添加按钮 */}
+                <div className="flex items-center justify-between pt-2">
+                  {/* 左侧：添加按钮 */}
+                  <Button
+                    type="dashed"
+                    icon={<PlusOutlined />}
+                    onClick={() => {
+                      add({
+                        name: '',
+                        label: '',
+                        template: '',
+                        idField: '',
+                        idSource: 'talent',
+                        showInTalentName: true,
+                        showInCollaboration: false,
+                      });
+                      // 跳转到新增的页
+                      setLinkPage(fields.length);
+                    }}
+                  >
+                    添加外链
+                  </Button>
+
+                  {/* 右侧：翻页器 */}
+                  {fields.length > 0 && (
+                    <div className="flex items-center gap-3">
+                      <Button
+                        type="text"
+                        icon={<LeftOutlined />}
+                        disabled={linkPage === 0}
+                        onClick={() => setLinkPage(p => Math.max(0, p - 1))}
+                        className="!px-2"
+                      />
+                      <div className="flex items-center gap-1.5">
+                        {fields.map((_, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setLinkPage(idx)}
+                            className={`w-2 h-2 rounded-full transition-all ${
+                              idx === linkPage
+                                ? 'bg-primary-500 scale-125'
+                                : 'bg-gray-300 hover:bg-gray-400'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs text-gray-500 min-w-[3rem] text-center">
+                        {linkPage + 1} / {fields.length}
+                      </span>
+                      <Button
+                        type="text"
+                        icon={<RightOutlined />}
+                        disabled={linkPage >= fields.length - 1}
+                        onClick={() => setLinkPage(p => Math.min(fields.length - 1, p + 1))}
+                        className="!px-2"
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
-            >
-              <div className="grid grid-cols-5 gap-3">
-                <ProFormText
-                  name="name"
-                  label="链接名称"
-                  placeholder="如：星图主页"
-                  rules={[{ required: true, message: '请输入名称' }]}
-                  fieldProps={{ size: 'small' }}
-                />
-                <ProFormText
-                  name="label"
-                  label="显示标签"
-                  placeholder="2个中文字"
-                  rules={[
-                    { required: true, message: '请输入标签' },
-                    { pattern: /^[\u4e00-\u9fa5]{2}$/, message: '需2个中文' },
-                  ]}
-                  fieldProps={{ size: 'small', maxLength: 2 }}
-                  tooltip="在达人列表中显示的标签文字"
-                />
-                <ProFormText
-                  name="template"
-                  label="URL模板"
-                  placeholder="https://.../{id}"
-                  rules={[{ required: true, message: '请输入URL' }]}
-                  fieldProps={{ size: 'small' }}
-                  tooltip="使用 {id} 作为占位符"
-                />
-                <ProFormText
-                  name="idField"
-                  label="ID字段"
-                  placeholder="如：xingtuId"
-                  rules={[{ required: true, message: '请输入字段名' }]}
-                  fieldProps={{ size: 'small' }}
-                  tooltip="达人数据中对应的字段名"
-                />
-                <ProFormCheckbox
-                  name="showInTalentName"
-                  label="显示位置"
-                  initialValue={true}
-                  fieldProps={{ defaultChecked: true }}
-                  tooltip="勾选后在达人昵称后显示此外链"
-                >
-                  昵称后显示
-                </ProFormCheckbox>
-              </div>
-            </ProFormList>
+              </>
+            )}
+          </Form.List>
+
+          {/* 底部说明 */}
+          <div className="flex items-start gap-2 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+            <span className="text-base">💡</span>
+            <div className="text-xs text-blue-700 leading-relaxed">
+              <strong>数据来源</strong>：
+              {LINK_ID_SOURCE_OPTIONS.map((opt, i) => (
+                <span key={opt.value}>
+                  {i > 0 && '，'}
+                  <span className="text-blue-600">{opt.label}</span> {opt.description}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       ),

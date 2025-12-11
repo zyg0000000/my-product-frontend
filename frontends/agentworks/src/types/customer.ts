@@ -2,6 +2,8 @@
  * 客户管理相关类型定义
  */
 
+import type { CustomerProjectConfig } from './projectConfig';
+
 // 客户级别
 export type CustomerLevel = 'VIP' | 'large' | 'medium' | 'small';
 
@@ -178,6 +180,8 @@ export interface Customer {
   industry?: string;
   contacts: Contact[];
   businessStrategies?: BusinessStrategies;
+  /** 项目配置（v5.0 新增：控制项目详情页的显示） */
+  projectConfig?: CustomerProjectConfig;
   notes?: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -205,6 +209,8 @@ export interface UpdateCustomerRequest {
   industry?: string;
   contacts?: Contact[];
   businessStrategies?: BusinessStrategies;
+  /** 项目配置（v5.0 新增） */
+  projectConfig?: CustomerProjectConfig;
   notes?: string;
 }
 

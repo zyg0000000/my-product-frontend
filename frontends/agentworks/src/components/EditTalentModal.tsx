@@ -14,7 +14,7 @@ import { Modal, Space, App } from 'antd';
 import {
   ProForm,
   ProFormText,
-  ProFormRadio,
+  ProFormSelect,
   ProCard,
 } from '@ant-design/pro-components';
 import type { ProFormInstance } from '@ant-design/pro-components';
@@ -67,20 +67,27 @@ export function EditTalentModal({
   // 当弹窗打开时，初始化表单数据
   // 这里需要同步 talent prop 到内部 state，是 useEffect + setState 的正确使用场景
   useEffect(() => {
-    if (isOpen && talent && formRef.current) {
+    if (isOpen && talent) {
       const talentType = talent.talentType || [];
-      formRef.current.setFieldsValue({
-        platformAccountId: talent.platformAccountId || '',
-        name: talent.name || '',
-        agencyId: talent.agencyId || AGENCY_INDIVIDUAL_ID,
-        talentType,
-        status: talent.status || 'active',
-        platformSpecific: {
-          uid: talent.platformSpecific?.uid || '',
-        },
-      });
+      // 使用 setTimeout 确保 formRef.current 已经准备好
+      // ProForm 在 Modal 打开时需要一个渲染周期来初始化 formRef
+      const timer = setTimeout(() => {
+        if (formRef.current) {
+          formRef.current.setFieldsValue({
+            platformAccountId: talent.platformAccountId || '',
+            name: talent.name || '',
+            agencyId: talent.agencyId || AGENCY_INDIVIDUAL_ID,
+            talentType,
+            status: talent.status || 'active',
+            platformSpecific: {
+              uid: talent.platformSpecific?.uid || '',
+            },
+          });
+        }
+      }, 0);
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setCurrentTalentType(talentType);
+      return () => clearTimeout(timer);
     }
   }, [isOpen, talent]);
 
@@ -269,16 +276,17 @@ export function EditTalentModal({
             {/* 第一行：状态 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* 状态 */}
-              <ProFormRadio.Group
+              <ProFormSelect
                 name="status"
                 label="状态"
+                initialValue="active"
                 options={[
                   { label: '活跃', value: 'active' },
                   { label: '暂停', value: 'inactive' },
                   { label: '归档', value: 'archived' },
                 ]}
                 fieldProps={{
-                  optionType: 'default',
+                  size: 'middle',
                 }}
               />
             </div>

@@ -115,6 +115,11 @@ const TalentPoolPage = lazy(() =>
     default: m.TalentPoolPage,
   }))
 );
+const ProjectConfigPage = lazy(() =>
+  import('./pages/Customers/ProjectConfig/ProjectConfigPage').then(m => ({
+    default: m.ProjectConfigPage,
+  }))
+);
 
 /**
  * 加载中组件
@@ -206,6 +211,10 @@ function App() {
                   <Route
                     path="customers/:id/business-strategies"
                     element={<PricingStrategy />}
+                  />
+                  <Route
+                    path="customers/:id/project-config"
+                    element={<ProjectConfigPage />}
                   />
                   {/* 兼容旧路由，重定向到新路径 */}
                   <Route

@@ -264,7 +264,7 @@ export function ColumnSelector({
         </div>
       }
       placement="right"
-      width={400}
+      size="large"
       open={open}
       onClose={onClose}
       styles={{

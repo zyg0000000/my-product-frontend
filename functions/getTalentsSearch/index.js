@@ -450,13 +450,18 @@ exports.handler = async (event, context) => {
         }
 
         // --- 基础筛选 (根据版本使用不同字段名) ---
+        // 混合搜索模式：
+        // - 昵称/名称：始终模糊搜索
+        // - ID 相关字段：精准搜索
         if (search) {
-            const searchFields = dbConfig.searchFields;
             const isNumericId = /^\d+$/.test(search);
+            // 检测是否像 ID 格式（包含下划线或以 talent_ 开头）
+            const isIdLike = search.includes('_') || /^talent_/.test(search);
 
             if (dbVersion === 'v1') {
-                // v1: nickname, xingtuId, uid
+                // v1: nickname(模糊), xingtuId(精准), uid(精准)
                 if (isNumericId) {
+                    // 纯数字：同时模糊搜索昵称 + 精准搜索 ID
                     matchConditions.push({
                         $or: [
                             { nickname: { $regex: search, $options: 'i' } },
@@ -465,11 +470,13 @@ exports.handler = async (event, context) => {
                         ]
                     });
                 } else {
+                    // 非数字：只模糊搜索昵称
                     matchConditions.push({ nickname: { $regex: search, $options: 'i' } });
                 }
             } else {
-                // v2: name, platformAccountId, oneId
+                // v2: name(模糊), platformAccountId(精准), oneId(精准)
                 if (isNumericId) {
+                    // 纯数字：同时模糊搜索名称 + 精准搜索 ID
                     matchConditions.push({
                         $or: [
                             { name: { $regex: search, $options: 'i' } },
@@ -477,7 +484,16 @@ exports.handler = async (event, context) => {
                             { oneId: search }
                         ]
                     });
+                } else if (isIdLike) {
+                    // ID 格式（如 talent_00000002）：同时模糊搜索名称 + 精准搜索 oneId
+                    matchConditions.push({
+                        $or: [
+                            { name: { $regex: search, $options: 'i' } },
+                            { oneId: search }
+                        ]
+                    });
                 } else {
+                    // 普通文本：只模糊搜索名称
                     matchConditions.push({ name: { $regex: search, $options: 'i' } });
                 }
             }
