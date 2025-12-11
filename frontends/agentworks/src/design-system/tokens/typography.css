@@ -1,0 +1,177 @@
+/**
+ * AgentWorks Design System - Typography Tokens
+ *
+ * 字体系统:
+ * - Plus Jakarta Sans: 标题字体 (几何感、现代、专业)
+ * - DM Sans: 正文字体 (清晰、可读性强)
+ * - JetBrains Mono: 代码/数字字体 (等宽、清晰)
+ *
+ * 命名规范: --aw-font-{category} / --aw-text-{size}
+ */
+
+:root {
+  /* ========================================
+     字体族
+     ======================================== */
+  --aw-font-display: 'Plus Jakarta Sans', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  --aw-font-body: 'DM Sans', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  --aw-font-mono: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', monospace;
+
+  /* 向后兼容 */
+  --aw-font-sans: var(--aw-font-body);
+
+  /* ========================================
+     字体大小
+     基于 14px 基准，适合信息密集型 B2B 产品
+     ======================================== */
+  --aw-text-xs:   0.75rem;    /* 12px - 标签、辅助信息、时间戳 */
+  --aw-text-sm:   0.8125rem;  /* 13px - 次要文字、表格内容 */
+  --aw-text-base: 0.875rem;   /* 14px - 正文、默认大小 */
+  --aw-text-md:   0.9375rem;  /* 15px - 强调正文 */
+  --aw-text-lg:   1rem;       /* 16px - 小标题、卡片标题 */
+  --aw-text-xl:   1.125rem;   /* 18px - 区块标题 */
+  --aw-text-2xl:  1.5rem;     /* 24px - 页面标题 */
+  --aw-text-3xl:  1.875rem;   /* 30px - 大标题 */
+  --aw-text-4xl:  2.25rem;    /* 36px - 特大标题 */
+  --aw-text-5xl:  3rem;       /* 48px - 数据展示 */
+
+  /* ========================================
+     行高
+     ======================================== */
+  --aw-leading-none:   1;
+  --aw-leading-tight:  1.25;
+  --aw-leading-snug:   1.375;
+  --aw-leading-normal: 1.5;
+  --aw-leading-relaxed: 1.625;
+  --aw-leading-loose:  2;
+
+  /* ========================================
+     字重
+     ======================================== */
+  --aw-font-normal:   400;
+  --aw-font-medium:   500;
+  --aw-font-semibold: 600;
+  --aw-font-bold:     700;
+
+  /* ========================================
+     字间距
+     ======================================== */
+  --aw-tracking-tighter: -0.05em;
+  --aw-tracking-tight:   -0.025em;
+  --aw-tracking-normal:  0;
+  --aw-tracking-wide:    0.025em;
+  --aw-tracking-wider:   0.05em;
+  --aw-tracking-widest:  0.1em;
+}
+
+/* ========================================
+   预设文字样式 (可通过 class 直接使用)
+   ======================================== */
+
+/* 标题样式 */
+.aw-heading-xl {
+  font-family: var(--aw-font-display);
+  font-size: var(--aw-text-3xl);
+  font-weight: var(--aw-font-bold);
+  line-height: var(--aw-leading-tight);
+  letter-spacing: var(--aw-tracking-tight);
+  color: var(--aw-gray-900);
+}
+
+.aw-heading-lg {
+  font-family: var(--aw-font-display);
+  font-size: var(--aw-text-2xl);
+  font-weight: var(--aw-font-semibold);
+  line-height: var(--aw-leading-tight);
+  letter-spacing: var(--aw-tracking-tight);
+  color: var(--aw-gray-900);
+}
+
+.aw-heading-md {
+  font-family: var(--aw-font-display);
+  font-size: var(--aw-text-xl);
+  font-weight: var(--aw-font-semibold);
+  line-height: var(--aw-leading-snug);
+  color: var(--aw-gray-800);
+}
+
+.aw-heading-sm {
+  font-family: var(--aw-font-display);
+  font-size: var(--aw-text-lg);
+  font-weight: var(--aw-font-medium);
+  line-height: var(--aw-leading-snug);
+  color: var(--aw-gray-800);
+}
+
+/* 正文样式 */
+.aw-body-lg {
+  font-family: var(--aw-font-body);
+  font-size: var(--aw-text-md);
+  font-weight: var(--aw-font-normal);
+  line-height: var(--aw-leading-relaxed);
+  color: var(--aw-gray-700);
+}
+
+.aw-body {
+  font-family: var(--aw-font-body);
+  font-size: var(--aw-text-base);
+  font-weight: var(--aw-font-normal);
+  line-height: var(--aw-leading-normal);
+  color: var(--aw-gray-600);
+}
+
+.aw-body-sm {
+  font-family: var(--aw-font-body);
+  font-size: var(--aw-text-sm);
+  font-weight: var(--aw-font-normal);
+  line-height: var(--aw-leading-normal);
+  color: var(--aw-gray-500);
+}
+
+/* 标签样式 */
+.aw-label {
+  font-family: var(--aw-font-body);
+  font-size: var(--aw-text-sm);
+  font-weight: var(--aw-font-medium);
+  line-height: var(--aw-leading-tight);
+  color: var(--aw-gray-700);
+}
+
+.aw-label-xs {
+  font-family: var(--aw-font-body);
+  font-size: var(--aw-text-xs);
+  font-weight: var(--aw-font-medium);
+  line-height: var(--aw-leading-tight);
+  letter-spacing: var(--aw-tracking-wide);
+  text-transform: uppercase;
+  color: var(--aw-gray-500);
+}
+
+/* 数据展示样式 */
+.aw-data-xl {
+  font-family: var(--aw-font-mono);
+  font-size: var(--aw-text-4xl);
+  font-weight: var(--aw-font-semibold);
+  line-height: var(--aw-leading-none);
+  letter-spacing: var(--aw-tracking-tight);
+  color: var(--aw-gray-900);
+  font-variant-numeric: tabular-nums;
+}
+
+.aw-data-lg {
+  font-family: var(--aw-font-mono);
+  font-size: var(--aw-text-2xl);
+  font-weight: var(--aw-font-semibold);
+  line-height: var(--aw-leading-tight);
+  color: var(--aw-gray-800);
+  font-variant-numeric: tabular-nums;
+}
+
+.aw-data {
+  font-family: var(--aw-font-mono);
+  font-size: var(--aw-text-base);
+  font-weight: var(--aw-font-medium);
+  line-height: var(--aw-leading-normal);
+  color: var(--aw-gray-700);
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,88 @@
+/**
+ * AgentWorks Design System - Token Index
+ *
+ * 设计系统入口文件
+ * 汇总所有设计令牌，供全局样式引用
+ *
+ * 使用方式:
+ *   在 index.css 或 main.tsx 中引入
+ *   @import './design-system/tokens/index.css';
+ */
+
+/* 核心令牌 */
+@import './colors.css';
+@import './typography.css';
+@import './spacing.css';
+@import './shadows.css';
+@import './animations.css';
+
+/* ========================================
+   设计系统元数据
+   ======================================== */
+:root {
+  /* 版本信息 */
+  --aw-version: '1.0.0';
+  --aw-last-updated: '2024-12';
+
+  /* 设计系统名称 */
+  --aw-name: 'AgentWorks Design System';
+}
+
+/* ========================================
+   全局基础配置
+   ======================================== */
+:root {
+  /* 色彩模式 */
+  color-scheme: light dark;
+
+  /* 默认字体 */
+  font-family: var(--aw-font-body);
+  font-size: var(--aw-text-base);
+  line-height: var(--aw-leading-normal);
+
+  /* 默认文字颜色 */
+  color: var(--aw-gray-800);
+
+  /* 文字渲染优化 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+
+  /* 标签页数字字体 */
+  font-variant-numeric: tabular-nums;
+}
+
+/* ========================================
+   CSS 变量兼容性 (向后兼容)
+   映射旧变量名到新变量名
+   ======================================== */
+:root {
+  /* 颜色兼容 */
+  --color-primary-50:  var(--aw-primary-50);
+  --color-primary-100: var(--aw-primary-100);
+  --color-primary-200: var(--aw-primary-200);
+  --color-primary-500: var(--aw-primary-500);
+  --color-primary-600: var(--aw-primary-600);
+  --color-primary-700: var(--aw-primary-700);
+
+  --color-gray-50:  var(--aw-gray-50);
+  --color-gray-100: var(--aw-gray-100);
+  --color-gray-200: var(--aw-gray-200);
+  --color-gray-300: var(--aw-gray-300);
+  --color-gray-400: var(--aw-gray-400);
+  --color-gray-500: var(--aw-gray-500);
+  --color-gray-600: var(--aw-gray-600);
+  --color-gray-700: var(--aw-gray-700);
+  --color-gray-800: var(--aw-gray-800);
+  --color-gray-900: var(--aw-gray-900);
+
+  /* 阴影兼容 */
+  --shadow-soft: var(--aw-shadow-soft);
+  --shadow-card: var(--aw-shadow-card);
+
+  /* 圆角兼容 */
+  --radius-sm: var(--aw-radius-sm);
+  --radius-md: var(--aw-radius-md);
+  --radius-lg: var(--aw-radius-lg);
+  --radius-xl: var(--aw-radius-xl);
+}

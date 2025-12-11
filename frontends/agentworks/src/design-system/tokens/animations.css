@@ -1,0 +1,365 @@
+/**
+ * AgentWorks Design System - Animation Tokens
+ *
+ * 动画系统设计原则:
+ * 1. 有意义 - 动画应该传达状态变化或引导注意力
+ * 2. 快速 - 大多数过渡应该在 200ms 内完成
+ * 3. 自然 - 使用缓动函数模拟自然物理运动
+ * 4. 克制 - 避免过度动画，保持专业感
+ *
+ * 命名规范: --aw-{category}-{name}
+ */
+
+:root {
+  /* ========================================
+     缓动函数 (Easing Functions)
+     ======================================== */
+
+  /* 默认缓动 - 通用过渡 */
+  --aw-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 进入缓动 - 元素进入视图 */
+  --aw-ease-in: cubic-bezier(0.4, 0, 1, 1);
+
+  /* 退出缓动 - 元素离开视图 */
+  --aw-ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  /* 进出缓动 - 元素在视图内变化 */
+  --aw-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 弹性缓动 - 用于强调或有趣的交互 */
+  --aw-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* 弹簧缓动 - 更自然的弹性效果 */
+  --aw-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* 锐利缓动 - 快速响应 */
+  --aw-ease-sharp: cubic-bezier(0.4, 0, 0.6, 1);
+
+  /* ========================================
+     持续时间 (Duration)
+     ======================================== */
+
+  /* 即时 - 几乎无感知的变化 */
+  --aw-duration-instant: 75ms;
+
+  /* 快速 - 简单的状态变化 (hover, active) */
+  --aw-duration-fast: 150ms;
+
+  /* 正常 - 大多数过渡效果 */
+  --aw-duration-normal: 200ms;
+
+  /* 中等 - 较复杂的过渡 */
+  --aw-duration-medium: 300ms;
+
+  /* 慢速 - 重要的状态变化 */
+  --aw-duration-slow: 400ms;
+
+  /* 较慢 - 大型元素变化 */
+  --aw-duration-slower: 500ms;
+
+  /* 最慢 - 页面级过渡 */
+  --aw-duration-slowest: 700ms;
+
+  /* ========================================
+     预设过渡 (Transitions)
+     ======================================== */
+
+  /* 颜色过渡 */
+  --aw-transition-colors:
+    color var(--aw-duration-fast) var(--aw-ease-default),
+    background-color var(--aw-duration-fast) var(--aw-ease-default),
+    border-color var(--aw-duration-fast) var(--aw-ease-default);
+
+  /* 透明度过渡 */
+  --aw-transition-opacity:
+    opacity var(--aw-duration-fast) var(--aw-ease-default);
+
+  /* 阴影过渡 */
+  --aw-transition-shadow:
+    box-shadow var(--aw-duration-normal) var(--aw-ease-default);
+
+  /* 变换过渡 */
+  --aw-transition-transform:
+    transform var(--aw-duration-normal) var(--aw-ease-default);
+
+  /* 全部属性过渡 */
+  --aw-transition-all:
+    all var(--aw-duration-normal) var(--aw-ease-default);
+
+  /* 按钮过渡 (组合) */
+  --aw-transition-button:
+    color var(--aw-duration-fast) var(--aw-ease-default),
+    background-color var(--aw-duration-fast) var(--aw-ease-default),
+    border-color var(--aw-duration-fast) var(--aw-ease-default),
+    box-shadow var(--aw-duration-fast) var(--aw-ease-default),
+    transform var(--aw-duration-fast) var(--aw-ease-default);
+
+  /* 卡片过渡 (组合) */
+  --aw-transition-card:
+    border-color var(--aw-duration-normal) var(--aw-ease-default),
+    box-shadow var(--aw-duration-normal) var(--aw-ease-default),
+    transform var(--aw-duration-normal) var(--aw-ease-default);
+
+  /* 输入框过渡 */
+  --aw-transition-input:
+    border-color var(--aw-duration-fast) var(--aw-ease-default),
+    box-shadow var(--aw-duration-fast) var(--aw-ease-default);
+}
+
+/* ========================================
+   关键帧动画 (Keyframes)
+   ======================================== */
+
+/* 淡入 */
+@keyframes aw-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 淡出 */
+@keyframes aw-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* 从上滑入 */
+@keyframes aw-slide-in-top {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 从下滑入 */
+@keyframes aw-slide-in-bottom {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 从左滑入 */
+@keyframes aw-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 从右滑入 */
+@keyframes aw-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 缩放进入 */
+@keyframes aw-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 缩放退出 */
+@keyframes aw-scale-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* 弹入 */
+@keyframes aw-bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 脉冲 (用于加载状态) */
+@keyframes aw-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* 旋转 (用于加载图标) */
+@keyframes aw-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 摇晃 (用于错误提示) */
+@keyframes aw-shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-4px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(4px);
+  }
+}
+
+/* 弹跳 (用于强调) */
+@keyframes aw-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* 闪烁边框 (用于成功/错误状态) */
+@keyframes aw-border-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--aw-primary-500);
+  }
+  70% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+/* 骨架屏动画 */
+@keyframes aw-skeleton {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ========================================
+   动画工具类
+   ======================================== */
+
+.aw-animate-fade-in {
+  animation: aw-fade-in var(--aw-duration-normal) var(--aw-ease-out);
+}
+
+.aw-animate-fade-out {
+  animation: aw-fade-out var(--aw-duration-normal) var(--aw-ease-in);
+}
+
+.aw-animate-slide-in-top {
+  animation: aw-slide-in-top var(--aw-duration-medium) var(--aw-ease-out);
+}
+
+.aw-animate-slide-in-bottom {
+  animation: aw-slide-in-bottom var(--aw-duration-medium) var(--aw-ease-out);
+}
+
+.aw-animate-slide-in-left {
+  animation: aw-slide-in-left var(--aw-duration-medium) var(--aw-ease-out);
+}
+
+.aw-animate-slide-in-right {
+  animation: aw-slide-in-right var(--aw-duration-medium) var(--aw-ease-out);
+}
+
+.aw-animate-scale-in {
+  animation: aw-scale-in var(--aw-duration-normal) var(--aw-ease-out);
+}
+
+.aw-animate-bounce-in {
+  animation: aw-bounce-in var(--aw-duration-slow) var(--aw-ease-bounce);
+}
+
+.aw-animate-pulse {
+  animation: aw-pulse 2s var(--aw-ease-in-out) infinite;
+}
+
+.aw-animate-spin {
+  animation: aw-spin 1s linear infinite;
+}
+
+.aw-animate-shake {
+  animation: aw-shake var(--aw-duration-slow) var(--aw-ease-default);
+}
+
+.aw-animate-bounce {
+  animation: aw-bounce 1s var(--aw-ease-bounce) infinite;
+}
+
+/* 骨架屏样式 */
+.aw-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--aw-gray-200) 25%,
+    var(--aw-gray-100) 50%,
+    var(--aw-gray-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: aw-skeleton 1.5s var(--aw-ease-in-out) infinite;
+}
+
+/* ========================================
+   减少动画偏好
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

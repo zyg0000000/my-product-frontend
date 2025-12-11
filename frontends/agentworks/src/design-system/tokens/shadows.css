@@ -1,0 +1,177 @@
+/**
+ * AgentWorks Design System - Shadow Tokens
+ *
+ * 分层阴影系统，创造深度感和层次感
+ * 采用双层阴影技术，更自然的视觉效果
+ *
+ * 命名规范: --aw-shadow-{level}
+ */
+
+:root {
+  /* ========================================
+     基础阴影层级
+     从最轻到最重，用于不同的海拔高度
+     ======================================== */
+
+  /* 无阴影 */
+  --aw-shadow-none: none;
+
+  /* 微阴影 - 用于细微的分隔，如表格行悬停 */
+  --aw-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+  /* 小阴影 - 用于静态卡片、输入框聚焦 */
+  --aw-shadow-sm:
+    0 1px 3px rgba(0, 0, 0, 0.05),
+    0 1px 2px rgba(0, 0, 0, 0.04);
+
+  /* 中等阴影 - 用于悬停状态、下拉菜单 */
+  --aw-shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -2px rgba(0, 0, 0, 0.04);
+
+  /* 大阴影 - 用于弹出层、模态框 */
+  --aw-shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.06),
+    0 4px 6px -4px rgba(0, 0, 0, 0.05);
+
+  /* 超大阴影 - 用于重要弹窗、通知 */
+  --aw-shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.08),
+    0 8px 10px -6px rgba(0, 0, 0, 0.05);
+
+  /* 特大阴影 - 用于全屏遮罩上的内容 */
+  --aw-shadow-2xl:
+    0 25px 50px -12px rgba(0, 0, 0, 0.15);
+
+  /* ========================================
+     语义化阴影 (基于使用场景)
+     ======================================== */
+
+  /* 卡片阴影 - 静态卡片的默认阴影 */
+  --aw-shadow-card:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+
+  /* 卡片悬停阴影 */
+  --aw-shadow-card-hover:
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    0 2px 4px rgba(0, 0, 0, 0.04);
+
+  /* 柔和阴影 - 用于需要轻微突出的元素 */
+  --aw-shadow-soft:
+    0 2px 8px -2px rgba(0, 0, 0, 0.05),
+    0 4px 16px -4px rgba(0, 0, 0, 0.08);
+
+  /* 下拉菜单阴影 */
+  --aw-shadow-dropdown:
+    0 4px 6px -1px rgba(0, 0, 0, 0.08),
+    0 2px 4px -2px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(0, 0, 0, 0.03);
+
+  /* 弹窗阴影 */
+  --aw-shadow-modal:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.06);
+
+  /* 抽屉阴影 */
+  --aw-shadow-drawer:
+    -4px 0 15px rgba(0, 0, 0, 0.08);
+
+  /* 工具提示阴影 */
+  --aw-shadow-tooltip:
+    0 4px 12px rgba(0, 0, 0, 0.15);
+
+  /* ========================================
+     特殊效果阴影
+     ======================================== */
+
+  /* Focus 环 - 用于键盘焦点状态 */
+  --aw-shadow-focus:
+    0 0 0 3px rgba(99, 102, 241, 0.15);
+
+  /* Focus 环 (强调) */
+  --aw-shadow-focus-ring:
+    0 0 0 2px var(--aw-white),
+    0 0 0 4px rgba(99, 102, 241, 0.4);
+
+  /* 发光效果 - 用于激活状态 */
+  --aw-shadow-glow:
+    0 0 0 3px rgba(99, 102, 241, 0.15);
+
+  /* 成功状态发光 */
+  --aw-shadow-glow-success:
+    0 0 0 3px rgba(16, 185, 129, 0.15);
+
+  /* 错误状态发光 */
+  --aw-shadow-glow-danger:
+    0 0 0 3px rgba(239, 68, 68, 0.15);
+
+  /* 警告状态发光 */
+  --aw-shadow-glow-warning:
+    0 0 0 3px rgba(245, 158, 11, 0.15);
+
+  /* 内阴影 - 用于凹陷效果 */
+  --aw-shadow-inset:
+    inset 0 2px 4px rgba(0, 0, 0, 0.04);
+
+  /* 内阴影 (深) */
+  --aw-shadow-inset-md:
+    inset 0 2px 4px rgba(0, 0, 0, 0.06),
+    inset 0 4px 8px rgba(0, 0, 0, 0.04);
+
+  /* ========================================
+     彩色阴影 (用于强调按钮等)
+     ======================================== */
+
+  /* 主色阴影 */
+  --aw-shadow-primary:
+    0 4px 14px rgba(79, 70, 229, 0.25);
+
+  /* 成功色阴影 */
+  --aw-shadow-success:
+    0 4px 14px rgba(16, 185, 129, 0.25);
+
+  /* 危险色阴影 */
+  --aw-shadow-danger:
+    0 4px 14px rgba(239, 68, 68, 0.25);
+
+  /* ========================================
+     文字阴影 (用于图片上的文字)
+     ======================================== */
+  --aw-text-shadow-sm:
+    0 1px 2px rgba(0, 0, 0, 0.1);
+
+  --aw-text-shadow-md:
+    0 2px 4px rgba(0, 0, 0, 0.15);
+
+  --aw-text-shadow-lg:
+    0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ========================================
+   深色模式阴影调整
+   ======================================== */
+[data-theme="dark"] {
+  --aw-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+
+  --aw-shadow-sm:
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+
+  --aw-shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 2px 4px -2px rgba(0, 0, 0, 0.2);
+
+  --aw-shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.4),
+    0 4px 6px -4px rgba(0, 0, 0, 0.3);
+
+  --aw-shadow-card:
+    0 1px 3px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.15);
+
+  --aw-shadow-dropdown:
+    0 4px 6px -1px rgba(0, 0, 0, 0.4),
+    0 2px 4px -2px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}

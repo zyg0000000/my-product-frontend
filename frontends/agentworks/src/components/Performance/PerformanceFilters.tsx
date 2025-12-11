@@ -411,7 +411,7 @@ function TextFilter({
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={`搜索${dimension.name}...`}
-        className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
       />
     </div>
   );
@@ -542,7 +542,7 @@ function RangeFilter({
           value={min}
           onChange={e => onChange(e.target.value, max)}
           placeholder={`最小${suffix}`}
-          className="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         />
         <span className="text-gray-400">-</span>
         <input
@@ -550,7 +550,7 @@ function RangeFilter({
           value={max}
           onChange={e => onChange(min, e.target.value)}
           placeholder={`最大${suffix}`}
-          className="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         />
       </div>
     </div>

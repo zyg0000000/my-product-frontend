@@ -10,6 +10,7 @@ import zhCN from 'antd/locale/zh_CN';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { MainLayout } from './components/Layout/MainLayout';
 import { Home } from './pages/Home/Home';
+import antTheme from './config/antTheme';
 
 // 懒加载大型页面组件（使用 named export）
 const TalentsHome = lazy(() =>
@@ -134,48 +135,6 @@ function LoadingFallback() {
     </div>
   );
 }
-
-// Ant Design 主题配置 - 与 Tailwind 保持一致
-const antTheme = {
-  token: {
-    // 主色调
-    colorPrimary: '#4f46e5',
-    colorLink: '#4f46e5',
-    colorLinkHover: '#4338ca',
-    // 圆角
-    borderRadius: 8,
-    borderRadiusLG: 12,
-    borderRadiusSM: 6,
-    // 字体
-    fontFamily:
-      '"Inter", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif',
-    // 成功/警告/错误
-    colorSuccess: '#10b981',
-    colorWarning: '#f59e0b',
-    colorError: '#ef4444',
-  },
-  components: {
-    Button: {
-      controlHeight: 36,
-      controlHeightLG: 40,
-      controlHeightSM: 32,
-    },
-    Input: {
-      controlHeight: 36,
-    },
-    Select: {
-      controlHeight: 36,
-    },
-    Table: {
-      headerBg: '#f9fafb',
-      headerColor: '#374151',
-      rowHoverBg: '#f9fafb',
-    },
-    Card: {
-      paddingLG: 24,
-    },
-  },
-};
 
 function App() {
   return (
