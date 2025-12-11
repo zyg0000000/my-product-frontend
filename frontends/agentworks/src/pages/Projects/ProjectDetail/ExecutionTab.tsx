@@ -5,11 +5,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { ProTable } from '@ant-design/pro-components';
-import type {
-  ProColumns,
-  ActionType,
-  EditableFormInstance,
-} from '@ant-design/pro-components';
+import type { ProColumns, ActionType } from '@ant-design/pro-components';
 import { Form } from 'antd';
 import {
   Card,
@@ -101,7 +97,6 @@ export function ExecutionTab({
 
   // 行内编辑状态
   const [editableKeys, setEditableKeys] = useState<React.Key[]>([]);
-  const editableFormRef = useRef<EditableFormInstance<Collaboration>>(null);
   const [editableForm] = Form.useForm();
 
   // 筛选状态
@@ -570,7 +565,6 @@ export function ExecutionTab({
       <ProTable<Collaboration>
         columns={columns}
         actionRef={actionRef}
-        editableFormRef={editableFormRef}
         cardBordered={false}
         dataSource={collaborations}
         loading={loading}
