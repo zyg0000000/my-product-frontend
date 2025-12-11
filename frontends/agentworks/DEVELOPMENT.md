@@ -4,9 +4,21 @@
 
 ### 环境准备
 
-1. **Node.js**: 需要 Node.js 20+
+1. **Node.js**: 需要 Node.js 22+（项目通过 `.nvmrc` 指定）
 2. **Git**: 用于版本控制
 3. **VS Code**: 推荐使用（有良好的 Git 集成）
+
+### 当前技术栈版本（2025-12-11）
+
+| 依赖 | 版本 | 说明 |
+|-----|------|------|
+| React | 19.2.x | 最新版本 |
+| antd | 6.0.x | Ant Design v6（新版本） |
+| @ant-design/pro-components | 3.0.0-beta.3 | ⚠️ Beta 版本 |
+| @ant-design/icons | 6.1.x | 图标库 |
+| Vite | 5.x | 构建工具 |
+
+> ⚠️ **注意**：pro-components 为 beta 版本，API 可能变更。详见 [开发指南 - Beta 版本风险](../../docs/agentworks/DEVELOPMENT_GUIDELINES.md)
 
 ### 首次设置
 
@@ -245,7 +257,37 @@ npm run build
 - ⚠️ 使用 VSCode 时注意 ESLint 警告（灰色/淡色变量表示未使用）
 - ⚠️ 建议在 `.vscode/settings.json` 中启用保存时检查
 
-#### 5. Git 冲突
+#### 5. ProTable 可编辑模式类型错误（pro-components v3 beta）
+
+**错误类型**:
+- `Property 'editableFormRef' does not exist`
+- `Property 'recordCreatorProps' does not exist`
+- `Type 'React.Key' is not assignable to type 'RecordKey'`
+
+**原因**: pro-components v3 beta 移除/更改了部分 API
+
+**解决方案**:
+```tsx
+// ❌ v2 旧写法（v3 不支持）
+const editableFormRef = useRef<EditableFormInstance<T>>();
+<ProTable editableFormRef={editableFormRef} recordCreatorProps={false} />
+
+// ✅ v3 新写法
+const [editableForm] = Form.useForm();
+<ProTable editable={{ form: editableForm, ... }} />
+
+// ❌ onSave 旧签名
+onSave: async (key: React.Key, row) => { ... }
+
+// ✅ onSave 新签名（key 可能是数组）
+onSave: async (key: React.Key | React.Key[], row) => {
+  const actualKey = Array.isArray(key) ? key[0] : key;
+}
+```
+
+> 详见 [开发指南 - ProTable 可编辑模式 API 变更](../../docs/agentworks/DEVELOPMENT_GUIDELINES.md)
+
+#### 6. Git 冲突
 ```bash
 # 拉取最新代码
 git pull origin main
@@ -283,4 +325,4 @@ git push
 
 ---
 
-*最后更新：2025-11-16*
+*最后更新：2025-12-11*

@@ -28,14 +28,16 @@ AgentWorks 是一个多平台达人管理系统，支持抖音、小红书、B�
 ## 🛠 技术栈
 
 ### 前端技术
-- **框架**：React 18 + TypeScript
+- **框架**：React 19 + TypeScript
 - **构建工具**：Vite 5
-- **UI 框架**：Ant Design Pro 3.x-beta + Ant Design 6.x（v4.0 升级）
+- **UI 框架**：Ant Design 6.x + @ant-design/pro-components 3.x-beta
 - **动画库**：framer-motion 12.x
 - **样式方案**：Tailwind CSS 3 + Ant Design（混合模式）
 - **路由管理**：React Router 6
 - **状态管理**：React Hooks + Context API
-- **图标库**：Ant Design Icons + Heroicons
+- **图标库**：@ant-design/icons 6.x + Heroicons
+
+> ⚠️ **注意**：当前使用 beta 版本组合（antd 6 + pro-components 3 beta + React 19），详见 [Beta 版本风险提示](#-beta-版本风险提示2025-12-11-更新)
 
 ### 后端技术
 - **运行时**：Node.js
@@ -732,7 +734,83 @@ const formRef = useRef<ProFormInstance<FormData>>(null);
 const formRef = useRef<ProFormInstance<FormData> | undefined>(undefined);
 ```
 
+**6. ProTable 可编辑模式 API 变更（v3 重要！）**
+
+> ⚠️ **关键变更**：pro-components v3 beta 对 ProTable 可编辑模式做了重大 API 调整
+
+```tsx
+// ❌ pro-components v2 (旧) - 以下 API 在 v3 中不存在
+import { EditableFormInstance } from '@ant-design/pro-components';
+const editableFormRef = useRef<EditableFormInstance<T>>();
+<ProTable
+  editableFormRef={editableFormRef}  // ❌ v3 不支持
+  recordCreatorProps={false}          // ❌ v3 不支持
+/>
+
+// ✅ pro-components v3 (新) - 使用 editable.form
+import { Form } from 'antd';
+const [editableForm] = Form.useForm();
+const [editableKeys, setEditableKeys] = useState<React.Key[]>([]);
+
+<ProTable
+  editable={{
+    type: 'single',
+    form: editableForm,              // ✅ 使用普通 Form 实例
+    editableKeys,
+    onChange: setEditableKeys,
+    onSave: handleSaveRow,
+    actionRender: (_row, _config, dom) => [dom.save, dom.cancel],
+  }}
+/>
+```
+
+**7. ProTable onSave 回调参数类型变更**
+```tsx
+// ❌ pro-components v2 (旧)
+onSave: async (key: React.Key, row: T) => { ... }
+
+// ✅ pro-components v3 (新) - key 可能是数组
+onSave: async (key: React.Key | React.Key[], row: T) => {
+  const actualKey = Array.isArray(key) ? key[0] : key;
+  // 使用 actualKey 处理后续逻辑
+}
+```
+
 > 📌 **注意**：项目使用 `package.json` 的 `overrides` 字段强制所有包使用 antd v6，同时使用 `.npmrc` 配置 `legacy-peer-deps=true` 绕过 pro-components v3 beta 的 peer dependency 警告
+
+#### ⚠️ Beta 版本风险提示（2025-12-11 更新）
+
+当前项目使用的版本组合：
+```json
+{
+  "react": "^19.2.0",
+  "react-dom": "^19.2.0",
+  "antd": "^6.0.1",
+  "@ant-design/pro-components": "^3.0.0-beta.3",
+  "@ant-design/icons": "^6.1.0"
+}
+```
+
+**已知风险和注意事项：**
+
+| 风险项 | 说明 | 应对措施 |
+|-------|------|---------|
+| **依赖版本警告** | `react-lazy-load@4.0.1` 只支持 React 17/18，与 React 19 不兼容 | 目前 React 19 向后兼容，暂不影响运行 |
+| **API 不稳定** | pro-components beta 版本 API 可能随时变更 | 关注 [Release Notes](https://github.com/ant-design/pro-components/releases) |
+| **文档不完善** | v3 beta 文档可能滞后于代码 | 必要时查看源码或 GitHub Issues |
+| **类型定义变化** | TypeScript 类型可能与实际不符 | 遇到类型错误时检查 beta 更新日志 |
+
+**使用 ProTable 可编辑模式的文件清单（需关注）：**
+- `ExecutionTab.tsx` ✅ 已适配 v3 API
+- `FinancialTab.tsx` - 检查是否使用可编辑模式
+- `CollaborationsTab.tsx` - 检查是否使用可编辑模式
+- `EffectTab.tsx` - 检查是否使用可编辑模式
+
+**开发建议：**
+1. **新功能开发**：优先使用只读模式的 ProTable，减少 API 兼容风险
+2. **CI/CD 配置**：确保使用 `npm ci` 严格按 lock 文件安装
+3. **版本锁定**：考虑在 package.json 中移除 `^` 前缀锁定精确版本
+4. **定期更新**：当 pro-components 发布稳定的 v3.0.0（非 beta）时及时更新
 
 #### 版本兼容性说明
 
@@ -866,6 +944,6 @@ git push origin main
 ---
 
 **维护者**: Claude Code
-**最后更新**: 2025-12-08
+**最后更新**: 2025-12-11
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

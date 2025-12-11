@@ -1,84 +1,65 @@
 /**
- * [生产版 v2.1 - 语法修复版]
+ * [生产版 v3.0 - 双数据库支持]
  * 云函数：deleteFile
  * 描述：处理文件删除请求，同步删除TOS上的物理文件和项目数据库中的文件引用。
+ *
+ * --- v3.0 更新日志 ---
+ * - [架构升级] 新增 dbVersion 参数支持，v2 使用 agentworks_db 数据库
+ * - [实现优化] 从 HTTP API 调用改为直接 MongoDB 操作，提高性能和可靠性
+ * - [字段扩展] 支持 settlementFiles（结算文件）和 projectFiles（项目文件）两种文件类型
+ * - [向后兼容] 默认 dbVersion=v1 保持与 byteproject 的兼容
+ *
  * --- v2.1 更新日志 ---
- * - [核心BUG修复] 修正了 require('https) 语句中缺失的单引号，解决了导致部署失败的语法错误。
+ * - [核心BUG修复] 修正了 require('https) 语句中缺失的单引号
+ *
  * --- v2.0 更新日志 ---
- * - [核心功能] 新增了完整的数据库操作逻辑。
- * - [实现方式] 本函数现在会通过HTTP请求，调用现有的 /projects 和 /update-project 接口来完成数据库的读写。
+ * - [核心功能] 新增了完整的数据库操作逻辑
  */
-const https = require('https');
+const { MongoClient } = require('mongodb');
 const { TosClient } = require('@volcengine/tos-sdk');
 
-// --- 从环境变量中获取配置 (部署时必须设置) ---
+// --- MongoDB 配置 ---
+const MONGO_URI = process.env.MONGO_URI;
+const DB_NAME_V1 = process.env.MONGO_DB_NAME || 'kol_data';
+const DB_NAME_V2 = 'agentworks_db';
+const PROJECTS_COLLECTION = 'projects';
+
+// --- TOS 配置 (部署时必须设置) ---
 const TOS_ACCESS_KEY_ID = process.env.TOS_ACCESS_KEY_ID;
 const TOS_SECRET_ACCESS_KEY = process.env.TOS_SECRET_ACCESS_KEY;
 const TOS_ENDPOINT = process.env.TOS_ENDPOINT;
 const TOS_REGION = process.env.TOS_REGION;
 const TOS_BUCKET_NAME = process.env.TOS_BUCKET_NAME;
 
-// --- 内部API配置 ---
-// 该URL是从前端代码 order_list.js 中获取的，必须与您的项目API网关地址一致
-const API_BASE_URL = 'https://sd2pl0r2pkvfku8btbid0.apigateway-cn-shanghai.volceapi.com';
+// MongoDB 连接复用
+let client;
 
 /**
- * 一个Node.js环境下的API请求辅助函数
- * @param {string} path API路径 (例如 '/projects')
- * @param {string} method 'GET' 或 'PUT'
- * @param {object} [data=null] 要在请求体中发送的数据
- * @returns {Promise<object>} 解析后的JSON响应
+ * 连接 MongoDB
  */
-function apiRequest(path, method, data = null) {
-    return new Promise((resolve, reject) => {
-        const url = new URL(path, API_BASE_URL);
-        const options = {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            timeout: 10000, // 10秒超时
-        };
-
-        const req = https.request(url, options, (res) => {
-            let body = '';
-            res.on('data', (chunk) => { body += chunk; });
-            res.on('end', () => {
-                if (res.statusCode >= 200 && res.statusCode < 300) {
-                    try {
-                        // 确保body不为空再解析
-                        resolve(body ? JSON.parse(body) : {});
-                    } catch (e) {
-                        console.error("API响应JSON解析失败:", body);
-                        reject(new Error("API响应JSON解析失败"));
-                    }
-                } else {
-                    reject(new Error(`内部API请求失败, 状态码: ${res.statusCode}, 响应: ${body}`));
-                }
-            });
-        });
-
-        req.on('error', (e) => reject(new Error(`内部API请求网络错误: ${e.message}`)));
-        req.on('timeout', () => {
-            req.destroy();
-            reject(new Error('内部API请求超时'));
-        });
-
-        if (data) {
-            req.write(JSON.stringify(data));
-        }
-        req.end();
-    });
+async function connectToDatabase() {
+    if (client && client.topology && client.topology.isConnected()) {
+        return client;
+    }
+    client = new MongoClient(MONGO_URI);
+    await client.connect();
+    return client;
 }
 
-// ... (getKeyFromUrl 函数保持不变)
+/**
+ * 从 URL 中提取 TOS 文件 Key
+ * 支持两种格式：
+ * 1. 直接 TOS URL: https://{bucket}.{endpoint}/{key}
+ * 2. 预览代理 URL: .../preview-file?fileKey={key}
+ */
 function getKeyFromUrl(url) {
     try {
         const parsedUrl = new URL(url);
+        // 格式1: 直接 TOS URL
         if (parsedUrl.hostname === `${TOS_BUCKET_NAME}.${TOS_ENDPOINT}`) {
             return parsedUrl.pathname.substring(1);
         }
+        // 格式2: 预览代理 URL
         if (parsedUrl.pathname.endsWith('/preview-file') && parsedUrl.searchParams.has('fileKey')) {
             const fileKey = parsedUrl.searchParams.get('fileKey');
             if (fileKey) return fileKey;
@@ -91,7 +72,15 @@ function getKeyFromUrl(url) {
     }
 }
 
-
+/**
+ * 主处理函数
+ *
+ * 请求参数：
+ * - projectId: 项目 ID（必填）
+ * - fileUrl: 文件 URL（必填）
+ * - dbVersion: 数据库版本，'v1' (kol_data) 或 'v2' (agentworks_db)，默认 'v1'
+ * - fileType: 文件类型，'projectFiles' 或 'settlementFiles'，默认 'projectFiles'
+ */
 exports.handler = async (event, context) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
@@ -103,15 +92,21 @@ exports.handler = async (event, context) => {
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 204, headers, body: '' };
     }
-    
+
     if (event.httpMethod !== 'POST') {
-         return { statusCode: 405, headers, body: JSON.stringify({ message: "Method Not Allowed" }) };
+        return { statusCode: 405, headers, body: JSON.stringify({ message: "Method Not Allowed" }) };
     }
 
     try {
         const body = JSON.parse(event.body || '{}');
-        const { projectId, fileUrl } = body;
+        const {
+            projectId,
+            fileUrl,
+            dbVersion = 'v1',
+            fileType = 'projectFiles'
+        } = body;
 
+        // 参数验证
         if (!projectId || !fileUrl) {
             return {
                 statusCode: 400, headers,
@@ -119,70 +114,109 @@ exports.handler = async (event, context) => {
             };
         }
 
+        // 验证 fileType
+        const validFileTypes = ['projectFiles', 'settlementFiles'];
+        if (!validFileTypes.includes(fileType)) {
+            return {
+                statusCode: 400, headers,
+                body: JSON.stringify({
+                    success: false,
+                    message: `无效的 fileType: ${fileType}。有效值: ${validFileTypes.join(', ')}`
+                })
+            };
+        }
+
         const fileKey = getKeyFromUrl(fileUrl);
         if (!fileKey) {
-             return {
+            return {
                 statusCode: 400, headers,
                 body: JSON.stringify({ success: false, message: `提供的fileUrl格式无法被服务器识别: ${fileUrl}` })
             };
         }
 
-        // --- 步骤 1: 从TOS删除物理文件 ---
+        // 选择数据库
+        const DB_NAME = dbVersion === 'v2' ? DB_NAME_V2 : DB_NAME_V1;
+        console.log(`[deleteFile] 使用数据库: ${DB_NAME} (dbVersion=${dbVersion}), 文件类型: ${fileType}`);
+
+        // --- 步骤 1: 从 TOS 删除物理文件 ---
         console.log(`[${projectId}] 准备从TOS删除文件, Key: ${fileKey}`);
-        const client = new TosClient({
+        const tosClient = new TosClient({
             accessKeyId: TOS_ACCESS_KEY_ID,
             accessKeySecret: TOS_SECRET_ACCESS_KEY,
             endpoint: TOS_ENDPOINT,
             region: TOS_REGION,
         });
-        
-        // 我们将TOS删除操作也放入try...catch中，以便处理文件不存在的情况
+
         try {
-            await client.deleteObject({ bucket: TOS_BUCKET_NAME, key: fileKey, });
+            await tosClient.deleteObject({ bucket: TOS_BUCKET_NAME, key: fileKey });
             console.log(`[${projectId}] 文件已从TOS成功删除。`);
         } catch (tosError) {
-             if (tosError.statusCode === 404) {
-                 console.log(`[${projectId}] 文件在TOS上未找到 (404 Not Found)，可能已被删除。将继续执行数据库清理。`);
-             } else {
-                 // 如果是其他TOS错误，则抛出让外层catch捕获
-                 throw tosError;
-             }
-        }
-
-        // --- 步骤 2: 从数据库中移除文件引用 (通过API调用实现) ---
-        console.log(`[${projectId}] 准备更新数据库，移除文件引用: ${fileUrl}`);
-        
-        // 2.1 获取项目当前的文件列表
-        const projectDataResponse = await apiRequest(`/projects?projectId=${projectId}`, 'GET');
-        const currentFiles = projectDataResponse?.data?.projectFiles;
-
-        if (!Array.isArray(currentFiles)) {
-             console.warn(`[${projectId}] 无法获取到项目的文件列表，数据库更新操作已跳过。`);
-        } else {
-            const updatedFiles = currentFiles.filter(file => file.url !== fileUrl);
-            // 2.3 只有当文件列表确实发生变化时才调用更新接口
-            if (updatedFiles.length < currentFiles.length) {
-                 await apiRequest('/update-project', 'PUT', {
-                    id: projectId,
-                    projectFiles: updatedFiles
-                });
-                console.log(`[${projectId}] 数据库更新成功。`);
+            if (tosError.statusCode === 404) {
+                console.log(`[${projectId}] 文件在TOS上未找到 (404)，可能已被删除。将继续执行数据库清理。`);
             } else {
-                console.log(`[${projectId}] 文件引用已在数据库中不存在，无需更新。`);
+                throw tosError;
             }
         }
 
+        // --- 步骤 2: 从数据库中移除文件引用（直接 MongoDB 操作）---
+        console.log(`[${projectId}] 准备更新数据库，移除文件引用: ${fileUrl}`);
+
+        const dbClient = await connectToDatabase();
+        const collection = dbClient.db(DB_NAME).collection(PROJECTS_COLLECTION);
+
+        // 查询项目
+        const project = await collection.findOne({ id: projectId });
+        if (!project) {
+            console.warn(`[${projectId}] 项目不存在于数据库 ${DB_NAME}`);
+            return {
+                statusCode: 404, headers,
+                body: JSON.stringify({ success: false, message: `项目 ${projectId} 不存在` })
+            };
+        }
+
+        // 获取当前文件列表
+        const currentFiles = project[fileType];
+        if (!Array.isArray(currentFiles)) {
+            console.log(`[${projectId}] 项目没有 ${fileType} 字段或不是数组，无需更新。`);
+            return {
+                statusCode: 200, headers,
+                body: JSON.stringify({ success: true, message: '文件删除完成（TOS 已清理）。' })
+            };
+        }
+
+        // 过滤掉要删除的文件
+        const updatedFiles = currentFiles.filter(file => file.url !== fileUrl);
+
+        // 如果文件列表有变化，更新数据库
+        if (updatedFiles.length < currentFiles.length) {
+            await collection.updateOne(
+                { id: projectId },
+                {
+                    $set: {
+                        [fileType]: updatedFiles,
+                        updatedAt: new Date()
+                    }
+                }
+            );
+            console.log(`[${projectId}] 数据库更新成功，${fileType} 从 ${currentFiles.length} 减少到 ${updatedFiles.length} 个文件。`);
+        } else {
+            console.log(`[${projectId}] 文件引用已在数据库中不存在，无需更新。`);
+        }
+
         return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({ success: true, message: '文件删除流程处理完成。' }),
+            statusCode: 200, headers,
+            body: JSON.stringify({
+                success: true,
+                message: '文件删除流程处理完成。',
+                dbVersion,
+                fileType
+            }),
         };
 
     } catch (error) {
-        console.error(`[${'N/A'}] 删除文件时发生严重错误:`, error);
+        console.error(`[deleteFile] 删除文件时发生严重错误:`, error);
         return {
-            statusCode: 500,
-            headers,
+            statusCode: 500, headers,
             body: JSON.stringify({ success: false, message: '服务器内部错误', error: error.message }),
         };
     }

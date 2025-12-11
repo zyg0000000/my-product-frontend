@@ -23,6 +23,7 @@ import {
 import { customerApi } from '../../../services/customerApi';
 import { TabVisibilityEditor } from './TabVisibilityEditor';
 import { EffectConfigEditor } from './EffectConfigEditor';
+import { FinanceConfigEditor } from './FinanceConfigEditor';
 import type { CustomerProjectConfig } from '../../../types/projectConfig';
 import { DEFAULT_PROJECT_CONFIG } from '../../../types/projectConfig';
 import type { Customer } from '../../../types/customer';
@@ -73,6 +74,24 @@ export function ProjectConfigPage() {
                   customMetrics: existingConfig.effectConfig.customMetrics,
                 }
               : DEFAULT_PROJECT_CONFIG.effectConfig,
+            // 合并财务配置
+            financeConfig: existingConfig.financeConfig
+              ? {
+                  enabledMetrics:
+                    existingConfig.financeConfig.enabledMetrics ||
+                    DEFAULT_PROJECT_CONFIG.financeConfig!.enabledMetrics,
+                  enableFundsOccupation:
+                    existingConfig.financeConfig.enableFundsOccupation ??
+                    DEFAULT_PROJECT_CONFIG.financeConfig!.enableFundsOccupation,
+                  fundsOccupationRate:
+                    existingConfig.financeConfig.fundsOccupationRate ??
+                    DEFAULT_PROJECT_CONFIG.financeConfig!.fundsOccupationRate,
+                  enableSettlementFiles:
+                    existingConfig.financeConfig.enableSettlementFiles ??
+                    DEFAULT_PROJECT_CONFIG.financeConfig!.enableSettlementFiles,
+                  customMetrics: existingConfig.financeConfig.customMetrics,
+                }
+              : DEFAULT_PROJECT_CONFIG.financeConfig,
           });
         } else {
           setConfig(DEFAULT_PROJECT_CONFIG);
@@ -106,6 +125,14 @@ export function ProjectConfigPage() {
       }
       if (config.effectConfig.enabledMetrics.length === 0) {
         message.warning('效果验收需要至少一个效果指标');
+        return;
+      }
+    }
+
+    // 验证：财务管理开启时需要有指标
+    if (config.tabVisibility.finance && config.financeConfig) {
+      if (config.financeConfig.enabledMetrics.length === 0) {
+        message.warning('财务管理需要至少一个财务指标');
         return;
       }
     }
@@ -211,14 +238,16 @@ export function ProjectConfigPage() {
         <span className="flex items-center gap-1">
           <DollarOutlined />
           财务管理配置
-          <span className="ml-1 text-xs text-gray-400">（开发中）</span>
         </span>
       ),
       children: (
-        <div className="py-12 text-center text-gray-400">
-          <DollarOutlined className="text-4xl mb-4" />
-          <div>财务管理配置功能开发中...</div>
-        </div>
+        <FinanceConfigEditor
+          value={config.financeConfig}
+          onChange={financeConfig =>
+            setConfig(prev => ({ ...prev, financeConfig }))
+          }
+          disabled={!config.enabled || !config.tabVisibility.finance}
+        />
       ),
     },
   ];

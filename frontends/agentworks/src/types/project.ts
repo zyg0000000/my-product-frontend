@@ -93,6 +93,24 @@ export interface AuditLogEntry {
 }
 
 /**
+ * 结算文件对象
+ */
+export interface SettlementFile {
+  /** 文件名 */
+  name: string;
+  /** 文件 URL */
+  url: string;
+  /** 上传时间 */
+  uploadedAt: string;
+  /** 文件大小（字节） */
+  size?: number;
+  /** 文件类型（MIME） */
+  type?: string;
+  /** 备注 */
+  note?: string;
+}
+
+/**
  * 平台统计数据
  */
 export interface PlatformStat {
@@ -248,6 +266,9 @@ export interface Project {
   adjustments?: Adjustment[];
   auditLog?: AuditLogEntry[];
 
+  // 文件管理
+  settlementFiles?: SettlementFile[];
+
   // 统计缓存
   stats?: ProjectStats;
 
@@ -348,7 +369,7 @@ export interface CreateProjectRequest {
 }
 
 /**
- * 更新项目请求（v4.5: 新增 platformKPIConfigs）
+ * 更新项目请求（v4.6: 新增 settlementFiles）
  */
 export interface UpdateProjectRequest {
   /** 项目编号（手动填写） */
@@ -384,6 +405,9 @@ export interface UpdateProjectRequest {
   platformKPIConfigs?: ProjectKPIConfigs;
   /** @deprecated 请使用 platformKPIConfigs */
   kpiConfig?: ProjectKPIConfig;
+
+  // v4.6: 结算文件管理
+  settlementFiles?: SettlementFile[];
 
   /** @deprecated 请使用 platformDiscounts */
   discount?: number;
@@ -461,15 +485,20 @@ export interface EffectMetrics {
   comments?: number; // 评论数
   shares?: number; // 转发数
   cpm?: number; // CPM（计算值）
+  cpe?: number; // CPE（计算值）
+  gmv?: number; // GMV（成交金额，分）
+  roi?: number; // ROI
+  conversions?: number; // 转化数
   recordedAt?: string; // 录入时间
 }
 
 /**
- * 效果数据（T+7 / T+21）
+ * 效果数据（T+7 / T+21 / T+30）
  */
 export interface EffectData {
   t7?: EffectMetrics;
   t21?: EffectMetrics;
+  t30?: EffectMetrics;
 }
 
 /**

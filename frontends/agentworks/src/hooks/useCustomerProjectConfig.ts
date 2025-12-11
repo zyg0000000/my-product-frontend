@@ -75,6 +75,24 @@ export function useCustomerProjectConfig(
                   customMetrics: customerConfig.effectConfig.customMetrics,
                 }
               : DEFAULT_PROJECT_CONFIG.effectConfig,
+            // 确保 financeConfig 完整
+            financeConfig: customerConfig.financeConfig
+              ? {
+                  enabledMetrics:
+                    customerConfig.financeConfig.enabledMetrics ||
+                    DEFAULT_PROJECT_CONFIG.financeConfig!.enabledMetrics,
+                  enableFundsOccupation:
+                    customerConfig.financeConfig.enableFundsOccupation ??
+                    DEFAULT_PROJECT_CONFIG.financeConfig!.enableFundsOccupation,
+                  fundsOccupationRate:
+                    customerConfig.financeConfig.fundsOccupationRate ??
+                    DEFAULT_PROJECT_CONFIG.financeConfig!.fundsOccupationRate,
+                  enableSettlementFiles:
+                    customerConfig.financeConfig.enableSettlementFiles ??
+                    DEFAULT_PROJECT_CONFIG.financeConfig!.enableSettlementFiles,
+                  customMetrics: customerConfig.financeConfig.customMetrics,
+                }
+              : DEFAULT_PROJECT_CONFIG.financeConfig,
           });
         } else {
           setConfig(DEFAULT_PROJECT_CONFIG);

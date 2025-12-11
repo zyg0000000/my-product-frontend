@@ -1,0 +1,640 @@
+/**
+ * 统一配置编辑器设计系统
+ *
+ * 设计风格：现代商务风 - 专业、精致、一致
+ * 色彩方案：深灰蓝基调 + 语义化强调色
+ *
+ * 应用于：
+ * - TabVisibilityEditor
+ * - EffectConfigEditor
+ * - FinanceConfigEditor
+ * - ExecutionConfigEditor (预留)
+ */
+
+/* ==========================================================================
+   设计令牌 (Design Tokens)
+   ========================================================================== */
+
+.config-editor {
+  /* 主色调 */
+  --config-primary: #334155;
+  --config-primary-light: #475569;
+  --config-primary-dark: #1e293b;
+
+  /* 强调色 */
+  --config-accent: #6366f1;
+  --config-accent-light: #818cf8;
+  --config-accent-bg: rgba(99, 102, 241, 0.08);
+
+  /* 语义色 */
+  --config-success: #10b981;
+  --config-warning: #f59e0b;
+  --config-danger: #ef4444;
+  --config-info: #3b82f6;
+
+  /* 指标语义色 */
+  --config-metric-blue: #3b82f6;
+  --config-metric-green: #10b981;
+  --config-metric-red: #ef4444;
+  --config-metric-orange: #f97316;
+  --config-metric-purple: #8b5cf6;
+
+  /* 背景层级 */
+  --config-bg-base: #f8fafc;
+  --config-bg-elevated: #ffffff;
+  --config-bg-sunken: #f1f5f9;
+
+  /* 边框 */
+  --config-border: #e2e8f0;
+  --config-border-hover: #cbd5e1;
+  --config-border-active: var(--config-accent);
+
+  /* 文字 */
+  --config-text-primary: #1e293b;
+  --config-text-secondary: #64748b;
+  --config-text-muted: #94a3b8;
+
+  /* 间距 */
+  --config-space-xs: 4px;
+  --config-space-sm: 8px;
+  --config-space-md: 16px;
+  --config-space-lg: 24px;
+  --config-space-xl: 32px;
+
+  /* 圆角 */
+  --config-radius-sm: 6px;
+  --config-radius-md: 10px;
+  --config-radius-lg: 14px;
+
+  /* 阴影 */
+  --config-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --config-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --config-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+  /* 动画 */
+  --config-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================================================
+   基础容器
+   ========================================================================== */
+
+.config-editor {
+  padding: var(--config-space-lg);
+  background: linear-gradient(180deg, var(--config-bg-base) 0%, #f1f5f9 100%);
+  border-radius: var(--config-radius-lg);
+  min-height: 320px;
+}
+
+.config-editor--disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   区块标题
+   ========================================================================== */
+
+.config-section {
+  margin-bottom: var(--config-space-lg);
+}
+
+.config-section__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--config-space-md);
+  margin-bottom: var(--config-space-md);
+}
+
+.config-section__icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--config-primary) 0%, var(--config-primary-light) 100%);
+  border-radius: var(--config-radius-md);
+  color: white;
+  font-size: 18px;
+  flex-shrink: 0;
+  box-shadow: var(--config-shadow-md);
+}
+
+.config-section__icon--accent {
+  background: linear-gradient(135deg, var(--config-accent) 0%, var(--config-accent-light) 100%);
+}
+
+.config-section__icon--success {
+  background: linear-gradient(135deg, #059669 0%, var(--config-success) 100%);
+}
+
+.config-section__icon--warning {
+  background: linear-gradient(135deg, #d97706 0%, var(--config-warning) 100%);
+}
+
+.config-section__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--config-text-primary);
+  margin: 0 0 4px 0;
+  letter-spacing: -0.01em;
+}
+
+.config-section__desc {
+  font-size: 13px;
+  color: var(--config-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   警告提示
+   ========================================================================== */
+
+.config-warning {
+  display: flex;
+  align-items: center;
+  gap: var(--config-space-sm);
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border: 1px solid #fed7aa;
+  border-radius: var(--config-radius-md);
+  color: #c2410c;
+  font-size: 13px;
+  margin-bottom: var(--config-space-md);
+  animation: configSlideIn 0.3s ease-out;
+}
+
+.config-warning--info {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.config-warning--error {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+/* ==========================================================================
+   分隔线
+   ========================================================================== */
+
+.config-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--config-border) 20%, var(--config-border) 80%, transparent 100%);
+  margin: var(--config-space-lg) 0;
+  border: none;
+}
+
+/* ==========================================================================
+   功能卡片网格
+   ========================================================================== */
+
+.config-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--config-space-md);
+}
+
+.config-feature-card {
+  position: relative;
+  padding: var(--config-space-lg);
+  background: var(--config-bg-elevated);
+  border: 1px solid var(--config-border);
+  border-radius: var(--config-radius-md);
+  transition: all var(--config-transition);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.config-feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+  transition: background var(--config-transition);
+}
+
+.config-feature-card:hover {
+  border-color: var(--config-border-hover);
+  box-shadow: var(--config-shadow-md);
+  transform: translateY(-2px);
+}
+
+.config-feature-card--active {
+  border-color: var(--config-accent);
+  background: var(--config-accent-bg);
+}
+
+.config-feature-card--active::before {
+  background: linear-gradient(90deg, var(--config-accent) 0%, var(--config-accent-light) 100%);
+}
+
+.config-feature-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.config-feature-card__icon {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--config-radius-sm);
+  font-size: 16px;
+  transition: all var(--config-transition);
+}
+
+.config-feature-card__icon--primary {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  color: var(--config-info);
+}
+
+.config-feature-card__icon--success {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  color: var(--config-success);
+}
+
+.config-feature-card__icon--warning {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  color: var(--config-warning);
+}
+
+.config-feature-card__icon--danger {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: var(--config-danger);
+}
+
+.config-feature-card__icon--purple {
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  color: var(--config-metric-purple);
+}
+
+.config-feature-card__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--config-text-primary);
+  margin: 0 0 6px 0;
+}
+
+.config-feature-card__desc {
+  font-size: 12px;
+  color: var(--config-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.config-feature-card__extra {
+  margin-top: var(--config-space-md);
+  padding-top: var(--config-space-md);
+  border-top: 1px dashed var(--config-border);
+  animation: configFadeIn 0.2s ease-out;
+}
+
+.config-feature-card__label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--config-text-secondary);
+  margin-bottom: 6px;
+}
+
+/* ==========================================================================
+   选项卡片网格（用于指标、周期等选择）
+   ========================================================================== */
+
+.config-option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.config-option-grid--compact {
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+}
+
+.config-option-grid--wide {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.config-option-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--config-bg-sunken);
+  border: 1px solid transparent;
+  border-radius: var(--config-radius-sm);
+  cursor: pointer;
+  transition: all var(--config-transition);
+  --option-color: var(--config-accent);
+}
+
+.config-option-card:hover {
+  background: var(--config-bg-elevated);
+  border-color: var(--config-border);
+  box-shadow: var(--config-shadow-sm);
+}
+
+.config-option-card--active {
+  background: var(--config-bg-elevated);
+  border-color: var(--option-color);
+  box-shadow: 0 0 0 1px var(--option-color);
+}
+
+.config-option-card--active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--option-color);
+  border-radius: var(--config-radius-sm) 0 0 var(--config-radius-sm);
+}
+
+.config-option-card--locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.config-option-card__checkbox {
+  flex-shrink: 0;
+}
+
+.config-option-card__icon {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--config-bg-elevated);
+  border-radius: var(--config-radius-sm);
+  font-size: 14px;
+  flex-shrink: 0;
+  box-shadow: var(--config-shadow-sm);
+  color: var(--option-color);
+}
+
+.config-option-card__content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.config-option-card__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--config-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.config-option-card__unit {
+  font-size: 11px;
+  color: var(--config-text-muted);
+}
+
+.config-option-card__lock {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 10px;
+  color: var(--config-text-muted);
+}
+
+/* ==========================================================================
+   可折叠分类
+   ========================================================================== */
+
+.config-category {
+  background: var(--config-bg-elevated);
+  border: 1px solid var(--config-border);
+  border-radius: var(--config-radius-md);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.config-category--muted {
+  background: var(--config-bg-sunken);
+}
+
+.config-category__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: background var(--config-transition);
+  user-select: none;
+}
+
+.config-category__header:hover {
+  background: var(--config-bg-sunken);
+}
+
+.config-category__title {
+  display: flex;
+  align-items: center;
+  gap: var(--config-space-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--config-text-primary);
+}
+
+.config-category__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: var(--config-accent);
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+}
+
+.config-category__badge--muted {
+  background: var(--config-text-muted);
+}
+
+.config-category__hint {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--config-text-muted);
+  margin-left: var(--config-space-sm);
+}
+
+.config-category__arrow {
+  font-size: 18px;
+  color: var(--config-text-muted);
+  transition: transform var(--config-transition);
+}
+
+.config-category__arrow--expanded {
+  transform: rotate(90deg);
+}
+
+.config-category__content {
+  padding: var(--config-space-md);
+  padding-top: 4px;
+  animation: configSlideDown 0.25s ease-out;
+}
+
+/* ==========================================================================
+   预览区域
+   ========================================================================== */
+
+.config-preview {
+  padding: var(--config-space-md);
+  background: var(--config-bg-elevated);
+  border: 1px solid var(--config-border);
+  border-radius: var(--config-radius-md);
+}
+
+.config-preview__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--config-text-secondary);
+  margin: 0 0 12px 0;
+}
+
+.config-preview__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--config-space-sm);
+}
+
+.config-preview__empty {
+  font-size: 13px;
+  color: var(--config-text-muted);
+  text-align: center;
+  padding: var(--config-space-md);
+}
+
+/* ==========================================================================
+   数值输入区
+   ========================================================================== */
+
+.config-input-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--config-space-md);
+}
+
+.config-input-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.config-input-item__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--config-text-secondary);
+}
+
+/* ==========================================================================
+   底部计数
+   ========================================================================== */
+
+.config-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--config-space-md);
+  padding-top: var(--config-space-md);
+  border-top: 1px solid var(--config-border);
+}
+
+.config-footer__count {
+  font-size: 12px;
+  color: var(--config-text-muted);
+}
+
+.config-footer__count strong {
+  color: var(--config-accent);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   动画
+   ========================================================================== */
+
+@keyframes configSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes configSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes configFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   响应式
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .config-editor {
+    padding: var(--config-space-md);
+  }
+
+  .config-feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .config-option-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .config-input-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .config-section__header {
+    flex-direction: column;
+    gap: var(--config-space-sm);
+  }
+
+  .config-section__icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+}

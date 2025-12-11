@@ -43,7 +43,7 @@ const DB_NAME_V1 = process.env.MONGO_DB_NAME || 'kol_data';
 const DB_NAME_V2 = 'agentworks_db';
 const PROJECTS_COLLECTION = process.env.MONGO_PROJECTS_COLLECTION || 'projects';
 
-// [v2.1] Add projectCode to allowed fields
+// [v2.2] Add settlementFiles to allowed fields
 const ALLOWED_UPDATE_FIELDS = [
     'name', 'qianchuanId', 'type', 'budget', 'benchmarkCPM', 'year', 'month',
     'financialYear', 'financialMonth', 'discount', 'capitalRateId',
@@ -57,7 +57,9 @@ const ALLOWED_UPDATE_FIELDS = [
     // v1.9: 平台报价系数快照
     'platformQuotationCoefficients',
     // v2.1: 项目编号
-    'projectCode'
+    'projectCode',
+    // v2.2: 结算文件（agentworks 财务管理）
+    'settlementFiles'
 ];
 
 // [v1.7] 状态映射（中文到 key）

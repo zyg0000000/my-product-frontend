@@ -214,6 +214,8 @@ export function ProjectDetail() {
         <FinancialTab
           projectId={project.id}
           platforms={project.platforms}
+          financeConfig={projectConfig.financeConfig}
+          settlementFiles={project.settlementFiles}
           onRefresh={refreshProject}
         />
       ),

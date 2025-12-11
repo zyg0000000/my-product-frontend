@@ -17,6 +17,7 @@ import type {
   BatchUpdateCollaborationsRequest,
   GetCollaborationsParams,
   DashboardOverview,
+  SettlementFile,
 } from '../types/project';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
@@ -488,6 +489,105 @@ class ProjectApi {
     }
 
     return response.json();
+  }
+
+  // ==========================================================================
+  // 文件管理
+  // ==========================================================================
+
+  /**
+   * 结算文件对象类型
+   */
+  // Note: This type is defined within the class for convenience.
+  // For external use, see SettlementFile export below.
+
+  /**
+   * 上传文件到 TOS
+   * @param file 文件对象
+   * @returns 上传结果，包含文件 URL
+   */
+  async uploadFile(
+    file: File
+  ): Promise<ApiResponse<{ fileName: string; url: string }>> {
+    // 读取文件为 base64
+    const fileData = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    const url = `${API_BASE_URL}/upload-file`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fileName: file.name,
+        fileData,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * 删除文件
+   * @param projectId 项目 ID
+   * @param fileUrl 文件 URL
+   * @param fileType 文件类型（projectFiles 或 settlementFiles）
+   */
+  async deleteFile(
+    projectId: string,
+    fileUrl: string,
+    fileType: 'projectFiles' | 'settlementFiles' = 'projectFiles'
+  ): Promise<ApiResponse<{ message: string }>> {
+    const url = `${API_BASE_URL}/delete-file`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        projectId,
+        fileUrl,
+        fileType,
+        dbVersion: DB_VERSION,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * 更新项目的结算文件列表
+   * @param projectId 项目 ID
+   * @param settlementFiles 结算文件列表
+   */
+  async updateSettlementFiles(
+    projectId: string,
+    settlementFiles: SettlementFile[]
+  ): Promise<ApiResponse<Project>> {
+    return this.updateProject(projectId, { settlementFiles });
+  }
+
+  /**
+   * 获取文件预览 URL
+   * @param fileKey TOS 文件 key
+   */
+  getFilePreviewUrl(fileKey: string): string {
+    return `${API_BASE_URL}/preview-file?fileKey=${encodeURIComponent(fileKey)}`;
   }
 }
 
