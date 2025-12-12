@@ -106,7 +106,7 @@ export function RebateHistoryList({
               className={`px-3 py-1.5 text-sm font-medium rounded-md border transition-colors ${
                 currentPage === 1
                   ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  : 'bg-surface text-content-secondary border-stroke hover:bg-surface-subtle'
               }`}
             >
               上一页
@@ -117,7 +117,7 @@ export function RebateHistoryList({
               className={`px-3 py-1.5 text-sm font-medium rounded-md border transition-colors ${
                 currentPage === totalPages
                   ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  : 'bg-surface text-content-secondary border-stroke hover:bg-surface-subtle'
               }`}
             >
               下一页

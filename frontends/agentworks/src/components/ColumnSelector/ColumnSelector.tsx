@@ -192,7 +192,7 @@ export function ColumnSelector({
           ${
             isSelected
               ? 'bg-primary-50 border border-primary-200'
-              : 'bg-white border border-transparent hover:bg-gray-50 hover:border-gray-200'
+              : 'bg-surface border border-transparent hover:bg-surface-subtle hover:border-stroke'
           }
         `}
         onClick={() => onToggleField(field.id)}
@@ -276,7 +276,7 @@ export function ColumnSelector({
       }}
     >
       {/* 搜索框 */}
-      <div className="p-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+      <div className="p-4 border-b border-gray-100 sticky top-0 bg-surface z-10">
         <Input
           placeholder="搜索字段名称..."
           prefix={<SearchOutlined className="text-gray-400" />}
@@ -321,7 +321,7 @@ export function ColumnSelector({
       </div>
 
       {/* 底部固定区域 */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100">
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-surface border-t border-gray-100">
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-400">
             选择的字段将在表格中显示

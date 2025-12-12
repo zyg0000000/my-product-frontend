@@ -130,9 +130,14 @@
   }
 
   .btn-secondary {
-    @apply btn bg-white text-gray-700 border border-gray-200
-           hover:bg-gray-50 hover:border-gray-300
-           active:bg-gray-100 focus:ring-gray-300;
+    @apply btn text-content-secondary border
+           hover:border-gray-300 active:bg-gray-100 focus:ring-gray-300;
+    background-color: var(--color-bg-elevated);
+    border-color: var(--color-border);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-fill);
   }
 
   .btn-ghost {
@@ -682,18 +687,7 @@
 }
 
 /* ========================================
-   8.1 深色模式 - bg-white 特殊处理
-   注意：Tailwind 的 gray-* 类已经使用 CSS Variables，会自动适配深色模式
-   只有 bg-white 需要特殊处理，因为它是 Tailwind 的硬编码白色
-   ======================================== */
-
-/* bg-white 在深色模式下使用 CSS Variable */
-.dark [class*="bg-white"]:not([class*="dark:"]) {
-  background-color: var(--aw-gray-100);
-}
-
-/* ========================================
-   8.2 深色模式 - Ant Design 组件覆盖
+   8.1 深色模式 - Ant Design 组件覆盖
    注意：Ant Design ConfigProvider 不支持 CSS Variables
    需要通过 CSS 覆盖实现深色模式
    ======================================== */

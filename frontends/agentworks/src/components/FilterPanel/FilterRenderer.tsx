@@ -214,7 +214,7 @@ function EnumFilter({
               className={`px-3 py-1 text-xs rounded-full border transition-colors ${
                 selected.includes(option)
                   ? 'bg-primary-600 text-white border-primary-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400'
+                  : 'bg-surface text-content-secondary border-stroke hover:border-primary-400'
               } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {option}

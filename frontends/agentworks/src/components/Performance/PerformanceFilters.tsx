@@ -238,7 +238,7 @@ export function PerformanceFilters({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow mb-4">
+    <div className="bg-surface rounded-lg shadow mb-4">
       {/* 筛选面板头部 */}
       <div
         className="flex items-center justify-between px-4 py-3 border-b cursor-pointer hover:bg-gray-50"
@@ -344,7 +344,7 @@ export function PerformanceFilters({
                 {activeFilterTags.map((tag, index) => (
                   <span
                     key={`${tag.dimensionId}-${index}`}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 rounded-md text-sm"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-surface border border-stroke rounded-md text-sm"
                   >
                     <span className="text-gray-700">{tag.label}</span>
                     <button
@@ -411,7 +411,7 @@ function TextFilter({
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={`搜索${dimension.name}...`}
-        className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        className="w-full px-3 py-1.5 text-sm border border-stroke rounded-md bg-surface text-content focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
       />
     </div>
   );
@@ -499,7 +499,7 @@ function EnumFilter({
               className={`px-3 py-1 text-xs rounded-full border transition-colors ${
                 selected.includes(option)
                   ? 'bg-primary-600 text-white border-primary-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400'
+                  : 'bg-surface text-content-secondary border-stroke hover:border-primary-400'
               }`}
             >
               {option}
@@ -542,7 +542,7 @@ function RangeFilter({
           value={min}
           onChange={e => onChange(e.target.value, max)}
           placeholder={`最小${suffix}`}
-          className="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="w-20 px-2 py-1.5 text-sm border border-stroke rounded-md bg-surface text-content focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         />
         <span className="text-gray-400">-</span>
         <input
@@ -550,7 +550,7 @@ function RangeFilter({
           value={max}
           onChange={e => onChange(min, e.target.value)}
           placeholder={`最大${suffix}`}
-          className="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="w-20 px-2 py-1.5 text-sm border border-stroke rounded-md bg-surface text-content focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         />
       </div>
     </div>

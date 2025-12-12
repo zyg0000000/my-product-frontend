@@ -292,7 +292,7 @@ export function ModularFilterPanel({
 
   if (configsLoading) {
     return (
-      <div className={`bg-white rounded-lg shadow mb-4 p-4 ${className}`}>
+      <div className={`bg-surface rounded-lg shadow mb-4 p-4 ${className}`}>
         <div className="flex items-center justify-center py-8">
           <Spin>
             <span className="ml-2 text-gray-500">加载筛选配置...</span>
@@ -303,7 +303,7 @@ export function ModularFilterPanel({
   }
 
   return (
-    <div className={`bg-white rounded-lg shadow mb-4 ${className}`}>
+    <div className={`bg-surface rounded-lg shadow mb-4 ${className}`}>
       {/* 筛选面板头部 */}
       <div
         className="flex items-center justify-between px-4 py-3 border-b cursor-pointer hover:bg-gray-50"
@@ -381,7 +381,7 @@ export function ModularFilterPanel({
                 {activeFilterTags.map((tag, index) => (
                   <span
                     key={`${tag.filterId}-${index}`}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 rounded-md text-sm"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-surface border border-stroke rounded-md text-sm"
                   >
                     <span className="text-gray-700">{tag.label}</span>
                     <button

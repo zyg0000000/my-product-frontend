@@ -38,7 +38,7 @@ export function Modal({
 
       {/* 模态框内容 */}
       <div
-        className={`relative bg-white rounded-lg shadow-xl ${sizeClasses[size]} w-full max-h-[90vh] flex flex-col`}
+        className={`relative bg-surface rounded-lg shadow-xl ${sizeClasses[size]} w-full max-h-[90vh] flex flex-col`}
       >
         {/* 标题栏 */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">

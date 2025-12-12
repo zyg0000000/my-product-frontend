@@ -13,7 +13,7 @@ export function CardSkeleton({
 }: CardSkeletonProps) {
   return (
     <div
-      className={`p-4 bg-white rounded-lg border border-gray-200 ${className}`}
+      className={`p-4 bg-surface rounded-lg border border-stroke ${className}`}
       style={{ height }}
     >
       <div className="flex flex-col items-center justify-center space-y-3">

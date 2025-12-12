@@ -77,7 +77,7 @@ export function TagInput({
   return (
     <div className="space-y-3">
       {/* 已选标签显示和输入框 */}
-      <div className="flex flex-wrap gap-2 p-3 border-2 border-gray-300 rounded-lg focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 bg-white min-h-[44px]">
+      <div className="flex flex-wrap gap-2 p-3 border-2 border-gray-300 rounded-lg focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 bg-surface min-h-[44px]">
         {selectedTags.map(tag => (
           <span
             key={tag}
