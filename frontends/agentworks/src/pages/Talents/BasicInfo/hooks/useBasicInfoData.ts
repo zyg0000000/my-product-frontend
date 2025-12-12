@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { message } from 'antd';
 import { logger } from '../../../../utils/logger';
-import { getTalents } from '../../../../api/talent';
+import { getTalents, getTalentFilterOptions } from '../../../../api/talent';
 import { getAgencies } from '../../../../api/agency';
 import { customerApi } from '../../../../services/customerApi';
 import type { Talent, Platform } from '../../../../types/talent';
@@ -30,6 +30,7 @@ interface UseBasicInfoDataReturn {
   customers: Customer[];
   totalTalents: number;
   loading: boolean;
+  availableTags: string[]; // 从 API 获取的完整内容标签列表
 
   // 分页
   currentPage: number;
@@ -56,7 +57,6 @@ interface UseBasicInfoDataReturn {
 
   // 方法
   loadTalents: () => Promise<void>;
-  getUniqueTalentTypes: () => string[];
 }
 
 const PAGE_SIZE = 15;
@@ -81,6 +81,7 @@ export function useBasicInfoData({
   const [talents, setTalents] = useState<Talent[]>([]);
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [totalTalents, setTotalTalents] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -205,7 +206,7 @@ export function useBasicInfoData({
     loadTalents();
   }, [loadTalents]);
 
-  // 加载机构和客户列表
+  // 加载机构、客户列表和内容标签
   useEffect(() => {
     const loadAgencies = async () => {
       try {
@@ -232,20 +233,21 @@ export function useBasicInfoData({
       }
     };
 
+    const loadAvailableTags = async () => {
+      try {
+        const response = await getTalentFilterOptions('v2');
+        if (response.success && response.data?.types) {
+          setAvailableTags(response.data.types);
+        }
+      } catch (error) {
+        logger.error('加载内容标签失败:', error);
+      }
+    };
+
     loadAgencies();
     loadCustomers();
+    loadAvailableTags();
   }, []);
-
-  // 获取唯一的内容标签
-  const getUniqueTalentTypes = useCallback((): string[] => {
-    const types = new Set<string>();
-    talents.forEach(talent => {
-      if (talent.talentType && Array.isArray(talent.talentType)) {
-        talent.talentType.forEach(type => types.add(type));
-      }
-    });
-    return Array.from(types).sort();
-  }, [talents]);
 
   // 处理筛选状态变更
   const handleFilterChange = useCallback(
@@ -272,6 +274,7 @@ export function useBasicInfoData({
     talents,
     agencies,
     customers,
+    availableTags,
     totalTalents,
     loading,
 
@@ -297,6 +300,5 @@ export function useBasicInfoData({
 
     // 方法
     loadTalents,
-    getUniqueTalentTypes,
   };
 }

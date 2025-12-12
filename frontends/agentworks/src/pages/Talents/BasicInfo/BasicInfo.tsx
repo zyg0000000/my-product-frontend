@@ -80,7 +80,7 @@ export function BasicInfo() {
     selectedRowKeys,
     setSelectedRowKeys,
     loadTalents,
-    getUniqueTalentTypes,
+    availableTags,
   } = useBasicInfoData({
     selectedPlatform,
     configLoading,
@@ -268,7 +268,7 @@ export function BasicInfo() {
         <TalentFilterPanel
           filterState={filterState}
           onFilterChange={handleFilterChange}
-          availableTags={getUniqueTalentTypes()}
+          availableTags={availableTags}
           customers={customers}
           totalTalents={totalTalents}
           isExpanded={isFilterExpanded}
@@ -426,7 +426,7 @@ export function BasicInfo() {
             ) => {
               await handleSaveTalent({ ...data, oneId, platform });
             }}
-            availableTags={getUniqueTalentTypes()}
+            availableTags={availableTags}
           />
         )}
 
