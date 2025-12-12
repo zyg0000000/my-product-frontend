@@ -133,9 +133,9 @@ export function ConfigurableItemList({
       {/* 标题和新增按钮 */}
       <div className="mb-4 flex justify-between items-center">
         <div>
-          <h4 className="text-sm font-medium text-gray-900">{title}</h4>
+          <h4 className="text-sm font-medium text-content">{title}</h4>
           {description && (
-            <p className="text-xs text-gray-500 mt-1">{description}</p>
+            <p className="text-xs text-content-muted mt-1">{description}</p>
           )}
         </div>
         <Button
@@ -150,7 +150,7 @@ export function ConfigurableItemList({
 
       {/* 空状态 */}
       {items.length === 0 ? (
-        <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-lg">
+        <div className="text-center py-8 text-content-muted bg-surface-base rounded-lg">
           暂无配置，点击上方按钮添加
         </div>
       ) : (
@@ -158,9 +158,9 @@ export function ConfigurableItemList({
           {sortedItems.map(item => (
             <div
               key={item._index}
-              className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+              className="flex items-center gap-3 p-3 bg-surface-base rounded-lg"
             >
-              <HolderOutlined className="text-gray-400 cursor-move" />
+              <HolderOutlined className="text-content-muted cursor-move" />
 
               {/* Key 输入 */}
               <Input
@@ -210,7 +210,7 @@ export function ConfigurableItemList({
 
               {/* 背景色 */}
               <div className="flex items-center gap-1">
-                <span className="text-xs text-gray-500">背景:</span>
+                <span className="text-xs text-content-muted">背景:</span>
                 <ColorPicker
                   value={item.bgColor}
                   size="small"
@@ -222,7 +222,7 @@ export function ConfigurableItemList({
 
               {/* 文字色 */}
               <div className="flex items-center gap-1">
-                <span className="text-xs text-gray-500">文字:</span>
+                <span className="text-xs text-content-muted">文字:</span>
                 <ColorPicker
                   value={item.textColor}
                   size="small"
@@ -274,8 +274,8 @@ export function ConfigurableItemList({
 
       {/* 帮助提示 */}
       {helpTip && (
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-          <p className="text-xs text-blue-700">💡 {helpTip}</p>
+        <div className="mt-4 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+          <p className="text-xs text-primary-700 dark:text-primary-300">💡 {helpTip}</p>
         </div>
       )}
     </div>

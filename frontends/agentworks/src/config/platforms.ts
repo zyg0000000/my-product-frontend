@@ -32,7 +32,7 @@ export const TALENT_PLATFORMS: PlatformConfig[] = [
     fee: 0.1,
     enabled: true,
     color: 'red',
-    hoverColor: 'hover:bg-red-50',
+    hoverColor: 'hover:bg-danger-50 dark:bg-danger-900/20',
     description: '已开通',
   },
   {

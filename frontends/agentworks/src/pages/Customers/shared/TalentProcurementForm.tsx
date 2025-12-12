@@ -227,9 +227,9 @@ export function TalentProcurementForm({
 
       {/* 项目比价模式提示 */}
       {currentConfig.pricingModel === 'project' && currentConfig.enabled && (
-        <div className="text-center py-6 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="text-blue-900 font-semibold mb-1">项目比价模式</div>
-          <div className="text-sm text-blue-700">
+        <div className="text-center py-6 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg">
+          <div className="text-primary-900 dark:text-primary-100 font-semibold mb-1">项目比价模式</div>
+          <div className="text-sm text-primary-700 dark:text-primary-300">
             该平台采用项目比价，创建项目时手动填写对客报价
           </div>
         </div>
@@ -279,7 +279,7 @@ export function TalentProcurementForm({
             </div>
             <div>
               <label className="block text-sm font-medium text-content mb-1">
-                有效期 <span className="text-red-500">*</span>
+                有效期 <span className="text-danger-500">*</span>
               </label>
               <DatePicker.RangePicker
                 format="YYYY-MM-DD"

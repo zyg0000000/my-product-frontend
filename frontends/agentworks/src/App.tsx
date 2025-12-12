@@ -128,10 +128,10 @@ const ProjectConfigPage = lazy(() =>
  */
 function LoadingFallback() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-surface-base">
       <div className="text-center">
         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-        <p className="mt-4 text-gray-600">加载中...</p>
+        <p className="mt-4 text-content-secondary">加载中...</p>
       </div>
     </div>
   );

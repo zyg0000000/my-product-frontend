@@ -228,7 +228,7 @@ export function AgencyRebateModal({
       key: 'newRate',
       width: 80,
       render: (rate: number) => (
-        <span className="font-semibold text-green-600">
+        <span className="font-semibold text-success-600 dark:text-success-400">
           {formatRebateRate(rate)}
         </span>
       ),
@@ -251,7 +251,7 @@ export function AgencyRebateModal({
       key: 'syncToTalents',
       width: 80,
       render: (sync: boolean) => (
-        <span className={sync ? 'text-green-600' : 'text-content-muted'}>
+        <span className={sync ? 'text-success-600 dark:text-success-400' : 'text-content-muted'}>
           {sync ? '是' : '否'}
         </span>
       ),

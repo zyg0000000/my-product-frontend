@@ -203,7 +203,7 @@ export function TalentDetail() {
   }
 
   if (!talent) {
-    return <div className="p-12 text-center text-gray-500">未找到达人信息</div>;
+    return <div className="p-12 text-center text-content-muted">未找到达人信息</div>;
   }
 
   const priceHistory = getPriceHistory(talent.prices);
@@ -217,7 +217,7 @@ export function TalentDetail() {
         <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
           返回
         </Button>
-        <h1 className="text-2xl font-bold text-gray-900 m-0">达人详情</h1>
+        <h1 className="text-2xl font-bold text-content m-0">达人详情</h1>
       </div>
 
       {/* 基础信息 */}
@@ -225,10 +225,10 @@ export function TalentDetail() {
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-content">
                 {talent.name}
               </h1>
-              <div className="mt-2 space-y-1 text-sm text-gray-500">
+              <div className="mt-2 space-y-1 text-sm text-content-muted">
                 <p>oneId: {talent.oneId}</p>
                 <p>平台: {PLATFORM_NAMES[talent.platform]}</p>
                 <p>平台账号ID: {talent.platformAccountId}</p>
@@ -247,11 +247,11 @@ export function TalentDetail() {
         {/* 平台特有信息 */}
         {talent.platformSpecific && (
           <div className="mt-6 border-t pt-6">
-            <h3 className="text-sm font-medium text-gray-900">平台特有信息</h3>
+            <h3 className="text-sm font-medium text-content">平台特有信息</h3>
             <div className="mt-3 grid grid-cols-3 gap-4">
               {talent.platformAccountId && (
                 <div>
-                  <p className="text-xs text-gray-500">星图ID</p>
+                  <p className="text-xs text-content-muted">星图ID</p>
                   <p className="mt-1 text-sm font-medium">
                     {talent.platformAccountId}
                   </p>
@@ -259,7 +259,7 @@ export function TalentDetail() {
               )}
               {talent.platformSpecific.uid && (
                 <div>
-                  <p className="text-xs text-gray-500">抖音UID</p>
+                  <p className="text-xs text-content-muted">抖音UID</p>
                   <p className="mt-1 text-sm font-medium">
                     {talent.platformSpecific.uid}
                   </p>
@@ -267,7 +267,7 @@ export function TalentDetail() {
               )}
               {talent.platformSpecific.starLevel && (
                 <div>
-                  <p className="text-xs text-gray-500">星图等级</p>
+                  <p className="text-xs text-content-muted">星图等级</p>
                   <p className="mt-1 text-sm font-medium">
                     {talent.platformSpecific.starLevel}星
                   </p>
@@ -275,7 +275,7 @@ export function TalentDetail() {
               )}
               {talent.platformSpecific.mcnName && (
                 <div>
-                  <p className="text-xs text-gray-500">MCN机构</p>
+                  <p className="text-xs text-content-muted">MCN机构</p>
                   <p className="mt-1 text-sm font-medium">
                     {talent.platformSpecific.mcnName}
                   </p>
@@ -289,13 +289,13 @@ export function TalentDetail() {
       {/* 价格历史 */}
       <div className="card">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">价格历史</h2>
+          <h2 className="text-lg font-semibold text-content">价格历史</h2>
           <Button onClick={() => setShowPriceModal(true)}>添加价格</Button>
         </div>
 
         <div className="mt-6 space-y-6">
           {priceHistory.length === 0 ? (
-            <p className="text-center text-gray-500">暂无价格记录</p>
+            <p className="text-center text-content-muted">暂无价格记录</p>
           ) : (
             priceHistory.map(history => (
               <div
@@ -303,7 +303,7 @@ export function TalentDetail() {
                 className="border-l-2 border-primary-500 pl-6"
               >
                 <div className="flex items-center gap-3">
-                  <h3 className="font-medium text-gray-900">
+                  <h3 className="font-medium text-content">
                     {formatYearMonth(history.year, history.month)}
                   </h3>
                   {history.isLatest && (
@@ -321,10 +321,10 @@ export function TalentDetail() {
                       ];
                     return (
                       <div key={priceType.key}>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-content-muted">
                           {priceType.label}
                         </p>
-                        <p className="mt-1 text-base font-semibold text-gray-900">
+                        <p className="mt-1 text-base font-semibold text-content">
                           {price ? formatPrice(price) : '-'}
                         </p>
                       </div>
@@ -340,7 +340,7 @@ export function TalentDetail() {
       {/* 返点配置 (v2) */}
       <div className="card">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">返点配置</h2>
+          <h2 className="text-lg font-semibold text-content">返点配置</h2>
           <Button onClick={() => setShowUpdateRebateModal(true)}>
             调整返点
           </Button>
@@ -353,28 +353,28 @@ export function TalentDetail() {
         ) : rebateData ? (
           <div className="mt-6 space-y-6">
             {/* 当前返点信息 */}
-            <div className="grid grid-cols-2 gap-6 rounded-lg border border-gray-200 p-6 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-6 rounded-lg border border-stroke p-6 md:grid-cols-4">
               <div>
-                <p className="text-xs text-gray-500">归属机构</p>
-                <p className="mt-1 text-base font-medium text-gray-900">
+                <p className="text-xs text-content-muted">归属机构</p>
+                <p className="mt-1 text-base font-medium text-content">
                   {getAgencyName(rebateData.agencyId)}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">当前返点率</p>
-                <p className="mt-1 text-base font-medium text-gray-900">
+                <p className="text-xs text-content-muted">当前返点率</p>
+                <p className="mt-1 text-base font-medium text-content">
                   {formatRebateRate(rebateData.currentRebate.rate)}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">返点来源</p>
-                <p className="mt-1 text-base font-medium text-gray-900">
+                <p className="text-xs text-content-muted">返点来源</p>
+                <p className="mt-1 text-base font-medium text-content">
                   {REBATE_SOURCE_LABELS[rebateData.currentRebate.source]}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">生效日期</p>
-                <p className="mt-1 text-base font-medium text-gray-900">
+                <p className="text-xs text-content-muted">生效日期</p>
+                <p className="mt-1 text-base font-medium text-content">
                   {rebateData.currentRebate.effectiveDate}
                 </p>
               </div>
@@ -382,7 +382,7 @@ export function TalentDetail() {
 
             {/* 返点历史时间线 */}
             <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-4">
+              <h3 className="text-sm font-medium text-content mb-4">
                 调整历史
               </h3>
 
@@ -399,7 +399,7 @@ export function TalentDetail() {
             </div>
           </div>
         ) : (
-          <div className="mt-6 text-center text-gray-500">暂无返点配置信息</div>
+          <div className="mt-6 text-center text-content-muted">暂无返点配置信息</div>
         )}
       </div>
 

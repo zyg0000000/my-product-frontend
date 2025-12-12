@@ -77,7 +77,7 @@ export function TagInput({
   return (
     <div className="space-y-3">
       {/* 已选标签显示和输入框 */}
-      <div className="flex flex-wrap gap-2 p-3 border-2 border-gray-300 rounded-lg focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 bg-surface min-h-[44px]">
+      <div className="flex flex-wrap gap-2 p-3 border-2 border-stroke rounded-lg focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 bg-surface min-h-[44px]">
         {selectedTags.map(tag => (
           <span
             key={tag}
@@ -105,14 +105,14 @@ export function TagInput({
           onChange={e => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={selectedTags.length === 0 ? placeholder : ''}
-          className="flex-1 min-w-[120px] outline-none text-sm bg-transparent text-gray-900 placeholder-gray-400"
+          className="flex-1 min-w-[120px] outline-none text-sm bg-transparent text-content placeholder-gray-400"
         />
       </div>
 
       {/* 可用标签建议（从数据库中获取） */}
       {unselectedAvailableTags.length > 0 && (
         <div>
-          <div className="text-xs text-gray-500 mb-2">
+          <div className="text-xs text-content-muted mb-2">
             常用标签（点击添加）:
           </div>
           <div className="flex flex-wrap gap-2">
@@ -121,7 +121,7 @@ export function TagInput({
                 key={tag}
                 type="button"
                 onClick={() => toggleTag(tag)}
-                className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+                className="px-3 py-1 text-sm bg-surface-sunken text-content-secondary rounded-full hover:bg-surface-sunken transition-colors"
               >
                 + {tag}
               </button>
@@ -131,9 +131,9 @@ export function TagInput({
       )}
 
       {/* 提示文本 */}
-      <div className="text-xs text-gray-500">
+      <div className="text-xs text-content-muted">
         💡 提示：输入自定义标签后按{' '}
-        <kbd className="px-1 py-0.5 bg-gray-100 border border-gray-300 rounded">
+        <kbd className="px-1 py-0.5 bg-surface-sunken border border-stroke rounded">
           Enter
         </kbd>{' '}
         添加，或点击上方常用标签快速添加

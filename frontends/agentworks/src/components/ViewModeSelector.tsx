@@ -77,8 +77,8 @@ export function ViewModeSelector({
   };
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-      <span className="text-sm font-medium text-gray-700">查看视角：</span>
+    <div className="flex items-center gap-4 p-4 bg-surface-base rounded-lg border border-stroke">
+      <span className="text-sm font-medium text-content-secondary">查看视角：</span>
 
       <Radio.Group
         value={viewMode}
@@ -99,7 +99,7 @@ export function ViewModeSelector({
 
       {viewMode === 'customer' && (
         <div className="flex items-center gap-2 flex-1">
-          <span className="text-sm text-gray-500">选择客户：</span>
+          <span className="text-sm text-content-muted">选择客户：</span>
           <Select
             mode="multiple"
             placeholder="请选择要查看的客户（可多选）"
@@ -119,7 +119,7 @@ export function ViewModeSelector({
             maxTagPlaceholder={omitted => `+${omitted.length}...`}
           />
           {selectedCustomers.length > 0 && (
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-content-muted">
               已选 {selectedCustomers.length} 个客户
             </span>
           )}
@@ -127,7 +127,7 @@ export function ViewModeSelector({
       )}
 
       {viewMode === 'all' && (
-        <span className="text-sm text-gray-400">
+        <span className="text-sm text-content-muted">
           展示所有入库达人，不包含客户标签信息
         </span>
       )}

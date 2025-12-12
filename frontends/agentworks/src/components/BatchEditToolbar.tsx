@@ -36,7 +36,7 @@ export function BatchEditToolbar({
       <button
         onClick={onCancel}
         disabled={saving}
-        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="px-4 py-2 border border-stroke text-content-secondary rounded-md hover:bg-surface-base disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {cancelLabel}
       </button>
@@ -45,7 +45,7 @@ export function BatchEditToolbar({
       <button
         onClick={onSave}
         disabled={saving}
-        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        className="px-4 py-2 bg-success-600 text-white rounded-md hover:bg-success-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
       >
         {saving ? (
           <>

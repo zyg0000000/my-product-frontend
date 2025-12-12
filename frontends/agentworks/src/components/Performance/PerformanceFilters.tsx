@@ -241,12 +241,12 @@ export function PerformanceFilters({
     <div className="bg-surface rounded-lg shadow mb-4">
       {/* 筛选面板头部 */}
       <div
-        className="flex items-center justify-between px-4 py-3 border-b cursor-pointer hover:bg-gray-50"
+        className="flex items-center justify-between px-4 py-3 border-b cursor-pointer hover:bg-surface-base"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-2">
           <svg
-            className={`w-5 h-5 text-gray-500 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+            className={`w-5 h-5 text-content-muted transition-transform ${isExpanded ? 'rotate-90' : ''}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -258,7 +258,7 @@ export function PerformanceFilters({
               d="M9 5l7 7-7 7"
             />
           </svg>
-          <span className="font-medium text-gray-900">筛选条件</span>
+          <span className="font-medium text-content">筛选条件</span>
         </div>
         <div
           className="flex items-center gap-2"
@@ -267,7 +267,7 @@ export function PerformanceFilters({
           {hasActiveFilters && (
             <button
               onClick={onReset}
-              className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+              className="px-3 py-1 text-sm text-content-secondary hover:text-content hover:bg-surface-sunken rounded"
             >
               重置
             </button>
@@ -294,7 +294,7 @@ export function PerformanceFilters({
                   onClick={() => toggleCategory(category)}
                 >
                   <svg
-                    className={`w-4 h-4 text-gray-400 transition-transform ${isCategoryExpanded(category) ? 'rotate-90' : ''}`}
+                    className={`w-4 h-4 text-content-muted transition-transform ${isCategoryExpanded(category) ? 'rotate-90' : ''}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -306,7 +306,7 @@ export function PerformanceFilters({
                       d="M9 5l7 7-7 7"
                     />
                   </svg>
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-content-secondary">
                     {category}
                   </span>
                 </div>
@@ -324,9 +324,9 @@ export function PerformanceFilters({
           </div>
 
           {/* 右侧：已选条件展示 */}
-          <div className="w-96 p-4 bg-gray-50">
+          <div className="w-96 p-4 bg-surface-base">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-content-secondary">
                 已选条件
               </span>
               {hasActiveFilters && (
@@ -346,10 +346,10 @@ export function PerformanceFilters({
                     key={`${tag.dimensionId}-${index}`}
                     className="inline-flex items-center gap-1 px-2.5 py-1 bg-surface border border-stroke rounded-md text-sm"
                   >
-                    <span className="text-gray-700">{tag.label}</span>
+                    <span className="text-content-secondary">{tag.label}</span>
                     <button
                       onClick={() => removeFilterTag(tag)}
-                      className="ml-1 text-gray-400 hover:text-gray-600"
+                      className="ml-1 text-content-muted hover:text-content-secondary"
                     >
                       <svg
                         className="w-3 h-3"
@@ -369,15 +369,15 @@ export function PerformanceFilters({
                 ))}
               </div>
             ) : (
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-content-muted">
                 暂无筛选条件，请在左侧选择
               </div>
             )}
 
             {/* 筛选统计信息 */}
             {hasActiveFilters && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="text-xs text-gray-500">
+              <div className="mt-4 pt-4 border-t border-stroke">
+                <div className="text-xs text-content-muted">
                   <div>已选择 {activeFilterCount} 个筛选条件</div>
                 </div>
               </div>
@@ -403,7 +403,7 @@ function TextFilter({
 }) {
   return (
     <div className="space-y-1">
-      <label className="block text-xs font-medium text-gray-600">
+      <label className="block text-xs font-medium text-content-secondary">
         {dimension.name}
       </label>
       <input
@@ -485,12 +485,12 @@ function EnumFilter({
 
   return (
     <div className="space-y-1">
-      <label className="block text-xs font-medium text-gray-600">
+      <label className="block text-xs font-medium text-content-secondary">
         {dimension.name}
       </label>
       <div className="flex flex-wrap gap-2">
         {loading ? (
-          <span className="text-xs text-gray-400">加载中...</span>
+          <span className="text-xs text-content-muted">加载中...</span>
         ) : options.length > 0 ? (
           options.map(option => (
             <button
@@ -506,7 +506,7 @@ function EnumFilter({
             </button>
           ))
         ) : (
-          <span className="text-xs text-gray-400">暂无选项</span>
+          <span className="text-xs text-content-muted">暂无选项</span>
         )}
       </div>
     </div>
@@ -532,9 +532,9 @@ function RangeFilter({
 
   return (
     <div className="space-y-1">
-      <label className="block text-xs font-medium text-gray-600">
+      <label className="block text-xs font-medium text-content-secondary">
         {dimension.name}
-        {isPercentage && <span className="text-gray-400 ml-1">(%)</span>}
+        {isPercentage && <span className="text-content-muted ml-1">(%)</span>}
       </label>
       <div className="flex items-center gap-2">
         <input
@@ -544,7 +544,7 @@ function RangeFilter({
           placeholder={`最小${suffix}`}
           className="w-20 px-2 py-1.5 text-sm border border-stroke rounded-md bg-surface text-content focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         />
-        <span className="text-gray-400">-</span>
+        <span className="text-content-muted">-</span>
         <input
           type="number"
           value={max}

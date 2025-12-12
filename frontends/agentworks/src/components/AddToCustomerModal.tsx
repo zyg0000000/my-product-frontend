@@ -188,7 +188,7 @@ export function AddToCustomerModal({
       {/* 客户选择 */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-content mb-2">
-          选择目标客户 <span className="text-red-500">*</span>
+          选择目标客户 <span className="text-danger-500">*</span>
         </label>
         <Select
           showSearch

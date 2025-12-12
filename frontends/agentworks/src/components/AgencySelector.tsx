@@ -97,7 +97,7 @@ export function AgencySelector({
     // 统一样式：只显示名称
     return (
       <div className="py-1">
-        <div className="text-gray-900">{data.label}</div>
+        <div className="text-content">{data.label}</div>
       </div>
     );
   };

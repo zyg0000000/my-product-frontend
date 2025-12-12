@@ -230,11 +230,11 @@ export function AgenciesList() {
         render: (_, record) => {
           const rebate = getPlatformRebate(record);
           return rebate !== undefined ? (
-            <span className="font-medium text-green-600">
+            <span className="font-medium text-success-600 dark:text-success-400">
               {rebate.toFixed(2)}%
             </span>
           ) : (
-            <span className="text-gray-400 text-xs">未配置</span>
+            <span className="text-content-muted text-xs">未配置</span>
           );
         },
       },
@@ -297,7 +297,7 @@ export function AgenciesList() {
                   size="small"
                   icon={<PercentageOutlined />}
                   onClick={() => handleRebateManagement(record)}
-                  className="text-green-600 hover:text-green-700"
+                  className="text-success-600 dark:text-success-400 hover:text-success-700 dark:text-success-300"
                 />
               </Tooltip>
             )}

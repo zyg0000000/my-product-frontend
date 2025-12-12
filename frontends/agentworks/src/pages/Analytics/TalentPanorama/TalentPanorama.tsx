@@ -366,7 +366,7 @@ export function TalentPanorama() {
               if (value === null || value === undefined) return 'N/A';
               const sign = value > 0 ? '+' : '';
               const color =
-                value > 0 ? 'text-green-600' : value < 0 ? 'text-red-600' : '';
+                value > 0 ? 'text-success-600 dark:text-success-400' : value < 0 ? 'text-danger-600 dark:text-danger-400' : '';
               return (
                 <span className={color}>
                   {sign}
@@ -725,7 +725,7 @@ export function TalentPanorama() {
                 {viewMode === 'customer' && selectedCustomers.length > 0 && (
                   <>
                     <div className="h-4 w-px bg-gray-300" />
-                    <span className="text-sm text-blue-600">
+                    <span className="text-sm text-primary-600 dark:text-primary-400">
                       客户视角:{' '}
                       {selectedCustomers.length === 1
                         ? selectedCustomers[0]

@@ -99,28 +99,28 @@ export function Home() {
       { bg: string; border: string; icon: string; text: string }
     > = {
       primary: {
-        bg: 'bg-primary-50',
+        bg: 'bg-primary-50 dark:bg-primary-900/20',
         border: 'border-l-primary-500',
         icon: 'bg-primary-500 text-white',
-        text: 'text-primary-600',
+        text: 'text-primary-600 dark:text-primary-400',
       },
       success: {
-        bg: 'bg-success-50',
+        bg: 'bg-success-50 dark:bg-success-900/20',
         border: 'border-l-success-500',
         icon: 'bg-success-500 text-white',
-        text: 'text-success-600',
+        text: 'text-success-600 dark:text-success-400',
       },
       warning: {
-        bg: 'bg-warning-50',
+        bg: 'bg-warning-50 dark:bg-warning-900/20',
         border: 'border-l-warning-500',
         icon: 'bg-warning-500 text-white',
-        text: 'text-warning-600',
+        text: 'text-warning-600 dark:text-warning-400',
       },
       info: {
-        bg: 'bg-info-50',
+        bg: 'bg-info-50 dark:bg-info-900/20',
         border: 'border-l-info-500',
         icon: 'bg-info-500 text-white',
-        text: 'text-info-600',
+        text: 'text-info-600 dark:text-info-400',
       },
     };
     return colorMap[color] || colorMap.primary;
@@ -145,7 +145,7 @@ export function Home() {
                 <h1 className="font-display text-3xl font-bold tracking-tight">
                   欢迎使用 AgentWorks
                 </h1>
-                <p className="mt-1 text-primary-100">多平台达人营销管理系统</p>
+                <p className="mt-1 text-white/80">多平台达人营销管理系统</p>
               </div>
             </div>
 
@@ -173,26 +173,26 @@ export function Home() {
               <button
                 key={action.path}
                 onClick={() => navigate(action.path)}
-                className="group relative flex flex-col items-start rounded-xl border border-stroke bg-surface-base p-5 text-left transition-all duration-200 hover:border-stroke-hover hover:shadow-lg"
+                className="group relative flex flex-col rounded-xl border border-stroke bg-surface-base p-5 text-left transition-all duration-200 hover:border-stroke-hover hover:shadow-lg h-full"
               >
                 {/* 悬停时的渐变背景 */}
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-surface-sunken to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
 
-                <div className="relative">
+                <div className="relative flex flex-col h-full">
                   <div
-                    className={`rounded-xl bg-gradient-to-br ${action.gradient} p-3 ${action.shadowColor} transition-transform duration-200 group-hover:scale-105`}
+                    className={`rounded-xl bg-gradient-to-br ${action.gradient} p-3 ${action.shadowColor} transition-transform duration-200 group-hover:scale-105 w-fit`}
                   >
                     <action.icon className="h-5 w-5 text-white" />
                   </div>
-                  <h3 className="mt-4 text-base font-semibold text-content group-hover:text-primary-600">
+                  <h3 className="mt-4 text-base font-semibold text-content group-hover:text-primary-500 dark:group-hover:text-primary-400">
                     {action.name}
                   </h3>
-                  <p className="mt-1.5 text-sm text-content-secondary leading-relaxed">
+                  <p className="mt-1.5 text-sm text-content-secondary leading-relaxed flex-1">
                     {action.description}
                   </p>
 
                   {/* 箭头指示 */}
-                  <div className="mt-3 flex items-center gap-1 text-sm font-medium text-primary-600 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                  <div className="mt-3 flex items-center gap-1 text-sm font-medium text-primary-600 dark:text-primary-400 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                     <span>进入</span>
                     <ArrowRightIcon className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                   </div>
@@ -208,7 +208,7 @@ export function Home() {
             <h2 className="font-display text-xl font-semibold text-content">
               近期更新
             </h2>
-            <span className="rounded-full bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-600">
+            <span className="rounded-full bg-primary-50 dark:bg-primary-900/30 px-3 py-1.5 text-xs font-semibold text-primary-600 dark:text-primary-400">
               v3.9.0
             </span>
           </div>
@@ -248,7 +248,7 @@ export function Home() {
 
           {/* 查看更多 */}
           <div className="mt-6 pt-4 border-t border-stroke">
-            <button className="flex items-center gap-2 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors">
+            <button className="flex items-center gap-2 text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
               <span>查看完整更新日志</span>
               <ArrowRightIcon className="h-4 w-4" />
             </button>

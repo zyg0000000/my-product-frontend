@@ -45,7 +45,7 @@ export function SettingsHome() {
       key: 'platform-config',
       title: '平台配置管理',
       description: '管理系统支持的平台及其相关配置，支持动态调整无需重新部署',
-      icon: <SettingOutlined className="text-2xl text-green-600" />,
+      icon: <SettingOutlined className="text-2xl text-success-600 dark:text-success-400" />,
       path: '/settings/platform-config',
       status: 'beta',
     },
@@ -63,7 +63,7 @@ export function SettingsHome() {
     switch (status) {
       case 'active':
         return (
-          <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">
+          <span className="px-2 py-0.5 text-xs font-medium bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-300 rounded">
             稳定
           </span>
         );

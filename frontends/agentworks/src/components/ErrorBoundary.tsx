@@ -62,12 +62,12 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // 默认错误页面
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center bg-surface-base">
           <div className="max-w-md w-full bg-surface shadow-lg rounded-lg p-8 text-center">
             {/* 错误图标 */}
             <div className="mb-4">
               <svg
-                className="mx-auto h-16 w-16 text-red-500"
+                className="mx-auto h-16 w-16 text-danger-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -82,23 +82,23 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             {/* 错误标题 */}
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-content mb-2">
               页面出现错误
             </h1>
 
             {/* 错误描述 */}
-            <p className="text-gray-600 mb-6">
+            <p className="text-content-secondary mb-6">
               抱歉，页面遇到了一些问题。请尝试刷新页面，如果问题仍然存在，请联系技术支持。
             </p>
 
             {/* 开发环境显示错误详情 */}
             {import.meta.env.DEV && this.state.error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded text-left">
-                <div className="text-sm font-mono text-red-800 mb-2">
+              <div className="mb-6 p-4 bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-700 rounded text-left">
+                <div className="text-sm font-mono text-danger-800 dark:text-danger-200 mb-2">
                   <strong>错误信息:</strong> {this.state.error.message}
                 </div>
                 {this.state.error.stack && (
-                  <div className="text-xs font-mono text-red-700 overflow-x-auto">
+                  <div className="text-xs font-mono text-danger-700 dark:text-danger-300 overflow-x-auto">
                     <pre>{this.state.error.stack}</pre>
                   </div>
                 )}
@@ -109,7 +109,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="flex gap-3 justify-center">
               <button
                 onClick={this.handleReset}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+                className="px-4 py-2 bg-surface-sunken text-content rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
                 重试
               </button>

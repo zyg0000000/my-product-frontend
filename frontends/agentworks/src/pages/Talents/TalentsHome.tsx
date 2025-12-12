@@ -83,7 +83,7 @@ export function TalentsHome() {
       description: '达人档期安排和时间管理',
       icon: CalendarIcon,
       path: '/talents/schedule',
-      color: 'bg-green-500',
+      color: 'bg-success-500',
       available: false,
     },
   ];

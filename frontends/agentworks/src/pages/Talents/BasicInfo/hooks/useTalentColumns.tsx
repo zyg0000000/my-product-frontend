@@ -125,13 +125,13 @@ export function useTalentColumns({
                 </Tag>
               ))}
               {record.talentType.length > 2 && (
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-content-muted">
                   +{record.talentType.length - 2}
                 </span>
               )}
             </Space>
           ) : (
-            <span className="text-gray-400 text-xs">-</span>
+            <span className="text-content-muted text-xs">-</span>
           ),
       },
       // 价格列（根据选中的价格类型显示，如果是 null 则隐藏）
@@ -145,11 +145,11 @@ export function useTalentColumns({
                 const latestPrices = getLatestPricesMap(record.prices);
                 const price = latestPrices[selectedPriceTier as PriceType];
                 return price ? (
-                  <span className="text-gray-900 font-medium">
+                  <span className="text-content font-medium">
                     {formatPrice(price)}
                   </span>
                 ) : (
-                  <span className="text-gray-400">N/A</span>
+                  <span className="text-content-muted">N/A</span>
                 );
               },
             },
@@ -161,11 +161,11 @@ export function useTalentColumns({
         width: 80,
         render: (_, record) =>
           record.currentRebate?.rate !== undefined ? (
-            <span className="text-gray-900 font-medium">
+            <span className="text-content font-medium">
               {formatRebate(record.currentRebate.rate)}
             </span>
           ) : (
-            <span className="text-gray-400">-</span>
+            <span className="text-content-muted">-</span>
           ),
       },
       {
@@ -221,7 +221,7 @@ export function useTalentColumns({
                 size="small"
                 icon={<PercentageOutlined />}
                 onClick={() => onMenuClick('rebate', record)}
-                className="text-green-600 hover:text-green-700"
+                className="text-success-600 dark:text-success-400 hover:text-success-700 dark:text-success-300"
               />
             </Tooltip>
             <Dropdown

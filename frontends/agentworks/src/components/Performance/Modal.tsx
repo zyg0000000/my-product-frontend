@@ -41,11 +41,11 @@ export function Modal({
         className={`relative bg-surface rounded-lg shadow-xl ${sizeClasses[size]} w-full max-h-[90vh] flex flex-col`}
       >
         {/* 标题栏 */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-stroke">
+          <h2 className="text-xl font-semibold text-content">{title}</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-content-muted hover:text-content-secondary transition-colors"
           >
             <svg
               className="w-6 h-6"

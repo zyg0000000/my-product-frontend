@@ -122,7 +122,7 @@ export function DataImportModal({
           <div className="text-base font-semibold">
             导入{PLATFORM_NAMES[platform]}表现数据
           </div>
-          <div className="text-xs font-normal text-gray-500 mt-0.5">
+          <div className="text-xs font-normal text-content-muted mt-0.5">
             从飞书表格导入达人表现数据
           </div>
         </div>
@@ -218,8 +218,8 @@ export function DataImportModal({
           }}
         />
 
-        <div className="mt-4 p-3 bg-primary-50 rounded text-xs text-gray-600">
-          <p className="font-medium text-gray-900 mb-1">📌 导入说明</p>
+        <div className="mt-4 p-3 bg-primary-50 rounded text-xs text-content-secondary">
+          <p className="font-medium text-content mb-1">📌 导入说明</p>
           <ul className="space-y-0.5 list-disc list-inside">
             <li>确保飞书表格已正确配置字段映射</li>
             <li>

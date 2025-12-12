@@ -173,7 +173,7 @@ export function ColumnSelector({
           }}
           onClick={e => e.stopPropagation()}
         >
-          <span className="text-xs text-gray-500">全选</span>
+          <span className="text-xs text-content-muted">全选</span>
         </Checkbox>
       </div>
     );
@@ -207,7 +207,7 @@ export function ColumnSelector({
             <div className="flex items-center gap-2">
               <span
                 className={`text-sm truncate ${
-                  isSelected ? 'text-primary-700 font-medium' : 'text-gray-700'
+                  isSelected ? 'text-primary-700 font-medium' : 'text-content-secondary'
                 }`}
               >
                 {field.name}
@@ -219,7 +219,7 @@ export function ColumnSelector({
               )}
             </div>
             {field.description && (
-              <div className="text-xs text-gray-400 truncate mt-0.5">
+              <div className="text-xs text-content-muted truncate mt-0.5">
                 {field.description}
               </div>
             )}
@@ -227,7 +227,7 @@ export function ColumnSelector({
         </div>
         {field.description && (
           <Tooltip title={field.description} placement="left">
-            <InfoCircleOutlined className="text-gray-300 group-hover:text-gray-400 transition-colors ml-2 flex-shrink-0" />
+            <InfoCircleOutlined className="text-gray-300 group-hover:text-content-muted transition-colors ml-2 flex-shrink-0" />
           </Tooltip>
         )}
       </div>
@@ -259,7 +259,7 @@ export function ColumnSelector({
               size="small"
               icon={<UndoOutlined />}
               onClick={onResetToDefault}
-              className="text-gray-500 hover:text-primary-600"
+              className="text-content-muted hover:text-primary-600"
             >
               恢复默认
             </Button>
@@ -279,21 +279,21 @@ export function ColumnSelector({
       <div className="p-4 border-b border-gray-100 sticky top-0 bg-surface z-10">
         <Input
           placeholder="搜索字段名称..."
-          prefix={<SearchOutlined className="text-gray-400" />}
+          prefix={<SearchOutlined className="text-content-muted" />}
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           allowClear
           className="rounded-lg"
         />
         <div className="flex items-center justify-between mt-3 text-sm">
-          <span className="text-gray-500">
+          <span className="text-content-muted">
             已选择{' '}
             <span className="text-primary-600 font-semibold">
               {selectedFields.length}
             </span>{' '}
             个字段
           </span>
-          <span className="text-gray-400 text-xs">
+          <span className="text-content-muted text-xs">
             共 {availableFields.length} 个可用
           </span>
         </div>
@@ -313,7 +313,7 @@ export function ColumnSelector({
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description={
-              <span className="text-gray-400">未找到匹配的字段</span>
+              <span className="text-content-muted">未找到匹配的字段</span>
             }
             className="py-12"
           />
@@ -323,7 +323,7 @@ export function ColumnSelector({
       {/* 底部固定区域 */}
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-surface border-t border-gray-100">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-content-muted">
             选择的字段将在表格中显示
           </span>
           <Button type="primary" onClick={onClose}>

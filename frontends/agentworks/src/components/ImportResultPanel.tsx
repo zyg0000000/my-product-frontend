@@ -74,8 +74,8 @@ export function ImportResultPanel({ result, onClose }: ImportResultPanelProps) {
               </div>
               <div className="text-xs text-content-secondary mt-1">总计</div>
             </div>
-            <div className="bg-green-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">
+            <div className="bg-success-50 dark:bg-success-900/20 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-success-600 dark:text-success-400">
                 {successCount}
               </div>
               <div className="text-xs text-content-secondary mt-1">
@@ -83,10 +83,10 @@ export function ImportResultPanel({ result, onClose }: ImportResultPanelProps) {
               </div>
             </div>
             <div
-              className={`rounded-lg p-4 text-center ${hasFailures ? 'bg-red-50' : 'bg-surface-base'}`}
+              className={`rounded-lg p-4 text-center ${hasFailures ? 'bg-danger-50 dark:bg-danger-900/20' : 'bg-surface-base'}`}
             >
               <div
-                className={`text-2xl font-bold ${hasFailures ? 'text-red-600' : 'text-content-muted'}`}
+                className={`text-2xl font-bold ${hasFailures ? 'text-danger-600 dark:text-danger-400' : 'text-content-muted'}`}
               >
                 {stats.failed}
               </div>
@@ -96,8 +96,8 @@ export function ImportResultPanel({ result, onClose }: ImportResultPanelProps) {
 
           {/* 失败记录 */}
           {hasFailures && (
-            <div className="border border-red-200 rounded-lg bg-red-50 p-4">
-              <h4 className="text-sm font-semibold text-red-900 mb-3">
+            <div className="border border-danger-200 dark:border-danger-700 rounded-lg bg-danger-50 dark:bg-danger-900/20 p-4">
+              <h4 className="text-sm font-semibold text-danger-900 dark:text-danger-100 mb-3">
                 ❌ 失败记录 ({failedRecords.length} 条)
               </h4>
               <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -108,7 +108,7 @@ export function ImportResultPanel({ result, onClose }: ImportResultPanelProps) {
                       <div className="font-medium text-content">
                         行号 {rowNum}
                       </div>
-                      <div className="text-red-600 text-xs mt-1">
+                      <div className="text-danger-600 dark:text-danger-400 text-xs mt-1">
                         原因: {record.reason || '未知错误'}
                       </div>
                     </div>
@@ -116,7 +116,7 @@ export function ImportResultPanel({ result, onClose }: ImportResultPanelProps) {
                 })}
               </div>
               {stats.failed > failedRecords.length && (
-                <p className="text-xs text-red-700 mt-2">
+                <p className="text-xs text-danger-700 dark:text-danger-300 mt-2">
                   还有 {stats.failed - failedRecords.length}{' '}
                   条失败记录未显示，请导出完整列表查看
                 </p>
@@ -126,12 +126,12 @@ export function ImportResultPanel({ result, onClose }: ImportResultPanelProps) {
 
           {/* 成功提示 */}
           {!hasFailures && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <p className="text-green-900 text-sm">
+            <div className="bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-700 rounded-lg p-4">
+              <p className="text-success-900 dark:text-success-100 text-sm">
                 🎉 所有数据导入成功！前往{' '}
                 <a
                   href="/performance"
-                  className="text-green-600 underline font-medium"
+                  className="text-success-600 dark:text-success-400 underline font-medium"
                 >
                   Performance 页面
                 </a>{' '}

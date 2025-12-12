@@ -61,7 +61,7 @@ export function TalentNameWithLinks({
   // 名称样式
   const defaultNameClass = nameAsLink
     ? 'font-medium text-primary-600 hover:text-primary-800 cursor-pointer'
-    : 'font-medium text-gray-900';
+    : 'font-medium text-content';
   const finalNameClass = nameClassName || defaultNameClass;
 
   return (

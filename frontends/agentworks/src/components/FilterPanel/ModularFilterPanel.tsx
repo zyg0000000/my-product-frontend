@@ -256,7 +256,7 @@ export function ModularFilterPanel({
           onClick={() => toggleModule(module.id)}
         >
           <svg
-            className={`w-4 h-4 text-gray-400 transition-transform ${
+            className={`w-4 h-4 text-content-muted transition-transform ${
               isModuleExpanded ? 'rotate-90' : ''
             }`}
             fill="none"
@@ -270,7 +270,7 @@ export function ModularFilterPanel({
               d="M9 5l7 7-7 7"
             />
           </svg>
-          <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          <span className="text-sm font-medium text-content-secondary flex items-center gap-2">
             {module.icon}
             {module.name}
           </span>
@@ -295,7 +295,7 @@ export function ModularFilterPanel({
       <div className={`bg-surface rounded-lg shadow mb-4 p-4 ${className}`}>
         <div className="flex items-center justify-center py-8">
           <Spin>
-            <span className="ml-2 text-gray-500">加载筛选配置...</span>
+            <span className="ml-2 text-content-muted">加载筛选配置...</span>
           </Spin>
         </div>
       </div>
@@ -306,12 +306,12 @@ export function ModularFilterPanel({
     <div className={`bg-surface rounded-lg shadow mb-4 ${className}`}>
       {/* 筛选面板头部 */}
       <div
-        className="flex items-center justify-between px-4 py-3 border-b cursor-pointer hover:bg-gray-50"
+        className="flex items-center justify-between px-4 py-3 border-b cursor-pointer hover:bg-surface-base"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-2">
           <svg
-            className={`w-5 h-5 text-gray-500 transition-transform ${
+            className={`w-5 h-5 text-content-muted transition-transform ${
               isExpanded ? 'rotate-90' : ''
             }`}
             fill="none"
@@ -325,7 +325,7 @@ export function ModularFilterPanel({
               d="M9 5l7 7-7 7"
             />
           </svg>
-          <span className="font-medium text-gray-900">筛选条件</span>
+          <span className="font-medium text-content">筛选条件</span>
           {activeFilterCount > 0 && (
             <Tag color="blue" className="ml-2">
               {activeFilterCount} 个条件
@@ -361,9 +361,9 @@ export function ModularFilterPanel({
           </div>
 
           {/* 右侧：已选条件展示 */}
-          <div className="w-80 p-4 bg-gray-50">
+          <div className="w-80 p-4 bg-surface-base">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-content-secondary">
                 已选条件
               </span>
               {hasActiveFilters && (
@@ -383,10 +383,10 @@ export function ModularFilterPanel({
                     key={`${tag.filterId}-${index}`}
                     className="inline-flex items-center gap-1 px-2.5 py-1 bg-surface border border-stroke rounded-md text-sm"
                   >
-                    <span className="text-gray-700">{tag.label}</span>
+                    <span className="text-content-secondary">{tag.label}</span>
                     <button
                       onClick={() => removeFilterTag(tag)}
-                      className="ml-1 text-gray-400 hover:text-gray-600"
+                      className="ml-1 text-content-muted hover:text-content-secondary"
                     >
                       <svg
                         className="w-3 h-3"
@@ -406,7 +406,7 @@ export function ModularFilterPanel({
                 ))}
               </div>
             ) : (
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-content-muted">
                 暂无筛选条件，请在左侧选择
               </div>
             )}

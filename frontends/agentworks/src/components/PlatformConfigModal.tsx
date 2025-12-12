@@ -848,12 +848,12 @@ export function PlatformConfigModal({
           {/* 底部说明 */}
           <div className="flex items-start gap-2 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
             <span className="text-base">💡</span>
-            <div className="text-xs text-blue-700 leading-relaxed">
+            <div className="text-xs text-primary-700 dark:text-primary-300 leading-relaxed">
               <strong>数据来源</strong>：
               {LINK_ID_SOURCE_OPTIONS.map((opt, i) => (
                 <span key={opt.value}>
                   {i > 0 && '，'}
-                  <span className="text-blue-600">{opt.label}</span>{' '}
+                  <span className="text-primary-600 dark:text-primary-400">{opt.label}</span>{' '}
                   {opt.description}
                 </span>
               ))}

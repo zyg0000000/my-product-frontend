@@ -336,7 +336,7 @@ export function TalentFilterPanel({
                       onChange={e => onFilterChange('priceMin', e.target.value)}
                       style={{ width: '50%' }}
                     />
-                    <span className="self-center text-gray-400">-</span>
+                    <span className="self-center text-content-muted">-</span>
                     <Input
                       type="number"
                       placeholder="最大"
@@ -365,7 +365,7 @@ export function TalentFilterPanel({
                       }
                       style={{ width: '50%' }}
                     />
-                    <span className="self-center text-gray-400">-</span>
+                    <span className="self-center text-content-muted">-</span>
                     <Input
                       type="number"
                       placeholder="最大"

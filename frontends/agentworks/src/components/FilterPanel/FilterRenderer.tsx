@@ -117,14 +117,14 @@ function TextFilter({
 }: FilterRendererProps) {
   return (
     <div className="space-y-1">
-      <label className="block text-xs font-medium text-gray-600">
+      <label className="block text-xs font-medium text-content-secondary">
         {config.name}
       </label>
       <Input
         value={value?.text || ''}
         onChange={e => onChange({ ...value, text: e.target.value })}
         placeholder={config.placeholder || `搜索${config.name}...`}
-        prefix={<SearchOutlined className="text-gray-400" />}
+        prefix={<SearchOutlined className="text-content-muted" />}
         disabled={disabled}
         allowClear
         className="w-full"
@@ -199,7 +199,7 @@ function EnumFilter({
 
   return (
     <div className="space-y-1">
-      <label className="block text-xs font-medium text-gray-600">
+      <label className="block text-xs font-medium text-content-secondary">
         {config.name}
       </label>
       <div className="flex flex-wrap gap-2">
@@ -221,7 +221,7 @@ function EnumFilter({
             </button>
           ))
         ) : (
-          <span className="text-xs text-gray-400">暂无选项</span>
+          <span className="text-xs text-content-muted">暂无选项</span>
         )}
       </div>
     </div>
@@ -243,9 +243,9 @@ function RangeFilter({
 
   return (
     <div className="space-y-1">
-      <label className="block text-xs font-medium text-gray-600">
+      <label className="block text-xs font-medium text-content-secondary">
         {config.name}
-        {unit && <span className="text-gray-400 ml-1">({unit})</span>}
+        {unit && <span className="text-content-muted ml-1">({unit})</span>}
       </label>
       <div className="flex items-center gap-2">
         <Input
@@ -259,7 +259,7 @@ function RangeFilter({
           step={rangeConfig?.step}
           className="w-20"
         />
-        <span className="text-gray-400">-</span>
+        <span className="text-content-muted">-</span>
         <Input
           type="number"
           value={value?.max || ''}
@@ -287,7 +287,7 @@ function DateFilter({
 }: FilterRendererProps) {
   return (
     <div className="space-y-1">
-      <label className="block text-xs font-medium text-gray-600">
+      <label className="block text-xs font-medium text-content-secondary">
         {config.name}
       </label>
       <RangePicker
@@ -376,7 +376,7 @@ function CompoundFilter({
             step={rangeConfig?.step}
             className="w-20"
           />
-          <span className="text-gray-400">-</span>
+          <span className="text-content-muted">-</span>
           <Input
             type="number"
             value={value?.max || ''}
@@ -388,7 +388,7 @@ function CompoundFilter({
             step={rangeConfig?.step}
             className="w-20"
           />
-          {unit && <span className="text-gray-400 text-xs">{unit}</span>}
+          {unit && <span className="text-content-muted text-xs">{unit}</span>}
         </div>
       );
     }
@@ -417,7 +417,7 @@ function CompoundFilter({
 
   return (
     <div className="space-y-1">
-      <label className="block text-xs font-medium text-gray-600">
+      <label className="block text-xs font-medium text-content-secondary">
         {config.name}
       </label>
       <div className="flex items-center gap-2">

@@ -191,7 +191,7 @@ export function TalentProcurementCard({
           {platform.name} - 报价系数计算
         </div>
 
-        <div className="space-y-2 bg-gray-800 p-3 rounded text-xs">
+        <div className="space-y-2 bg-surface-elevated dark:bg-gray-900 p-3 rounded text-xs">
           <div className="flex justify-between gap-4">
             <span className="text-gray-300 whitespace-nowrap">
               1. 基础刊例价:
@@ -858,7 +858,7 @@ export function TalentProcurementCard({
                           平台已停用，点击开关启用
                         </div>
                       ) : isProjectMode ? (
-                        <div className="text-sm text-content-secondary py-4 text-center bg-blue-50 rounded">
+                        <div className="text-sm text-content-secondary py-4 text-center bg-primary-50 dark:bg-primary-900/20 rounded">
                           项目比价模式，创建项目时手动填写对客报价
                         </div>
                       ) : (
@@ -907,7 +907,7 @@ export function TalentProcurementCard({
                                 platformItem.config.validTo ? (
                                 `${platformItem.config.validFrom.substring(0, 7)} ~ ${platformItem.config.validTo.substring(0, 7)}`
                               ) : (
-                                <span className="text-red-500">未设置</span>
+                                <span className="text-danger-500">未设置</span>
                               )}
                             </span>
                           </div>
@@ -929,7 +929,7 @@ export function TalentProcurementCard({
                                   borderRadius: '6px',
                                 }}
                               >
-                                <span className="font-bold text-blue-600 cursor-help border-b border-dashed border-blue-300 flex items-center gap-1">
+                                <span className="font-bold text-primary-600 dark:text-primary-400 cursor-help border-b border-dashed border-blue-300 flex items-center gap-1">
                                   {platformItem.quotationCoefficient?.toFixed(
                                     4
                                   ) ||

@@ -1010,7 +1010,7 @@ export function FinancialTab({
                       {adj.type}:{' '}
                       <span
                         className={
-                          adj.amount >= 0 ? 'text-green-600' : 'text-red-500'
+                          adj.amount >= 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-500'
                         }
                       >
                         {adj.amount >= 0 ? '+' : ''}
@@ -1038,7 +1038,7 @@ export function FinancialTab({
                 <div className="text-xs border-t pt-1">
                   合计:{' '}
                   <span
-                    className={`font-medium ${total >= 0 ? 'text-green-600' : 'text-red-500'}`}
+                    className={`font-medium ${total >= 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-500'}`}
                   >
                     {total >= 0 ? '+' : ''}
                     {formatMoney(total)}

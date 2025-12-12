@@ -342,7 +342,7 @@ export function ExecutionTab({
           record.status
         );
         return (
-          <span className={delayed ? 'text-red-500 font-medium' : ''}>
+          <span className={delayed ? 'text-danger-500 font-medium' : ''}>
             {record.plannedReleaseDate
               ? dayjs(record.plannedReleaseDate).format('YYYY-MM-DD')
               : '-'}

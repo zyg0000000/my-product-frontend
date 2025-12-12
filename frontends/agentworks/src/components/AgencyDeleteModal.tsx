@@ -65,10 +65,10 @@ export function AgencyDeleteModal({
     <Modal
       title={
         <div className="flex items-center gap-2">
-          <ExclamationCircleFilled className="text-xl text-red-600" />
+          <ExclamationCircleFilled className="text-xl text-danger-600 dark:text-danger-400" />
           <div>
             <div className="text-base font-semibold">删除确认</div>
-            <div className="text-xs font-normal text-gray-500 mt-0.5">
+            <div className="text-xs font-normal text-content-muted mt-0.5">
               此操作不可逆，请谨慎确认
             </div>
           </div>
@@ -85,25 +85,25 @@ export function AgencyDeleteModal({
     >
       <div className="space-y-3">
         {/* 机构信息 */}
-        <div className="p-3 bg-gray-50 rounded border border-gray-200">
-          <h4 className="text-xs font-semibold text-gray-900 mb-1.5">
+        <div className="p-3 bg-surface-base rounded border border-stroke">
+          <h4 className="text-xs font-semibold text-content mb-1.5">
             即将删除的机构
           </h4>
           <div className="space-y-0.5 text-xs">
             <div className="flex items-center gap-2">
-              <span className="text-gray-600">机构名称:</span>
-              <span className="font-medium text-gray-900">{agency.name}</span>
+              <span className="text-content-secondary">机构名称:</span>
+              <span className="font-medium text-content">{agency.name}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-600">机构ID:</span>
-              <span className="font-mono text-xs text-gray-900">
+              <span className="text-content-secondary">机构ID:</span>
+              <span className="font-mono text-xs text-content">
                 {agency.id}
               </span>
             </div>
             {talentCount > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-gray-600">达人数量:</span>
-                <span className="font-semibold text-red-600">
+                <span className="text-content-secondary">达人数量:</span>
+                <span className="font-semibold text-danger-600 dark:text-danger-400">
                   {talentCount} 位
                 </span>
               </div>
@@ -118,7 +118,7 @@ export function AgencyDeleteModal({
             <ul className="text-xs space-y-0.5 list-disc list-inside mt-1">
               <li>删除后，该机构的所有信息将永久丢失</li>
               {talentCount > 0 && (
-                <li className="text-red-700 font-medium">
+                <li className="text-danger-700 dark:text-danger-300 font-medium">
                   该机构下还有 <strong>{talentCount}</strong>{' '}
                   位达人，删除可能影响达人数据
                 </li>
@@ -138,12 +138,12 @@ export function AgencyDeleteModal({
         />
 
         {/* 确认勾选 */}
-        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+        <div className="p-3 bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-700 rounded">
           <Checkbox
             checked={confirmed}
             onChange={e => setConfirmed(e.target.checked)}
           >
-            <span className="text-xs font-medium text-gray-900">
+            <span className="text-xs font-medium text-content">
               我已了解删除的影响，确认要删除机构「{agency.name}」
             </span>
           </Checkbox>

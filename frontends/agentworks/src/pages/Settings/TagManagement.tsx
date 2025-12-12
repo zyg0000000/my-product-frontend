@@ -235,25 +235,23 @@ export function TagManagement() {
 
         {/* 未保存提示 */}
         {hasChanges && (
-          <ProCard className="bg-yellow-50 border-yellow-200">
+          <div className="alert-warning">
             <div className="flex items-center gap-3">
-              <ExclamationCircleOutlined className="text-yellow-600 text-lg" />
-              <span className="text-sm text-yellow-800">
+              <ExclamationCircleOutlined className="alert-warning-icon text-lg" />
+              <span className="alert-warning-text">
                 您有未保存的更改，请点击「保存配置」按钮保存
               </span>
             </div>
-          </ProCard>
+          </div>
         )}
 
         {/* 说明卡片 */}
-        <ProCard className="bg-blue-50 border-blue-200">
+        <div className="alert-info">
           <div className="flex items-start gap-3">
-            <ExclamationCircleOutlined className="text-blue-600 text-lg mt-0.5" />
+            <ExclamationCircleOutlined className="alert-info-icon text-lg mt-0.5" />
             <div>
-              <h4 className="text-sm font-medium text-blue-900 mb-1">
-                标签使用说明
-              </h4>
-              <ul className="text-xs text-blue-700 space-y-1">
+              <h4 className="alert-info-title">标签使用说明</h4>
+              <ul className="alert-info-text space-y-1">
                 <li>
                   <strong>重要程度</strong>
                   ：用于标记达人的重要性，每个达人只能设置一个重要程度等级（单选）
@@ -270,7 +268,7 @@ export function TagManagement() {
               </ul>
             </div>
           </div>
-        </ProCard>
+        </div>
 
         {/* 标签配置 Tabs */}
         <ProCard>
@@ -283,8 +281,8 @@ export function TagManagement() {
 
         {/* 错误提示 */}
         {error && (
-          <div className="fixed bottom-4 right-4 bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg">
-            <div className="text-sm text-red-800">{error}</div>
+          <div className="fixed bottom-4 right-4 alert-danger shadow-lg">
+            <div className="alert-danger-text">{error}</div>
           </div>
         )}
       </div>

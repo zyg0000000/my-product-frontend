@@ -34,8 +34,8 @@ export function ClientsHome() {
       <div className="space-y-6">
         {/* 页面标题 */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">客户管理</h1>
-          <p className="mt-2 text-lg text-gray-600">
+          <h1 className="text-3xl font-bold text-content">客户管理</h1>
+          <p className="mt-2 text-lg text-content-secondary">
             管理客户信息和合作关系，维护客户档案
           </p>
         </div>
@@ -48,11 +48,11 @@ export function ClientsHome() {
           className="card"
         >
           <div className="text-center py-12">
-            <BuildingOfficeIcon className="mx-auto h-16 w-16 text-gray-400" />
-            <h3 className="mt-4 text-lg font-semibold text-gray-900">
+            <BuildingOfficeIcon className="mx-auto h-16 w-16 text-content-muted" />
+            <h3 className="mt-4 text-lg font-semibold text-content">
               功能开发中
             </h3>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-content-secondary">
               客户管理模块正在开发中，敬请期待
             </p>
           </div>
@@ -65,7 +65,7 @@ export function ClientsHome() {
           transition={{ delay: 0.2 }}
           className="card"
         >
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <h2 className="text-lg font-semibold text-content mb-4">
             规划中的功能
           </h2>
           <div className="space-y-3">
@@ -76,12 +76,12 @@ export function ClientsHome() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 + index * 0.1, duration: 0.3 }}
                 whileHover={{ x: 4, backgroundColor: 'rgba(249, 250, 251, 1)' }}
-                className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg transition-colors"
+                className="flex items-start gap-3 p-3 bg-surface-base rounded-lg transition-colors"
               >
-                <feature.icon className="h-6 w-6 text-gray-400 flex-shrink-0 mt-0.5" />
+                <feature.icon className="h-6 w-6 text-content-muted flex-shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-medium text-gray-900">{feature.title}</h4>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <h4 className="font-medium text-content">{feature.title}</h4>
+                  <p className="text-sm text-content-secondary mt-1">
                     {feature.description}
                   </p>
                 </div>

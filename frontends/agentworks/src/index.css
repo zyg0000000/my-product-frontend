@@ -131,7 +131,7 @@
 
   .btn-secondary {
     @apply btn text-content-secondary border
-           hover:border-gray-300 active:bg-gray-100 focus:ring-gray-300;
+           hover:border-stroke active:bg-surface-sunken focus:ring-gray-300;
     background-color: var(--color-bg-elevated);
     border-color: var(--color-border);
   }
@@ -141,9 +141,9 @@
   }
 
   .btn-ghost {
-    @apply btn bg-transparent text-gray-600
-           hover:bg-gray-100 hover:text-gray-900
-           active:bg-gray-200;
+    @apply btn bg-transparent text-content-secondary
+           hover:bg-surface-sunken hover:text-content
+           active:bg-surface-sunken;
   }
 
   .btn-danger {
@@ -170,6 +170,10 @@
     color: var(--aw-primary-700);
   }
 
+  .alert-info-icon {
+    color: var(--aw-primary-600);
+  }
+
   .alert-warning {
     @apply rounded-lg p-4 border;
     background-color: var(--aw-warning-50);
@@ -184,6 +188,10 @@
   .alert-warning-text {
     @apply text-xs;
     color: var(--aw-warning-700);
+  }
+
+  .alert-warning-icon {
+    color: var(--aw-warning-600);
   }
 
   .alert-success {
@@ -202,6 +210,10 @@
     color: var(--aw-success-700);
   }
 
+  .alert-success-icon {
+    color: var(--aw-success-600);
+  }
+
   .alert-danger {
     @apply rounded-lg p-4 border;
     background-color: var(--aw-danger-50);
@@ -216,6 +228,10 @@
   .alert-danger-text {
     @apply text-xs;
     color: var(--aw-danger-700);
+  }
+
+  .alert-danger-icon {
+    color: var(--aw-danger-600);
   }
 
   /* 卡片 - 使用语义化 CSS Variable 实现自动深色模式 */
@@ -341,11 +357,11 @@
 
   /* 分割线 */
   .divider {
-    @apply border-t border-gray-200 my-4;
+    @apply border-t border-stroke my-4;
   }
 
   .divider-vertical {
-    @apply border-l border-gray-200 mx-4 h-full;
+    @apply border-l border-stroke mx-4 h-full;
   }
 }
 

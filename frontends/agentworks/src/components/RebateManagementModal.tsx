@@ -103,7 +103,7 @@ export function RebateManagementModal({
       title={
         <div>
           <div className="text-lg font-semibold">
-            返点管理: <span className="text-green-600">{talent.name}</span>
+            返点管理: <span className="text-success-600 dark:text-success-400">{talent.name}</span>
           </div>
           <div className="text-sm font-normal text-content-secondary mt-0.5">
             {isWildTalent(talent) ? '野生达人' : '机构达人'} ·
@@ -154,7 +154,7 @@ export function RebateManagementModal({
                   </div>
                   <div>
                     <p className="text-xs text-content-secondary">当前返点率</p>
-                    <p className="mt-1 text-base font-bold text-green-600">
+                    <p className="mt-1 text-base font-bold text-success-600 dark:text-success-400">
                       {formatRebateRate(rebateData.currentRebate.rate)}
                     </p>
                   </div>
@@ -413,7 +413,7 @@ export function RebateManagementModal({
                   </div>
                   <div>
                     <p className="text-xs text-content-secondary">当前返点率</p>
-                    <p className="mt-1 text-base font-bold text-green-600">
+                    <p className="mt-1 text-base font-bold text-success-600 dark:text-success-400">
                       {rebateData
                         ? formatRebateRate(rebateData.currentRebate.rate)
                         : '0%'}

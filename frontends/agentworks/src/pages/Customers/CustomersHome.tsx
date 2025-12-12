@@ -30,7 +30,7 @@ export function CustomersHome() {
       description: '配置客户价格策略和报价系数',
       icon: CalculatorOutlined,
       path: '/customers/pricing',
-      color: 'bg-green-500',
+      color: 'bg-success-500',
       available: false,
     },
     {

@@ -644,7 +644,7 @@ function DimensionEditForm({
               </svg>
               {tab.label}
               {tab.key === 'filter' && dimension.filterable && (
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span className="w-2 h-2 bg-success-500 rounded-full"></span>
               )}
             </button>
           ))}

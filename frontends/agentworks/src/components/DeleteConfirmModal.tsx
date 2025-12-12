@@ -74,7 +74,7 @@ export function DeleteConfirmModal({
     <Modal
       title={
         <div className="flex items-center gap-2">
-          <ExclamationCircleFilled className="text-xl text-red-600" />
+          <ExclamationCircleFilled className="text-xl text-danger-600 dark:text-danger-400" />
           <div>
             <div className="text-base font-semibold">删除确认</div>
             <div className="text-xs font-normal text-content-secondary mt-0.5">
@@ -157,7 +157,7 @@ export function DeleteConfirmModal({
                 <div className="ml-1">
                   <div className="text-xs font-medium text-content">
                     仅删除{' '}
-                    <span className="text-red-600">
+                    <span className="text-danger-600 dark:text-danger-400">
                       {PLATFORM_NAMES[talent.platform]}
                     </span>{' '}
                     平台数据
@@ -169,13 +169,13 @@ export function DeleteConfirmModal({
               </Radio>
               <Radio
                 value={true}
-                className="w-full p-2.5 border-2 border-red-200 rounded hover:bg-red-50 transition-colors"
+                className="w-full p-2.5 border-2 border-danger-200 dark:border-danger-700 rounded hover:bg-danger-50 dark:bg-danger-900/20 transition-colors"
               >
                 <div className="ml-1">
-                  <div className="text-xs font-medium text-red-900">
+                  <div className="text-xs font-medium text-danger-900 dark:text-danger-100">
                     删除<strong>所有平台</strong>数据
                   </div>
-                  <div className="text-xs text-red-700 mt-0.5">
+                  <div className="text-xs text-danger-700 dark:text-danger-300 mt-0.5">
                     删除该达人在所有平台的信息（通过 OneID
                     关联），这是最彻底的删除
                   </div>
@@ -186,7 +186,7 @@ export function DeleteConfirmModal({
         </div>
 
         {/* 确认勾选 */}
-        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+        <div className="p-3 bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-700 rounded">
           <Checkbox
             checked={confirmed}
             onChange={e => setConfirmed(e.target.checked)}

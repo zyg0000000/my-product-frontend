@@ -490,7 +490,7 @@ export function BatchCreateTalentModal({
     return (
       <div
         className={`cursor-pointer px-1 py-0.5 rounded hover:bg-surface-sunken ${
-          hasError ? 'border border-red-300 bg-red-50' : ''
+          hasError ? 'border border-danger-300 dark:border-danger-600 bg-danger-50 dark:bg-danger-900/20' : ''
         }`}
         onClick={() => startEditing(record, field)}
       >
@@ -595,7 +595,7 @@ export function BatchCreateTalentModal({
       title: '失败原因',
       dataIndex: 'reason',
       key: 'reason',
-      render: text => <span className="text-red-600">{text}</span>,
+      render: text => <span className="text-danger-600 dark:text-danger-400">{text}</span>,
     },
   ];
 
@@ -629,7 +629,7 @@ export function BatchCreateTalentModal({
           subTitle={
             <div>
               成功创建{' '}
-              <span className="text-green-600 font-bold text-lg">
+              <span className="text-success-600 dark:text-success-400 font-bold text-lg">
                 {created}
               </span>{' '}
               个达人
@@ -649,13 +649,13 @@ export function BatchCreateTalentModal({
             subTitle={
               <div className="flex items-center justify-center gap-6">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
+                  <div className="text-2xl font-bold text-success-600 dark:text-success-400">
                     {created}
                   </div>
                   <div className="text-sm text-content-secondary">成功</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-red-600">
+                  <div className="text-2xl font-bold text-danger-600 dark:text-danger-400">
                     {failed}
                   </div>
                   <div className="text-sm text-content-secondary">失败</div>
@@ -686,8 +686,8 @@ export function BatchCreateTalentModal({
     if (created === 0 && failed > 0) {
       return (
         <div className="space-y-2">
-          <div className="flex items-center gap-2 py-2 px-3 bg-red-50 rounded">
-            <CloseCircleOutlined className="text-red-500 text-xl" />
+          <div className="flex items-center gap-2 py-2 px-3 bg-danger-50 dark:bg-danger-900/20 rounded">
+            <CloseCircleOutlined className="text-danger-500 text-xl" />
             <span className="font-medium">批量创建失败</span>
             <span className="text-sm text-content-secondary">
               （{failed} 条数据全部创建失败）
@@ -818,7 +818,7 @@ export function BatchCreateTalentModal({
                 {validCount > 0 && (
                   <>
                     <span className="mx-1">|</span>
-                    <span className="text-green-600">
+                    <span className="text-success-600 dark:text-success-400">
                       ✅ 有效 {validCount} 条
                     </span>
                   </>
@@ -826,7 +826,7 @@ export function BatchCreateTalentModal({
                 {invalidCount > 0 && (
                   <>
                     <span className="mx-1">|</span>
-                    <span className="text-red-600">
+                    <span className="text-danger-600 dark:text-danger-400">
                       ❌ 错误 {invalidCount} 条
                     </span>
                   </>
@@ -852,7 +852,7 @@ export function BatchCreateTalentModal({
               size="small"
               pagination={false}
               scroll={{ x: 'max-content', y: 200 }}
-              rowClassName={record => (!record.isValid ? 'bg-red-50' : '')}
+              rowClassName={record => (!record.isValid ? 'bg-danger-50 dark:bg-danger-900/20' : '')}
             />
           </div>
         )}

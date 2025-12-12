@@ -152,36 +152,44 @@
   --aw-gray-900: #f8fafc;
   --aw-gray-950: #ffffff;
 
-  /* 主色调调亮 */
-  --aw-primary-50:  rgba(99, 102, 241, 0.1);
-  --aw-primary-100: rgba(99, 102, 241, 0.15);
-  --aw-primary-200: rgba(99, 102, 241, 0.2);
+  /* 主色调调亮 - 深色模式下文字需要更亮 */
+  --aw-primary-50:  rgba(99, 102, 241, 0.15);
+  --aw-primary-100: rgba(99, 102, 241, 0.2);
+  --aw-primary-200: rgba(99, 102, 241, 0.3);
   --aw-primary-300: #818cf8;
   --aw-primary-400: #a5b4fc;
   --aw-primary-500: #818cf8;
   --aw-primary-600: #6366f1;
-  --aw-primary-700: #4f46e5;
+  --aw-primary-700: #a5b4fc;   /* 深色模式文字色 - 调亮 */
+  --aw-primary-800: #c7d2fe;   /* 深色模式文字色 - 更亮 */
+  --aw-primary-900: #e0e7ff;   /* 深色模式标题色 - 最亮 */
 
-  /* 成功色 - 深色模式保持或微调 */
-  --aw-success-50:  rgba(16, 185, 129, 0.1);
-  --aw-success-100: rgba(16, 185, 129, 0.15);
-  --aw-success-200: rgba(16, 185, 129, 0.2);
+  /* 成功色 - 深色模式调亮 */
+  --aw-success-50:  rgba(16, 185, 129, 0.15);
+  --aw-success-100: rgba(16, 185, 129, 0.2);
+  --aw-success-200: rgba(16, 185, 129, 0.3);
+  --aw-success-600: #34d399;   /* 深色模式图标色 */
+  --aw-success-700: #6ee7b7;   /* 深色模式文字色 */
+  --aw-success-800: #a7f3d0;
+  --aw-success-900: #d1fae5;   /* 深色模式标题色 */
 
-  /* 警告色 */
-  --aw-warning-50:  rgba(245, 158, 11, 0.1);
-  --aw-warning-100: rgba(245, 158, 11, 0.15);
-  --aw-warning-200: rgba(245, 158, 11, 0.2);
-  --aw-warning-700: #fbbf24;  /* 深色模式调亮 */
+  /* 警告色 - 深色模式调亮 */
+  --aw-warning-50:  rgba(245, 158, 11, 0.15);
+  --aw-warning-100: rgba(245, 158, 11, 0.2);
+  --aw-warning-200: rgba(245, 158, 11, 0.3);
+  --aw-warning-600: #f59e0b;   /* 深色模式图标色 */
+  --aw-warning-700: #fbbf24;   /* 深色模式文字色 */
   --aw-warning-800: #fcd34d;
-  --aw-warning-900: #fde68a;
+  --aw-warning-900: #fde68a;   /* 深色模式标题色 */
 
-  /* 危险色 */
-  --aw-danger-50:  rgba(239, 68, 68, 0.1);
-  --aw-danger-100: rgba(239, 68, 68, 0.15);
-  --aw-danger-200: rgba(239, 68, 68, 0.2);
-  --aw-danger-700: #f87171;   /* 深色模式调亮 */
-  --aw-danger-800: #fca5a5;
-  --aw-danger-900: #fecaca;
+  /* 危险色 - 深色模式调亮 */
+  --aw-danger-50:  rgba(239, 68, 68, 0.15);
+  --aw-danger-100: rgba(239, 68, 68, 0.2);
+  --aw-danger-200: rgba(239, 68, 68, 0.3);
+  --aw-danger-600: #f87171;    /* 深色模式图标色 */
+  --aw-danger-700: #fca5a5;    /* 深色模式文字色 */
+  --aw-danger-800: #fecaca;
+  --aw-danger-900: #fee2e2;    /* 深色模式标题色 */
 
   /* 信息色 */
   --aw-info-50:  rgba(14, 165, 233, 0.1);

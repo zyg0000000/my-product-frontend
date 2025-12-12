@@ -212,7 +212,7 @@ export function TalentSelectorModal({
       width={700}
       footer={
         <div className="flex justify-between items-center">
-          <span className="text-gray-500">
+          <span className="text-content-muted">
             已选择 {selectedRowKeys.length} 个达人
           </span>
           <Space>

@@ -1035,7 +1035,7 @@ export function ProjectFormModal({
                   key={platform}
                   className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${
                     isSelected
-                      ? 'bg-blue-50'
+                      ? 'bg-primary-50 dark:bg-primary-900/20'
                       : 'bg-surface-base hover:bg-surface-sunken'
                   }`}
                 >
@@ -1104,7 +1104,7 @@ export function ProjectFormModal({
                             <span className="text-sm text-content-secondary">
                               报价系数:
                             </span>
-                            <span className="font-medium text-blue-600">
+                            <span className="font-medium text-primary-600 dark:text-primary-400">
                               {coefficient.toFixed(4)}
                             </span>
                             <Tooltip title="报价系数 = 折扣率 × (1 - 平台服务费率) × (1 - 机构服务费率)，用于计算达人报价">
