@@ -240,6 +240,25 @@ export function TalentPanorama() {
         key: field.id,
         width: field.width || 100,
         ellipsis: field.type === 'array' || field.type === 'string',
+        // 排序支持
+        ...(field.sortable && {
+          sorter: (a, b) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const aValue = (a as any)[field.id];
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const bValue = (b as any)[field.id];
+            // 处理 null/undefined
+            if (aValue == null && bValue == null) return 0;
+            if (aValue == null) return -1;
+            if (bValue == null) return 1;
+            // 数值比较
+            if (typeof aValue === 'number' && typeof bValue === 'number') {
+              return aValue - bValue;
+            }
+            // 字符串比较
+            return String(aValue).localeCompare(String(bValue));
+          },
+        }),
       };
 
       // 特殊字段处理

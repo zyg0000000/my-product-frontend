@@ -79,6 +79,8 @@ export interface FieldDefinition {
   customerViewOnly?: boolean;
   /** 价格显示配置（仅 prices 字段使用） */
   priceDisplayConfig?: PriceDisplayConfig;
+  /** 是否支持排序（默认 false） */
+  sortable?: boolean;
 }
 
 /**
@@ -359,6 +361,7 @@ export const PANORAMA_FIELDS: FieldDefinition[] = [
     order: 9,
     formatter: 'formatNumber',
     description: '60秒视频预期千次播放成本',
+    sortable: true,
   },
 
   // ===== 受众画像（v1.2 嵌套在 metrics 中）=====
@@ -371,6 +374,7 @@ export const PANORAMA_FIELDS: FieldDefinition[] = [
     defaultVisible: false,
     order: 1,
     formatter: 'formatPercentage',
+    sortable: true,
   },
   {
     id: 'audienceGenderFemale',
@@ -381,6 +385,7 @@ export const PANORAMA_FIELDS: FieldDefinition[] = [
     defaultVisible: false,
     order: 2,
     formatter: 'formatPercentage',
+    sortable: true,
   },
   {
     id: 'audienceAge18_23',
@@ -391,6 +396,7 @@ export const PANORAMA_FIELDS: FieldDefinition[] = [
     defaultVisible: false,
     order: 3,
     formatter: 'formatPercentage',
+    sortable: true,
   },
   {
     id: 'audienceAge24_30',
@@ -401,6 +407,7 @@ export const PANORAMA_FIELDS: FieldDefinition[] = [
     defaultVisible: false,
     order: 4,
     formatter: 'formatPercentage',
+    sortable: true,
   },
   {
     id: 'audienceAge31_40',
@@ -411,6 +418,7 @@ export const PANORAMA_FIELDS: FieldDefinition[] = [
     defaultVisible: false,
     order: 5,
     formatter: 'formatPercentage',
+    sortable: true,
   },
   {
     id: 'audienceAge41_50',
@@ -421,6 +429,7 @@ export const PANORAMA_FIELDS: FieldDefinition[] = [
     defaultVisible: false,
     order: 6,
     formatter: 'formatPercentage',
+    sortable: true,
   },
   {
     id: 'audienceAge50Plus',
@@ -431,6 +440,7 @@ export const PANORAMA_FIELDS: FieldDefinition[] = [
     defaultVisible: false,
     order: 7,
     formatter: 'formatPercentage',
+    sortable: true,
   },
   // 抖音八大人群（v1.1 新增）
   {
