@@ -1,5 +1,113 @@
 # AgentWorks 更新日志
 
+## v4.0.0 (2025-12-12) 🌙 - 深色模式全面优化 + UI 统一规范
+
+### 🌙 深色模式全面升级
+
+#### 架构优化
+- **Tailwind 语义化颜色系统**
+  - 新增 `surface`, `content`, `stroke` 语义化颜色
+  - 引用 CSS Variables，自动适配深色模式
+  - 开发时无需手动添加 `dark:` 前缀
+
+- **CSS Variables 完善**
+  - `colors.css` 新增 48+ 个深色模式变量
+  - 支持 `[data-theme="dark"]` 选择器自动切换
+  - 完整覆盖灰度色阶、背景色、文字色、边框色
+
+- **Ant Design 组件覆盖**
+  - `index.css` 新增 900+ 行深色模式样式
+  - 覆盖 Table、Modal、Card、Select、Input 等 50+ 组件
+  - ECharts 图表使用 `classicDark` 主题
+
+#### 代码迁移
+- **65 个文件优化**
+  - 硬编码颜色 → 语义化 Tailwind 类
+  - `bg-white` → `bg-surface`
+  - `text-gray-900` → `text-content`
+  - `border-gray-200` → `border-stroke`
+
+- **antTheme.ts 简化**
+  - 移除冗余配置，使用 CSS Variables
+  - 配置文件从 300+ 行减少到 100+ 行
+
+### 🎨 UI 规范统一
+
+#### 表格操作列标准化
+- **所有表格统一改为图标按钮 + Tooltip 模式**
+  - 移除文字标签，只显示图标
+  - 悬停显示 Tooltip 说明
+  - 操作列宽度从 140px 优化到 80-100px
+
+- **已改造页面（8个）**
+  | 页面 | 文件 |
+  |------|------|
+  | 客户列表 | CustomerList.tsx |
+  | 项目列表 | ProjectList.tsx |
+  | 机构列表 | AgenciesList.tsx |
+  | 客户达人池 | TalentPoolTab.tsx |
+  | 执行追踪 | ExecutionTab.tsx |
+  | 合作达人 | CollaborationsTab.tsx |
+  | 平台配置 | PlatformConfig.tsx |
+  | 达人列表 | useTalentColumns.tsx |
+
+### 🐛 Bug 修复
+
+#### API 修复
+- **删除合作记录 404 错误**
+  - 修复 API 路径：`/collaborations?id=xxx` → `/delete-collaboration`
+  - 删除功能现已正常工作
+
+#### React 警告修复
+- **AgencySelector 重复 key 警告**
+  - 添加 `.filter(agency => agency.id !== AGENCY_INDIVIDUAL_ID)`
+  - 避免"野生达人"与机构列表中的 individual 重复
+
+- **isIndividual prop 传递到 DOM 警告**
+  - 从 AgencyOption 接口移除 `isIndividual` 属性
+
+#### 其他修复
+- **字体预加载警告**
+  - 移除 `index.html` 中的字体预加载
+  - 由 Google Fonts CSS 自动处理加载
+
+### 📁 修改文件清单
+
+**配置文件** (3个):
+- `tailwind.config.js` - 新增语义化颜色
+- `src/config/antTheme.ts` - 简化配置
+- `index.html` - 移除字体预加载
+
+**样式文件** (2个):
+- `src/design-system/tokens/colors.css` - 新增深色模式变量
+- `src/index.css` - 新增 Ant Design 深色覆盖
+
+**组件/页面** (60+ 个):
+- 所有硬编码颜色迁移到语义化类
+- 所有表格操作列统一为图标按钮
+
+**API** (1个):
+- `src/services/projectApi.ts` - 修复删除合作记录路径
+
+### 📊 优化效果
+
+| 优化项 | 修改前 | 修改后 |
+|-------|--------|--------|
+| 硬编码颜色 | 773 处 | 0 处 ✅ |
+| 深色模式支持 | 部分 | 全面 ✅ |
+| 新开发深色适配 | 手动 dark: | 自动 ✅ |
+| 操作列宽度 | 140px | 80-100px ✅ |
+| antTheme 配置 | 300+ 行 | 100+ 行 ✅ |
+
+### 📚 文档更新
+
+- **DESIGN_SYSTEM.md** 升级到 v2.0
+  - 深色模式章节全面更新
+  - 新增语义化颜色使用指南
+  - 新增迁移写法对照表
+
+---
+
 ## v3.9.0 (2025-12-10) ✨ - 达人外链组件抽取与扩展
 
 ### ✨ 新功能：TalentNameWithLinks 可复用组件
@@ -1340,6 +1448,6 @@ mongosh agentworks_db --file database/agentworks_db/scripts/fix-update-date-to-s
 ---
 
 **维护者**: Claude Code
-**最后更新**: 2025-12-10
+**最后更新**: 2025-12-12
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

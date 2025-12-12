@@ -87,8 +87,9 @@ frontends/agentworks/
 ### 设计系统
 - **主色调**: 靛蓝色系 `primary-600: #4f46e5`
 - **语义色**: `success`, `warning`, `danger` 统一配置
-- **字体**: Inter + 苹方 + 微软雅黑
-- **Tailwind + Ant Design**: 双框架颜色同步
+- **深色模式**: 完整支持，使用语义化 Tailwind 类自动适配
+- **字体**: Plus Jakarta Sans + DM Sans + JetBrains Mono
+- **Tailwind + Ant Design**: 双框架颜色同步，CSS Variables 驱动
 
 ### 路由与状态
 - **React Router 7** - 路由管理
@@ -267,8 +268,8 @@ nvm use 20
 
 ---
 
-**项目版本**: v3.5.0
+**项目版本**: v4.0.0
 **Node.js 要求**: >= 20.19 或 >= 22.12
-**最后更新**: 2025-11-29
+**最后更新**: 2025-12-12
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
