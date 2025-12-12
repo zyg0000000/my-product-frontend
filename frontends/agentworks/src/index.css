@@ -516,6 +516,11 @@
   border-bottom: 1px solid var(--aw-gray-100) !important;
 }
 
+/* 排序列的背景色 - 需要明确设置以避免默认样式问题 */
+.ant-table-tbody > tr > td.ant-table-column-sort {
+  background-color: transparent !important;
+}
+
 /* 分页器 */
 .ant-pagination-item-active {
   background-color: var(--aw-primary-600) !important;
@@ -804,6 +809,12 @@
 [data-theme="dark"] .ant-table-tbody > tr:hover > td,
 [data-theme="dark"] .ant-table-tbody > tr.ant-table-row:hover > td {
   background-color: var(--aw-gray-200) !important;
+}
+
+/* 深色模式下排序列背景色 */
+.dark .ant-table-tbody > tr > td.ant-table-column-sort,
+[data-theme="dark"] .ant-table-tbody > tr > td.ant-table-column-sort {
+  background-color: var(--aw-gray-100) !important;
 }
 
 .dark .ant-table-cell-fix-left,
