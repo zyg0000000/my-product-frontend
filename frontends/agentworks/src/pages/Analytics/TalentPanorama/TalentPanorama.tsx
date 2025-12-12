@@ -254,8 +254,6 @@ export function TalentPanorama() {
                 platform={record.platform || selectedPlatform}
                 platformAccountId={record.platformAccountId}
                 platformSpecific={record.platformSpecific}
-                onNameClick={() => navigate(`/talents/${record.oneId}`)}
-                nameAsLink
               />
             ),
           };
