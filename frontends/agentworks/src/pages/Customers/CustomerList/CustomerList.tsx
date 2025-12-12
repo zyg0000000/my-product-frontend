@@ -211,7 +211,6 @@ export default function CustomerList() {
       const calculatedCoefficient = finalAmount / baseAmount;
 
       // 使用固定的深色样式，不受主题切换影响
-      const _darkBg = '#1e293b'; // 保留供未来使用
       const darkBgInner = '#334155';
       const textWhite = '#f8fafc';
       const textMuted = '#94a3b8';
