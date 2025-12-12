@@ -114,10 +114,10 @@ export const PANORAMA_FIELDS: FieldDefinition[] = [
   // ===== 基础信息 =====
   {
     id: 'name',
-    name: '达人名称',
+    name: '达人昵称',
     category: 'basic',
     type: 'string',
-    width: 180,
+    width: 220,
     defaultVisible: true,
     order: 1,
   },

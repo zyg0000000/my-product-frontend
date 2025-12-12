@@ -90,6 +90,7 @@ const FIELD_WHITELIST = {
   followerCount: { source: 'performance', path: '$performance.metrics.followers', category: 'basic' },
   contentTags: { source: 'talents', path: '$talentType', category: 'basic' },
   platformAccountId: { source: 'talents', path: '$platformAccountId', category: 'basic' },
+  platformSpecific: { source: 'talents', path: '$platformSpecific', category: 'basic' },
   agencyId: { source: 'talents', path: '$agencyId', category: 'basic' },
   status: { source: 'talents', path: '$status', category: 'basic' },
   createdAt: { source: 'talents', path: '$createdAt', category: 'basic' },
@@ -144,8 +145,8 @@ const FIELD_WHITELIST = {
 
 // 默认字段列表
 const DEFAULT_FIELDS = [
-  'oneId', 'name', 'platform', 'rebate', 'prices',
-  'contentTags', 'followerCount', 'customerRelations'
+  'oneId', 'name', 'platform', 'platformAccountId', 'platformSpecific',
+  'rebate', 'prices', 'contentTags', 'followerCount', 'customerRelations'
 ];
 
 // 默认表现数据字段（v1.2 实际有数据的字段）

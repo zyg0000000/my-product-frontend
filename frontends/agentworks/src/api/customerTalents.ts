@@ -265,6 +265,10 @@ export interface PanoramaTalentItem {
   name: string;
   /** 平台 */
   platform: Platform;
+  /** 平台账号ID（星图ID等） */
+  platformAccountId?: string;
+  /** 平台特定字段（如抖音UID等） */
+  platformSpecific?: Record<string, string>;
   /** 返点比例 */
   rebate?: number;
   /** 价格信息 */

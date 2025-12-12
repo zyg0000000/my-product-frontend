@@ -37,6 +37,7 @@ import {
 } from '../../../modules/filters';
 import { PageTransition } from '../../../components/PageTransition';
 import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
+import { TalentNameWithLinks } from '../../../components/TalentNameWithLinks';
 import type {
   PanoramaTalentItem,
   ViewMode,
@@ -248,12 +249,14 @@ export function TalentPanorama() {
             ...baseColumn,
             fixed: 'left',
             render: (_, record) => (
-              <a
-                onClick={() => navigate(`/talents/${record.oneId}`)}
-                className="font-medium text-primary-600 hover:text-primary-800 cursor-pointer"
-              >
-                {record.name || 'N/A'}
-              </a>
+              <TalentNameWithLinks
+                name={record.name || 'N/A'}
+                platform={record.platform || selectedPlatform}
+                platformAccountId={record.platformAccountId}
+                platformSpecific={record.platformSpecific}
+                onNameClick={() => navigate(`/talents/${record.oneId}`)}
+                nameAsLink
+              />
             ),
           };
 
