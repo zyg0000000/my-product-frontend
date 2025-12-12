@@ -110,9 +110,11 @@
 }
 
 /* ========================================
-   深色模式 (预留)
+   深色模式
    ======================================== */
-[data-theme="dark"] {
+[data-theme="dark"],
+.dark {
+  /* 中性色反转 */
   --aw-gray-50:  #0f172a;
   --aw-gray-100: #1e293b;
   --aw-gray-200: #334155;
@@ -123,12 +125,46 @@
   --aw-gray-700: #e2e8f0;
   --aw-gray-800: #f1f5f9;
   --aw-gray-900: #f8fafc;
+  --aw-gray-950: #ffffff;
 
+  /* 主色调调亮 */
   --aw-primary-50:  rgba(99, 102, 241, 0.1);
-  --aw-primary-100: rgba(99, 102, 241, 0.2);
+  --aw-primary-100: rgba(99, 102, 241, 0.15);
+  --aw-primary-200: rgba(99, 102, 241, 0.2);
+  --aw-primary-300: #818cf8;
+  --aw-primary-400: #a5b4fc;
   --aw-primary-500: #818cf8;
   --aw-primary-600: #6366f1;
+  --aw-primary-700: #4f46e5;
 
+  /* 成功色 - 深色模式保持或微调 */
+  --aw-success-50:  rgba(16, 185, 129, 0.1);
+  --aw-success-100: rgba(16, 185, 129, 0.15);
+  --aw-success-200: rgba(16, 185, 129, 0.2);
+
+  /* 警告色 */
+  --aw-warning-50:  rgba(245, 158, 11, 0.1);
+  --aw-warning-100: rgba(245, 158, 11, 0.15);
+  --aw-warning-200: rgba(245, 158, 11, 0.2);
+
+  /* 危险色 */
+  --aw-danger-50:  rgba(239, 68, 68, 0.1);
+  --aw-danger-100: rgba(239, 68, 68, 0.15);
+  --aw-danger-200: rgba(239, 68, 68, 0.2);
+
+  /* 信息色 */
+  --aw-info-50:  rgba(14, 165, 233, 0.1);
+  --aw-info-100: rgba(14, 165, 233, 0.15);
+  --aw-info-200: rgba(14, 165, 233, 0.2);
+
+  /* 特殊用途色 */
+  --aw-white: #1e293b;
+  --aw-black: #f8fafc;
+
+  /* 遮罩层 */
   --aw-overlay-light: rgba(0, 0, 0, 0.8);
-  --aw-overlay-dark: rgba(255, 255, 255, 0.5);
+  --aw-overlay-dark: rgba(255, 255, 255, 0.3);
+
+  /* Focus 环 */
+  --aw-focus-ring: rgba(129, 140, 248, 0.5);
 }

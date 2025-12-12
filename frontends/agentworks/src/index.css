@@ -513,7 +513,61 @@
 }
 
 /* ========================================
-   8. 打印样式
+   8. 深色模式样式覆盖
+   ======================================== */
+
+/* 深色模式 - 全局 */
+[data-theme="dark"],
+.dark {
+  color-scheme: dark;
+}
+
+/* 深色模式 - 组件类 */
+.dark .card,
+[data-theme="dark"] .card {
+  @apply bg-gray-100 border-gray-200;
+}
+
+.dark .btn-secondary,
+[data-theme="dark"] .btn-secondary {
+  @apply bg-gray-200 text-gray-800 border-gray-300
+         hover:bg-gray-300 hover:border-gray-400;
+}
+
+.dark .btn-ghost,
+[data-theme="dark"] .btn-ghost {
+  @apply text-gray-400 hover:bg-gray-200 hover:text-gray-100;
+}
+
+.dark .input,
+[data-theme="dark"] .input {
+  @apply border-gray-300 text-gray-900 placeholder-gray-500 bg-gray-100;
+}
+
+.dark .divider,
+[data-theme="dark"] .divider {
+  @apply border-gray-200;
+}
+
+/* 深色模式 - 玻璃效果 */
+.dark .glass,
+[data-theme="dark"] .glass {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+/* 深色模式 - 滚动条 */
+.dark::-webkit-scrollbar-thumb,
+[data-theme="dark"]::-webkit-scrollbar-thumb {
+  background: var(--aw-gray-400);
+}
+
+.dark::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"]::-webkit-scrollbar-thumb:hover {
+  background: var(--aw-gray-500);
+}
+
+/* ========================================
+   9. 打印样式
    ======================================== */
 
 @media print {
