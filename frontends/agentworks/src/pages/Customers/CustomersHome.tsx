@@ -70,10 +70,10 @@ export function CustomersHome() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
-              className="text-center p-4 bg-primary-600 rounded-lg"
+              className="text-center p-4 bg-surface-base rounded-lg border border-stroke"
             >
-              <p className="text-3xl font-bold text-white">0</p>
-              <p className="text-sm text-primary-100 mt-1 font-medium">
+              <p className="text-3xl font-bold text-content">0</p>
+              <p className="text-sm text-content-secondary mt-1 font-medium">
                 总客户数
               </p>
             </motion.div>

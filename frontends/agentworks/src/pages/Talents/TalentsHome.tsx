@@ -110,15 +110,15 @@ export function TalentsHome() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
-                className="text-center p-4 bg-primary-600 rounded-lg"
+                className="text-center p-4 bg-surface-base rounded-lg border border-stroke"
               >
-                <p className="text-3xl font-bold text-white">
+                <p className="text-3xl font-bold text-content">
                   {stats.totalTalents}
                 </p>
-                <p className="text-sm text-primary-100 mt-1 font-medium">
+                <p className="text-sm text-content-secondary mt-1 font-medium">
                   总达人数
                 </p>
-                <p className="text-xs text-primary-200 mt-0.5">按 OneID 去重</p>
+                <p className="text-xs text-content-muted mt-0.5">按 OneID 去重</p>
               </motion.div>
               {[
                 { label: '抖音', value: stats.douyin, delay: 0.1 },
