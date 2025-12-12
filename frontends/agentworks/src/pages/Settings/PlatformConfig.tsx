@@ -262,8 +262,8 @@ export function PlatformConfig() {
 
         {/* 错误提示 */}
         {error && (
-          <div className="fixed bottom-4 right-4 bg-danger-50 border border-danger-200 rounded-lg p-4 shadow-lg">
-            <div className="text-sm text-danger-700">{error}</div>
+          <div className="fixed bottom-4 right-4 alert-danger shadow-lg">
+            <span className="alert-danger-text">{error}</span>
           </div>
         )}
       </div>

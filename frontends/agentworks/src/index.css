@@ -153,6 +153,71 @@
     box-shadow: var(--aw-shadow-danger);
   }
 
+  /* 提示框 - 深色模式自动适配 */
+  .alert-info {
+    @apply rounded-lg p-4 border;
+    background-color: var(--aw-primary-50);
+    border-color: var(--aw-primary-200);
+  }
+
+  .alert-info-title {
+    @apply text-sm font-medium mb-2;
+    color: var(--aw-primary-900);
+  }
+
+  .alert-info-text {
+    @apply text-xs;
+    color: var(--aw-primary-700);
+  }
+
+  .alert-warning {
+    @apply rounded-lg p-4 border;
+    background-color: var(--aw-warning-50);
+    border-color: var(--aw-warning-200);
+  }
+
+  .alert-warning-title {
+    @apply text-sm font-medium mb-2;
+    color: var(--aw-warning-900);
+  }
+
+  .alert-warning-text {
+    @apply text-xs;
+    color: var(--aw-warning-700);
+  }
+
+  .alert-success {
+    @apply rounded-lg p-4 border;
+    background-color: var(--aw-success-50);
+    border-color: var(--aw-success-200);
+  }
+
+  .alert-success-title {
+    @apply text-sm font-medium mb-2;
+    color: var(--aw-success-900);
+  }
+
+  .alert-success-text {
+    @apply text-xs;
+    color: var(--aw-success-700);
+  }
+
+  .alert-danger {
+    @apply rounded-lg p-4 border;
+    background-color: var(--aw-danger-50);
+    border-color: var(--aw-danger-200);
+  }
+
+  .alert-danger-title {
+    @apply text-sm font-medium mb-2;
+    color: var(--aw-danger-900);
+  }
+
+  .alert-danger-text {
+    @apply text-xs;
+    color: var(--aw-danger-700);
+  }
+
   /* 卡片 - 使用语义化 CSS Variable 实现自动深色模式 */
   .card {
     @apply rounded-xl p-6;

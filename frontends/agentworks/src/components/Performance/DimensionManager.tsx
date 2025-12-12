@@ -390,9 +390,11 @@ export function DimensionManager({
       </div>
 
       {/* 提示 */}
-      <div className="bg-primary-50 border border-primary-200 rounded-md p-3 text-sm text-primary-700">
-        <strong>提示：</strong>
-        拖动左侧的排序图标可以调整维度的显示顺序，点击分类展开/折叠
+      <div className="alert-info">
+        <span className="alert-info-text">
+          <strong>提示：</strong>
+          拖动左侧的排序图标可以调整维度的显示顺序，点击分类展开/折叠
+        </span>
       </div>
 
       {/* 分类折叠面板 */}
@@ -806,9 +808,11 @@ function DimensionEditForm({
         {/* 筛选配置 Tab */}
         {activeTab === 'filter' && (
           <Form layout="vertical" className="space-y-4">
-            <div className="bg-primary-50 border border-primary-200 rounded-md p-3 text-sm text-primary-700">
-              <strong>提示：</strong>启用筛选后，此维度将出现在 Performance
-              页面的筛选面板中
+            <div className="alert-info">
+              <span className="alert-info-text">
+                <strong>提示：</strong>启用筛选后，此维度将出现在 Performance
+                页面的筛选面板中
+              </span>
             </div>
 
             <Form.Item>
@@ -923,7 +927,7 @@ function DimensionEditForm({
                   >
                     {isDynamicEnumField(dimension) ? (
                       // 动态加载字段：显示提示信息，不需要手动配置
-                      <div className="bg-success-50 border border-success-200 rounded-md p-3 text-sm text-success-700">
+                      <div className="alert-success">
                         <div className="flex items-center gap-2">
                           <svg
                             className="w-4 h-4 text-success-500"

@@ -142,11 +142,9 @@ export function ImportResultPanel({ result, onClose }: ImportResultPanelProps) {
 
           {/* 下一步建议 */}
           {hasFailures && (
-            <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-primary-900 mb-2">
-                💡 下一步建议
-              </h4>
-              <ul className="text-xs text-primary-700 space-y-1">
+            <div className="alert-info">
+              <h4 className="alert-info-title">💡 下一步建议</h4>
+              <ul className="alert-info-text space-y-1">
                 <li>
                   • 前往{' '}
                   <a href="/performance" className="underline font-medium">

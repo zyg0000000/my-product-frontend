@@ -384,11 +384,9 @@ function DataImportPanel({
   return (
     <div className="space-y-6">
       {/* 导入说明 */}
-      <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-primary-900 mb-2">
-          📥 数据导入功能说明
-        </h3>
-        <ul className="text-xs text-primary-700 space-y-1">
+      <div className="alert-info">
+        <h3 className="alert-info-title">📥 数据导入功能说明</h3>
+        <ul className="alert-info-text space-y-1">
           <li>
             • 支持从飞书表格导入 {PLATFORM_NAMES[platform]} 平台的达人表现数据
           </li>
@@ -462,11 +460,9 @@ function DataImportPanel({
       </div>
 
       {/* 注意事项 */}
-      <div className="bg-warning-50 border border-warning-200 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-warning-900 mb-2">
-          ⚠️ 注意事项
-        </h3>
-        <ul className="text-xs text-warning-700 space-y-1">
+      <div className="alert-warning">
+        <h3 className="alert-warning-title">⚠️ 注意事项</h3>
+        <ul className="alert-warning-text space-y-1">
           <li>• 导入会覆盖原有的表现数据，请确认数据准确性</li>
           <li>• 建议在非高峰时段进行大批量数据导入</li>
           <li>• 如遇到导入失败，请检查飞书表格权限和字段映射</li>

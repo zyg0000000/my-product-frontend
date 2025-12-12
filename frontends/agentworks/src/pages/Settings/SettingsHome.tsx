@@ -133,14 +133,12 @@ export function SettingsHome() {
         </div>
 
         {/* 提示信息 */}
-        <ProCard className="bg-primary-50 border-primary-200">
+        <ProCard className="alert-info">
           <div className="flex items-start gap-3">
             <SettingOutlined className="text-primary-600 text-lg mt-0.5" />
             <div>
-              <h4 className="text-sm font-medium text-primary-900 mb-1">
-                关于系统设置
-              </h4>
-              <p className="text-xs text-primary-700">
+              <h4 className="alert-info-title mb-1">关于系统设置</h4>
+              <p className="alert-info-text">
                 系统设置模块用于管理 AgentWorks 的全局配置和参数。
                 配置修改后会立即生效，部分配置可能需要刷新页面才能看到效果。
               </p>
