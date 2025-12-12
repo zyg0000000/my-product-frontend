@@ -1021,7 +1021,9 @@ export function ProjectFormModal({
           </Row>
 
           {/* 平台列表 - 每行：勾选框 + 平台名 + 定价模式标签 + 折扣率 */}
-          <div className="text-sm text-content-secondary mb-2">选择投放平台：</div>
+          <div className="text-sm text-content-secondary mb-2">
+            选择投放平台：
+          </div>
           <div className="space-y-2">
             {configuredPlatforms.map(opt => {
               const platform = opt.value;
@@ -1032,7 +1034,9 @@ export function ProjectFormModal({
                 <div
                   key={platform}
                   className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${
-                    isSelected ? 'bg-blue-50' : 'bg-surface-base hover:bg-surface-sunken'
+                    isSelected
+                      ? 'bg-blue-50'
+                      : 'bg-surface-base hover:bg-surface-sunken'
                   }`}
                 >
                   {/* 平台勾选 */}
@@ -1051,7 +1055,9 @@ export function ProjectFormModal({
                   {/* 平台名称 + 定价模式标签 */}
                   <div className="flex items-center gap-2 min-w-[120px]">
                     <span
-                      className={isSelected ? 'font-medium' : 'text-content-secondary'}
+                      className={
+                        isSelected ? 'font-medium' : 'text-content-secondary'
+                      }
                     >
                       {opt.label}
                     </span>
@@ -1063,7 +1069,9 @@ export function ProjectFormModal({
                     <div className="flex items-center gap-4 flex-1">
                       {/* 折扣率 */}
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-content-secondary">折扣率:</span>
+                        <span className="text-sm text-content-secondary">
+                          折扣率:
+                        </span>
                         <Form.Item
                           name={['platformDiscounts', platform]}
                           noStyle

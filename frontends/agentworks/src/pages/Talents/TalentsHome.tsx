@@ -141,7 +141,9 @@ export function TalentsHome() {
                   <p className="text-2xl font-bold text-content">
                     {item.value}
                   </p>
-                  <p className="text-sm text-content-secondary mt-1">{item.label}</p>
+                  <p className="text-sm text-content-secondary mt-1">
+                    {item.label}
+                  </p>
                 </motion.div>
               ))}
             </div>
@@ -174,7 +176,9 @@ export function TalentsHome() {
                 <h3 className="mt-4 text-lg font-semibold text-content">
                   {module.name}
                   {!module.available && (
-                    <span className="ml-2 text-xs text-content-muted">(开发中)</span>
+                    <span className="ml-2 text-xs text-content-muted">
+                      (开发中)
+                    </span>
                   )}
                 </h3>
                 <p className="mt-2 text-sm text-content-secondary">

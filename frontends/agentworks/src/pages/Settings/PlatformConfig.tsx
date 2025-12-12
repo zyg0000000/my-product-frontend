@@ -91,7 +91,9 @@ export function PlatformConfig() {
       render: (_, record) => (
         <Space>
           <Tag color={record.color}>{record.name}</Tag>
-          <span className="text-xs text-content-secondary">({record.platform})</span>
+          <span className="text-xs text-content-secondary">
+            ({record.platform})
+          </span>
         </Space>
       ),
     },

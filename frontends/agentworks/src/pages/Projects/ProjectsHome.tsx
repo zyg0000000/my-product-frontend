@@ -155,7 +155,9 @@ export function ProjectsHome() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-content">项目工作台</h1>
-            <p className="mt-1 text-sm text-content-secondary">本月项目概览与待办事项</p>
+            <p className="mt-1 text-sm text-content-secondary">
+              本月项目概览与待办事项
+            </p>
           </div>
           <Space>
             <Button

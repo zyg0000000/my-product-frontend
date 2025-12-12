@@ -652,7 +652,9 @@ export function EffectTab({
         dataIndex: 'amount',
         width: 100,
         render: (_, record) => (
-          <span className="text-content-secondary">{formatMoney(record.amount)}</span>
+          <span className="text-content-secondary">
+            {formatMoney(record.amount)}
+          </span>
         ),
       },
     ];
@@ -1150,7 +1152,9 @@ export function EffectTab({
             </div>
             <Empty
               description={
-                <span className="text-content-secondary">暂无已发布的合作记录</span>
+                <span className="text-content-secondary">
+                  暂无已发布的合作记录
+                </span>
               }
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             />

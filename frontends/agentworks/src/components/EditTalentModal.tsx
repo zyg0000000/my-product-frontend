@@ -258,7 +258,9 @@ export function EditTalentModal({
                 label={
                   <span>
                     平台特定信息
-                    <span className="ml-1 text-xs text-content-secondary">（选填）</span>
+                    <span className="ml-1 text-xs text-content-secondary">
+                      （选填）
+                    </span>
                   </span>
                 }
                 placeholder="抖音UID（辅助识别）"

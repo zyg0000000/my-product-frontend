@@ -280,7 +280,9 @@ export function ComputedFieldManager({
       <td className="px-3 py-2 font-medium text-content text-sm">
         {field.name}
       </td>
-      <td className="px-3 py-2 font-mono text-xs text-content-secondary">{field.id}</td>
+      <td className="px-3 py-2 font-mono text-xs text-content-secondary">
+        {field.id}
+      </td>
       <td className="px-3 py-2">
         <Tag
           color={isExpressionMode(field) ? 'blue' : 'purple'}
@@ -694,7 +696,9 @@ export function ComputedFieldManager({
               (editingField.formula.operand1 &&
                 editingField.formula.operand2)) && (
               <div className="bg-surface-sunken p-3 rounded-lg border border-stroke">
-                <div className="text-xs text-content-secondary mb-1">公式预览</div>
+                <div className="text-xs text-content-secondary mb-1">
+                  公式预览
+                </div>
                 <div className="font-mono text-sm text-purple-600">
                   {editingField.name || '结果'} ={' '}
                   {getFormulaDescription(editingField)}

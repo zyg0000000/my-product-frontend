@@ -134,7 +134,10 @@ export function Pagination({
           <div className="flex items-center gap-1">
             {pageNumbers.map((number, index) =>
               number === '...' ? (
-                <span key={`dots-${index}`} className="px-2 text-content-secondary">
+                <span
+                  key={`dots-${index}`}
+                  className="px-2 text-content-secondary"
+                >
                   ...
                 </span>
               ) : (

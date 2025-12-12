@@ -261,7 +261,8 @@ export function TalentPoolTab({
       align: 'center',
       render: (_, record) => {
         const tags = getNormalizedTags(record.tags);
-        if (!tags.importance) return <span className="text-content-muted">-</span>;
+        if (!tags.importance)
+          return <span className="text-content-muted">-</span>;
         const level = importanceLevels.find(l => l.key === tags.importance);
         return level ? (
           <Tag

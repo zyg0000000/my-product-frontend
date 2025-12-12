@@ -308,7 +308,9 @@ export function CustomerDetail() {
               <span className="font-semibold text-lg">{customer.name}</span>
             </Descriptions.Item>
             <Descriptions.Item label="客户编码">
-              <span className="font-mono text-content-secondary">{customer.code}</span>
+              <span className="font-mono text-content-secondary">
+                {customer.code}
+              </span>
             </Descriptions.Item>
             <Descriptions.Item label="客户级别">
               <Tag color={levelColorMap[customer.level]}>

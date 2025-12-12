@@ -49,7 +49,9 @@ function InfoItem({
 }) {
   return (
     <div className={className}>
-      <div className="text-xs text-content-muted mb-1 tracking-wide">{label}</div>
+      <div className="text-xs text-content-muted mb-1 tracking-wide">
+        {label}
+      </div>
       <div className="text-sm text-content">{children}</div>
     </div>
   );
@@ -334,7 +336,9 @@ export function ProjectDetail() {
             <InfoItem label="合作达人">
               <span className="font-semibold">
                 {stats.collaborationCount || 0}
-                <span className="font-normal text-content-muted ml-0.5">人</span>
+                <span className="font-normal text-content-muted ml-0.5">
+                  人
+                </span>
               </span>
             </InfoItem>
 

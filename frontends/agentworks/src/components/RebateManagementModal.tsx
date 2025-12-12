@@ -252,7 +252,9 @@ export function RebateManagementModal({
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-content-secondary">当前生效日期</p>
+                    <p className="text-xs text-content-secondary">
+                      当前生效日期
+                    </p>
                     <p className="mt-1 text-base font-medium text-content">
                       {rebateData?.currentRebate?.effectiveDate || '-'}
                     </p>
@@ -365,7 +367,9 @@ export function RebateManagementModal({
                   label={
                     <span>
                       操作人
-                      <span className="ml-1 text-xs text-content-secondary">(选填)</span>
+                      <span className="ml-1 text-xs text-content-secondary">
+                        (选填)
+                      </span>
                     </span>
                   }
                   placeholder="默认为 system"
@@ -484,7 +488,9 @@ export function RebateManagementModal({
           )}
         </div>
       ) : (
-        <div className="py-12 text-center text-content-secondary">暂无返点配置信息</div>
+        <div className="py-12 text-center text-content-secondary">
+          暂无返点配置信息
+        </div>
       )}
     </Modal>
   );

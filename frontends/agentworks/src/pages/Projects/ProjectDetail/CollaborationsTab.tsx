@@ -7,7 +7,16 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Space, Popconfirm, App, Modal, Select, Tooltip } from 'antd';
+import {
+  Button,
+  Tag,
+  Space,
+  Popconfirm,
+  App,
+  Modal,
+  Select,
+  Tooltip,
+} from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -304,7 +313,12 @@ export function CollaborationsTab({
             cancelText="取消"
           >
             <Tooltip title="删除">
-              <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+              <Button
+                type="text"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+              />
             </Tooltip>
           </Popconfirm>
         </Space>

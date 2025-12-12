@@ -108,7 +108,9 @@ export function PerformanceConfig() {
             管理各平台的字段映射和数据维度配置
           </p>
         </div>
-        <div className="p-8 text-center text-content-secondary">加载平台配置中...</div>
+        <div className="p-8 text-center text-content-secondary">
+          加载平台配置中...
+        </div>
       </div>
     );
   }
@@ -265,7 +267,9 @@ function MappingConfigPanel({
           <h3 className="text-lg font-medium text-content">
             {config.configName} (v{config.version})
           </h3>
-          <p className="text-sm text-content-secondary mt-1">{config.description}</p>
+          <p className="text-sm text-content-secondary mt-1">
+            {config.description}
+          </p>
         </div>
         <Button icon={<ReloadOutlined />} onClick={fieldMapping.loadConfigs}>
           刷新

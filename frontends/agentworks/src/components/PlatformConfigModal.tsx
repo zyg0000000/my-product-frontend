@@ -442,7 +442,9 @@ export function PlatformConfigModal({
                     />
 
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-content-secondary">背景:</span>
+                      <span className="text-xs text-content-secondary">
+                        背景:
+                      </span>
                       <ColorPicker
                         value={pt.bgColor}
                         size="small"
@@ -458,7 +460,9 @@ export function PlatformConfigModal({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-content-secondary">文字:</span>
+                      <span className="text-xs text-content-secondary">
+                        文字:
+                      </span>
                       <ColorPicker
                         value={pt.textColor}
                         size="small"

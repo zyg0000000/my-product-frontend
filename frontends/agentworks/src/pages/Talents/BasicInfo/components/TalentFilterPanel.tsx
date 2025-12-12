@@ -324,7 +324,9 @@ export function TalentFilterPanel({
                 <div>
                   <label className="block text-sm font-medium text-content mb-2">
                     价格范围{' '}
-                    <span className="text-xs text-content-secondary">（常用）</span>
+                    <span className="text-xs text-content-secondary">
+                      （常用）
+                    </span>
                   </label>
                   <div className="flex gap-2">
                     <Input
@@ -349,7 +351,9 @@ export function TalentFilterPanel({
                 <div>
                   <label className="block text-sm font-medium text-content mb-2">
                     返点范围 (%){' '}
-                    <span className="text-xs text-content-secondary">（常用）</span>
+                    <span className="text-xs text-content-secondary">
+                      （常用）
+                    </span>
                   </label>
                   <div className="flex gap-2">
                     <Input
@@ -417,9 +421,7 @@ export function TalentFilterPanel({
           {/* 右侧：已选条件展示 */}
           <div className="w-96 p-4 bg-surface-base">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-content">
-                已选条件
-              </span>
+              <span className="text-sm font-medium text-content">已选条件</span>
               {hasActiveFilters && (
                 <button
                   onClick={onReset}

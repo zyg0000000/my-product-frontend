@@ -864,7 +864,9 @@ export function TalentProcurementCard({
                       ) : (
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
-                            <span className="text-content-secondary">折扣率:</span>
+                            <span className="text-content-secondary">
+                              折扣率:
+                            </span>
                             <span className="font-medium">
                               {(
                                 (platformItem.config.discountRate || 0) * 100
@@ -873,7 +875,9 @@ export function TalentProcurementCard({
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-content-secondary">服务费率:</span>
+                            <span className="text-content-secondary">
+                              服务费率:
+                            </span>
                             <span className="font-medium">
                               {(
                                 (platformItem.config.serviceFeeRate || 0) * 100
@@ -882,7 +886,9 @@ export function TalentProcurementCard({
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-content-secondary">平台费:</span>
+                            <span className="text-content-secondary">
+                              平台费:
+                            </span>
                             <span className="font-medium">
                               {(
                                 (platformItem.config.platformFeeRate || 0) * 100
@@ -891,7 +897,9 @@ export function TalentProcurementCard({
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-content-secondary">有效期:</span>
+                            <span className="text-content-secondary">
+                              有效期:
+                            </span>
                             <span className="font-medium">
                               {platformItem.config.isPermanent ? (
                                 '长期有效'
@@ -942,7 +950,9 @@ export function TalentProcurementCard({
                 })}
               </div>
             ) : (
-              <div className="text-center py-6 text-content-muted">暂无平台配置</div>
+              <div className="text-center py-6 text-content-muted">
+                暂无平台配置
+              </div>
             )}
           </div>
         )}

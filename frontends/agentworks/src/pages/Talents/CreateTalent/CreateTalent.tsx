@@ -187,7 +187,9 @@ export function CreateTalent() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-content">新增达人</h1>
-            <p className="mt-1 text-sm text-content-secondary">添加新的达人信息到系统</p>
+            <p className="mt-1 text-sm text-content-secondary">
+              添加新的达人信息到系统
+            </p>
           </div>
           <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
             返回

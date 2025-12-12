@@ -265,9 +265,7 @@ export function ProjectConfigPage() {
             返回
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-content m-0">
-              项目配置管理
-            </h1>
+            <h1 className="text-xl font-bold text-content m-0">项目配置管理</h1>
             <p className="text-sm text-content-secondary m-0 mt-1">
               客户：{customer.name}（{customer.code}）
             </p>

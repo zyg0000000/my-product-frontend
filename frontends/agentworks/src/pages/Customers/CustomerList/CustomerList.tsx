@@ -211,7 +211,7 @@ export default function CustomerList() {
       const calculatedCoefficient = finalAmount / baseAmount;
 
       // 使用固定的深色样式，不受主题切换影响
-      const darkBg = '#1e293b';
+      const _darkBg = '#1e293b'; // 保留供未来使用
       const darkBgInner = '#334155';
       const textWhite = '#f8fafc';
       const textMuted = '#94a3b8';
@@ -256,7 +256,10 @@ export default function CustomerList() {
               style={{ borderTop: `1px solid ${borderColor}` }}
             >
               <div className="flex justify-between gap-4">
-                <span style={{ color: textMuted }} className="whitespace-nowrap">
+                <span
+                  style={{ color: textMuted }}
+                  className="whitespace-nowrap"
+                >
                   ③ 折扣率 ({(discountRate * 100).toFixed(2)}%):
                 </span>
                 <span className="text-xs whitespace-nowrap">
@@ -271,7 +274,10 @@ export default function CustomerList() {
               </div>
 
               <div className="flex justify-between gap-4">
-                <span style={{ color: textMuted }} className="whitespace-nowrap">
+                <span
+                  style={{ color: textMuted }}
+                  className="whitespace-nowrap"
+                >
                   = 折扣后金额:
                 </span>
                 <span className="font-medium whitespace-nowrap">
@@ -285,7 +291,10 @@ export default function CustomerList() {
                 className="flex justify-between gap-4 pt-1"
                 style={{ borderTop: `1px solid ${borderColor}` }}
               >
-                <span style={{ color: textMuted }} className="whitespace-nowrap">
+                <span
+                  style={{ color: textMuted }}
+                  className="whitespace-nowrap"
+                >
                   ④ 服务费 ({(serviceFeeRate * 100).toFixed(2)}%):
                 </span>
                 <span className="font-medium whitespace-nowrap">
@@ -299,7 +308,10 @@ export default function CustomerList() {
                 className="flex justify-between gap-4 pt-1"
                 style={{ borderTop: `1px solid ${borderColor}` }}
               >
-                <span style={{ color: textMuted }} className="whitespace-nowrap">
+                <span
+                  style={{ color: textMuted }}
+                  className="whitespace-nowrap"
+                >
                   ⑤ 增值税 (6%):
                 </span>
                 <span className="font-medium whitespace-nowrap">
@@ -399,9 +411,7 @@ export default function CustomerList() {
               className="text-primary-500"
               style={{ fontSize: '14px' }}
             />
-            <span className="font-semibold text-content text-sm">
-              达人采买
-            </span>
+            <span className="font-semibold text-content text-sm">达人采买</span>
           </div>
 
           {/* 分隔线 */}
@@ -642,7 +652,9 @@ export default function CustomerList() {
           <div>
             <div className="font-medium">{contact.name}</div>
             {contact.position && (
-              <div className="text-xs text-content-secondary">{contact.position}</div>
+              <div className="text-xs text-content-secondary">
+                {contact.position}
+              </div>
             )}
           </div>
         );
@@ -722,7 +734,12 @@ export default function CustomerList() {
                 cancelText="取消"
               >
                 <Tooltip title="永久删除">
-                  <Button type="text" size="small" danger icon={<StopOutlined />} />
+                  <Button
+                    type="text"
+                    size="small"
+                    danger
+                    icon={<StopOutlined />}
+                  />
                 </Tooltip>
               </Popconfirm>
             </Space>
@@ -762,7 +779,12 @@ export default function CustomerList() {
               cancelText="取消"
             >
               <Tooltip title="删除">
-                <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+                <Button
+                  type="text"
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                />
               </Tooltip>
             </Popconfirm>
           </Space>

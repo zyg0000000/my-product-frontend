@@ -274,7 +274,9 @@ export function KPIConfigEditor({
                         </span>
                         {getDirectionIcon(kpi.targetDirection)}
                       </div>
-                      <span className="text-xs text-content-muted">{kpi.unit}</span>
+                      <span className="text-xs text-content-muted">
+                        {kpi.unit}
+                      </span>
                     </div>
 
                     <div className="text-xs text-content-secondary mb-3">

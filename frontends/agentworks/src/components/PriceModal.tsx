@@ -221,7 +221,10 @@ export function PriceModal({
               </p>
             ) : (
               filteredHistory.map((history, index) => (
-                <div key={index} className="bg-surface-base rounded-md border p-3">
+                <div
+                  key={index}
+                  className="bg-surface-base rounded-md border p-3"
+                >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-content">
                       {formatYearMonth(history.year, history.month)}

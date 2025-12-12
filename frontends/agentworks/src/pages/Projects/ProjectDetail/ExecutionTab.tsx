@@ -407,7 +407,9 @@ export function ExecutionTab({
         );
         return (
           <Space size="small">
-            <span className="text-content-secondary">{record.taskId || '-'}</span>
+            <span className="text-content-secondary">
+              {record.taskId || '-'}
+            </span>
             {taskLinks.map(link => (
               <Tooltip key={link.name} title={link.name}>
                 <a
@@ -443,7 +445,9 @@ export function ExecutionTab({
         );
         return (
           <Space size="small">
-            <span className="text-content-secondary">{record.videoId || '-'}</span>
+            <span className="text-content-secondary">
+              {record.videoId || '-'}
+            </span>
             {videoLinks.map(link => (
               <Tooltip key={link.name} title={link.name}>
                 <a

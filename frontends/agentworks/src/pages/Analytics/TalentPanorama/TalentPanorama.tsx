@@ -719,7 +719,9 @@ export function TalentPanorama() {
               <div className="flex items-center gap-3">
                 <span className="font-medium">达人列表</span>
                 <div className="h-4 w-px bg-gray-300" />
-                <span className="text-sm text-content-secondary">共 {total} 个达人</span>
+                <span className="text-sm text-content-secondary">
+                  共 {total} 个达人
+                </span>
                 {viewMode === 'customer' && selectedCustomers.length > 0 && (
                   <>
                     <div className="h-4 w-px bg-gray-300" />

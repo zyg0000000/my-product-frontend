@@ -279,13 +279,17 @@ export function AgencyRebateModal({
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-primary-50 rounded-lg">
-                  <div className="text-xs text-content-secondary mb-1">当前返点率</div>
+                  <div className="text-xs text-content-secondary mb-1">
+                    当前返点率
+                  </div>
                   <div className="text-2xl font-bold text-primary-600">
                     {formatRebateRate(currentConfig.rebateRate)}
                   </div>
                 </div>
                 <div className="p-4 bg-surface-base rounded-lg">
-                  <div className="text-xs text-content-secondary mb-1">生效日期</div>
+                  <div className="text-xs text-content-secondary mb-1">
+                    生效日期
+                  </div>
                   <div className="text-base font-medium text-content">
                     {currentConfig.effectiveDate || '-'}
                   </div>
@@ -293,7 +297,9 @@ export function AgencyRebateModal({
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-xs text-content-secondary">最后更新时间</div>
+                  <div className="text-xs text-content-secondary">
+                    最后更新时间
+                  </div>
                   <div className="text-sm text-content">
                     {currentConfig.lastUpdatedAt
                       ? new Date(currentConfig.lastUpdatedAt).toLocaleString(
