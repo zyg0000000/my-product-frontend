@@ -211,10 +211,10 @@ export function TalentFilterPanel({
   );
 
   return (
-    <div className="bg-white rounded-lg shadow mb-4">
+    <div className="bg-surface rounded-lg shadow mb-4">
       {/* 筛选面板头部 */}
       <div
-        className="flex items-center justify-between px-4 py-3 border-b cursor-pointer hover:bg-gray-50"
+        className="flex items-center justify-between px-4 py-3 border-b cursor-pointer hover:bg-surface-subtle"
         onClick={onToggleExpand}
         role="button"
         tabIndex={0}
@@ -229,7 +229,7 @@ export function TalentFilterPanel({
       >
         <div className="flex items-center gap-2">
           <svg
-            className={`w-5 h-5 text-gray-500 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+            className={`w-5 h-5 text-content-secondary transition-transform ${isExpanded ? 'rotate-90' : ''}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -242,7 +242,7 @@ export function TalentFilterPanel({
               d="M9 5l7 7-7 7"
             />
           </svg>
-          <span className="font-medium text-gray-900">筛选条件</span>
+          <span className="font-medium text-content">筛选条件</span>
         </div>
         <div
           className="flex items-center gap-2"
@@ -251,7 +251,7 @@ export function TalentFilterPanel({
           {hasActiveFilters && (
             <button
               onClick={onReset}
-              className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+              className="px-3 py-1 text-sm text-content-secondary hover:text-content hover:bg-surface-sunken rounded"
             >
               重置
             </button>
@@ -269,13 +269,13 @@ export function TalentFilterPanel({
       {isExpanded && (
         <div className="flex">
           {/* 左侧：筛选器面板 */}
-          <div className="flex-1 p-4 border-r border-gray-100">
+          <div className="flex-1 p-4 border-r border-stroke">
             <div className="space-y-4">
               {/* 搜索和客户筛选 - 并排 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* 搜索框 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-content mb-2">
                     搜索
                   </label>
                   <Input
@@ -290,9 +290,9 @@ export function TalentFilterPanel({
 
                 {/* 客户筛选 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-content mb-2">
                     所属客户{' '}
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-content-secondary">
                       （筛选客户达人池）
                     </span>
                   </label>
@@ -322,9 +322,9 @@ export function TalentFilterPanel({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* 价格范围筛选 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-content mb-2">
                     价格范围{' '}
-                    <span className="text-xs text-gray-500">（常用）</span>
+                    <span className="text-xs text-content-secondary">（常用）</span>
                   </label>
                   <div className="flex gap-2">
                     <Input
@@ -347,9 +347,9 @@ export function TalentFilterPanel({
 
                 {/* 返点范围筛选 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-content mb-2">
                     返点范围 (%){' '}
-                    <span className="text-xs text-gray-500">（常用）</span>
+                    <span className="text-xs text-content-secondary">（常用）</span>
                   </label>
                   <div className="flex gap-2">
                     <Input
@@ -380,11 +380,11 @@ export function TalentFilterPanel({
                 {/* 内容标签筛选 */}
                 {availableTags.length > 0 && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-content mb-2">
                       内容标签
                     </label>
                     <div
-                      className="border border-gray-200 rounded-md bg-gray-50"
+                      className="border border-stroke rounded-md bg-surface-base"
                       style={{ width: '400px', height: '144px' }}
                     >
                       {/* 标签列表 - 横向排列带换行 */}
@@ -393,7 +393,7 @@ export function TalentFilterPanel({
                           {availableTags.map(tag => (
                             <label
                               key={tag}
-                              className="inline-flex items-center cursor-pointer hover:bg-white rounded px-1 py-0.5 h-fit"
+                              className="inline-flex items-center cursor-pointer hover:bg-surface rounded px-1 py-0.5 h-fit"
                             >
                               <Checkbox
                                 checked={selectedTags.includes(tag)}
@@ -415,9 +415,9 @@ export function TalentFilterPanel({
           </div>
 
           {/* 右侧：已选条件展示 */}
-          <div className="w-96 p-4 bg-gray-50">
+          <div className="w-96 p-4 bg-surface-base">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-content">
                 已选条件
               </span>
               {hasActiveFilters && (
@@ -435,12 +435,12 @@ export function TalentFilterPanel({
                 {activeFilterData.map(item => (
                   <span
                     key={item.id}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 rounded-md text-sm"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-surface border border-stroke rounded-md text-sm"
                   >
-                    <span className="text-gray-700">{item.label}</span>
+                    <span className="text-content">{item.label}</span>
                     <button
                       onClick={() => handleRemoveFilter(item.type, item.value)}
-                      className="ml-1 text-gray-400 hover:text-gray-600"
+                      className="ml-1 text-content-muted hover:text-content-secondary"
                       aria-label={`移除筛选条件: ${item.label}`}
                     >
                       <CloseOutlined className="text-xs" aria-hidden="true" />
@@ -449,15 +449,15 @@ export function TalentFilterPanel({
                 ))}
               </div>
             ) : (
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-content-secondary">
                 暂无筛选条件，请在左侧选择
               </div>
             )}
 
             {/* 筛选统计信息 */}
             {hasActiveFilters && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="text-xs text-gray-500">
+              <div className="mt-4 pt-4 border-t border-stroke">
+                <div className="text-xs text-content-secondary">
                   <div>符合条件的达人: {totalTalents} 个</div>
                 </div>
               </div>

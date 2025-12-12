@@ -195,7 +195,7 @@ export function BusinessTagsEditor({
       />
 
       {/* 标签列表 */}
-      <div className="min-h-[60px] border border-gray-200 rounded-md p-3 bg-gray-50">
+      <div className="min-h-[60px] border border-stroke rounded-md p-3 bg-surface-base">
         {renderTags()}
 
         {/* 添加标签输入框 */}
@@ -228,7 +228,7 @@ export function BusinessTagsEditor({
 
       {/* 提示说明 */}
       {!readOnly && (
-        <div className="text-xs text-gray-400 mt-2">
+        <div className="text-xs text-content-muted mt-2">
           提示：标签将用于项目创建时选择，可跨平台复用相同标签名称
         </div>
       )}

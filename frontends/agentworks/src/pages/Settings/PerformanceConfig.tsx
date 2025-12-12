@@ -103,12 +103,12 @@ export function PerformanceConfig() {
     return (
       <div className="space-y-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">达人表现配置管理</h1>
-          <p className="text-gray-600 mt-1 text-sm">
+          <h1 className="text-2xl font-bold text-content">达人表现配置管理</h1>
+          <p className="text-content-secondary mt-1 text-sm">
             管理各平台的字段映射和数据维度配置
           </p>
         </div>
-        <div className="p-8 text-center text-gray-500">加载平台配置中...</div>
+        <div className="p-8 text-center text-content-secondary">加载平台配置中...</div>
       </div>
     );
   }
@@ -118,8 +118,8 @@ export function PerformanceConfig() {
       <div className="space-y-4">
         {/* 页面标题 - Tailwind */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">达人表现配置管理</h1>
-          <p className="text-gray-600 mt-1 text-sm">
+          <h1 className="text-2xl font-bold text-content">达人表现配置管理</h1>
+          <p className="text-content-secondary mt-1 text-sm">
             管理各平台的字段映射和数据维度配置
           </p>
         </div>
@@ -138,7 +138,7 @@ export function PerformanceConfig() {
               marginBottom: 0,
               paddingLeft: 16,
               paddingRight: 16,
-              borderBottom: '1px solid #f0f0f0',
+              borderBottom: '1px solid var(--color-border)',
             }}
             size="large"
           />
@@ -239,7 +239,7 @@ function MappingConfigPanel({
   if (!fieldMapping.activeConfig) {
     return (
       <div className="p-8 text-center">
-        <p className="text-gray-500 mb-4">
+        <p className="text-content-secondary mb-4">
           未找到 {PLATFORM_NAMES[platform]} 的配置
         </p>
         <Button
@@ -262,10 +262,10 @@ function MappingConfigPanel({
       {/* 配置信息 */}
       <div className="flex justify-between items-center pb-4 border-b">
         <div>
-          <h3 className="text-lg font-medium text-gray-900">
+          <h3 className="text-lg font-medium text-content">
             {config.configName} (v{config.version})
           </h3>
-          <p className="text-sm text-gray-500 mt-1">{config.description}</p>
+          <p className="text-sm text-content-secondary mt-1">{config.description}</p>
         </div>
         <Button icon={<ReloadOutlined />} onClick={fieldMapping.loadConfigs}>
           刷新
@@ -316,7 +316,7 @@ function DimensionConfigPanel({
   if (!dimensionConfig.activeConfig) {
     return (
       <div className="p-8 text-center">
-        <p className="text-gray-500 mb-4">
+        <p className="text-content-secondary mb-4">
           未找到 {PLATFORM_NAMES[platform]} 的配置
         </p>
         <Button
@@ -339,10 +339,10 @@ function DimensionConfigPanel({
       {/* 配置信息 */}
       <div className="flex justify-between items-center pb-4 border-b">
         <div>
-          <h3 className="text-lg font-medium text-gray-900">
+          <h3 className="text-lg font-medium text-content">
             {config.configName} (v{config.version || '1.0'})
           </h3>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-content-secondary mt-1">
             {PLATFORM_NAMES[platform]}达人表现数据维度配置（基于ByteProject
             performance页面）
           </p>
@@ -395,7 +395,7 @@ function DataImportPanel({
       </div>
 
       {/* 导入操作 */}
-      <div className="border border-gray-200 rounded-lg p-6">
+      <div className="border border-stroke rounded-lg p-6">
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0">
             <svg
@@ -413,10 +413,10 @@ function DataImportPanel({
             </svg>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <h3 className="text-lg font-medium text-content mb-2">
               导入 {PLATFORM_NAMES[platform]} 表现数据
             </h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-content-secondary mb-4">
               从飞书表格导入最新的达人表现数据，包括粉丝数、互动率、价格等指标
             </p>
             <Button type="primary" onClick={onOpenImport}>
@@ -427,9 +427,9 @@ function DataImportPanel({
       </div>
 
       {/* 导入步骤指南 */}
-      <div className="border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-gray-900 mb-3">导入步骤</h3>
-        <ol className="space-y-2 text-sm text-gray-600">
+      <div className="border border-stroke rounded-lg p-4">
+        <h3 className="text-sm font-medium text-content mb-3">导入步骤</h3>
+        <ol className="space-y-2 text-sm text-content-secondary">
           <li className="flex items-start gap-2">
             <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-xs font-medium">
               1
@@ -458,11 +458,11 @@ function DataImportPanel({
       </div>
 
       {/* 注意事项 */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-yellow-900 mb-2">
+      <div className="bg-warning-50 border border-warning-200 rounded-lg p-4">
+        <h3 className="text-sm font-medium text-warning-900 mb-2">
           ⚠️ 注意事项
         </h3>
-        <ul className="text-xs text-yellow-700 space-y-1">
+        <ul className="text-xs text-warning-700 space-y-1">
           <li>• 导入会覆盖原有的表现数据，请确认数据准确性</li>
           <li>• 建议在非高峰时段进行大批量数据导入</li>
           <li>• 如遇到导入失败，请检查飞书表格权限和字段映射</li>

@@ -377,11 +377,12 @@ class ProjectApi {
 
   /**
    * 删除合作记录
+   * 注意：后端 deleteCollaborator 云函数绑定的是 /delete-collaboration 路由
    */
   async deleteCollaboration(
     id: string
   ): Promise<ApiResponse<{ message: string }>> {
-    const url = `${API_BASE_URL}/collaborations?id=${encodeURIComponent(id)}`;
+    const url = `${API_BASE_URL}/delete-collaboration`;
 
     const response = await fetch(url, {
       method: 'DELETE',

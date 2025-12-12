@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Space, Popconfirm, App, Modal, Select } from 'antd';
+import { Button, Tag, Space, Popconfirm, App, Modal, Select, Tooltip } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -284,18 +284,18 @@ export function CollaborationsTab({
     {
       title: '操作',
       valueType: 'option',
-      width: 140,
+      width: 80,
       fixed: 'right',
       render: (_, record) => (
-        <Space size="small">
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          >
-            编辑
-          </Button>
+        <Space size={4}>
+          <Tooltip title="编辑">
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
           <Popconfirm
             title="确定删除该合作记录？"
             description="删除后不可恢复"
@@ -303,9 +303,9 @@ export function CollaborationsTab({
             okText="确定"
             cancelText="取消"
           >
-            <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
+            <Tooltip title="删除">
+              <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),
@@ -390,11 +390,10 @@ export function CollaborationsTab({
         ]}
         scroll={{ x: 1200 }}
         options={{
-          reload: false,
-          density: false,
+          fullScreen: true,
+          density: true,
           setting: true,
         }}
-        size="middle"
       />
 
       {/* 合作记录表单弹窗 */}
@@ -424,7 +423,7 @@ export function CollaborationsTab({
         cancelText="取消"
       >
         <div className="py-4">
-          <p className="text-gray-600 mb-4">
+          <p className="text-content-secondary mb-4">
             已选择{' '}
             <span className="font-medium text-primary-600">
               {selectedRowKeys.length}

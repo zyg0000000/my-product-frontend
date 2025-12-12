@@ -248,8 +248,8 @@ export function BasicInfo() {
       <div className="space-y-6">
         {/* 页面标题 */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">基础信息</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-content">基础信息</h1>
+          <p className="mt-1 text-sm text-content-secondary">
             管理多平台达人信息、价格和返点
           </p>
         </div>
@@ -326,7 +326,7 @@ export function BasicInfo() {
               <div className="flex items-center gap-3">
                 <span className="font-medium">达人列表</span>
                 <div className="h-4 w-px bg-gray-300"></div>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-content-secondary">
                   共 {totalTalents} 个达人
                 </span>
               </div>
@@ -395,12 +395,11 @@ export function BasicInfo() {
               ],
             }}
             options={{
-              reload: false,
-              density: false,
+              fullScreen: true,
+              density: true,
               setting: true,
             }}
             scroll={{ x: 1500 }}
-            size="middle"
           />
         )}
 

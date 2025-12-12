@@ -375,7 +375,7 @@ export function PlatformConfigModal({
       children: (
         <ProCard>
           <div className="mb-4 flex justify-between items-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-content-secondary">
               配置该平台的价格类型（如：60s以上视频、图文笔记等）
             </p>
             <Button
@@ -398,7 +398,7 @@ export function PlatformConfigModal({
           </div>
 
           {priceTypes.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-content-muted">
               暂无价格类型配置，点击上方按钮添加
             </div>
           ) : (
@@ -409,9 +409,9 @@ export function PlatformConfigModal({
                 .map(pt => (
                   <div
                     key={pt._index}
-                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                    className="flex items-center gap-3 p-3 bg-surface-base rounded-lg"
                   >
-                    <HolderOutlined className="text-gray-400 cursor-move" />
+                    <HolderOutlined className="text-content-muted cursor-move" />
 
                     <Input
                       placeholder="类型标识(英文)"
@@ -442,7 +442,7 @@ export function PlatformConfigModal({
                     />
 
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">背景:</span>
+                      <span className="text-xs text-content-secondary">背景:</span>
                       <ColorPicker
                         value={pt.bgColor}
                         size="small"
@@ -458,7 +458,7 @@ export function PlatformConfigModal({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">文字:</span>
+                      <span className="text-xs text-content-secondary">文字:</span>
                       <ColorPicker
                         value={pt.textColor}
                         size="small"
@@ -548,7 +548,7 @@ export function PlatformConfigModal({
           </div>
 
           <div className="mt-6">
-            <p className="text-sm font-medium text-gray-700 mb-3">功能开关</p>
+            <p className="text-sm font-medium text-content mb-3">功能开关</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Form.Item
                 name="priceManagement"
@@ -603,16 +603,16 @@ export function PlatformConfigModal({
                 {fields.map((field, index) => (
                   <div
                     key={field.key}
-                    className="rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50/80 shadow-sm"
+                    className="rounded-xl border border-stroke bg-gradient-to-br from-white to-gray-50/80 shadow-sm"
                     style={{ display: index === linkPage ? 'block' : 'none' }}
                   >
                     {/* 卡片头部 */}
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/60 rounded-t-xl">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-stroke bg-surface-base/60 rounded-t-xl">
                       <div className="flex items-center gap-3">
                         <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 text-primary-600 text-xs font-semibold">
                           {index + 1}
                         </div>
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className="text-sm font-medium text-content">
                           外链配置
                         </span>
                       </div>
@@ -645,7 +645,7 @@ export function PlatformConfigModal({
                         <Form.Item
                           name={[field.name, 'name']}
                           label={
-                            <span className="text-xs text-gray-500 font-medium">
+                            <span className="text-xs text-content-secondary font-medium">
                               链接名称
                             </span>
                           }
@@ -656,7 +656,7 @@ export function PlatformConfigModal({
                         <Form.Item
                           name={[field.name, 'label']}
                           label={
-                            <span className="text-xs text-gray-500 font-medium">
+                            <span className="text-xs text-content-secondary font-medium">
                               显示标签
                             </span>
                           }
@@ -674,7 +674,7 @@ export function PlatformConfigModal({
                         <ProFormSelect
                           name={[field.name, 'idSource']}
                           label={
-                            <span className="text-xs text-gray-500 font-medium">
+                            <span className="text-xs text-content-secondary font-medium">
                               数据来源
                             </span>
                           }
@@ -704,7 +704,7 @@ export function PlatformConfigModal({
                           <Form.Item
                             name={[field.name, 'template']}
                             label={
-                              <span className="text-xs text-gray-500 font-medium">
+                              <span className="text-xs text-content-secondary font-medium">
                                 URL 模板
                               </span>
                             }
@@ -719,7 +719,7 @@ export function PlatformConfigModal({
                         <Form.Item
                           name={[field.name, 'idField']}
                           label={
-                            <span className="text-xs text-gray-500 font-medium">
+                            <span className="text-xs text-content-secondary font-medium">
                               ID 字段名
                             </span>
                           }
@@ -730,8 +730,8 @@ export function PlatformConfigModal({
                         </Form.Item>
                       </div>
                       {/* 显示位置区 */}
-                      <div className="mt-4 pt-4 border-t border-dashed border-gray-200">
-                        <div className="text-xs text-gray-400 font-medium mb-3">
+                      <div className="mt-4 pt-4 border-t border-dashed border-stroke">
+                        <div className="text-xs text-content-muted font-medium mb-3">
                           显示位置
                         </div>
                         <div className="flex gap-8">
@@ -766,7 +766,7 @@ export function PlatformConfigModal({
 
                 {/* 空状态 */}
                 {fields.length === 0 && (
-                  <div className="text-center py-12 text-gray-400 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                  <div className="text-center py-12 text-content-muted border border-dashed border-stroke rounded-xl bg-surface-base/50">
                     <div className="text-3xl mb-2">🔗</div>
                     <div className="text-sm">暂无外链配置</div>
                     <div className="text-xs mt-1">
@@ -822,7 +822,7 @@ export function PlatformConfigModal({
                           />
                         ))}
                       </div>
-                      <span className="text-xs text-gray-500 min-w-[3rem] text-center">
+                      <span className="text-xs text-content-secondary min-w-[3rem] text-center">
                         {linkPage + 1} / {fields.length}
                       </span>
                       <Button
@@ -874,7 +874,7 @@ export function PlatformConfigModal({
               </>
             )}
           </div>
-          <div className="text-sm font-normal text-gray-500 mt-0.5">
+          <div className="text-sm font-normal text-content-secondary mt-0.5">
             {isCreating ? (
               <>创建新的平台配置</>
             ) : (

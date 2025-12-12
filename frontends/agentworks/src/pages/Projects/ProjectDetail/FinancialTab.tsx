@@ -222,7 +222,7 @@ const customStyles = `
   }
 
   .finance-data-table-wrapper {
-    background: white;
+    background: var(--aw-gray-50);
     border-radius: 16px;
     border: 1px solid rgba(0, 0, 0, 0.04);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.04);
@@ -1046,7 +1046,7 @@ export function FinancialTab({
                 </div>
               </>
             ) : (
-              <span className="text-gray-400">-</span>
+              <span className="text-content-muted">-</span>
             )}
             <Button
               type="link"
@@ -1142,19 +1142,19 @@ export function FinancialTab({
                 {settlementFiles.map((file, index) => (
                   <div
                     key={`${file.url}-${index}`}
-                    className="group relative p-4 bg-gray-50 rounded-lg border border-gray-100 hover:border-primary-200 hover:bg-primary-50/30 transition-all"
+                    className="group relative p-4 bg-surface-base rounded-lg border border-stroke hover:border-primary-200 hover:bg-primary-50/30 transition-all"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="shrink-0 p-2 bg-white rounded-lg shadow-sm">
+                      <div className="shrink-0 p-2 bg-surface rounded-lg shadow-sm">
                         {getFileIcon(file.name)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <Tooltip title={file.name}>
-                          <div className="font-medium text-gray-800 truncate text-sm">
+                          <div className="font-medium text-content truncate text-sm">
                             {file.name}
                           </div>
                         </Tooltip>
-                        <div className="text-xs text-gray-400 mt-1">
+                        <div className="text-xs text-content-muted mt-1">
                           {formatFileSize(file.size)}
                           {file.uploadedAt && (
                             <span className="ml-2">
@@ -1263,11 +1263,10 @@ export function FinancialTab({
             ]}
             scroll={{ x: 1100 }}
             options={{
-              reload: false,
-              density: false,
+              fullScreen: true,
+              density: true,
               setting: true,
             }}
-            size="middle"
           />
         </div>
 
@@ -1284,7 +1283,7 @@ export function FinancialTab({
         >
           <div className="space-y-4 py-4">
             <div>
-              <div className="mb-2 text-gray-600">设置字段</div>
+              <div className="mb-2 text-content-secondary">设置字段</div>
               <Select
                 value={batchField}
                 onChange={setBatchField}
@@ -1293,7 +1292,7 @@ export function FinancialTab({
               />
             </div>
             <div>
-              <div className="mb-2 text-gray-600">日期</div>
+              <div className="mb-2 text-content-secondary">日期</div>
               <DatePicker
                 value={batchDate}
                 onChange={setBatchDate}
@@ -1301,7 +1300,7 @@ export function FinancialTab({
                 placeholder="选择日期"
               />
             </div>
-            <div className="text-gray-400 text-sm">
+            <div className="text-content-muted text-sm">
               将为选中的 {selectedRowKeys.length} 条记录设置{' '}
               {batchFieldOptions.find(o => o.value === batchField)?.label}
             </div>

@@ -6,7 +6,7 @@ import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Space, App, Checkbox } from 'antd';
+import { Button, Tag, Space, App, Checkbox, Tooltip } from 'antd';
 import {
   PlusOutlined,
   ReloadOutlined,
@@ -290,26 +290,26 @@ export function ProjectList() {
     {
       title: '操作',
       valueType: 'option',
-      width: 110,
+      width: 80,
       fixed: 'right',
       render: (_, record) => (
-        <Space size="small">
-          <Button
-            type="link"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => navigate(`/projects/${record.id}`)}
-          >
-            查看
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          >
-            编辑
-          </Button>
+        <Space size={4}>
+          <Tooltip title="查看详情">
+            <Button
+              type="text"
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() => navigate(`/projects/${record.id}`)}
+            />
+          </Tooltip>
+          <Tooltip title="编辑">
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
         </Space>
       ),
     },
@@ -320,8 +320,8 @@ export function ProjectList() {
       <div className="space-y-6">
         {/* 页面标题 */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">项目列表</h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-content">项目列表</h1>
+          <p className="mt-2 text-sm text-content-secondary">
             管理投放项目、查看执行进度和财务状态
           </p>
         </div>
@@ -408,11 +408,10 @@ export function ProjectList() {
             ]}
             scroll={{ x: 1200 }}
             options={{
-              reload: false,
-              density: false,
+              fullScreen: true,
+              density: true,
               setting: true,
             }}
-            size="middle"
           />
         )}
 

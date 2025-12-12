@@ -207,11 +207,11 @@ export function KPIConfigEditor({
     return (
       <div className="space-y-4">
         {/* 平台总开关 */}
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center justify-between p-4 bg-surface-base rounded-lg">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-gray-800">启用 KPI 考核</span>
+            <span className="font-medium text-content">启用 KPI 考核</span>
             <Tooltip title="启用后，该平台的项目需要配置 KPI 目标值，用于交付效果评估">
-              <QuestionCircleOutlined className="text-gray-400" />
+              <QuestionCircleOutlined className="text-content-muted" />
             </Tooltip>
           </div>
           {readOnly ? (
@@ -231,7 +231,7 @@ export function KPIConfigEditor({
         {/* KPI 指标列表 */}
         {config.enabled && (
           <div className="space-y-3">
-            <div className="text-sm text-gray-500 mb-2">
+            <div className="text-sm text-content-secondary mb-2">
               选择该平台需要考核的 KPI
               指标，并设置默认目标值（项目创建时可覆盖）
             </div>
@@ -248,7 +248,7 @@ export function KPIConfigEditor({
                     className={`transition-all ${
                       isEnabled
                         ? 'border-primary-300 bg-primary-50/30'
-                        : 'border-gray-200 bg-gray-50/50'
+                        : 'border-stroke bg-surface-base/50'
                     }`}
                     styles={{ body: { padding: 16 } }}
                   >
@@ -268,26 +268,26 @@ export function KPIConfigEditor({
                           />
                         )}
                         <span
-                          className={`font-semibold ${isEnabled ? 'text-gray-800' : 'text-gray-500'}`}
+                          className={`font-semibold ${isEnabled ? 'text-content' : 'text-content-secondary'}`}
                         >
                           {kpi.name}
                         </span>
                         {getDirectionIcon(kpi.targetDirection)}
                       </div>
-                      <span className="text-xs text-gray-400">{kpi.unit}</span>
+                      <span className="text-xs text-content-muted">{kpi.unit}</span>
                     </div>
 
-                    <div className="text-xs text-gray-500 mb-3">
+                    <div className="text-xs text-content-secondary mb-3">
                       {kpi.description}
                     </div>
 
                     {isEnabled && (
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600 whitespace-nowrap">
+                        <span className="text-sm text-content-secondary whitespace-nowrap">
                           默认目标:
                         </span>
                         {readOnly ? (
-                          <span className="font-medium text-gray-800">
+                          <span className="font-medium text-content">
                             {targetValue !== undefined
                               ? `${targetValue} ${kpi.unit}`
                               : '未设置'}
@@ -318,7 +318,7 @@ export function KPIConfigEditor({
 
         {/* 未启用时的提示 */}
         {!config.enabled && (
-          <div className="text-center py-6 text-gray-400 bg-gray-50/50 rounded-lg">
+          <div className="text-center py-6 text-content-muted bg-surface-base/50 rounded-lg">
             {readOnly
               ? '该平台未启用 KPI 考核'
               : '启用 KPI 考核后，可选择考核指标并设置默认目标值'}
@@ -377,7 +377,7 @@ export function KPIConfigEditor({
 
   return (
     <div className="space-y-4">
-      <div className="text-sm text-gray-500 mb-4">
+      <div className="text-sm text-content-secondary mb-4">
         按平台配置 KPI 考核指标，每个平台可以独立设置不同的考核要求
       </div>
 

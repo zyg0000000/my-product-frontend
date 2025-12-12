@@ -20,7 +20,7 @@
 import { useState, useRef } from 'react';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Space, App } from 'antd';
+import { Button, Tag, Space, App, Tooltip } from 'antd';
 import { PlusOutlined, EditOutlined, ReloadOutlined } from '@ant-design/icons';
 import { usePlatformConfig } from '../../hooks/usePlatformConfig';
 import type { PlatformConfig } from '../../api/platformConfig';
@@ -91,7 +91,7 @@ export function PlatformConfig() {
       render: (_, record) => (
         <Space>
           <Tag color={record.color}>{record.name}</Tag>
-          <span className="text-xs text-gray-500">({record.platform})</span>
+          <span className="text-xs text-content-secondary">({record.platform})</span>
         </Space>
       ),
     },
@@ -121,7 +121,7 @@ export function PlatformConfig() {
         return (
           <span
             className={
-              count > 0 ? 'text-primary-600 font-medium' : 'text-gray-400'
+              count > 0 ? 'text-primary-600 font-medium' : 'text-content-muted'
             }
           >
             {count} 个
@@ -137,9 +137,9 @@ export function PlatformConfig() {
       render: (_, record) => {
         const fee = record.business?.fee;
         return fee !== null && fee !== undefined ? (
-          <span className="text-gray-900">{(fee * 100).toFixed(1)}%</span>
+          <span className="text-content">{(fee * 100).toFixed(1)}%</span>
         ) : (
-          <span className="text-gray-400">未配置</span>
+          <span className="text-content-muted">未配置</span>
         );
       },
     },
@@ -184,17 +184,17 @@ export function PlatformConfig() {
     {
       title: '操作',
       key: 'actions',
-      width: 100,
+      width: 60,
       fixed: 'right',
       render: (_, record) => (
-        <Button
-          type="link"
-          size="small"
-          icon={<EditOutlined />}
-          onClick={() => handleEdit(record)}
-        >
-          编辑
-        </Button>
+        <Tooltip title="编辑">
+          <Button
+            type="text"
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => handleEdit(record)}
+          />
+        </Tooltip>
       ),
     },
   ];
@@ -204,8 +204,8 @@ export function PlatformConfig() {
       <div className="space-y-6">
         {/* 页面标题 */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">平台配置管理</h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-content">平台配置管理</h1>
+          <p className="mt-2 text-sm text-content-secondary">
             管理系统支持的平台及其相关配置，支持动态调整无需重新部署
           </p>
         </div>
@@ -260,8 +260,8 @@ export function PlatformConfig() {
 
         {/* 错误提示 */}
         {error && (
-          <div className="fixed bottom-4 right-4 bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg">
-            <div className="text-sm text-red-800">{error}</div>
+          <div className="fixed bottom-4 right-4 bg-danger-50 border border-danger-200 rounded-lg p-4 shadow-lg">
+            <div className="text-sm text-danger-700">{error}</div>
           </div>
         )}
       </div>

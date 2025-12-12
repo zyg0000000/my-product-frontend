@@ -6,14 +6,15 @@
 
 1. [设计理念](#1-设计理念)
 2. [颜色系统](#2-颜色系统)
-3. [字体系统](#3-字体系统)
-4. [间距系统](#4-间距系统)
-5. [圆角系统](#5-圆角系统)
-6. [阴影系统](#6-阴影系统)
-7. [动画系统](#7-动画系统)
-8. [组件规范](#8-组件规范)
-9. [布局规范](#9-布局规范)
-10. [开发指南](#10-开发指南)
+3. [深色模式](#3-深色模式) ⭐ **新增**
+4. [字体系统](#4-字体系统)
+5. [间距系统](#5-间距系统)
+6. [圆角系统](#6-圆角系统)
+7. [阴影系统](#7-阴影系统)
+8. [动画系统](#8-动画系统)
+9. [组件规范](#9-组件规范)
+10. [布局规范](#10-布局规范)
+11. [开发指南](#11-开发指南)
 
 ---
 
@@ -132,9 +133,174 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 
 ---
 
-## 3. 字体系统
+## 3. 深色模式
 
-### 3.1 字体家族
+AgentWorks 支持自动深色模式切换。通过 CSS Variables 和语义化 Tailwind 类实现，开发时无需手动添加 `dark:` 前缀。
+
+### 3.1 实现原理
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  CSS Variables (colors.css)                             │
+│  └─ 定义 :root 浅色 + [data-theme="dark"] 深色变量       │
+├─────────────────────────────────────────────────────────┤
+│  Tailwind 语义化颜色 (tailwind.config.js)               │
+│  └─ 引用 CSS Variables，如 surface, content, stroke     │
+├─────────────────────────────────────────────────────────┤
+│  Ant Design 覆盖 (index.css)                            │
+│  └─ 使用 [data-theme="dark"] 选择器覆盖组件样式          │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 3.2 语义化 Tailwind 类（推荐使用）
+
+使用以下语义化类，深色模式会 **自动适配**，无需添加 `dark:` 前缀：
+
+#### 背景色
+
+| 类名 | 用途 | 浅色模式 | 深色模式 |
+|------|------|---------|---------|
+| `bg-surface` | 卡片、容器、弹窗 | `#ffffff` | `#1e293b` |
+| `bg-surface-base` | 页面背景 | `#f8fafc` | `#0f172a` |
+| `bg-surface-sunken` | 输入框、表格头 | `#f1f5f9` | `#334155` |
+| `bg-surface-subtle` | 轻微高亮 | `#f1f5f9` | `#334155` |
+
+#### 文字色
+
+| 类名 | 用途 | 浅色模式 | 深色模式 |
+|------|------|---------|---------|
+| `text-content` | 标题、正文 | `#0f172a` | `#f8fafc` |
+| `text-content-secondary` | 次要信息、描述 | `#475569` | `#cbd5e1` |
+| `text-content-muted` | 占位符、禁用文字 | `#94a3b8` | `#64748b` |
+
+#### 边框色
+
+| 类名 | 用途 | 浅色模式 | 深色模式 |
+|------|------|---------|---------|
+| `border-stroke` | 默认边框 | `#e2e8f0` | `#475569` |
+| `border-stroke-hover` | 悬停边框 | `#cbd5e1` | `#64748b` |
+
+### 3.3 开发规范
+
+#### ✅ 正确写法
+
+```tsx
+// 使用语义化类 - 自动适配深色模式
+<div className="bg-surface text-content border border-stroke rounded-lg p-4">
+  <h2 className="text-lg font-semibold">标题</h2>
+  <p className="text-content-secondary">描述文字</p>
+</div>
+
+// 使用 Tailwind gray-* 类 - 已配置引用 CSS Variables
+<div className="bg-gray-100 text-gray-900">
+  内容
+</div>
+
+// Ant Design 组件 - 已添加 CSS 覆盖，自动适配
+<Table />, <Modal />, <Card />, <Select />
+```
+
+#### ❌ 错误写法
+
+```tsx
+// 避免：硬编码 bg-white（不会自动切换）
+<div className="bg-white">
+
+// 避免：内联样式硬编码颜色
+<div style={{ backgroundColor: '#ffffff', color: '#333333' }}>
+
+// 避免：使用十六进制颜色值
+<div className="bg-[#ffffff]">
+```
+
+#### 🔄 迁移写法
+
+```tsx
+// 旧写法 → 新写法
+bg-white        → bg-surface
+bg-gray-50      → bg-surface-base
+bg-gray-100     → bg-surface-sunken
+text-gray-900   → text-content
+text-gray-600   → text-content-secondary
+text-gray-400   → text-content-muted
+border-gray-200 → border-stroke
+```
+
+### 3.4 特殊场景处理
+
+#### 需要固定颜色的场景
+
+某些场景（如 Popover 内容）需要固定深色背景，不随主题切换：
+
+```tsx
+// 使用内联样式固定深色
+const darkStyles = {
+  backgroundColor: '#334155',
+  color: '#f8fafc',
+  borderColor: '#475569',
+};
+
+<Popover content={<div style={darkStyles}>...</div>} />
+```
+
+#### 透明度颜色
+
+```tsx
+// 透明度颜色保持原样
+<div className="bg-white/10">  // 允许
+<div className="bg-black/50">  // 允许
+```
+
+#### 状态色
+
+状态色（primary, success, warning, danger）在深色模式下会自动调亮：
+
+```tsx
+// 状态色自动适配
+<Button type="primary">主按钮</Button>
+<Tag color="success">成功</Tag>
+<Alert type="warning" message="警告" />
+```
+
+### 3.5 深色模式颜色值参考
+
+```css
+/* 深色模式下的灰度色阶（已反转） */
+--aw-gray-50:  #0f172a;  /* 页面背景 */
+--aw-gray-100: #1e293b;  /* 卡片背景 */
+--aw-gray-200: #334155;  /* 输入框背景 */
+--aw-gray-300: #475569;  /* 边框 */
+--aw-gray-400: #64748b;  /* 禁用文字 */
+--aw-gray-500: #94a3b8;  /* 占位符 */
+--aw-gray-600: #cbd5e1;  /* 次要文字 */
+--aw-gray-700: #e2e8f0;  /* 强调文字 */
+--aw-gray-800: #f1f5f9;  /* 正文 */
+--aw-gray-900: #f8fafc;  /* 标题、主要文字 */
+```
+
+### 3.6 主题切换
+
+主题通过 `ThemeContext` 管理：
+
+```tsx
+import { useTheme } from '../contexts/ThemeContext';
+
+function MyComponent() {
+  const { theme, isDark, toggleTheme } = useTheme();
+
+  return (
+    <button onClick={toggleTheme}>
+      当前: {isDark ? '深色' : '浅色'}
+    </button>
+  );
+}
+```
+
+---
+
+## 4. 字体系统
+
+### 4.1 字体家族
 
 ```css
 /* 标题字体 - 几何感、现代、专业 */
@@ -147,7 +313,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 --aw-font-mono: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
 ```
 
-### 3.2 字号规范
+### 4.2 字号规范
 
 | Token | 大小 | 用途 |
 |-------|------|------|
@@ -161,7 +327,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 | `--aw-text-3xl` | 24px | 大标题 |
 | `--aw-text-4xl` | 30px | 超大标题 |
 
-### 3.3 行高
+### 4.3 行高
 
 ```css
 --aw-leading-none:   1.0   /* 数字展示 */
@@ -172,7 +338,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 --aw-leading-loose:  2.0   /* 特殊场景 */
 ```
 
-### 3.4 字重
+### 4.4 字重
 
 ```css
 --aw-font-normal:   400  /* 正文 */
@@ -183,11 +349,11 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 
 ---
 
-## 4. 间距系统
+## 5. 间距系统
 
 基于 **4px 网格** 的间距系统。
 
-### 4.1 间距比例
+### 5.1 间距比例
 
 | Token | 值 | 像素 |
 |-------|-----|------|
@@ -204,7 +370,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 | `--aw-space-12` | 3rem | 48px |
 | `--aw-space-16` | 4rem | 64px |
 
-### 4.2 语义化间距
+### 5.2 语义化间距
 
 ```css
 /* 内边距 */
@@ -233,7 +399,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 
 ---
 
-## 5. 圆角系统
+## 6. 圆角系统
 
 ```css
 --aw-radius-none: 0       /* 无圆角 */
@@ -260,9 +426,9 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 
 ---
 
-## 6. 阴影系统
+## 7. 阴影系统
 
-### 6.1 层级阴影
+### 7.1 层级阴影
 
 ```css
 /* 无阴影 */
@@ -287,7 +453,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 --aw-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
 ```
 
-### 6.2 语义阴影
+### 7.2 语义阴影
 
 ```css
 /* 卡片阴影 */
@@ -305,9 +471,9 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 
 ---
 
-## 7. 动画系统
+## 8. 动画系统
 
-### 7.1 缓动函数
+### 8.1 缓动函数
 
 ```css
 --aw-ease-default: cubic-bezier(0.4, 0, 0.2, 1);  /* 通用 */
@@ -318,7 +484,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 --aw-ease-spring:  cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 弹簧 */
 ```
 
-### 7.2 持续时间
+### 8.2 持续时间
 
 ```css
 --aw-duration-instant: 0ms    /* 即时 */
@@ -329,7 +495,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 --aw-duration-slower:  500ms  /* 更慢（页面切换） */
 ```
 
-### 7.3 预设动画
+### 8.3 预设动画
 
 ```css
 /* 淡入 */
@@ -352,9 +518,9 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 
 ---
 
-## 8. 组件规范
+## 9. 组件规范
 
-### 8.1 按钮
+### 9.1 按钮
 
 #### 尺寸
 
@@ -385,7 +551,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 <Button danger>删除</Button>
 ```
 
-### 8.2 卡片
+### 9.2 卡片
 
 ```tsx
 // 基础卡片
@@ -408,7 +574,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 - 边框: 1px solid gray-200
 - 悬停: 边框变深 + 阴影增强 + 轻微上浮
 
-### 8.3 表格
+### 9.3 表格
 
 表格样式统一使用 Ant Design ProTable，已通过主题配置统一样式。
 
@@ -419,7 +585,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 - 边框: `gray-200` (表头), `gray-100` (行)
 - 单元格内边距: 12px 16px
 
-### 8.4 表单
+### 9.4 表单
 
 输入框规范：
 - 高度: 36px (默认)
@@ -438,7 +604,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 <Input.Password placeholder="请输入密码" />
 ```
 
-### 8.5 标签
+### 9.5 标签
 
 ```tsx
 // 颜色标签
@@ -456,9 +622,9 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 
 ---
 
-## 9. 布局规范
+## 10. 布局规范
 
-### 9.1 页面布局
+### 10.1 页面布局
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -475,7 +641,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 └─────────────────────────────────────────────────┘
 ```
 
-### 9.2 内容区域
+### 10.2 内容区域
 
 ```css
 /* 页面容器 */
@@ -493,7 +659,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 --aw-max-width-2xl:  1536px
 ```
 
-### 9.3 栅格系统
+### 10.3 栅格系统
 
 使用 Tailwind 的 Flexbox/Grid 工具类：
 
@@ -514,9 +680,9 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 
 ---
 
-## 10. 开发指南
+## 11. 开发指南
 
-### 10.1 样式分层策略
+### 11.1 样式分层策略
 
 ```
 ┌────────────────────────────────────┐
@@ -531,7 +697,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 └────────────────────────────────────┘
 ```
 
-### 10.2 何时使用 Tailwind
+### 11.2 何时使用 Tailwind
 
 **推荐使用 Tailwind：**
 - 简单布局 (flex, grid)
@@ -546,7 +712,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 </div>
 ```
 
-### 10.3 何时使用 CSS Modules
+### 11.3 何时使用 CSS Modules
 
 **推荐使用 CSS Modules：**
 - 复杂动画
@@ -567,7 +733,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 }
 ```
 
-### 10.4 命名约定
+### 11.4 命名约定
 
 **CSS 类名：**
 - 组件: `kebab-case` (如 `card-hover`)
@@ -579,7 +745,7 @@ AgentWorks 采用 **现代商务精致风** 设计理念：
 - 格式: `--aw-{category}-{property}-{variant}`
 - 示例: `--aw-color-primary-600`
 
-### 10.5 文件结构
+### 11.5 文件结构
 
 ```
 src/
@@ -600,7 +766,7 @@ src/
         └── ComponentName.module.css  # 组件专属样式
 ```
 
-### 10.6 最佳实践
+### 11.6 最佳实践
 
 1. **优先使用设计令牌**
    ```css

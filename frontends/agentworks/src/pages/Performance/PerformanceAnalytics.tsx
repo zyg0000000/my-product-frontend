@@ -33,6 +33,7 @@ import {
 } from '../../hooks/usePerformanceHistory';
 import { TalentSelector } from '../../components/Performance/TalentSelector';
 import { PageTransition } from '../../components/PageTransition';
+import { useTheme } from '../../contexts/ThemeContext';
 import dayjs from 'dayjs';
 
 const { RangePicker } = DatePicker;
@@ -90,7 +91,21 @@ const TIME_PRESETS = [
   { label: '自定义', days: 0 },
 ];
 
+/**
+ * 根据主题返回图表主题名称
+ * @ant-design/charts 2.x 内置 'classicDark' 主题，自动处理所有深色模式样式
+ * 包括：坐标轴标签、标题、网格线、图例、Tooltip 等
+ */
+function useChartTheme(): string | undefined {
+  const { isDark } = useTheme();
+  // 深色模式使用内置的 classicDark 主题，浅色模式使用默认主题
+  return isDark ? 'classicDark' : undefined;
+}
+
 export function PerformanceAnalytics() {
+  // 图表主题 - 自动适配深色模式
+  const chartTheme = useChartTheme();
+
   // 平台配置 - 只获取启用了 performanceTracking 的平台
   const { getPlatformsByFeature, loading: platformLoading } =
     usePlatformConfig(false);
@@ -449,8 +464,8 @@ export function PerformanceAnalytics() {
       <div className="space-y-4">
         {/* 页面标题 - 与 PerformanceHome 保持一致 */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">趋势分析</h1>
-          <p className="text-gray-600 mt-1 text-sm">
+          <h1 className="text-2xl font-bold text-content">趋势分析</h1>
+          <p className="text-content-secondary mt-1 text-sm">
             分析达人表现指标的历史变化趋势，支持多达人对比
           </p>
         </div>
@@ -462,7 +477,7 @@ export function PerformanceAnalytics() {
             <div className="flex flex-wrap items-start gap-4">
               {/* 平台选择 */}
               <div className="flex-shrink-0">
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                <label className="block text-xs font-medium text-content-secondary mb-1.5">
                   平台
                 </label>
                 <Select
@@ -484,7 +499,7 @@ export function PerformanceAnalytics() {
 
               {/* 达人选择器 */}
               <div className="flex-1 min-w-[300px]">
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                <label className="block text-xs font-medium text-content-secondary mb-1.5">
                   选择达人（最多5个）
                 </label>
                 <TalentSelector
@@ -498,7 +513,7 @@ export function PerformanceAnalytics() {
 
               {/* 时间范围 */}
               <div className="flex-shrink-0">
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                <label className="block text-xs font-medium text-content-secondary mb-1.5">
                   时间范围
                 </label>
                 <div className="flex items-center gap-2">
@@ -529,7 +544,7 @@ export function PerformanceAnalytics() {
             {/* 第二行：指标选择（根据达人数量动态切换） */}
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <label className="text-xs font-medium text-gray-600">
+                <label className="text-xs font-medium text-content-secondary">
                   选择指标
                 </label>
                 <Tooltip
@@ -539,7 +554,7 @@ export function PerformanceAnalytics() {
                       : '多达人模式：选择1个指标进行达人对比'
                   }
                 >
-                  <InfoCircleOutlined className="text-gray-400 text-xs cursor-help" />
+                  <InfoCircleOutlined className="text-content-muted text-xs cursor-help" />
                 </Tooltip>
                 {isSingleTalentMode && (
                   <Tag color="blue" className="text-xs">
@@ -570,7 +585,7 @@ export function PerformanceAnalytics() {
                       >
                         <span className="text-sm">{metric.label}</span>
                         {metric.unit && (
-                          <span className="text-xs text-gray-400 ml-1">
+                          <span className="text-xs text-content-muted ml-1">
                             ({metric.unit})
                           </span>
                         )}
@@ -589,7 +604,7 @@ export function PerformanceAnalytics() {
                       <Radio key={metric.key} value={metric.key}>
                         <span className="text-sm">{metric.label}</span>
                         {metric.unit && (
-                          <span className="text-xs text-gray-400 ml-1">
+                          <span className="text-xs text-content-muted ml-1">
                             ({metric.unit})
                           </span>
                         )}
@@ -605,7 +620,7 @@ export function PerformanceAnalytics() {
         {/* 已选达人标签 */}
         {selectedTalents.length > 0 && (
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-gray-500">已选达人：</span>
+            <span className="text-sm text-content-secondary">已选达人：</span>
             {selectedTalents.map(talent => (
               <Tag
                 key={talent.oneId}
@@ -626,8 +641,8 @@ export function PerformanceAnalytics() {
               <span className="font-medium">趋势图表</span>
               {selectedTalents.length > 0 && (
                 <>
-                  <div className="h-4 w-px bg-gray-300"></div>
-                  <span className="text-sm text-gray-500">
+                  <div className="h-4 w-px bg-stroke"></div>
+                  <span className="text-sm text-content-secondary">
                     已选 {selectedTalents.length} 个达人
                     {useDualAxes && ' · 双轴对比模式'}
                   </span>
@@ -635,7 +650,7 @@ export function PerformanceAnalytics() {
               )}
             </div>
           }
-          className="border border-gray-200"
+          className="border border-stroke"
         >
           {loading ? (
             <div className="flex items-center justify-center h-96">
@@ -656,19 +671,19 @@ export function PerformanceAnalytics() {
           ) : useDualAxes && dualAxesConfig ? (
             /* 单达人双指标：双轴图 */
             <div className="h-96">
-              <DualAxes {...dualAxesConfig} />
+              <DualAxes {...dualAxesConfig} theme={chartTheme} />
             </div>
           ) : lineChartConfig ? (
             /* 多达人单指标：折线图 */
             <div className="h-96">
-              <Line {...lineChartConfig} />
+              <Line {...lineChartConfig} theme={chartTheme} />
             </div>
           ) : null}
         </ProCard>
 
         {/* 错误提示 */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+          <div className="bg-danger-50 border border-danger-200 rounded-lg p-4 text-danger-700">
             加载数据失败：{error}
           </div>
         )}

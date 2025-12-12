@@ -211,8 +211,8 @@ export function TagManagement() {
         {/* 页面标题 */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">达人标签配置</h1>
-            <p className="mt-2 text-sm text-gray-600">
+            <h1 className="text-2xl font-bold text-content">达人标签配置</h1>
+            <p className="mt-2 text-sm text-content-secondary">
               管理达人重要程度等级和业务标签，标签配置全局生效
             </p>
           </div>

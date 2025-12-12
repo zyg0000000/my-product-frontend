@@ -102,18 +102,18 @@ export function Sidebar() {
 
   return (
     <div
-      className={`flex h-screen flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all duration-300 ease-in-out ${
+      className={`flex h-screen flex-col border-r border-stroke bg-surface transition-all duration-300 ease-in-out ${
         isCollapsed ? 'w-16' : 'w-48'
       }`}
     >
       {/* Logo */}
-      <div className="flex h-14 items-center justify-center border-b border-gray-100 dark:border-gray-700">
+      <div className="flex h-14 items-center justify-center border-b border-stroke">
         {!isCollapsed ? (
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100 tracking-tight">
+            <h1 className="text-lg font-semibold text-content tracking-tight">
               AgentWorks
             </h1>
-            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
+            <span className="text-[10px] text-content-muted font-medium">
               v3.6
             </span>
           </div>
@@ -146,7 +146,7 @@ export function Sidebar() {
                     className={`group flex items-center justify-center rounded-lg p-2.5 transition-all duration-200 ${
                       isActive
                         ? 'bg-primary-50 text-primary-600'
-                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                        : 'text-content-secondary hover:bg-surface-subtle hover:text-content'
                     }`}
                     title={item.name}
                   >
@@ -165,7 +165,7 @@ export function Sidebar() {
                   {/* 父级菜单 */}
                   <div
                     className={`group flex items-center rounded-lg transition-all duration-200 ${
-                      isActive ? 'bg-primary-50' : 'hover:bg-gray-50'
+                      isActive ? 'bg-primary-50' : 'hover:bg-surface-subtle'
                     }`}
                   >
                     <NavLink
@@ -173,14 +173,14 @@ export function Sidebar() {
                       className={`flex flex-1 items-center gap-3 px-3 py-2.5 text-[13px] font-medium ${
                         isActive
                           ? 'text-primary-600'
-                          : 'text-gray-600 group-hover:text-gray-900'
+                          : 'text-content-secondary group-hover:text-content'
                       }`}
                     >
                       <item.icon
                         className={`h-[18px] w-[18px] transition-transform duration-200 group-hover:scale-105 ${
                           isActive
                             ? 'text-primary-600'
-                            : 'text-gray-400 group-hover:text-gray-600'
+                            : 'text-content-muted group-hover:text-content-secondary'
                         }`}
                       />
                       <span>{item.name}</span>
@@ -191,7 +191,7 @@ export function Sidebar() {
                       className={`mr-2 p-1 rounded transition-colors ${
                         isActive
                           ? 'text-primary-500 hover:bg-primary-100'
-                          : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+                          : 'text-content-muted hover:bg-surface-sunken hover:text-content-secondary'
                       }`}
                       aria-label={
                         isExpanded
@@ -213,7 +213,7 @@ export function Sidebar() {
                       isExpanded ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
                     }`}
                   >
-                    <div className="ml-4 space-y-0.5 border-l border-gray-100 pl-3 py-1">
+                    <div className="ml-4 space-y-0.5 border-l border-stroke pl-3 py-1">
                       {item.children.map(child => {
                         const isChildActive = location.pathname === child.path;
                         return (
@@ -223,7 +223,7 @@ export function Sidebar() {
                             className={`group flex items-center gap-2 rounded-md px-3 py-2 text-[13px] transition-all duration-200 ${
                               isChildActive
                                 ? 'bg-primary-600 text-white font-medium shadow-sm'
-                                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                                : 'text-content-secondary hover:bg-surface-subtle hover:text-content'
                             }`}
                           >
                             <span
@@ -252,7 +252,7 @@ export function Sidebar() {
                   `group flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-200 ${
                     isActive
                       ? 'bg-primary-50 text-primary-600'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      : 'text-content-secondary hover:bg-surface-subtle hover:text-content'
                   } ${isCollapsed ? 'justify-center' : ''}`
                 }
                 title={isCollapsed ? item.name : ''}
@@ -263,7 +263,7 @@ export function Sidebar() {
                       className={`h-[18px] w-[18px] transition-transform duration-200 group-hover:scale-105 ${
                         isActive
                           ? 'text-primary-600'
-                          : 'text-gray-400 group-hover:text-gray-600'
+                          : 'text-content-muted group-hover:text-content-secondary'
                       }`}
                     />
                     {!isCollapsed && <span>{item.name}</span>}
@@ -276,11 +276,11 @@ export function Sidebar() {
       </nav>
 
       {/* 折叠按钮和主题切换 */}
-      <div className="border-t border-gray-100 dark:border-gray-700 p-3 space-y-2">
+      <div className="border-t border-stroke p-3 space-y-2">
         {/* 主题切换按钮 */}
         <button
           onClick={toggleTheme}
-          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-gray-400 transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 ${
+          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-content-muted transition-all duration-200 hover:bg-surface-subtle hover:text-content-secondary ${
             isCollapsed ? 'justify-center' : ''
           }`}
           title={isDark ? '切换到浅色模式' : '切换到深色模式'}
@@ -302,7 +302,7 @@ export function Sidebar() {
         {/* 折叠按钮 */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-gray-400 transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 ${
+          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-content-muted transition-all duration-200 hover:bg-surface-subtle hover:text-content-secondary ${
             isCollapsed ? 'justify-center' : ''
           }`}
           title={isCollapsed ? '展开侧边栏' : '折叠侧边栏'}
@@ -322,14 +322,14 @@ export function Sidebar() {
 
       {/* 底部信息 */}
       {!isCollapsed && (
-        <div className="border-t border-gray-100 dark:border-gray-700 px-4 py-3">
+        <div className="border-t border-stroke px-4 py-3">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-gray-400 dark:text-gray-500">
+            <span className="text-[10px] text-content-muted">
               v3.6.0
             </span>
             <div className="flex items-center gap-1">
               <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-[10px] text-gray-400 dark:text-gray-500">
+              <span className="text-[10px] text-content-muted">
                 在线
               </span>
             </div>

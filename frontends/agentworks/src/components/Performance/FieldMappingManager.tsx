@@ -167,11 +167,11 @@ export function FieldMappingManager({
 
   // 渲染单个映射规则行
   const renderRuleRow = (rule: FieldMappingRule, globalIndex: number) => (
-    <tr key={globalIndex} className="hover:bg-gray-50">
-      <td className="px-3 py-2 font-medium text-gray-900 text-sm">
+    <tr key={globalIndex} className="hover:bg-surface-sunken">
+      <td className="px-3 py-2 font-medium text-content text-sm">
         {rule.excelHeader}
       </td>
-      <td className="px-3 py-2 font-mono text-xs text-gray-600">
+      <td className="px-3 py-2 font-mono text-xs text-content-secondary">
         {rule.targetPath}
       </td>
       <td className="px-3 py-2">
@@ -206,7 +206,7 @@ export function FieldMappingManager({
         {rule.priceType ? (
           <Tag color="orange">{rule.priceType}</Tag>
         ) : (
-          <span className="text-gray-300">-</span>
+          <span className="text-content-muted">-</span>
         )}
       </td>
       <td className="px-3 py-2 text-xs">
@@ -223,14 +223,14 @@ export function FieldMappingManager({
             </Tag>
           </Tooltip>
         ) : (
-          <span className="text-gray-300">-</span>
+          <span className="text-content-muted">-</span>
         )}
       </td>
       <td className="px-3 py-2 text-center">
         {rule.required ? (
-          <span className="text-green-600">✓</span>
+          <span className="text-success-600">✓</span>
         ) : (
-          <span className="text-gray-300">-</span>
+          <span className="text-content-muted">-</span>
         )}
       </td>
       <td className="px-3 py-2 text-center">
@@ -267,13 +267,13 @@ export function FieldMappingManager({
         label: (
           <div className="flex items-center justify-between w-full pr-4">
             <div className="flex items-center gap-2">
-              <span className="text-gray-500">
+              <span className="text-content-secondary">
                 {CATEGORY_ICONS[cat.name] || <AppstoreOutlined />}
               </span>
               <span className="font-medium">{cat.name}</span>
               <Tag color="blue">{group.rules.length} 个映射</Tag>
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-content-secondary">
               必填 {group.rules.filter(r => r.required).length} 个
             </div>
           </div>
@@ -281,41 +281,41 @@ export function FieldMappingManager({
         children: (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50">
+              <thead className="bg-surface-sunken">
                 <tr>
-                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                  <th className="px-3 py-2 text-left font-medium text-content-secondary text-xs">
                     Excel列名
                   </th>
-                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                  <th className="px-3 py-2 text-left font-medium text-content-secondary text-xs">
                     目标路径
                   </th>
-                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                  <th className="px-3 py-2 text-left font-medium text-content-secondary text-xs">
                     目标集合
                   </th>
-                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                  <th className="px-3 py-2 text-left font-medium text-content-secondary text-xs">
                     格式
                   </th>
-                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                  <th className="px-3 py-2 text-left font-medium text-content-secondary text-xs">
                     价格类型
                   </th>
-                  <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                  <th className="px-3 py-2 text-left font-medium text-content-secondary text-xs">
                     转换函数
                   </th>
-                  <th className="px-3 py-2 text-center font-medium text-gray-600 text-xs">
+                  <th className="px-3 py-2 text-center font-medium text-content-secondary text-xs">
                     必需
                   </th>
-                  <th className="px-3 py-2 text-center font-medium text-gray-600 text-xs w-20">
+                  <th className="px-3 py-2 text-center font-medium text-content-secondary text-xs w-20">
                     操作
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
+              <tbody className="bg-surface divide-y divide-stroke">
                 {group.rules.map((rule, i) =>
                   renderRuleRow(rule, group.indices[i])
                 )}
               </tbody>
             </table>
-            <div className="p-2 bg-gray-50 border-t">
+            <div className="p-2 bg-surface-sunken border-t border-stroke">
               <Button
                 type="dashed"
                 size="small"
@@ -334,7 +334,7 @@ export function FieldMappingManager({
     <div className="space-y-4">
       {/* 头部统计 */}
       <div className="flex justify-between items-center">
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-content-secondary">
           总计 {mappings.length} 个映射规则
           <span className="ml-3 text-primary-600">
             必填 {mappings.filter(m => m.required).length} 个
@@ -354,10 +354,10 @@ export function FieldMappingManager({
         <Collapse
           defaultActiveKey={[]}
           items={collapseItems}
-          className="bg-white"
+          className="bg-surface"
         />
       ) : (
-        <div className="text-center py-12 text-gray-500 border rounded-lg bg-gray-50">
+        <div className="text-center py-12 text-content-secondary border border-stroke rounded-lg bg-surface-sunken">
           暂无映射规则，点击"添加映射规则"开始配置
         </div>
       )}
@@ -504,7 +504,7 @@ export function FieldMappingManager({
                   <Select.Option key={t.value} value={t.value} label={t.label}>
                     <div>
                       <div>{t.label}</div>
-                      <div className="text-xs text-gray-400">
+                      <div className="text-xs text-content-muted">
                         {t.description}
                       </div>
                     </div>

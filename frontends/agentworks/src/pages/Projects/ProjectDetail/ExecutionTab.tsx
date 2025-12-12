@@ -407,7 +407,7 @@ export function ExecutionTab({
         );
         return (
           <Space size="small">
-            <span className="text-gray-600">{record.taskId || '-'}</span>
+            <span className="text-content-secondary">{record.taskId || '-'}</span>
             {taskLinks.map(link => (
               <Tooltip key={link.name} title={link.name}>
                 <a
@@ -443,7 +443,7 @@ export function ExecutionTab({
         );
         return (
           <Space size="small">
-            <span className="text-gray-600">{record.videoId || '-'}</span>
+            <span className="text-content-secondary">{record.videoId || '-'}</span>
             {videoLinks.map(link => (
               <Tooltip key={link.name} title={link.name}>
                 <a
@@ -463,20 +463,19 @@ export function ExecutionTab({
     {
       title: '操作',
       valueType: 'option',
-      width: 120,
+      width: 60,
       fixed: 'right',
       render: (_, record, __, action) => [
-        <Button
-          key="edit"
-          type="link"
-          size="small"
-          icon={<EditOutlined />}
-          onClick={() => {
-            action?.startEditable?.(record.id);
-          }}
-        >
-          编辑
-        </Button>,
+        <Tooltip key="edit" title="编辑">
+          <Button
+            type="text"
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => {
+              action?.startEditable?.(record.id);
+            }}
+          />
+        </Tooltip>,
       ],
     },
   ];
@@ -613,11 +612,10 @@ export function ExecutionTab({
         ]}
         scroll={{ x: 1400 }}
         options={{
-          reload: false,
-          density: false,
+          fullScreen: true,
+          density: true,
           setting: true,
         }}
-        size="middle"
       />
     </div>
   );

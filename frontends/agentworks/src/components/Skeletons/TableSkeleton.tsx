@@ -12,9 +12,9 @@ export function TableSkeleton({
   active = true,
 }: TableSkeletonProps) {
   return (
-    <div className="bg-white rounded-lg p-4 border border-gray-200">
+    <div className="bg-surface rounded-lg p-4 border border-stroke">
       {/* Header Skeleton */}
-      <div className="flex items-center gap-4 mb-6 px-4 border-b border-gray-100 pb-4">
+      <div className="flex items-center gap-4 mb-6 px-4 border-b border-stroke pb-4">
         {Array.from({ length: columnCount }).map((_, index) => (
           <div key={`header-${index}`} className="flex-1">
             <Skeleton.Input

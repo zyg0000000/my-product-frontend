@@ -56,15 +56,15 @@ export function CustomersHome() {
       <div className="space-y-6">
         {/* 页面标题 */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">客户管理</h1>
-          <p className="mt-2 text-lg text-gray-600">
+          <h1 className="text-3xl font-bold text-content">客户管理</h1>
+          <p className="mt-2 text-lg text-content-secondary">
             管理客户信息、价格策略和合作记录
           </p>
         </div>
 
         {/* 快速统计 */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">快速统计</h2>
+          <h2 className="text-lg font-semibold text-content mb-4">快速统计</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -92,10 +92,10 @@ export function CustomersHome() {
                   boxShadow:
                     '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                 }}
-                className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200 transition-shadow"
+                className="text-center p-4 bg-surface-base rounded-lg border border-stroke transition-shadow"
               >
-                <p className="text-2xl font-bold text-gray-900">{item.value}</p>
-                <p className="text-sm text-gray-600 mt-1">{item.label}</p>
+                <p className="text-2xl font-bold text-content">{item.value}</p>
+                <p className="text-sm text-content-secondary mt-1">{item.label}</p>
               </motion.div>
             ))}
           </div>
@@ -103,7 +103,7 @@ export function CustomersHome() {
 
         {/* 功能模块 */}
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">功能模块</h2>
+          <h2 className="text-lg font-semibold text-content mb-4">功能模块</h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {modules.map((module, index) => (
               <motion.button
@@ -115,10 +115,10 @@ export function CustomersHome() {
                 whileTap={module.available ? { scale: 0.98 } : {}}
                 onClick={() => module.available && navigate(module.path)}
                 disabled={!module.available}
-                className={`group relative flex flex-col items-start rounded-lg border-2 bg-white p-6 text-left transition-colors ${
+                className={`group relative flex flex-col items-start rounded-lg border-2 bg-surface p-6 text-left transition-colors ${
                   module.available
-                    ? 'border-gray-200 hover:border-primary-500 hover:shadow-lg cursor-pointer'
-                    : 'border-gray-200 opacity-60 cursor-not-allowed'
+                    ? 'border-stroke hover:border-primary-500 hover:shadow-lg cursor-pointer'
+                    : 'border-stroke opacity-60 cursor-not-allowed'
                 }`}
               >
                 <div
@@ -126,13 +126,13 @@ export function CustomersHome() {
                 >
                   <module.icon style={{ fontSize: '24px', color: 'white' }} />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">
+                <h3 className="mt-4 text-lg font-semibold text-content">
                   {module.name}
                   {!module.available && (
-                    <span className="ml-2 text-xs text-gray-400">(开发中)</span>
+                    <span className="ml-2 text-xs text-content-muted">(开发中)</span>
                   )}
                 </h3>
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-sm text-content-secondary">
                   {module.description}
                 </p>
               </motion.button>
@@ -147,7 +147,7 @@ export function CustomersHome() {
           transition={{ delay: 0.6 }}
           className="card"
         >
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">快速操作</h2>
+          <h2 className="text-lg font-semibold text-content mb-4">快速操作</h2>
           <div className="flex flex-wrap gap-3">
             <motion.button
               whileHover={{ scale: 1.05 }}

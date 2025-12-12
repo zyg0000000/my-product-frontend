@@ -105,7 +105,7 @@ export function RebateManagementModal({
           <div className="text-lg font-semibold">
             返点管理: <span className="text-green-600">{talent.name}</span>
           </div>
-          <div className="text-sm font-normal text-gray-500 mt-0.5">
+          <div className="text-sm font-normal text-content-secondary mt-0.5">
             {isWildTalent(talent) ? '野生达人' : '机构达人'} ·
             查看和调整达人的返点配置
           </div>
@@ -144,8 +144,8 @@ export function RebateManagementModal({
               <ProCard title="当前返点配置" headerBordered>
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                   <div>
-                    <p className="text-xs text-gray-500">商业属性</p>
-                    <p className="mt-1 text-base font-medium text-gray-900">
+                    <p className="text-xs text-content-secondary">商业属性</p>
+                    <p className="mt-1 text-base font-medium text-content">
                       {getBusinessAttribute(
                         talent,
                         getAgencyName(rebateData.agencyId)
@@ -153,22 +153,22 @@ export function RebateManagementModal({
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">当前返点率</p>
+                    <p className="text-xs text-content-secondary">当前返点率</p>
                     <p className="mt-1 text-base font-bold text-green-600">
                       {formatRebateRate(rebateData.currentRebate.rate)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">返点来源</p>
-                    <p className="mt-1 text-base font-medium text-gray-900">
+                    <p className="text-xs text-content-secondary">返点来源</p>
+                    <p className="mt-1 text-base font-medium text-content">
                       {rebateMode === 'sync' && !isWildTalent(talent)
                         ? '机构同步'
                         : REBATE_SOURCE_LABELS[rebateData.currentRebate.source]}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">生效日期</p>
-                    <p className="mt-1 text-base font-medium text-gray-900">
+                    <p className="text-xs text-content-secondary">生效日期</p>
+                    <p className="mt-1 text-base font-medium text-content">
                       {rebateData.currentRebate.effectiveDate}
                     </p>
                   </div>
@@ -180,14 +180,14 @@ export function RebateManagementModal({
                 <ProCard title="返点模式" headerBordered>
                   <div className="space-y-4">
                     {/* 模式切换 */}
-                    <div className="flex items-start justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-start justify-between p-4 bg-surface-base rounded-lg">
                       <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                        <h3 className="text-sm font-semibold text-content mb-1">
                           {rebateMode === 'sync'
                             ? '绑定机构返点'
                             : '独立设置返点'}
                         </h3>
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-content-secondary">
                           {rebateMode === 'sync'
                             ? `当前绑定机构"${rebateData?.agencyName}"的返点配置，机构调整时自动同步`
                             : '当前使用独立设置，不跟随机构返点变化'}
@@ -243,17 +243,17 @@ export function RebateManagementModal({
               )}
 
               {/* 当前返点率展示 */}
-              <div className="rounded-lg bg-gray-50 p-4 mb-4">
+              <div className="rounded-lg bg-surface-base p-4 mb-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-gray-500">当前返点率</p>
-                    <p className="mt-1 text-2xl font-bold text-gray-900">
+                    <p className="text-xs text-content-secondary">当前返点率</p>
+                    <p className="mt-1 text-2xl font-bold text-content">
                       {rebateData?.currentRebate?.rate?.toFixed(2) || '0.00'}%
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">当前生效日期</p>
-                    <p className="mt-1 text-base font-medium text-gray-700">
+                    <p className="text-xs text-content-secondary">当前生效日期</p>
+                    <p className="mt-1 text-base font-medium text-content">
                       {rebateData?.currentRebate?.effectiveDate || '-'}
                     </p>
                   </div>
@@ -329,10 +329,10 @@ export function RebateManagementModal({
                     {
                       label: (
                         <div>
-                          <div className="font-medium text-gray-900 text-sm">
+                          <div className="font-medium text-content text-sm">
                             {EFFECT_TYPE_LABELS.immediate}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-content-secondary">
                             更新后立即生效，下次合作使用新返点率
                           </div>
                         </div>
@@ -342,13 +342,13 @@ export function RebateManagementModal({
                     {
                       label: (
                         <div>
-                          <div className="font-medium text-gray-900 text-sm">
+                          <div className="font-medium text-content text-sm">
                             {EFFECT_TYPE_LABELS.next_cooperation}
                             <span className="text-orange-600 text-xs ml-2">
                               (暂不支持)
                             </span>
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-content-secondary">
                             创建待生效配置，等待下次合作时激活
                           </div>
                         </div>
@@ -365,7 +365,7 @@ export function RebateManagementModal({
                   label={
                     <span>
                       操作人
-                      <span className="ml-1 text-xs text-gray-500">(选填)</span>
+                      <span className="ml-1 text-xs text-content-secondary">(选填)</span>
                     </span>
                   }
                   placeholder="默认为 system"
@@ -402,13 +402,13 @@ export function RebateManagementModal({
                 {/* 机构信息展示 */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-gray-500">归属机构</p>
-                    <p className="mt-1 text-base font-medium text-gray-900">
+                    <p className="text-xs text-content-secondary">归属机构</p>
+                    <p className="mt-1 text-base font-medium text-content">
                       {getAgencyName(talent.agencyId)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">当前返点率</p>
+                    <p className="text-xs text-content-secondary">当前返点率</p>
                     <p className="mt-1 text-base font-bold text-green-600">
                       {rebateData
                         ? formatRebateRate(rebateData.currentRebate.rate)
@@ -431,7 +431,7 @@ export function RebateManagementModal({
                       ? '同步中...'
                       : `从机构"${rebateData?.agencyName}"同步返点`}
                   </Button>
-                  <p className="mt-2 text-xs text-gray-500 text-center">
+                  <p className="mt-2 text-xs text-content-secondary text-center">
                     点击后将使用机构在该平台的当前返点配置
                   </p>
                 </div>
@@ -461,7 +461,7 @@ export function RebateManagementModal({
           {/* Tab: 阶梯规则 (Phase 2) */}
           {activeTab === 'stepRule' && (
             <ProCard title="阶梯规则配置" headerBordered>
-              <div className="py-8 text-center text-gray-400">
+              <div className="py-8 text-center text-content-muted">
                 <p>阶梯规则功能将在 Phase 2 开放</p>
               </div>
             </ProCard>
@@ -484,7 +484,7 @@ export function RebateManagementModal({
           )}
         </div>
       ) : (
-        <div className="py-12 text-center text-gray-500">暂无返点配置信息</div>
+        <div className="py-12 text-center text-content-secondary">暂无返点配置信息</div>
       )}
     </Modal>
   );

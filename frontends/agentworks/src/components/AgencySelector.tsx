@@ -28,7 +28,6 @@ interface AgencyOption {
   label: string;
   value: string;
   agency?: Agency; // 完整的机构信息（用于显示详情）
-  isIndividual?: boolean; // 是否是"野生达人"
 }
 
 export function AgencySelector({
@@ -54,14 +53,15 @@ export function AgencySelector({
       {
         label: '野生达人',
         value: AGENCY_INDIVIDUAL_ID,
-        isIndividual: true,
       },
-      // 机构列表
-      ...agencies.map(agency => ({
-        label: agency.name,
-        value: agency.id,
-        agency: agency,
-      })),
+      // 机构列表（过滤掉 id 为 individual 的机构，避免重复 key）
+      ...agencies
+        .filter(agency => agency.id !== AGENCY_INDIVIDUAL_ID)
+        .map(agency => ({
+          label: agency.name,
+          value: agency.id,
+          agency: agency,
+        })),
     ];
     setOptions(agencyOptions);
   }, [agencies]);

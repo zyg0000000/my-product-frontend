@@ -624,7 +624,7 @@ export default function PricingStrategy() {
               </span>
             </div>
 
-            <div className="text-gray-400 text-xs pl-3">
+            <div className="text-content-muted text-xs pl-3">
               {config.includesPlatformFee
                 ? `(¥${(baseAmount / 100).toFixed(2)} + ¥${(platformFeeAmount / 100).toFixed(2)}) × ${(discountRate * 100).toFixed(2)}%`
                 : `¥${(baseAmount / 100).toFixed(2)} × ${(discountRate * 100).toFixed(2)}% + ¥${(platformFeeAmount / 100).toFixed(2)}`}
@@ -673,21 +673,21 @@ export default function PricingStrategy() {
         </div>
 
         <div className="space-y-1 pt-2 text-xs">
-          <div className="flex justify-between gap-4 text-gray-400">
+          <div className="flex justify-between gap-4 text-content-muted">
             <span className="whitespace-nowrap">折扣含平台费:</span>
             <span className="whitespace-nowrap">
               {config.includesPlatformFee ? '是' : '否'}
             </span>
           </div>
 
-          <div className="flex justify-between gap-4 text-gray-400">
+          <div className="flex justify-between gap-4 text-content-muted">
             <span className="whitespace-nowrap">含税报价:</span>
             <span className="whitespace-nowrap">
               {config.includesTax ? '是（已含6%税）' : '否（需加税）'}
             </span>
           </div>
 
-          <div className="flex justify-between gap-4 text-gray-400">
+          <div className="flex justify-between gap-4 text-content-muted">
             <span className="whitespace-nowrap">有效期:</span>
             <span className="whitespace-nowrap">
               {config.isPermanent
@@ -709,7 +709,7 @@ export default function PricingStrategy() {
                 {quotationCoefficient?.toFixed(4) ||
                   coefficient.coefficient.toFixed(4)}
               </div>
-              <div className="text-xs text-gray-400 whitespace-nowrap">
+              <div className="text-xs text-content-muted whitespace-nowrap">
                 = ¥{(finalAmount / 100).toFixed(2)} ÷ ¥
                 {(baseAmount / 100).toFixed(2)}
               </div>
@@ -787,8 +787,8 @@ export default function PricingStrategy() {
         key={platform.key}
         className={`border rounded-lg p-4 transition-all ${
           isEnabled
-            ? 'border-gray-200 bg-gray-50'
-            : 'border-gray-200 bg-gray-100 opacity-60'
+            ? 'border-stroke bg-surface-base'
+            : 'border-stroke bg-surface-sunken opacity-60'
         }`}
       >
         <div className="flex items-center justify-between mb-3">
@@ -801,7 +801,7 @@ export default function PricingStrategy() {
               }
             />
             <span
-              className={`font-semibold ${isEnabled ? 'text-gray-800' : 'text-gray-500'}`}
+              className={`font-semibold ${isEnabled ? 'text-content' : 'text-content-secondary'}`}
             >
               {platform.name}
             </span>
@@ -837,35 +837,35 @@ export default function PricingStrategy() {
         </div>
 
         {!isEnabled ? (
-          <div className="text-sm text-gray-400 py-2 text-center">
+          <div className="text-sm text-content-muted py-2 text-center">
             平台已停用，点击开关启用
           </div>
         ) : isProjectMode ? (
-          <div className="text-sm text-gray-500 py-4 text-center bg-blue-50 rounded">
+          <div className="text-sm text-content-secondary py-4 text-center bg-blue-50 rounded">
             项目比价模式，创建项目时手动填写对客报价
           </div>
         ) : (
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">折扣率:</span>
+              <span className="text-content-secondary">折扣率:</span>
               <span className="font-medium">
                 {((platform.config.discountRate || 0) * 100).toFixed(2)}%
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">服务费率:</span>
+              <span className="text-content-secondary">服务费率:</span>
               <span className="font-medium">
                 {((platform.config.serviceFeeRate || 0) * 100).toFixed(2)}%
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">平台费:</span>
+              <span className="text-content-secondary">平台费:</span>
               <span className="font-medium">
                 {((platform.config.platformFeeRate || 0) * 100).toFixed(0)}%
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">有效期:</span>
+              <span className="text-content-secondary">有效期:</span>
               <span className="font-medium">
                 {platform.config.isPermanent ? (
                   '长期有效'
@@ -876,8 +876,8 @@ export default function PricingStrategy() {
                 )}
               </span>
             </div>
-            <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-              <span className="text-gray-500">
+            <div className="flex justify-between items-center pt-2 border-t border-stroke">
+              <span className="text-content-secondary">
                 {pricingModeInfo.coefficientLabel}:
               </span>
               {platform.coefficient ? (
@@ -989,7 +989,7 @@ export default function PricingStrategy() {
                           }
                         />
                         {/* 底部操作栏 */}
-                        <div className="flex justify-end gap-3 bg-gray-50 p-4 rounded-lg">
+                        <div className="flex justify-end gap-3 bg-surface-base p-4 rounded-lg">
                           <Button
                             icon={<CloseOutlined />}
                             onClick={handleCancelEdit}
@@ -1026,7 +1026,7 @@ export default function PricingStrategy() {
                             )}
                           </div>
                         ) : (
-                          <div className="text-center py-6 text-gray-400">
+                          <div className="text-center py-6 text-content-muted">
                             暂无平台配置
                           </div>
                         )}
@@ -1044,7 +1044,7 @@ export default function PricingStrategy() {
                     children: isEditing ? (
                       // 编辑模式
                       <div className="space-y-4">
-                        <div className="text-sm text-gray-500 mb-4">
+                        <div className="text-sm text-content-secondary mb-4">
                           配置用于项目创建时选择的二级业务标签，可跨平台复用相同标签名称
                         </div>
                         <BusinessTagsEditor
@@ -1057,7 +1057,7 @@ export default function PricingStrategy() {
                           getPlatformName={getPlatformName}
                         />
                         {/* 底部操作栏 */}
-                        <div className="flex justify-end gap-3 bg-gray-50 p-4 rounded-lg">
+                        <div className="flex justify-end gap-3 bg-surface-base p-4 rounded-lg">
                           <Button
                             icon={<CloseOutlined />}
                             onClick={handleCancelEdit}
@@ -1079,7 +1079,7 @@ export default function PricingStrategy() {
                       // 只读模式
                       <div className="space-y-4">
                         <div className="flex justify-between items-start">
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-content-secondary">
                             用于项目创建时选择的二级业务标签，可跨平台复用相同标签名称
                           </div>
                           <Button type="link" onClick={handleStartCreate}>
@@ -1126,7 +1126,7 @@ export default function PricingStrategy() {
                           getPlatformName={getPlatformName}
                         />
                         {/* 底部操作栏 */}
-                        <div className="flex justify-end gap-3 bg-gray-50 p-4 rounded-lg">
+                        <div className="flex justify-end gap-3 bg-surface-base p-4 rounded-lg">
                           <Button
                             icon={<CloseOutlined />}
                             onClick={handleCancelEdit}
@@ -1173,7 +1173,7 @@ export default function PricingStrategy() {
         {/* 广告投流业务（开发中） */}
         {activeTab === 'adPlacement' && (
           <div className="p-4">
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-content-secondary">
               广告投流业务配置功能开发中...
             </div>
           </div>
@@ -1182,7 +1182,7 @@ export default function PricingStrategy() {
         {/* 内容制作业务（开发中） */}
         {activeTab === 'contentProduction' && (
           <div className="p-4">
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-content-secondary">
               内容制作业务配置功能开发中...
             </div>
           </div>

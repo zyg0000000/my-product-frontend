@@ -652,7 +652,7 @@ export function EffectTab({
         dataIndex: 'amount',
         width: 100,
         render: (_, record) => (
-          <span className="text-gray-600">{formatMoney(record.amount)}</span>
+          <span className="text-content-secondary">{formatMoney(record.amount)}</span>
         ),
       },
     ];
@@ -1137,11 +1137,10 @@ export function EffectTab({
               ]}
               scroll={{ x: 1000 }}
               options={{
-                reload: false,
-                density: false,
+                fullScreen: true,
+                density: true,
                 setting: true,
               }}
-              size="middle"
             />
           </div>
         ) : (
@@ -1151,7 +1150,7 @@ export function EffectTab({
             </div>
             <Empty
               description={
-                <span className="text-gray-500">暂无已发布的合作记录</span>
+                <span className="text-content-secondary">暂无已发布的合作记录</span>
               }
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             />

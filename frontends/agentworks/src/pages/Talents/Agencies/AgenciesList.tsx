@@ -12,7 +12,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tabs, Space, Tag, App } from 'antd';
+import { Button, Tabs, Space, Tag, App, Tooltip } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -203,7 +203,7 @@ export function AgenciesList() {
         ellipsis: true,
         render: (_, record) => (
           <div className="flex items-center gap-2">
-            <span className="font-medium text-gray-900">{record.name}</span>
+            <span className="font-medium text-content">{record.name}</span>
             {record.id === AGENCY_INDIVIDUAL_ID && (
               <Tag color="purple" className="text-xs">
                 系统预设
@@ -243,7 +243,7 @@ export function AgenciesList() {
         key: 'talentCount',
         width: 100,
         render: (_, record) => (
-          <span className="text-gray-900">{getTalentCount(record.id)}</span>
+          <span className="text-content">{getTalentCount(record.id)}</span>
         ),
       },
       {
@@ -252,11 +252,11 @@ export function AgenciesList() {
         width: 150,
         render: (_, record) => (
           <div className="text-sm">
-            <div className="text-gray-900">
+            <div className="text-content">
               {record.contactInfo?.contactPerson || '-'}
             </div>
             {record.contactInfo?.phoneNumber && (
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-content-secondary">
                 {record.contactInfo.phoneNumber}
               </div>
             )}
@@ -286,39 +286,39 @@ export function AgenciesList() {
       {
         title: '操作',
         key: 'actions',
-        width: 200,
+        width: 100,
         fixed: 'right',
         render: (_, record) => (
-          <Space size="small">
+          <Space size={4}>
             {record.id !== AGENCY_INDIVIDUAL_ID && (
-              <Button
-                type="link"
-                size="small"
-                icon={<PercentageOutlined />}
-                onClick={() => handleRebateManagement(record)}
-                className="text-green-600 hover:text-green-700"
-              >
-                返点
-              </Button>
+              <Tooltip title="返点管理">
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<PercentageOutlined />}
+                  onClick={() => handleRebateManagement(record)}
+                  className="text-green-600 hover:text-green-700"
+                />
+              </Tooltip>
             )}
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            >
-              编辑
-            </Button>
-            {record.id !== AGENCY_INDIVIDUAL_ID && (
+            <Tooltip title="编辑">
               <Button
-                type="link"
+                type="text"
                 size="small"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => handleDelete(record)}
-              >
-                删除
-              </Button>
+                icon={<EditOutlined />}
+                onClick={() => handleEdit(record)}
+              />
+            </Tooltip>
+            {record.id !== AGENCY_INDIVIDUAL_ID && (
+              <Tooltip title="删除">
+                <Button
+                  type="text"
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() => handleDelete(record)}
+                />
+              </Tooltip>
             )}
           </Space>
         ),
@@ -332,8 +332,8 @@ export function AgenciesList() {
       <div className="space-y-6">
         {/* 页面标题 */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">机构管理</h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-content">机构管理</h1>
+          <p className="mt-2 text-sm text-content-secondary">
             管理MCN机构和独立达人，配置各平台返点政策
           </p>
         </div>
@@ -370,7 +370,7 @@ export function AgenciesList() {
               <div className="flex items-center gap-3">
                 <span className="font-medium">机构列表</span>
                 <div className="h-4 w-px bg-gray-300"></div>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-content-secondary">
                   共 {agencies.length} 个机构
                 </span>
               </div>
@@ -388,16 +388,16 @@ export function AgenciesList() {
               ],
             }}
             options={{
+              fullScreen: true,
+              density: true,
               reload: async () => {
                 await loadAgencies();
                 message.success('数据已刷新');
                 return true;
               },
-              density: false,
               setting: true,
             }}
             scroll={{ x: 1200 }}
-            size="middle"
           />
         )}
 

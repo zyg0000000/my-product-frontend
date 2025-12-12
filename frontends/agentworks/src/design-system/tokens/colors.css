@@ -45,6 +45,8 @@
   --aw-warning-500: #f59e0b;
   --aw-warning-600: #d97706;
   --aw-warning-700: #b45309;
+  --aw-warning-800: #92400e;
+  --aw-warning-900: #78350f;
 
   /* ========================================
      危险色 - Rose (玫瑰红)
@@ -56,6 +58,8 @@
   --aw-danger-500: #ef4444;
   --aw-danger-600: #dc2626;
   --aw-danger-700: #b91c1c;
+  --aw-danger-800: #991b1b;
+  --aw-danger-900: #7f1d1d;
 
   /* ========================================
      信息色 - Sky (天蓝)
@@ -107,6 +111,27 @@
 
   /* Focus 环 */
   --aw-focus-ring: rgba(99, 102, 241, 0.4);
+
+  /* ========================================
+     语义化变量 - 用于 Ant Design 和组件
+     ======================================== */
+  /* 背景层级 */
+  --color-bg-base: var(--aw-gray-50);       /* 页面背景 */
+  --color-bg-elevated: #ffffff;              /* 卡片、表格、弹窗 */
+  --color-bg-sunken: var(--aw-gray-100);    /* 输入框背景、表格行悬停 */
+
+  /* 文字 */
+  --color-text-primary: var(--aw-gray-900);
+  --color-text-secondary: var(--aw-gray-600);
+  --color-text-muted: var(--aw-gray-400);
+
+  /* 边框 */
+  --color-border: var(--aw-gray-200);
+  --color-border-hover: var(--aw-gray-300);
+
+  /* 填充 */
+  --color-fill: var(--aw-gray-100);
+  --color-fill-secondary: var(--aw-gray-50);
 }
 
 /* ========================================
@@ -146,11 +171,17 @@
   --aw-warning-50:  rgba(245, 158, 11, 0.1);
   --aw-warning-100: rgba(245, 158, 11, 0.15);
   --aw-warning-200: rgba(245, 158, 11, 0.2);
+  --aw-warning-700: #fbbf24;  /* 深色模式调亮 */
+  --aw-warning-800: #fcd34d;
+  --aw-warning-900: #fde68a;
 
   /* 危险色 */
   --aw-danger-50:  rgba(239, 68, 68, 0.1);
   --aw-danger-100: rgba(239, 68, 68, 0.15);
   --aw-danger-200: rgba(239, 68, 68, 0.2);
+  --aw-danger-700: #f87171;   /* 深色模式调亮 */
+  --aw-danger-800: #fca5a5;
+  --aw-danger-900: #fecaca;
 
   /* 信息色 */
   --aw-info-50:  rgba(14, 165, 233, 0.1);
@@ -167,4 +198,21 @@
 
   /* Focus 环 */
   --aw-focus-ring: rgba(129, 140, 248, 0.5);
+
+  /* ========================================
+     语义化变量 - 深色模式覆盖
+     ======================================== */
+  --color-bg-base: var(--aw-gray-50);        /* 自动变深 #0f172a */
+  --color-bg-elevated: var(--aw-gray-100);   /* 自动变深 #1e293b */
+  --color-bg-sunken: var(--aw-gray-200);     /* 自动变深 #334155 */
+
+  --color-text-primary: var(--aw-gray-900);  /* 自动变亮 #f8fafc */
+  --color-text-secondary: var(--aw-gray-600);
+  --color-text-muted: var(--aw-gray-400);
+
+  --color-border: var(--aw-gray-300);
+  --color-border-hover: var(--aw-gray-400);
+
+  --color-fill: var(--aw-gray-200);
+  --color-fill-secondary: var(--aw-gray-100);
 }

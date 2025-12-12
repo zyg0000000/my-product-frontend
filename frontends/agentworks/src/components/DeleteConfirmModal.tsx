@@ -77,7 +77,7 @@ export function DeleteConfirmModal({
           <ExclamationCircleFilled className="text-xl text-red-600" />
           <div>
             <div className="text-base font-semibold">删除确认</div>
-            <div className="text-xs font-normal text-gray-500 mt-0.5">
+            <div className="text-xs font-normal text-content-secondary mt-0.5">
               此操作不可逆，请谨慎确认
             </div>
           </div>
@@ -94,24 +94,24 @@ export function DeleteConfirmModal({
     >
       <div className="space-y-3">
         {/* 达人信息 */}
-        <div className="p-3 bg-gray-50 rounded border border-gray-200">
-          <h4 className="text-xs font-semibold text-gray-900 mb-1.5">
+        <div className="p-3 bg-surface-base rounded border border-stroke">
+          <h4 className="text-xs font-semibold text-content mb-1.5">
             即将删除的达人
           </h4>
           <div className="space-y-0.5 text-xs">
             <div className="flex items-center gap-2">
-              <span className="text-gray-600">达人名称:</span>
-              <span className="font-medium text-gray-900">{talent.name}</span>
+              <span className="text-content-secondary">达人名称:</span>
+              <span className="font-medium text-content">{talent.name}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-600">平台:</span>
-              <span className="font-medium text-gray-900">
+              <span className="text-content-secondary">平台:</span>
+              <span className="font-medium text-content">
                 {PLATFORM_NAMES[talent.platform]}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-600">OneID:</span>
-              <span className="font-mono text-xs text-gray-900">
+              <span className="text-content-secondary">OneID:</span>
+              <span className="font-mono text-xs text-content">
                 {talent.oneId}
               </span>
             </div>
@@ -143,7 +143,7 @@ export function DeleteConfirmModal({
 
         {/* 删除范围选项 */}
         <div>
-          <div className="text-xs font-medium text-gray-700 mb-2">删除范围</div>
+          <div className="text-xs font-medium text-content mb-2">删除范围</div>
           <Radio.Group
             value={deleteAll}
             onChange={e => setDeleteAll(e.target.value)}
@@ -152,17 +152,17 @@ export function DeleteConfirmModal({
             <Space direction="vertical" className="w-full" size={8}>
               <Radio
                 value={false}
-                className="w-full p-2.5 border-2 rounded hover:bg-gray-50 transition-colors"
+                className="w-full p-2.5 border-2 rounded hover:bg-surface-subtle transition-colors"
               >
                 <div className="ml-1">
-                  <div className="text-xs font-medium text-gray-900">
+                  <div className="text-xs font-medium text-content">
                     仅删除{' '}
                     <span className="text-red-600">
                       {PLATFORM_NAMES[talent.platform]}
                     </span>{' '}
                     平台数据
                   </div>
-                  <div className="text-xs text-gray-500 mt-0.5">
+                  <div className="text-xs text-content-secondary mt-0.5">
                     只删除该达人在当前平台的信息，保留其他平台的数据
                   </div>
                 </div>
@@ -191,7 +191,7 @@ export function DeleteConfirmModal({
             checked={confirmed}
             onChange={e => setConfirmed(e.target.checked)}
           >
-            <span className="text-xs font-medium text-gray-900">
+            <span className="text-xs font-medium text-content">
               我已了解删除的影响，确认要删除该达人
             </span>
           </Checkbox>

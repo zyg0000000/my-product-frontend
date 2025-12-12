@@ -7,7 +7,7 @@ import { Sidebar } from '../Sidebar/Sidebar';
 
 export function MainLayout() {
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div className="flex h-screen bg-surface-base transition-colors duration-300">
       {/* 侧边栏 */}
       <Sidebar />
 

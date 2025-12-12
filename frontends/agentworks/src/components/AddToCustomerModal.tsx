@@ -166,16 +166,16 @@ export function AddToCustomerModal({
         }
         description={
           selectedTalents.length <= 5 ? (
-            <div className="mt-1 text-gray-600">
+            <div className="mt-1 text-content-secondary">
               {selectedTalents.map(t => t.name).join('、')}
             </div>
           ) : (
-            <div className="mt-1 text-gray-600">
+            <div className="mt-1 text-content-secondary">
               {selectedTalents
                 .slice(0, 5)
                 .map(t => t.name)
                 .join('、')}
-              <span className="text-gray-400">
+              <span className="text-content-muted">
                 {' '}
                 等 {selectedTalents.length} 人
               </span>
@@ -187,7 +187,7 @@ export function AddToCustomerModal({
 
       {/* 客户选择 */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-content mb-2">
           选择目标客户 <span className="text-red-500">*</span>
         </label>
         <Select
@@ -207,13 +207,13 @@ export function AddToCustomerModal({
 
       {/* 选中客户信息 */}
       {selectedCustomer && (
-        <div className="p-3 bg-gray-50 rounded-lg">
+        <div className="p-3 bg-surface-base rounded-lg">
           <div className="flex items-center justify-between">
             <div>
-              <div className="font-medium text-gray-900">
+              <div className="font-medium text-content">
                 {selectedCustomer.name}
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-content-secondary">
                 编码: {selectedCustomer.code}
               </div>
             </div>

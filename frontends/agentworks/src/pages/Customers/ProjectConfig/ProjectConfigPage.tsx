@@ -222,11 +222,11 @@ export function ProjectConfigPage() {
         <span className="flex items-center gap-1">
           <ScheduleOutlined />
           执行追踪配置
-          <span className="ml-1 text-xs text-gray-400">（开发中）</span>
+          <span className="ml-1 text-xs text-content-muted">（开发中）</span>
         </span>
       ),
       children: (
-        <div className="py-12 text-center text-gray-400">
+        <div className="py-12 text-center text-content-muted">
           <ScheduleOutlined className="text-4xl mb-4" />
           <div>执行追踪配置功能开发中...</div>
         </div>
@@ -265,10 +265,10 @@ export function ProjectConfigPage() {
             返回
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-gray-900 m-0">
+            <h1 className="text-xl font-bold text-content m-0">
               项目配置管理
             </h1>
-            <p className="text-sm text-gray-500 m-0 mt-1">
+            <p className="text-sm text-content-secondary m-0 mt-1">
               客户：{customer.name}（{customer.code}）
             </p>
           </div>
@@ -292,10 +292,10 @@ export function ProjectConfigPage() {
       <Card className="shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-base font-semibold text-gray-800 mb-1">
+            <h3 className="text-base font-semibold text-content mb-1">
               启用自定义项目配置
             </h3>
-            <p className="text-sm text-gray-500 m-0">
+            <p className="text-sm text-content-secondary m-0">
               启用后，该客户的项目详情页将使用以下自定义配置；关闭则使用系统默认配置
             </p>
           </div>

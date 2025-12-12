@@ -26,12 +26,16 @@ import {
   Form,
   Input,
   Radio,
+  Tooltip,
 } from 'antd';
 import {
   PlusOutlined,
   ReloadOutlined,
   FilterOutlined,
   TagsOutlined,
+  EditOutlined,
+  EyeOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons';
 import {
   getCustomerTalents,
@@ -257,7 +261,7 @@ export function TalentPoolTab({
       align: 'center',
       render: (_, record) => {
         const tags = getNormalizedTags(record.tags);
-        if (!tags.importance) return <span className="text-gray-400">-</span>;
+        if (!tags.importance) return <span className="text-content-muted">-</span>;
         const level = importanceLevels.find(l => l.key === tags.importance);
         return level ? (
           <Tag
@@ -271,7 +275,7 @@ export function TalentPoolTab({
             {level.name}
           </Tag>
         ) : (
-          <span className="text-gray-400">-</span>
+          <span className="text-content-muted">-</span>
         );
       },
     },
@@ -282,7 +286,7 @@ export function TalentPoolTab({
       render: (_, record) => {
         const tags = getNormalizedTags(record.tags);
         if (!tags.businessTags?.length)
-          return <span className="text-gray-400">-</span>;
+          return <span className="text-content-muted">-</span>;
         return (
           <Space size={4} wrap>
             {tags.businessTags.slice(0, 3).map(tagKey => {
@@ -302,7 +306,7 @@ export function TalentPoolTab({
               ) : null;
             })}
             {tags.businessTags.length > 3 && (
-              <span className="text-gray-400 text-xs">
+              <span className="text-content-muted text-xs">
                 +{tags.businessTags.length - 3}
               </span>
             )}
@@ -316,7 +320,7 @@ export function TalentPoolTab({
       width: 150,
       ellipsis: true,
       render: (_, record) =>
-        record.notes || <span className="text-gray-400">-</span>,
+        record.notes || <span className="text-content-muted">-</span>,
     },
     {
       title: '添加时间',
@@ -331,30 +335,41 @@ export function TalentPoolTab({
     {
       title: '操作',
       valueType: 'option',
-      width: 140,
+      width: 100,
       render: (_, record) => (
-        <Space size={0}>
-          <Button type="link" size="small" onClick={() => handleEdit(record)}>
-            编辑
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            onClick={() =>
-              navigate(`/talents/${record.talentOneId}/${record.platform}`)
-            }
-          >
-            详情
-          </Button>
+        <Space size={4}>
+          <Tooltip title="编辑标签">
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
+          <Tooltip title="查看详情">
+            <Button
+              type="text"
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() =>
+                navigate(`/talents/${record.talentOneId}/${record.platform}`)
+              }
+            />
+          </Tooltip>
           <Popconfirm
             title="确定移除？"
             onConfirm={() => handleRemove(record._id!)}
             okText="确定"
             cancelText="取消"
           >
-            <Button type="link" size="small" danger>
-              移除
-            </Button>
+            <Tooltip title="移除">
+              <Button
+                type="text"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+              />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),
@@ -393,10 +408,10 @@ export function TalentPoolTab({
   return (
     <div>
       {/* 筛选区域 */}
-      <div className="mb-4 p-3 bg-gray-50 rounded-lg flex items-center gap-4 flex-wrap">
+      <div className="mb-4 p-3 bg-surface-base rounded-lg flex items-center gap-4 flex-wrap">
         <Space>
-          <FilterOutlined className="text-gray-500" />
-          <span className="text-sm text-gray-600">筛选:</span>
+          <FilterOutlined className="text-content-secondary" />
+          <span className="text-sm text-content-secondary">筛选:</span>
         </Space>
         <Select
           placeholder="重要程度"
@@ -434,7 +449,7 @@ export function TalentPoolTab({
             清除筛选
           </Button>
         )}
-        <span className="text-sm text-gray-500 ml-auto">
+        <span className="text-sm text-content-secondary ml-auto">
           {hasFilter
             ? `筛选结果: ${filteredTalents.length}/${total}`
             : `共 ${total} 个达人`}
@@ -448,7 +463,11 @@ export function TalentPoolTab({
         loading={loading}
         rowKey="_id"
         search={false}
-        options={false}
+        options={{
+          fullScreen: true,
+          density: true,
+          setting: true,
+        }}
         rowSelection={{
           selectedRowKeys,
           onChange: setSelectedRowKeys,
@@ -505,7 +524,6 @@ export function TalentPoolTab({
           </Button>,
         ]}
         scroll={{ x: 950 }}
-        size="middle"
       />
 
       <TalentSelectorModal
@@ -571,7 +589,7 @@ export function TalentPoolTab({
             label="更新模式"
             initialValue="merge"
             extra={
-              <span className="text-gray-400 text-xs">
+              <span className="text-content-muted text-xs">
                 合并：保留原有标签，追加新标签；替换：清除原有标签，使用新标签
               </span>
             }

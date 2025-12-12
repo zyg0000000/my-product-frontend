@@ -220,7 +220,7 @@ export function TalentProcurementCard({
               </span>
             </div>
 
-            <div className="text-gray-400 text-xs pl-3">
+            <div className="text-content-muted text-xs pl-3">
               {config.includesPlatformFee
                 ? `(¥${(baseAmount / 100).toFixed(2)} + ¥${(platformFeeAmount / 100).toFixed(2)}) × ${(discountRate * 100).toFixed(2)}%`
                 : `¥${(baseAmount / 100).toFixed(2)} × ${(discountRate * 100).toFixed(2)}% + ¥${(platformFeeAmount / 100).toFixed(2)}`}
@@ -269,21 +269,21 @@ export function TalentProcurementCard({
         </div>
 
         <div className="space-y-1 pt-2 text-xs">
-          <div className="flex justify-between gap-4 text-gray-400">
+          <div className="flex justify-between gap-4 text-content-muted">
             <span className="whitespace-nowrap">折扣含平台费:</span>
             <span className="whitespace-nowrap">
               {config.includesPlatformFee ? '是' : '否'}
             </span>
           </div>
 
-          <div className="flex justify-between gap-4 text-gray-400">
+          <div className="flex justify-between gap-4 text-content-muted">
             <span className="whitespace-nowrap">含税报价:</span>
             <span className="whitespace-nowrap">
               {config.includesTax ? '是（已含6%税）' : '否（需加税）'}
             </span>
           </div>
 
-          <div className="flex justify-between gap-4 text-gray-400">
+          <div className="flex justify-between gap-4 text-content-muted">
             <span className="whitespace-nowrap">有效期:</span>
             <span className="whitespace-nowrap">
               {config.isPermanent
@@ -305,7 +305,7 @@ export function TalentProcurementCard({
                 {quotationCoefficient?.toFixed(4) ||
                   coefficient.coefficient.toFixed(4)}
               </div>
-              <div className="text-xs text-gray-400 whitespace-nowrap">
+              <div className="text-xs text-content-muted whitespace-nowrap">
                 = ¥{(finalAmount / 100).toFixed(2)} ÷ ¥
                 {(baseAmount / 100).toFixed(2)}
               </div>
@@ -673,7 +673,7 @@ export function TalentProcurementCard({
           {isSinglePlatformMode ? (
             // 单平台模式：显示当前平台的配置状态
             <>
-              <div className="text-gray-400 mb-4">
+              <div className="text-content-muted mb-4">
                 {getPlatformName(platform!)} 暂未配置达人采买策略
               </div>
               <Button
@@ -700,7 +700,7 @@ export function TalentProcurementCard({
           ) : (
             // 多平台模式：显示整体状态
             <>
-              <div className="text-gray-400 mb-4">
+              <div className="text-content-muted mb-4">
                 该客户暂未配置达人采买策略
               </div>
               <Button
@@ -797,8 +797,8 @@ export function TalentProcurementCard({
                       key={platformItem.key}
                       className={`border rounded-lg p-4 transition-all ${
                         isEnabled
-                          ? 'border-gray-200 bg-gray-50'
-                          : 'border-gray-200 bg-gray-100 opacity-60'
+                          ? 'border-stroke bg-surface-base'
+                          : 'border-stroke bg-surface-sunken opacity-60'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-3">
@@ -814,7 +814,7 @@ export function TalentProcurementCard({
                             }
                           />
                           <span
-                            className={`font-semibold ${isEnabled ? 'text-gray-800' : 'text-gray-500'}`}
+                            className={`font-semibold ${isEnabled ? 'text-content' : 'text-content-secondary'}`}
                           >
                             {platformItem.name}
                           </span>
@@ -854,17 +854,17 @@ export function TalentProcurementCard({
                       </div>
 
                       {!isEnabled ? (
-                        <div className="text-sm text-gray-400 py-2 text-center">
+                        <div className="text-sm text-content-muted py-2 text-center">
                           平台已停用，点击开关启用
                         </div>
                       ) : isProjectMode ? (
-                        <div className="text-sm text-gray-500 py-4 text-center bg-blue-50 rounded">
+                        <div className="text-sm text-content-secondary py-4 text-center bg-blue-50 rounded">
                           项目比价模式，创建项目时手动填写对客报价
                         </div>
                       ) : (
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
-                            <span className="text-gray-500">折扣率:</span>
+                            <span className="text-content-secondary">折扣率:</span>
                             <span className="font-medium">
                               {(
                                 (platformItem.config.discountRate || 0) * 100
@@ -873,7 +873,7 @@ export function TalentProcurementCard({
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-500">服务费率:</span>
+                            <span className="text-content-secondary">服务费率:</span>
                             <span className="font-medium">
                               {(
                                 (platformItem.config.serviceFeeRate || 0) * 100
@@ -882,7 +882,7 @@ export function TalentProcurementCard({
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-500">平台费:</span>
+                            <span className="text-content-secondary">平台费:</span>
                             <span className="font-medium">
                               {(
                                 (platformItem.config.platformFeeRate || 0) * 100
@@ -891,7 +891,7 @@ export function TalentProcurementCard({
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-500">有效期:</span>
+                            <span className="text-content-secondary">有效期:</span>
                             <span className="font-medium">
                               {platformItem.config.isPermanent ? (
                                 '长期有效'
@@ -903,8 +903,8 @@ export function TalentProcurementCard({
                               )}
                             </span>
                           </div>
-                          <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                            <span className="text-gray-500">
+                          <div className="flex justify-between items-center pt-2 border-t border-stroke">
+                            <span className="text-content-secondary">
                               {pricingModeInfo.coefficientLabel}:
                             </span>
                             {platformItem.coefficient ? (
@@ -932,7 +932,7 @@ export function TalentProcurementCard({
                                 </span>
                               </Popover>
                             ) : (
-                              <span className="text-gray-400">-</span>
+                              <span className="text-content-muted">-</span>
                             )}
                           </div>
                         </div>
@@ -942,7 +942,7 @@ export function TalentProcurementCard({
                 })}
               </div>
             ) : (
-              <div className="text-center py-6 text-gray-400">暂无平台配置</div>
+              <div className="text-center py-6 text-content-muted">暂无平台配置</div>
             )}
           </div>
         )}

@@ -22,14 +22,10 @@
       rel="stylesheet"
     />
 
-    <!-- 预加载关键字体 (可选，提升首屏渲染) -->
-    <link
-      rel="preload"
-      href="https://fonts.gstatic.com/s/dmsans/v15/rP2tp2ywxg089UriI5-g4vlH9VoD8CmcqZG40F9JadbnoEwA_opsX5Y.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
+    <!--
+      注意：移除了字体预加载，因为预加载特定变体可能与实际使用的变体不匹配
+      Google Fonts CSS 会自动处理字体加载
+    -->
   </head>
   <body>
     <div id="root"></div>

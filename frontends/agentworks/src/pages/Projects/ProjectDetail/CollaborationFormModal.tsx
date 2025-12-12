@@ -44,7 +44,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-4 pt-1">
       <div className="w-1 h-4 bg-primary-500 rounded-full" />
-      <span className="text-sm font-medium text-gray-700">{children}</span>
+      <span className="text-sm font-medium text-content">{children}</span>
     </div>
   );
 }
@@ -113,7 +113,7 @@ export function CollaborationFormModal({
   return (
     <Modal
       title={
-        <span className="text-lg font-semibold text-gray-900">
+        <span className="text-lg font-semibold text-content">
           {isEdit ? '编辑合作记录' : '添加合作达人'}
         </span>
       }
@@ -130,7 +130,7 @@ export function CollaborationFormModal({
         form={form}
         layout="vertical"
         requiredMark={false}
-        className="[&_.ant-form-item-label>label]:text-xs [&_.ant-form-item-label>label]:text-gray-500 [&_.ant-form-item-label>label]:font-normal [&_.ant-form-item]:mb-4"
+        className="[&_.ant-form-item-label>label]:text-xs [&_.ant-form-item-label>label]:text-content-secondary [&_.ant-form-item-label>label]:font-normal [&_.ant-form-item]:mb-4"
       >
         {/* 隐藏字段 */}
         <Form.Item name="talentOneId" hidden>
@@ -142,7 +142,7 @@ export function CollaborationFormModal({
 
         {/* === 达人信息区域 === */}
         <SectionTitle>达人信息</SectionTitle>
-        <div className="bg-gray-50/50 rounded-lg p-4 mb-5">
+        <div className="bg-surface-base/50 rounded-lg p-4 mb-5">
           <Row gutter={16}>
             <Col span={16}>
               <Form.Item
@@ -210,7 +210,7 @@ export function CollaborationFormModal({
                   执行金额（元）
                   {tooltips.price && (
                     <Tooltip title={tooltips.price}>
-                      <InfoCircleOutlined className="text-gray-400 cursor-help" />
+                      <InfoCircleOutlined className="text-content-muted cursor-help" />
                     </Tooltip>
                   )}
                 </span>
@@ -244,7 +244,7 @@ export function CollaborationFormModal({
                         </span>
                       }
                     >
-                      <InfoCircleOutlined className="text-gray-400 cursor-help" />
+                      <InfoCircleOutlined className="text-content-muted cursor-help" />
                     </Tooltip>
                   )}
                 </span>

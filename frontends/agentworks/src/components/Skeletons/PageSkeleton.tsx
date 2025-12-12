@@ -81,7 +81,7 @@ export function PageSkeleton({
       {layout === 'table' && (
         <div className="card overflow-hidden">
           {/* 表格工具栏骨架 */}
-          <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
+          <div className="flex items-center justify-between mb-4 pb-4 border-b border-stroke">
             <div className="flex items-center gap-2">
               <Skeleton.Input
                 active={active}
@@ -98,7 +98,7 @@ export function PageSkeleton({
           {/* 表格骨架 */}
           <div className="space-y-3">
             {/* 表头 */}
-            <div className="flex items-center gap-4 py-3 border-b border-gray-200 bg-gray-50 px-4 rounded-t-lg">
+            <div className="flex items-center gap-4 py-3 border-b border-stroke bg-surface-base px-4 rounded-t-lg">
               {[120, 160, 120, 100, 80].map((w, i) => (
                 <Skeleton.Input
                   key={i}
@@ -112,7 +112,7 @@ export function PageSkeleton({
             {Array.from({ length: rows }).map((_, rowIndex) => (
               <div
                 key={rowIndex}
-                className="flex items-center gap-4 py-3 px-4 border-b border-gray-100 last:border-b-0"
+                className="flex items-center gap-4 py-3 px-4 border-b border-stroke last:border-b-0"
               >
                 {[120, 160, 120, 100, 80].map((w, colIndex) => (
                   <Skeleton.Input
@@ -153,7 +153,7 @@ export function StatCardSkeleton({ active = true }: { active?: boolean }) {
  */
 export function ListItemSkeleton({ active = true }: { active?: boolean }) {
   return (
-    <div className="flex items-center gap-4 p-4 border-b border-gray-100 last:border-b-0">
+    <div className="flex items-center gap-4 p-4 border-b border-stroke last:border-b-0">
       <Skeleton.Avatar active={active} size={40} />
       <div className="flex-1 space-y-2">
         <Skeleton.Input active={active} size="small" style={{ width: '60%' }} />

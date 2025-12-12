@@ -75,7 +75,7 @@ export function SettingsHome() {
         );
       case 'coming':
         return (
-          <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+          <span className="px-2 py-0.5 text-xs font-medium bg-surface-sunken text-content-secondary rounded">
             即将上线
           </span>
         );
@@ -89,8 +89,8 @@ export function SettingsHome() {
       <div className="space-y-6">
         {/* 页面标题 */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">系统设置</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-content">系统设置</h1>
+          <p className="mt-1 text-sm text-content-secondary">
             配置系统参数，管理平台和功能设置
           </p>
         </div>
@@ -106,26 +106,26 @@ export function SettingsHome() {
             >
               <div className="flex items-start gap-4">
                 {/* 图标 */}
-                <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-gray-50 rounded-lg">
+                <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-surface-base rounded-lg">
                   {item.icon}
                 </div>
 
                 {/* 内容 */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-base font-semibold text-gray-900">
+                    <h3 className="text-base font-semibold text-content">
                       {item.title}
                     </h3>
                     {getStatusTag(item.status)}
                   </div>
-                  <p className="text-sm text-gray-600 line-clamp-2">
+                  <p className="text-sm text-content-secondary line-clamp-2">
                     {item.description}
                   </p>
                 </div>
 
                 {/* 箭头 */}
                 <div className="flex-shrink-0">
-                  <RightOutlined className="text-gray-400" />
+                  <RightOutlined className="text-content-muted" />
                 </div>
               </div>
             </ProCard>

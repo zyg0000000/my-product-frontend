@@ -157,15 +157,15 @@ export function TalentProcurementForm({
   return (
     <div className="space-y-4">
       {/* 平台选择区域 - 单平台模式下只显示启用开关 */}
-      <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+      <div className="flex items-center gap-4 p-4 bg-surface-base rounded-lg">
         {singlePlatformMode ? (
           // 单平台模式：显示平台名称 + 启用开关
           <>
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-content">
               {getPlatformName(selectedPlatform)}
             </span>
-            <span className="text-sm text-gray-500">|</span>
-            <span className="text-sm text-gray-600">启用</span>
+            <span className="text-sm text-content-secondary">|</span>
+            <span className="text-sm text-content-secondary">启用</span>
             <Switch
               checked={currentConfig.enabled}
               onChange={checked =>
@@ -176,7 +176,7 @@ export function TalentProcurementForm({
         ) : (
           // 多平台模式：显示平台选择器 + 启用开关
           <>
-            <span className="text-sm text-gray-600">选择平台:</span>
+            <span className="text-sm text-content-secondary">选择平台:</span>
             <Select
               value={selectedPlatform}
               onChange={handlePlatformChange}
@@ -186,8 +186,8 @@ export function TalentProcurementForm({
               }))}
               style={{ width: 120 }}
             />
-            <span className="text-sm text-gray-500">|</span>
-            <span className="text-sm text-gray-600">启用</span>
+            <span className="text-sm text-content-secondary">|</span>
+            <span className="text-sm text-content-secondary">启用</span>
             <Switch
               checked={currentConfig.enabled}
               onChange={checked =>
@@ -199,8 +199,8 @@ export function TalentProcurementForm({
       </div>
 
       {/* 定价模式选择 */}
-      <div className="p-4 border border-gray-200 rounded-lg">
-        <div className="text-sm font-medium text-gray-700 mb-2">
+      <div className="p-4 border border-stroke rounded-lg">
+        <div className="text-sm font-medium text-content mb-2">
           定价模式 ({getPlatformName(selectedPlatform)})
         </div>
         <Radio.Group
@@ -217,7 +217,7 @@ export function TalentProcurementForm({
           <Radio value="project">项目比价</Radio>
           <Radio value="hybrid">混合模式</Radio>
         </Radio.Group>
-        <div className="mt-2 text-sm text-gray-500">
+        <div className="mt-2 text-sm text-content-secondary">
           {
             getPricingModeInfo(currentConfig.pricingModel || 'framework')
               .description
@@ -237,11 +237,11 @@ export function TalentProcurementForm({
 
       {/* 框架折扣/混合模式配置 */}
       {currentConfig.pricingModel !== 'project' && currentConfig.enabled && (
-        <div className="space-y-4 p-4 border border-gray-200 rounded-lg">
+        <div className="space-y-4 p-4 border border-stroke rounded-lg">
           {/* 第一行：折扣率、服务费率、有效期、长期有效 */}
           <div className="grid grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-content mb-1">
                 折扣率 (%)
               </label>
               <InputNumber
@@ -258,7 +258,7 @@ export function TalentProcurementForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-content mb-1">
                 服务费率 (%)
               </label>
               <InputNumber
@@ -278,7 +278,7 @@ export function TalentProcurementForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-content mb-1">
                 有效期 <span className="text-red-500">*</span>
               </label>
               <DatePicker.RangePicker
@@ -299,7 +299,7 @@ export function TalentProcurementForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-content mb-1">
                 长期有效
               </label>
               <div className="h-8 flex items-center">
@@ -315,9 +315,9 @@ export function TalentProcurementForm({
           </div>
 
           {/* 第二行：平台费 + 配置选项 + 报价系数 */}
-          <div className="grid grid-cols-6 gap-4 pt-3 border-t border-gray-100">
+          <div className="grid grid-cols-6 gap-4 pt-3 border-t border-stroke">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-content mb-1">
                 平台费
               </label>
               <div className="h-8 flex items-center">
@@ -330,7 +330,7 @@ export function TalentProcurementForm({
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-content mb-1">
                 折扣包含平台费
               </label>
               <Radio.Group
@@ -347,7 +347,7 @@ export function TalentProcurementForm({
               </Radio.Group>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-content mb-1">
                 服务费计算基准
               </label>
               <Radio.Group
@@ -361,7 +361,7 @@ export function TalentProcurementForm({
               </Radio.Group>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-content mb-1">
                 报价税费设置
               </label>
               <Radio.Group
@@ -375,7 +375,7 @@ export function TalentProcurementForm({
               </Radio.Group>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-content mb-1">
                 税费计算基准
               </label>
               <Radio.Group
@@ -393,11 +393,11 @@ export function TalentProcurementForm({
               </Radio.Group>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-content mb-1">
                 报价系数
                 <Popover
                   content={
-                    <div className="text-xs text-gray-600 max-w-xs">
+                    <div className="text-xs text-content-secondary max-w-xs">
                       报价系数 = 最终对客报价 ÷ 达人刊例价
                       <br />
                       用于计算项目中达人的对客报价
@@ -405,7 +405,7 @@ export function TalentProcurementForm({
                   }
                   placement="top"
                 >
-                  <QuestionCircleOutlined className="ml-1 text-gray-400 cursor-help" />
+                  <QuestionCircleOutlined className="ml-1 text-content-muted cursor-help" />
                 </Popover>
               </label>
               <div className="h-8 flex items-center">
@@ -419,7 +419,7 @@ export function TalentProcurementForm({
                       </Tag>
                     );
                   }
-                  return <span className="text-gray-400">-</span>;
+                  return <span className="text-content-muted">-</span>;
                 })()}
               </div>
             </div>

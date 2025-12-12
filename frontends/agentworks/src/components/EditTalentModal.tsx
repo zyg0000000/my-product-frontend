@@ -168,7 +168,7 @@ export function EditTalentModal({
           <div className="text-lg font-semibold">
             编辑达人: <span className="text-primary-600">{talent.name}</span>
           </div>
-          <div className="text-sm font-normal text-gray-500 mt-1">
+          <div className="text-sm font-normal text-content-secondary mt-1">
             {PLATFORM_NAMES[talent.platform]} 平台 ·
             更新达人的基础信息和平台特定字段
           </div>
@@ -241,7 +241,7 @@ export function EditTalentModal({
               label={
                 <span>
                   商业属性
-                  <span className="ml-1 text-xs text-gray-500">
+                  <span className="ml-1 text-xs text-content-secondary">
                     （机构归属）
                   </span>
                 </span>
@@ -258,7 +258,7 @@ export function EditTalentModal({
                 label={
                   <span>
                     平台特定信息
-                    <span className="ml-1 text-xs text-gray-500">（选填）</span>
+                    <span className="ml-1 text-xs text-content-secondary">（选填）</span>
                   </span>
                 }
                 placeholder="抖音UID（辅助识别）"

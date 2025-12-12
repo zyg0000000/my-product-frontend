@@ -246,8 +246,8 @@ export function PerformanceHome() {
       <div className="space-y-4">
         {/* 页面标题 - Tailwind */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">近期表现</h1>
-          <p className="text-gray-600 mt-1 text-sm">查看各平台达人的表现数据</p>
+          <h1 className="text-2xl font-bold text-content">近期表现</h1>
+          <p className="text-content-secondary mt-1 text-sm">查看各平台达人的表现数据</p>
         </div>
 
         {/* 平台 Tabs - Ant Design Tabs */}
@@ -302,7 +302,7 @@ export function PerformanceHome() {
               <div className="flex items-center gap-3">
                 <span className="font-medium">近期表现</span>
                 <div className="h-4 w-px bg-gray-300"></div>
-                <span className="text-sm text-gray-500">共 {total} 个达人</span>
+                <span className="text-sm text-content-secondary">共 {total} 个达人</span>
               </div>
             }
             toolbar={{
@@ -347,16 +347,16 @@ export function PerformanceHome() {
               ],
             }}
             options={{
+              fullScreen: true,
+              density: true,
               reload: async () => {
                 await search({});
                 message.success('数据已刷新');
                 return true;
               },
-              density: false, // 关闭密度调整（避免混乱）
-              setting: true, // 开启列设置
+              setting: true,
             }}
             scroll={{ x: 1500 }}
-            size="middle"
             locale={{
               emptyText: (
                 <div className="text-center py-12">
@@ -373,13 +373,13 @@ export function PerformanceHome() {
                       d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     />
                   </svg>
-                  <p className="mt-4 text-lg font-medium text-gray-900">
+                  <p className="mt-4 text-lg font-medium text-content">
                     暂无表现数据
                   </p>
-                  <p className="mt-2 text-sm text-gray-500">
+                  <p className="mt-2 text-sm text-content-secondary">
                     {PLATFORM_NAMES[selectedPlatform]} 平台暂无达人表现数据
                   </p>
-                  <p className="mt-1 text-sm text-gray-400">
+                  <p className="mt-1 text-sm text-content-muted">
                     请前往"数据导入管理"导入达人表现数据
                   </p>
                   <Button

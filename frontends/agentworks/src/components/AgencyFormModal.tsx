@@ -88,7 +88,7 @@ export function AgencyFormModal({
           <div className="text-base font-semibold">
             {isEditing ? '编辑机构' : '新增机构'}
           </div>
-          <div className="text-xs font-normal text-gray-500 mt-0.5">
+          <div className="text-xs font-normal text-content-secondary mt-0.5">
             {isEditing ? `更新机构信息：${agency?.name}` : '创建新的机构'}
           </div>
         </div>

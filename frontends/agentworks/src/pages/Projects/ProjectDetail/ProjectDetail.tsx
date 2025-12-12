@@ -49,8 +49,8 @@ function InfoItem({
 }) {
   return (
     <div className={className}>
-      <div className="text-xs text-gray-400 mb-1 tracking-wide">{label}</div>
-      <div className="text-sm text-gray-800">{children}</div>
+      <div className="text-xs text-content-muted mb-1 tracking-wide">{label}</div>
+      <div className="text-sm text-content">{children}</div>
     </div>
   );
 }
@@ -170,7 +170,7 @@ export function ProjectDetail() {
           <TeamOutlined />
           合作达人
           {stats.collaborationCount ? (
-            <span className="ml-1 text-gray-400">
+            <span className="ml-1 text-content-muted">
               ({stats.collaborationCount})
             </span>
           ) : null}
@@ -266,17 +266,17 @@ export function ProjectDetail() {
         {/* 项目基本信息卡片 - 优化布局 */}
         <Card className="shadow-card overflow-hidden">
           {/* 顶部区域：项目名称 + 状态 */}
-          <div className="flex items-start justify-between pb-5 border-b border-gray-100">
+          <div className="flex items-start justify-between pb-5 border-b border-stroke">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-xl font-semibold text-gray-900 truncate">
+                <h1 className="text-xl font-semibold text-content truncate">
                   {project.name}
                 </h1>
                 {project.businessTag && (
                   <Tag className="shrink-0">{project.businessTag}</Tag>
                 )}
               </div>
-              <div className="flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-4 text-sm text-content-secondary">
                 <span>
                   所属客户：
                   <a
@@ -293,7 +293,7 @@ export function ProjectDetail() {
               </div>
             </div>
             <div className="shrink-0 text-right">
-              <div className="text-xs text-gray-400 mb-1.5">当前状态</div>
+              <div className="text-xs text-content-muted mb-1.5">当前状态</div>
               <Tag
                 color={PROJECT_STATUS_COLORS[project.status]}
                 className="text-sm px-3 py-0.5"
@@ -304,7 +304,7 @@ export function ProjectDetail() {
           </div>
 
           {/* 中间区域：核心指标 Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 py-5 border-b border-gray-100">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 py-5 border-b border-stroke">
             <InfoItem label="投放平台">
               <div className="flex flex-wrap gap-1">
                 {project.platforms.map(platform => (
@@ -334,7 +334,7 @@ export function ProjectDetail() {
             <InfoItem label="合作达人">
               <span className="font-semibold">
                 {stats.collaborationCount || 0}
-                <span className="font-normal text-gray-400 ml-0.5">人</span>
+                <span className="font-normal text-content-muted ml-0.5">人</span>
               </span>
             </InfoItem>
 
@@ -349,7 +349,7 @@ export function ProjectDetail() {
                   strokeColor={progress === 100 ? '#52c41a' : '#3b82f6'}
                   className="flex-1 max-w-[200px]"
                 />
-                <span className="text-xs text-gray-500 whitespace-nowrap shrink-0">
+                <span className="text-xs text-content-secondary whitespace-nowrap shrink-0">
                   {stats.publishedCount || 0}/{stats.collaborationCount || 0}{' '}
                   已发布
                 </span>

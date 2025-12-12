@@ -164,7 +164,7 @@ export function Home() {
         {/* 快速操作 - 卡片悬停效果增强 */}
         <div>
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-semibold text-gray-900">
+            <h2 className="font-display text-xl font-semibold text-content">
               快速操作
             </h2>
           </div>
@@ -173,10 +173,10 @@ export function Home() {
               <button
                 key={action.path}
                 onClick={() => navigate(action.path)}
-                className="group relative flex flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left transition-all duration-200 hover:border-gray-300 hover:shadow-lg"
+                className="group relative flex flex-col items-start rounded-xl border border-stroke bg-surface-base p-5 text-left transition-all duration-200 hover:border-stroke-hover hover:shadow-lg"
               >
                 {/* 悬停时的渐变背景 */}
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-gray-50 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-surface-sunken to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
 
                 <div className="relative">
                   <div
@@ -184,10 +184,10 @@ export function Home() {
                   >
                     <action.icon className="h-5 w-5 text-white" />
                   </div>
-                  <h3 className="mt-4 text-base font-semibold text-gray-900 group-hover:text-primary-600">
+                  <h3 className="mt-4 text-base font-semibold text-content group-hover:text-primary-600">
                     {action.name}
                   </h3>
-                  <p className="mt-1.5 text-sm text-gray-500 leading-relaxed">
+                  <p className="mt-1.5 text-sm text-content-secondary leading-relaxed">
                     {action.description}
                   </p>
 
@@ -204,8 +204,8 @@ export function Home() {
 
         {/* 近期功能更新 - 更现代的时间线设计 */}
         <div className="card">
-          <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-            <h2 className="font-display text-xl font-semibold text-gray-900">
+          <div className="flex items-center justify-between border-b border-stroke pb-4">
+            <h2 className="font-display text-xl font-semibold text-content">
               近期更新
             </h2>
             <span className="rounded-full bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-600">
@@ -229,14 +229,14 @@ export function Home() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-4">
-                        <h3 className="font-semibold text-gray-900 truncate">
+                        <h3 className="font-semibold text-content truncate">
                           {update.title}
                         </h3>
-                        <span className="flex-shrink-0 text-xs text-gray-400">
+                        <span className="flex-shrink-0 text-xs text-content-muted">
                           {update.date}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm text-gray-600 leading-relaxed">
+                      <p className="mt-1 text-sm text-content-secondary leading-relaxed">
                         {update.description}
                       </p>
                     </div>
@@ -247,7 +247,7 @@ export function Home() {
           </div>
 
           {/* 查看更多 */}
-          <div className="mt-6 pt-4 border-t border-gray-100">
+          <div className="mt-6 pt-4 border-t border-stroke">
             <button className="flex items-center gap-2 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors">
               <span>查看完整更新日志</span>
               <ArrowRightIcon className="h-4 w-4" />

@@ -163,7 +163,7 @@ export function PriceModal({
           <div className="text-lg font-semibold">
             价格管理: <span className="text-purple-600">{talent.name}</span>
           </div>
-          <div className="text-sm font-normal text-gray-500 mt-0.5">
+          <div className="text-sm font-normal text-content-secondary mt-0.5">
             管理{priceTypes.length}档价格类型和趋势分析
           </div>
         </div>
@@ -216,14 +216,14 @@ export function PriceModal({
             style={{ maxHeight: '350px', overflowY: 'auto' }}
           >
             {filteredHistory.length === 0 ? (
-              <p className="text-center text-gray-500 text-sm py-8">
+              <p className="text-center text-content-secondary text-sm py-8">
                 暂无价格记录
               </p>
             ) : (
               filteredHistory.map((history, index) => (
-                <div key={index} className="bg-gray-50 rounded-md border p-3">
+                <div key={index} className="bg-surface-base rounded-md border p-3">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm font-medium text-content">
                       {formatYearMonth(history.year, history.month)}
                     </span>
                     {history.isLatest && (
@@ -253,8 +253,8 @@ export function PriceModal({
                           <span
                             className={
                               price
-                                ? 'text-gray-900 font-medium'
-                                : 'text-gray-400'
+                                ? 'text-content font-medium'
+                                : 'text-content-muted'
                             }
                           >
                             {price ? formatPrice(price) : 'N/A'}

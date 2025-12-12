@@ -154,8 +154,8 @@ export function ProjectsHome() {
         {/* 页面标题和操作 */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">项目工作台</h1>
-            <p className="mt-1 text-sm text-gray-600">本月项目概览与待办事项</p>
+            <h1 className="text-2xl font-bold text-content">项目工作台</h1>
+            <p className="mt-1 text-sm text-content-secondary">本月项目概览与待办事项</p>
           </div>
           <Space>
             <Button
@@ -182,7 +182,7 @@ export function ProjectsHome() {
                 title="执行中项目"
                 value={monthlyOverview.executingCount}
                 prefix={<FolderOutlined />}
-                styles={{ content: { color: '#1890ff' } }}
+                styles={{ content: { color: 'var(--aw-primary-500)' } }}
               />
             </Card>
           </Col>
@@ -199,8 +199,8 @@ export function ProjectsHome() {
                   content: {
                     color:
                       monthlyOverview.pendingSettlementCount > 0
-                        ? '#faad14'
-                        : '#8c8c8c',
+                        ? 'var(--aw-warning-500)'
+                        : 'var(--aw-gray-500)',
                   },
                 }}
               />
@@ -214,20 +214,22 @@ export function ProjectsHome() {
                 prefix={<DollarOutlined />}
                 precision={2}
                 suffix="元"
-                styles={{ content: { color: '#52c41a' } }}
+                styles={{ content: { color: 'var(--aw-success-500)' } }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6}>
             <Card>
               <div className="flex flex-col items-center">
-                <div className="text-gray-500 mb-2">利润率</div>
+                <div className="text-content-secondary mb-2">利润率</div>
                 <Progress
                   type="circle"
                   percent={monthlyOverview.profitRate}
                   size={80}
                   strokeColor={
-                    monthlyOverview.profitRate >= 20 ? '#52c41a' : '#faad14'
+                    monthlyOverview.profitRate >= 20
+                      ? 'var(--aw-success-500)'
+                      : 'var(--aw-warning-500)'
                   }
                   format={p => `${p}%`}
                 />
@@ -266,7 +268,7 @@ export function ProjectsHome() {
                   dataSource={alerts.slice(0, 5)}
                   renderItem={item => (
                     <List.Item
-                      className="cursor-pointer hover:bg-gray-50 -mx-3 px-3"
+                      className="cursor-pointer hover:bg-surface-base -mx-3 px-3"
                       onClick={() => navigate(`/projects/${item.projectId}`)}
                     >
                       <div className="flex items-center gap-3 w-full">
@@ -289,11 +291,11 @@ export function ProjectsHome() {
                           <div className="font-medium truncate">
                             {item.projectName}
                           </div>
-                          <div className="text-xs text-gray-500 truncate">
+                          <div className="text-xs text-content-secondary truncate">
                             {item.message}
                           </div>
                         </div>
-                        <RightOutlined className="text-gray-400" />
+                        <RightOutlined className="text-content-muted" />
                       </div>
                     </List.Item>
                   )}
@@ -323,13 +325,13 @@ export function ProjectsHome() {
                 <div className="space-y-4">
                   {weeklySchedule.slice(0, 5).map(day => (
                     <div key={day.date}>
-                      <div className="text-sm font-medium text-gray-700 mb-2">
+                      <div className="text-sm font-medium text-content mb-2">
                         {formatDateDisplay(day.date)}
                         <Badge
                           count={day.collaborations.length}
                           size="small"
                           className="ml-2"
-                          style={{ backgroundColor: '#1890ff' }}
+                          style={{ backgroundColor: 'var(--aw-primary-500)' }}
                         />
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -390,7 +392,7 @@ export function ProjectsHome() {
                     >
                       <div className="space-y-3">
                         <div className="flex items-start justify-between">
-                          <div className="font-medium text-gray-900 truncate flex-1 pr-2">
+                          <div className="font-medium text-content truncate flex-1 pr-2">
                             {project.name}
                           </div>
                           <Tag
@@ -400,7 +402,7 @@ export function ProjectsHome() {
                             {project.status}
                           </Tag>
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-content-secondary">
                           {project.customerName || project.customerId}
                         </div>
                         <div className="flex flex-wrap gap-1">
@@ -415,7 +417,7 @@ export function ProjectsHome() {
                           ))}
                         </div>
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-gray-500">
+                          <span className="text-content-secondary">
                             {project.year}年{project.month}月
                           </span>
                           <span className="font-medium">
@@ -428,10 +430,12 @@ export function ProjectsHome() {
                             size="small"
                             className="flex-1"
                             strokeColor={
-                              progress === 100 ? '#52c41a' : undefined
+                              progress === 100
+                                ? 'var(--aw-success-500)'
+                                : undefined
                             }
                           />
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-content-secondary">
                             {project.stats?.publishedCount || 0}/
                             {project.stats?.collaborationCount || 0}
                           </span>

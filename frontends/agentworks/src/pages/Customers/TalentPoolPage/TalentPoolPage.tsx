@@ -83,13 +83,13 @@ function StatsCard({
             <span style={{ color, fontSize: 20 }}>{icon}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-sm text-gray-500 mb-1">{title}</div>
+            <div className="text-sm text-content-secondary mb-1">{title}</div>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-semibold text-gray-900 tabular-nums">
+              <span className="text-2xl font-semibold text-content tabular-nums">
                 {value}
               </span>
               {suffix && (
-                <span className="text-sm text-gray-400">{suffix}</span>
+                <span className="text-sm text-content-muted">{suffix}</span>
               )}
             </div>
           </div>

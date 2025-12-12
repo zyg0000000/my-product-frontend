@@ -12,8 +12,8 @@ export function AnalyticsHome() {
       <div className="space-y-6">
         {/* 页面标题 */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">数据分析</h1>
-          <p className="mt-2 text-lg text-gray-600">
+          <h1 className="text-3xl font-bold text-content">数据分析</h1>
+          <p className="mt-2 text-lg text-content-secondary">
             查看项目和达人数据分析，生成各类统计报表
           </p>
         </div>
@@ -31,12 +31,12 @@ export function AnalyticsHome() {
               animate={{ rotate: 0, scale: 1 }}
               transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
             >
-              <ChartBarIcon className="mx-auto h-16 w-16 text-gray-400" />
+              <ChartBarIcon className="mx-auto h-16 w-16 text-content-muted" />
             </motion.div>
-            <h3 className="mt-4 text-lg font-semibold text-gray-900">
+            <h3 className="mt-4 text-lg font-semibold text-content">
               功能开发中
             </h3>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-content-secondary">
               数据分析模块正在开发中，敬请期待
             </p>
           </div>

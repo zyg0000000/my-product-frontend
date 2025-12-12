@@ -1,10 +1,14 @@
 /**
  * AgentWorks - Ant Design 主题配置
  *
- * 与设计系统令牌保持同步
- * 引用 CSS Variables 需要在 JS 中使用具体值
+ * 架构设计：单一颜色来源 + CSS Variables 贯穿全局
  *
- * 设计令牌来源：src/design-system/tokens/
+ * 核心理念：
+ * - 所有颜色定义在 CSS Variables (colors.css)
+ * - Ant Design 直接引用 CSS Variables
+ * - 深色模式通过 CSS Variables 自动切换，无需两套主题
+ *
+ * 设计令牌来源：src/design-system/tokens/colors.css
  *
  * @see https://ant.design/docs/react/customize-theme-cn
  */
@@ -152,25 +156,25 @@ export const antTheme: ThemeConfig = {
     colorInfo: designTokens.info[500],
 
     // ========================================
-    // 中性色
+    // 中性色 - 使用 CSS Variables 实现深色模式自动切换
     // ========================================
-    colorTextBase: designTokens.gray[800],
-    colorText: designTokens.gray[700],
-    colorTextSecondary: designTokens.gray[500],
-    colorTextTertiary: designTokens.gray[400],
-    colorTextQuaternary: designTokens.gray[300],
+    colorTextBase: 'var(--color-text-primary)',
+    colorText: 'var(--color-text-primary)',
+    colorTextSecondary: 'var(--color-text-secondary)',
+    colorTextTertiary: 'var(--color-text-muted)',
+    colorTextQuaternary: 'var(--color-text-muted)',
 
-    colorBgBase: '#ffffff',
-    colorBgContainer: '#ffffff',
-    colorBgElevated: '#ffffff',
-    colorBgLayout: designTokens.gray[50],
-    colorBgSpotlight: designTokens.gray[100],
+    colorBgBase: 'var(--color-bg-base)',
+    colorBgContainer: 'var(--color-bg-elevated)',
+    colorBgElevated: 'var(--color-bg-elevated)',
+    colorBgLayout: 'var(--color-bg-base)',
+    colorBgSpotlight: 'var(--color-bg-sunken)',
 
-    colorBorder: designTokens.gray[200],
-    colorBorderSecondary: designTokens.gray[100],
+    colorBorder: 'var(--color-border)',
+    colorBorderSecondary: 'var(--color-border)',
 
-    colorFill: designTokens.gray[100],
-    colorFillSecondary: designTokens.gray[50],
+    colorFill: 'var(--color-fill)',
+    colorFillSecondary: 'var(--color-fill-secondary)',
     colorFillTertiary: 'rgba(0, 0, 0, 0.04)',
     colorFillQuaternary: 'rgba(0, 0, 0, 0.02)',
 
@@ -268,10 +272,10 @@ export const antTheme: ThemeConfig = {
       controlHeightSM: designTokens.size.sm,
       fontWeight: 500,
       primaryShadow: '0 2px 4px rgba(79, 70, 229, 0.15)',
-      defaultBorderColor: designTokens.gray[200],
-      defaultColor: designTokens.gray[700],
-      defaultBg: '#ffffff',
-      defaultHoverBg: designTokens.gray[50],
+      defaultBorderColor: 'var(--color-border)',
+      defaultColor: 'var(--color-text-primary)',
+      defaultBg: 'var(--color-bg-elevated)',
+      defaultHoverBg: 'var(--color-bg-sunken)',
       defaultHoverColor: designTokens.primary[600],
       defaultHoverBorderColor: designTokens.primary[300],
       paddingInline: 16,
@@ -288,6 +292,7 @@ export const antTheme: ThemeConfig = {
       hoverBorderColor: designTokens.primary[300],
       activeShadow: `0 0 0 3px ${designTokens.primary[100]}`,
       paddingInline: 12,
+      colorBgContainer: 'var(--color-bg-elevated)',
     },
 
     // 选择器
@@ -296,20 +301,28 @@ export const antTheme: ThemeConfig = {
       controlHeightLG: designTokens.size.lg,
       controlHeightSM: designTokens.size.sm,
       optionSelectedBg: designTokens.primary[50],
-      optionActiveBg: designTokens.gray[50],
+      optionActiveBg: 'var(--color-bg-sunken)',
+      colorBgContainer: 'var(--color-bg-elevated)',
     },
 
-    // 表格
+    // 表格 - 使用 CSS Variables 实现深色模式自动切换
     Table: {
-      headerBg: designTokens.gray[50],
-      headerColor: designTokens.gray[700],
-      headerSortActiveBg: designTokens.gray[100],
-      headerSortHoverBg: designTokens.gray[100],
-      rowHoverBg: designTokens.gray[50],
-      borderColor: designTokens.gray[200],
+      colorBgContainer: 'var(--color-bg-elevated)',
+      headerBg: 'var(--color-bg-sunken)',
+      headerColor: 'var(--color-text-primary)',
+      headerSortActiveBg: 'var(--color-bg-sunken)',
+      headerSortHoverBg: 'var(--color-bg-sunken)',
+      rowHoverBg: 'var(--color-bg-sunken)',
+      borderColor: 'var(--color-border)',
       headerBorderRadius: designTokens.radius.md,
-      cellPaddingBlock: 12,
-      cellPaddingInline: 16,
+      // 表格单元格 padding - 支持密度切换 (large/middle/small)
+      // 注意：默认尺寸对应 large，但我们设置较紧凑的值
+      cellPaddingBlock: 12, // large (宽松)
+      cellPaddingInline: 12,
+      cellPaddingBlockMD: 8, // middle (中等) - 推荐默认
+      cellPaddingInlineMD: 8,
+      cellPaddingBlockSM: 4, // small (紧凑)
+      cellPaddingInlineSM: 4,
       headerSplitColor: 'transparent',
     },
 
@@ -322,6 +335,7 @@ export const antTheme: ThemeConfig = {
       headerBg: 'transparent',
       headerFontSize: designTokens.fontSize.lg,
       headerFontSizeSM: designTokens.fontSize.base,
+      colorBgContainer: 'var(--color-bg-elevated)',
     },
 
     // 标签页
@@ -330,15 +344,15 @@ export const antTheme: ThemeConfig = {
       itemActiveColor: designTokens.primary[600],
       itemSelectedColor: designTokens.primary[600],
       itemHoverColor: designTokens.primary[500],
-      cardBg: designTokens.gray[50],
+      cardBg: 'var(--color-bg-sunken)',
       horizontalItemPadding: '12px 16px',
     },
 
     // 模态框
     Modal: {
       borderRadiusLG: designTokens.radius.xl,
-      headerBg: 'transparent',
-      contentBg: '#ffffff',
+      headerBg: 'var(--color-bg-elevated)',
+      contentBg: 'var(--color-bg-elevated)',
       titleFontSize: designTokens.fontSize.xl,
       paddingLG: 24,
     },
@@ -346,13 +360,14 @@ export const antTheme: ThemeConfig = {
     // 抽屉
     Drawer: {
       paddingLG: 24,
+      colorBgElevated: 'var(--color-bg-elevated)',
     },
 
     // 标签
     Tag: {
       borderRadiusSM: designTokens.radius.sm,
-      defaultBg: designTokens.gray[50],
-      defaultColor: designTokens.gray[600],
+      defaultBg: 'var(--color-bg-sunken)',
+      defaultColor: 'var(--color-text-secondary)',
     },
 
     // 徽标
@@ -365,13 +380,13 @@ export const antTheme: ThemeConfig = {
     Dropdown: {
       borderRadiusLG: designTokens.radius.lg,
       paddingBlock: 6,
-      controlItemBgHover: designTokens.gray[50],
+      controlItemBgHover: 'var(--color-bg-sunken)',
       controlItemBgActive: designTokens.primary[50],
     },
 
     // 消息提示
     Message: {
-      contentBg: '#ffffff',
+      contentBg: 'var(--color-bg-elevated)',
       contentPadding: '10px 16px',
     },
 
@@ -402,8 +417,8 @@ export const antTheme: ThemeConfig = {
     // 分页
     Pagination: {
       itemActiveBg: designTokens.primary[600],
-      itemBg: '#ffffff',
-      itemInputBg: '#ffffff',
+      itemBg: 'var(--color-bg-elevated)',
+      itemInputBg: 'var(--color-bg-elevated)',
     },
 
     // 面包屑
@@ -421,15 +436,15 @@ export const antTheme: ThemeConfig = {
       subMenuItemBg: 'transparent',
       itemSelectedBg: designTokens.primary[50],
       itemSelectedColor: designTokens.primary[600],
-      itemHoverBg: designTokens.gray[50],
-      itemHoverColor: designTokens.gray[800],
+      itemHoverBg: 'var(--color-bg-sunken)',
+      itemHoverColor: 'var(--color-text-primary)',
       itemActiveBg: designTokens.primary[100],
       horizontalItemSelectedColor: designTokens.primary[600],
     },
 
     // 表单
     Form: {
-      labelColor: designTokens.gray[700],
+      labelColor: 'var(--color-text-primary)',
       labelFontSize: designTokens.fontSize.sm,
       verticalLabelPadding: '0 0 8px',
     },
@@ -478,27 +493,27 @@ export const antTheme: ThemeConfig = {
 
     // 描述列表
     Descriptions: {
-      labelBg: designTokens.gray[50],
-      titleColor: designTokens.gray[800],
-      contentColor: designTokens.gray[600],
+      labelBg: 'var(--color-bg-sunken)',
+      titleColor: 'var(--color-text-primary)',
+      contentColor: 'var(--color-text-secondary)',
     },
 
     // 时间轴
     Timeline: {
-      dotBg: '#ffffff',
+      dotBg: 'var(--color-bg-elevated)',
       dotBorderWidth: 2,
       itemPaddingBottom: 20,
     },
 
     // 树形控件
     Tree: {
-      nodeHoverBg: designTokens.gray[50],
+      nodeHoverBg: 'var(--color-bg-sunken)',
       nodeSelectedBg: designTokens.primary[50],
     },
 
     // 上传
     Upload: {
-      colorFillAlter: designTokens.gray[50],
+      colorFillAlter: 'var(--color-bg-sunken)',
     },
 
     // 评分
@@ -510,185 +525,9 @@ export const antTheme: ThemeConfig = {
 };
 
 /**
- * 深色模式设计令牌
- */
-export const darkDesignTokens = {
-  gray: {
-    50: '#0f172a',
-    100: '#1e293b',
-    200: '#334155',
-    300: '#475569',
-    400: '#64748b',
-    500: '#94a3b8',
-    600: '#cbd5e1',
-    700: '#e2e8f0',
-    800: '#f1f5f9',
-    900: '#f8fafc',
-    950: '#ffffff',
-  },
-  primary: {
-    ...designTokens.primary,
-    500: '#818cf8',
-    600: '#6366f1',
-  },
-} as const;
-
-/**
- * Ant Design 深色主题配置
- */
-export const darkAntTheme: ThemeConfig = {
-  token: {
-    // 品牌色（深色模式稍微提亮）
-    colorPrimary: darkDesignTokens.primary[600],
-    colorLink: darkDesignTokens.primary[500],
-    colorLinkHover: darkDesignTokens.primary[600],
-    colorLinkActive: darkDesignTokens.primary[700],
-
-    // 功能色
-    colorSuccess: designTokens.success[500],
-    colorWarning: designTokens.warning[500],
-    colorError: designTokens.danger[500],
-    colorInfo: designTokens.info[500],
-
-    // 文字色（反转）
-    colorTextBase: darkDesignTokens.gray[900],
-    colorText: darkDesignTokens.gray[800],
-    colorTextSecondary: darkDesignTokens.gray[600],
-    colorTextTertiary: darkDesignTokens.gray[500],
-    colorTextQuaternary: darkDesignTokens.gray[400],
-
-    // 背景色（深色）
-    colorBgBase: darkDesignTokens.gray[50],
-    colorBgContainer: darkDesignTokens.gray[100],
-    colorBgElevated: darkDesignTokens.gray[200],
-    colorBgLayout: darkDesignTokens.gray[50],
-    colorBgSpotlight: darkDesignTokens.gray[200],
-
-    // 边框色
-    colorBorder: darkDesignTokens.gray[300],
-    colorBorderSecondary: darkDesignTokens.gray[200],
-
-    // 填充色
-    colorFill: darkDesignTokens.gray[200],
-    colorFillSecondary: darkDesignTokens.gray[100],
-    colorFillTertiary: 'rgba(255, 255, 255, 0.08)',
-    colorFillQuaternary: 'rgba(255, 255, 255, 0.04)',
-
-    // 圆角（保持一致）
-    borderRadius: designTokens.radius.md,
-    borderRadiusLG: designTokens.radius.lg,
-    borderRadiusSM: designTokens.radius.sm,
-    borderRadiusXS: 4,
-
-    // 字体（保持一致）
-    fontFamily: designTokens.fontFamily.body,
-    fontSize: designTokens.fontSize.base,
-    fontSizeSM: designTokens.fontSize.sm,
-    fontSizeLG: designTokens.fontSize.lg,
-    fontSizeXL: designTokens.fontSize.xl,
-    fontSizeHeading1: designTokens.fontSize['4xl'],
-    fontSizeHeading2: designTokens.fontSize['3xl'],
-    fontSizeHeading3: designTokens.fontSize['2xl'],
-    fontSizeHeading4: designTokens.fontSize.xl,
-    fontSizeHeading5: designTokens.fontSize.lg,
-
-    // 行高
-    lineHeight: 1.6,
-    lineHeightLG: 1.5,
-    lineHeightSM: 1.5,
-
-    // 控件尺寸
-    controlHeight: designTokens.size.md,
-    controlHeightLG: designTokens.size.lg,
-    controlHeightSM: designTokens.size.sm,
-
-    // 间距
-    padding: 16,
-    paddingLG: 24,
-    paddingSM: 12,
-    paddingXS: 8,
-    paddingXXS: 4,
-
-    margin: 16,
-    marginLG: 24,
-    marginSM: 12,
-    marginXS: 8,
-    marginXXS: 4,
-
-    // 阴影（深色模式使用更深的阴影）
-    boxShadow:
-      '0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px 0 rgba(0, 0, 0, 0.3)',
-    boxShadowSecondary:
-      '0 6px 16px 0 rgba(0, 0, 0, 0.4), 0 3px 6px -4px rgba(0, 0, 0, 0.4), 0 9px 28px 8px rgba(0, 0, 0, 0.25)',
-
-    // 动效
-    motionDurationFast: '0.1s',
-    motionDurationMid: '0.2s',
-    motionDurationSlow: '0.3s',
-    motionEaseInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
-    motionEaseOut: 'cubic-bezier(0, 0, 0.2, 1)',
-  },
-
-  // 组件级别配置
-  components: {
-    Button: {
-      primaryShadow: '0 2px 8px rgba(99, 102, 241, 0.4)',
-      defaultBg: darkDesignTokens.gray[200],
-      defaultBorderColor: darkDesignTokens.gray[300],
-    },
-
-    Input: {
-      activeBorderColor: darkDesignTokens.primary[500],
-      hoverBorderColor: darkDesignTokens.primary[400],
-      colorBgContainer: darkDesignTokens.gray[100],
-    },
-
-    Select: {
-      optionSelectedBg: 'rgba(99, 102, 241, 0.2)',
-      colorBgContainer: darkDesignTokens.gray[100],
-    },
-
-    Table: {
-      headerBg: darkDesignTokens.gray[200],
-      rowHoverBg: darkDesignTokens.gray[200],
-      borderColor: darkDesignTokens.gray[300],
-    },
-
-    Card: {
-      colorBgContainer: darkDesignTokens.gray[100],
-    },
-
-    Modal: {
-      contentBg: darkDesignTokens.gray[100],
-      headerBg: darkDesignTokens.gray[100],
-    },
-
-    Menu: {
-      itemBg: 'transparent',
-      itemSelectedBg: 'rgba(99, 102, 241, 0.15)',
-      itemHoverBg: darkDesignTokens.gray[200],
-      darkItemBg: darkDesignTokens.gray[50],
-      darkItemSelectedBg: 'rgba(99, 102, 241, 0.2)',
-    },
-
-    Tabs: {
-      itemSelectedColor: darkDesignTokens.primary[500],
-      inkBarColor: darkDesignTokens.primary[500],
-    },
-
-    Tag: {
-      defaultBg: darkDesignTokens.gray[200],
-      defaultColor: darkDesignTokens.gray[700],
-    },
-
-    Tooltip: {
-      colorBgSpotlight: darkDesignTokens.gray[200],
-      colorTextLightSolid: darkDesignTokens.gray[900],
-    },
-  },
-};
-
-/**
  * 导出设计令牌供其他组件使用
+ *
+ * 注意：深色模式不再需要单独的 darkAntTheme
+ * CSS Variables 会自动处理颜色切换
  */
 export default antTheme;

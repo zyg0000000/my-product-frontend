@@ -489,7 +489,7 @@ export function BatchCreateTalentModal({
 
     return (
       <div
-        className={`cursor-pointer px-1 py-0.5 rounded hover:bg-gray-100 ${
+        className={`cursor-pointer px-1 py-0.5 rounded hover:bg-surface-sunken ${
           hasError ? 'border border-red-300 bg-red-50' : ''
         }`}
         onClick={() => startEditing(record, field)}
@@ -652,13 +652,13 @@ export function BatchCreateTalentModal({
                   <div className="text-2xl font-bold text-green-600">
                     {created}
                   </div>
-                  <div className="text-sm text-gray-500">成功</div>
+                  <div className="text-sm text-content-secondary">成功</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-red-600">
                     {failed}
                   </div>
-                  <div className="text-sm text-gray-500">失败</div>
+                  <div className="text-sm text-content-secondary">失败</div>
                 </div>
               </div>
             }
@@ -666,7 +666,7 @@ export function BatchCreateTalentModal({
 
           {errors.length > 0 && (
             <div>
-              <div className="text-sm font-medium text-gray-700 mb-2">
+              <div className="text-sm font-medium text-content mb-2">
                 失败详情：
               </div>
               <Table
@@ -689,14 +689,14 @@ export function BatchCreateTalentModal({
           <div className="flex items-center gap-2 py-2 px-3 bg-red-50 rounded">
             <CloseCircleOutlined className="text-red-500 text-xl" />
             <span className="font-medium">批量创建失败</span>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-content-secondary">
               （{failed} 条数据全部创建失败）
             </span>
           </div>
 
           {errors.length > 0 && (
             <div>
-              <div className="text-sm font-medium text-gray-700 mb-2">
+              <div className="text-sm font-medium text-content mb-2">
                 失败详情：
               </div>
               <Table
@@ -729,7 +729,7 @@ export function BatchCreateTalentModal({
       <div className="space-y-4">
         {/* 平台选择 */}
         <div>
-          <div className="text-sm text-gray-600 mb-2">选择平台</div>
+          <div className="text-sm text-content-secondary mb-2">选择平台</div>
           <Radio.Group
             value={selectedPlatform}
             onChange={e => {
@@ -758,10 +758,10 @@ export function BatchCreateTalentModal({
             message={
               <div>
                 <div className="font-medium mb-1">{requiredFieldsText}</div>
-                <div className="text-xs text-gray-500 mb-1">
+                <div className="text-xs text-content-secondary mb-1">
                   首行必须为表头，列顺序任意（单次最多100条）
                 </div>
-                <div className="text-xs text-gray-500 mb-2">
+                <div className="text-xs text-content-secondary mb-2">
                   默认值：返点 ={' '}
                   <strong>
                     {wildTalentRebateRate !== null
@@ -780,7 +780,7 @@ export function BatchCreateTalentModal({
 
         {/* 粘贴区域 */}
         <div>
-          <div className="text-sm text-gray-600 mb-2">粘贴数据</div>
+          <div className="text-sm text-content-secondary mb-2">粘贴数据</div>
           <TextArea
             placeholder={
               selectedPlatform

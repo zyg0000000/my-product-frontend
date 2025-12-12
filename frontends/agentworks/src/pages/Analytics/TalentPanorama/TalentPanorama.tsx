@@ -637,8 +637,8 @@ export function TalentPanorama() {
       <div className="space-y-4">
         {/* 页面标题 */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">达人全景</h1>
-          <p className="text-gray-600 mt-1 text-sm">
+          <h1 className="text-2xl font-bold text-content">达人全景</h1>
+          <p className="text-content-secondary mt-1 text-sm">
             360° 达人综合检索，整合基础信息、客户标签、表现数据多维筛选
           </p>
         </div>
@@ -719,7 +719,7 @@ export function TalentPanorama() {
               <div className="flex items-center gap-3">
                 <span className="font-medium">达人列表</span>
                 <div className="h-4 w-px bg-gray-300" />
-                <span className="text-sm text-gray-500">共 {total} 个达人</span>
+                <span className="text-sm text-content-secondary">共 {total} 个达人</span>
                 {viewMode === 'customer' && selectedCustomers.length > 0 && (
                   <>
                     <div className="h-4 w-px bg-gray-300" />
@@ -769,24 +769,24 @@ export function TalentPanorama() {
               ],
             }}
             options={{
+              fullScreen: true,
+              density: true,
               reload: async () => {
                 await refresh();
                 message.success('数据已刷新');
                 return true;
               },
-              density: false,
               setting: false, // 使用自定义列选择器，禁用 ProTable 内置设置
             }}
             scroll={{ x: viewMode === 'customer' ? 1800 : 1500 }}
-            size="middle"
             locale={{
               emptyText: (
                 <div className="text-center py-12">
                   <SearchOutlined className="text-5xl text-gray-300" />
-                  <p className="mt-4 text-lg font-medium text-gray-900">
+                  <p className="mt-4 text-lg font-medium text-content">
                     暂无搜索结果
                   </p>
-                  <p className="mt-2 text-sm text-gray-500">
+                  <p className="mt-2 text-sm text-content-secondary">
                     {viewMode === 'customer' && selectedCustomers.length === 0
                       ? '请先选择要查看的客户'
                       : hasActiveFilters

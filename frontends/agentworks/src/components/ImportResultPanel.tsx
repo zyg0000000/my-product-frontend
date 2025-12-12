@@ -54,7 +54,7 @@ export function ImportResultPanel({ result, onClose }: ImportResultPanelProps) {
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col">
+      <div className="bg-surface rounded-lg shadow-xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div
           className={`px-6 py-4 ${hasFailures ? 'bg-gradient-to-r from-orange-600 to-orange-700' : 'bg-gradient-to-r from-green-600 to-green-700'}`}
@@ -68,29 +68,29 @@ export function ImportResultPanel({ result, onClose }: ImportResultPanelProps) {
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {/* 统计卡片 */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900">
+            <div className="bg-surface-base rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-content">
                 {stats.total}
               </div>
-              <div className="text-xs text-gray-600 mt-1">总计</div>
+              <div className="text-xs text-content-secondary mt-1">总计</div>
             </div>
             <div className="bg-green-50 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-green-600">
                 {successCount}
               </div>
-              <div className="text-xs text-gray-600 mt-1">
+              <div className="text-xs text-content-secondary mt-1">
                 成功 ({successRate}%)
               </div>
             </div>
             <div
-              className={`rounded-lg p-4 text-center ${hasFailures ? 'bg-red-50' : 'bg-gray-50'}`}
+              className={`rounded-lg p-4 text-center ${hasFailures ? 'bg-red-50' : 'bg-surface-base'}`}
             >
               <div
-                className={`text-2xl font-bold ${hasFailures ? 'text-red-600' : 'text-gray-400'}`}
+                className={`text-2xl font-bold ${hasFailures ? 'text-red-600' : 'text-content-muted'}`}
               >
                 {stats.failed}
               </div>
-              <div className="text-xs text-gray-600 mt-1">失败</div>
+              <div className="text-xs text-content-secondary mt-1">失败</div>
             </div>
           </div>
 
@@ -104,8 +104,8 @@ export function ImportResultPanel({ result, onClose }: ImportResultPanelProps) {
                 {failedRecords.map((record, idx) => {
                   const rowNum = record.index || record.rowNumber || idx + 1;
                   return (
-                    <div key={idx} className="bg-white rounded p-3 text-sm">
-                      <div className="font-medium text-gray-900">
+                    <div key={idx} className="bg-surface rounded p-3 text-sm">
+                      <div className="font-medium text-content">
                         行号 {rowNum}
                       </div>
                       <div className="text-red-600 text-xs mt-1">
@@ -162,11 +162,11 @@ export function ImportResultPanel({ result, onClose }: ImportResultPanelProps) {
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
+        <div className="bg-surface-base px-6 py-4 flex justify-end gap-3 border-t">
           {hasFailures && (
             <button
               onClick={exportFailedRecords}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-content bg-surface border border-stroke-hover rounded-lg hover:bg-surface-base transition-colors"
             >
               📥 导出失败记录
             </button>

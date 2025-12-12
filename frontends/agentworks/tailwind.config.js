@@ -50,6 +50,8 @@ export default {
           500: 'var(--aw-warning-500)',
           600: 'var(--aw-warning-600)',
           700: 'var(--aw-warning-700)',
+          800: 'var(--aw-warning-800)',
+          900: 'var(--aw-warning-900)',
         },
 
         // 危险色
@@ -60,6 +62,8 @@ export default {
           500: 'var(--aw-danger-500)',
           600: 'var(--aw-danger-600)',
           700: 'var(--aw-danger-700)',
+          800: 'var(--aw-danger-800)',
+          900: 'var(--aw-danger-900)',
         },
 
         // 信息色
@@ -96,6 +100,27 @@ export default {
           purple: 'var(--aw-metric-purple)',
           cyan:   'var(--aw-metric-cyan)',
           pink:   'var(--aw-metric-pink)',
+        },
+
+        // 语义化背景色 - 自动深色模式
+        surface: {
+          DEFAULT: 'var(--color-bg-elevated)',    // 卡片、容器
+          base: 'var(--color-bg-base)',           // 页面底色
+          sunken: 'var(--color-bg-sunken)',       // 凹陷背景
+          subtle: 'var(--color-fill)',            // 轻微高亮
+        },
+
+        // 语义化文字色
+        content: {
+          DEFAULT: 'var(--color-text-primary)',   // 标题、正文
+          secondary: 'var(--color-text-secondary)', // 次要信息
+          muted: 'var(--color-text-muted)',       // 占位符
+        },
+
+        // 语义化边框色
+        stroke: {
+          DEFAULT: 'var(--color-border)',
+          hover: 'var(--color-border-hover)',
         },
       },
 

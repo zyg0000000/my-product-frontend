@@ -271,7 +271,7 @@ export function DimensionManager({
             <span className="font-medium">{cat.name}</span>
             <Tag color="blue">{dims.length} 个维度</Tag>
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-content-secondary">
             默认显示 {visibleCount} 个
           </div>
         </div>
@@ -307,7 +307,7 @@ export function DimensionManager({
             </SortableContext>
           </DndContext>
         ) : (
-          <div className="text-center py-8 text-gray-400">
+          <div className="text-center py-8 text-content-muted">
             此分类暂无维度配置
           </div>
         ),
@@ -328,7 +328,7 @@ export function DimensionManager({
             <span className="font-medium">其他</span>
             <Tag color="default">{dims.length} 个维度</Tag>
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-content-secondary">
             默认显示 {visibleCount} 个
           </div>
         </div>
@@ -370,7 +370,7 @@ export function DimensionManager({
     <div className="space-y-4">
       {/* 操作栏 */}
       <div className="flex justify-between items-center">
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-content-secondary">
           总计 {localDimensions.length} 个维度
           <span className="ml-3 text-primary-600">
             默认显示 {localDimensions.filter(d => d.defaultVisible).length} 个
@@ -390,7 +390,7 @@ export function DimensionManager({
       </div>
 
       {/* 提示 */}
-      <div className="bg-primary-50 border border-primary-200 rounded-md p-3 text-sm text-primary-800">
+      <div className="bg-primary-50 border border-primary-200 rounded-md p-3 text-sm text-primary-700">
         <strong>提示：</strong>
         拖动左侧的排序图标可以调整维度的显示顺序，点击分类展开/折叠
       </div>
@@ -399,7 +399,7 @@ export function DimensionManager({
       <Collapse
         items={collapseItems}
         defaultActiveKey={[]}
-        className="bg-white"
+        className="bg-surface"
       />
 
       {/* 编辑/新增模态框 */}
@@ -470,13 +470,13 @@ function SortableDimensionCard({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-primary-300 transition-colors"
+      className="flex items-center gap-3 p-3 bg-surface-sunken rounded-lg border border-stroke hover:border-primary-300 transition-colors"
     >
       {/* 拖动手柄 */}
       <div
         {...attributes}
         {...listeners}
-        className="cursor-move text-gray-400 hover:text-gray-600"
+        className="cursor-move text-content-muted hover:text-content-secondary"
       >
         <HolderOutlined className="text-lg" />
       </div>
@@ -490,7 +490,7 @@ function SortableDimensionCard({
       {/* 维度信息 */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="font-medium text-gray-900">{dimension.name}</span>
+          <span className="font-medium text-content">{dimension.name}</span>
           <Tag
             color={TYPE_COLORS[dimension.type] || 'default'}
             className="text-xs"
@@ -508,16 +508,16 @@ function SortableDimensionCard({
             </Tag>
           )}
         </div>
-        <div className="text-xs text-gray-500 font-mono truncate mt-1">
+        <div className="text-xs text-content-secondary font-mono truncate mt-1">
           {dimension.targetPath}
           {dimension.targetCollection === 'talent_performance' && (
-            <span className="ml-2 text-purple-500">[performance]</span>
+            <span className="ml-2 text-primary-500">[performance]</span>
           )}
         </div>
       </div>
 
       {/* 宽度 */}
-      <div className="text-xs text-gray-400 w-16 text-right">
+      <div className="text-xs text-content-muted w-16 text-right">
         {dimension.width}px
       </div>
 
@@ -615,7 +615,7 @@ function DimensionEditForm({
   return (
     <div className="space-y-4">
       {/* Tab 导航 */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-stroke">
         <nav className="flex space-x-4">
           {tabs.map(tab => (
             <button
@@ -624,7 +624,7 @@ function DimensionEditForm({
               className={`flex items-center gap-2 py-2 px-3 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === tab.key
                   ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-content-secondary hover:text-content hover:border-stroke'
               }`}
             >
               <svg
@@ -806,7 +806,7 @@ function DimensionEditForm({
         {/* 筛选配置 Tab */}
         {activeTab === 'filter' && (
           <Form layout="vertical" className="space-y-4">
-            <div className="bg-primary-50 border border-primary-200 rounded-md p-3 text-sm text-primary-800">
+            <div className="bg-primary-50 border border-primary-200 rounded-md p-3 text-sm text-primary-700">
               <strong>提示：</strong>启用筛选后，此维度将出现在 Performance
               页面的筛选面板中
             </div>
@@ -923,10 +923,10 @@ function DimensionEditForm({
                   >
                     {isDynamicEnumField(dimension) ? (
                       // 动态加载字段：显示提示信息，不需要手动配置
-                      <div className="bg-green-50 border border-green-200 rounded-md p-3 text-sm text-green-700">
+                      <div className="bg-success-50 border border-success-200 rounded-md p-3 text-sm text-success-700">
                         <div className="flex items-center gap-2">
                           <svg
-                            className="w-4 h-4 text-green-500"
+                            className="w-4 h-4 text-success-500"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -942,7 +942,7 @@ function DimensionEditForm({
                             此字段选项从数据库动态加载
                           </span>
                         </div>
-                        <p className="mt-1 text-xs text-green-600">
+                        <p className="mt-1 text-xs text-success-600">
                           列表页面筛选器会自动从 API
                           获取最新的选项值（达人类型/内容标签），无需在此手动配置。
                         </p>

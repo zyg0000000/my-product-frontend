@@ -107,9 +107,9 @@ export function TalentSelector({
         loading ? (
           <Spin size="small" />
         ) : searchValue.length < 2 ? (
-          <span className="text-gray-400">请输入至少2个字符搜索</span>
+          <span className="text-content-muted">请输入至少2个字符搜索</span>
         ) : (
-          <span className="text-gray-400">未找到匹配的达人</span>
+          <span className="text-content-muted">未找到匹配的达人</span>
         )
       }
       disabled={isMaxReached}
@@ -125,7 +125,7 @@ export function TalentSelector({
           <div className="flex items-center justify-between">
             <span className="font-medium">{option.name}</span>
             {option.platformAccountId && (
-              <span className="text-xs text-gray-400 ml-2">
+              <span className="text-xs text-content-muted ml-2">
                 {option.platformAccountId}
               </span>
             )}

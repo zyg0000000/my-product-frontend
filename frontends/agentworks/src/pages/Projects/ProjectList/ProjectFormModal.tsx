@@ -885,7 +885,7 @@ export function ProjectFormModal({
                   <span>
                     业务周期
                     <Tooltip title="项目执行的业务归属月份（面向客户）">
-                      <InfoCircleOutlined className="ml-1 text-gray-400" />
+                      <InfoCircleOutlined className="ml-1 text-content-muted" />
                     </Tooltip>
                   </span>
                 }
@@ -923,7 +923,7 @@ export function ProjectFormModal({
                   <span>
                     财务周期
                     <Tooltip title="项目的财务归属月份（面向公司财务）">
-                      <InfoCircleOutlined className="ml-1 text-gray-400" />
+                      <InfoCircleOutlined className="ml-1 text-content-muted" />
                     </Tooltip>
                   </span>
                 }
@@ -967,7 +967,7 @@ export function ProjectFormModal({
               {selectedBusinessType === 'talentProcurement' &&
                 configuredPlatforms.length < platformOptions.length && (
                   <Tooltip title="仅显示客户已配置定价策略的平台">
-                    <InfoCircleOutlined className="ml-1 text-gray-400" />
+                    <InfoCircleOutlined className="ml-1 text-content-muted" />
                   </Tooltip>
                 )}
             </span>
@@ -1021,7 +1021,7 @@ export function ProjectFormModal({
           </Row>
 
           {/* 平台列表 - 每行：勾选框 + 平台名 + 定价模式标签 + 折扣率 */}
-          <div className="text-sm text-gray-500 mb-2">选择投放平台：</div>
+          <div className="text-sm text-content-secondary mb-2">选择投放平台：</div>
           <div className="space-y-2">
             {configuredPlatforms.map(opt => {
               const platform = opt.value;
@@ -1032,7 +1032,7 @@ export function ProjectFormModal({
                 <div
                   key={platform}
                   className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${
-                    isSelected ? 'bg-blue-50' : 'bg-gray-50 hover:bg-gray-100'
+                    isSelected ? 'bg-blue-50' : 'bg-surface-base hover:bg-surface-sunken'
                   }`}
                 >
                   {/* 平台勾选 */}
@@ -1051,7 +1051,7 @@ export function ProjectFormModal({
                   {/* 平台名称 + 定价模式标签 */}
                   <div className="flex items-center gap-2 min-w-[120px]">
                     <span
-                      className={isSelected ? 'font-medium' : 'text-gray-500'}
+                      className={isSelected ? 'font-medium' : 'text-content-secondary'}
                     >
                       {opt.label}
                     </span>
@@ -1063,7 +1063,7 @@ export function ProjectFormModal({
                     <div className="flex items-center gap-4 flex-1">
                       {/* 折扣率 */}
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500">折扣率:</span>
+                        <span className="text-sm text-content-secondary">折扣率:</span>
                         <Form.Item
                           name={['platformDiscounts', platform]}
                           noStyle
@@ -1081,7 +1081,7 @@ export function ProjectFormModal({
                         </Form.Item>
                         {isReadOnly && (
                           <Tooltip title="框架模式，折扣率自动读取">
-                            <LockOutlined className="text-gray-400 text-xs" />
+                            <LockOutlined className="text-content-muted text-xs" />
                           </Tooltip>
                         )}
                       </div>
@@ -1093,14 +1093,14 @@ export function ProjectFormModal({
                         if (coefficient === null) return null;
                         return (
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-content-secondary">
                               报价系数:
                             </span>
                             <span className="font-medium text-blue-600">
                               {coefficient.toFixed(4)}
                             </span>
                             <Tooltip title="报价系数 = 折扣率 × (1 - 平台服务费率) × (1 - 机构服务费率)，用于计算达人报价">
-                              <InfoCircleOutlined className="text-gray-400 text-xs" />
+                              <InfoCircleOutlined className="text-content-muted text-xs" />
                             </Tooltip>
                           </div>
                         );
@@ -1128,7 +1128,7 @@ export function ProjectFormModal({
               <span>
                 交付KPI
                 <Tooltip title="各平台独立配置 KPI 考核目标">
-                  <InfoCircleOutlined className="ml-2 text-gray-400" />
+                  <InfoCircleOutlined className="ml-2 text-content-muted" />
                 </Tooltip>
               </span>
             }
@@ -1148,7 +1148,7 @@ export function ProjectFormModal({
               return (
                 <div key={platform} className="mb-4 last:mb-0">
                   {/* 平台标题 + 开关 */}
-                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
+                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-stroke">
                     <span className="flex items-center gap-2">
                       <span className="font-medium">
                         {platformNames[platform] || platform}
@@ -1185,7 +1185,7 @@ export function ProjectFormModal({
                     <div className="pl-4">
                       {/* 考核指标选择 */}
                       <div className="mb-3">
-                        <div className="text-sm text-gray-500 mb-2">
+                        <div className="text-sm text-content-secondary mb-2">
                           考核指标：
                         </div>
                         <Checkbox.Group
@@ -1226,7 +1226,7 @@ export function ProjectFormModal({
                             return (
                               <Col span={12} key={kpiKey}>
                                 <div className="mb-3">
-                                  <div className="text-sm text-gray-500 mb-1">
+                                  <div className="text-sm text-content-secondary mb-1">
                                     {kpi.name} 目标：
                                   </div>
                                   <Space.Compact style={{ width: '100%' }}>
@@ -1281,7 +1281,7 @@ export function ProjectFormModal({
                   )}
 
                   {!state.enabled && (
-                    <div className="text-gray-400 text-sm pl-4">
+                    <div className="text-content-muted text-sm pl-4">
                       可开启后设置该平台的 KPI 目标值
                     </div>
                   )}

@@ -251,7 +251,7 @@ export function AgencyRebateModal({
       key: 'syncToTalents',
       width: 80,
       render: (sync: boolean) => (
-        <span className={sync ? 'text-green-600' : 'text-gray-400'}>
+        <span className={sync ? 'text-green-600' : 'text-content-muted'}>
           {sync ? '是' : '否'}
         </span>
       ),
@@ -279,22 +279,22 @@ export function AgencyRebateModal({
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-primary-50 rounded-lg">
-                  <div className="text-xs text-gray-600 mb-1">当前返点率</div>
+                  <div className="text-xs text-content-secondary mb-1">当前返点率</div>
                   <div className="text-2xl font-bold text-primary-600">
                     {formatRebateRate(currentConfig.rebateRate)}
                   </div>
                 </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <div className="text-xs text-gray-600 mb-1">生效日期</div>
-                  <div className="text-base font-medium text-gray-900">
+                <div className="p-4 bg-surface-base rounded-lg">
+                  <div className="text-xs text-content-secondary mb-1">生效日期</div>
+                  <div className="text-base font-medium text-content">
                     {currentConfig.effectiveDate || '-'}
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-xs text-gray-600">最后更新时间</div>
-                  <div className="text-sm text-gray-900">
+                  <div className="text-xs text-content-secondary">最后更新时间</div>
+                  <div className="text-sm text-content">
                     {currentConfig.lastUpdatedAt
                       ? new Date(currentConfig.lastUpdatedAt).toLocaleString(
                           'zh-CN'
@@ -303,8 +303,8 @@ export function AgencyRebateModal({
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-600">更新人</div>
-                  <div className="text-sm text-gray-900">
+                  <div className="text-xs text-content-secondary">更新人</div>
+                  <div className="text-sm text-content">
                     {currentConfig.updatedBy || '-'}
                   </div>
                 </div>
@@ -459,7 +459,7 @@ export function AgencyRebateModal({
                 rowKey={record => `${record.createdAt}-${record.newRate}`}
               />
               <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-content-secondary">
                   共 {totalRecords} 条记录，第 {currentPage} /{' '}
                   {Math.ceil(totalRecords / pageSize)} 页
                 </div>
@@ -501,7 +501,7 @@ export function AgencyRebateModal({
           <div className="text-base font-semibold">
             机构返点管理 - {agency.name}
           </div>
-          <div className="text-xs font-normal text-gray-500 mt-1">
+          <div className="text-xs font-normal text-content-secondary mt-1">
             选择平台后查看和管理该机构的返点配置
           </div>
         </div>
@@ -515,7 +515,7 @@ export function AgencyRebateModal({
     >
       {/* 平台选择器 */}
       <div className="mb-4 pb-4 border-b">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-content mb-2">
           选择平台
         </label>
         <Select

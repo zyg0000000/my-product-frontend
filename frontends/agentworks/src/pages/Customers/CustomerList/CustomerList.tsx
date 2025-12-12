@@ -8,7 +8,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Space, Popconfirm, Popover, App } from 'antd';
+import { Button, Tag, Space, Popconfirm, Popover, App, Tooltip } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -210,107 +210,140 @@ export default function CustomerList() {
       const finalAmount = discountedAmount + serviceFeeAmount + taxAmount;
       const calculatedCoefficient = finalAmount / baseAmount;
 
+      // 使用固定的深色样式，不受主题切换影响
+      const darkBg = '#1e293b';
+      const darkBgInner = '#334155';
+      const textWhite = '#f8fafc';
+      const textMuted = '#94a3b8';
+      const borderColor = '#475569';
+      const greenText = '#86efac';
+      const primaryLight = '#a5b4fc';
+
       return (
-        <div style={{ width: '340px' }}>
-          <div className="text-sm font-semibold text-white mb-3 pb-2 border-b border-gray-600">
+        <div style={{ width: '340px', color: textWhite }}>
+          <div
+            className="text-sm font-semibold mb-3 pb-2"
+            style={{ borderBottom: `1px solid ${borderColor}` }}
+          >
             💡 {platform.name} - 报价系数计算
           </div>
 
           {/* 计算步骤 */}
-          <div className="space-y-2 bg-gray-800 p-3 rounded text-xs">
+          <div
+            className="space-y-2 p-3 rounded text-xs"
+            style={{ backgroundColor: darkBgInner }}
+          >
             <div className="flex justify-between gap-4">
-              <span className="text-gray-300 whitespace-nowrap">
+              <span style={{ color: textMuted }} className="whitespace-nowrap">
                 ① 基础刊例价:
               </span>
-              <span className="font-medium text-white whitespace-nowrap">
+              <span className="font-medium whitespace-nowrap">
                 ¥{(baseAmount / 100).toFixed(2)}
               </span>
             </div>
 
             <div className="flex justify-between gap-4">
-              <span className="text-gray-300 whitespace-nowrap">
+              <span style={{ color: textMuted }} className="whitespace-nowrap">
                 ② 平台费 ({(platformFeeRate * 100).toFixed(2)}%):
               </span>
-              <span className="font-medium text-white whitespace-nowrap">
+              <span className="font-medium whitespace-nowrap">
                 ¥{(platformFeeAmount / 100).toFixed(2)}
               </span>
             </div>
 
-            <div className="border-t border-gray-600 pt-1.5 space-y-1">
+            <div
+              className="pt-1.5 space-y-1"
+              style={{ borderTop: `1px solid ${borderColor}` }}
+            >
               <div className="flex justify-between gap-4">
-                <span className="text-gray-300 whitespace-nowrap">
+                <span style={{ color: textMuted }} className="whitespace-nowrap">
                   ③ 折扣率 ({(discountRate * 100).toFixed(2)}%):
                 </span>
-                <span className="text-white text-xs whitespace-nowrap">
+                <span className="text-xs whitespace-nowrap">
                   {includesPlatformFee ? '含平台费' : '不含平台费'}
                 </span>
               </div>
 
-              <div className="text-gray-400 text-xs pl-3">
+              <div className="text-xs pl-3" style={{ color: textMuted }}>
                 {includesPlatformFee
                   ? `(¥${(baseAmount / 100).toFixed(2)} + ¥${(platformFeeAmount / 100).toFixed(2)}) × ${(discountRate * 100).toFixed(2)}%`
                   : `¥${(baseAmount / 100).toFixed(2)} × ${(discountRate * 100).toFixed(2)}% + ¥${(platformFeeAmount / 100).toFixed(2)}`}
               </div>
 
               <div className="flex justify-between gap-4">
-                <span className="text-gray-300 whitespace-nowrap">
+                <span style={{ color: textMuted }} className="whitespace-nowrap">
                   = 折扣后金额:
                 </span>
-                <span className="font-medium text-white whitespace-nowrap">
+                <span className="font-medium whitespace-nowrap">
                   ¥{(discountedAmount / 100).toFixed(2)}
                 </span>
               </div>
             </div>
 
             {serviceFeeRate > 0 && (
-              <div className="flex justify-between gap-4 border-t border-gray-600 pt-1">
-                <span className="text-gray-300 whitespace-nowrap">
+              <div
+                className="flex justify-between gap-4 pt-1"
+                style={{ borderTop: `1px solid ${borderColor}` }}
+              >
+                <span style={{ color: textMuted }} className="whitespace-nowrap">
                   ④ 服务费 ({(serviceFeeRate * 100).toFixed(2)}%):
                 </span>
-                <span className="font-medium text-white whitespace-nowrap">
+                <span className="font-medium whitespace-nowrap">
                   ¥{(serviceFeeAmount / 100).toFixed(2)}
                 </span>
               </div>
             )}
 
             {taxAmount > 0 && (
-              <div className="flex justify-between gap-4 border-t border-gray-600 pt-1">
-                <span className="text-gray-300 whitespace-nowrap">
+              <div
+                className="flex justify-between gap-4 pt-1"
+                style={{ borderTop: `1px solid ${borderColor}` }}
+              >
+                <span style={{ color: textMuted }} className="whitespace-nowrap">
                   ⑤ 增值税 (6%):
                 </span>
-                <span className="font-medium text-white whitespace-nowrap">
+                <span className="font-medium whitespace-nowrap">
                   ¥{(taxAmount / 100).toFixed(2)}
                 </span>
               </div>
             )}
 
-            <div className="flex justify-between gap-4 border-t border-gray-600 pt-1.5 mt-1">
-              <span className="text-gray-300 font-semibold whitespace-nowrap">
+            <div
+              className="flex justify-between gap-4 pt-1.5 mt-1"
+              style={{ borderTop: `1px solid ${borderColor}` }}
+            >
+              <span
+                style={{ color: textMuted }}
+                className="font-semibold whitespace-nowrap"
+              >
                 ⑥ 最终金额:
               </span>
-              <span className="font-bold text-green-300 whitespace-nowrap">
+              <span
+                className="font-bold whitespace-nowrap"
+                style={{ color: greenText }}
+              >
                 ¥{(finalAmount / 100).toFixed(2)}
               </span>
             </div>
           </div>
 
           {/* 配置信息 */}
-          <div className="space-y-1 pt-2 text-xs">
-            <div className="flex justify-between gap-4 text-gray-400">
+          <div className="space-y-1 pt-2 text-xs" style={{ color: textMuted }}>
+            <div className="flex justify-between gap-4">
               <span className="whitespace-nowrap">折扣含平台费:</span>
               <span className="whitespace-nowrap">
                 {includesPlatformFee ? '是' : '否'}
               </span>
             </div>
 
-            <div className="flex justify-between gap-4 text-gray-400">
+            <div className="flex justify-between gap-4">
               <span className="whitespace-nowrap">含税报价:</span>
               <span className="whitespace-nowrap">
                 {includesTax ? '是（已含6%税）' : '否（需加税）'}
               </span>
             </div>
 
-            <div className="flex justify-between gap-4 text-gray-400">
+            <div className="flex justify-between gap-4">
               <span className="whitespace-nowrap">有效期:</span>
               <span className="whitespace-nowrap">
                 {config.isPermanent
@@ -323,17 +356,29 @@ export default function CustomerList() {
           </div>
 
           {/* 最终系数 */}
-          <div className="border-t border-gray-600 pt-2 mt-2">
+          <div
+            className="pt-2 mt-2"
+            style={{ borderTop: `1px solid ${borderColor}` }}
+          >
             <div className="flex justify-between items-center gap-4">
-              <span className="font-semibold text-primary-300 whitespace-nowrap">
+              <span
+                className="font-semibold whitespace-nowrap"
+                style={{ color: primaryLight }}
+              >
                 报价系数:
               </span>
               <div className="text-right">
-                <div className="font-bold text-primary-200 text-sm whitespace-nowrap">
+                <div
+                  className="font-bold text-sm whitespace-nowrap"
+                  style={{ color: '#c7d2fe' }}
+                >
                   {quotationCoefficient?.toFixed(4) ||
                     calculatedCoefficient.toFixed(4)}
                 </div>
-                <div className="text-xs text-gray-400 whitespace-nowrap">
+                <div
+                  className="text-xs whitespace-nowrap"
+                  style={{ color: textMuted }}
+                >
                   = ¥{(finalAmount / 100).toFixed(2)} ÷ ¥
                   {(baseAmount / 100).toFixed(2)}
                 </div>
@@ -345,7 +390,7 @@ export default function CustomerList() {
     };
 
     return (
-      <div className="px-4 py-2.5 bg-white">
+      <div className="px-4 py-2.5 bg-surface">
         {/* 单行展示：标题 + 所有平台 - v4.0: 每个平台显示自己的定价模式 */}
         <div className="flex items-center gap-3 text-sm">
           {/* 标题 */}
@@ -354,7 +399,7 @@ export default function CustomerList() {
               className="text-primary-500"
               style={{ fontSize: '14px' }}
             />
-            <span className="font-semibold text-gray-800 text-sm">
+            <span className="font-semibold text-content text-sm">
               达人采买
             </span>
           </div>
@@ -368,7 +413,7 @@ export default function CustomerList() {
               const isProjectMode = platform.pricingModel === 'project';
               return (
                 <div key={platform.key} className="flex items-center gap-2">
-                  <span className="text-gray-600 text-sm font-medium">
+                  <span className="text-content-secondary text-sm font-medium">
                     {platform.name}
                   </span>
                   <Tag
@@ -416,13 +461,13 @@ export default function CustomerList() {
     if (!strategy?.enabled) return null;
 
     return (
-      <div className="px-4 py-2.5 bg-white">
+      <div className="px-4 py-2.5 bg-surface">
         <div className="flex items-center gap-2">
           <ThunderboltOutlined
             className="text-orange-500"
             style={{ fontSize: '14px' }}
           />
-          <span className="font-semibold text-gray-800 text-sm">广告投流</span>
+          <span className="font-semibold text-content text-sm">广告投流</span>
           <Tag
             color="orange"
             style={{
@@ -444,13 +489,13 @@ export default function CustomerList() {
     if (!strategy?.enabled) return null;
 
     return (
-      <div className="px-4 py-2.5 bg-white">
+      <div className="px-4 py-2.5 bg-surface">
         <div className="flex items-center gap-2">
           <VideoCameraOutlined
             className="text-purple-600"
             style={{ fontSize: '14px' }}
           />
-          <span className="font-semibold text-gray-800 text-sm">内容制作</span>
+          <span className="font-semibold text-content text-sm">内容制作</span>
           <Tag
             color="purple"
             style={{
@@ -473,7 +518,7 @@ export default function CustomerList() {
 
     if (!businessStrategies) {
       return (
-        <div className="py-6 px-6 bg-gray-50 text-gray-400 text-center text-sm">
+        <div className="py-6 px-6 bg-surface-base text-content-muted text-center text-sm">
           该客户暂未配置业务策略
         </div>
       );
@@ -486,7 +531,7 @@ export default function CustomerList() {
 
     if (!hasAnyStrategy) {
       return (
-        <div className="py-6 px-6 bg-gray-50 text-gray-400 text-center text-sm">
+        <div className="py-6 px-6 bg-surface-base text-content-muted text-center text-sm">
           该客户暂未启用任何业务策略
         </div>
       );
@@ -494,7 +539,7 @@ export default function CustomerList() {
 
     return (
       <div
-        className="bg-gray-50 rounded-lg overflow-hidden"
+        className="bg-surface-base rounded-lg overflow-hidden"
         style={{ marginLeft: '40px' }}
       >
         <div className="divide-y divide-gray-200">
@@ -513,7 +558,7 @@ export default function CustomerList() {
     {
       title: '客户编码',
       dataIndex: 'code',
-      width: 140,
+      width: 130,
       fixed: 'left',
       copyable: true,
       search: false,
@@ -521,8 +566,7 @@ export default function CustomerList() {
     {
       title: '客户名称',
       dataIndex: 'name',
-      width: 200,
-      align: 'center',
+      width: 120,
       ellipsis: true,
       formItemProps: {
         label: '搜索',
@@ -539,7 +583,7 @@ export default function CustomerList() {
     {
       title: '客户级别',
       dataIndex: 'level',
-      width: 110,
+      width: 90,
       align: 'center',
       valueType: 'select',
       valueEnum: CUSTOMER_LEVEL_VALUE_ENUM,
@@ -560,7 +604,7 @@ export default function CustomerList() {
     {
       title: '当前状态',
       dataIndex: 'status',
-      width: 110,
+      width: 90,
       align: 'center',
       valueType: 'select',
       valueEnum: CUSTOMER_STATUS_VALUE_ENUM,
@@ -581,16 +625,14 @@ export default function CustomerList() {
     {
       title: '所属行业',
       dataIndex: 'industry',
-      width: 110,
-      align: 'center',
+      width: 100,
       ellipsis: true,
       search: false,
     },
     {
       title: '主要联系人',
       dataIndex: 'contacts',
-      width: 140,
-      align: 'center',
+      width: 100,
       search: false,
       render: (_, record) => {
         const contact =
@@ -600,7 +642,7 @@ export default function CustomerList() {
           <div>
             <div className="font-medium">{contact.name}</div>
             {contact.position && (
-              <div className="text-xs text-gray-500">{contact.position}</div>
+              <div className="text-xs text-content-secondary">{contact.position}</div>
             )}
           </div>
         );
@@ -609,8 +651,7 @@ export default function CustomerList() {
     {
       title: '业务类型',
       dataIndex: 'businessStrategies',
-      width: 200,
-      align: 'center',
+      width: 120,
       search: false,
       render: (_, record) => {
         const types = [];
@@ -640,14 +681,14 @@ export default function CustomerList() {
             {types}
           </Space>
         ) : (
-          <span className="text-gray-400">未配置</span>
+          <span className="text-content-muted">-</span>
         );
       },
     },
     {
       title: '创建时间',
       dataIndex: 'createdAt',
-      width: 160,
+      width: 150,
       valueType: 'dateTime',
       search: false,
       sorter: true,
@@ -655,7 +696,7 @@ export default function CustomerList() {
     {
       title: '操作',
       valueType: 'option',
-      width: 220,
+      width: 100,
       fixed: 'right',
       render: (_, record) => {
         const isDeleted = record.status === 'deleted';
@@ -663,15 +704,15 @@ export default function CustomerList() {
         if (isDeleted) {
           // 已删除客户：显示恢复和永久删除
           return (
-            <Space size="small">
-              <Button
-                type="link"
-                size="small"
-                icon={<UndoOutlined />}
-                onClick={() => handleRestore(record._id || record.code)}
-              >
-                恢复
-              </Button>
+            <Space size={4}>
+              <Tooltip title="恢复">
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<UndoOutlined />}
+                  onClick={() => handleRestore(record._id || record.code)}
+                />
+              </Tooltip>
               <Popconfirm
                 title="确定永久删除？此操作不可恢复！"
                 onConfirm={() =>
@@ -680,39 +721,39 @@ export default function CustomerList() {
                 okText="确定"
                 cancelText="取消"
               >
-                <Button type="link" size="small" danger icon={<StopOutlined />}>
-                  永久删除
-                </Button>
+                <Tooltip title="永久删除">
+                  <Button type="text" size="small" danger icon={<StopOutlined />} />
+                </Tooltip>
               </Popconfirm>
             </Space>
           );
         }
 
-        // 普通客户：显示策略、编辑、删除
+        // 普通客户：显示策略、编辑、删除（仅图标）
         return (
-          <Space size="small">
-            <Button
-              type="link"
-              size="small"
-              icon={<DollarOutlined />}
-              onClick={() =>
-                navigate(
-                  `/customers/${record._id || record.code}/business-strategies`
-                )
-              }
-            >
-              策略
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() =>
-                navigate(`/customers/edit/${record._id || record.code}`)
-              }
-            >
-              编辑
-            </Button>
+          <Space size={4}>
+            <Tooltip title="业务策略">
+              <Button
+                type="text"
+                size="small"
+                icon={<DollarOutlined />}
+                onClick={() =>
+                  navigate(
+                    `/customers/${record._id || record.code}/business-strategies`
+                  )
+                }
+              />
+            </Tooltip>
+            <Tooltip title="编辑">
+              <Button
+                type="text"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() =>
+                  navigate(`/customers/edit/${record._id || record.code}`)
+                }
+              />
+            </Tooltip>
             <Popconfirm
               title="确定删除该客户？"
               description="删除后客户将移至回收站，相关数据会保留"
@@ -720,9 +761,9 @@ export default function CustomerList() {
               okText="确定删除"
               cancelText="取消"
             >
-              <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-                删除
-              </Button>
+              <Tooltip title="删除">
+                <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+              </Tooltip>
             </Popconfirm>
           </Space>
         );
@@ -735,8 +776,8 @@ export default function CustomerList() {
       <div className="space-y-6">
         {/* 页面标题 */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">客户列表</h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-content">客户列表</h1>
+          <p className="mt-2 text-sm text-content-secondary">
             管理客户基础信息、联系人和业务配置
           </p>
         </div>
@@ -806,13 +847,12 @@ export default function CustomerList() {
                 刷新
               </Button>,
             ]}
-            scroll={{ x: 1300 }}
+            scroll={{ x: 1100 }}
             options={{
-              reload: false,
-              density: false,
+              fullScreen: true,
+              density: true,
               setting: true,
             }}
-            size="middle"
           />
         )}
       </div>

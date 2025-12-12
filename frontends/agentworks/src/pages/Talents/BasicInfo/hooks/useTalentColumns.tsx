@@ -4,7 +4,7 @@
  */
 
 import { useMemo, useCallback } from 'react';
-import { Button, Dropdown, Space, Tag } from 'antd';
+import { Button, Dropdown, Space, Tag, Tooltip } from 'antd';
 import type { ProColumns } from '@ant-design/pro-components';
 import {
   EditOutlined,
@@ -194,36 +194,36 @@ export function useTalentColumns({
       {
         title: '操作',
         key: 'actions',
-        width: 180,
+        width: 130,
         fixed: 'right',
         render: (_, record) => (
-          <Space size="small">
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => onMenuClick('edit', record)}
-            >
-              编辑
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              icon={<DollarOutlined />}
-              onClick={() => onMenuClick('price', record)}
-              className="text-primary-600 hover:text-primary-700"
-            >
-              价格
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              icon={<PercentageOutlined />}
-              onClick={() => onMenuClick('rebate', record)}
-              className="text-green-600 hover:text-green-700"
-            >
-              返点
-            </Button>
+          <Space size={4}>
+            <Tooltip title="编辑">
+              <Button
+                type="text"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => onMenuClick('edit', record)}
+              />
+            </Tooltip>
+            <Tooltip title="价格">
+              <Button
+                type="text"
+                size="small"
+                icon={<DollarOutlined />}
+                onClick={() => onMenuClick('price', record)}
+                className="text-primary-600 hover:text-primary-700"
+              />
+            </Tooltip>
+            <Tooltip title="返点">
+              <Button
+                type="text"
+                size="small"
+                icon={<PercentageOutlined />}
+                onClick={() => onMenuClick('rebate', record)}
+                className="text-green-600 hover:text-green-700"
+              />
+            </Tooltip>
             <Dropdown
               menu={{
                 items: [

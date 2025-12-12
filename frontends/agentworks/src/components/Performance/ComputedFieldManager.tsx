@@ -276,11 +276,11 @@ export function ComputedFieldManager({
 
   // 渲染单个计算字段行
   const renderFieldRow = (field: ComputedFieldRule, index: number) => (
-    <tr key={index} className="hover:bg-gray-50">
-      <td className="px-3 py-2 font-medium text-gray-900 text-sm">
+    <tr key={index} className="hover:bg-surface-sunken">
+      <td className="px-3 py-2 font-medium text-content text-sm">
         {field.name}
       </td>
-      <td className="px-3 py-2 font-mono text-xs text-gray-600">{field.id}</td>
+      <td className="px-3 py-2 font-mono text-xs text-content-secondary">{field.id}</td>
       <td className="px-3 py-2">
         <Tag
           color={isExpressionMode(field) ? 'blue' : 'purple'}
@@ -294,12 +294,12 @@ export function ComputedFieldManager({
               '简单'}
         </Tag>
       </td>
-      <td className="px-3 py-2 font-mono text-xs text-gray-500 max-w-xs">
+      <td className="px-3 py-2 font-mono text-xs text-content-secondary max-w-xs">
         <Tooltip title={getFormulaDescription(field)}>
           <span className="truncate block">{getFormulaDescription(field)}</span>
         </Tooltip>
       </td>
-      <td className="px-3 py-2 text-center text-xs text-gray-500">
+      <td className="px-3 py-2 text-center text-xs text-content-secondary">
         {field.formula.precision ?? '-'}
       </td>
       <td className="px-3 py-2 text-center">
@@ -333,13 +333,13 @@ export function ComputedFieldManager({
       label: (
         <div className="flex items-center justify-between w-full pr-4">
           <div className="flex items-center gap-2">
-            <span className="text-gray-500">
+            <span className="text-content-secondary">
               <CalculatorOutlined />
             </span>
             <span className="font-medium">计算字段</span>
             <Tag color="purple">{computedFields.length} 个</Tag>
           </div>
-          <div className="text-sm text-gray-500">导入时自动计算</div>
+          <div className="text-sm text-content-secondary">导入时自动计算</div>
         </div>
       ),
       children: (
@@ -347,33 +347,33 @@ export function ComputedFieldManager({
           {computedFields.length > 0 ? (
             <>
               <table className="w-full text-sm">
-                <thead className="bg-gray-50">
+                <thead className="bg-surface-sunken">
                   <tr>
-                    <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                    <th className="px-3 py-2 text-left font-medium text-content-secondary text-xs">
                       名称
                     </th>
-                    <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                    <th className="px-3 py-2 text-left font-medium text-content-secondary text-xs">
                       字段ID
                     </th>
-                    <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                    <th className="px-3 py-2 text-left font-medium text-content-secondary text-xs">
                       模式
                     </th>
-                    <th className="px-3 py-2 text-left font-medium text-gray-600 text-xs">
+                    <th className="px-3 py-2 text-left font-medium text-content-secondary text-xs">
                       公式
                     </th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-600 text-xs">
+                    <th className="px-3 py-2 text-center font-medium text-content-secondary text-xs">
                       精度
                     </th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-600 text-xs w-20">
+                    <th className="px-3 py-2 text-center font-medium text-content-secondary text-xs w-20">
                       操作
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
+                <tbody className="bg-surface divide-y divide-stroke">
                   {computedFields.map((field, i) => renderFieldRow(field, i))}
                 </tbody>
               </table>
-              <div className="p-2 bg-gray-50 border-t">
+              <div className="p-2 bg-surface-sunken border-t border-stroke">
                 <Button
                   type="dashed"
                   size="small"
@@ -385,8 +385,8 @@ export function ComputedFieldManager({
               </div>
             </>
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              <CalculatorOutlined className="text-3xl mb-2 text-gray-300" />
+            <div className="text-center py-8 text-content-secondary">
+              <CalculatorOutlined className="text-3xl mb-2 text-content-muted" />
               <p>暂无计算字段</p>
               <Button
                 type="dashed"
@@ -408,7 +408,7 @@ export function ComputedFieldManager({
     <div className="space-y-4">
       {/* 头部统计 */}
       <div className="flex justify-between items-center">
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-content-secondary">
           计算字段 {computedFields.length} 个
           <span className="ml-3 text-purple-600">导入时自动计算</span>
         </div>
@@ -421,7 +421,7 @@ export function ComputedFieldManager({
       <Collapse
         defaultActiveKey={computedFields.length > 0 ? ['computed'] : []}
         items={collapseItems}
-        className="bg-white"
+        className="bg-surface"
       />
 
       {/* 编辑/新增模态框 */}
@@ -481,7 +481,7 @@ export function ComputedFieldManager({
             {/* 公式模式选择 */}
             <div className="border-t pt-4">
               <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-medium text-gray-700">
+                <h4 className="text-sm font-medium text-content">
                   <FunctionOutlined className="mr-2" />
                   公式配置
                 </h4>
@@ -693,8 +693,8 @@ export function ComputedFieldManager({
             {(editingField.formula.expression ||
               (editingField.formula.operand1 &&
                 editingField.formula.operand2)) && (
-              <div className="bg-gray-50 p-3 rounded-lg border">
-                <div className="text-xs text-gray-500 mb-1">公式预览</div>
+              <div className="bg-surface-sunken p-3 rounded-lg border border-stroke">
+                <div className="text-xs text-content-secondary mb-1">公式预览</div>
                 <div className="font-mono text-sm text-purple-600">
                   {editingField.name || '结果'} ={' '}
                   {getFormulaDescription(editingField)}

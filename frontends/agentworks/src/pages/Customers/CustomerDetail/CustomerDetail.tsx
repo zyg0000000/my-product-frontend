@@ -149,10 +149,10 @@ function FeatureCard({
             </div>
 
             {/* 标题 + 描述 */}
-            <h3 className="text-base font-semibold text-gray-900 mb-1.5 group-hover:text-primary-600 transition-colors">
+            <h3 className="text-base font-semibold text-content mb-1.5 group-hover:text-primary-600 transition-colors">
               {title}
             </h3>
-            <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+            <p className="text-sm text-content-secondary mb-3 line-clamp-2">
               {description}
             </p>
 
@@ -286,7 +286,7 @@ export function CustomerDetail() {
         >
           返回
         </Button>
-        <h1 className="text-2xl font-bold text-gray-900 m-0">客户详情</h1>
+        <h1 className="text-2xl font-bold text-content m-0">客户详情</h1>
       </motion.div>
 
       {/* 客户基本信息卡片 */}
@@ -308,7 +308,7 @@ export function CustomerDetail() {
               <span className="font-semibold text-lg">{customer.name}</span>
             </Descriptions.Item>
             <Descriptions.Item label="客户编码">
-              <span className="font-mono text-gray-600">{customer.code}</span>
+              <span className="font-mono text-content-secondary">{customer.code}</span>
             </Descriptions.Item>
             <Descriptions.Item label="客户级别">
               <Tag color={levelColorMap[customer.level]}>
@@ -338,7 +338,7 @@ export function CustomerDetail() {
 
       {/* 功能入口卡片 */}
       <motion.div variants={itemVariants}>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">功能模块</h2>
+        <h2 className="text-lg font-semibold text-content mb-4">功能模块</h2>
       </motion.div>
 
       <motion.div
@@ -354,10 +354,10 @@ export function CustomerDetail() {
           status={totalTalents > 0 ? 'configured' : 'pending'}
           stats={
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-gray-900 tabular-nums">
+              <span className="text-xl font-bold text-content tabular-nums">
                 {totalTalents}
               </span>
-              <span className="text-sm text-gray-500">位达人</span>
+              <span className="text-sm text-content-secondary">位达人</span>
             </div>
           }
           onClick={() => navigate(`/customers/${id}/talent-pool`)}
@@ -383,7 +383,7 @@ export function CustomerDetail() {
                 )}
               </div>
             ) : (
-              <span className="text-sm text-gray-400">暂未配置</span>
+              <span className="text-sm text-content-muted">暂未配置</span>
             )
           }
           onClick={() => navigate(`/customers/${id}/business-strategies`)}
@@ -404,7 +404,7 @@ export function CustomerDetail() {
                 </Tag>
               </div>
             ) : (
-              <span className="text-sm text-gray-400">使用系统默认</span>
+              <span className="text-sm text-content-muted">使用系统默认</span>
             )
           }
           onClick={() => navigate(`/customers/${id}/project-config`)}
@@ -417,7 +417,7 @@ export function CustomerDetail() {
           title="合作历史"
           description="查看与该客户的项目合作记录、结算历史和关键里程碑"
           status="disabled"
-          stats={<span className="text-sm text-gray-400">功能开发中</span>}
+          stats={<span className="text-sm text-content-muted">功能开发中</span>}
           onClick={() => message.info('合作历史功能开发中')}
         />
       </motion.div>

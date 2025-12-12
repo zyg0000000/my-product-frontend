@@ -96,7 +96,7 @@ export function Pagination({
     <div className={`flex items-center justify-between ${className}`}>
       {/* 左侧信息 */}
       {showInfo && totalRecords && (
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-content-secondary">
           {totalRecords > 0 ? (
             <>
               显示第{' '}
@@ -121,8 +121,8 @@ export function Pagination({
             ${buttonClass} font-medium rounded-md border transition-colors
             ${
               currentPage === 1
-                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                ? 'bg-surface-sunken text-content-muted border-stroke cursor-not-allowed'
+                : 'bg-surface text-content border-stroke-hover hover:bg-surface-subtle'
             }
           `}
         >
@@ -134,7 +134,7 @@ export function Pagination({
           <div className="flex items-center gap-1">
             {pageNumbers.map((number, index) =>
               number === '...' ? (
-                <span key={`dots-${index}`} className="px-2 text-gray-500">
+                <span key={`dots-${index}`} className="px-2 text-content-secondary">
                   ...
                 </span>
               ) : (
@@ -146,7 +146,7 @@ export function Pagination({
                     ${
                       currentPage === number
                         ? 'bg-primary-600 text-white border-primary-600'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        : 'bg-surface text-content border-stroke-hover hover:bg-surface-subtle'
                     }
                   `}
                 >
@@ -165,8 +165,8 @@ export function Pagination({
             ${buttonClass} font-medium rounded-md border transition-colors
             ${
               currentPage === totalPages
-                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                ? 'bg-surface-sunken text-content-muted border-stroke cursor-not-allowed'
+                : 'bg-surface text-content border-stroke-hover hover:bg-surface-subtle'
             }
           `}
         >

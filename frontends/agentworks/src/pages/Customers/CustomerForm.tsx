@@ -89,7 +89,7 @@ export default function CustomerForm() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-gray-500">加载中...</div>
+        <div className="text-content-secondary">加载中...</div>
       </div>
     );
   }
@@ -189,7 +189,7 @@ export default function CustomerForm() {
                 tooltipText: '删除',
               }}
               itemRender={({ listDom, action }, { index }) => (
-                <div className="border rounded-lg p-4 mb-3 bg-gray-50">
+                <div className="border rounded-lg p-4 mb-3 bg-surface-base">
                   <div className="flex justify-between items-center mb-3">
                     <span className="font-medium">联系人 {index + 1}</span>
                     {action}
