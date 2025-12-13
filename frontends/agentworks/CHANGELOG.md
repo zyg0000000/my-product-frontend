@@ -1,5 +1,96 @@
 # AgentWorks 更新日志
 
+## v4.1.0 (2025-12-14) 🏢 - 机构达人绑定 + UI间距规范化
+
+### ✨ 新功能：机构达人绑定
+
+#### 批量绑定达人到机构
+- **BatchBindTalentModal 组件**
+  - Excel 文件导入（支持 .xlsx/.xls）
+  - 自动匹配达人：按平台账号ID匹配现有达人
+  - 批量绑定操作：一次性绑定多个达人到指定机构
+  - 操作结果详情展示（成功/失败统计）
+
+- **机构达人列表弹窗**
+  - AgencyTalentListModal 组件
+  - 查看机构下所有已绑定达人
+  - 支持解绑操作
+
+- **Excel 解析工具**
+  - excelParser.ts 通用工具
+  - 支持多种格式和编码
+
+#### 批量创建机构
+- **BatchCreateAgencyModal 优化**
+  - Excel 导入创建多个机构
+  - 自动设置返点配置
+  - 防重复创建校验
+
+### 🎨 UI 间距规范化
+
+#### 设计系统更新 (STYLE-GUIDE.md v1.1.0)
+- **新增第九章：间距使用规范**
+  - 组件内部间距：4px-8px
+  - 组件之间间距：12px-16px
+  - 区块之间间距：24px
+  - 页面顶部间距：24px
+
+#### 已规范化页面
+| 页面 | 修改内容 |
+|------|---------|
+| AgenciesList | 标题与内容间距、筛选区与表格间距 |
+| BasicInfo | 页面顶部间距、Tab与内容间距 |
+| PerformanceHome | 统计卡片与表格间距 |
+| CustomerList | 页面布局间距统一 |
+
+### 🐛 Bug 修复
+
+#### "未知机构"显示问题
+- **问题**: 达人基础信息页显示"未知机构"，但数据库机构数据正确
+- **原因**: 后端 limit=100 限制，前端只加载了100个机构，实际有120+个
+- **修复**: useBasicInfoData.ts 实现分页循环加载所有机构
+  ```typescript
+  // 修复前：单次加载，最多100个
+  const response = await getAgencies({ limit: 100 });
+
+  // 修复后：分页循环，加载全部
+  while (hasMore) {
+    const response = await getAgencies({ page, limit: 100 });
+    allAgencies = [...allAgencies, ...response.data];
+    hasMore = response.data.length === 100;
+    page++;
+  }
+  ```
+
+#### PlatformInfoCell lint 错误
+- **问题**: setState in useEffect 导致 eslint 警告
+- **修复**: 改用 useMemo 计算 validActivePlatform
+
+### 📁 新增文件
+
+**组件** (4个):
+- `src/components/AgencyTalentListModal/index.tsx` - 机构达人列表弹窗
+- `src/components/BatchBindTalentModal/index.tsx` - 批量绑定达人弹窗
+- `src/components/PlatformInfoCell/index.tsx` - 平台信息单元格组件
+- `src/utils/excelParser.ts` - Excel 解析工具
+
+**云函数** (1个):
+- `functions/talentBatchOperations/index.js` - 达人批量操作云函数
+
+### 📁 修改文件
+
+**页面/组件** (6个):
+- `src/pages/Talents/Agencies/AgenciesList.tsx` - 机构列表页升级
+- `src/pages/Talents/BasicInfo/hooks/useBasicInfoData.ts` - 机构加载修复
+- `src/components/AgencyRebateModal.tsx` - 返点弹窗优化
+- `src/components/BatchCreateAgencyModal/index.tsx` - 批量创建优化
+- `src/api/talent.ts` - 新增批量操作API
+
+**文档** (1个):
+- `src/design-system/STYLE-GUIDE.md` - v1.1.0 间距规范
+
+---
+
 ## v4.0.0 (2025-12-12) 🌙 - 深色模式全面优化 + UI 统一规范
 
 ### 🌙 深色模式全面升级
@@ -1448,6 +1539,6 @@ mongosh agentworks_db --file database/agentworks_db/scripts/fix-update-date-to-s
 ---
 
 **维护者**: Claude Code
-**最后更新**: 2025-12-12
+**最后更新**: 2025-12-14
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

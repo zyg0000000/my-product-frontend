@@ -253,7 +253,9 @@ FEISHU_APP_SECRET=...              # 飞书应用密钥
 | syncFromFeishu | 飞书数据同步 | v12.1 | ✅ 运行中 |
 | fieldMappingManager | 字段映射管理 | v1.0 | ✅ 运行中 |
 | dimensionConfigManager | 维度配置管理 | v1.0 | ✅ 运行中 |
-| **customers** | **客户管理 RESTful API** | **v1.0** | 🆕 待部署 |
+| **customers** | **客户管理 RESTful API** | **v1.0** | ✅ 运行中 |
+| **talentBatchOperations** | **达人批量操作（绑定机构）** | **v1.0** | 🆕 待部署 |
+| agencyManagement | 机构管理 | v2.0 | ✅ 运行中 |
 | ... | ... | ... | ... |
 
 ### customers v1.0 (RESTful API)
@@ -274,6 +276,39 @@ GET    /customers?id=xxx   # 获取客户详情
 POST   /customers          # 创建客户
 PUT    /customers          # 更新客户（body含id）
 DELETE /customers?id=xxx   # 删除客户（软删除）
+```
+
+### talentBatchOperations v1.0 (达人批量操作)
+
+**核心特性**：
+- 批量绑定达人到机构
+- 支持按平台账号ID匹配达人
+- 返回详细的操作结果（成功/失败统计）
+- 支持多平台（抖音、小红书、B站、快手）
+
+**API 端点**：
+```bash
+POST /talent-batch-operations
+{
+  "action": "bindToAgency",
+  "agencyId": "xxx",
+  "platform": "douyin",
+  "platformAccountIds": ["id1", "id2", "id3"]
+}
+```
+
+**响应格式**：
+```json
+{
+  "success": true,
+  "data": {
+    "total": 10,
+    "matched": 8,
+    "bound": 7,
+    "failed": 1,
+    "details": [...]
+  }
+}
 ```
 
 ### getTalentsSearch v9.0 (双数据库版)
@@ -319,16 +354,19 @@ POST /talents/search
 
 ---
 
-**最后更新**: 2024-11-22
+**最后更新**: 2025-12-14
 **维护者**: 开发团队
 
 ---
 
-## 🆕 最新更新 (2024-11-22)
+## 🆕 最新更新 (2025-12-14)
 
-### customers v1.0 - 客户管理 RESTful API（Phase 1 完成）
-- ✅ 后端：RESTful API 云函数开发完成
-- ✅ 前端：Pro Components + Tailwind 混合方案
+### talentBatchOperations v1.0 - 达人批量操作
+- ✅ 批量绑定达人到机构
+- ✅ 支持 Excel 导入匹配
 - 🔄 状态：待部署到火山引擎
 
-**详细进度**：[客户管理开发进度](../docs/customer-management/PROGRESS.md)
+### customers v1.0 - 客户管理 RESTful API
+- ✅ 后端：RESTful API 云函数开发完成
+- ✅ 前端：Pro Components + Tailwind 混合方案
+- ✅ 状态：已部署运行中
