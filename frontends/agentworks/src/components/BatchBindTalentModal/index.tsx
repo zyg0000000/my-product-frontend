@@ -127,7 +127,9 @@ export function BatchBindTalentModal({
   } | null>(null);
 
   // 多机构模式：匹配结果
-  const [multiAgencyResults, setMultiAgencyResults] = useState<MultiAgencyMatchResult[]>([]);
+  const [multiAgencyResults, setMultiAgencyResults] = useState<
+    MultiAgencyMatchResult[]
+  >([]);
   const [multiAgencySummary, setMultiAgencySummary] = useState<{
     total: number;
     found: number;
@@ -165,12 +167,12 @@ export function BatchBindTalentModal({
 
   // 统计 - 单机构模式
   const selectedCount = useMemo(
-    () => matchResults.filter((r) => r.selected && r.status === 'found').length,
+    () => matchResults.filter(r => r.selected && r.status === 'found').length,
     [matchResults]
   );
 
   const canBindCount = useMemo(() => {
-    return matchResults.filter((r) => {
+    return matchResults.filter(r => {
       if (r.status !== 'found' || !r.talent) return false;
       // 可绑定条件：野生达人 或 勾选了覆盖选项
       const isWild =
@@ -182,12 +184,13 @@ export function BatchBindTalentModal({
 
   // 统计 - 多机构模式
   const multiSelectedCount = useMemo(
-    () => multiAgencyResults.filter((r) => r.selected && r.status === 'found').length,
+    () =>
+      multiAgencyResults.filter(r => r.selected && r.status === 'found').length,
     [multiAgencyResults]
   );
 
   const multiCanBindCount = useMemo(() => {
-    return multiAgencyResults.filter((r) => {
+    return multiAgencyResults.filter(r => {
       if (r.status !== 'found' || !r.talent) return false;
       // 可绑定条件：野生达人 或 已是目标机构 或 勾选了覆盖选项
       const isWild = r.talent.agencyId === 'individual';
@@ -227,7 +230,7 @@ export function BatchBindTalentModal({
     accept: '.xlsx,.xls',
     maxCount: 1,
     showUploadList: true,
-    beforeUpload: (file) => {
+    beforeUpload: file => {
       setUploadedFile(file);
       setRawText(''); // 清空文本输入
       return false; // 阻止自动上传
@@ -286,23 +289,25 @@ export function BatchBindTalentModal({
       }
 
       if (parsedData.length > 500) {
-        message.error(`单次匹配数量不能超过 500 条，当前 ${parsedData.length} 条`);
+        message.error(
+          `单次匹配数量不能超过 500 条，当前 ${parsedData.length} 条`
+        );
         setParsing(false);
         return;
       }
 
       // 多机构模式：检查是否有机构名称列
       if (!isSingleAgencyMode) {
-        const hasAgencyColumn = parsedData.some((row) => row.agencyName);
+        const hasAgencyColumn = parsedData.some(row => row.agencyName);
         if (!hasAgencyColumn) {
           message.error('多机构模式需要 Excel 包含"机构名称"列');
           setParsing(false);
           return;
         }
         // 检查是否所有行都有机构名称
-        const missingAgency = parsedData.filter((row) => !row.agencyName);
+        const missingAgency = parsedData.filter(row => !row.agencyName);
         if (missingAgency.length > 0) {
-          setParseWarnings((prev) => [
+          setParseWarnings(prev => [
             ...prev,
             `${missingAgency.length} 行缺少机构名称，将被跳过`,
           ]);
@@ -310,7 +315,7 @@ export function BatchBindTalentModal({
       }
 
       // 构建匹配请求
-      const talents: BatchMatchTalentInput[] = parsedData.map((row) => ({
+      const talents: BatchMatchTalentInput[] = parsedData.map(row => ({
         platformAccountId: row.platformAccountId,
         name: row.name,
       }));
@@ -347,8 +352,8 @@ export function BatchBindTalentModal({
       } else {
         // 多机构模式：构建多机构结果
 
-        const multiResults: MultiAgencyMatchResult[] = response.data.matched.map(
-          (result, index) => {
+        const multiResults: MultiAgencyMatchResult[] =
+          response.data.matched.map((result, index) => {
             const parsedRow = parsedData[index];
             const targetAgencyName = parsedRow?.agencyName || '';
 
@@ -379,15 +384,18 @@ export function BatchBindTalentModal({
                 !!targetAgencyName &&
                 result.talent.agencyId === 'individual',
             };
-          }
-        );
+          });
 
         setMultiAgencyResults(multiResults);
 
         // 统计
-        const found = multiResults.filter((r) => r.status === 'found').length;
-        const notFound = multiResults.filter((r) => r.status === 'not_found' || r.status === 'multiple_found').length;
-        const agencyNotFound = multiResults.filter((r) => r.status === 'agency_not_found').length;
+        const found = multiResults.filter(r => r.status === 'found').length;
+        const notFound = multiResults.filter(
+          r => r.status === 'not_found' || r.status === 'multiple_found'
+        ).length;
+        const agencyNotFound = multiResults.filter(
+          r => r.status === 'agency_not_found'
+        ).length;
 
         setMultiAgencySummary({
           total: multiResults.length,
@@ -411,15 +419,15 @@ export function BatchBindTalentModal({
 
   // 切换单条选中状态 - 单机构模式
   const toggleSelection = (key: string) => {
-    setMatchResults((prev) =>
-      prev.map((r) => (r.key === key ? { ...r, selected: !r.selected } : r))
+    setMatchResults(prev =>
+      prev.map(r => (r.key === key ? { ...r, selected: !r.selected } : r))
     );
   };
 
   // 全选/取消全选 - 单机构模式
   const toggleSelectAll = (checked: boolean) => {
-    setMatchResults((prev) =>
-      prev.map((r) => ({
+    setMatchResults(prev =>
+      prev.map(r => ({
         ...r,
         selected: r.status === 'found' ? checked : false,
       }))
@@ -428,17 +436,18 @@ export function BatchBindTalentModal({
 
   // 切换单条选中状态 - 多机构模式
   const toggleMultiSelection = (key: string) => {
-    setMultiAgencyResults((prev) =>
-      prev.map((r) => (r.key === key ? { ...r, selected: !r.selected } : r))
+    setMultiAgencyResults(prev =>
+      prev.map(r => (r.key === key ? { ...r, selected: !r.selected } : r))
     );
   };
 
   // 全选/取消全选 - 多机构模式
   const toggleMultiSelectAll = (checked: boolean) => {
-    setMultiAgencyResults((prev) =>
-      prev.map((r) => ({
+    setMultiAgencyResults(prev =>
+      prev.map(r => ({
         ...r,
-        selected: r.status === 'found' && !!r.targetAgencyName ? checked : false,
+        selected:
+          r.status === 'found' && !!r.targetAgencyName ? checked : false,
       }))
     );
   };
@@ -454,7 +463,7 @@ export function BatchBindTalentModal({
         // 单机构模式
         if (!selectedAgencyId) return;
 
-        const toBind = matchResults.filter((r) => {
+        const toBind = matchResults.filter(r => {
           if (r.status !== 'found' || !r.talent || !r.selected) return false;
           const isWild =
             r.talent.agencyId === 'individual' ||
@@ -468,7 +477,7 @@ export function BatchBindTalentModal({
           return;
         }
 
-        const oneIds = toBind.map((r) => r.talent!.oneId);
+        const oneIds = toBind.map(r => r.talent!.oneId);
         const response = await batchBindAgency(
           selectedPlatform,
           selectedAgencyId,
@@ -493,8 +502,14 @@ export function BatchBindTalentModal({
         }
       } else {
         // 多机构模式
-        const toBind = multiAgencyResults.filter((r) => {
-          if (r.status !== 'found' || !r.talent || !r.selected || !r.targetAgencyName) return false;
+        const toBind = multiAgencyResults.filter(r => {
+          if (
+            r.status !== 'found' ||
+            !r.talent ||
+            !r.selected ||
+            !r.targetAgencyName
+          )
+            return false;
           const isWild = r.talent.agencyId === 'individual';
           return isWild || overwriteExisting;
         });
@@ -506,7 +521,7 @@ export function BatchBindTalentModal({
         }
 
         // 构建多机构绑定请求
-        const talents: BindByNameTalentInput[] = toBind.map((r) => ({
+        const talents: BindByNameTalentInput[] = toBind.map(r => ({
           oneId: r.talent!.oneId,
           agencyName: r.targetAgencyName,
         }));
@@ -535,7 +550,7 @@ export function BatchBindTalentModal({
 
         // 显示失败详情
         if (response.data.errors && response.data.errors.length > 0) {
-          const agencyErrors = response.data.errors.filter((e) =>
+          const agencyErrors = response.data.errors.filter(e =>
             e.reason.includes('机构不存在')
           );
           if (agencyErrors.length > 0) {
@@ -569,7 +584,7 @@ export function BatchBindTalentModal({
     // 多机构模式
     setMultiAgencyResults([]);
     setMultiAgencySummary(null);
-        // 通用
+    // 通用
     setBindResult(null);
   };
 
@@ -668,19 +683,19 @@ export function BatchBindTalentModal({
       title: (
         <Checkbox
           checked={
-            matchResults.filter((r) => r.status === 'found').length > 0 &&
+            matchResults.filter(r => r.status === 'found').length > 0 &&
             matchResults
-              .filter((r) => r.status === 'found')
-              .every((r) => r.selected)
+              .filter(r => r.status === 'found')
+              .every(r => r.selected)
           }
           indeterminate={
-            matchResults.some((r) => r.status === 'found' && r.selected) &&
+            matchResults.some(r => r.status === 'found' && r.selected) &&
             !matchResults
-              .filter((r) => r.status === 'found')
-              .every((r) => r.selected)
+              .filter(r => r.status === 'found')
+              .every(r => r.selected)
           }
-          onChange={(e) => toggleSelectAll(e.target.checked)}
-          disabled={matchResults.filter((r) => r.status === 'found').length === 0}
+          onChange={e => toggleSelectAll(e.target.checked)}
+          disabled={matchResults.filter(r => r.status === 'found').length === 0}
         />
       ),
       dataIndex: 'selected',
@@ -736,19 +751,27 @@ export function BatchBindTalentModal({
       title: (
         <Checkbox
           checked={
-            multiAgencyResults.filter((r) => r.status === 'found' && r.targetAgencyName).length > 0 &&
+            multiAgencyResults.filter(
+              r => r.status === 'found' && r.targetAgencyName
+            ).length > 0 &&
             multiAgencyResults
-              .filter((r) => r.status === 'found' && r.targetAgencyName)
-              .every((r) => r.selected)
+              .filter(r => r.status === 'found' && r.targetAgencyName)
+              .every(r => r.selected)
           }
           indeterminate={
-            multiAgencyResults.some((r) => r.status === 'found' && r.targetAgencyName && r.selected) &&
+            multiAgencyResults.some(
+              r => r.status === 'found' && r.targetAgencyName && r.selected
+            ) &&
             !multiAgencyResults
-              .filter((r) => r.status === 'found' && r.targetAgencyName)
-              .every((r) => r.selected)
+              .filter(r => r.status === 'found' && r.targetAgencyName)
+              .every(r => r.selected)
           }
-          onChange={(e) => toggleMultiSelectAll(e.target.checked)}
-          disabled={multiAgencyResults.filter((r) => r.status === 'found' && r.targetAgencyName).length === 0}
+          onChange={e => toggleMultiSelectAll(e.target.checked)}
+          disabled={
+            multiAgencyResults.filter(
+              r => r.status === 'found' && r.targetAgencyName
+            ).length === 0
+          }
         />
       ),
       dataIndex: 'selected',
@@ -782,7 +805,11 @@ export function BatchBindTalentModal({
       width: 100,
       ellipsis: true,
       render: (_, record) => (
-        <span className={record.targetAgencyName ? 'text-content' : 'text-danger-500'}>
+        <span
+          className={
+            record.targetAgencyName ? 'text-content' : 'text-danger-500'
+          }
+        >
           {record.targetAgencyName || '未指定'}
         </span>
       ),
@@ -914,7 +941,7 @@ export function BatchBindTalentModal({
 
           {/* 已绑定提示 */}
           {matchResults.some(
-            (r) =>
+            r =>
               r.status === 'found' &&
               r.talent &&
               r.talent.agencyId !== 'individual' &&
@@ -928,7 +955,7 @@ export function BatchBindTalentModal({
                   <span>部分达人已绑定其他机构</span>
                   <Checkbox
                     checked={overwriteExisting}
-                    onChange={(e) => setOverwriteExisting(e.target.checked)}
+                    onChange={e => setOverwriteExisting(e.target.checked)}
                   >
                     覆盖已绑定的
                   </Checkbox>
@@ -945,7 +972,7 @@ export function BatchBindTalentModal({
             size="small"
             pagination={false}
             scroll={{ y: 300 }}
-            rowClassName={(record) => {
+            rowClassName={record => {
               if (record.status === 'not_found') {
                 return 'bg-danger-50 dark:bg-danger-900/20';
               }
@@ -986,7 +1013,7 @@ export function BatchBindTalentModal({
 
           {/* 已绑定提示 */}
           {multiAgencyResults.some(
-            (r) =>
+            r =>
               r.status === 'found' &&
               r.talent &&
               r.talent.agencyId !== 'individual'
@@ -999,7 +1026,7 @@ export function BatchBindTalentModal({
                   <span>部分达人已绑定其他机构</span>
                   <Checkbox
                     checked={overwriteExisting}
-                    onChange={(e) => setOverwriteExisting(e.target.checked)}
+                    onChange={e => setOverwriteExisting(e.target.checked)}
                   >
                     覆盖已绑定的
                   </Checkbox>
@@ -1016,8 +1043,11 @@ export function BatchBindTalentModal({
             size="small"
             pagination={false}
             scroll={{ y: 300 }}
-            rowClassName={(record) => {
-              if (record.status === 'not_found' || record.status === 'agency_not_found') {
+            rowClassName={record => {
+              if (
+                record.status === 'not_found' ||
+                record.status === 'agency_not_found'
+              ) {
                 return 'bg-danger-50 dark:bg-danger-900/20';
               }
               if (record.status === 'multiple_found') {
@@ -1059,11 +1089,11 @@ export function BatchBindTalentModal({
           <div className="text-sm text-content-secondary mb-2">目标平台</div>
           <Radio.Group
             value={selectedPlatform}
-            onChange={(e) => setSelectedPlatform(e.target.value)}
+            onChange={e => setSelectedPlatform(e.target.value)}
             optionType="button"
             buttonStyle="solid"
           >
-            {platforms.map((platform) => {
+            {platforms.map(platform => {
               const config = getPlatformConfigByKey(platform);
               return (
                 <Radio.Button key={platform} value={platform}>
@@ -1087,7 +1117,8 @@ export function BatchBindTalentModal({
                     : '支持的列：平台ID、达人昵称、机构名称（必填）'}
                 </div>
                 <div className="text-xs text-content-secondary">
-                  Excel 首行为表头，支持智能识别列名（星图ID、蒲公英ID、达人昵称、机构名称等）
+                  Excel
+                  首行为表头，支持智能识别列名（星图ID、蒲公英ID、达人昵称、机构名称等）
                 </div>
               </div>
             }
@@ -1125,7 +1156,7 @@ export function BatchBindTalentModal({
                 : '请先选择平台'
             }
             value={rawText}
-            onChange={(e) => {
+            onChange={e => {
               setRawText(e.target.value);
               setUploadedFile(null); // 清空文件
             }}

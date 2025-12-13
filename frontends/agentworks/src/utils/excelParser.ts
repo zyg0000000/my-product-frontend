@@ -116,12 +116,9 @@ export function normalizePlatform(value: string): Platform | undefined {
 /**
  * 智能匹配列名
  */
-function matchColumnName(
-  header: string,
-  patterns: string[]
-): boolean {
+function matchColumnName(header: string, patterns: string[]): boolean {
   const normalizedHeader = header.trim().toLowerCase();
-  return patterns.some((pattern) =>
+  return patterns.some(pattern =>
     normalizedHeader.includes(pattern.toLowerCase())
   );
 }
@@ -141,7 +138,10 @@ function detectColumnMapping(headers: string[]): {
   let agencyNameCol = -1;
 
   headers.forEach((header, index) => {
-    if (platformCol === -1 && matchColumnName(header, COLUMN_PATTERNS.platform)) {
+    if (
+      platformCol === -1 &&
+      matchColumnName(header, COLUMN_PATTERNS.platform)
+    ) {
       platformCol = index;
     }
     if (nameCol === -1 && matchColumnName(header, COLUMN_PATTERNS.name)) {
@@ -184,7 +184,12 @@ export async function parseExcelFile(
     // 读取第一个工作表
     const sheetName = workbook.SheetNames[0];
     if (!sheetName) {
-      return { success: false, data: [], errors: ['Excel 文件为空'], warnings: [] };
+      return {
+        success: false,
+        data: [],
+        errors: ['Excel 文件为空'],
+        warnings: [],
+      };
     }
 
     const worksheet = workbook.Sheets[sheetName];
@@ -203,7 +208,7 @@ export async function parseExcelFile(
     }
 
     // 第一行作为表头
-    const headers = jsonData[0].map((h) => String(h || '').trim());
+    const headers = jsonData[0].map(h => String(h || '').trim());
     const { platformCol, nameCol, platformAccountIdCol, agencyNameCol } =
       detectColumnMapping(headers);
 
@@ -223,9 +228,7 @@ export async function parseExcelFile(
 
     // 如果没有平台列但也没有默认平台，给出警告
     if (platformCol === -1 && !defaultPlatform) {
-      warnings.push(
-        '未检测到平台列，将使用选择的目标平台作为所有达人的平台'
-      );
+      warnings.push('未检测到平台列，将使用选择的目标平台作为所有达人的平台');
     }
 
     // 解析数据行
@@ -234,7 +237,7 @@ export async function parseExcelFile(
       const rowIndex = i + 1; // Excel 行号（从1开始，加上表头）
 
       // 跳过空行
-      if (!row || row.every((cell) => !cell || String(cell).trim() === '')) {
+      if (!row || row.every(cell => !cell || String(cell).trim() === '')) {
         continue;
       }
 
@@ -253,7 +256,9 @@ export async function parseExcelFile(
       if (platformRaw) {
         platform = normalizePlatform(platformRaw);
         if (!platform) {
-          warnings.push(`第 ${rowIndex} 行：无法识别的平台 "${platformRaw}"，将使用默认平台`);
+          warnings.push(
+            `第 ${rowIndex} 行：无法识别的平台 "${platformRaw}"，将使用默认平台`
+          );
           platform = defaultPlatform;
         }
       } else {
@@ -320,7 +325,12 @@ export function parseTextData(
 
   const lines = text.trim().split('\n');
   if (lines.length < 1) {
-    return { success: false, data: [], errors: ['没有有效的数据行'], warnings: [] };
+    return {
+      success: false,
+      data: [],
+      errors: ['没有有效的数据行'],
+      warnings: [],
+    };
   }
 
   // 检测分隔符
@@ -328,9 +338,9 @@ export function parseTextData(
   const delimiter = firstLine.includes('\t') ? '\t' : ',';
 
   // 尝试检测是否有表头
-  const firstLineCells = firstLine.split(delimiter).map((s) => s.trim());
+  const firstLineCells = firstLine.split(delimiter).map(s => s.trim());
   const hasHeader = firstLineCells.some(
-    (cell) =>
+    cell =>
       matchColumnName(cell, COLUMN_PATTERNS.name) ||
       matchColumnName(cell, COLUMN_PATTERNS.platformAccountId) ||
       matchColumnName(cell, COLUMN_PATTERNS.platform) ||
@@ -381,22 +391,23 @@ export function parseTextData(
     const line = lines[i].trim();
     if (!line) continue;
 
-    const cells = line.split(delimiter).map((s) => s.trim());
+    const cells = line.split(delimiter).map(s => s.trim());
     const rowIndex = i + 1;
 
     const platformRaw = platformCol >= 0 ? cells[platformCol] || '' : '';
     const name = nameCol >= 0 ? cells[nameCol] || '' : '';
     const platformAccountId =
       platformAccountIdCol >= 0 ? cells[platformAccountIdCol] || '' : '';
-    const agencyName =
-      agencyNameCol >= 0 ? cells[agencyNameCol] || '' : '';
+    const agencyName = agencyNameCol >= 0 ? cells[agencyNameCol] || '' : '';
 
     // 确定平台
     let platform: Platform | undefined;
     if (platformRaw) {
       platform = normalizePlatform(platformRaw);
       if (!platform) {
-        warnings.push(`第 ${rowIndex} 行：无法识别的平台 "${platformRaw}"，将使用默认平台`);
+        warnings.push(
+          `第 ${rowIndex} 行：无法识别的平台 "${platformRaw}"，将使用默认平台`
+        );
         platform = defaultPlatform;
       }
     } else {

@@ -457,7 +457,7 @@ export async function batchBindAgency(
     platform,
     data: {
       agencyId,
-      talents: oneIds.map((oneId) => ({ oneId })),
+      talents: oneIds.map(oneId => ({ oneId })),
       overwriteExisting,
     },
   });
@@ -571,7 +571,7 @@ export async function batchUnbindAgency(
     operation: 'unbindAgency',
     platform,
     data: {
-      talents: oneIds.map((oneId) => ({ oneId })),
+      talents: oneIds.map(oneId => ({ oneId })),
     },
   });
 }

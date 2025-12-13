@@ -8,7 +8,7 @@
  * - 数据直接展示，清晰易读
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Segmented } from 'antd';
 import type { Agency } from '../../types/agency';
 import type { Platform } from '../../types/talent';
@@ -31,21 +31,23 @@ export function PlatformInfoCell({
     platforms[0] || 'douyin'
   );
 
-  // 当平台列表变化时，确保 activePlatform 有效
-  useEffect(() => {
+  // 确保 activePlatform 有效（使用 useMemo 避免 useEffect 内 setState）
+  const validActivePlatform = useMemo(() => {
     if (platforms.length > 0 && !platforms.includes(activePlatform)) {
-      setActivePlatform(platforms[0]);
+      return platforms[0];
     }
+    return activePlatform;
   }, [platforms, activePlatform]);
 
   // 获取当前平台的返点率
-  const rebate = agency.rebateConfig?.platforms?.[activePlatform]?.baseRebate;
+  const rebate =
+    agency.rebateConfig?.platforms?.[validActivePlatform]?.baseRebate;
 
   // 获取当前平台的达人数
-  const count = talentCounts?.[activePlatform] || 0;
+  const count = talentCounts?.[validActivePlatform] || 0;
 
   // 平台选项 - 简短名称
-  const platformOptions = platforms.map((p) => ({
+  const platformOptions = platforms.map(p => ({
     label: platformNames[p] || p,
     value: p,
   }));
@@ -56,8 +58,8 @@ export function PlatformInfoCell({
       <Segmented
         size="small"
         options={platformOptions}
-        value={activePlatform}
-        onChange={(v) => setActivePlatform(v as Platform)}
+        value={validActivePlatform}
+        onChange={v => setActivePlatform(v as Platform)}
       />
 
       {/* 返点 */}

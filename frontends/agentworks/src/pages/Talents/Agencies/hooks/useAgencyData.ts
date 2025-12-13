@@ -77,7 +77,9 @@ export function useAgencyData(): UseAgencyDataReturn {
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [totalAgencies, setTotalAgencies] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [talentCounts, setTalentCounts] = useState<MultiPlatformTalentCounts>({});
+  const [talentCounts, setTalentCounts] = useState<MultiPlatformTalentCounts>(
+    {}
+  );
   const [loadingCounts, setLoadingCounts] = useState(false);
 
   // 分页状态
@@ -167,7 +169,7 @@ export function useAgencyData(): UseAgencyDataReturn {
     try {
       // 并行请求所有平台的达人数据
       const results = await Promise.all(
-        currentPlatforms.map(async (platform) => {
+        currentPlatforms.map(async platform => {
           try {
             const response = await getTalents({ platform });
             if (response.success && response.data) {
@@ -185,7 +187,7 @@ export function useAgencyData(): UseAgencyDataReturn {
       const counts: MultiPlatformTalentCounts = {};
 
       results.forEach(({ platform, data }) => {
-        data.forEach((talent) => {
+        data.forEach(talent => {
           const agencyId = talent.agencyId || 'individual';
           if (!counts[agencyId]) {
             counts[agencyId] = {} as Record<Platform, number>;

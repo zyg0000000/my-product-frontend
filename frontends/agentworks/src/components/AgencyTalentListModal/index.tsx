@@ -86,7 +86,7 @@ export function AgencyTalentListModal({
 
   // 统计
   const selectedCount = useMemo(
-    () => talents.filter((t) => t.selected).length,
+    () => talents.filter(t => t.selected).length,
     [talents]
   );
 
@@ -108,7 +108,7 @@ export function AgencyTalentListModal({
         });
 
         if (response.success && response.data) {
-          const talentsWithUI: TalentWithUI[] = response.data.map((t) => ({
+          const talentsWithUI: TalentWithUI[] = response.data.map(t => ({
             ...t,
             key: `${t.oneId}_${t.platform}`,
             selected: false,
@@ -161,19 +161,19 @@ export function AgencyTalentListModal({
 
   // 切换单条选中状态
   const toggleSelection = (key: string) => {
-    setTalents((prev) =>
-      prev.map((t) => (t.key === key ? { ...t, selected: !t.selected } : t))
+    setTalents(prev =>
+      prev.map(t => (t.key === key ? { ...t, selected: !t.selected } : t))
     );
   };
 
   // 全选/取消全选
   const toggleSelectAll = (checked: boolean) => {
-    setTalents((prev) => prev.map((t) => ({ ...t, selected: checked })));
+    setTalents(prev => prev.map(t => ({ ...t, selected: checked })));
   };
 
   // 执行解绑
   const handleUnbind = async () => {
-    const toUnbind = talents.filter((t) => t.selected);
+    const toUnbind = talents.filter(t => t.selected);
     if (toUnbind.length === 0) {
       message.warning('请先选择要解绑的达人');
       return;
@@ -181,7 +181,7 @@ export function AgencyTalentListModal({
 
     // 按平台分组解绑
     const platformGroups = new Map<Platform, string[]>();
-    toUnbind.forEach((t) => {
+    toUnbind.forEach(t => {
       const list = platformGroups.get(t.platform) || [];
       list.push(t.oneId);
       platformGroups.set(t.platform, list);
@@ -242,7 +242,7 @@ export function AgencyTalentListModal({
   const platformOptions = useMemo(
     () => [
       { label: '全部平台', value: 'all' },
-      ...platforms.map((p) => ({
+      ...platforms.map(p => ({
         label: platformNames[p] || p,
         value: p,
       })),
@@ -255,11 +255,11 @@ export function AgencyTalentListModal({
     {
       title: (
         <Checkbox
-          checked={talents.length > 0 && talents.every((t) => t.selected)}
+          checked={talents.length > 0 && talents.every(t => t.selected)}
           indeterminate={
-            talents.some((t) => t.selected) && !talents.every((t) => t.selected)
+            talents.some(t => t.selected) && !talents.every(t => t.selected)
           }
-          onChange={(e) => toggleSelectAll(e.target.checked)}
+          onChange={e => toggleSelectAll(e.target.checked)}
           disabled={talents.length === 0}
         />
       ),
@@ -369,7 +369,8 @@ export function AgencyTalentListModal({
           />
           <div className="flex items-center gap-4">
             <span className="text-sm text-content-secondary">
-              共 <span className="font-medium text-content">{total}</span> 个达人
+              共 <span className="font-medium text-content">{total}</span>{' '}
+              个达人
             </span>
             <Button
               icon={<ReloadOutlined />}
@@ -394,7 +395,7 @@ export function AgencyTalentListModal({
             total: total,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (t) => `共 ${t} 条`,
+            showTotal: t => `共 ${t} 条`,
             onChange: handlePageChange,
             pageSizeOptions: ['10', '20', '50'],
           }}
@@ -403,9 +404,7 @@ export function AgencyTalentListModal({
             emptyText: (
               <Empty
                 description={
-                  searchTerm
-                    ? '没有找到匹配的达人'
-                    : '该机构暂无达人'
+                  searchTerm ? '没有找到匹配的达人' : '该机构暂无达人'
                 }
               />
             ),
