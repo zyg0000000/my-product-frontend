@@ -66,7 +66,7 @@
 const { MongoClient, ObjectId } = require('mongodb');
 
 // 版本号
-const VERSION = '2.7';
+const VERSION = '2.8';
 
 // ========== 字段白名单配置（防止注入攻击） ==========
 /**
@@ -855,6 +855,11 @@ async function batchUpdateTags(body, headers = {}) {
  * - 客户筛选：customerName, importance, businessTags（需先选客户）
  * - 表现筛选：performanceFilters (JSON字符串)
  * - 字段选择：fields (逗号分隔的字段ID列表，支持动态返回所需字段)
+ * - 排序：sortField, sortOrder (全量排序，在数据库层面执行)
+ *
+ * v2.8 新增：
+ * - sortField: 排序字段（如 cpm60sExpected, audienceGenderMale 等）
+ * - sortOrder: 排序方向（asc 升序, desc 降序，默认 asc）
  *
  * v2.6 新增：
  * - priceType: 指定价格档位筛选（如 video_60plus, video_21_60, video_1_20, video, image）
@@ -883,6 +888,9 @@ async function panoramaSearch(queryParams = {}) {
       performanceFilters: performanceFiltersStr,
       // 字段选择（新增 v2.4）
       fields: fieldsParam,
+      // 排序（新增 v2.8）
+      sortField,
+      sortOrder = 'asc',
       // 分页
       page = 1,
       pageSize = 20
@@ -1141,9 +1149,14 @@ async function panoramaSearch(queryParams = {}) {
     const countResult = await db.collection('talents').aggregate(countPipeline).toArray();
     const total = countResult[0]?.total || 0;
 
-    // 6. 分页
+    // 6. 排序和分页
     const skip = (parseInt(page) - 1) * parseInt(pageSize);
-    pipeline.push({ $sort: { name: 1 } });
+
+    // 构建排序条件（v2.8 支持动态排序）
+    const sortConfig = buildSortConfig(sortField, sortOrder, needsPerformance);
+    console.log(`[v${VERSION}] 排序配置: ${JSON.stringify(sortConfig)}`);
+    pipeline.push({ $sort: sortConfig });
+
     pipeline.push({ $skip: skip });
     pipeline.push({ $limit: parseInt(pageSize) });
 
@@ -1227,6 +1240,54 @@ async function panoramaSearch(queryParams = {}) {
 }
 
 // ========== 动态字段处理函数 ==========
+
+/**
+ * 构建排序配置（v2.8）
+ * @param {string|undefined} sortField - 排序字段ID
+ * @param {string} sortOrder - 排序方向 (asc/desc)
+ * @param {boolean} needsPerformance - 是否已关联 performance 集合
+ * @returns {Object} MongoDB $sort 对象
+ */
+function buildSortConfig(sortField, sortOrder, needsPerformance) {
+  const order = sortOrder === 'desc' ? -1 : 1;
+
+  // 默认排序：按名称
+  if (!sortField) {
+    return { name: order };
+  }
+
+  // 检查是否是有效的排序字段
+  const fieldConfig = FIELD_WHITELIST[sortField];
+  if (!fieldConfig) {
+    console.log(`[v${VERSION}] 无效的排序字段: ${sortField}, 使用默认排序`);
+    return { name: order };
+  }
+
+  // 根据字段来源构建排序路径
+  const { source, path } = fieldConfig;
+
+  // 计算字段不支持直接排序，使用默认排序
+  if (path.startsWith('computed:')) {
+    console.log(`[v${VERSION}] 计算字段不支持排序: ${sortField}, 使用默认排序`);
+    return { name: order };
+  }
+
+  // 根据数据源构建排序路径
+  let sortPath;
+  if (source === 'performance') {
+    // performance 字段需要去掉开头的 $ 符号
+    sortPath = path.replace(/^\$/, '');
+  } else if (source === 'talents') {
+    // talents 字段直接使用，去掉开头的 $
+    sortPath = path.replace(/^\$/, '');
+  } else {
+    // 其他来源使用字段ID
+    sortPath = sortField;
+  }
+
+  console.log(`[v${VERSION}] 排序字段: ${sortField} -> 路径: ${sortPath}, 方向: ${order === 1 ? 'asc' : 'desc'}`);
+  return { [sortPath]: order };
+}
 
 /**
  * 解析请求的字段列表

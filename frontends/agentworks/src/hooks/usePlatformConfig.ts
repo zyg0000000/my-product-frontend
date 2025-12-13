@@ -45,7 +45,7 @@ function loadFromCache(): PlatformConfig[] | null {
       return null;
     }
 
-    logger.info('使用缓存的平台配置');
+    // logger.info('使用缓存的平台配置'); // 太多重复日志，已关闭
     return data.configs;
   } catch (error) {
     logger.error('读取平台配置缓存失败:', error);
@@ -63,7 +63,7 @@ function saveToCache(configs: PlatformConfig[]): void {
       timestamp: Date.now(),
     };
     localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-    logger.info('平台配置已缓存');
+    // logger.info('平台配置已缓存'); // 太多重复日志，已关闭
   } catch (error) {
     logger.error('保存平台配置缓存失败:', error);
   }
@@ -80,65 +80,81 @@ export function usePlatformConfig(includeDisabled = false) {
   const [error, setError] = useState<string | null>(null);
 
   // 加载配置
-  const loadConfigs = async (forceRefresh = false) => {
-    try {
-      setLoading(true);
-      setError(null);
+  const loadConfigs = useCallback(
+    async (forceRefresh = false) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      // 如果不是强制刷新，先尝试从缓存加载
-      if (!forceRefresh) {
+        // 如果不是强制刷新，先尝试从缓存加载
+        if (!forceRefresh) {
+          const cached = loadFromCache();
+          if (cached && cached.length > 0) {
+            // 根据 includeDisabled 参数过滤缓存数据
+            const filteredConfigs = includeDisabled
+              ? cached
+              : cached.filter(c => c.enabled);
+            setConfigs(filteredConfigs);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // 从服务器加载（始终获取所有平台配置）
+        logger.info('从服务器加载平台配置');
+        const response = await getPlatformConfigs();
+
+        if (response.success && response.data) {
+          // 缓存所有平台配置（包括禁用的）
+          saveToCache(response.data);
+
+          // 根据 includeDisabled 参数过滤后返回
+          const filteredConfigs = includeDisabled
+            ? response.data
+            : response.data.filter(c => c.enabled);
+
+          setConfigs(filteredConfigs);
+          logger.info(
+            `平台配置加载成功，共 ${filteredConfigs.length} 个平台（总数 ${response.data.length}）`
+          );
+        } else {
+          throw new Error(response.message || '加载平台配置失败');
+        }
+      } catch (err) {
+        const errorMsg = getErrorMessage(err) || '加载平台配置失败';
+        logger.error('加载平台配置失败:', err);
+        setError(errorMsg);
+
+        // 如果从服务器加载失败，尝试使用缓存（即使过期）
         const cached = loadFromCache();
         if (cached && cached.length > 0) {
-          // 根据 includeDisabled 参数过滤缓存数据
-          const filteredConfigs = includeDisabled
-            ? cached
-            : cached.filter(c => c.enabled);
-          setConfigs(filteredConfigs);
-          setLoading(false);
-          return;
+          logger.warn('使用过期的缓存配置');
+          setConfigs(cached);
         }
+      } finally {
+        setLoading(false);
       }
-
-      // 从服务器加载（始终获取所有平台配置）
-      logger.info('从服务器加载平台配置');
-      const response = await getPlatformConfigs();
-
-      if (response.success && response.data) {
-        // 缓存所有平台配置（包括禁用的）
-        saveToCache(response.data);
-
-        // 根据 includeDisabled 参数过滤后返回
-        const filteredConfigs = includeDisabled
-          ? response.data
-          : response.data.filter(c => c.enabled);
-
-        setConfigs(filteredConfigs);
-        logger.info(
-          `平台配置加载成功，共 ${filteredConfigs.length} 个平台（总数 ${response.data.length}）`
-        );
-      } else {
-        throw new Error(response.message || '加载平台配置失败');
-      }
-    } catch (err) {
-      const errorMsg = getErrorMessage(err) || '加载平台配置失败';
-      logger.error('加载平台配置失败:', err);
-      setError(errorMsg);
-
-      // 如果从服务器加载失败，尝试使用缓存（即使过期）
-      const cached = loadFromCache();
-      if (cached && cached.length > 0) {
-        logger.warn('使用过期的缓存配置');
-        setConfigs(cached);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [includeDisabled]
+  );
 
   // 组件挂载时加载
   useEffect(() => {
     loadConfigs();
-  }, []);
+  }, [loadConfigs]);
+
+  // 监听自定义配置刷新事件
+  useEffect(() => {
+    const handleConfigRefresh = () => {
+      logger.info('收到平台配置刷新事件，重新加载配置');
+      loadConfigs(true);
+    };
+
+    window.addEventListener('platformConfigRefresh', handleConfigRefresh);
+    return () => {
+      window.removeEventListener('platformConfigRefresh', handleConfigRefresh);
+    };
+  }, [loadConfigs]);
 
   // ==================== 工具方法 ====================
 
@@ -239,6 +255,8 @@ export function usePlatformConfig(includeDisabled = false) {
    */
   const refreshConfigs = () => {
     localStorage.removeItem(CACHE_KEY);
+    // 触发全局刷新事件，通知所有组件更新配置
+    window.dispatchEvent(new Event('platformConfigRefresh'));
     return loadConfigs(true);
   };
 

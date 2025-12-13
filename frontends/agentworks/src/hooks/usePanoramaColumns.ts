@@ -2,8 +2,9 @@
  * 达人全景页面 - 列选择状态管理 Hook
  * 管理用户选择的显示字段，支持持久化到 localStorage
  *
- * @version 1.0.0
- * @date 2025-12-04
+ * @version 1.1.0
+ * @date 2025-12-13
+ * 新增功能：字段配置覆盖（order, width, sortable）
  */
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
@@ -16,6 +17,7 @@ import {
   getFieldsGroupedByCategory,
   FIELD_CATEGORIES,
 } from '@/config/panoramaFields';
+import { useFieldOverrides } from './useFieldOverrides';
 
 // ========== 类型定义 ==========
 
@@ -45,9 +47,9 @@ export interface UsePanoramaColumnsReturn {
   toggleCategory: (category: FieldCategory) => void;
   /** 恢复默认字段 */
   resetToDefault: () => void;
-  /** 可用字段列表（根据平台和视角过滤） */
+  /** 可用字段列表（根据平台和视角过滤，已应用覆盖配置） */
   availableFields: FieldDefinition[];
-  /** 按分类分组的可用字段 */
+  /** 按分类分组的可用字段（已应用覆盖配置） */
   fieldsByCategory: Record<FieldCategory, FieldDefinition[]>;
   /** 各分类的选中统计 */
   categoryStats: Record<FieldCategory, { selected: number; total: number }>;
@@ -57,6 +59,18 @@ export interface UsePanoramaColumnsReturn {
   selectedCount: number;
   /** 分类信息列表 */
   categories: typeof FIELD_CATEGORIES;
+  /** 更新字段宽度 */
+  updateFieldWidth: (fieldId: string, width: number) => void;
+  /** 切换字段排序开关 */
+  toggleFieldSortable: (fieldId: string) => void;
+  /** 在分类内上移字段 */
+  moveFieldUp: (fieldId: string, category: FieldCategory) => void;
+  /** 在分类内下移字段 */
+  moveFieldDown: (fieldId: string, category: FieldCategory) => void;
+  /** 是否有字段配置覆盖 */
+  hasFieldOverrides: boolean;
+  /** 重置所有字段配置覆盖 */
+  resetFieldOverrides: () => void;
 }
 
 // ========== 存储 Key ==========
@@ -74,12 +88,23 @@ export function usePanoramaColumns(
 ): UsePanoramaColumnsReturn {
   const { platform, viewMode } = options;
 
-  // 获取可用字段（根据平台和视角过滤）
-  const availableFields = useMemo(() => {
+  // 获取可用字段（根据平台和视角过滤，不含覆盖配置）
+  const baseFields = useMemo(() => {
     return getFieldsForViewMode(viewMode, platform);
   }, [platform, viewMode]);
 
-  // 按分类分组
+  // 应用字段覆盖配置（order, width, sortable）
+  const {
+    fields: availableFields,
+    hasOverrides: hasFieldOverrides,
+    updateWidth,
+    toggleSortable,
+    moveFieldUp,
+    moveFieldDown,
+    resetOverrides: resetFieldOverrides,
+  } = useFieldOverrides(baseFields);
+
+  // 按分类分组（使用应用覆盖后的字段）
   const fieldsByCategory = useMemo(() => {
     return getFieldsGroupedByCategory(availableFields);
   }, [availableFields]);
@@ -268,6 +293,13 @@ export function usePanoramaColumns(
     hasCustomSelection,
     selectedCount: selectedFields.length,
     categories: FIELD_CATEGORIES,
+    // 字段配置覆盖功能
+    updateFieldWidth: updateWidth,
+    toggleFieldSortable: toggleSortable,
+    moveFieldUp,
+    moveFieldDown,
+    hasFieldOverrides,
+    resetFieldOverrides,
   };
 }
 

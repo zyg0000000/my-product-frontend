@@ -73,8 +73,17 @@ export function PerformanceHome() {
   );
   const actionRef = useRef<ActionType>(null);
 
-  const { talents, loading, total, currentPage, pageSize, setPage, search } =
-    usePerformanceData(selectedPlatform);
+  const {
+    talents,
+    loading,
+    total,
+    currentPage,
+    pageSize,
+    sortState,
+    setPage,
+    setSort,
+    search,
+  } = usePerformanceData(selectedPlatform);
 
   const {
     activeConfig,
@@ -221,25 +230,19 @@ export function PerformanceHome() {
         };
       }
 
-      // 排序支持
+      // 排序支持（使用后端排序）
       if (dim.sortable) {
-        column.sorter = (a, b) => {
-          const aValue = getNestedValue(a, dim.targetPath);
-          const bValue = getNestedValue(b, dim.targetPath);
-
-          if (aValue === null || aValue === undefined) return 1;
-          if (bValue === null || bValue === undefined) return -1;
-
-          if (typeof aValue === 'number' && typeof bValue === 'number') {
-            return aValue - bValue;
-          }
-          return String(aValue).localeCompare(String(bValue));
-        };
+        column.sorter = true;
+        // 设置当前排序状态
+        if (sortState.field === dim.targetPath) {
+          column.sortOrder =
+            sortState.order === 'desc' ? 'descend' : 'ascend';
+        }
       }
 
       return column;
     });
-  }, [activeConfig, visibleDimensionIds, selectedPriceType, priceTypes]);
+  }, [activeConfig, visibleDimensionIds, selectedPriceType, priceTypes, sortState]);
 
   return (
     <PageTransition>
@@ -296,7 +299,38 @@ export function PerformanceHome() {
               showSizeChanger: true,
               showQuickJumper: true,
               showTotal: total => `共 ${total} 条`,
-              onChange: page => setPage(page),
+            }}
+            onChange={(pagination, __, sorter) => {
+              // 处理分页变化
+              if (pagination.current !== currentPage) {
+                setPage(pagination.current || 1);
+              }
+
+              // 处理后端排序（只有当有排序信息时才处理）
+              if (sorter && Object.keys(sorter).length > 0) {
+                if (Array.isArray(sorter)) {
+                  // 多列排序，取第一个
+                  const firstSorter = sorter[0];
+                  if (firstSorter?.field && firstSorter?.order) {
+                    const sortField = Array.isArray(firstSorter.field)
+                      ? firstSorter.field.join('.')
+                      : (firstSorter.field as string);
+                    const order = firstSorter.order === 'descend' ? 'desc' : 'asc';
+                    setSort(sortField, order);
+                  } else {
+                    setSort(undefined, undefined);
+                  }
+                } else if (sorter.field && sorter.order) {
+                  const sortField = Array.isArray(sorter.field)
+                    ? sorter.field.join('.')
+                    : (sorter.field as string);
+                  const order = sorter.order === 'descend' ? 'desc' : 'asc';
+                  setSort(sortField, order);
+                } else if (sorter.column === null) {
+                  // 取消排序
+                  setSort(undefined, undefined);
+                }
+              }
             }}
             search={false} // 关闭 ProTable 内置搜索
             cardBordered

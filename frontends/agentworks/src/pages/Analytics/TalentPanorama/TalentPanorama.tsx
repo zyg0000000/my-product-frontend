@@ -8,7 +8,7 @@
  * - 聚合展示达人多源数据
  */
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns } from '@ant-design/pro-components';
@@ -137,21 +137,21 @@ export function TalentPanorama() {
     total,
     currentPage,
     pageSize,
+    sortState,
     setPage,
     setPageSize,
+    setSort,
     search,
     refresh,
   } = usePanoramaData(selectedPlatform);
 
-  // 首次加载和视角/客户变化时执行搜索
-  // 注意：handleSearch 不应放入依赖数组，否则会导致无限循环
-  // 因为 handleSearch 依赖 columnsConfig.selectedFields，而我们只想在平台/视角/客户变化时触发搜索
+  // 使用 ref 跟踪选中的字段，避免依赖数组变化导致不必要的重渲染
+  const selectedFieldsRef = useRef(columnsConfig.selectedFields);
+
+  // 同步 ref
   useEffect(() => {
-    if (!filtersLoading) {
-      handleSearch();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPlatform, filtersLoading, viewMode, selectedCustomers.length]);
+    selectedFieldsRef.current = columnsConfig.selectedFields;
+  }, [columnsConfig.selectedFields]);
 
   // 执行搜索
   const handleSearch = useCallback(() => {
@@ -178,8 +178,8 @@ export function TalentPanorama() {
       performanceFilters: queryParams.performanceFilters as
         | Record<string, { min?: number; max?: number }>
         | undefined,
-      // 传递选中的字段列表
-      fields: columnsConfig.selectedFields,
+      // 传递选中的字段列表（使用 ref 获取最新值，避免依赖数组变化）
+      fields: selectedFieldsRef.current,
     };
     search(apiParams);
   }, [
@@ -187,7 +187,7 @@ export function TalentPanorama() {
     search,
     viewMode,
     selectedCustomers,
-    columnsConfig.selectedFields,
+    // 移除 columnsConfig.selectedFields，改用 ref
   ]);
 
   // 重置筛选
@@ -240,24 +240,15 @@ export function TalentPanorama() {
         key: field.id,
         width: field.width || 100,
         ellipsis: field.type === 'array' || field.type === 'string',
-        // 排序支持
+        // 排序支持：使用后端排序，sorter: true 表示该列可排序
         ...(field.sortable && {
-          sorter: (a, b) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const aValue = (a as any)[field.id];
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const bValue = (b as any)[field.id];
-            // 处理 null/undefined
-            if (aValue == null && bValue == null) return 0;
-            if (aValue == null) return -1;
-            if (bValue == null) return 1;
-            // 数值比较
-            if (typeof aValue === 'number' && typeof bValue === 'number') {
-              return aValue - bValue;
-            }
-            // 字符串比较
-            return String(aValue).localeCompare(String(bValue));
-          },
+          sorter: true,
+          sortOrder:
+            sortState.field === field.id
+              ? sortState.order === 'desc'
+                ? 'descend'
+                : 'ascend'
+              : undefined,
         }),
       };
 
@@ -505,7 +496,7 @@ export function TalentPanorama() {
           };
       }
     },
-    [navigate, displayPriceType, selectedPlatform]
+    [displayPriceType, selectedPlatform, sortState]
   );
 
   /**
@@ -616,9 +607,9 @@ export function TalentPanorama() {
   const columns: ProColumns<PanoramaTalentItem>[] = useMemo(() => {
     const result: ProColumns<PanoramaTalentItem>[] = [];
 
-    // 根据用户选择的字段生成列
+    // 根据用户选择的字段生成列（使用已应用覆盖配置的字段）
     for (const fieldId of columnsConfig.selectedFields) {
-      const field = getFieldById(fieldId);
+      const field = columnsConfig.availableFields.find(f => f.id === fieldId);
       if (!field) continue;
 
       // 客户关系字段特殊处理（包含重要程度和业务标签）
@@ -643,6 +634,7 @@ export function TalentPanorama() {
     return result;
   }, [
     columnsConfig.selectedFields,
+    columnsConfig.availableFields,
     buildColumnFromField,
     viewMode,
     selectedCustomers.length,
@@ -725,13 +717,40 @@ export function TalentPanorama() {
               showSizeChanger: true,
               showQuickJumper: true,
               showTotal: total => `共 ${total} 条`,
-              onChange: (page, size) => {
-                if (size !== pageSize) {
-                  setPageSize(size);
-                } else {
-                  setPage(page);
+            }}
+            onChange={(pagination, __, sorter) => {
+              // 处理翻页
+              if (pagination.current && pagination.current !== currentPage) {
+                setPage(pagination.current);
+              }
+
+              // 处理每页数量变化
+              if (pagination.pageSize && pagination.pageSize !== pageSize) {
+                setPageSize(pagination.pageSize);
+              }
+
+              // 处理排序（只有在排序真正变化时才调用 setSort）
+              let newSortField: string | undefined;
+              let newSortOrder: 'asc' | 'desc' | undefined;
+
+              if (Array.isArray(sorter)) {
+                const firstSorter = sorter[0];
+                if (firstSorter?.field && firstSorter?.order) {
+                  newSortField = firstSorter.field as string;
+                  newSortOrder = firstSorter.order === 'descend' ? 'desc' : 'asc';
                 }
-              },
+              } else if (sorter?.field && sorter?.order) {
+                newSortField = sorter.field as string;
+                newSortOrder = sorter.order === 'descend' ? 'desc' : 'asc';
+              }
+
+              // 只有在排序状态变化时才调用 setSort
+              const sortChanged =
+                newSortField !== sortState.field || newSortOrder !== sortState.order;
+
+              if (sortChanged) {
+                setSort(newSortField, newSortOrder);
+              }
             }}
             search={false}
             cardBordered
@@ -768,25 +787,6 @@ export function TalentPanorama() {
                       {columnsConfig.selectedCount}
                     </span>
                   )}
-                </Button>,
-                <Button
-                  key="refresh"
-                  icon={<ReloadOutlined />}
-                  onClick={() => {
-                    refresh();
-                    message.success('数据已刷新');
-                  }}
-                >
-                  刷新
-                </Button>,
-                <Button
-                  key="search"
-                  type="primary"
-                  icon={<SearchOutlined />}
-                  onClick={handleSearch}
-                  loading={dataLoading}
-                >
-                  搜索
                 </Button>,
               ],
             }}
@@ -839,6 +839,10 @@ export function TalentPanorama() {
           categoryStats={columnsConfig.categoryStats}
           categories={columnsConfig.categories}
           hasCustomSelection={columnsConfig.hasCustomSelection}
+          onMoveFieldUp={columnsConfig.moveFieldUp}
+          onMoveFieldDown={columnsConfig.moveFieldDown}
+          onToggleSortable={columnsConfig.toggleFieldSortable}
+          onUpdateWidth={columnsConfig.updateFieldWidth}
         />
       </div>
     </PageTransition>

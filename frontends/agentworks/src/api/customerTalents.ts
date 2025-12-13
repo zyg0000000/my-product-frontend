@@ -237,6 +237,12 @@ export interface PanoramaSearchParams {
    * 可选字段请参考 FIELD_WHITELIST（后端定义）或 PANORAMA_FIELDS（前端配置）
    */
   fields?: string[];
+
+  // --- 排序（v2.8 新增） ---
+  /** 排序字段（如 cpm60sExpected, audienceGenderMale 等） */
+  sortField?: string;
+  /** 排序方向（asc 升序, desc 降序，默认 asc） */
+  sortOrder?: 'asc' | 'desc';
 }
 
 /**
@@ -322,7 +328,8 @@ export interface PanoramaSearchResponse {
  * @returns 分页搜索结果
  */
 export async function panoramaSearch(
-  params: PanoramaSearchParams
+  params: PanoramaSearchParams,
+  options?: { signal?: AbortSignal }
 ): Promise<PanoramaSearchResponse> {
   // 构建查询参数
   const queryParams: Record<string, string | undefined> = {
@@ -349,6 +356,9 @@ export async function panoramaSearch(
       : undefined,
     // 字段选择（v2.4 新增）
     fields: params.fields?.join(','),
+    // 排序（v2.8 新增）
+    sortField: params.sortField,
+    sortOrder: params.sortOrder,
   };
 
   // 移除 undefined 值
@@ -358,7 +368,8 @@ export async function panoramaSearch(
 
   const response = await get<ApiResponse<PanoramaSearchResponse>>(
     ENDPOINT,
-    cleanParams
+    cleanParams,
+    { signal: options?.signal }
   );
   return response.data;
 }

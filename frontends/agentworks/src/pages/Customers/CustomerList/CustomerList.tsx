@@ -4,7 +4,7 @@
  * v4.1: 使用 usePlatformConfig Hook 动态获取平台名称
  */
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
@@ -58,7 +58,28 @@ export default function CustomerList() {
   const [levelFilter, setLevelFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
 
-  const loadCustomers = async () => {
+  // 请求取消控制器
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // 组件卸载时取消请求
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort('组件已卸载');
+      }
+    };
+  }, []);
+
+  const loadCustomers = useCallback(async () => {
+    // 取消之前的请求
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort('被新请求替代');
+    }
+
+    // 创建新的 AbortController
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       setLoading(true);
       const response = await customerApi.getCustomers({
@@ -71,6 +92,11 @@ export default function CustomerList() {
         sortOrder: 'desc',
       });
 
+      // 检查请求是否已取消
+      if (controller.signal.aborted) {
+        return;
+      }
+
       if (response.success) {
         setCustomers(response.data.customers);
         setTotal(response.data.total);
@@ -80,18 +106,25 @@ export default function CustomerList() {
         message.error('获取客户列表失败');
       }
     } catch (error) {
+      // 忽略取消错误
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
       logger.error('Error loading customers:', error);
       message.error('获取客户列表失败');
       setCustomers([]);
       setTotal(0);
     } finally {
-      setLoading(false);
+      // 只有未取消时才更新 loading 状态
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
     }
-  };
+  }, [currentPage, pageSize, searchTerm, levelFilter, statusFilter, message]);
 
   useEffect(() => {
     loadCustomers();
-  }, [currentPage, pageSize, searchTerm, levelFilter, statusFilter]);
+  }, [loadCustomers]);
 
   const handleDelete = async (id: string) => {
     try {

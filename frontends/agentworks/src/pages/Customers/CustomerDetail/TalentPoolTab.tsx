@@ -104,8 +104,29 @@ export function TalentPoolTab({
   const [batchTagForm] = Form.useForm();
   const [batchTagSaving, setBatchTagSaving] = useState(false);
 
+  // 请求取消控制器
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // 组件卸载时取消请求
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort('组件已卸载');
+      }
+    };
+  }, []);
+
   // 加载达人池数据
   const loadTalents = async () => {
+    // 取消之前的请求
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort('被新请求替代');
+    }
+
+    // 创建新的 AbortController
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       setLoading(true);
       const response = await getCustomerTalents({
@@ -116,13 +137,25 @@ export function TalentPoolTab({
         includeTalentInfo: true,
       });
 
+      // 检查请求是否已取消
+      if (controller.signal.aborted) {
+        return;
+      }
+
       setTalents(response.list);
       setTotal(response.total);
     } catch (error) {
+      // 忽略取消错误
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
       logger.error('Failed to load talents:', error);
       message.error('加载达人池失败');
     } finally {
-      setLoading(false);
+      // 只有未取消时才更新 loading 状态
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 

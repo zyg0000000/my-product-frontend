@@ -94,10 +94,31 @@ export function ProjectList() {
     null
   );
 
+  // 请求取消控制器
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // 组件卸载时取消请求
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort('组件已卸载');
+      }
+    };
+  }, []);
+
   /**
    * 加载项目列表
    */
   const loadProjects = useCallback(async () => {
+    // 取消之前的请求
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort('被新请求替代');
+    }
+
+    // 创建新的 AbortController
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       setLoading(true);
       const params: GetProjectsParams = {
@@ -117,6 +138,11 @@ export function ProjectList() {
 
       const response = await projectApi.getProjects(params);
 
+      // 检查请求是否已取消
+      if (controller.signal.aborted) {
+        return;
+      }
+
       if (response.success) {
         setProjects(response.data.items);
         setTotal(response.data.total);
@@ -126,12 +152,19 @@ export function ProjectList() {
         message.error('获取项目列表失败');
       }
     } catch (error) {
+      // 忽略取消错误
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
       logger.error('Error loading projects:', error);
       message.error('获取项目列表失败');
       setProjects([]);
       setTotal(0);
     } finally {
-      setLoading(false);
+      // 只有未取消时才更新 loading 状态
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
     }
   }, [
     currentPage,

@@ -109,6 +109,18 @@ export function useBasicInfoData({
   const filterStateRef = useRef(filterState);
   filterStateRef.current = filterState;
 
+  // 请求取消控制器
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // 组件卸载时取消请求
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort('组件已卸载');
+      }
+    };
+  }, []);
+
   // 切换平台时更新状态
   useEffect(() => {
     setCurrentPage(1);
@@ -129,6 +141,15 @@ export function useBasicInfoData({
     if (configLoading || platformsLength === 0) {
       return;
     }
+
+    // 取消之前的请求
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort('被新请求替代');
+    }
+
+    // 创建新的 AbortController
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       setLoading(true);
@@ -175,6 +196,11 @@ export function useBasicInfoData({
 
       const response = await getTalents(params);
 
+      // 检查请求是否已取消
+      if (controller.signal.aborted) {
+        return;
+      }
+
       if (response.success && response.data) {
         const talentsData = Array.isArray(response.data)
           ? response.data
@@ -192,12 +218,19 @@ export function useBasicInfoData({
         setTotalTalents(0);
       }
     } catch (err) {
+      // 忽略取消错误
+      if (err instanceof Error && err.name === 'AbortError') {
+        return;
+      }
       logger.error('加载达人列表失败:', err);
       message.error('加载达人列表失败');
       setTalents([]);
       setTotalTalents(0);
     } finally {
-      setLoading(false);
+      // 只有未取消时才更新 loading 状态
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
     }
   }, [configLoading, platformsLength, selectedPlatform, currentPage]);
 

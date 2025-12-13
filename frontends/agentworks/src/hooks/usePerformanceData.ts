@@ -37,6 +37,12 @@ export interface PerformanceFilterParams {
   [key: string]: FilterParamValue;
 }
 
+/** 排序状态 */
+export interface SortState {
+  field?: string;
+  order?: 'asc' | 'desc';
+}
+
 export function usePerformanceData(
   platform: Platform,
   filterParams?: PerformanceFilterParams
@@ -48,6 +54,7 @@ export function usePerformanceData(
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(
     null
   );
+  const [sortState, setSortState] = useState<SortState>({});
   const pageSize = 20; // 表现页面每页20条
 
   // 保存当前筛选参数的引用，用于比较
@@ -67,10 +74,15 @@ export function usePerformanceData(
     };
   }, []);
 
+  // 保存当前排序状态的引用
+  const sortStateRef = useRef<SortState>(sortState);
+  sortStateRef.current = sortState;
+
   const loadData = useCallback(
     async (
       page: number = currentPage,
-      filters: PerformanceFilterParams = filterParams || {}
+      filters: PerformanceFilterParams = filterParams || {},
+      sort: SortState = sortStateRef.current
     ) => {
       // 取消之前的请求（防止竞态条件）
       if (abortControllerRef.current) {
@@ -89,8 +101,9 @@ export function usePerformanceData(
           platform,
           page,
           pageSize,
-          sortBy: 'updatedAt',
-          sortOrder: 'desc',
+          // 使用用户指定的排序，否则默认按更新时间降序
+          sortBy: sort.field || 'updatedAt',
+          sortOrder: sort.order || 'desc',
         };
 
         // 添加搜索参数
@@ -166,7 +179,7 @@ export function usePerformanceData(
 
   // 平台或页码变化时自动加载
   useEffect(() => {
-    loadData(currentPage, filterParamsRef.current);
+    loadData(currentPage, filterParamsRef.current, sortStateRef.current);
   }, [platform, currentPage]);
 
   // 设置页码
@@ -178,15 +191,27 @@ export function usePerformanceData(
   const search = useCallback(
     (filters: PerformanceFilterParams) => {
       filterParamsRef.current = filters;
+      setSortState({}); // 搜索时重置排序
       setCurrentPage(1); // 搜索时重置到第一页
-      loadData(1, filters);
+      loadData(1, filters, {});
+    },
+    [loadData]
+  );
+
+  // 设置排序（触发重新加载）
+  const setSort = useCallback(
+    (field?: string, order?: 'asc' | 'desc') => {
+      const newSortState: SortState = { field, order };
+      setSortState(newSortState);
+      setCurrentPage(1); // 排序变更时重置到第一页
+      loadData(1, filterParamsRef.current || {}, newSortState);
     },
     [loadData]
   );
 
   // 重新加载当前数据
   const reload = useCallback(() => {
-    loadData(currentPage, filterParamsRef.current);
+    loadData(currentPage, filterParamsRef.current, sortStateRef.current);
   }, [loadData, currentPage]);
 
   return {
@@ -197,7 +222,9 @@ export function usePerformanceData(
     pageSize,
     totalPages: Math.ceil(total / pageSize),
     dashboardStats, // 新增：Dashboard 统计数据
+    sortState, // 排序状态
     setPage,
+    setSort, // 设置排序
     reload,
     search,
   };
