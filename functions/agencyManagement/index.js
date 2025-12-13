@@ -8,8 +8,15 @@
  * - PUT: 更新机构信息
  * - DELETE: 删除机构
  *
- * @version 1.0.0
- * @date 2025-11-16
+ * @version 2.0.0
+ * @date 2025-12-13
+ *
+ * v2.0 更新日志：
+ * - [新增] 分页支持（page, limit 参数）
+ * - [新增] 排序支持（sortBy, order 参数）
+ * - [新增] 高级筛选（statusList, contactPerson, phoneNumber, 时间范围）
+ * - [优化] 使用聚合管道提升性能
+ * - [安全] 参数验证和白名单校验
  */
 
 const { MongoClient, ObjectId } = require('mongodb');
@@ -34,15 +41,34 @@ async function connectToDatabase() {
 }
 
 /**
- * 获取机构列表或单个机构
+ * 获取机构列表或单个机构（v2.0 - 支持分页、排序、筛选）
  */
 async function getAgencies(db, queryParams) {
-  const { id, type, status, search } = queryParams;
+  const {
+    // 基础参数
+    id, type, status, search,
+
+    // 分页参数
+    page = '1',
+    limit = '20',
+
+    // 排序参数
+    sortBy = 'createdAt',
+    order = 'desc',
+
+    // 高级筛选参数
+    statusList,          // 多状态查询（逗号分隔）
+    contactPerson,       // 联系人姓名（模糊搜索）
+    phoneNumber,         // 电话号码（精确匹配）
+    createdAfter,        // 创建时间起始
+    createdBefore        // 创建时间截止
+  } = queryParams;
+
   const collection = db.collection(COLLECTION_NAME);
 
-  // 获取单个机构
+  // 获取单个机构（保持原有逻辑）
   if (id) {
-    const agency = await collection.findOne({ id });
+    const agency = await collection.findOne({ id }, { projection: { _id: 0 } });
     if (!agency) {
       return {
         success: false,
@@ -55,23 +81,124 @@ async function getAgencies(db, queryParams) {
     };
   }
 
-  // 构建查询条件
-  const query = {};
-  if (type) query.type = type;
-  if (status) query.status = status;
-  if (search) {
-    query.$text = { $search: search };
+  // ========== 参数验证 ==========
+
+  // 分页参数验证
+  const pageNum = parseInt(page, 10);
+  const limitNum = Math.min(parseInt(limit, 10), 100);  // 限制最大100条
+
+  if (isNaN(pageNum) || pageNum < 1) {
+    return {
+      success: false,
+      message: 'page 参数必须是大于 0 的整数'
+    };
   }
 
-  // 查询列表
-  const agencies = await collection.find(query, {
-    projection: { _id: 0 }
-  }).sort({ createdAt: -1 }).toArray();
+  if (isNaN(limitNum) || limitNum < 1) {
+    return {
+      success: false,
+      message: 'limit 参数必须是大于 0 的整数'
+    };
+  }
+
+  // 排序字段白名单
+  const ALLOWED_SORT_FIELDS = [
+    'createdAt', 'updatedAt', 'name', 'type', 'status'
+  ];
+
+  if (!ALLOWED_SORT_FIELDS.includes(sortBy)) {
+    return {
+      success: false,
+      message: `不支持按 ${sortBy} 字段排序，允许的字段：${ALLOWED_SORT_FIELDS.join(', ')}`
+    };
+  }
+
+  // ========== 构建筛选条件 ==========
+
+  const matchStage = {};
+
+  // 机构类型
+  if (type) {
+    matchStage.type = type;
+  }
+
+  // 多状态支持
+  if (statusList) {
+    const statuses = statusList.split(',').map(s => s.trim()).filter(Boolean);
+    if (statuses.length > 0) {
+      matchStage.status = { $in: statuses };
+    }
+  } else if (status) {
+    matchStage.status = status;
+  }
+
+  // 联系人姓名模糊搜索
+  if (contactPerson) {
+    matchStage['contactInfo.contactPerson'] = {
+      $regex: contactPerson,
+      $options: 'i'  // 不区分大小写
+    };
+  }
+
+  // 电话号码精确匹配
+  if (phoneNumber) {
+    matchStage['contactInfo.phoneNumber'] = phoneNumber;
+  }
+
+  // 创建时间范围
+  if (createdAfter || createdBefore) {
+    matchStage.createdAt = {};
+    if (createdAfter) {
+      matchStage.createdAt.$gte = new Date(createdAfter);
+    }
+    if (createdBefore) {
+      matchStage.createdAt.$lte = new Date(createdBefore);
+    }
+  }
+
+  // 全文搜索（需要文本索引）
+  if (search) {
+    matchStage.$text = { $search: search };
+  }
+
+  // ========== 构建排序和分页 ==========
+
+  const skipNum = (pageNum - 1) * limitNum;
+  const sortOrder = order === 'asc' ? 1 : -1;
+
+  // 排序对象（添加二级排序键确保稳定性）
+  const sortObj = { [sortBy]: sortOrder, _id: 1 };
+
+  // ========== 使用聚合管道查询 ==========
+
+  const pipeline = [
+    { $match: matchStage },
+    {
+      $facet: {
+        paginatedResults: [
+          { $sort: sortObj },
+          { $skip: skipNum },
+          { $limit: limitNum },
+          { $project: { _id: 0 } }
+        ],
+        totalCount: [
+          { $count: 'count' }
+        ]
+      }
+    }
+  ];
+
+  const results = await collection.aggregate(pipeline).toArray();
+  const agencies = results[0].paginatedResults;
+  const total = results[0].totalCount[0]?.count || 0;
 
   return {
     success: true,
-    count: agencies.length,
-    data: agencies
+    data: agencies,
+    total,
+    page: pageNum,
+    limit: limitNum,
+    totalPages: Math.ceil(total / limitNum)
   };
 }
 

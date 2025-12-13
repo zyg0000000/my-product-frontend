@@ -1,0 +1,9 @@
+{
+  "name": "bulkCreateAgencies",
+  "version": "1.0.0",
+  "description": "批量创建机构云函数",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^4.0.0"
+  }
+}
