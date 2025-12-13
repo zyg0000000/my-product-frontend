@@ -9,14 +9,12 @@
  */
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Tabs, Button, App, Alert, Tag, Tooltip, Dropdown } from 'antd';
 import type { MenuProps } from 'antd';
 import {
   SearchOutlined,
-  ReloadOutlined,
   SettingOutlined,
   CaretDownOutlined,
 } from '@ant-design/icons';
@@ -44,10 +42,7 @@ import type {
 } from '../../../api/customerTalents';
 import type { PanoramaSearchParams } from '../../../api/customerTalents';
 import type { FilterModule } from '../../../types/filterModule';
-import {
-  getFieldById,
-  type FieldDefinition,
-} from '../../../config/panoramaFields';
+import type { FieldDefinition } from '../../../config/panoramaFields';
 
 /**
  * 格式化价格（从分转换为元）
@@ -77,7 +72,6 @@ function formatNumber(value: number | null | undefined): string {
 
 export function TalentPanorama() {
   const { message } = App.useApp();
-  const navigate = useNavigate();
 
   // 标签配置（用于动态颜色）
   const { configs: tagConfigs } = useTagConfigs();

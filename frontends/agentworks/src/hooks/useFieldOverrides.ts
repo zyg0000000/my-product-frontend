@@ -138,7 +138,7 @@ export function useFieldOverrides(defaultFields: FieldDefinition[]) {
     (fieldId: string, category: string) => {
       const categoryFields = fieldsWithOverrides
         .filter(f => f.category === category)
-        .sort((a, b) => a.order - b.order);
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
       const fieldIndex = categoryFields.findIndex(f => f.id === fieldId);
       if (fieldIndex <= 0) return; // 已经是第一个
@@ -174,7 +174,7 @@ export function useFieldOverrides(defaultFields: FieldDefinition[]) {
     (fieldId: string, category: string) => {
       const categoryFields = fieldsWithOverrides
         .filter(f => f.category === category)
-        .sort((a, b) => a.order - b.order);
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
       const fieldIndex = categoryFields.findIndex(f => f.id === fieldId);
       if (fieldIndex < 0 || fieldIndex >= categoryFields.length - 1) return; // 已经是最后一个

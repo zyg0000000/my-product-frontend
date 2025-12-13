@@ -33,7 +33,6 @@ import {
   SettingOutlined,
   SearchOutlined,
   UndoOutlined,
-  InfoCircleOutlined,
   UserOutlined,
   DollarOutlined,
   PercentageOutlined,
