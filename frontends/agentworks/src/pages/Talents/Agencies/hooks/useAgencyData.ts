@@ -1,6 +1,8 @@
 /**
  * 机构数据管理 Hook
  * 参考 useBasicInfoData 实现
+ *
+ * v2.0: 支持多平台达人数统计，移除平台依赖
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -9,20 +11,23 @@ import type { Platform } from '../../../../types/talent';
 import type { AgencyFilterState } from '../components/AgencyFilterPanel';
 import { getAgencies, type GetAgenciesParams } from '../../../../api/agency';
 import { getTalents } from '../../../../api/talent';
+import { usePlatformConfig } from '../../../../hooks/usePlatformConfig';
 import { logger } from '../../../../utils/logger';
 
 const PAGE_SIZE = 20;
 
-interface UseAgencyDataProps {
-  selectedPlatform: Platform;
-}
+/** 多平台达人数统计类型 */
+type MultiPlatformTalentCounts = Record<string, Record<Platform, number>>;
 
 interface UseAgencyDataReturn {
   // 数据
   agencies: Agency[];
   totalAgencies: number;
   loading: boolean;
-  talentCounts: Record<string, number>;
+  /** 多平台达人数统计 { agencyId: { douyin: 10, xiaohongshu: 5 } } */
+  talentCounts: MultiPlatformTalentCounts;
+  /** 加载达人统计的状态 */
+  loadingCounts: boolean;
 
   // 分页
   currentPage: number;
@@ -40,6 +45,7 @@ interface UseAgencyDataReturn {
 
   // 方法
   loadAgencies: () => Promise<void>;
+  refreshTalentCounts: () => Promise<void>;
 }
 
 // 初始筛选状态
@@ -53,14 +59,26 @@ const initialFilterState: AgencyFilterState = {
   createdBefore: '',
 };
 
-export function useAgencyData({
-  selectedPlatform,
-}: UseAgencyDataProps): UseAgencyDataReturn {
+export function useAgencyData(): UseAgencyDataReturn {
+  // 获取平台配置
+  const { getPlatformList } = usePlatformConfig(false);
+  const platforms = getPlatformList();
+
+  // 使用 ref 追踪平台列表，避免数组引用变化导致无限循环
+  const platformsRef = useRef<Platform[]>(platforms);
+  const platformsKey = platforms.join(',');
+
+  // 当平台列表内容变化时更新 ref
+  useEffect(() => {
+    platformsRef.current = platforms;
+  }, [platformsKey]);
+
   // 数据状态
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [totalAgencies, setTotalAgencies] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [talentCounts, setTalentCounts] = useState<Record<string, number>>({});
+  const [talentCounts, setTalentCounts] = useState<MultiPlatformTalentCounts>({});
+  const [loadingCounts, setLoadingCounts] = useState(false);
 
   // 分页状态
   const [currentPage, setCurrentPage] = useState(1);
@@ -139,22 +157,50 @@ export function useAgencyData({
     }
   }, [currentPage, pageSize]);
 
-  // 加载达人数量统计（复用现有逻辑）
+  // 加载所有平台的达人数量统计（使用 ref 避免无限循环）
   const loadTalentCounts = useCallback(async () => {
+    const currentPlatforms = platformsRef.current;
+    if (currentPlatforms.length === 0) return;
+
+    setLoadingCounts(true);
+
     try {
-      const response = await getTalents({ platform: selectedPlatform });
-      if (response.success && response.data) {
-        const counts: Record<string, number> = {};
-        response.data.forEach(talent => {
+      // 并行请求所有平台的达人数据
+      const results = await Promise.all(
+        currentPlatforms.map(async (platform) => {
+          try {
+            const response = await getTalents({ platform });
+            if (response.success && response.data) {
+              return { platform, data: response.data };
+            }
+            return { platform, data: [] };
+          } catch (error) {
+            logger.error(`加载 ${platform} 达人统计失败:`, error);
+            return { platform, data: [] };
+          }
+        })
+      );
+
+      // 汇总所有平台的达人数统计
+      const counts: MultiPlatformTalentCounts = {};
+
+      results.forEach(({ platform, data }) => {
+        data.forEach((talent) => {
           const agencyId = talent.agencyId || 'individual';
-          counts[agencyId] = (counts[agencyId] || 0) + 1;
+          if (!counts[agencyId]) {
+            counts[agencyId] = {} as Record<Platform, number>;
+          }
+          counts[agencyId][platform] = (counts[agencyId][platform] || 0) + 1;
         });
-        setTalentCounts(counts);
-      }
+      });
+
+      setTalentCounts(counts);
     } catch (error) {
       logger.error('加载达人统计失败:', error);
+    } finally {
+      setLoadingCounts(false);
     }
-  }, [selectedPlatform]);
+  }, []); // 移除 platforms 依赖，使用 ref
 
   // 处理筛选变更
   const handleFilterChange = useCallback(
@@ -186,10 +232,12 @@ export function useAgencyData({
     loadAgencies();
   }, [currentPage]);
 
-  // 平台变化时重新加载达人统计
+  // 平台列表变化时重新加载达人统计（使用 platformsKey 作为稳定依赖）
   useEffect(() => {
-    loadTalentCounts();
-  }, [selectedPlatform, loadTalentCounts]);
+    if (platformsKey) {
+      loadTalentCounts();
+    }
+  }, [platformsKey, loadTalentCounts]);
 
   return {
     // 数据
@@ -197,6 +245,7 @@ export function useAgencyData({
     totalAgencies,
     loading,
     talentCounts,
+    loadingCounts,
 
     // 分页
     currentPage,
@@ -211,5 +260,6 @@ export function useAgencyData({
 
     // 方法
     loadAgencies,
+    refreshTalentCounts: loadTalentCounts,
   };
 }

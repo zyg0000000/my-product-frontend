@@ -1,18 +1,16 @@
 /**
- * 机构管理页面 - v2.0 (Ant Design Pro + Tailwind 升级版)
+ * 机构管理页面 - v4.0 (多列展示)
  *
- * 升级要点：
- * 1. 使用 ProTable 替代手写表格
- * 2. 使用 Tabs 组件管理平台切换
- * 3. 使用 ProCard 包裹内容
- * 4. 使用 Space 和 Button 组件
- * 5. 集成新的弹窗组件
+ * v4.0 升级要点：
+ * 1. 每个平台独立一列，显示「返点 · 达人数」
+ * 2. 一目了然，无需交互
+ * 3. 单行紧凑展示
  */
 
 import { useState, useRef, useMemo } from 'react';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tabs, Space, Tag, App, Tooltip } from 'antd';
+import { Button, Space, Tag, App, Tooltip } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -20,10 +18,10 @@ import {
   PercentageOutlined,
   ExclamationCircleOutlined,
   UploadOutlined,
+  LinkOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import type { Agency } from '../../../types/agency';
-import type { Platform } from '../../../types/talent';
-import { PLATFORM_NAMES } from '../../../types/talent';
 import {
   AGENCY_TYPE_NAMES,
   AGENCY_STATUS_NAMES,
@@ -34,7 +32,10 @@ import { AgencyRebateModal } from '../../../components/AgencyRebateModal';
 import { AgencyFormModal } from '../../../components/AgencyFormModal';
 import { AgencyDeleteModal } from '../../../components/AgencyDeleteModal';
 import { BatchCreateAgencyModal } from '../../../components/BatchCreateAgencyModal';
+import { BatchBindTalentModal } from '../../../components/BatchBindTalentModal';
+import { AgencyTalentListModal } from '../../../components/AgencyTalentListModal';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
+import type { Platform } from '../../../types/talent';
 import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../../components/PageTransition';
 import { AgencyFilterPanel } from './components';
@@ -43,13 +44,10 @@ import { useAgencyData } from './hooks';
 export function AgenciesList() {
   const { message, modal } = App.useApp();
 
-  // 使用平台配置 Hook（只获取启用的平台）
-  const { getPlatformList } = usePlatformConfig(false);
+  // 平台配置
+  const { getPlatformList, getPlatformNames } = usePlatformConfig(false);
   const platforms = getPlatformList();
-
-  const [selectedPlatform, setSelectedPlatform] = useState<Platform>(
-    platforms[0] || 'douyin'
-  );
+  const platformNames = getPlatformNames();
 
   // 使用数据管理 Hook
   const {
@@ -65,9 +63,8 @@ export function AgenciesList() {
     handleResetFilters,
     handleSearch,
     loadAgencies,
-  } = useAgencyData({
-    selectedPlatform,
-  });
+    refreshTalentCounts,
+  } = useAgencyData();
 
   // 弹窗状态
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -77,17 +74,18 @@ export function AgenciesList() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [agencyToDelete, setAgencyToDelete] = useState<Agency | null>(null);
   const [batchCreateModalOpen, setBatchCreateModalOpen] = useState(false);
+  const [batchBindModalOpen, setBatchBindModalOpen] = useState(false);
+  const [bindTargetAgency, setBindTargetAgency] = useState<Agency | null>(null);
+  const [talentListModalOpen, setTalentListModalOpen] = useState(false);
+  const [talentListAgency, setTalentListAgency] = useState<Agency | null>(null);
 
   const actionRef = useRef<ActionType>(null);
 
-  // 获取达人数
-  const getTalentCount = (agencyId: string) => {
-    return talentCounts[agencyId] || 0;
-  };
-
-  // 获取平台返点
-  const getPlatformRebate = (agency: Agency) => {
-    return agency.rebateConfig?.platforms?.[selectedPlatform]?.baseRebate;
+  // 获取机构的总达人数（所有平台）
+  const getTotalTalentCount = (agencyId: string): number => {
+    const counts = talentCounts[agencyId];
+    if (!counts) return 0;
+    return Object.values(counts).reduce((sum, count) => sum + count, 0);
   };
 
   // 打开新增弹窗
@@ -138,6 +136,22 @@ export function AgenciesList() {
     setShowDeleteConfirm(true);
   };
 
+  // 打开批量绑定达人弹窗（从机构行操作）
+  const handleBindTalents = (agency: Agency) => {
+    if (agency.id === AGENCY_INDIVIDUAL_ID) {
+      message.warning('野生达人不支持绑定达人');
+      return;
+    }
+    setBindTargetAgency(agency);
+    setBatchBindModalOpen(true);
+  };
+
+  // 打开机构达人列表弹窗
+  const handleManageTalents = (agency: Agency) => {
+    setTalentListAgency(agency);
+    setTalentListModalOpen(true);
+  };
+
   // 确认删除机构
   const confirmDelete = async (agencyId: string) => {
     const response = await deleteAgency(agencyId);
@@ -169,14 +183,54 @@ export function AgenciesList() {
     await loadAgencies();
   };
 
-  // ProTable 列定义
+  // 动态生成各平台列（返点 · 达人数）
+  const platformColumns: ProColumns<Agency>[] = useMemo(
+    () =>
+      platforms.map((platform: Platform) => ({
+        title: platformNames[platform] || platform,
+        key: `platform_${platform}`,
+        width: 100,
+        align: 'center' as const,
+        render: (_: unknown, record: Agency) => {
+          const rebate = record.rebateConfig?.platforms?.[platform]?.baseRebate;
+          const count = talentCounts[record.id]?.[platform] || 0;
+
+          const rebateText =
+            rebate !== undefined && rebate !== null ? `${rebate}%` : '-';
+          const countText = count > 0 ? count : '0';
+
+          return (
+            <span>
+              <span
+                className={
+                  rebate !== undefined
+                    ? 'text-success-600 dark:text-success-400 font-medium'
+                    : 'text-content-muted'
+                }
+              >
+                {rebateText}
+              </span>
+              <span className="text-content-muted mx-1">·</span>
+              <span
+                className={count > 0 ? 'font-medium' : 'text-content-muted'}
+              >
+                {countText}
+              </span>
+            </span>
+          );
+        },
+      })),
+    [platforms, platformNames, talentCounts]
+  );
+
+  // ProTable 列定义 - v4.0 多列展示
   const columns: ProColumns<Agency>[] = useMemo(
     () => [
       {
         title: '机构名称',
         dataIndex: 'name',
         key: 'name',
-        width: 200,
+        width: 180,
         fixed: 'left',
         ellipsis: true,
         render: (_, record) => (
@@ -194,40 +248,19 @@ export function AgenciesList() {
         title: '类型',
         dataIndex: 'type',
         key: 'type',
-        width: 100,
+        width: 80,
         render: (_, record) => (
           <Tag color={record.type === 'agency' ? 'blue' : 'default'}>
             {AGENCY_TYPE_NAMES[record.type as keyof typeof AGENCY_TYPE_NAMES]}
           </Tag>
         ),
       },
-      {
-        title: `${PLATFORM_NAMES[selectedPlatform]}返点`,
-        key: 'rebate',
-        width: 120,
-        render: (_, record) => {
-          const rebate = getPlatformRebate(record);
-          return rebate !== undefined ? (
-            <span className="font-medium text-success-600 dark:text-success-400">
-              {rebate.toFixed(2)}%
-            </span>
-          ) : (
-            <span className="text-content-muted text-xs">未配置</span>
-          );
-        },
-      },
-      {
-        title: '达人数',
-        key: 'talentCount',
-        width: 100,
-        render: (_, record) => (
-          <span className="text-content">{getTalentCount(record.id)}</span>
-        ),
-      },
+      // v4.0: 动态插入各平台列
+      ...platformColumns,
       {
         title: '联系人',
         key: 'contact',
-        width: 150,
+        width: 130,
         render: (_, record) => (
           <div className="text-sm">
             <div className="text-content">
@@ -245,7 +278,7 @@ export function AgenciesList() {
         title: '状态',
         dataIndex: 'status',
         key: 'status',
-        width: 100,
+        width: 80,
         render: (_, record) => {
           const colorMap = {
             active: 'success',
@@ -264,10 +297,33 @@ export function AgenciesList() {
       {
         title: '操作',
         key: 'actions',
-        width: 100,
+        width: 160,
         fixed: 'right',
         render: (_, record) => (
           <Space size={4}>
+            {/* 绑定达人 */}
+            {record.id !== AGENCY_INDIVIDUAL_ID && (
+              <Tooltip title="绑定达人">
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<LinkOutlined />}
+                  onClick={() => handleBindTalents(record)}
+                  className="text-primary-600 dark:text-primary-400 hover:text-primary-700"
+                />
+              </Tooltip>
+            )}
+            {/* 管理达人 */}
+            <Tooltip title="管理达人">
+              <Button
+                type="text"
+                size="small"
+                icon={<TeamOutlined />}
+                onClick={() => handleManageTalents(record)}
+                className="text-content-secondary hover:text-content"
+              />
+            </Tooltip>
+            {/* 返点管理 */}
             {record.id !== AGENCY_INDIVIDUAL_ID && (
               <Tooltip title="返点管理">
                 <Button
@@ -279,6 +335,7 @@ export function AgenciesList() {
                 />
               </Tooltip>
             )}
+            {/* 编辑 */}
             <Tooltip title="编辑">
               <Button
                 type="text"
@@ -287,6 +344,7 @@ export function AgenciesList() {
                 onClick={() => handleEdit(record)}
               />
             </Tooltip>
+            {/* 删除 */}
             {record.id !== AGENCY_INDIVIDUAL_ID && (
               <Tooltip title="删除">
                 <Button
@@ -302,7 +360,7 @@ export function AgenciesList() {
         ),
       },
     ],
-    [selectedPlatform, talentCounts]
+    [platformColumns]
   );
 
   return (
@@ -315,16 +373,6 @@ export function AgenciesList() {
             管理MCN机构和独立达人，配置各平台返点政策
           </p>
         </div>
-
-        {/* 平台 Tabs - Ant Design Tabs */}
-        <Tabs
-          activeKey={selectedPlatform}
-          onChange={key => setSelectedPlatform(key as Platform)}
-          items={platforms.map(platform => ({
-            key: platform,
-            label: PLATFORM_NAMES[platform],
-          }))}
-        />
 
         {/* 筛选面板 */}
         <AgencyFilterPanel
@@ -382,6 +430,16 @@ export function AgenciesList() {
                 >
                   批量新增
                 </Button>,
+                <Button
+                  key="batch-bind"
+                  icon={<LinkOutlined />}
+                  onClick={() => {
+                    setBindTargetAgency(null);
+                    setBatchBindModalOpen(true);
+                  }}
+                >
+                  批量绑定达人
+                </Button>,
               ],
             }}
             options={{
@@ -425,7 +483,9 @@ export function AgenciesList() {
           }}
           agency={agencyToDelete}
           onConfirm={confirmDelete}
-          talentCount={agencyToDelete ? getTalentCount(agencyToDelete.id) : 0}
+          talentCount={
+            agencyToDelete ? getTotalTalentCount(agencyToDelete.id) : 0
+          }
         />
 
         {/* 批量新增机构弹窗 */}
@@ -434,6 +494,36 @@ export function AgenciesList() {
           onClose={() => setBatchCreateModalOpen(false)}
           onSuccess={loadAgencies}
         />
+
+        {/* 批量绑定达人弹窗 - 不预设平台，用户必须手动选择 */}
+        <BatchBindTalentModal
+          open={batchBindModalOpen}
+          onClose={() => {
+            setBatchBindModalOpen(false);
+            setBindTargetAgency(null);
+          }}
+          onSuccess={() => {
+            loadAgencies();
+            refreshTalentCounts();
+          }}
+          initialAgency={bindTargetAgency || undefined}
+        />
+
+        {/* 机构达人管理弹窗 */}
+        {talentListAgency && (
+          <AgencyTalentListModal
+            open={talentListModalOpen}
+            onClose={() => {
+              setTalentListModalOpen(false);
+              setTalentListAgency(null);
+            }}
+            onSuccess={() => {
+              loadAgencies();
+              refreshTalentCounts();
+            }}
+            agency={talentListAgency}
+          />
+        )}
       </div>
     </PageTransition>
   );

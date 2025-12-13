@@ -531,6 +531,51 @@
   color: white !important;
 }
 
+/* ========================================
+   Ant Design 组件间距标准化
+   ======================================== */
+
+/* Pagination 分页器 - 项间距 */
+.ant-pagination-item,
+.ant-pagination-prev,
+.ant-pagination-next,
+.ant-pagination-jump-prev,
+.ant-pagination-jump-next {
+  margin-inline-end: var(--aw-space-gap-xs) !important; /* 4px */
+}
+
+/* Input.Search 搜索框 - 按钮间距 */
+.ant-input-search > .ant-input-group > .ant-input-group-addon:last-child .ant-input-search-button,
+.ant-input-search .ant-btn {
+  margin-left: var(--aw-space-gap-sm) !important; /* 8px */
+}
+
+/* Segmented 组件 - 内部间距 */
+.ant-segmented {
+  padding: var(--aw-space-1) !important; /* 4px */
+  gap: var(--aw-space-1) !important; /* 4px */
+}
+
+/* Select 下拉选择器 */
+.ant-select-selector {
+  padding-left: var(--aw-space-3) !important; /* 12px */
+  padding-right: var(--aw-space-3) !important;
+}
+
+/* Space 组件默认间距 */
+.ant-space {
+  gap: var(--aw-space-gap-sm) !important; /* 8px */
+}
+
+/* ProTable 工具栏间距 */
+.ant-pro-table-list-toolbar-container {
+  gap: var(--aw-space-gap-sm) !important; /* 8px */
+}
+
+.ant-pro-table-list-toolbar-right {
+  gap: var(--aw-space-gap-sm) !important; /* 8px */
+}
+
 /* 标签页 */
 .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
   color: var(--aw-primary-600) !important;

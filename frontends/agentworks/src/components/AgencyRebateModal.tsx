@@ -34,7 +34,6 @@ import {
 import { logger } from '../utils/logger';
 import type { Agency } from '../types/agency';
 import type { Platform } from '../types/talent';
-import { PLATFORM_NAMES } from '../types/talent';
 import {
   updateAgencyRebate,
   getAgencyRebateHistory,
@@ -61,8 +60,9 @@ export function AgencyRebateModal({
   onSuccess,
 }: AgencyRebateModalProps) {
   // 使用平台配置 Hook（只获取启用的平台）
-  const { getPlatformList } = usePlatformConfig(false);
+  const { getPlatformList, getPlatformNames } = usePlatformConfig(false);
   const supportedPlatforms = getPlatformList();
+  const platformNames = getPlatformNames();
 
   const [activeTab, setActiveTab] = useState<TabType>('current');
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>(
@@ -325,7 +325,7 @@ export function AgencyRebateModal({
           ) : (
             <Alert
               message="尚未配置"
-              description={`该机构在${PLATFORM_NAMES[selectedPlatform]}平台还未配置返点率，请前往"手动调整"标签进行设置。`}
+              description={`该机构在${platformNames[selectedPlatform] || selectedPlatform}平台还未配置返点率，请前往"手动调整"标签进行设置。`}
               type="info"
               showIcon
               icon={<InfoCircleOutlined />}
@@ -496,7 +496,7 @@ export function AgencyRebateModal({
           ) : (
             <Alert
               message="暂无历史记录"
-              description={`该机构在${PLATFORM_NAMES[selectedPlatform]}平台还没有返点调整记录。`}
+              description={`该机构在${platformNames[selectedPlatform] || selectedPlatform}平台还没有返点调整记录。`}
               type="info"
               showIcon
             />
@@ -536,7 +536,7 @@ export function AgencyRebateModal({
           style={{ width: 200 }}
           options={supportedPlatforms.map(platform => ({
             value: platform,
-            label: PLATFORM_NAMES[platform],
+            label: platformNames[platform] || platform,
           }))}
         />
       </div>

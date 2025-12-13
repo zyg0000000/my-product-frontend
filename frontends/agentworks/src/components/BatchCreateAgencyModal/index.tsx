@@ -652,7 +652,7 @@ export function BatchCreateAgencyModal({
       onCancel={handleClose}
       width={700}
       footer={renderFooter()}
-      destroyOnClose
+      destroyOnHidden
     >
       <div className="py-2">{renderContent()}</div>
     </Modal>

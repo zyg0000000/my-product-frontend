@@ -1,0 +1,9 @@
+{
+  "name": "talent-batch-operations",
+  "version": "1.0.0",
+  "description": "Talent batch operations for agentworks (match, bindAgency, unbindAgency)",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^4.5.0"
+  }
+}

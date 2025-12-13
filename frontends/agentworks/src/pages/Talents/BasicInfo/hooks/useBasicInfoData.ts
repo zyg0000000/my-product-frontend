@@ -243,12 +243,30 @@ export function useBasicInfoData({
   useEffect(() => {
     const loadAgencies = async () => {
       try {
-        const response = await getAgencies({
-          limit: 100, // 加载所有机构
-        });
-        if (response.success && response.data) {
-          setAgencies(response.data);
+        // 加载所有机构（后端限制最大 100 条，需要分页加载）
+        let allAgencies: Agency[] = [];
+        let page = 1;
+        const pageSize = 100;
+        let hasMore = true;
+
+        while (hasMore) {
+          const response = await getAgencies({
+            page,
+            limit: pageSize,
+          });
+
+          if (response.success && response.data) {
+            allAgencies = [...allAgencies, ...response.data];
+            // 如果返回数据少于 pageSize，说明已经是最后一页
+            hasMore = response.data.length === pageSize;
+            page++;
+          } else {
+            hasMore = false;
+          }
         }
+
+        setAgencies(allAgencies);
+        logger.debug(`已加载 ${allAgencies.length} 个机构`);
       } catch (error) {
         logger.error('加载机构列表失败:', error);
         setAgencies([]); // 失败时设为空数组

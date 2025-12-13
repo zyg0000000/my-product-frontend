@@ -342,3 +342,236 @@ export async function getTalentFilterOptions(
 ): Promise<FilterOptionsResponse> {
   return get('/talents/filter-options', { dbVersion });
 }
+
+// ==================== 批量操作统一接口 (talentBatchOperations) ====================
+
+/**
+ * 批量匹配 - 输入项
+ */
+export interface BatchMatchTalentInput {
+  platformAccountId?: string; // 优先匹配
+  name?: string; // 备选匹配
+}
+
+/**
+ * 批量匹配 - 匹配到的达人信息
+ */
+export interface MatchedTalent {
+  oneId: string;
+  name: string;
+  platformAccountId: string;
+  platform: Platform;
+  agencyId: string;
+  agencyName: string;
+}
+
+/**
+ * 批量匹配 - 单条结果
+ */
+export interface BatchMatchResult {
+  input: BatchMatchTalentInput;
+  talent: MatchedTalent | null;
+  status: 'found' | 'not_found' | 'multiple_found';
+  message?: string;
+  candidates?: MatchedTalent[]; // 多个匹配时的候选列表
+}
+
+/**
+ * 批量匹配 - 响应
+ */
+export interface BatchMatchResponse {
+  success: boolean;
+  data?: {
+    matched: BatchMatchResult[];
+    summary: {
+      total: number;
+      found: number;
+      notFound: number;
+      multipleFound: number;
+    };
+  };
+  message?: string;
+}
+
+/**
+ * 批量匹配达人
+ * 根据 platformAccountId 或 name 查找达人，用于绑定前的预览
+ */
+export async function batchMatchTalents(
+  platform: Platform,
+  talents: BatchMatchTalentInput[]
+): Promise<BatchMatchResponse> {
+  return post('/talents/batch', {
+    operation: 'match',
+    platform,
+    data: { talents },
+  });
+}
+
+/**
+ * 批量绑定机构 - 错误详情
+ */
+export interface BindAgencyError {
+  oneId: string;
+  reason: string;
+  currentAgencyId?: string;
+  currentAgencyName?: string;
+  talentName?: string;
+}
+
+/**
+ * 批量绑定机构 - 响应
+ */
+export interface BatchBindAgencyResponse {
+  success: boolean;
+  data?: {
+    bound: number; // 成功绑定数
+    skipped: number; // 跳过数
+    failed: number; // 失败数
+    targetAgency: {
+      id: string;
+      name: string;
+    };
+    errors: BindAgencyError[];
+  };
+  message?: string;
+}
+
+/**
+ * 批量绑定机构
+ * 将达人绑定到指定机构
+ *
+ * @param platform 平台
+ * @param agencyId 目标机构ID
+ * @param oneIds 达人 oneId 列表
+ * @param overwriteExisting 是否覆盖已绑定其他机构的达人
+ */
+export async function batchBindAgency(
+  platform: Platform,
+  agencyId: string,
+  oneIds: string[],
+  overwriteExisting = false
+): Promise<BatchBindAgencyResponse> {
+  return post('/talents/batch', {
+    operation: 'bindAgency',
+    platform,
+    data: {
+      agencyId,
+      talents: oneIds.map((oneId) => ({ oneId })),
+      overwriteExisting,
+    },
+  });
+}
+
+// ==================== 按机构名称批量绑定 (多机构模式) ====================
+
+/**
+ * 按机构名称批量绑定 - 输入项
+ */
+export interface BindByNameTalentInput {
+  oneId: string;
+  agencyName: string;
+}
+
+/**
+ * 按机构名称批量绑定 - 单条结果
+ */
+export interface BindByNameResult {
+  oneId: string;
+  agencyName: string;
+  agencyId?: string;
+  talentName?: string;
+  status: 'bound' | 'skipped';
+  reason?: string;
+}
+
+/**
+ * 按机构名称批量绑定 - 错误详情
+ */
+export interface BindByNameError {
+  oneId: string;
+  agencyName: string;
+  reason: string;
+  currentAgencyId?: string;
+  currentAgencyName?: string;
+  talentName?: string;
+}
+
+/**
+ * 按机构名称批量绑定 - 响应
+ */
+export interface BatchBindByNameResponse {
+  success: boolean;
+  data?: {
+    bound: number; // 成功绑定数
+    skipped: number; // 跳过数
+    failed: number; // 失败数
+    results: BindByNameResult[];
+    errors: BindByNameError[];
+  };
+  message?: string;
+}
+
+/**
+ * 按机构名称批量绑定机构（多机构模式）
+ * 支持一次请求将不同达人绑定到不同机构
+ *
+ * @param platform 平台
+ * @param talents 待绑定的达人列表 [{ oneId, agencyName }]
+ * @param overwriteExisting 是否覆盖已绑定其他机构的达人
+ */
+export async function batchBindAgencyByName(
+  platform: Platform,
+  talents: BindByNameTalentInput[],
+  overwriteExisting = false
+): Promise<BatchBindByNameResponse> {
+  return post('/talents/batch', {
+    operation: 'bindAgencyByName',
+    platform,
+    data: {
+      talents,
+      overwriteExisting,
+    },
+  });
+}
+
+/**
+ * 批量解绑机构 - 错误详情
+ */
+export interface UnbindAgencyError {
+  oneId: string;
+  reason: string;
+}
+
+/**
+ * 批量解绑机构 - 响应
+ */
+export interface BatchUnbindAgencyResponse {
+  success: boolean;
+  data?: {
+    unbound: number; // 成功解绑数
+    failed: number; // 失败数
+    errors: UnbindAgencyError[];
+  };
+  message?: string;
+}
+
+/**
+ * 批量解绑机构
+ * 将达人从机构中移除，变为野生达人
+ *
+ * @param platform 平台
+ * @param oneIds 达人 oneId 列表
+ */
+export async function batchUnbindAgency(
+  platform: Platform,
+  oneIds: string[]
+): Promise<BatchUnbindAgencyResponse> {
+  return post('/talents/batch', {
+    operation: 'unbindAgency',
+    platform,
+    data: {
+      talents: oneIds.map((oneId) => ({ oneId })),
+    },
+  });
+}

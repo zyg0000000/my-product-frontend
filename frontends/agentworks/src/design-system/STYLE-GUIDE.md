@@ -1,6 +1,8 @@
-# AgentWorks 深色模式开发规范
+# AgentWorks 设计系统开发规范
 
-> 版本: 1.0.0 | 更新时间: 2025-12-12
+> 版本: 1.1.0 | 更新时间: 2025-12-14
+>
+> v1.1.0 更新：新增间距使用规范（第九章）
 
 ## 一、核心原则
 
@@ -200,3 +202,57 @@
 - `src/components/Performance/*.tsx`
 - `src/components/FilterPanel/*.tsx`
 - `src/components/BatchCreateTalentModal/index.tsx`
+
+---
+
+## 九、间距使用规范
+
+### 9.1 Ant Design 组件间距（全局覆盖）
+
+以下组件间距已在 `/src/index.css` 全局覆盖，开发者无需手动处理：
+
+| 组件 | 间距 | 说明 |
+|------|------|------|
+| Pagination | 4px | 分页器项之间间距 |
+| Input.Search | 8px | 搜索按钮左侧间距 |
+| Segmented | 4px | 内部 padding 和 gap |
+| Space | 8px | 默认元素间距 |
+| ProTable 工具栏 | 8px | 按钮组间距 |
+
+### 9.2 Tailwind 间距类使用指南
+
+| 场景 | 推荐类 | 像素值 | 示例 |
+|------|--------|--------|------|
+| 紧密元素（图标+文字） | `gap-1` | 4px | `<span class="flex gap-1">` |
+| 同组元素（按钮组） | `gap-2` | 8px | `<div class="flex gap-2">` |
+| 表单元素 | `gap-3` | 12px | `<form class="flex gap-3">` |
+| 区块间距 | `gap-4`, `space-y-4` | 16px | Modal 内容区域 |
+| 页面区块 | `gap-6`, `space-y-6` | 24px | 页面主要区块 |
+
+### 9.3 Modal 弹窗规范
+
+- 使用 Ant Design Modal 组件
+- 内容区域使用 `space-y-4` 组织垂直布局
+- 表单元素使用 `gap-3` 或 `gap-4`
+
+```tsx
+<Modal title="标题" open={open}>
+  <div className="space-y-4">
+    {/* 内容区域 */}
+  </div>
+</Modal>
+```
+
+### 9.4 间距 CSS Variables
+
+在自定义样式中使用间距变量：
+
+```css
+.my-component {
+  gap: var(--aw-space-gap-sm);      /* 8px - 同组元素 */
+  padding: var(--aw-space-inset-lg); /* 16px - 组件内部 */
+  margin-bottom: var(--aw-space-4);  /* 16px */
+}
+```
+
+完整间距变量参见 `/src/design-system/tokens/spacing.css`
