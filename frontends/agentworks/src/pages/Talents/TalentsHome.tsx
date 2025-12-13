@@ -118,7 +118,9 @@ export function TalentsHome() {
                 <p className="text-sm text-content-secondary mt-1 font-medium">
                   总达人数
                 </p>
-                <p className="text-xs text-content-muted mt-0.5">按 OneID 去重</p>
+                <p className="text-xs text-content-muted mt-0.5">
+                  按 OneID 去重
+                </p>
               </motion.div>
               {[
                 { label: '抖音', value: stats.douyin, delay: 0.1 },

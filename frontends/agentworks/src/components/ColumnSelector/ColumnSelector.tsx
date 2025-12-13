@@ -117,7 +117,9 @@ export function ColumnSelector({
   onUpdateWidth,
 }: ColumnSelectorProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [expandedConfig, setExpandedConfig] = useState<Record<string, boolean>>({});
+  const [expandedConfig, setExpandedConfig] = useState<Record<string, boolean>>(
+    {}
+  );
 
   // 搜索过滤后的字段
   const filteredFieldsByCategory = useMemo(() => {
@@ -198,7 +200,11 @@ export function ColumnSelector({
   };
 
   // 渲染字段项
-  const renderFieldItem = (field: FieldDefinition, category: FieldCategory, fieldsInCategory: FieldDefinition[]) => {
+  const renderFieldItem = (
+    field: FieldDefinition,
+    category: FieldCategory,
+    fieldsInCategory: FieldDefinition[]
+  ) => {
     const isSelected = selectedSet.has(field.id);
     const isConfigExpanded = expandedConfig[field.id];
     const fieldIndex = fieldsInCategory.findIndex(f => f.id === field.id);
@@ -229,7 +235,9 @@ export function ColumnSelector({
               <div className="flex items-center gap-2 flex-wrap">
                 <span
                   className={`text-sm truncate ${
-                    isSelected ? 'text-primary-700 font-medium' : 'text-content-secondary'
+                    isSelected
+                      ? 'text-primary-700 font-medium'
+                      : 'text-content-secondary'
                   }`}
                 >
                   {field.name}
@@ -360,7 +368,9 @@ export function ColumnSelector({
       label: renderCategoryHeader(category),
       children: (
         <div className="space-y-2">
-          {fieldsInCategory.map(field => renderFieldItem(field, category.id, fieldsInCategory))}
+          {fieldsInCategory.map(field =>
+            renderFieldItem(field, category.id, fieldsInCategory)
+          )}
         </div>
       ),
     };

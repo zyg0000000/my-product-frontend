@@ -9,6 +9,10 @@
  * 布局：
  * - 左侧：筛选器分类折叠面板
  * - 右侧：已选筛选条件标签展示
+ *
+ * v2.0 更新（2025-12-13）：
+ * - 使用通用筛选器组件（TextFilter、EnumFilter、RangeFilter）
+ * - 删除内部子组件定义，减少代码重复
  */
 
 import { useState, useMemo, useEffect } from 'react';
@@ -18,6 +22,7 @@ import type {
   PerformanceFilters as FiltersType,
 } from '../../hooks/usePerformanceFilters';
 import { getTalentFilterOptions } from '../../api/talent';
+import { TextFilter, EnumFilter, RangeFilter } from '../Filters';
 
 interface PerformanceFiltersProps {
   // 可筛选的维度列表（已按 filterOrder 排序）
@@ -188,7 +193,7 @@ export function PerformanceFilters({
     return expandedCategories[category];
   };
 
-  // 渲染单个筛选器
+  // 渲染单个筛选器（使用通用组件）
   const renderFilter = (dim: FilterableDimension) => {
     const value = filters[dim.id] || {};
 
@@ -197,15 +202,16 @@ export function PerformanceFilters({
         return (
           <TextFilter
             key={dim.id}
-            dimension={dim}
+            label={dim.name}
             value={value.text || ''}
             onChange={text => onFilterChange(dim.id, { ...value, text })}
+            placeholder={`搜索${dim.name}...`}
           />
         );
 
       case 'enum':
         return (
-          <EnumFilter
+          <PerformanceEnumFilter
             key={dim.id}
             dimension={dim}
             selected={value.selected || []}
@@ -219,12 +225,13 @@ export function PerformanceFilters({
         return (
           <RangeFilter
             key={dim.id}
-            dimension={dim}
+            label={dim.name}
             min={value.min || ''}
             max={value.max || ''}
             onChange={(min, max) =>
               onFilterChange(dim.id, { ...value, min, max })
             }
+            isPercentage={dim.type === 'percentage'}
           />
         );
 
@@ -390,38 +397,12 @@ export function PerformanceFilters({
 }
 
 /**
- * 文本搜索筛选器
- */
-function TextFilter({
-  dimension,
-  value,
-  onChange,
-}: {
-  dimension: FilterableDimension;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="space-y-1">
-      <label className="block text-xs font-medium text-content-secondary">
-        {dimension.name}
-      </label>
-      <input
-        type="text"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder={`搜索${dimension.name}...`}
-        className="w-full px-3 py-1.5 text-sm border border-stroke rounded-md bg-surface text-content focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-      />
-    </div>
-  );
-}
-
-/**
- * 枚举多选筛选器
+ * Performance 专用枚举筛选器（保留特殊的动态加载逻辑）
  * 支持动态从 API 加载选项（talentType）
+ *
+ * 注：内部使用通用 EnumFilter 组件，只添加动态加载逻辑层
  */
-function EnumFilter({
+function PerformanceEnumFilter({
   dimension,
   selected,
   onChange,
@@ -471,88 +452,32 @@ function EnumFilter({
   ]);
 
   // 优先使用动态加载的选项，否则使用配置中的静态选项
-  const options = needsDynamicLoad
+  const finalOptions = needsDynamicLoad
     ? dynamicOptions
     : dimension.filterOptions || [];
 
-  const toggleOption = (option: string) => {
-    if (selected.includes(option)) {
-      onChange(selected.filter(s => s !== option));
-    } else {
-      onChange([...selected, option]);
-    }
-  };
+  // 转换为 EnumFilter 需要的格式
+  const enumOptions = finalOptions.map(opt => ({ value: opt, label: opt }));
 
-  return (
-    <div className="space-y-1">
-      <label className="block text-xs font-medium text-content-secondary">
-        {dimension.name}
-      </label>
-      <div className="flex flex-wrap gap-2">
-        {loading ? (
-          <span className="text-xs text-content-muted">加载中...</span>
-        ) : options.length > 0 ? (
-          options.map(option => (
-            <button
-              key={option}
-              onClick={() => toggleOption(option)}
-              className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-                selected.includes(option)
-                  ? 'bg-primary-600 text-white border-primary-600'
-                  : 'bg-surface text-content-secondary border-stroke hover:border-primary-400'
-              }`}
-            >
-              {option}
-            </button>
-          ))
-        ) : (
-          <span className="text-xs text-content-muted">暂无选项</span>
-        )}
+  // 加载中显示
+  if (loading) {
+    return (
+      <div className="space-y-1">
+        <label className="block text-xs font-medium text-content-secondary">
+          {dimension.name}
+        </label>
+        <span className="text-xs text-content-muted">加载中...</span>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
-/**
- * 数值/百分比区间筛选器
- */
-function RangeFilter({
-  dimension,
-  min,
-  max,
-  onChange,
-}: {
-  dimension: FilterableDimension;
-  min: string;
-  max: string;
-  onChange: (min: string, max: string) => void;
-}) {
-  const isPercentage = dimension.type === 'percentage';
-  const suffix = isPercentage ? '%' : '';
-
+  // 使用通用 EnumFilter 组件
   return (
-    <div className="space-y-1">
-      <label className="block text-xs font-medium text-content-secondary">
-        {dimension.name}
-        {isPercentage && <span className="text-content-muted ml-1">(%)</span>}
-      </label>
-      <div className="flex items-center gap-2">
-        <input
-          type="number"
-          value={min}
-          onChange={e => onChange(e.target.value, max)}
-          placeholder={`最小${suffix}`}
-          className="w-20 px-2 py-1.5 text-sm border border-stroke rounded-md bg-surface text-content focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-        <span className="text-content-muted">-</span>
-        <input
-          type="number"
-          value={max}
-          onChange={e => onChange(min, e.target.value)}
-          placeholder={`最大${suffix}`}
-          className="w-20 px-2 py-1.5 text-sm border border-stroke rounded-md bg-surface text-content focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        />
-      </div>
-    </div>
+    <EnumFilter
+      label={dimension.name}
+      options={enumOptions}
+      selected={selected}
+      onChange={onChange}
+    />
   );
 }

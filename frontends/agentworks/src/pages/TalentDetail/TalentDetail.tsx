@@ -203,7 +203,9 @@ export function TalentDetail() {
   }
 
   if (!talent) {
-    return <div className="p-12 text-center text-content-muted">未找到达人信息</div>;
+    return (
+      <div className="p-12 text-center text-content-muted">未找到达人信息</div>
+    );
   }
 
   const priceHistory = getPriceHistory(talent.prices);
@@ -225,9 +227,7 @@ export function TalentDetail() {
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-6">
             <div>
-              <h1 className="text-2xl font-bold text-content">
-                {talent.name}
-              </h1>
+              <h1 className="text-2xl font-bold text-content">{talent.name}</h1>
               <div className="mt-2 space-y-1 text-sm text-content-muted">
                 <p>oneId: {talent.oneId}</p>
                 <p>平台: {PLATFORM_NAMES[talent.platform]}</p>
@@ -399,7 +399,9 @@ export function TalentDetail() {
             </div>
           </div>
         ) : (
-          <div className="mt-6 text-center text-content-muted">暂无返点配置信息</div>
+          <div className="mt-6 text-center text-content-muted">
+            暂无返点配置信息
+          </div>
         )}
       </div>
 

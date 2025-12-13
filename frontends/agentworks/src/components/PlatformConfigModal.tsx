@@ -853,7 +853,9 @@ export function PlatformConfigModal({
               {LINK_ID_SOURCE_OPTIONS.map((opt, i) => (
                 <span key={opt.value}>
                   {i > 0 && '，'}
-                  <span className="text-primary-600 dark:text-primary-400">{opt.label}</span>{' '}
+                  <span className="text-primary-600 dark:text-primary-400">
+                    {opt.label}
+                  </span>{' '}
                   {opt.description}
                 </span>
               ))}

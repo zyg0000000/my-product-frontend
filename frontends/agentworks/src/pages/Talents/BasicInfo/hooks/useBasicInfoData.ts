@@ -243,12 +243,15 @@ export function useBasicInfoData({
   useEffect(() => {
     const loadAgencies = async () => {
       try {
-        const response = await getAgencies();
+        const response = await getAgencies({
+          limit: 100, // 加载所有机构
+        });
         if (response.success && response.data) {
           setAgencies(response.data);
         }
       } catch (error) {
         logger.error('加载机构列表失败:', error);
+        setAgencies([]); // 失败时设为空数组
       }
     };
 

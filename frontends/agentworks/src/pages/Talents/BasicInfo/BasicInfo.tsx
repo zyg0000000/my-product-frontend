@@ -13,12 +13,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ActionType } from '@ant-design/pro-components';
 import { Tabs, Button, Select, message, Space } from 'antd';
-import {
-  PlusOutlined,
-  ReloadOutlined,
-  UploadOutlined,
-  TeamOutlined,
-} from '@ant-design/icons';
+import { PlusOutlined, UploadOutlined, TeamOutlined } from '@ant-design/icons';
 import { logger } from '../../../utils/logger';
 import {
   updateTalent,
@@ -65,7 +60,6 @@ export function BasicInfo() {
   const {
     talents,
     agencies,
-    customers,
     totalTalents,
     loading,
     currentPage,
@@ -96,9 +90,6 @@ export function BasicInfo() {
   const [batchCreateModalOpen, setBatchCreateModalOpen] = useState(false);
   const [addToCustomerModalOpen, setAddToCustomerModalOpen] = useState(false);
   const [selectedTalent, setSelectedTalent] = useState<Talent | null>(null);
-
-  // 筛选面板展开状态
-  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
 
   // 价格类型配置
   const priceTypes = getPlatformPriceTypes(selectedPlatform);
@@ -269,10 +260,7 @@ export function BasicInfo() {
           filterState={filterState}
           onFilterChange={handleFilterChange}
           availableTags={availableTags}
-          customers={customers}
           totalTalents={totalTalents}
-          isExpanded={isFilterExpanded}
-          onToggleExpand={() => setIsFilterExpanded(!isFilterExpanded)}
           onSearch={handleSearch}
           onReset={handleResetFilters}
         />
@@ -381,22 +369,16 @@ export function BasicInfo() {
                     ]}
                   />
                 </div>,
-                // 刷新按钮
-                <Button
-                  key="refresh"
-                  icon={<ReloadOutlined />}
-                  onClick={async () => {
-                    await loadTalents();
-                    message.success('数据已刷新');
-                  }}
-                >
-                  刷新
-                </Button>,
               ],
             }}
             options={{
               fullScreen: true,
               density: true,
+              reload: async () => {
+                await loadTalents();
+                message.success('数据已刷新');
+                return true;
+              },
               setting: true,
             }}
             scroll={{ x: 1500 }}

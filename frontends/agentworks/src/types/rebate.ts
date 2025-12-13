@@ -154,8 +154,10 @@ export const REBATE_STATUS_LABELS: Record<RebateStatus, string> = {
  * 返点状态颜色映射（Tailwind CSS）
  */
 export const REBATE_STATUS_COLORS: Record<RebateStatus, string> = {
-  pending: 'text-warning-600 dark:text-warning-400 bg-warning-50 dark:bg-warning-900/20',
-  active: 'text-success-600 dark:text-success-400 bg-success-50 dark:bg-success-900/20',
+  pending:
+    'text-warning-600 dark:text-warning-400 bg-warning-50 dark:bg-warning-900/20',
+  active:
+    'text-success-600 dark:text-success-400 bg-success-50 dark:bg-success-900/20',
   expired: 'text-content-secondary bg-surface-base',
 };
 

@@ -228,7 +228,9 @@ export function TalentProcurementForm({
       {/* 项目比价模式提示 */}
       {currentConfig.pricingModel === 'project' && currentConfig.enabled && (
         <div className="text-center py-6 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg">
-          <div className="text-primary-900 dark:text-primary-100 font-semibold mb-1">项目比价模式</div>
+          <div className="text-primary-900 dark:text-primary-100 font-semibold mb-1">
+            项目比价模式
+          </div>
           <div className="text-sm text-primary-700 dark:text-primary-300">
             该平台采用项目比价，创建项目时手动填写对客报价
           </div>

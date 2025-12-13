@@ -1010,7 +1010,9 @@ export function FinancialTab({
                       {adj.type}:{' '}
                       <span
                         className={
-                          adj.amount >= 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-500'
+                          adj.amount >= 0
+                            ? 'text-success-600 dark:text-success-400'
+                            : 'text-danger-500'
                         }
                       >
                         {adj.amount >= 0 ? '+' : ''}

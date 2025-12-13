@@ -371,7 +371,11 @@ export function TalentPanorama() {
               if (value === null || value === undefined) return 'N/A';
               const sign = value > 0 ? '+' : '';
               const color =
-                value > 0 ? 'text-success-600 dark:text-success-400' : value < 0 ? 'text-danger-600 dark:text-danger-400' : '';
+                value > 0
+                  ? 'text-success-600 dark:text-success-400'
+                  : value < 0
+                    ? 'text-danger-600 dark:text-danger-400'
+                    : '';
               return (
                 <span className={color}>
                   {sign}
@@ -731,7 +735,8 @@ export function TalentPanorama() {
                 const firstSorter = sorter[0];
                 if (firstSorter?.field && firstSorter?.order) {
                   newSortField = firstSorter.field as string;
-                  newSortOrder = firstSorter.order === 'descend' ? 'desc' : 'asc';
+                  newSortOrder =
+                    firstSorter.order === 'descend' ? 'desc' : 'asc';
                 }
               } else if (sorter?.field && sorter?.order) {
                 newSortField = sorter.field as string;
@@ -740,7 +745,8 @@ export function TalentPanorama() {
 
               // 只有在排序状态变化时才调用 setSort
               const sortChanged =
-                newSortField !== sortState.field || newSortOrder !== sortState.order;
+                newSortField !== sortState.field ||
+                newSortOrder !== sortState.order;
 
               if (sortChanged) {
                 setSort(newSortField, newSortOrder);

@@ -78,7 +78,9 @@ export function ViewModeSelector({
 
   return (
     <div className="flex items-center gap-4 p-4 bg-surface-base rounded-lg border border-stroke">
-      <span className="text-sm font-medium text-content-secondary">查看视角：</span>
+      <span className="text-sm font-medium text-content-secondary">
+        查看视角：
+      </span>
 
       <Radio.Group
         value={viewMode}

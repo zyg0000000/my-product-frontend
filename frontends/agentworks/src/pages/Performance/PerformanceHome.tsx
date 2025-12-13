@@ -235,14 +235,19 @@ export function PerformanceHome() {
         column.sorter = true;
         // 设置当前排序状态
         if (sortState.field === dim.targetPath) {
-          column.sortOrder =
-            sortState.order === 'desc' ? 'descend' : 'ascend';
+          column.sortOrder = sortState.order === 'desc' ? 'descend' : 'ascend';
         }
       }
 
       return column;
     });
-  }, [activeConfig, visibleDimensionIds, selectedPriceType, priceTypes, sortState]);
+  }, [
+    activeConfig,
+    visibleDimensionIds,
+    selectedPriceType,
+    priceTypes,
+    sortState,
+  ]);
 
   return (
     <PageTransition>
@@ -315,7 +320,8 @@ export function PerformanceHome() {
                     const sortField = Array.isArray(firstSorter.field)
                       ? firstSorter.field.join('.')
                       : (firstSorter.field as string);
-                    const order = firstSorter.order === 'descend' ? 'desc' : 'asc';
+                    const order =
+                      firstSorter.order === 'descend' ? 'desc' : 'asc';
                     setSort(sortField, order);
                   } else {
                     setSort(undefined, undefined);

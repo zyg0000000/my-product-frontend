@@ -251,7 +251,13 @@ export function AgencyRebateModal({
       key: 'syncToTalents',
       width: 80,
       render: (sync: boolean) => (
-        <span className={sync ? 'text-success-600 dark:text-success-400' : 'text-content-muted'}>
+        <span
+          className={
+            sync
+              ? 'text-success-600 dark:text-success-400'
+              : 'text-content-muted'
+          }
+        >
           {sync ? '是' : '否'}
         </span>
       ),

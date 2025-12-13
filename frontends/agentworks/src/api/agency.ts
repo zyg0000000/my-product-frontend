@@ -7,13 +7,51 @@ import type { Agency, AgencyFormData } from '../types/agency';
 import type { ApiResponse, Platform } from '../types/talent';
 
 /**
- * 获取机构列表
+ * 获取机构列表参数（v2.0）
  */
-export async function getAgencies(params?: {
+export interface GetAgenciesParams {
+  // 筛选参数
   type?: string;
   status?: string;
   search?: string;
-}): Promise<ApiResponse<Agency[]>> {
+  contactPerson?: string;
+  phoneNumber?: string;
+  createdAfter?: string;
+  createdBefore?: string;
+  statusList?: string;
+
+  // 分页参数
+  page?: number;
+  limit?: number;
+
+  // 排序参数
+  sortBy?: string;
+  order?: 'asc' | 'desc';
+
+  // 索引签名（兼容 RequestParamValue）
+  [key: string]: string | number | undefined;
+}
+
+/**
+ * 获取机构列表响应（v2.0 - 与 getTalents 保持一致）
+ */
+export interface GetAgenciesResponse {
+  success: boolean;
+  data?: Agency[]; // 机构数组
+  total?: number; // 总记录数
+  page?: number; // 当前页
+  limit?: number; // 每页数量
+  totalPages?: number; // 总页数
+  message?: string;
+  error?: string;
+}
+
+/**
+ * 获取机构列表（v2.0 - 支持分页、排序、筛选）
+ */
+export async function getAgencies(
+  params?: GetAgenciesParams
+): Promise<GetAgenciesResponse> {
   return get('/agencyManagement', params);
 }
 
@@ -129,4 +167,29 @@ export async function getCurrentAgencyRebate(params: {
   platform: Platform;
 }): Promise<ApiResponse<CurrentAgencyRebateConfig>> {
   return get('/getCurrentAgencyRebate', params);
+}
+
+/**
+ * 批量创建机构
+ */
+export interface BulkCreateAgencyItem {
+  name: string;
+}
+
+export interface BulkCreateAgencyError {
+  name: string;
+  reason: string;
+}
+
+export async function bulkCreateAgencies(data: {
+  agencies: BulkCreateAgencyItem[];
+}): Promise<
+  ApiResponse<{
+    created: number;
+    failed: number;
+    total: number;
+    errors: BulkCreateAgencyError[];
+  }>
+> {
+  return post('/bulkCreateAgencies', data);
 }

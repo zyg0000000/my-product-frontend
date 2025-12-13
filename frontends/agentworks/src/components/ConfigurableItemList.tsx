@@ -275,7 +275,9 @@ export function ConfigurableItemList({
       {/* 帮助提示 */}
       {helpTip && (
         <div className="mt-4 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
-          <p className="text-xs text-primary-700 dark:text-primary-300">💡 {helpTip}</p>
+          <p className="text-xs text-primary-700 dark:text-primary-300">
+            💡 {helpTip}
+          </p>
         </div>
       )}
     </div>

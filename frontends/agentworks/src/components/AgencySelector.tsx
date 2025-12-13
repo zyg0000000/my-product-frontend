@@ -63,18 +63,32 @@ export function AgencySelector({
           agency: agency,
         })),
     ];
+
+    // 如果当前 value 存在但不在选项中，添加一个临时选项（避免显示 ID）
+    if (value && !agencyOptions.find(opt => opt.value === value)) {
+      agencyOptions.push({
+        label: `机构 (${value.slice(0, 15)}...)`,
+        value: value,
+      });
+    }
+
     setOptions(agencyOptions);
-  }, [agencies]);
+  }, [agencies, value]);
 
   const loadAgencies = async () => {
     try {
       setLoading(true);
-      const response = await getAgencies({ status: 'active' });
+      const response = await getAgencies({
+        status: 'active',
+        limit: 100, // 加载所有活跃机构
+      });
       if (response.success && response.data) {
+        // response.data 是机构数组（API v2.0）
         setAgencies(response.data);
       }
     } catch (error) {
       logger.error('加载机构列表失败:', error);
+      setAgencies([]); // 加载失败时设为空数组
     } finally {
       setLoading(false);
     }

@@ -45,7 +45,9 @@ export function SettingsHome() {
       key: 'platform-config',
       title: '平台配置管理',
       description: '管理系统支持的平台及其相关配置，支持动态调整无需重新部署',
-      icon: <SettingOutlined className="text-2xl text-success-600 dark:text-success-400" />,
+      icon: (
+        <SettingOutlined className="text-2xl text-success-600 dark:text-success-400" />
+      ),
       path: '/settings/platform-config',
       status: 'beta',
     },

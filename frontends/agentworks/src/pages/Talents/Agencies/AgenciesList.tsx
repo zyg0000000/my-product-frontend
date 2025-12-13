@@ -9,7 +9,7 @@
  * 5. 集成新的弹窗组件
  */
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
 import { Button, Tabs, Space, Tag, App, Tooltip } from 'antd';
@@ -19,6 +19,7 @@ import {
   DeleteOutlined,
   PercentageOutlined,
   ExclamationCircleOutlined,
+  UploadOutlined,
 } from '@ant-design/icons';
 import type { Agency } from '../../../types/agency';
 import type { Platform } from '../../../types/talent';
@@ -28,21 +29,19 @@ import {
   AGENCY_STATUS_NAMES,
   AGENCY_INDIVIDUAL_ID,
 } from '../../../types/agency';
-import { getAgencies, deleteAgency } from '../../../api/agency';
-import { getTalents } from '../../../api/talent';
+import { deleteAgency } from '../../../api/agency';
 import { AgencyRebateModal } from '../../../components/AgencyRebateModal';
 import { AgencyFormModal } from '../../../components/AgencyFormModal';
 import { AgencyDeleteModal } from '../../../components/AgencyDeleteModal';
+import { BatchCreateAgencyModal } from '../../../components/BatchCreateAgencyModal';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../../components/PageTransition';
-import { logger } from '../../../utils/logger';
+import { AgencyFilterPanel } from './components';
+import { useAgencyData } from './hooks';
 
 export function AgenciesList() {
   const { message, modal } = App.useApp();
-  const [agencies, setAgencies] = useState<Agency[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [talentCounts, setTalentCounts] = useState<Record<string, number>>({});
 
   // 使用平台配置 Hook（只获取启用的平台）
   const { getPlatformList } = usePlatformConfig(false);
@@ -52,6 +51,24 @@ export function AgenciesList() {
     platforms[0] || 'douyin'
   );
 
+  // 使用数据管理 Hook
+  const {
+    agencies,
+    totalAgencies,
+    loading,
+    talentCounts,
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    filterState,
+    handleFilterChange,
+    handleResetFilters,
+    handleSearch,
+    loadAgencies,
+  } = useAgencyData({
+    selectedPlatform,
+  });
+
   // 弹窗状态
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAgency, setEditingAgency] = useState<Agency | null>(null);
@@ -59,48 +76,9 @@ export function AgenciesList() {
   const [rebateAgency, setRebateAgency] = useState<Agency | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [agencyToDelete, setAgencyToDelete] = useState<Agency | null>(null);
+  const [batchCreateModalOpen, setBatchCreateModalOpen] = useState(false);
 
   const actionRef = useRef<ActionType>(null);
-
-  // 加载机构列表
-  const loadAgencies = async () => {
-    try {
-      setLoading(true);
-      const response = await getAgencies();
-      if (response.success && response.data) {
-        setAgencies(response.data);
-      }
-    } catch (error) {
-      message.error('加载机构列表失败');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 加载达人数量统计
-  const loadTalentCounts = async () => {
-    try {
-      const response = await getTalents({ platform: selectedPlatform });
-      if (response.success && response.data) {
-        const counts: Record<string, number> = {};
-        response.data.forEach(talent => {
-          const agencyId = talent.agencyId || AGENCY_INDIVIDUAL_ID;
-          counts[agencyId] = (counts[agencyId] || 0) + 1;
-        });
-        setTalentCounts(counts);
-      }
-    } catch (error) {
-      logger.error('加载达人统计失败:', error);
-    }
-  };
-
-  useEffect(() => {
-    loadAgencies();
-  }, []);
-
-  useEffect(() => {
-    loadTalentCounts();
-  }, [selectedPlatform]);
 
   // 获取达人数
   const getTalentCount = (agencyId: string) => {
@@ -348,6 +326,15 @@ export function AgenciesList() {
           }))}
         />
 
+        {/* 筛选面板 */}
+        <AgencyFilterPanel
+          filterState={filterState}
+          onFilterChange={handleFilterChange}
+          totalAgencies={totalAgencies}
+          onSearch={handleSearch}
+          onReset={handleResetFilters}
+        />
+
         {/* ProTable - 新版实现 */}
         {loading && agencies.length === 0 ? (
           <TableSkeleton columnCount={7} rowCount={10} />
@@ -359,10 +346,13 @@ export function AgenciesList() {
             rowKey="id"
             loading={loading}
             pagination={{
-              pageSize: 20,
-              showSizeChanger: true,
+              current: currentPage,
+              pageSize: pageSize,
+              total: totalAgencies,
+              showSizeChanger: false,
               showQuickJumper: true,
               showTotal: total => `共 ${total} 个机构`,
+              onChange: page => setCurrentPage(page),
             }}
             search={false}
             cardBordered
@@ -371,7 +361,7 @@ export function AgenciesList() {
                 <span className="font-medium">机构列表</span>
                 <div className="h-4 w-px bg-gray-300"></div>
                 <span className="text-sm text-content-secondary">
-                  共 {agencies.length} 个机构
+                  共 {totalAgencies} 个机构
                 </span>
               </div>
             }
@@ -384,6 +374,13 @@ export function AgenciesList() {
                   onClick={handleAdd}
                 >
                   新增机构
+                </Button>,
+                <Button
+                  key="batch-add"
+                  icon={<UploadOutlined />}
+                  onClick={() => setBatchCreateModalOpen(true)}
+                >
+                  批量新增
                 </Button>,
               ],
             }}
@@ -429,6 +426,13 @@ export function AgenciesList() {
           agency={agencyToDelete}
           onConfirm={confirmDelete}
           talentCount={agencyToDelete ? getTalentCount(agencyToDelete.id) : 0}
+        />
+
+        {/* 批量新增机构弹窗 */}
+        <BatchCreateAgencyModal
+          open={batchCreateModalOpen}
+          onClose={() => setBatchCreateModalOpen(false)}
+          onSuccess={loadAgencies}
         />
       </div>
     </PageTransition>
