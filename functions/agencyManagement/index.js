@@ -156,9 +156,12 @@ async function getAgencies(db, queryParams) {
     }
   }
 
-  // 全文搜索（需要文本索引）
+  // 机构名称模糊搜索（使用正则表达式，不区分大小写）
   if (search) {
-    matchStage.$text = { $search: search };
+    matchStage.name = {
+      $regex: search,
+      $options: 'i'  // 不区分大小写
+    };
   }
 
   // ========== 构建排序和分页 ==========
