@@ -410,10 +410,8 @@ export function PerformanceAnalytics() {
           yField: 'value1',
           shapeField: 'smooth',
           style: { stroke: METRIC_COLORS[0], lineWidth: 2 },
-          point: {
-            sizeField: 3,
-            style: { fill: METRIC_COLORS[0] },
-          },
+          // 数据点配置：使用 shape 和 size 而非 sizeField
+          interaction: { tooltip: { marker: false } },
           tooltip: {
             title: 'date',
             items: [{ channel: 'y', name: label1 }],
@@ -427,14 +425,18 @@ export function PerformanceAnalytics() {
           },
         },
         {
+          type: 'point' as const,
+          yField: 'value1',
+          style: { fill: METRIC_COLORS[0], r: 3 },
+          tooltip: false,
+          axis: { y: false },
+        },
+        {
           type: 'line' as const,
           yField: 'value2',
           shapeField: 'smooth',
           style: { stroke: METRIC_COLORS[1], lineWidth: 2 },
-          point: {
-            sizeField: 3,
-            style: { fill: METRIC_COLORS[1] },
-          },
+          interaction: { tooltip: { marker: false } },
           tooltip: {
             title: 'date',
             items: [{ channel: 'y', name: label2 }],
@@ -446,6 +448,13 @@ export function PerformanceAnalytics() {
               titleFill: METRIC_COLORS[1],
             },
           },
+        },
+        {
+          type: 'point' as const,
+          yField: 'value2',
+          style: { fill: METRIC_COLORS[1], r: 3 },
+          tooltip: false,
+          axis: { y: false },
         },
       ],
     };
