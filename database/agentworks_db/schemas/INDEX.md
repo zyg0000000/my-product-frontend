@@ -1,6 +1,6 @@
 # AgentWorks DB - Schema 索引
 
-> v2.4 多平台数据库 Schema 完整清单（更新于 2025-12-04）
+> v2.5 多平台数据库 Schema 完整清单（更新于 2025-12-14）
 
 ---
 
@@ -180,6 +180,13 @@
 ---
 
 ## 📝 变更日志
+
+### v2.5 (2025-12-14)
+
+- ✅ `customer_talents` 升级到 v2.1：新增客户级返点字段 (`rebateRate`, `rebateEffectiveDate`)
+- ✅ `rebate_configs` 升级到 v2.2：新增 `changeSource` 类型 (`independent_set`, `customer_set`)
+- ✅ `talents.currentRebate.source` 语义修正：野生达人改为 `personal`
+- ✅ 返点优先级体系：customer > personal > agency > default
 
 ### v2.4 (2025-12-04)
 

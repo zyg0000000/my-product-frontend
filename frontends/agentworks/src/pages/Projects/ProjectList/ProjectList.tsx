@@ -9,7 +9,6 @@ import type { ProColumns, ActionType } from '@ant-design/pro-components';
 import { Button, Tag, Space, App, Checkbox, Tooltip } from 'antd';
 import {
   PlusOutlined,
-  ReloadOutlined,
   EyeOutlined,
   EditOutlined,
 } from '@ant-design/icons';
@@ -430,13 +429,6 @@ export function ProjectList() {
                 onClick={handleCreate}
               >
                 新建项目
-              </Button>,
-              <Button
-                key="refresh"
-                icon={<ReloadOutlined />}
-                onClick={() => loadProjects()}
-              >
-                刷新
               </Button>,
             ]}
             scroll={{ x: 1200 }}

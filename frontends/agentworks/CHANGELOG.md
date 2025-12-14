@@ -1,5 +1,93 @@
 # AgentWorks 更新日志
 
+## v4.2.0 (2025-12-14) 💰 - 返点系统全面升级 + 批量操作扩容
+
+### ✨ 新功能：返点系统升级
+
+#### 1. 机构达人独立返点
+- **AgencyRebateModal 新增"独立返点"Tab**
+  - 支持为机构达人批量设置不同的独立返点率
+  - 达人保持在机构内，但 `rebateMode` 切换为 `independent`
+  - 适用于需要差异化返点的达人
+
+- **talentBatchOperations 云函数新增 `setIndependentRebate` 操作**
+  - 批量设置独立返点率（最多 500 条）
+  - 自动写入 `rebate_configs` 历史记录
+  - `changeSource: 'independent_set'` 标识返点变更来源
+
+#### 2. 客户级返点管理
+- **CustomerRebateModal 组件** - 单个达人客户返点设置
+- **BatchCustomerRebateModal 组件** - 批量设置客户返点
+- **customerTalents 云函数新增 API**
+  - `getCustomerRebate` - 获取客户达人返点
+  - `updateCustomerRebate` - 更新单个达人返点
+  - `batchUpdateCustomerRebate` - 批量更新返点
+
+#### 3. 返点优先级体系
+```
+客户专属返点 > 达人独立返点 > 机构统一返点 > 系统默认
+   (customer)    (personal)      (agency)      (default)
+```
+
+- **getTalentRebate 云函数升级**
+  - 支持 `customerId` 参数查询客户专属返点
+  - 返回 `effectiveRebate`（最终生效返点）和各级返点详情
+
+### 🔧 优化：批量操作扩容
+
+| 操作 | 原限制 | 新限制 |
+|------|--------|--------|
+| 批量绑定/解绑机构 | 200 条 | **500 条** |
+| 批量设置独立返点 | 200 条 | **500 条** |
+| 批量创建机构 | 100 条 | **500 条** |
+| 批量创建达人 | 100 条 | **500 条** |
+| 批量打标签 | 100 条 | **500 条** |
+
+### 🐛 Bug 修复
+
+#### 野生达人返点来源语义修复
+- **问题**: 野生达人 `currentRebate.source` 为 `agency`，与 `rebateMode: 'independent'` 矛盾
+- **修复**: 新创建的野生达人 `source` 改为 `personal`
+- **影响**: 前端显示从「机构统一」改为「个人配置」
+
+#### Excel 解析列识别 Bug
+- **问题**: `达人星图ID` 表头被错误识别为「昵称」列（因为包含「达人」）
+- **修复**: 调整匹配优先级，`星图ID` 优先于 `达人`
+- **结果**: 表头顺序不再影响解析结果
+
+### 📁 新增文件
+
+**组件** (2个):
+- `src/components/CustomerRebateModal.tsx` - 客户返点设置弹窗
+- `src/components/BatchCustomerRebateModal.tsx` - 批量客户返点弹窗
+
+### 📁 修改文件
+
+**云函数** (5个):
+- `functions/talentBatchOperations/index.js` - v2.2.0 新增独立返点、扩容至 500
+- `functions/customerTalents/index.js` - v2.10 新增客户返点 API、扩容至 500
+- `functions/getTalentRebate/index.js` - 支持客户返点优先级
+- `functions/bulkCreateAgencies/index.js` - 扩容至 500
+- `functions/bulkCreateTalents/index.js` - 修复 source 语义、扩容至 500
+
+**前端** (10个):
+- `src/components/AgencyRebateModal.tsx` - 新增独立返点 Tab
+- `src/components/AgencyTalentListModal/index.tsx` - 移除返点按钮
+- `src/components/BatchCreateAgencyModal/index.tsx` - 限制提示更新
+- `src/components/BatchCreateTalentModal/index.tsx` - 限制提示更新
+- `src/pages/Customers/CustomerDetail/TalentPoolTab.tsx` - 客户返点操作
+- `src/api/talent.ts` - 新增 batchSetIndependentRebate API
+- `src/api/customerTalents.ts` - 新增客户返点 API
+- `src/types/rebate.ts` - 新增类型定义
+- `src/hooks/useCollaborationForm.ts` - 返点来源提示优化
+- `src/utils/excelParser.ts` - 列识别优先级修复
+
+**Schema 文档** (2个):
+- `database/agentworks_db/schemas/customer_talents.doc.json` - 客户返点字段
+- `database/agentworks_db/schemas/rebate_configs.doc.json` - 新增 changeSource 类型
+
+---
+
 ## v4.1.0 (2025-12-14) 🏢 - 机构达人绑定 + UI间距规范化
 
 ### ✨ 新功能：机构达人绑定

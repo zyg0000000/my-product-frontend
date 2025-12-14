@@ -137,27 +137,36 @@ function detectColumnMapping(headers: string[]): {
   let platformAccountIdCol = -1;
   let agencyNameCol = -1;
 
+  // 匹配顺序很重要：先匹配更具体的规则，避免「达人星图ID」被「达人」误匹配为昵称列
+  // 优先级：platformAccountId > agencyName > name > platform
   headers.forEach((header, index) => {
-    if (
-      platformCol === -1 &&
-      matchColumnName(header, COLUMN_PATTERNS.platform)
-    ) {
-      platformCol = index;
-    }
-    if (nameCol === -1 && matchColumnName(header, COLUMN_PATTERNS.name)) {
-      nameCol = index;
-    }
+    // 1. 先匹配平台ID（最具体，如「星图ID」「蒲公英ID」）
     if (
       platformAccountIdCol === -1 &&
       matchColumnName(header, COLUMN_PATTERNS.platformAccountId)
     ) {
       platformAccountIdCol = index;
+      return; // 已匹配，跳过后续规则
     }
+    // 2. 再匹配机构名称
     if (
       agencyNameCol === -1 &&
       matchColumnName(header, COLUMN_PATTERNS.agencyName)
     ) {
       agencyNameCol = index;
+      return;
+    }
+    // 3. 再匹配昵称（「达人」等模糊词）
+    if (nameCol === -1 && matchColumnName(header, COLUMN_PATTERNS.name)) {
+      nameCol = index;
+      return;
+    }
+    // 4. 最后匹配平台
+    if (
+      platformCol === -1 &&
+      matchColumnName(header, COLUMN_PATTERNS.platform)
+    ) {
+      platformCol = index;
     }
   });
 

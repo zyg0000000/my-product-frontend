@@ -52,6 +52,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 interface CollaborationFormModalProps {
   open: boolean;
   projectId: string;
+  customerId: string; // v2.1: 用于获取客户级返点
   platforms: Platform[];
   editingCollaboration: Collaboration | null;
   onCancel: () => void;
@@ -61,6 +62,7 @@ interface CollaborationFormModalProps {
 export function CollaborationFormModal({
   open,
   projectId,
+  customerId,
   platforms,
   editingCollaboration,
   onCancel,
@@ -86,6 +88,7 @@ export function CollaborationFormModal({
   } = useCollaborationForm({
     form,
     projectId,
+    customerId,
     editingCollaboration,
     onSuccess,
   });

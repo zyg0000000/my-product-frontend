@@ -9,23 +9,48 @@ import type {
   UpdateRebateRequest,
   UpdateRebateResponse,
   GetRebateHistoryResponse,
+  CustomerRebate,
+  EffectiveRebate,
 } from '../types/rebate';
 
 /**
- * 获取达人返点配置
+ * 获取达人返点配置（扩展版，v2.1）
  *
  * @param oneId - 达人唯一标识
  * @param platform - 平台名称
- * @returns 返点配置信息
+ * @param customerId - 可选，客户编码。传入时会返回客户级返点和生效返点
+ * @returns 返点配置信息（含客户级返点和生效返点）
  */
+export interface GetTalentRebateParams {
+  oneId: string;
+  platform: Platform;
+  customerId?: string;
+}
+
+/**
+ * 扩展响应类型（v2.1）
+ * 当传入 customerId 时，额外返回 customerRebate 和 effectiveRebate
+ */
+export interface GetTalentRebateExtendedResponse extends GetRebateResponse {
+  data?: GetRebateResponse['data'] & {
+    customerRebate?: CustomerRebate | null;
+    effectiveRebate?: EffectiveRebate;
+  };
+}
+
 export async function getTalentRebate(
   oneId: string,
-  platform: Platform
-): Promise<GetRebateResponse> {
-  return get<GetRebateResponse>('/getTalentRebate', {
+  platform: Platform,
+  customerId?: string
+): Promise<GetTalentRebateExtendedResponse> {
+  const params: Record<string, string> = {
     oneId,
     platform,
-  });
+  };
+  if (customerId) {
+    params.customerId = customerId;
+  }
+  return get<GetTalentRebateExtendedResponse>('/getTalentRebate', params);
 }
 
 /**

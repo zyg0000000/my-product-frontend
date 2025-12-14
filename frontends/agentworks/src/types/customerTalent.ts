@@ -3,6 +3,7 @@
  */
 
 import type { Platform } from './talent';
+import type { CustomerRebate } from './rebate';
 
 /**
  * 客户达人池关联记录状态
@@ -86,6 +87,9 @@ export interface CustomerTalent {
   departmentId?: string | null;
   updatedBy?: string;
   updatedAt?: string;
+
+  // 客户级返点（v2.1 新增）
+  customerRebate?: CustomerRebate | null;
 }
 
 /**
@@ -100,8 +104,14 @@ export interface CustomerTalentWithInfo extends CustomerTalent {
     fansCount?: number;
     talentType?: string[];
     agencyId?: string;
+    agencyName?: string; // 机构名称
     platformAccountId?: string;
     platformSpecific?: Record<string, string>;
+    currentRebate?: {
+      rate: number;
+      source: string;
+      effectiveDate?: string;
+    };
   };
 }
 

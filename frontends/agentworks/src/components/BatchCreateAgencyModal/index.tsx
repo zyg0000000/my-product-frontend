@@ -151,8 +151,8 @@ export function BatchCreateAgencyModal({
       }
 
       // 检查数据条数限制
-      if (lines.length > 100) {
-        message.error(`超过单次上限 100 条，当前 ${lines.length} 条`);
+      if (lines.length > 500) {
+        message.error(`超过单次上限 500 条，当前 ${lines.length} 条`);
         setParsing(false);
         return;
       }
@@ -525,7 +525,7 @@ export function BatchCreateAgencyModal({
             <div>
               <div className="font-medium mb-1">必填：机构名称</div>
               <div className="text-xs text-content-secondary mb-1">
-                每行一个机构名称（单次最多100条）
+                每行一个机构名称（单次最多500条）
               </div>
               <div className="text-xs text-content-secondary mb-2">
                 默认值：类型 = <strong>机构</strong> | 状态 ={' '}

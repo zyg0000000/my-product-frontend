@@ -2,8 +2,8 @@
     "collection": "rebate_configs",
     "description": "返点配置历史记录集合 - 记录所有返点调整操作的完整审计追溯",
     "database": "agentworks_db",
-    "version": "2.1",
-    "lastUpdated": "2025-11-15",
+    "version": "2.2",
+    "lastUpdated": "2025-12-14",
     "author": "产品团队",
     "fields": {
         "_id": {
@@ -24,16 +24,44 @@
             "type": "String",
             "description": "目标类型",
             "required": true,
-            "enum": ["talent", "agency"],
+            "enum": ["talent", "agency", "customer_talent"],
             "default": "talent",
-            "comment": "talent=达人返点, agency=机构返点（预留）"
+            "comment": "talent=达人返点, agency=机构返点, customer_talent=客户级返点（v2.2新增）"
         },
         "targetId": {
             "type": "String",
-            "description": "目标ID（对应 talents.oneId 或 agencies.agencyId）",
+            "description": "目标ID",
             "required": true,
             "example": "talent_00000005",
-            "comment": "如果 targetType='talent'，则为 oneId；如果 targetType='agency'，则为 agencyId"
+            "comment": "talent→oneId, agency→agencyId, customer_talent→{customerId}_{talentOneId}_{platform}"
+        },
+        "customerId": {
+            "type": "String",
+            "description": "客户编码（仅 targetType='customer_talent' 时使用）",
+            "required": false,
+            "pattern": "^CUS[0-9]{8}$",
+            "example": "CUS20250001",
+            "comment": "v2.2新增，用于客户级返点历史记录",
+            "addedIn": "v2.2 (2025-12-14)"
+        },
+        "talentOneId": {
+            "type": "String",
+            "description": "达人统一ID（仅 targetType='customer_talent' 时使用）",
+            "required": false,
+            "pattern": "^talent_[0-9]{8}$",
+            "example": "talent_00000005",
+            "comment": "v2.2新增，用于客户级返点历史记录",
+            "addedIn": "v2.2 (2025-12-14)"
+        },
+        "previousRate": {
+            "type": "Double",
+            "description": "调整前返点率",
+            "required": false,
+            "min": 0,
+            "max": 100,
+            "example": 20.00,
+            "comment": "v2.2新增，记录调整前的返点率，便于对比分析",
+            "addedIn": "v2.2 (2025-12-14)"
         },
         "platform": {
             "type": "String",
@@ -138,6 +166,16 @@
             "name": "idx_createdBy",
             "fields": { "createdBy": 1 },
             "description": "查询某操作人的所有配置记录"
+        },
+        {
+            "name": "idx_customer_talent_history",
+            "fields": { "targetType": 1, "customerId": 1, "talentOneId": 1, "platform": 1, "createdAt": -1 },
+            "description": "查询客户级返点历史（v2.2新增）"
+        },
+        {
+            "name": "idx_talent_all_customers",
+            "fields": { "talentOneId": 1, "targetType": 1, "createdAt": -1 },
+            "description": "查询某达人在所有客户的返点历史（v2.2新增）"
         }
     ],
     "relations": [
@@ -214,6 +252,27 @@
                 "createdAt": "2025-01-15T08:00:00.000Z",
                 "updatedAt": "2025-01-15T10:30:00.000Z"
             }
+        },
+        {
+            "description": "示例4：客户级返点配置（v2.2新增）",
+            "data": {
+                "configId": "rebate_config_1734168600000_cust01",
+                "targetType": "customer_talent",
+                "targetId": "CUS20250002_talent_00000005_xiaohongshu",
+                "customerId": "CUS20250002",
+                "talentOneId": "talent_00000005",
+                "platform": "xiaohongshu",
+                "rebateRate": 25.00,
+                "previousRate": 20.00,
+                "effectType": "immediate",
+                "effectiveDate": "2025-12-14T10:30:00.000Z",
+                "expiryDate": null,
+                "status": "active",
+                "reason": "客户谈判获得的专属返点",
+                "createdBy": "user_002",
+                "createdAt": "2025-12-14T10:30:00.000Z",
+                "updatedAt": null
+            }
         }
     ],
     "businessRules": [
@@ -239,6 +298,17 @@
         }
     ],
     "migrations": [
+        {
+            "version": "v2.2",
+            "date": "2025-12-14",
+            "description": "支持客户级返点历史记录",
+            "operations": [
+                "targetType 枚举新增 'customer_talent'",
+                "新增 customerId、talentOneId、previousRate 字段",
+                "创建 idx_customer_talent_history 索引",
+                "创建 idx_talent_all_customers 索引"
+            ]
+        },
         {
             "version": "v2.1",
             "date": "2025-11-15",

@@ -1,8 +1,17 @@
 /**
- * [生产版 v2.7 - 客户达人池 RESTful API]
+ * [生产版 v2.10 - 客户达人池 RESTful API]
  * 云函数：customerTalents
- * @version 2.7
+ * @version 2.10
  * 描述：统一的客户达人池 RESTful API，实现客户与达人的多对多关联管理
+ *
+ * --- v2.10 更新日志 (2025-12-14) ---
+ * - [优化] getCustomerTalents 返回达人信息时包含 agencyName 字段
+ * - [说明] 通过嵌套 $lookup 从 agencies 集合获取机构名称
+ *
+ * --- v2.9 更新日志 (2025-12-14) ---
+ * - [新功能] 客户级返点管理 (getCustomerRebate/updateCustomerRebate/batchUpdateCustomerRebate)
+ * - [说明] 支持为客户达人池中的达人设置独立返点，优先级高于达人/机构返点
+ * - [说明] 返点历史记录自动存储到 rebate_configs 集合
  *
  * --- v2.7 更新日志 (2025-12-04) ---
  * - [修复] followerCount 字段来源从 talents.fansCount 改为 performance.metrics.followers
@@ -36,7 +45,7 @@
  *
  * --- v2.1 更新日志 (2025-12-02) ---
  * - [新功能] 批量打标 (batchUpdateTags) 支持 replace/merge 两种模式
- * - [优化] 单次批量最多100条记录
+ * - [优化] 单次批量最多500条记录
  *
  * --- v2.0 更新日志 (2025-12-02) ---
  * - [新功能] 标签配置管理 (getTagConfigs/updateTagConfigs)
@@ -66,7 +75,7 @@
 const { MongoClient, ObjectId } = require('mongodb');
 
 // 版本号
-const VERSION = '2.8';
+const VERSION = '2.10';
 
 // ========== 字段白名单配置（防止注入攻击） ==========
 /**
@@ -193,6 +202,19 @@ exports.handler = async function (event) {
     return await panoramaSearch(queryParams);
   }
 
+  // ========== 客户返点管理路由 (v2.9 新增) ==========
+  if (queryParams.action === 'getCustomerRebate') {
+    return await getCustomerRebate(queryParams);
+  }
+
+  if (queryParams.action === 'updateCustomerRebate') {
+    return await updateCustomerRebate(event.body, event.headers);
+  }
+
+  if (queryParams.action === 'batchUpdateCustomerRebate') {
+    return await batchUpdateCustomerRebate(event.body, event.headers);
+  }
+
   try {
     switch (httpMethod) {
       case 'GET':
@@ -304,7 +326,36 @@ async function getCustomerTalents(queryParams = {}) {
                     ]
                   }
                 }
-              }
+              },
+              // 嵌套 lookup 获取机构名称
+              {
+                $lookup: {
+                  from: 'agencies',
+                  let: { agencyId: '$agencyId' },
+                  pipeline: [
+                    {
+                      $match: {
+                        $expr: { $eq: ['$id', '$$agencyId'] }
+                      }
+                    },
+                    { $project: { name: 1 } }
+                  ],
+                  as: 'agencyInfo'
+                }
+              },
+              {
+                $addFields: {
+                  agencyName: {
+                    $cond: {
+                      if: { $gt: [{ $size: '$agencyInfo' }, 0] },
+                      then: { $arrayElemAt: ['$agencyInfo.name', 0] },
+                      else: null
+                    }
+                  }
+                }
+              },
+              // 移除中间字段
+              { $project: { agencyInfo: 0 } }
             ],
             as: 'talentInfo'
           }
@@ -750,8 +801,8 @@ async function batchUpdateTags(body, headers = {}) {
       return errorResponse(400, '缺少必需参数: tags');
     }
 
-    if (ids.length > 100) {
-      return errorResponse(400, '单次最多更新 100 条记录');
+    if (ids.length > 500) {
+      return errorResponse(400, '单次最多更新 500 条记录');
     }
 
     client = await getMongoClient();
@@ -1596,4 +1647,429 @@ function errorResponse(statusCode, message) {
       message
     })
   };
+}
+
+// ========== 客户返点管理函数 (v2.9 新增) ==========
+
+/**
+ * 获取客户达人返点详情
+ * GET /customerTalents?action=getCustomerRebate&customerId=xxx&talentOneId=xxx&platform=xxx
+ *
+ * 返回：
+ * - customerRebate: 客户级返点配置（如果有）
+ * - talentRebate: 达人/机构默认返点
+ * - effectiveRebate: 实际生效的返点（综合优先级）
+ * - history: 最近的返点变更记录
+ */
+async function getCustomerRebate(queryParams = {}) {
+  let client;
+
+  try {
+    const { customerId, talentOneId, platform } = queryParams;
+
+    // 参数校验
+    if (!customerId || !talentOneId || !platform) {
+      return errorResponse(400, '缺少必需参数: customerId, talentOneId, platform');
+    }
+
+    client = await getMongoClient();
+    const db = client.db(getDbName());
+
+    // 1. 查询 customer_talents 中的客户级返点
+    const customerTalent = await db.collection('customer_talents').findOne({
+      customerId,
+      talentOneId,
+      platform,
+      status: 'active'
+    });
+
+    // 2. 查询达人信息和默认返点
+    const talent = await db.collection('talents').findOne({
+      oneId: talentOneId,
+      platform
+    });
+
+    if (!talent) {
+      return errorResponse(404, '达人不存在');
+    }
+
+    // 3. 如果是机构达人且返点模式为 sync，查询机构返点
+    let agencyRebate = null;
+    if (talent.agencyId && talent.agencyId !== 'individual' && talent.rebateMode === 'sync') {
+      const agency = await db.collection('agencies').findOne({ id: talent.agencyId });
+      if (agency?.rebateConfig?.platforms?.[platform]?.baseRebate !== undefined) {
+        agencyRebate = {
+          rate: agency.rebateConfig.platforms[platform].baseRebate,
+          source: 'agency',
+          agencyId: talent.agencyId,
+          agencyName: agency.name
+        };
+      }
+    }
+
+    // 4. 构建达人默认返点
+    const talentRebate = {
+      rate: talent.currentRebate?.rate ?? null,
+      source: talent.currentRebate?.source ?? 'default',
+      effectiveDate: talent.currentRebate?.effectiveDate ?? null
+    };
+
+    // 如果是机构达人且有机构返点，使用机构返点
+    if (agencyRebate) {
+      talentRebate.rate = agencyRebate.rate;
+      talentRebate.source = 'agency';
+      talentRebate.agencyId = agencyRebate.agencyId;
+      talentRebate.agencyName = agencyRebate.agencyName;
+    }
+
+    // 5. 构建客户级返点
+    const customerRebate = customerTalent?.customerRebate ?? null;
+
+    // 6. 计算生效返点（优先级：客户 > 达人/机构 > 默认）
+    let effectiveRebate;
+    if (customerRebate?.enabled && customerRebate?.rate !== undefined) {
+      effectiveRebate = {
+        rate: customerRebate.rate,
+        source: 'customer'
+      };
+    } else if (talentRebate.rate !== null) {
+      effectiveRebate = {
+        rate: talentRebate.rate,
+        source: talentRebate.source
+      };
+    } else {
+      effectiveRebate = {
+        rate: 0,
+        source: 'default'
+      };
+    }
+
+    // 7. 查询返点历史记录
+    const history = await db.collection('rebate_configs').find({
+      targetType: 'customer_talent',
+      customerId,
+      talentOneId,
+      platform
+    }).sort({ createdAt: -1 }).limit(10).toArray();
+
+    return successResponse({
+      customerRebate,
+      talentRebate,
+      effectiveRebate,
+      history,
+      talent: {
+        oneId: talent.oneId,
+        name: talent.name,
+        platform: talent.platform,
+        agencyId: talent.agencyId,
+        rebateMode: talent.rebateMode
+      }
+    });
+
+  } finally {
+    if (client) await client.close();
+  }
+}
+
+/**
+ * 更新单个客户达人返点
+ * POST /customerTalents?action=updateCustomerRebate
+ * Body: {
+ *   customerId,
+ *   talentOneId,
+ *   platform,
+ *   enabled: boolean,
+ *   rate?: number,      // enabled=true 时必填，0-100，精度2位
+ *   notes?: string,
+ *   updatedBy: string
+ * }
+ */
+async function updateCustomerRebate(body, headers = {}) {
+  let client;
+
+  try {
+    const data = JSON.parse(body || '{}');
+    const { customerId, talentOneId, platform, enabled, rate, notes } = data;
+    const updatedBy = data.updatedBy || headers['user-id'] || 'system';
+
+    // 参数校验
+    if (!customerId || !talentOneId || !platform) {
+      return errorResponse(400, '缺少必需参数: customerId, talentOneId, platform');
+    }
+
+    if (typeof enabled !== 'boolean') {
+      return errorResponse(400, '缺少必需参数: enabled (boolean)');
+    }
+
+    if (enabled && (rate === undefined || rate === null)) {
+      return errorResponse(400, '启用客户返点时必须提供 rate');
+    }
+
+    if (enabled && (rate < 0 || rate > 100)) {
+      return errorResponse(400, 'rate 必须在 0-100 之间');
+    }
+
+    client = await getMongoClient();
+    const db = client.db(getDbName());
+
+    // 1. 查询现有记录
+    const customerTalent = await db.collection('customer_talents').findOne({
+      customerId,
+      talentOneId,
+      platform,
+      status: 'active'
+    });
+
+    if (!customerTalent) {
+      return errorResponse(404, '该达人不在客户池中');
+    }
+
+    const now = new Date();
+    const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
+
+    // 2. 获取旧的返点率（用于历史记录）
+    const previousRate = customerTalent.customerRebate?.rate ?? null;
+
+    // 3. 构建新的 customerRebate 对象
+    const newCustomerRebate = enabled ? {
+      enabled: true,
+      rate: Math.round(rate * 100) / 100, // 保留2位小数
+      effectiveDate: today,
+      lastUpdatedAt: now.toISOString(),
+      updatedBy,
+      notes: notes || ''
+    } : {
+      enabled: false,
+      rate: null,
+      effectiveDate: null,
+      lastUpdatedAt: now.toISOString(),
+      updatedBy,
+      notes: notes || ''
+    };
+
+    // 4. 更新 customer_talents
+    await db.collection('customer_talents').updateOne(
+      { _id: customerTalent._id },
+      {
+        $set: {
+          customerRebate: newCustomerRebate,
+          updatedAt: now,
+          updatedBy
+        }
+      }
+    );
+
+    // 5. 记录到 rebate_configs（仅当启用且返点率有变化时）
+    if (enabled && (previousRate === null || previousRate !== rate)) {
+      const configId = `rebate_config_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+      await db.collection('rebate_configs').insertOne({
+        configId,
+        targetType: 'customer_talent',
+        targetId: `${customerId}_${talentOneId}_${platform}`,
+        customerId,
+        talentOneId,
+        platform,
+        rebateRate: newCustomerRebate.rate,
+        previousRate,
+        effectType: 'immediate',
+        effectiveDate: now,
+        expiryDate: null,
+        status: 'active',
+        reason: notes || '客户返点设置',
+        createdBy: updatedBy,
+        createdAt: now,
+        updatedAt: null
+      });
+
+      // 将之前的 active 记录标记为 expired
+      if (previousRate !== null) {
+        await db.collection('rebate_configs').updateMany(
+          {
+            targetType: 'customer_talent',
+            customerId,
+            talentOneId,
+            platform,
+            status: 'active',
+            configId: { $ne: configId }
+          },
+          {
+            $set: {
+              status: 'expired',
+              expiryDate: now,
+              updatedAt: now
+            }
+          }
+        );
+      }
+    }
+
+    return successResponse({
+      success: true,
+      customerRebate: newCustomerRebate,
+      message: enabled ? `客户返点已设置为 ${newCustomerRebate.rate}%` : '客户返点已禁用'
+    });
+
+  } finally {
+    if (client) await client.close();
+  }
+}
+
+/**
+ * 批量更新客户达人返点
+ * POST /customerTalents?action=batchUpdateCustomerRebate
+ * Body: {
+ *   customerId,
+ *   platform,
+ *   talents: [{ talentOneId, rate, notes? }],
+ *   updatedBy: string
+ * }
+ */
+async function batchUpdateCustomerRebate(body, headers = {}) {
+  let client;
+
+  try {
+    const data = JSON.parse(body || '{}');
+    const { customerId, platform, talents } = data;
+    const updatedBy = data.updatedBy || headers['user-id'] || 'system';
+
+    // 参数校验
+    if (!customerId) {
+      return errorResponse(400, '缺少必需参数: customerId');
+    }
+
+    if (!platform) {
+      return errorResponse(400, '缺少必需参数: platform');
+    }
+
+    if (!talents || !Array.isArray(talents) || talents.length === 0) {
+      return errorResponse(400, '缺少必需参数: talents (数组)');
+    }
+
+    if (talents.length > 100) {
+      return errorResponse(400, '单次最多更新 100 个达人');
+    }
+
+    client = await getMongoClient();
+    const db = client.db(getDbName());
+
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+
+    const results = {
+      updated: 0,
+      failed: []
+    };
+
+    for (const item of talents) {
+      const { talentOneId, rate, notes } = item;
+
+      if (!talentOneId) {
+        results.failed.push({ talentOneId: null, reason: '缺少 talentOneId' });
+        continue;
+      }
+
+      if (rate === undefined || rate === null || rate < 0 || rate > 100) {
+        results.failed.push({ talentOneId, reason: 'rate 必须在 0-100 之间' });
+        continue;
+      }
+
+      try {
+        // 查询 customer_talents 记录
+        const customerTalent = await db.collection('customer_talents').findOne({
+          customerId,
+          talentOneId,
+          platform,
+          status: 'active'
+        });
+
+        if (!customerTalent) {
+          results.failed.push({ talentOneId, reason: '达人不在客户池中' });
+          continue;
+        }
+
+        const previousRate = customerTalent.customerRebate?.rate ?? null;
+        const normalizedRate = Math.round(rate * 100) / 100;
+
+        // 构建新的 customerRebate
+        const newCustomerRebate = {
+          enabled: true,
+          rate: normalizedRate,
+          effectiveDate: today,
+          lastUpdatedAt: now.toISOString(),
+          updatedBy,
+          notes: notes || ''
+        };
+
+        // 更新 customer_talents
+        await db.collection('customer_talents').updateOne(
+          { _id: customerTalent._id },
+          {
+            $set: {
+              customerRebate: newCustomerRebate,
+              updatedAt: now,
+              updatedBy
+            }
+          }
+        );
+
+        // 记录到 rebate_configs（如果返点率有变化）
+        if (previousRate === null || previousRate !== normalizedRate) {
+          const configId = `rebate_config_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+          await db.collection('rebate_configs').insertOne({
+            configId,
+            targetType: 'customer_talent',
+            targetId: `${customerId}_${talentOneId}_${platform}`,
+            customerId,
+            talentOneId,
+            platform,
+            rebateRate: normalizedRate,
+            previousRate,
+            effectType: 'immediate',
+            effectiveDate: now,
+            expiryDate: null,
+            status: 'active',
+            reason: notes || '批量设置客户返点',
+            createdBy: updatedBy,
+            createdAt: now,
+            updatedAt: null
+          });
+
+          // 将之前的记录标记为 expired
+          if (previousRate !== null) {
+            await db.collection('rebate_configs').updateMany(
+              {
+                targetType: 'customer_talent',
+                customerId,
+                talentOneId,
+                platform,
+                status: 'active',
+                configId: { $ne: configId }
+              },
+              {
+                $set: {
+                  status: 'expired',
+                  expiryDate: now,
+                  updatedAt: now
+                }
+              }
+            );
+          }
+        }
+
+        results.updated++;
+      } catch (e) {
+        console.error(`Failed to update rebate for ${talentOneId}:`, e.message);
+        results.failed.push({ talentOneId, reason: e.message });
+      }
+    }
+
+    return successResponse({
+      success: true,
+      data: results,
+      message: `成功更新 ${results.updated} 个达人的客户返点`
+    });
+
+  } finally {
+    if (client) await client.close();
+  }
 }

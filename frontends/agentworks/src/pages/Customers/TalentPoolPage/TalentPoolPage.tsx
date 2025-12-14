@@ -287,6 +287,7 @@ export function TalentPoolPage() {
           <div className="p-4">
             <TalentPoolTab
               customerId={customer.code}
+              customerName={customer.name}
               platform={activePlatform}
               onRefresh={refreshTalentStats}
             />

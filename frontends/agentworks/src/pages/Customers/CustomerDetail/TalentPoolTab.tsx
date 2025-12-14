@@ -30,12 +30,12 @@ import {
 } from 'antd';
 import {
   PlusOutlined,
-  ReloadOutlined,
   FilterOutlined,
   TagsOutlined,
   EditOutlined,
   EyeOutlined,
   DeleteOutlined,
+  DollarOutlined,
 } from '@ant-design/icons';
 import {
   getCustomerTalents,
@@ -49,17 +49,22 @@ import type { Platform } from '../../../types/talent';
 import { TalentSelectorModal } from '../../../components/TalentSelectorModal';
 import { TalentTagEditor } from '../shared/TalentTagEditor';
 import { TalentNameWithLinks } from '../../../components/TalentNameWithLinks';
+import { CustomerRebateModal } from '../../../components/CustomerRebateModal';
+import { BatchCustomerRebateModal } from '../../../components/BatchCustomerRebateModal';
 import { useTagConfigs } from '../../../hooks/useTagConfigs';
+import { formatRebateRate, REBATE_SOURCE_LABELS, type RebateSource } from '../../../types/rebate';
 import { logger } from '../../../utils/logger';
 
 interface TalentPoolTabProps {
   customerId: string;
+  customerName: string;
   platform: Platform;
   onRefresh?: () => void;
 }
 
 export function TalentPoolTab({
   customerId,
+  customerName,
   platform,
   onRefresh,
 }: TalentPoolTabProps) {
@@ -103,6 +108,12 @@ export function TalentPoolTab({
   const [batchTagModalVisible, setBatchTagModalVisible] = useState(false);
   const [batchTagForm] = Form.useForm();
   const [batchTagSaving, setBatchTagSaving] = useState(false);
+
+  // 返点设置弹窗状态
+  const [rebateModalVisible, setRebateModalVisible] = useState(false);
+  const [rebateModalTalent, setRebateModalTalent] =
+    useState<CustomerTalentWithInfo | null>(null);
+  const [batchRebateModalVisible, setBatchRebateModalVisible] = useState(false);
 
   // 请求取消控制器
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -272,6 +283,17 @@ export function TalentPoolTab({
     }
   };
 
+  // 打开返点设置弹窗
+  const handleOpenRebateModal = (record: CustomerTalentWithInfo) => {
+    setRebateModalTalent(record);
+    setRebateModalVisible(true);
+  };
+
+  // 打开批量返点设置弹窗
+  const handleOpenBatchRebateModal = () => {
+    setBatchRebateModalVisible(true);
+  };
+
   // 表格列定义
   const columns: ProColumns<CustomerTalentWithInfo>[] = [
     {
@@ -349,6 +371,50 @@ export function TalentPoolTab({
       },
     },
     {
+      title: '客户返点',
+      dataIndex: 'customerRebate',
+      width: 100,
+      align: 'center',
+      render: (_, record) => {
+        if (record.customerRebate?.enabled && record.customerRebate?.rate !== null) {
+          return (
+            <Tooltip title="客户专属返点">
+              <span className="font-semibold text-primary-600 dark:text-primary-400">
+                {formatRebateRate(record.customerRebate.rate)}
+              </span>
+            </Tooltip>
+          );
+        }
+        return <span className="text-content-muted">-</span>;
+      },
+    },
+    {
+      title: '达人返点',
+      dataIndex: ['talentInfo', 'currentRebate', 'rate'],
+      width: 90,
+      align: 'center',
+      render: (_, record) => {
+        const rate = record.talentInfo?.currentRebate?.rate;
+        if (rate !== undefined && rate !== null) {
+          const source = record.talentInfo?.currentRebate?.source as RebateSource | undefined;
+          const sourceLabel = source ? REBATE_SOURCE_LABELS[source] : '系统默认';
+          // 如果是机构返点，显示机构名称
+          const agencyName = record.talentInfo?.agencyName;
+          const tooltipText = source === 'agency' && agencyName
+            ? `来源：${agencyName}`
+            : `来源：${sourceLabel}`;
+          return (
+            <Tooltip title={tooltipText}>
+              <span className="text-content-secondary">
+                {formatRebateRate(rate)}
+              </span>
+            </Tooltip>
+          );
+        }
+        return <span className="text-content-muted">-</span>;
+      },
+    },
+    {
       title: '备注',
       dataIndex: 'notes',
       width: 150,
@@ -369,9 +435,17 @@ export function TalentPoolTab({
     {
       title: '操作',
       valueType: 'option',
-      width: 100,
+      width: 130,
       render: (_, record) => (
         <Space size={4}>
+          <Tooltip title="设置返点">
+            <Button
+              type="text"
+              size="small"
+              icon={<DollarOutlined />}
+              onClick={() => handleOpenRebateModal(record)}
+            />
+          </Tooltip>
           <Tooltip title="编辑标签">
             <Button
               type="text"
@@ -517,6 +591,13 @@ export function TalentPoolTab({
             <Button
               type="primary"
               size="small"
+              icon={<DollarOutlined />}
+              onClick={handleOpenBatchRebateModal}
+            >
+              批量设置返点
+            </Button>
+            <Button
+              size="small"
               icon={<TagsOutlined />}
               onClick={handleOpenBatchTag}
             >
@@ -548,13 +629,6 @@ export function TalentPoolTab({
             onClick={() => setSelectorVisible(true)}
           >
             添加达人
-          </Button>,
-          <Button
-            key="refresh"
-            icon={<ReloadOutlined />}
-            onClick={() => loadTalents()}
-          >
-            刷新
           </Button>,
         ]}
         scroll={{ x: 950 }}
@@ -635,6 +709,47 @@ export function TalentPoolTab({
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* 返点设置弹窗 */}
+      {rebateModalTalent && (
+        <CustomerRebateModal
+          visible={rebateModalVisible}
+          onClose={() => {
+            setRebateModalVisible(false);
+            setRebateModalTalent(null);
+          }}
+          customerId={customerId}
+          customerName={customerName}
+          talent={{
+            oneId: rebateModalTalent.talentOneId,
+            platform: platform,
+            name: rebateModalTalent.talentInfo?.name || rebateModalTalent.talentOneId,
+          }}
+          onSuccess={loadTalents}
+        />
+      )}
+
+      {/* 批量返点设置弹窗 */}
+      <BatchCustomerRebateModal
+        visible={batchRebateModalVisible}
+        onClose={() => {
+          setBatchRebateModalVisible(false);
+          setSelectedRowKeys([]);
+        }}
+        customerId={customerId}
+        customerName={customerName}
+        platform={platform}
+        talents={talents
+          .filter(t => selectedRowKeys.includes(t._id!))
+          .map(t => ({
+            oneId: t.talentOneId,
+            name: t.talentInfo?.name || t.talentOneId,
+            currentRebate: t.customerRebate?.enabled
+              ? t.customerRebate.rate ?? undefined
+              : t.talentInfo?.currentRebate?.rate,
+          }))}
+        onSuccess={loadTalents}
+      />
     </div>
   );
 }

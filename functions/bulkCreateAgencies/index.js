@@ -9,7 +9,7 @@
  * - [新增] 批量创建机构功能
  * - [校验] 机构名称必填、数据库去重、批次内去重
  * - [默认值] type = 'agency', status = 'active'
- * - [限制] 单次批量最多 100 条
+ * - [限制] 单次批量最多 500 条
  */
 
 const { MongoClient } = require('mongodb');
@@ -44,13 +44,13 @@ function generateAgencyId() {
  */
 async function handleBulkCreate(collection, agenciesData, headers) {
   // 1. 验证数据条数限制
-  if (agenciesData.length > 100) {
+  if (agenciesData.length > 500) {
     return {
       statusCode: 400,
       headers,
       body: JSON.stringify({
         success: false,
-        message: '单次批量创建上限为 100 条'
+        message: '单次批量创建上限为 500 条'
       })
     };
   }

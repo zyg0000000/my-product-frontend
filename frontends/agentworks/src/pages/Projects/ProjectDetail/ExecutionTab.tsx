@@ -23,7 +23,6 @@ import {
   ClockCircleOutlined,
   WarningOutlined,
   ExportOutlined,
-  ReloadOutlined,
   CalendarOutlined,
   EditOutlined,
 } from '@ant-design/icons';
@@ -605,15 +604,6 @@ export function ExecutionTab({
         }}
         dateFormatter="string"
         headerTitle="执行明细"
-        toolBarRender={() => [
-          <Button
-            key="refresh"
-            icon={<ReloadOutlined />}
-            onClick={() => loadCollaborations()}
-          >
-            刷新
-          </Button>,
-        ]}
         scroll={{ x: 1400 }}
         options={{
           fullScreen: true,

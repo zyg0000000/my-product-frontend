@@ -151,11 +151,17 @@ export function useRebateForm({ talent, isOpen }: UseRebateFormParams) {
 
   /**
    * 获取机构名称
+   * 优先使用 API 返回的 agencyName，其次从本地 agencies 列表查找
    */
   const getAgencyName = (agencyId: string | null | undefined): string => {
     if (!agencyId || agencyId === AGENCY_INDIVIDUAL_ID) {
       return '野生达人';
     }
+    // 优先使用 API 返回的 agencyName（getTalentRebate 已返回此字段）
+    if (rebateData?.agencyName && rebateData.agencyId === agencyId) {
+      return rebateData.agencyName;
+    }
+    // 降级：从本地 agencies 列表查找
     const agency = agencies.find(a => a.id === agencyId);
     return agency?.name || agencyId;
   };

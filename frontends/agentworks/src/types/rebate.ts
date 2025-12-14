@@ -17,7 +17,8 @@ export type RebateSource =
   | 'default' // 系统默认
   | 'personal' // 个人配置
   | 'rule_trigger' // 规则触发
-  | 'agency'; // 机构统一
+  | 'agency' // 机构统一
+  | 'customer'; // 客户专属（v2.1 新增）
 
 /**
  * 生效方式
@@ -45,14 +46,20 @@ export interface CurrentRebate {
 }
 
 /**
+ * 返点配置目标类型
+ */
+export type RebateTargetType = 'talent' | 'agency' | 'customer_talent';
+
+/**
  * 返点配置历史记录（rebate_configs 集合）
  */
 export interface RebateConfig {
   configId: string; // 配置ID
-  targetType: 'talent'; // 目标类型（固定为 talent）
-  targetId: string; // 目标ID（oneId）
+  targetType: RebateTargetType; // 目标类型
+  targetId: string; // 目标ID（oneId 或组合键）
   platform: Platform; // 平台
   rebateRate: number; // 返点率（百分比，2位小数）
+  previousRate?: number; // 调整前返点率（v2.2 新增）
   effectType: EffectType; // 生效方式
   effectiveDate: string; // 生效时间 (ISO 8601 时间戳)
   expiryDate: string | null; // 失效时间 (ISO 8601 时间戳)，null 表示当前生效中
@@ -60,6 +67,9 @@ export interface RebateConfig {
   reason?: string; // 调整原因
   createdBy: string; // 操作人
   createdAt: string; // 创建时间 (ISO 8601)
+  // customer_talent 类型专用字段
+  customerId?: string; // 客户编码
+  talentOneId?: string; // 达人统一ID
 }
 
 /**
@@ -177,6 +187,7 @@ export const REBATE_SOURCE_LABELS: Record<RebateSource, string> = {
   personal: '个人配置',
   rule_trigger: '规则触发',
   agency: '机构统一',
+  customer: '客户专属',
 };
 
 /**
@@ -320,4 +331,105 @@ export interface RebateRule {
  */
 export interface RebateConfigWithRule extends RebateConfig {
   triggeredByRuleId?: string; // 如果是规则触发，记录规则ID
+}
+
+// ==================== 客户级返点（v2.1 新增） ====================
+
+/**
+ * 客户级返点配置（存储在 customer_talents.customerRebate 中）
+ */
+export interface CustomerRebate {
+  enabled: boolean; // 是否启用客户级返点
+  rate: number | null; // 返点率（0-100，2位小数）
+  effectiveDate: string | null; // 生效日期 (YYYY-MM-DD)
+  lastUpdatedAt: string; // 更新时间 (ISO 8601)
+  updatedBy: string; // 操作人
+  notes?: string; // 备注
+}
+
+/**
+ * 生效返点（综合优先级后的最终返点）
+ */
+export interface EffectiveRebate {
+  rate: number; // 返点率
+  source: RebateSource; // 返点来源
+}
+
+/**
+ * 获取客户达人返点 - API 响应
+ */
+export interface GetCustomerRebateResponse {
+  success: boolean;
+  data?: {
+    customerRebate: CustomerRebate | null;
+    talentRebate: {
+      rate: number | null;
+      source: RebateSource;
+      effectiveDate?: string;
+      agencyId?: string;
+      agencyName?: string;
+    };
+    effectiveRebate: EffectiveRebate;
+    history: RebateConfig[];
+    talent: {
+      oneId: string;
+      name: string;
+      platform: Platform;
+      agencyId: string;
+      rebateMode: 'sync' | 'independent';
+    };
+  };
+  message?: string;
+}
+
+/**
+ * 更新客户达人返点 - API 请求
+ */
+export interface UpdateCustomerRebateRequest {
+  customerId: string;
+  talentOneId: string;
+  platform: Platform;
+  enabled: boolean;
+  rate?: number; // enabled=true 时必填
+  notes?: string;
+  updatedBy?: string;
+}
+
+/**
+ * 更新客户达人返点 - API 响应
+ */
+export interface UpdateCustomerRebateResponse {
+  success: boolean;
+  data?: {
+    success: boolean;
+    customerRebate: CustomerRebate;
+    message: string;
+  };
+  message?: string;
+}
+
+/**
+ * 批量更新客户达人返点 - API 请求
+ */
+export interface BatchUpdateCustomerRebateRequest {
+  customerId: string;
+  platform: Platform;
+  talents: Array<{
+    talentOneId: string;
+    rate: number;
+    notes?: string;
+  }>;
+  updatedBy?: string;
+}
+
+/**
+ * 批量更新客户达人返点 - API 响应
+ */
+export interface BatchUpdateCustomerRebateResponse {
+  success: boolean;
+  data?: {
+    updated: number;
+    failed: Array<{ talentOneId: string; reason: string }>;
+  };
+  message?: string;
 }

@@ -211,13 +211,13 @@ async function handleV2Create(collection, talentsData, platform, headers) {
   }
 
   // 验证数据条数限制
-  if (talentsData.length > 100) {
+  if (talentsData.length > 500) {
     return {
       statusCode: 400,
       headers,
       body: JSON.stringify({
         success: false,
-        message: '单次批量创建上限为 100 条'
+        message: '单次批量创建上限为 500 条'
       })
     };
   }
@@ -364,7 +364,7 @@ async function handleV2Create(collection, talentsData, platform, headers) {
       rebateMode: isWildTalent ? 'independent' : 'sync', // 野生达人固定独立模式，机构达人默认同步
       currentRebate: {
         rate: defaultRebateRate,
-        source: isWildTalent ? 'agency' : 'default', // 野生达人从机构配置读取
+        source: isWildTalent ? 'personal' : 'agency', // 野生达人=个人配置，机构达人=机构同步
         effectiveDate: new Date().toISOString().split('T')[0],
         lastUpdated: new Date()
       },

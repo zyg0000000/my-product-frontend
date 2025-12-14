@@ -18,7 +18,6 @@ import {
   LikeOutlined,
   MessageOutlined,
   ShareAltOutlined,
-  ReloadOutlined,
   SaveOutlined,
   DollarOutlined,
   LineChartOutlined,
@@ -1128,15 +1127,6 @@ export function EffectTab({
               search={false}
               dateFormatter="string"
               headerTitle={`${EFFECT_PERIOD_OPTIONS.find(p => p.key === period)?.label || period} 效果明细`}
-              toolBarRender={() => [
-                <Button
-                  key="refresh"
-                  icon={<ReloadOutlined />}
-                  onClick={() => loadCollaborations()}
-                >
-                  刷新
-                </Button>,
-              ]}
               scroll={{ x: 1000 }}
               options={{
                 fullScreen: true,

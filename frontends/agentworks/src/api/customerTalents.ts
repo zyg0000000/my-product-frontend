@@ -16,6 +16,13 @@ import type {
   CustomerTalentTags,
 } from '../types/customerTalent';
 import type { Platform } from '../types/talent';
+import type {
+  GetCustomerRebateResponse,
+  UpdateCustomerRebateRequest,
+  UpdateCustomerRebateResponse,
+  BatchUpdateCustomerRebateRequest,
+  BatchUpdateCustomerRebateResponse,
+} from '../types/rebate';
 
 const ENDPOINT = '/customerTalents';
 
@@ -372,4 +379,50 @@ export async function panoramaSearch(
     { signal: options?.signal }
   );
   return response.data;
+}
+
+// ========== 客户返点管理 API (v2.9 新增) ==========
+
+/**
+ * 获取客户达人返点详情
+ * 返回客户级返点、达人默认返点、生效返点和历史记录
+ */
+export async function getCustomerRebate(
+  customerId: string,
+  talentOneId: string,
+  platform: Platform
+): Promise<GetCustomerRebateResponse> {
+  const response = await get<GetCustomerRebateResponse>(ENDPOINT, {
+    action: 'getCustomerRebate',
+    customerId,
+    talentOneId,
+    platform,
+  });
+  return response;
+}
+
+/**
+ * 更新单个客户达人返点
+ */
+export async function updateCustomerRebate(
+  request: UpdateCustomerRebateRequest
+): Promise<UpdateCustomerRebateResponse> {
+  const response = await post<UpdateCustomerRebateResponse>(
+    `${ENDPOINT}?action=updateCustomerRebate`,
+    request
+  );
+  return response;
+}
+
+/**
+ * 批量更新客户达人返点
+ */
+export async function batchUpdateCustomerRebate(
+  request: BatchUpdateCustomerRebateRequest
+): Promise<BatchUpdateCustomerRebateResponse> {
+  const response = await post<BatchUpdateCustomerRebateResponse>(
+    `${ENDPOINT}?action=batchUpdateCustomerRebate`,
+    request
+  );
+  return response;
 }

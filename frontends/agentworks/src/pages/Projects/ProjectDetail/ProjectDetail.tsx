@@ -181,6 +181,7 @@ export function ProjectDetail() {
       children: (
         <CollaborationsTab
           projectId={project.id}
+          customerId={project.customerId}
           platforms={project.platforms}
           onRefresh={refreshProject}
         />

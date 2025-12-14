@@ -21,7 +21,6 @@ import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  ReloadOutlined,
 } from '@ant-design/icons';
 import type {
   Collaboration,
@@ -45,12 +44,14 @@ import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 
 interface CollaborationsTabProps {
   projectId: string;
+  customerId: string; // v2.1: 用于获取客户级返点
   platforms: Platform[];
   onRefresh?: () => void;
 }
 
 export function CollaborationsTab({
   projectId,
+  customerId,
   platforms,
   onRefresh,
 }: CollaborationsTabProps) {
@@ -394,13 +395,6 @@ export function CollaborationsTab({
           >
             添加达人
           </Button>,
-          <Button
-            key="refresh"
-            icon={<ReloadOutlined />}
-            onClick={() => loadCollaborations()}
-          >
-            刷新
-          </Button>,
         ]}
         scroll={{ x: 1200 }}
         options={{
@@ -414,6 +408,7 @@ export function CollaborationsTab({
       <CollaborationFormModal
         open={formModalOpen}
         projectId={projectId}
+        customerId={customerId}
         platforms={platforms}
         editingCollaboration={editingCollaboration}
         onCancel={() => {

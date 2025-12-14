@@ -16,7 +16,6 @@ import {
   DollarOutlined,
   UndoOutlined,
   StopOutlined,
-  ReloadOutlined,
   ShoppingOutlined,
   ThunderboltOutlined,
   VideoCameraOutlined,
@@ -892,13 +891,6 @@ export default function CustomerList() {
                 onClick={() => navigate('/customers/new')}
               >
                 新增客户
-              </Button>,
-              <Button
-                key="refresh"
-                icon={<ReloadOutlined />}
-                onClick={() => loadCustomers()}
-              >
-                刷新
               </Button>,
             ]}
             scroll={{ x: 1100 }}

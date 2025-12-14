@@ -26,6 +26,8 @@ import {
 } from '../services/talentApi';
 import { usePlatformConfig } from './usePlatformConfig';
 import { useApiCall } from './useApiCall';
+import { getTalentRebate } from '../api/rebate';
+import { REBATE_SOURCE_LABELS } from '../types/rebate';
 import { logger } from '../utils/logger';
 
 /**
@@ -63,6 +65,7 @@ const PRICE_TYPE_LABELS: Record<string, string> = {
 interface UseCollaborationFormParams {
   form: FormInstance;
   projectId: string;
+  customerId: string; // v2.1: 用于获取客户级返点
   editingCollaboration: Collaboration | null;
   onSuccess: () => void;
 }
@@ -73,6 +76,7 @@ interface UseCollaborationFormParams {
 export function useCollaborationForm({
   form,
   projectId,
+  customerId,
   editingCollaboration,
   onSuccess,
 }: UseCollaborationFormParams) {
@@ -207,9 +211,10 @@ export function useCollaborationForm({
 
   /**
    * 达人选择变化 - 自动填充表单
+   * v2.1: 使用新 API 获取客户级返点
    */
   const handleTalentChange = useCallback(
-    (value: string) => {
+    async (value: string) => {
       const [oneId, platform] = value.split('__');
       const selectedOption = talentOptions.find(opt => opt.value === value);
       const talent = selectedOption?.talent;
@@ -227,13 +232,48 @@ export function useCollaborationForm({
         // 自动填充达人来源
         updates.talentSource = getTalentSource(talent.agencyId);
 
-        // 自动填充返点率和来源信息
-        if (talent.currentRebate?.rate !== undefined) {
-          updates.rebateRate = talent.currentRebate.rate;
-          const effectiveDate = talent.currentRebate.effectiveDate
-            ? dayjs(talent.currentRebate.effectiveDate).format('YYYY-MM-DD')
-            : '未知';
-          newTooltips.rebate = `来源：达人返点配置\n生效日期：${effectiveDate}`;
+        // v2.1: 使用新 API 获取生效返点（考虑客户级返点）
+        try {
+          const rebateResponse = await getTalentRebate(
+            oneId,
+            platform as Platform,
+            customerId
+          );
+          if (rebateResponse.success && rebateResponse.data) {
+            const { effectiveRebate, customerRebate } = rebateResponse.data;
+            if (effectiveRebate) {
+              updates.rebateRate = effectiveRebate.rate;
+              const sourceLabel =
+                REBATE_SOURCE_LABELS[
+                  effectiveRebate.source as keyof typeof REBATE_SOURCE_LABELS
+                ] || effectiveRebate.source;
+
+              // 构建返点来源提示
+              if (effectiveRebate.source === 'customer' && customerRebate) {
+                newTooltips.rebate = `来源：${sourceLabel}\n生效日期：${customerRebate.effectiveDate || '未知'}`;
+              } else if (rebateResponse.data.currentRebate) {
+                const effectiveDate = rebateResponse.data.currentRebate
+                  .effectiveDate
+                  ? dayjs(
+                      rebateResponse.data.currentRebate.effectiveDate
+                    ).format('YYYY-MM-DD')
+                  : '未知';
+                newTooltips.rebate = `来源：${sourceLabel}\n生效日期：${effectiveDate}`;
+              } else {
+                newTooltips.rebate = `来源：${sourceLabel}`;
+              }
+            }
+          }
+        } catch (error) {
+          logger.error('获取返点信息失败，使用达人默认返点:', error);
+          // 降级：使用达人的 currentRebate
+          if (talent.currentRebate?.rate !== undefined) {
+            updates.rebateRate = talent.currentRebate.rate;
+            const effectiveDate = talent.currentRebate.effectiveDate
+              ? dayjs(talent.currentRebate.effectiveDate).format('YYYY-MM-DD')
+              : '未知';
+            newTooltips.rebate = `来源：达人返点配置\n生效日期：${effectiveDate}`;
+          }
         }
 
         // 自动填充价格和来源信息
@@ -248,7 +288,7 @@ export function useCollaborationForm({
       setSelectedPlatform(platform as Platform);
       setTooltips(newTooltips);
     },
-    [talentOptions, getTalentSource, getLatestPrice, form]
+    [talentOptions, getTalentSource, getLatestPrice, form, customerId]
   );
 
   /**

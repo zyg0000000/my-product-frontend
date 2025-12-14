@@ -34,7 +34,6 @@ import {
   DollarOutlined,
   PlusOutlined,
   DeleteOutlined,
-  ReloadOutlined,
   CheckSquareOutlined,
   ShoppingOutlined,
   WalletOutlined,
@@ -1254,15 +1253,6 @@ export function FinancialTab({
             search={false}
             dateFormatter="string"
             headerTitle="财务明细"
-            toolBarRender={() => [
-              <Button
-                key="refresh"
-                icon={<ReloadOutlined />}
-                onClick={() => loadCollaborations()}
-              >
-                刷新
-              </Button>,
-            ]}
             scroll={{ x: 1100 }}
             options={{
               fullScreen: true,

@@ -1,6 +1,6 @@
 /**
  * @file talentBatchOperations.js
- * @version 1.1.0
+ * @version 2.2.0
  * @description 云函数：达人批量操作统一接口 (agentworks 专用)
  *
  * --- 功能说明 ---
@@ -8,7 +8,23 @@
  * - match: 批量匹配达人（预览用，支持机构名称匹配）
  * - bindAgency: 批量绑定机构（单机构模式，按 agencyId）
  * - bindAgencyByName: 批量绑定机构（多机构模式，按机构名称）
- * - unbindAgency: 批量解绑机构
+ * - unbindAgency: 批量解绑机构（需提供新返点率）
+ * - setIndependentRebate: 批量设置独立返点（机构达人切换为独立模式）
+ *
+ * --- 更新日志 ---
+ * [v2.2.0] 2025-12-14
+ * - 新增 setIndependentRebate 操作，支持为机构达人设置独立返点
+ * - 达人保持在机构内，但 rebateMode 切换为 independent
+ *
+ * [v2.1.0] 2025-12-14
+ * - 解绑机构时必须提供 newRebateRate 参数
+ * - 解绑时同步写入新返点到 talents.currentRebate (source='personal')
+ * - 解绑时写入 rebate_configs 历史记录 (changeSource='agency_unbind')
+ *
+ * [v2.0.0] 2025-12-14
+ * - 绑定机构时同步写入返点到 talents.currentRebate
+ * - 绑定机构时写入 rebate_configs 历史记录
+ * - 新增 changeSource 字段标识返点变更来源
  *
  * --- 注意事项 ---
  * - 仅支持 agentworks_db，不兼容 v1/byteproject
@@ -22,6 +38,14 @@ const MONGO_URI = process.env.MONGO_URI;
 const DB_NAME = 'agentworks_db';
 const TALENTS_COLLECTION = 'talents';
 const AGENCIES_COLLECTION = 'agencies';
+const REBATE_CONFIGS_COLLECTION = 'rebate_configs';
+
+/**
+ * 生成配置ID
+ */
+function generateConfigId() {
+  return `rebate_config_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
 
 let client;
 
@@ -199,6 +223,7 @@ async function handleMatch(db, platform, data) {
 
 /**
  * 批量绑定机构
+ * v2.0: 绑定时同步写入机构返点到达人，并记录返点历史
  *
  * @param {Object} db - 数据库实例
  * @param {string} platform - 平台
@@ -218,18 +243,22 @@ async function handleBindAgency(db, platform, data) {
     return errorResponse(400, 'talents 数组不能为空');
   }
 
-  if (talents.length > 200) {
-    return errorResponse(400, '单次绑定数量不能超过 200 条');
+  if (talents.length > 500) {
+    return errorResponse(400, '单次绑定数量不能超过 500 条');
   }
 
   const talentsCollection = db.collection(TALENTS_COLLECTION);
   const agenciesCollection = db.collection(AGENCIES_COLLECTION);
+  const rebateConfigsCollection = db.collection(REBATE_CONFIGS_COLLECTION);
 
   // 验证目标机构是否存在
   const targetAgency = await agenciesCollection.findOne({ id: agencyId });
   if (!targetAgency) {
     return errorResponse(404, `机构不存在: ${agencyId}`);
   }
+
+  // 获取机构在该平台的返点率
+  const agencyRebateRate = targetAgency.rebateConfig?.platforms?.[platform]?.baseRebate;
 
   // 获取所有机构信息用于错误提示
   const allAgencies = await agenciesCollection.find({}, { projection: { id: 1, name: 1 } }).toArray();
@@ -240,15 +269,17 @@ async function handleBindAgency(db, platform, data) {
     return errorResponse(400, 'talents 数组中缺少有效的 oneId');
   }
 
-  // 批量查询达人
+  // 批量查询达人（包含当前返点信息）
   const existingTalents = await talentsCollection.find(
     { oneId: { $in: oneIds }, platform },
-    { projection: { oneId: 1, name: 1, agencyId: 1 } }
+    { projection: { oneId: 1, name: 1, agencyId: 1, currentRebate: 1 } }
   ).toArray();
 
   const existingMap = new Map(existingTalents.map(t => [t.oneId, t]));
 
-  const bulkOps = [];
+  const talentBulkOps = [];
+  const rebateConfigsToInsert = [];
+  const oldConfigsToExpire = [];
   const errors = [];
   let boundCount = 0;
   let skippedCount = 0;
@@ -267,6 +298,7 @@ async function handleBindAgency(db, platform, data) {
     }
 
     const currentAgencyId = existing.agencyId || 'individual';
+    const previousRate = existing.currentRebate?.rate;
 
     // 如果已经绑定到目标机构，跳过
     if (currentAgencyId === agencyId) {
@@ -287,14 +319,55 @@ async function handleBindAgency(db, platform, data) {
       continue;
     }
 
-    // 构建更新操作
+    // 构建达人更新操作
     const updatePayload = {
       agencyId,
-      rebateMode: 'sync', // 绑定机构时默认同步机构返点
+      rebateMode: 'sync',
       updatedAt: now
     };
 
-    bulkOps.push({
+    // 如果机构有配置返点，同步写入达人的 currentRebate
+    if (agencyRebateRate !== undefined && agencyRebateRate !== null) {
+      updatePayload.currentRebate = {
+        rate: agencyRebateRate,
+        source: 'agency',
+        effectiveDate: now.toISOString().split('T')[0],
+        lastUpdated: now
+      };
+      updatePayload.lastRebateSyncAt = now.toISOString();
+
+      // 记录需要过期的旧配置
+      oldConfigsToExpire.push({
+        targetType: 'talent',
+        targetId: oneId,
+        platform
+      });
+
+      // 创建新的返点历史记录
+      rebateConfigsToInsert.push({
+        configId: generateConfigId(),
+        targetType: 'talent',
+        targetId: oneId,
+        platform,
+        rebateRate: agencyRebateRate,
+        previousRate: previousRate ?? null,
+        effectType: 'immediate',
+        effectiveDate: now,
+        expiryDate: null,
+        status: 'active',
+        createdBy: 'system',
+        createdAt: now,
+        changeSource: 'agency_bind',
+        sourceAgencyId: agencyId,
+        sourceAgencyName: targetAgency.name,
+        metadata: {
+          talentName: existing.name,
+          bindOperation: true
+        }
+      });
+    }
+
+    talentBulkOps.push({
       updateOne: {
         filter: { oneId, platform },
         update: { $set: updatePayload }
@@ -304,8 +377,34 @@ async function handleBindAgency(db, platform, data) {
   }
 
   // 执行批量更新
-  if (bulkOps.length > 0) {
-    await talentsCollection.bulkWrite(bulkOps, { ordered: false });
+  if (talentBulkOps.length > 0) {
+    await talentsCollection.bulkWrite(talentBulkOps, { ordered: false });
+  }
+
+  // 将旧的 active 返点配置标记为 expired
+  if (oldConfigsToExpire.length > 0) {
+    for (const { targetType, targetId, platform: plat } of oldConfigsToExpire) {
+      await rebateConfigsCollection.updateMany(
+        {
+          targetType,
+          targetId,
+          platform: plat,
+          status: 'active'
+        },
+        {
+          $set: {
+            status: 'expired',
+            expiryDate: now,
+            updatedAt: now
+          }
+        }
+      );
+    }
+  }
+
+  // 批量插入新的返点历史记录
+  if (rebateConfigsToInsert.length > 0) {
+    await rebateConfigsCollection.insertMany(rebateConfigsToInsert);
   }
 
   return successResponse({
@@ -316,6 +415,8 @@ async function handleBindAgency(db, platform, data) {
       id: targetAgency.id,
       name: targetAgency.name
     },
+    rebateSynced: rebateConfigsToInsert.length,
+    agencyRebateRate: agencyRebateRate ?? null,
     errors
   });
 }
@@ -325,6 +426,7 @@ async function handleBindAgency(db, platform, data) {
 /**
  * 批量绑定机构（多机构模式，按机构名称）
  * 支持一次请求将不同达人绑定到不同机构
+ * v2.0: 绑定时同步写入机构返点到达人，并记录返点历史
  *
  * @param {Object} db - 数据库实例
  * @param {string} platform - 平台
@@ -339,15 +441,18 @@ async function handleBindAgencyByName(db, platform, data) {
     return errorResponse(400, 'talents 数组不能为空');
   }
 
-  if (talents.length > 200) {
-    return errorResponse(400, '单次绑定数量不能超过 200 条');
+  if (talents.length > 500) {
+    return errorResponse(400, '单次绑定数量不能超过 500 条');
   }
 
   const talentsCollection = db.collection(TALENTS_COLLECTION);
   const agenciesCollection = db.collection(AGENCIES_COLLECTION);
+  const rebateConfigsCollection = db.collection(REBATE_CONFIGS_COLLECTION);
 
-  // 获取所有机构信息，建立名称到ID的映射
-  const allAgencies = await agenciesCollection.find({}, { projection: { id: 1, name: 1 } }).toArray();
+  // 获取所有机构信息（包含返点配置），建立名称到机构的映射
+  const allAgencies = await agenciesCollection.find({}, {
+    projection: { id: 1, name: 1, rebateConfig: 1 }
+  }).toArray();
   const agencyIdMap = new Map(allAgencies.map(a => [a.id, a.name]));
   const agencyNameMap = new Map(allAgencies.map(a => [a.name.toLowerCase(), a]));
 
@@ -357,15 +462,17 @@ async function handleBindAgencyByName(db, platform, data) {
     return errorResponse(400, 'talents 数组中缺少有效的 oneId');
   }
 
-  // 批量查询达人
+  // 批量查询达人（包含当前返点信息）
   const existingTalents = await talentsCollection.find(
     { oneId: { $in: oneIds }, platform },
-    { projection: { oneId: 1, name: 1, agencyId: 1 } }
+    { projection: { oneId: 1, name: 1, agencyId: 1, currentRebate: 1 } }
   ).toArray();
 
   const existingMap = new Map(existingTalents.map(t => [t.oneId, t]));
 
-  const bulkOps = [];
+  const talentBulkOps = [];
+  const rebateConfigsToInsert = [];
+  const oldConfigsToExpire = [];
   const errors = [];
   const results = [];
   let boundCount = 0;
@@ -397,6 +504,7 @@ async function handleBindAgencyByName(db, platform, data) {
     }
 
     const currentAgencyId = existing.agencyId || 'individual';
+    const previousRate = existing.currentRebate?.rate;
 
     // 如果已经绑定到目标机构，跳过
     if (currentAgencyId === targetAgency.id) {
@@ -424,14 +532,58 @@ async function handleBindAgencyByName(db, platform, data) {
       continue;
     }
 
-    // 构建更新操作
+    // 获取目标机构在该平台的返点率
+    const agencyRebateRate = targetAgency.rebateConfig?.platforms?.[platform]?.baseRebate;
+
+    // 构建达人更新操作
     const updatePayload = {
       agencyId: targetAgency.id,
-      rebateMode: 'sync', // 绑定机构时默认同步机构返点
+      rebateMode: 'sync',
       updatedAt: now
     };
 
-    bulkOps.push({
+    // 如果机构有配置返点，同步写入达人的 currentRebate
+    if (agencyRebateRate !== undefined && agencyRebateRate !== null) {
+      updatePayload.currentRebate = {
+        rate: agencyRebateRate,
+        source: 'agency',
+        effectiveDate: now.toISOString().split('T')[0],
+        lastUpdated: now
+      };
+      updatePayload.lastRebateSyncAt = now.toISOString();
+
+      // 记录需要过期的旧配置
+      oldConfigsToExpire.push({
+        targetType: 'talent',
+        targetId: oneId,
+        platform
+      });
+
+      // 创建新的返点历史记录
+      rebateConfigsToInsert.push({
+        configId: generateConfigId(),
+        targetType: 'talent',
+        targetId: oneId,
+        platform,
+        rebateRate: agencyRebateRate,
+        previousRate: previousRate ?? null,
+        effectType: 'immediate',
+        effectiveDate: now,
+        expiryDate: null,
+        status: 'active',
+        createdBy: 'system',
+        createdAt: now,
+        changeSource: 'agency_bind',
+        sourceAgencyId: targetAgency.id,
+        sourceAgencyName: targetAgency.name,
+        metadata: {
+          talentName: existing.name,
+          bindOperation: true
+        }
+      });
+    }
+
+    talentBulkOps.push({
       updateOne: {
         filter: { oneId, platform },
         update: { $set: updatePayload }
@@ -443,20 +595,49 @@ async function handleBindAgencyByName(db, platform, data) {
       agencyName,
       agencyId: targetAgency.id,
       status: 'bound',
-      talentName: existing.name
+      talentName: existing.name,
+      rebateSynced: agencyRebateRate !== undefined && agencyRebateRate !== null,
+      rebateRate: agencyRebateRate ?? null
     });
     boundCount++;
   }
 
   // 执行批量更新
-  if (bulkOps.length > 0) {
-    await talentsCollection.bulkWrite(bulkOps, { ordered: false });
+  if (talentBulkOps.length > 0) {
+    await talentsCollection.bulkWrite(talentBulkOps, { ordered: false });
+  }
+
+  // 将旧的 active 返点配置标记为 expired
+  if (oldConfigsToExpire.length > 0) {
+    for (const { targetType, targetId, platform: plat } of oldConfigsToExpire) {
+      await rebateConfigsCollection.updateMany(
+        {
+          targetType,
+          targetId,
+          platform: plat,
+          status: 'active'
+        },
+        {
+          $set: {
+            status: 'expired',
+            expiryDate: now,
+            updatedAt: now
+          }
+        }
+      );
+    }
+  }
+
+  // 批量插入新的返点历史记录
+  if (rebateConfigsToInsert.length > 0) {
+    await rebateConfigsCollection.insertMany(rebateConfigsToInsert);
   }
 
   return successResponse({
     bound: boundCount,
     skipped: skippedCount,
     failed: errors.length,
+    rebateSynced: rebateConfigsToInsert.length,
     results,
     errors
   });
@@ -466,41 +647,71 @@ async function handleBindAgencyByName(db, platform, data) {
 
 /**
  * 批量解绑机构
+ * v2.0: 解绑时必须指定新返点率，同步写入达人 currentRebate，并记录返点历史
  *
  * @param {Object} db - 数据库实例
  * @param {string} platform - 平台
  * @param {Object} data - 解绑数据
  * @param {Array} data.talents - 待解绑的达人列表 [{ oneId }]
+ * @param {number} data.newRebateRate - 解绑后的新返点率 (必填，0-100)
+ * @param {string} [data.updatedBy='system'] - 操作人
  */
 async function handleUnbindAgency(db, platform, data) {
-  const { talents } = data;
+  const { talents, newRebateRate, updatedBy = 'system' } = data;
+
+  // 验证 newRebateRate 参数
+  if (newRebateRate === undefined || newRebateRate === null) {
+    return errorResponse(400, '缺少新返点率参数 (newRebateRate)，解绑后达人需要设置独立返点');
+  }
+
+  const rate = parseFloat(newRebateRate);
+  if (isNaN(rate) || rate < 0 || rate > 100) {
+    return errorResponse(400, '返点率必须在 0-100 之间');
+  }
+
+  // 检查小数位数
+  const decimalPart = (newRebateRate.toString().split('.')[1] || '');
+  if (decimalPart.length > 2) {
+    return errorResponse(400, '返点率最多支持小数点后2位');
+  }
+
+  const validatedRate = parseFloat(rate.toFixed(2));
 
   if (!Array.isArray(talents) || talents.length === 0) {
     return errorResponse(400, 'talents 数组不能为空');
   }
 
-  if (talents.length > 200) {
-    return errorResponse(400, '单次解绑数量不能超过 200 条');
+  if (talents.length > 500) {
+    return errorResponse(400, '单次解绑数量不能超过 500 条');
   }
 
   const talentsCollection = db.collection(TALENTS_COLLECTION);
+  const agenciesCollection = db.collection(AGENCIES_COLLECTION);
+  const rebateConfigsCollection = db.collection(REBATE_CONFIGS_COLLECTION);
 
   const oneIds = talents.map(t => t.oneId).filter(Boolean);
   if (oneIds.length === 0) {
     return errorResponse(400, 'talents 数组中缺少有效的 oneId');
   }
 
-  // 批量查询达人
+  // 获取所有机构信息用于记录
+  const allAgencies = await agenciesCollection.find({}, { projection: { id: 1, name: 1 } }).toArray();
+  const agencyMap = new Map(allAgencies.map(a => [a.id, a.name]));
+
+  // 批量查询达人（包含当前返点和机构信息）
   const existingTalents = await talentsCollection.find(
     { oneId: { $in: oneIds }, platform },
-    { projection: { oneId: 1, agencyId: 1 } }
+    { projection: { oneId: 1, name: 1, agencyId: 1, currentRebate: 1 } }
   ).toArray();
 
   const existingMap = new Map(existingTalents.map(t => [t.oneId, t]));
 
-  const bulkOps = [];
+  const talentBulkOps = [];
+  const rebateConfigsToInsert = [];
+  const oldConfigsToExpire = [];
   const errors = [];
   let unboundCount = 0;
+  let skippedCount = 0;
   const now = new Date();
 
   for (const { oneId } of talents) {
@@ -517,17 +728,60 @@ async function handleUnbindAgency(db, platform, data) {
 
     // 如果已经是野生达人，跳过
     if (!existing.agencyId || existing.agencyId === 'individual') {
+      skippedCount++;
       continue; // 静默跳过，不计入错误
     }
+
+    const previousAgencyId = existing.agencyId;
+    const previousAgencyName = agencyMap.get(previousAgencyId) || '未知机构';
+    const previousRate = existing.currentRebate?.rate;
 
     // 构建更新操作
     const updatePayload = {
       agencyId: 'individual',
       rebateMode: 'independent', // 解绑后切换为独立返点模式
+      currentRebate: {
+        rate: validatedRate,
+        source: 'personal',
+        effectiveDate: now.toISOString().split('T')[0],
+        lastUpdated: now
+      },
       updatedAt: now
     };
 
-    bulkOps.push({
+    // 记录需要过期的旧配置
+    oldConfigsToExpire.push({
+      targetType: 'talent',
+      targetId: oneId,
+      platform
+    });
+
+    // 创建新的返点历史记录
+    rebateConfigsToInsert.push({
+      configId: generateConfigId(),
+      targetType: 'talent',
+      targetId: oneId,
+      platform,
+      rebateRate: validatedRate,
+      previousRate: previousRate ?? null,
+      effectType: 'immediate',
+      effectiveDate: now,
+      expiryDate: null,
+      status: 'active',
+      createdBy: updatedBy,
+      createdAt: now,
+      changeSource: 'agency_unbind',
+      sourceAgencyId: previousAgencyId,
+      sourceAgencyName: previousAgencyName,
+      metadata: {
+        talentName: existing.name,
+        unbindOperation: true,
+        previousAgencyId,
+        previousAgencyName
+      }
+    });
+
+    talentBulkOps.push({
       updateOne: {
         filter: { oneId, platform },
         update: { $set: updatePayload }
@@ -537,13 +791,239 @@ async function handleUnbindAgency(db, platform, data) {
   }
 
   // 执行批量更新
-  if (bulkOps.length > 0) {
-    await talentsCollection.bulkWrite(bulkOps, { ordered: false });
+  if (talentBulkOps.length > 0) {
+    await talentsCollection.bulkWrite(talentBulkOps, { ordered: false });
+  }
+
+  // 将旧的 active 返点配置标记为 expired
+  if (oldConfigsToExpire.length > 0) {
+    for (const { targetType, targetId, platform: plat } of oldConfigsToExpire) {
+      await rebateConfigsCollection.updateMany(
+        {
+          targetType,
+          targetId,
+          platform: plat,
+          status: 'active'
+        },
+        {
+          $set: {
+            status: 'expired',
+            expiryDate: now,
+            updatedAt: now
+          }
+        }
+      );
+    }
+  }
+
+  // 批量插入新的返点历史记录
+  if (rebateConfigsToInsert.length > 0) {
+    await rebateConfigsCollection.insertMany(rebateConfigsToInsert);
   }
 
   return successResponse({
     unbound: unboundCount,
+    skipped: skippedCount,
     failed: errors.length,
+    newRebateRate: validatedRate,
+    rebateRecordsCreated: rebateConfigsToInsert.length,
+    errors
+  });
+}
+
+// ==================== setIndependentRebate 操作 ====================
+
+/**
+ * 批量设置独立返点
+ * 为机构达人设置独立返点率，达人保持在机构内但 rebateMode 切换为 independent
+ *
+ * @param {Object} db - 数据库实例
+ * @param {string} platform - 平台
+ * @param {Object} data - 设置数据
+ * @param {Array} data.talents - 待设置的达人列表 [{ oneId, rebateRate }]
+ * @param {string} [data.updatedBy='system'] - 操作人
+ */
+async function handleSetIndependentRebate(db, platform, data) {
+  const { talents, updatedBy = 'system' } = data;
+
+  if (!Array.isArray(talents) || talents.length === 0) {
+    return errorResponse(400, 'talents 数组不能为空');
+  }
+
+  if (talents.length > 500) {
+    return errorResponse(400, '单次设置数量不能超过 500 条');
+  }
+
+  // 验证每个达人的返点率
+  for (const item of talents) {
+    if (!item.oneId) {
+      return errorResponse(400, 'talents 数组中存在缺少 oneId 的项');
+    }
+    if (item.rebateRate === undefined || item.rebateRate === null) {
+      return errorResponse(400, `达人 ${item.oneId} 缺少返点率 (rebateRate)`);
+    }
+    const rate = parseFloat(item.rebateRate);
+    if (isNaN(rate) || rate < 0 || rate > 100) {
+      return errorResponse(400, `达人 ${item.oneId} 的返点率必须在 0-100 之间`);
+    }
+    const decimalPart = (item.rebateRate.toString().split('.')[1] || '');
+    if (decimalPart.length > 2) {
+      return errorResponse(400, `达人 ${item.oneId} 的返点率最多支持小数点后2位`);
+    }
+  }
+
+  const talentsCollection = db.collection(TALENTS_COLLECTION);
+  const agenciesCollection = db.collection(AGENCIES_COLLECTION);
+  const rebateConfigsCollection = db.collection(REBATE_CONFIGS_COLLECTION);
+
+  const oneIds = talents.map(t => t.oneId);
+
+  // 获取所有机构信息用于记录
+  const allAgencies = await agenciesCollection.find({}, { projection: { id: 1, name: 1 } }).toArray();
+  const agencyMap = new Map(allAgencies.map(a => [a.id, a.name]));
+
+  // 批量查询达人
+  const existingTalents = await talentsCollection.find(
+    { oneId: { $in: oneIds }, platform },
+    { projection: { oneId: 1, name: 1, agencyId: 1, currentRebate: 1, rebateMode: 1 } }
+  ).toArray();
+
+  const existingMap = new Map(existingTalents.map(t => [t.oneId, t]));
+
+  // 构建 oneId -> rebateRate 映射
+  const rebateMap = new Map(talents.map(t => [t.oneId, parseFloat(parseFloat(t.rebateRate).toFixed(2))]));
+
+  const talentBulkOps = [];
+  const rebateConfigsToInsert = [];
+  const oldConfigsToExpire = [];
+  const errors = [];
+  const results = [];
+  let updatedCount = 0;
+  let skippedCount = 0;
+  const now = new Date();
+
+  for (const { oneId } of talents) {
+    const existing = existingMap.get(oneId);
+    if (!existing) {
+      errors.push({ oneId, reason: '达人不存在' });
+      continue;
+    }
+
+    const newRate = rebateMap.get(oneId);
+    const previousRate = existing.currentRebate?.rate;
+    const agencyId = existing.agencyId || 'individual';
+    const agencyName = agencyId !== 'individual' ? (agencyMap.get(agencyId) || '未知机构') : '野生达人';
+
+    // 如果返点率没有变化且已经是 independent 模式，跳过
+    if (existing.rebateMode === 'independent' && previousRate === newRate) {
+      skippedCount++;
+      results.push({
+        oneId,
+        status: 'skipped',
+        reason: '返点率未变化',
+        currentRate: previousRate
+      });
+      continue;
+    }
+
+    // 构建更新操作
+    const updatePayload = {
+      rebateMode: 'independent',
+      currentRebate: {
+        rate: newRate,
+        source: 'personal',
+        effectiveDate: now.toISOString().split('T')[0],
+        lastUpdated: now
+      },
+      updatedAt: now
+    };
+
+    // 记录需要过期的旧配置
+    oldConfigsToExpire.push({
+      targetType: 'talent',
+      targetId: oneId,
+      platform
+    });
+
+    // 创建新的返点历史记录
+    rebateConfigsToInsert.push({
+      configId: generateConfigId(),
+      targetType: 'talent',
+      targetId: oneId,
+      platform,
+      rebateRate: newRate,
+      previousRate: previousRate ?? null,
+      effectType: 'immediate',
+      effectiveDate: now,
+      expiryDate: null,
+      status: 'active',
+      createdBy: updatedBy,
+      createdAt: now,
+      changeSource: 'set_independent',
+      sourceAgencyId: agencyId,
+      sourceAgencyName: agencyName,
+      metadata: {
+        talentName: existing.name,
+        previousRebateMode: existing.rebateMode || 'sync'
+      }
+    });
+
+    talentBulkOps.push({
+      updateOne: {
+        filter: { oneId, platform },
+        update: { $set: updatePayload }
+      }
+    });
+
+    results.push({
+      oneId,
+      talentName: existing.name,
+      status: 'updated',
+      previousRate: previousRate ?? null,
+      newRate,
+      agencyId,
+      agencyName
+    });
+    updatedCount++;
+  }
+
+  // 执行批量更新
+  if (talentBulkOps.length > 0) {
+    await talentsCollection.bulkWrite(talentBulkOps, { ordered: false });
+  }
+
+  // 将旧的 active 返点配置标记为 expired
+  if (oldConfigsToExpire.length > 0) {
+    for (const { targetType, targetId, platform: plat } of oldConfigsToExpire) {
+      await rebateConfigsCollection.updateMany(
+        {
+          targetType,
+          targetId,
+          platform: plat,
+          status: 'active'
+        },
+        {
+          $set: {
+            status: 'expired',
+            expiryDate: now,
+            updatedAt: now
+          }
+        }
+      );
+    }
+  }
+
+  // 批量插入新的返点历史记录
+  if (rebateConfigsToInsert.length > 0) {
+    await rebateConfigsCollection.insertMany(rebateConfigsToInsert);
+  }
+
+  return successResponse({
+    updated: updatedCount,
+    skipped: skippedCount,
+    failed: errors.length,
+    rebateRecordsCreated: rebateConfigsToInsert.length,
+    results,
     errors
   });
 }
@@ -623,8 +1103,11 @@ exports.handler = async (event, context) => {
       case 'bindAgencyByName':
         return await handleBindAgencyByName(db, platform, data);
 
+      case 'setIndependentRebate':
+        return await handleSetIndependentRebate(db, platform, data);
+
       default:
-        return errorResponse(400, `不支持的操作类型: ${operation}，支持: match, bindAgency, bindAgencyByName, unbindAgency`);
+        return errorResponse(400, `不支持的操作类型: ${operation}，支持: match, bindAgency, bindAgencyByName, unbindAgency, setIndependentRebate`);
     }
 
   } catch (error) {

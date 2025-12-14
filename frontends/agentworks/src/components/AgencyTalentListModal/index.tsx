@@ -5,8 +5,13 @@
  * 1. 显示机构下各平台达人（按平台切换）
  * 2. 支持搜索、分页
  * 3. 多选勾选
- * 4. 批量解绑达人
+ * 4. 批量解绑达人（需输入新返点率）
  *
+ * 注意：批量设置独立返点功能已移至"返点管理"弹窗的"独立返点"Tab
+ *
+ * v3.1: 移除"设置返点"按钮（功能移至返点管理弹窗）
+ * v3.0: 添加批量设置独立返点功能
+ * v2.1: 解绑时需要输入新返点率
  * v2.0: 添加平台切换功能
  */
 
@@ -15,13 +20,14 @@ import {
   Modal,
   Table,
   Input,
+  InputNumber,
   Button,
   Checkbox,
   Tag,
-  Popconfirm,
   App,
   Empty,
   Segmented,
+  Form,
 } from 'antd';
 import {
   SearchOutlined,
@@ -34,6 +40,7 @@ import { usePlatformConfig } from '../../hooks/usePlatformConfig';
 import { logger } from '../../utils/logger';
 import type { Agency } from '../../types/agency';
 import type { Talent, Platform } from '../../types/talent';
+import { REBATE_VALIDATION } from '../../types/rebate';
 
 const { Search } = Input;
 
@@ -83,6 +90,8 @@ export function AgencyTalentListModal({
 
   // 解绑状态
   const [unbinding, setUnbinding] = useState(false);
+  const [unbindModalOpen, setUnbindModalOpen] = useState(false);
+  const [newRebateRate, setNewRebateRate] = useState<number>(0);
 
   // 统计
   const selectedCount = useMemo(
@@ -171,8 +180,30 @@ export function AgencyTalentListModal({
     setTalents(prev => prev.map(t => ({ ...t, selected: checked })));
   };
 
+  // 打开解绑确认弹窗
+  const openUnbindModal = () => {
+    const toUnbind = talents.filter(t => t.selected);
+    if (toUnbind.length === 0) {
+      message.warning('请先选择要解绑的达人');
+      return;
+    }
+    setNewRebateRate(0); // 重置返点率输入
+    setUnbindModalOpen(true);
+  };
+
   // 执行解绑
   const handleUnbind = async () => {
+    // 验证返点率
+    if (
+      newRebateRate < REBATE_VALIDATION.min ||
+      newRebateRate > REBATE_VALIDATION.max
+    ) {
+      message.error(
+        `返点率必须在 ${REBATE_VALIDATION.min}-${REBATE_VALIDATION.max} 之间`
+      );
+      return;
+    }
+
     const toUnbind = talents.filter(t => t.selected);
     if (toUnbind.length === 0) {
       message.warning('请先选择要解绑的达人');
@@ -195,7 +226,11 @@ export function AgencyTalentListModal({
 
       // 依次解绑各平台
       for (const [platform, oneIds] of platformGroups) {
-        const response = await batchUnbindAgency(platform, oneIds);
+        const response = await batchUnbindAgency({
+          platform,
+          oneIds,
+          newRebateRate,
+        });
         if (response.success && response.data) {
           totalUnbound += response.data.unbound;
           totalFailed += response.data.failed;
@@ -205,15 +240,19 @@ export function AgencyTalentListModal({
       }
 
       if (totalUnbound > 0) {
-        message.success(`成功解绑 ${totalUnbound} 个达人`);
+        message.success(
+          `成功解绑 ${totalUnbound} 个达人，返点率已设为 ${newRebateRate}%`
+        );
         // 刷新列表
-        loadTalents(page, searchTerm);
+        loadTalents(page, searchTerm, selectedPlatform);
         onSuccess?.();
       }
 
       if (totalFailed > 0) {
         message.warning(`${totalFailed} 个达人解绑失败`);
       }
+
+      setUnbindModalOpen(false);
     } catch (error) {
       logger.error('解绑失败:', error);
       message.error('解绑失败，请稍后重试');
@@ -317,25 +356,15 @@ export function AgencyTalentListModal({
       </div>
       <div className="flex gap-2">
         <Button onClick={handleClose}>关闭</Button>
-        <Popconfirm
-          title="确定解绑选中的达人吗？"
-          description={`将解绑 ${selectedCount} 个达人，解绑后将变为野生达人`}
-          onConfirm={handleUnbind}
-          okText="确定解绑"
-          cancelText="取消"
-          okButtonProps={{ danger: true }}
+        <Button
+          type="primary"
+          danger
+          icon={<DisconnectOutlined />}
           disabled={selectedCount === 0}
+          onClick={openUnbindModal}
         >
-          <Button
-            type="primary"
-            danger
-            icon={<DisconnectOutlined />}
-            loading={unbinding}
-            disabled={selectedCount === 0}
-          >
-            解绑选中 ({selectedCount})
-          </Button>
-        </Popconfirm>
+          解绑选中 ({selectedCount})
+        </Button>
       </div>
     </div>
   );
@@ -411,6 +440,49 @@ export function AgencyTalentListModal({
           }}
         />
       </div>
+
+      {/* 解绑确认弹窗 */}
+      <Modal
+        title="解绑达人"
+        open={unbindModalOpen}
+        onCancel={() => setUnbindModalOpen(false)}
+        onOk={handleUnbind}
+        okText="确认解绑"
+        cancelText="取消"
+        okButtonProps={{
+          danger: true,
+          loading: unbinding,
+        }}
+        width={400}
+      >
+        <div className="space-y-4 py-4">
+          <div className="text-content-secondary">
+            将解绑 <span className="font-medium text-content">{selectedCount}</span>{' '}
+            个达人，解绑后将变为野生达人。
+          </div>
+          <Form layout="vertical">
+            <Form.Item
+              label="解绑后返点率"
+              required
+              tooltip="解绑后达人将使用此返点率作为独立返点"
+            >
+              <InputNumber
+                value={newRebateRate}
+                onChange={value => setNewRebateRate(value || 0)}
+                min={REBATE_VALIDATION.min}
+                max={REBATE_VALIDATION.max}
+                precision={2}
+                addonAfter="%"
+                style={{ width: '100%' }}
+                placeholder="请输入解绑后的返点率"
+              />
+            </Form.Item>
+          </Form>
+          <div className="text-xs text-content-muted">
+            提示：返点率范围 {REBATE_VALIDATION.min}%-{REBATE_VALIDATION.max}%，最多两位小数
+          </div>
+        </div>
+      </Modal>
     </Modal>
   );
 }

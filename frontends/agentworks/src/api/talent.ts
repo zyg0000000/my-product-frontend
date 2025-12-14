@@ -550,28 +550,124 @@ export interface BatchUnbindAgencyResponse {
   success: boolean;
   data?: {
     unbound: number; // 成功解绑数
+    skipped: number; // 跳过数（已是野生达人）
     failed: number; // 失败数
+    newRebateRate: number; // 设置的新返点率
+    rebateRecordsCreated: number; // 创建的返点历史记录数
     errors: UnbindAgencyError[];
   };
   message?: string;
 }
 
 /**
+ * 批量解绑机构参数
+ */
+export interface BatchUnbindAgencyParams {
+  platform: Platform;
+  oneIds: string[];
+  newRebateRate: number; // 解绑后的新返点率 (必填，0-100)
+  updatedBy?: string; // 操作人
+}
+
+/**
  * 批量解绑机构
- * 将达人从机构中移除，变为野生达人
+ * 将达人从机构中移除，变为野生达人，并设置新的独立返点率
  *
- * @param platform 平台
- * @param oneIds 达人 oneId 列表
+ * @param params 解绑参数
+ * @param params.platform 平台
+ * @param params.oneIds 达人 oneId 列表
+ * @param params.newRebateRate 解绑后的新返点率 (必填，0-100)
+ * @param params.updatedBy 操作人
  */
 export async function batchUnbindAgency(
-  platform: Platform,
-  oneIds: string[]
+  params: BatchUnbindAgencyParams
 ): Promise<BatchUnbindAgencyResponse> {
+  const { platform, oneIds, newRebateRate, updatedBy = 'system' } = params;
   return post('/talents/batch', {
     operation: 'unbindAgency',
     platform,
     data: {
       talents: oneIds.map(oneId => ({ oneId })),
+      newRebateRate,
+      updatedBy,
+    },
+  });
+}
+
+// ==================== 批量设置独立返点 ====================
+
+/**
+ * 批量设置独立返点 - 单条数据
+ */
+export interface SetIndependentRebateTalentItem {
+  oneId: string;
+  rebateRate: number; // 0-100，最多2位小数
+}
+
+/**
+ * 批量设置独立返点 - 单条结果
+ */
+export interface SetIndependentRebateResult {
+  oneId: string;
+  talentName?: string;
+  previousRate: number;
+  newRate: number;
+  status: 'updated' | 'skipped';
+  reason?: string;
+}
+
+/**
+ * 批量设置独立返点 - 错误详情
+ */
+export interface SetIndependentRebateError {
+  oneId: string;
+  reason: string;
+}
+
+/**
+ * 批量设置独立返点 - 响应
+ */
+export interface BatchSetIndependentRebateResponse {
+  success: boolean;
+  data?: {
+    updated: number; // 成功设置数
+    skipped: number; // 跳过数（已是独立模式且返点相同）
+    failed: number; // 失败数
+    rebateRecordsCreated: number; // 创建的返点历史记录数
+    results: SetIndependentRebateResult[];
+    errors: SetIndependentRebateError[];
+  };
+  message?: string;
+}
+
+/**
+ * 批量设置独立返点参数
+ */
+export interface BatchSetIndependentRebateParams {
+  platform: Platform;
+  talents: SetIndependentRebateTalentItem[]; // 待设置的达人列表
+  updatedBy?: string; // 操作人
+}
+
+/**
+ * 批量设置独立返点
+ * 为机构达人设置独立返点率，达人保持在机构内但 rebateMode 切换为 independent
+ *
+ * @param params 设置参数
+ * @param params.platform 平台
+ * @param params.talents 待设置的达人列表 [{ oneId, rebateRate }]
+ * @param params.updatedBy 操作人
+ */
+export async function batchSetIndependentRebate(
+  params: BatchSetIndependentRebateParams
+): Promise<BatchSetIndependentRebateResponse> {
+  const { platform, talents, updatedBy = 'system' } = params;
+  return post('/talents/batch', {
+    operation: 'setIndependentRebate',
+    platform,
+    data: {
+      talents,
+      updatedBy,
     },
   });
 }

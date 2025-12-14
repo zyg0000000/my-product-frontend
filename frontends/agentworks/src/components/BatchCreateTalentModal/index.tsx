@@ -278,8 +278,8 @@ export function BatchCreateTalentModal({
       const dataLines = lines.slice(dataStartIndex);
 
       // 检查数据条数限制
-      if (dataLines.length > 100) {
-        message.error(`超过单次上限 100 条，当前 ${dataLines.length} 条`);
+      if (dataLines.length > 500) {
+        message.error(`超过单次上限 500 条，当前 ${dataLines.length} 条`);
         setParsing(false);
         return;
       }
@@ -763,7 +763,7 @@ export function BatchCreateTalentModal({
               <div>
                 <div className="font-medium mb-1">{requiredFieldsText}</div>
                 <div className="text-xs text-content-secondary mb-1">
-                  首行必须为表头，列顺序任意（单次最多100条）
+                  首行必须为表头，列顺序任意（单次最多500条）
                 </div>
                 <div className="text-xs text-content-secondary mb-2">
                   默认值：返点 ={' '}

@@ -1,9 +1,14 @@
 /**
  * @file getTalentRebate.js
- * @version 2.0.0
+ * @version 2.1.0
  * @description 云函数：获取达人返点配置
  *
  * --- 更新日志 ---
+ * [v2.1.0] 2025-12-14
+ * - 新增 customerId 可选参数，支持获取客户级返点
+ * - 新增 effectiveRebate 字段，返回综合优先级后的最终返点
+ * - 优先级：客户返点 > 达人/机构返点 > 默认返点
+ *
  * [v2.0.0] 2025-11-17
  * - 新增返回 rebateMode 字段（sync/independent）
  * - 新增返回 agencyName 字段
@@ -22,6 +27,7 @@ const MONGO_URI = process.env.MONGO_URI;
 const DB_NAME = 'agentworks_db';
 const TALENTS_COLLECTION = 'talents';
 const AGENCIES_COLLECTION = 'agencies';
+const CUSTOMER_TALENTS_COLLECTION = 'customer_talents';
 
 // 默认返点率
 const DEFAULT_REBATE_RATE = 10.00;
@@ -42,12 +48,16 @@ async function connectToDatabase() {
 
 /**
  * 获取达人返点配置
+ * @param {string} oneId - 达人统一ID
+ * @param {string} platform - 平台
+ * @param {string|undefined} customerId - 可选，客户编码（传入时会考虑客户级返点）
  */
-async function getTalentRebate(oneId, platform) {
+async function getTalentRebate(oneId, platform, customerId = null) {
   const dbClient = await connectToDatabase();
   const db = dbClient.db(DB_NAME);
   const talentsCollection = db.collection(TALENTS_COLLECTION);
   const agenciesCollection = db.collection(AGENCIES_COLLECTION);
+  const customerTalentsCollection = db.collection(CUSTOMER_TALENTS_COLLECTION);
 
   // 查询达人
   const talent = await talentsCollection.findOne({ oneId, platform });
@@ -61,9 +71,14 @@ async function getTalentRebate(oneId, platform) {
 
   // 获取机构信息
   let agencyName = '野生达人';
+  let agencyRebateRate = null;
   if (isAgencyTalent) {
     const agency = await agenciesCollection.findOne({ id: agencyId });
     agencyName = agency ? agency.name : agencyId;
+    // 获取机构返点（如果达人是 sync 模式）
+    if (agency?.rebateConfig?.platforms?.[platform]?.baseRebate !== undefined) {
+      agencyRebateRate = agency.rebateConfig.platforms[platform].baseRebate;
+    }
   }
 
   // 确定返点模式：野生达人永远是 independent，机构达人默认是 sync
@@ -71,21 +86,69 @@ async function getTalentRebate(oneId, platform) {
     ? (talent.rebateMode || 'sync')
     : 'independent';
 
-  // 返回返点配置
-  return {
+  // 构建基础返点配置
+  let currentRebate = talent.currentRebate || {
+    rate: DEFAULT_REBATE_RATE,
+    source: 'default',
+    effectiveDate: new Date().toISOString().split('T')[0],
+    lastUpdated: new Date().toISOString()
+  };
+
+  // 如果是机构达人且模式为 sync，使用机构返点
+  if (isAgencyTalent && rebateMode === 'sync' && agencyRebateRate !== null) {
+    currentRebate = {
+      ...currentRebate,
+      rate: agencyRebateRate,
+      source: 'agency'
+    };
+  }
+
+  // 基础返回结构
+  const result = {
     oneId: talent.oneId,
     platform: talent.platform,
     name: talent.name,
     agencyId: agencyId,
     agencyName: agencyName,
-    rebateMode: rebateMode,  // 新增：返点模式
-    currentRebate: talent.currentRebate || {
-      rate: DEFAULT_REBATE_RATE,
-      source: 'default',
-      effectiveDate: new Date().toISOString().split('T')[0],
-      lastUpdated: new Date().toISOString()
-    }
+    rebateMode: rebateMode,
+    currentRebate: currentRebate
   };
+
+  // 如果传入了 customerId，查询客户级返点
+  if (customerId) {
+    const customerTalent = await customerTalentsCollection.findOne({
+      customerId,
+      talentOneId: oneId,
+      platform,
+      status: 'active'
+    });
+
+    const customerRebate = customerTalent?.customerRebate ?? null;
+
+    // 添加客户返点信息到返回结果
+    result.customerRebate = customerRebate;
+
+    // 计算生效返点（优先级：客户 > 达人/机构 > 默认）
+    if (customerRebate?.enabled && customerRebate?.rate !== undefined) {
+      result.effectiveRebate = {
+        rate: customerRebate.rate,
+        source: 'customer'
+      };
+    } else {
+      result.effectiveRebate = {
+        rate: currentRebate.rate,
+        source: currentRebate.source
+      };
+    }
+  } else {
+    // 没有 customerId 时，effectiveRebate 就是 currentRebate
+    result.effectiveRebate = {
+      rate: currentRebate.rate,
+      source: currentRebate.source
+    };
+  }
+
+  return result;
 }
 
 /**
@@ -121,7 +184,7 @@ exports.handler = async (event, context) => {
 
     // 获取参数
     const params = event.queryStringParameters || {};
-    const { oneId, platform } = params;
+    const { oneId, platform, customerId } = params;
 
     // 验证参数
     if (!oneId || !platform) {
@@ -135,8 +198,8 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // 获取返点配置
-    const rebateConfig = await getTalentRebate(oneId, platform);
+    // 获取返点配置（customerId 为可选参数）
+    const rebateConfig = await getTalentRebate(oneId, platform, customerId || null);
 
     return {
       statusCode: 200,
