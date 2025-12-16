@@ -352,7 +352,7 @@ export function TalentPanorama() {
         case 'worksCount':
         case 'newWorksCount':
         case 'cpm':
-        // 表现数据中的数字字段
+        // falls through - 表现数据中的数字字段
         case 'followers':
         case 'expectedPlays':
         case 'connectedUsers':
@@ -373,7 +373,6 @@ export function TalentPanorama() {
           return {
             ...baseColumn,
             render: (_, record) => {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const value =
                 (record as any)[field.id] ??
                 (record as any).performance?.[field.id];
@@ -404,11 +403,11 @@ export function TalentPanorama() {
         case 'audienceAge50Plus':
         case 'fansGrowthRate7d':
         case 'fansGrowthRate30d':
-        // 表现数据中的百分比字段
+        // falls through - 表现数据中的百分比字段
         case 'interactionRate30d':
         case 'completionRate30d':
         case 'viralRate':
-        // 抖音八大人群（百分比）
+        // falls through - 抖音八大人群（百分比）
         case 'crowdPackageTownMiddleAged':
         case 'crowdPackageSeniorMiddleClass':
         case 'crowdPackageNewMiddleClass':
