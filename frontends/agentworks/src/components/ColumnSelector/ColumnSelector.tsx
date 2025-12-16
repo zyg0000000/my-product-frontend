@@ -328,7 +328,7 @@ export function ColumnSelector({
                   min={60}
                   max={500}
                   step={10}
-                  value={field.width || 100}
+                  value={field.width ?? 100}
                   onChange={value => {
                     if (value) {
                       onUpdateWidth(field.id, value);

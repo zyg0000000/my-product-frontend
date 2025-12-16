@@ -257,7 +257,7 @@ function RangeFilter({
           min={rangeConfig?.min}
           max={rangeConfig?.max}
           step={rangeConfig?.step}
-          className="w-20"
+          className="w-24"
         />
         <span className="text-content-muted">-</span>
         <Input
@@ -269,7 +269,7 @@ function RangeFilter({
           min={rangeConfig?.min}
           max={rangeConfig?.max}
           step={rangeConfig?.step}
-          className="w-20"
+          className="w-24"
         />
       </div>
     </div>
@@ -374,7 +374,7 @@ function CompoundFilter({
             min={rangeConfig?.min}
             max={rangeConfig?.max}
             step={rangeConfig?.step}
-            className="w-20"
+            className="w-28"
           />
           <span className="text-content-muted">-</span>
           <Input
@@ -386,7 +386,7 @@ function CompoundFilter({
             min={rangeConfig?.min}
             max={rangeConfig?.max}
             step={rangeConfig?.step}
-            className="w-20"
+            className="w-28"
           />
           {unit && <span className="text-content-muted text-xs">{unit}</span>}
         </div>
