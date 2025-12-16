@@ -100,9 +100,13 @@ export function usePerformanceFilters(
         case 'enum':
           if (value.selected && value.selected.length > 0) count++;
           break;
-        case 'range':
-          if (value.min || value.max) count++;
+        case 'range': {
+          // 注意：使用 !== undefined && !== '' 判断，因为 0 也是有效值
+          const hasMin = value.min !== undefined && value.min !== '';
+          const hasMax = value.max !== undefined && value.max !== '';
+          if (hasMin || hasMax) count++;
           break;
+        }
       }
     });
 
@@ -160,23 +164,26 @@ export function usePerformanceFilters(
           }
           break;
 
-        case 'range':
-          // 数值/百分比区间
-          if (value.min) {
+        case 'range': {
+          // 数值/百分比区间（注意：使用 !== undefined && !== '' 判断，因为 0 也是有效值）
+          const hasMin = value.min !== undefined && value.min !== '';
+          const hasMax = value.max !== undefined && value.max !== '';
+          if (hasMin) {
             const minKey = `${dimId}Min`;
             params[minKey] =
               dim.type === 'percentage'
-                ? parseFloat(value.min) / 100 // 百分比转小数
-                : parseFloat(value.min);
+                ? parseFloat(value.min as string) / 100 // 百分比转小数
+                : parseFloat(value.min as string);
           }
-          if (value.max) {
+          if (hasMax) {
             const maxKey = `${dimId}Max`;
             params[maxKey] =
               dim.type === 'percentage'
-                ? parseFloat(value.max) / 100
-                : parseFloat(value.max);
+                ? parseFloat(value.max as string) / 100
+                : parseFloat(value.max as string);
           }
           break;
+        }
       }
     });
 

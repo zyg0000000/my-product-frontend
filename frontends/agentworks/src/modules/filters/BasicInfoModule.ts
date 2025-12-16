@@ -164,26 +164,34 @@ export const BasicInfoModule: FilterModule = {
       params.searchTerm = filters.searchTerm.text.trim();
     }
 
-    // 返点范围
-    if (filters.rebate?.min) {
-      params.rebateMin = parseFloat(filters.rebate.min) / 100; // 转换为小数
+    // 返点范围（注意：0 也是有效值，使用 !== undefined && !== '' 判断）
+    const hasRebateMin =
+      filters.rebate?.min !== undefined && filters.rebate?.min !== '';
+    const hasRebateMax =
+      filters.rebate?.max !== undefined && filters.rebate?.max !== '';
+    if (hasRebateMin) {
+      params.rebateMin = parseFloat(filters.rebate!.min as string) / 100; // 转换为小数
     }
-    if (filters.rebate?.max) {
-      params.rebateMax = parseFloat(filters.rebate.max) / 100;
+    if (hasRebateMax) {
+      params.rebateMax = parseFloat(filters.rebate!.max as string) / 100;
     }
 
     // 价格范围（复合筛选：包含档位和范围）
-    if (filters.price?.min || filters.price?.max) {
+    const hasPriceMin =
+      filters.price?.min !== undefined && filters.price?.min !== '';
+    const hasPriceMax =
+      filters.price?.max !== undefined && filters.price?.max !== '';
+    if (hasPriceMin || hasPriceMax) {
       // 价格档位类型
       if (filters.price?.selectorValue) {
         params.priceType = filters.price.selectorValue;
       }
       // 价格范围
-      if (filters.price?.min) {
-        params.priceMin = parseFloat(filters.price.min);
+      if (hasPriceMin) {
+        params.priceMin = parseFloat(filters.price!.min as string);
       }
-      if (filters.price?.max) {
-        params.priceMax = parseFloat(filters.price.max);
+      if (hasPriceMax) {
+        params.priceMax = parseFloat(filters.price!.max as string);
       }
     }
 

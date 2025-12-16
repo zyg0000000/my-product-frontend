@@ -123,16 +123,19 @@ export function PerformanceFilters({
             });
           }
           break;
-        case 'range':
-          if (value.min || value.max) {
+        case 'range': {
+          // 注意：使用 !== undefined && !== '' 判断，因为 0 也是有效值
+          const hasMin = value.min !== undefined && value.min !== '';
+          const hasMax = value.max !== undefined && value.max !== '';
+          if (hasMin || hasMax) {
             const isPercentage = dim.type === 'percentage';
             const suffix = isPercentage ? '%' : '';
             let rangeText = '';
-            if (value.min && value.max) {
+            if (hasMin && hasMax) {
               rangeText = `${value.min}${suffix} - ${value.max}${suffix}`;
-            } else if (value.min) {
+            } else if (hasMin) {
               rangeText = `≥ ${value.min}${suffix}`;
-            } else if (value.max) {
+            } else if (hasMax) {
               rangeText = `≤ ${value.max}${suffix}`;
             }
             tags.push({
@@ -143,6 +146,7 @@ export function PerformanceFilters({
             });
           }
           break;
+        }
       }
     });
 

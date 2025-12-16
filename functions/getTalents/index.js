@@ -341,7 +341,10 @@ async function handleV2QueryWithPagination(db, queryParams, headers) {
   }
 
   // 价格筛选（需要特殊处理）
-  if (priceMin || priceMax || priceTiers) {
+  // 注意：使用 !== undefined && !== '' 判断，因为 0 也是有效值
+  const hasPriceMin = priceMin !== undefined && priceMin !== '' && priceMin !== null;
+  const hasPriceMax = priceMax !== undefined && priceMax !== '' && priceMax !== null;
+  if (hasPriceMin || hasPriceMax || priceTiers) {
     const targetMonth = priceMonth || getCurrentMonth();
     const [year, month] = targetMonth.split('-').map(Number);
 
@@ -376,9 +379,9 @@ async function handleV2QueryWithPagination(db, queryParams, headers) {
     }
 
     // 价格区间筛选（单位：元 → 分）
-    if (priceMin || priceMax) {
-      const minCents = priceMin ? parseFloat(priceMin) * 100 : 0;
-      const maxCents = priceMax ? parseFloat(priceMax) * 100 : Number.MAX_SAFE_INTEGER;
+    if (hasPriceMin || hasPriceMax) {
+      const minCents = hasPriceMin ? parseFloat(priceMin) * 100 : 0;
+      const maxCents = hasPriceMax ? parseFloat(priceMax) * 100 : Number.MAX_SAFE_INTEGER;
 
       pipeline.push({
         $match: {

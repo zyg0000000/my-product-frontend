@@ -59,12 +59,17 @@ export function TalentFilterPanel({
     filterState;
 
   // 计算激活的筛选条件数量
+  // 注意：使用 !== undefined && !== '' 判断，因为 0 也是有效值
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (searchTerm) count++;
     if (selectedTags.length > 0) count++;
-    if (rebateMin || rebateMax) count++;
-    if (priceMin || priceMax) count++;
+    const hasRebateMin = rebateMin !== undefined && rebateMin !== '';
+    const hasRebateMax = rebateMax !== undefined && rebateMax !== '';
+    if (hasRebateMin || hasRebateMax) count++;
+    const hasPriceMin = priceMin !== undefined && priceMin !== '';
+    const hasPriceMax = priceMax !== undefined && priceMax !== '';
+    if (hasPriceMin || hasPriceMax) count++;
     return count;
   }, [
     searchTerm,
@@ -111,12 +116,14 @@ export function TalentFilterPanel({
       });
     });
 
-    // 返点范围
-    if (rebateMin || rebateMax) {
+    // 返点范围（注意：使用 !== undefined && !== '' 判断，因为 0 也是有效值）
+    const hasRebateMin = rebateMin !== undefined && rebateMin !== '';
+    const hasRebateMax = rebateMax !== undefined && rebateMax !== '';
+    if (hasRebateMin || hasRebateMax) {
       const rangeText =
-        rebateMin && rebateMax
+        hasRebateMin && hasRebateMax
           ? `${rebateMin}% - ${rebateMax}%`
-          : rebateMin
+          : hasRebateMin
             ? `≥ ${rebateMin}%`
             : `≤ ${rebateMax}%`;
       tags.push({
@@ -126,12 +133,14 @@ export function TalentFilterPanel({
       });
     }
 
-    // 价格范围
-    if (priceMin || priceMax) {
+    // 价格范围（注意：使用 !== undefined && !== '' 判断，因为 0 也是有效值）
+    const hasPriceMin = priceMin !== undefined && priceMin !== '';
+    const hasPriceMax = priceMax !== undefined && priceMax !== '';
+    if (hasPriceMin || hasPriceMax) {
       const rangeText =
-        priceMin && priceMax
+        hasPriceMin && hasPriceMax
           ? `¥${priceMin} - ¥${priceMax}`
-          : priceMin
+          : hasPriceMin
             ? `≥ ¥${priceMin}`
             : `≤ ¥${priceMax}`;
       tags.push({

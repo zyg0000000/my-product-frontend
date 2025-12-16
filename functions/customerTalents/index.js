@@ -1,8 +1,23 @@
 /**
- * [生产版 v2.10 - 客户达人池 RESTful API]
+ * [生产版 v2.14 - 客户达人池 RESTful API]
  * 云函数：customerTalents
- * @version 2.10
+ * @version 2.14
  * 描述：统一的客户达人池 RESTful API，实现客户与达人的多对多关联管理
+ *
+ * --- v2.14 更新日志 (2025-12-17) ---
+ * - [修复] panoramaSearch 价格筛选单位转换问题（前端元 -> 数据库分，乘以100）
+ * - [修复] panoramaSearch 返点筛选 falsy 问题（rebateMin=0 也是有效值）
+ * - [重要] prices数组格式：[{year, month, type, price(分)}]
+ *
+ * --- v2.12 更新日志 (2025-12-16) ---
+ * - [修复] panoramaSearch 百分比字段筛选单位转换问题
+ * - [说明] 前端输入百分比（0-100），数据库存储小数（0-1），后端自动转换
+ * - [新增] PERCENTAGE_FIELDS 百分比字段集合，自动识别并转换值
+ *
+ * --- v2.11 更新日志 (2025-12-16) ---
+ * - [修复] panoramaSearch 表现数据筛选字段映射错误
+ * - [说明] 前端 dimension_configs 字段ID（如 maleRatio）需映射到数据库实际路径（如 audienceGender.male）
+ * - [新增] PERFORMANCE_FILTER_FIELD_MAP 字段映射表，支持多维度筛选
  *
  * --- v2.10 更新日志 (2025-12-14) ---
  * - [优化] getCustomerTalents 返回达人信息时包含 agencyName 字段
@@ -75,7 +90,7 @@
 const { MongoClient, ObjectId } = require('mongodb');
 
 // 版本号
-const VERSION = '2.10';
+const VERSION = '2.14';
 
 // ========== 字段白名单配置（防止注入攻击） ==========
 /**
@@ -163,6 +178,117 @@ const DEFAULT_PERFORMANCE_FIELDS = [
   'followers', 'followerGrowth', 'expectedPlays', 'connectedUsers',
   'interactionRate30d', 'completionRate30d', 'spreadIndex', 'viralRate', 'cpm60sExpected'
 ];
+
+/**
+ * 百分比字段集合
+ * 这些字段在数据库中存储为小数（0-1），但前端输入为百分比（0-100）
+ * 查询时需要将前端值除以 100
+ */
+const PERCENTAGE_FIELDS = new Set([
+  // dimension_configs 中的百分比字段
+  'maleRatio',
+  'femaleRatio',
+  // FIELD_WHITELIST 中的百分比字段
+  'audienceGenderMale',
+  'audienceGenderFemale',
+  'audienceAge18_23',
+  'audienceAge24_30',
+  'audienceAge31_40',
+  'audienceAge41_50',
+  'audienceAge50Plus',
+  'interactionRate30d',
+  'completionRate30d',
+  'viralRate',
+  // 人群包也是百分比
+  'crowdPackageTownMiddleAged',
+  'crowdPackageSeniorMiddleClass',
+  'crowdPackageZEra',
+  'crowdPackageUrbanSilver',
+  'crowdPackageTownYouth',
+  'crowdPackageExquisiteMom',
+  'crowdPackageNewWhiteCollar',
+  'crowdPackageUrbanBlueCollar',
+  // 数据库原始字段名
+  'interaction_rate_30d',
+  'completion_rate_30d',
+  'viral_rate',
+]);
+
+/**
+ * 表现筛选字段映射表
+ * 将前端 dimension_configs 中的字段 ID 映射到数据库实际路径
+ * 前端字段ID -> 数据库路径（在 $lookup 后的 performance 对象中）
+ *
+ * 注意：
+ * 1. dimension_configs 中使用的 ID（如 maleRatio, femaleRatio）
+ * 2. FIELD_WHITELIST 中使用的 camelCase ID（如 audienceGenderMale）
+ * 3. 数据库中的 snake_case 字段名（如 cpm_60s_expected）
+ * 都需要映射到正确的查询路径
+ */
+const PERFORMANCE_FILTER_FIELD_MAP = {
+  // ========== dimension_configs 中的字段 ID ==========
+  // 受众性别比例
+  'maleRatio': 'performance.metrics.audienceGender.male',
+  'femaleRatio': 'performance.metrics.audienceGender.female',
+  // CPM（snake_case 格式）
+  'cpm_60s_expected': 'performance.metrics.cpm_60s_expected',
+
+  // ========== FIELD_WHITELIST 中的 camelCase 字段 ID ==========
+  // 核心指标
+  'followers': 'performance.metrics.followers',
+  'followerGrowth': 'performance.metrics.follower_growth',
+  'expectedPlays': 'performance.metrics.expected_plays',
+  'connectedUsers': 'performance.metrics.connected_users',
+  'interactionRate30d': 'performance.metrics.interaction_rate_30d',
+  'completionRate30d': 'performance.metrics.completion_rate_30d',
+  'spreadIndex': 'performance.metrics.spread_index',
+  'viralRate': 'performance.metrics.viral_rate',
+  'cpm60sExpected': 'performance.metrics.cpm_60s_expected',
+
+  // 受众性别（camelCase 格式）
+  'audienceGenderMale': 'performance.metrics.audienceGender.male',
+  'audienceGenderFemale': 'performance.metrics.audienceGender.female',
+
+  // 受众年龄
+  'audienceAge18_23': 'performance.metrics.audienceAge.18_23',
+  'audienceAge24_30': 'performance.metrics.audienceAge.24_30',
+  'audienceAge31_40': 'performance.metrics.audienceAge.31_40',
+  'audienceAge41_50': 'performance.metrics.audienceAge.41_50',
+  'audienceAge50Plus': 'performance.metrics.audienceAge.50_plus',
+
+  // 人群包（抖音八大人群）
+  'crowdPackageTownMiddleAged': 'performance.metrics.crowdPackage.town_middle_aged',
+  'crowdPackageSeniorMiddleClass': 'performance.metrics.crowdPackage.senior_middle_class',
+  'crowdPackageZEra': 'performance.metrics.crowdPackage.z_era',
+  'crowdPackageUrbanSilver': 'performance.metrics.crowdPackage.urban_silver',
+  'crowdPackageTownYouth': 'performance.metrics.crowdPackage.town_youth',
+  'crowdPackageExquisiteMom': 'performance.metrics.crowdPackage.exquisite_mom',
+  'crowdPackageNewWhiteCollar': 'performance.metrics.crowdPackage.new_white_collar',
+  'crowdPackageUrbanBlueCollar': 'performance.metrics.crowdPackage.urban_blue_collar',
+
+  // ========== 数据库原始 snake_case 字段名（直接查询时使用）==========
+  'follower_growth': 'performance.metrics.follower_growth',
+  'expected_plays': 'performance.metrics.expected_plays',
+  'connected_users': 'performance.metrics.connected_users',
+  'interaction_rate_30d': 'performance.metrics.interaction_rate_30d',
+  'completion_rate_30d': 'performance.metrics.completion_rate_30d',
+  'spread_index': 'performance.metrics.spread_index',
+  'viral_rate': 'performance.metrics.viral_rate',
+};
+
+/**
+ * 将前端筛选字段ID映射到数据库查询路径
+ * @param {string} fieldId - 前端传入的字段ID
+ * @returns {string} 数据库查询路径
+ */
+function mapPerformanceFilterField(fieldId) {
+  // 优先使用映射表
+  if (PERFORMANCE_FILTER_FIELD_MAP[fieldId]) {
+    return PERFORMANCE_FILTER_FIELD_MAP[fieldId];
+  }
+  // 回退：直接使用 performance.metrics.${fieldId}（保持向后兼容）
+  return `performance.metrics.${fieldId}`;
+}
 
 // 环境变量
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
@@ -977,10 +1103,13 @@ async function panoramaSearch(queryParams = {}) {
     }
 
     // 返点范围（数据库存储为百分比数字，如5表示5%，筛选参数为小数如0.05）
-    if (rebateMin || rebateMax) {
+    // v2.13: 修复 falsy 问题 - rebateMin=0 也是有效值
+    const hasRebateMin = rebateMin !== undefined && rebateMin !== '' && rebateMin !== null;
+    const hasRebateMax = rebateMax !== undefined && rebateMax !== '' && rebateMax !== null;
+    if (hasRebateMin || hasRebateMax) {
       baseMatch['currentRebate.rate'] = {};
-      if (rebateMin) baseMatch['currentRebate.rate'].$gte = parseFloat(rebateMin) * 100;
-      if (rebateMax) baseMatch['currentRebate.rate'].$lte = parseFloat(rebateMax) * 100;
+      if (hasRebateMin) baseMatch['currentRebate.rate'].$gte = parseFloat(rebateMin) * 100;
+      if (hasRebateMax) baseMatch['currentRebate.rate'].$lte = parseFloat(rebateMax) * 100;
     }
 
     // 内容标签（数据库字段是 talentType）
@@ -1150,28 +1279,44 @@ async function panoramaSearch(queryParams = {}) {
 
       // 添加表现筛选条件（如果有）
       if (performanceFilters && Object.keys(performanceFilters).length > 0) {
+        console.log(`[v${VERSION}] 表现筛选条件:`, JSON.stringify(performanceFilters));
         const perfMatch = {};
         Object.entries(performanceFilters).forEach(([field, range]) => {
           if (range.min !== undefined || range.max !== undefined) {
-            perfMatch[`performance.metrics.${field}`] = {};
+            // 将前端字段ID映射到数据库实际路径
+            const fieldPath = mapPerformanceFilterField(field);
+            // 检查是否是百分比字段，需要将前端值（0-100）转换为小数（0-1）
+            const isPercentage = PERCENTAGE_FIELDS.has(field);
+            console.log(`[v${VERSION}] 字段映射: ${field} -> ${fieldPath}, 百分比: ${isPercentage}`);
+
+            perfMatch[fieldPath] = {};
             if (range.min !== undefined) {
-              perfMatch[`performance.metrics.${field}`].$gte = parseFloat(range.min);
+              let minValue = parseFloat(range.min);
+              if (isPercentage) minValue = minValue / 100;
+              perfMatch[fieldPath].$gte = minValue;
             }
             if (range.max !== undefined) {
-              perfMatch[`performance.metrics.${field}`].$lte = parseFloat(range.max);
+              let maxValue = parseFloat(range.max);
+              if (isPercentage) maxValue = maxValue / 100;
+              perfMatch[fieldPath].$lte = maxValue;
             }
           }
         });
 
         if (Object.keys(perfMatch).length > 0) {
+          console.log(`[v${VERSION}] 最终表现筛选条件:`, JSON.stringify(perfMatch));
           pipeline.push({ $match: perfMatch });
         }
       }
     }
 
-    // 4. 价格筛选（prices 是数组格式 [{year, month, type, price}]）
+    // 4. 价格筛选（prices 是数组格式 [{year, month, type, price(分)}]）
     // v2.6: 支持 priceType 参数指定档位筛选
-    if (priceMin || priceMax) {
+    // v2.13: 前端输入元，数据库存储分，需要乘以100转换
+    // 注意：使用 !== undefined && !== '' 判断，因为 0 也是有效值
+    const hasPriceMin = priceMin !== undefined && priceMin !== '' && priceMin !== null;
+    const hasPriceMax = priceMax !== undefined && priceMax !== '' && priceMax !== null;
+    if (hasPriceMin || hasPriceMax) {
       const priceMatch = {};
 
       // 构建 $elemMatch 条件
@@ -1182,13 +1327,21 @@ async function panoramaSearch(queryParams = {}) {
         elemMatchCondition.type = priceType;
       }
 
-      // 添加价格范围条件
-      if (priceMin && priceMax) {
-        elemMatchCondition.price = { $gte: parseFloat(priceMin), $lte: parseFloat(priceMax) };
-      } else if (priceMin) {
-        elemMatchCondition.price = { $gte: parseFloat(priceMin) };
-      } else if (priceMax) {
-        elemMatchCondition.price = { $lte: parseFloat(priceMax) };
+      // 添加价格范围条件（元转分，乘以100）
+      // v2.13: 前端输入40000元 -> 数据库查询4000000分
+      if (hasPriceMin && hasPriceMax) {
+        const minCents = parseFloat(priceMin) * 100;
+        const maxCents = parseFloat(priceMax) * 100;
+        elemMatchCondition.price = { $gte: minCents, $lte: maxCents };
+        console.log(`[v${VERSION}] 价格筛选: ${priceMin}元-${priceMax}元 -> ${minCents}分-${maxCents}分`);
+      } else if (hasPriceMin) {
+        const minCents = parseFloat(priceMin) * 100;
+        elemMatchCondition.price = { $gte: minCents };
+        console.log(`[v${VERSION}] 价格筛选: >=${priceMin}元 -> >=${minCents}分`);
+      } else if (hasPriceMax) {
+        const maxCents = parseFloat(priceMax) * 100;
+        elemMatchCondition.price = { $lte: maxCents };
+        console.log(`[v${VERSION}] 价格筛选: <=${priceMax}元 -> <=${maxCents}分`);
       }
 
       priceMatch.prices = { $elemMatch: elemMatchCondition };

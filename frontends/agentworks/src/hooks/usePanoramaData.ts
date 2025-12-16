@@ -121,6 +121,9 @@ export function usePanoramaData(platform: Platform): UsePanoramaDataResult {
   // 请求取消控制器
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // 用于强制刷新的计数器（避免使用 page=0 导致 $skip 为负数）
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   // 同步 ref
   lastSearchParamsRef.current = lastSearchParams;
   sortStateRef.current = sortState;
@@ -191,7 +194,7 @@ export function usePanoramaData(platform: Platform): UsePanoramaDataResult {
     };
 
     loadData();
-  }, [platform, currentPage]); // 只依赖 platform 和 currentPage
+  }, [platform, currentPage, refreshTrigger]); // 依赖 platform、currentPage 和 refreshTrigger
 
   // ========== 简化的操作函数（只更新状态） ==========
 
@@ -209,11 +212,9 @@ export function usePanoramaData(platform: Platform): UsePanoramaDataResult {
       setLastSearchParams(params);
       setSortState({});
 
-      // 重置到第1页（如果已经在第1页，手动触发加载）
+      // 重置到第1页（如果已经在第1页，通过 refreshTrigger 触发加载）
       if (currentPage === 1) {
-        // 强制触发 useEffect：通过先设为其他值再设回来
-        setCurrentPage(0);
-        setTimeout(() => setCurrentPage(1), 0);
+        setRefreshTrigger((prev) => prev + 1);
       } else {
         setCurrentPage(1);
       }
@@ -240,10 +241,9 @@ export function usePanoramaData(platform: Platform): UsePanoramaDataResult {
       // 更新 state
       setSortState(newSortState);
 
-      // 重置到第1页
+      // 重置到第1页（如果已经在第1页，通过 refreshTrigger 触发加载）
       if (currentPage === 1) {
-        setCurrentPage(0);
-        setTimeout(() => setCurrentPage(1), 0);
+        setRefreshTrigger((prev) => prev + 1);
       } else {
         setCurrentPage(1);
       }
@@ -262,10 +262,9 @@ export function usePanoramaData(platform: Platform): UsePanoramaDataResult {
       // 更新 state
       setPageSizeState(size);
 
-      // 重置到第1页
+      // 重置到第1页（如果已经在第1页，通过 refreshTrigger 触发加载）
       if (currentPage === 1) {
-        setCurrentPage(0);
-        setTimeout(() => setCurrentPage(1), 0);
+        setRefreshTrigger((prev) => prev + 1);
       } else {
         setCurrentPage(1);
       }

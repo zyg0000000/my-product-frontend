@@ -125,7 +125,10 @@ export function usePanoramaFilters({
         count++;
       }
       // 数值区间（包括复合筛选的范围部分）
-      if (value.min || value.max) {
+      // 注意：使用 !== undefined && !== '' 判断，因为 0 也是有效值
+      const hasMin = value.min !== undefined && value.min !== '';
+      const hasMax = value.max !== undefined && value.max !== '';
+      if (hasMin || hasMax) {
         count++;
       }
       // 日期范围
@@ -223,10 +226,13 @@ export function isFilterValueEmpty(value: FilterValue | undefined): boolean {
 
   const hasText = value.text && value.text.trim().length > 0;
   const hasSelected = value.selected && value.selected.length > 0;
-  const hasRange = value.min || value.max;
+  // 注意：使用 !== undefined && !== '' 判断，因为 0 也是有效值
+  const hasMin = value.min !== undefined && value.min !== '';
+  const hasMax = value.max !== undefined && value.max !== '';
+  const hasRange = hasMin || hasMax;
   const hasDateRange = value.dateRange && value.dateRange.length === 2;
   // 复合筛选：只有当有范围值时才算非空（selectorValue 单独存在不算）
-  const hasCompoundValue = value.selectorValue && (value.min || value.max);
+  const hasCompoundValue = value.selectorValue && hasRange;
 
   return (
     !hasText && !hasSelected && !hasRange && !hasDateRange && !hasCompoundValue
@@ -251,13 +257,16 @@ export function formatFilterValue(
 
     case 'range': {
       const unit = config.rangeConfig?.unit || '';
-      if (value.min && value.max) {
+      // 注意：使用 !== undefined && !== '' 判断，因为 0 也是有效值
+      const hasMin = value.min !== undefined && value.min !== '';
+      const hasMax = value.max !== undefined && value.max !== '';
+      if (hasMin && hasMax) {
         return `${value.min}${unit} - ${value.max}${unit}`;
       }
-      if (value.min) {
+      if (hasMin) {
         return `≥ ${value.min}${unit}`;
       }
-      if (value.max) {
+      if (hasMax) {
         return `≤ ${value.max}${unit}`;
       }
       return '';
@@ -273,12 +282,15 @@ export function formatFilterValue(
       // 复合筛选：显示选择器值 + 范围值
       const unit = config.compoundConfig?.subFilter.config?.unit || '';
       const selectorLabel = value.selectorValue || '';
+      // 注意：使用 !== undefined && !== '' 判断，因为 0 也是有效值
+      const hasMin = value.min !== undefined && value.min !== '';
+      const hasMax = value.max !== undefined && value.max !== '';
       let rangeText = '';
-      if (value.min && value.max) {
+      if (hasMin && hasMax) {
         rangeText = `${value.min}${unit} - ${value.max}${unit}`;
-      } else if (value.min) {
+      } else if (hasMin) {
         rangeText = `≥ ${value.min}${unit}`;
-      } else if (value.max) {
+      } else if (hasMax) {
         rangeText = `≤ ${value.max}${unit}`;
       }
       return selectorLabel && rangeText

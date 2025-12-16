@@ -188,10 +188,11 @@ export function useBasicInfoData({
 
       if (searchTerm) params.searchTerm = searchTerm;
       if (selectedTags.length > 0) params.tags = selectedTags;
-      if (rebateMin) params.rebateMin = parseFloat(rebateMin);
-      if (rebateMax) params.rebateMax = parseFloat(rebateMax);
-      if (priceMin) params.priceMin = parseFloat(priceMin);
-      if (priceMax) params.priceMax = parseFloat(priceMax);
+      // 注意：使用 !== undefined && !== '' 判断，因为 0 也是有效值
+      if (rebateMin !== undefined && rebateMin !== '') params.rebateMin = parseFloat(rebateMin);
+      if (rebateMax !== undefined && rebateMax !== '') params.rebateMax = parseFloat(rebateMax);
+      if (priceMin !== undefined && priceMin !== '') params.priceMin = parseFloat(priceMin);
+      if (priceMax !== undefined && priceMax !== '') params.priceMax = parseFloat(priceMax);
       if (selectedCustomerId) params.customerId = selectedCustomerId;
 
       const response = await getTalents(params);

@@ -34,6 +34,7 @@ const BASIC_INFO_FIELD_PATHS = [
   'oneId',
   'rebate',
   'prices',
+  'price', // dimension_config 中的字段 ID 是 'price'（单数）
   'contentTags',
   'followerCount',
   'platform',
@@ -152,8 +153,23 @@ export const PerformanceModule: FilterModule = {
     const performanceFilters: Record<string, { min?: number; max?: number }> =
       {};
 
+    // 基础信息字段黑名单 - 这些字段由 BasicInfoModule 处理，不应放入 performanceFilters
+    const EXCLUDED_FIELDS = [
+      'searchTerm',
+      'rebate',
+      'price',
+      'prices',
+      'contentTags',
+      'customerName',
+      'importance',
+      'businessTags',
+    ];
+
     Object.entries(filters).forEach(([filterId, value]) => {
       if (!value) return;
+
+      // 跳过基础信息字段
+      if (EXCLUDED_FIELDS.includes(filterId)) return;
 
       // 文本搜索
       if (value.text?.trim()) {
@@ -170,14 +186,16 @@ export const PerformanceModule: FilterModule = {
         }
       }
 
-      // 范围筛选
-      if (value.min || value.max) {
+      // 范围筛选（注意：使用 !== undefined 和 !== '' 判断，因为 0 也是有效值）
+      const hasMin = value.min !== undefined && value.min !== '';
+      const hasMax = value.max !== undefined && value.max !== '';
+      if (hasMin || hasMax) {
         performanceFilters[filterId] = {};
-        if (value.min) {
-          performanceFilters[filterId].min = parseFloat(value.min);
+        if (hasMin) {
+          performanceFilters[filterId].min = parseFloat(value.min as string);
         }
-        if (value.max) {
-          performanceFilters[filterId].max = parseFloat(value.max);
+        if (hasMax) {
+          performanceFilters[filterId].max = parseFloat(value.max as string);
         }
       }
     });
