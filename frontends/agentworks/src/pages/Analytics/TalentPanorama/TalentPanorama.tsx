@@ -352,6 +352,12 @@ export function TalentPanorama() {
         case 'worksCount':
         case 'newWorksCount':
         case 'cpm':
+        // 表现数据中的数字字段
+        case 'followers':
+        case 'expectedPlays':
+        case 'connectedUsers':
+        case 'spreadIndex':
+        case 'cpm60sExpected':
           return {
             ...baseColumn,
             render: (_, record) => {
@@ -363,11 +369,14 @@ export function TalentPanorama() {
           };
 
         case 'fansChange':
+        case 'followerGrowth':
           return {
             ...baseColumn,
             render: (_, record) => {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const value = (record as any).performance?.fansChange;
+              const value =
+                (record as any)[field.id] ??
+                (record as any).performance?.[field.id];
               if (value === null || value === undefined) return 'N/A';
               const sign = value > 0 ? '+' : '';
               const color =
@@ -395,6 +404,19 @@ export function TalentPanorama() {
         case 'audienceAge50Plus':
         case 'fansGrowthRate7d':
         case 'fansGrowthRate30d':
+        // 表现数据中的百分比字段
+        case 'interactionRate30d':
+        case 'completionRate30d':
+        case 'viralRate':
+        // 抖音八大人群（百分比）
+        case 'crowdPackageTownMiddleAged':
+        case 'crowdPackageSeniorMiddleClass':
+        case 'crowdPackageNewMiddleClass':
+        case 'crowdPackageGenZ':
+        case 'crowdPackageTownYouth':
+        case 'crowdPackageUrbanBlueCollar':
+        case 'crowdPackageUrbanWhiteCollar':
+        case 'crowdPackageTownBlueCollar':
           return {
             ...baseColumn,
             render: (_, record) => {
@@ -605,13 +627,35 @@ export function TalentPanorama() {
   const columns: ProColumns<PanoramaTalentItem>[] = useMemo(() => {
     const result: ProColumns<PanoramaTalentItem>[] = [];
 
-    // 根据用户选择的字段生成列（使用已应用覆盖配置的字段）
-    for (const fieldId of columnsConfig.selectedFields) {
-      const field = columnsConfig.availableFields.find(f => f.id === fieldId);
-      if (!field) continue;
+    // 分类顺序映射（用于跨分类排序）
+    const categoryOrder: Record<string, number> = {
+      basic: 1,
+      price: 2,
+      rebate: 3,
+      metrics: 4,
+      audience: 5,
+      customer: 6,
+    };
 
+    // 获取选中字段的完整定义，并按分类顺序+分类内order排序（实现列选择器排序与表格联动）
+    const selectedFieldDefs = columnsConfig.selectedFields
+      .map(fieldId => columnsConfig.availableFields.find(f => f.id === fieldId))
+      .filter((f): f is FieldDefinition => f !== undefined)
+      .sort((a, b) => {
+        // 先按分类顺序排
+        const catOrderA = categoryOrder[a.category] ?? 999;
+        const catOrderB = categoryOrder[b.category] ?? 999;
+        if (catOrderA !== catOrderB) {
+          return catOrderA - catOrderB;
+        }
+        // 同分类内按 order 排
+        return (a.order ?? 999) - (b.order ?? 999);
+      });
+
+    // 根据排序后的字段生成列
+    for (const field of selectedFieldDefs) {
       // 客户关系字段特殊处理（包含重要程度和业务标签）
-      if (fieldId === 'customerRelations') {
+      if (field.id === 'customerRelations') {
         const col = buildColumnFromField(field);
         if (col) result.push(col);
 

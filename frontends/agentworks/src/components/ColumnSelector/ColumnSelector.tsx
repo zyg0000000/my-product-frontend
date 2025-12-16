@@ -430,12 +430,13 @@ export function ColumnSelector({
         </div>
       </div>
 
-      {/* 分类折叠面板 */}
+      {/* 分类折叠面板 - 使用手风琴模式，一次只展开一个 */}
       <div className="px-4 py-2">
         {categoriesWithFields.length > 0 ? (
           <Collapse
             items={collapseItems}
-            defaultActiveKey={['basic', 'price', 'rebate']}
+            defaultActiveKey={['basic']}
+            accordion
             expandIconPosition="start"
             ghost
             className="column-selector-collapse"
