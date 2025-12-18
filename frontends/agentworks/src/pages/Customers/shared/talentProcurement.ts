@@ -248,8 +248,11 @@ export const getDefaultConfigItem = (
 
 /**
  * 获取平台策略默认值
+ * @param _platformFeeRate - 平台费率（保留参数，用于向后兼容）
  */
-export const getDefaultPlatformStrategy = (): PlatformPricingStrategy => {
+export const getDefaultPlatformStrategy = (
+  _platformFeeRate = 0
+): PlatformPricingStrategy => {
   return {
     enabled: false,
     pricingModel: 'framework',
