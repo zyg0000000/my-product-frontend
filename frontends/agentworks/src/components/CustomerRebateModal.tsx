@@ -9,15 +9,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import {
-  Modal,
-  Tabs,
-  Alert,
-  Switch,
-  Table,
-  Spin,
-  message,
-} from 'antd';
+import { Modal, Tabs, Alert, Switch, Table, Spin, message } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import {
   ProCard,
@@ -185,7 +177,10 @@ export function CustomerRebateModal({
 
   // 获取返点来源标签
   const getSourceLabel = (source: string) => {
-    return REBATE_SOURCE_LABELS[source as keyof typeof REBATE_SOURCE_LABELS] || source;
+    return (
+      REBATE_SOURCE_LABELS[source as keyof typeof REBATE_SOURCE_LABELS] ||
+      source
+    );
   };
 
   // 历史记录表格列
@@ -243,7 +238,9 @@ export function CustomerRebateModal({
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                    {effectiveRebate ? formatRebateRate(effectiveRebate.rate) : '-'}
+                    {effectiveRebate
+                      ? formatRebateRate(effectiveRebate.rate)
+                      : '-'}
                   </span>
                   {effectiveRebate && (
                     <span className="text-sm text-content-secondary">
@@ -260,14 +257,16 @@ export function CustomerRebateModal({
                     达人/机构返点
                   </div>
                   <div className="text-base font-medium text-content">
-                    {talentRebate?.rate !== null && talentRebate?.rate !== undefined
+                    {talentRebate?.rate !== null &&
+                    talentRebate?.rate !== undefined
                       ? formatRebateRate(talentRebate.rate)
                       : '-'}
                   </div>
                   {talentRebate && (
                     <div className="text-xs text-content-muted mt-1">
                       {getSourceLabel(talentRebate.source)}
-                      {talentRebate.agencyName && talentRebate.source === 'agency'
+                      {talentRebate.agencyName &&
+                      talentRebate.source === 'agency'
                         ? ` (${talentRebate.agencyName})`
                         : ''}
                     </div>
@@ -278,9 +277,12 @@ export function CustomerRebateModal({
                     客户专属返点
                   </div>
                   <div className="text-base font-medium text-content">
-                    {customerRebate?.enabled && customerRebate?.rate !== null
-                      ? formatRebateRate(customerRebate.rate)
-                      : <span className="text-content-muted">未设置</span>}
+                    {customerRebate?.enabled &&
+                    customerRebate?.rate !== null ? (
+                      formatRebateRate(customerRebate.rate)
+                    ) : (
+                      <span className="text-content-muted">未设置</span>
+                    )}
                   </div>
                   {customerRebate?.enabled && (
                     <div className="text-xs text-content-muted mt-1">
@@ -327,15 +329,14 @@ export function CustomerRebateModal({
             <div className="mb-4 p-4 bg-surface-base rounded-lg">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-medium text-content">启用客户专属返点</div>
+                  <div className="font-medium text-content">
+                    启用客户专属返点
+                  </div>
                   <div className="text-xs text-content-secondary mt-1">
                     开启后，该客户与此达人的合作将使用专属返点率
                   </div>
                 </div>
-                <Switch
-                  checked={enabled}
-                  onChange={setEnabled}
-                />
+                <Switch checked={enabled} onChange={setEnabled} />
               </div>
             </div>
 
@@ -370,7 +371,8 @@ export function CustomerRebateModal({
                     },
                   ]}
                   extra={
-                    talentRebate?.rate !== null && talentRebate?.rate !== undefined
+                    talentRebate?.rate !== null &&
+                    talentRebate?.rate !== undefined
                       ? `参考：达人默认返点 ${formatRebateRate(talentRebate.rate)}`
                       : undefined
                   }
@@ -439,7 +441,8 @@ export function CustomerRebateModal({
             客户返点设置 - {talent.name}
           </div>
           <div className="text-xs font-normal text-content-secondary mt-1">
-            为「{customerName}」设置该达人的专属返点 ({platformNames[talent.platform] || talent.platform})
+            为「{customerName}」设置该达人的专属返点 (
+            {platformNames[talent.platform] || talent.platform})
           </div>
         </div>
       }

@@ -74,7 +74,10 @@ export function TalentProcurementForm({
 
   // v5.1: 计算当前有效配置的报价系数
   const currentQuotationCoefficient = useMemo(() => {
-    if (!currentStrategy.enabled || currentStrategy.pricingModel === 'project') {
+    if (
+      !currentStrategy.enabled ||
+      currentStrategy.pricingModel === 'project'
+    ) {
       return null;
     }
     const effectiveConfig = getEffectiveConfig(currentStrategy.configs || []);
@@ -94,7 +97,8 @@ export function TalentProcurementForm({
     );
     const feeRate = platformData?.business?.fee || 0;
     const existingStrategy = platformPricingConfigs[selectedPlatform];
-    const baseStrategy = existingStrategy || getDefaultPlatformStrategy(feeRate);
+    const baseStrategy =
+      existingStrategy || getDefaultPlatformStrategy(feeRate);
 
     onConfigChange({
       ...platformPricingConfigs,
@@ -112,7 +116,8 @@ export function TalentProcurementForm({
     );
     const feeRate = platformData?.business?.fee || 0;
     const existingStrategy = platformPricingConfigs[selectedPlatform];
-    const baseStrategy = existingStrategy || getDefaultPlatformStrategy(feeRate);
+    const baseStrategy =
+      existingStrategy || getDefaultPlatformStrategy(feeRate);
 
     onConfigChange({
       ...platformPricingConfigs,
@@ -209,65 +214,67 @@ export function TalentProcurementForm({
       </div>
 
       {/* 项目比价模式提示 */}
-      {currentStrategy.pricingModel === 'project' && currentStrategy.enabled && (
-        <div className="text-center py-6 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg">
-          <div className="text-primary-900 dark:text-primary-100 font-semibold mb-1">
-            项目比价模式
+      {currentStrategy.pricingModel === 'project' &&
+        currentStrategy.enabled && (
+          <div className="text-center py-6 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg">
+            <div className="text-primary-900 dark:text-primary-100 font-semibold mb-1">
+              项目比价模式
+            </div>
+            <div className="text-sm text-primary-700 dark:text-primary-300">
+              该平台采用项目比价，创建项目时手动填写对客报价
+            </div>
           </div>
-          <div className="text-sm text-primary-700 dark:text-primary-300">
-            该平台采用项目比价，创建项目时手动填写对客报价
-          </div>
-        </div>
-      )}
+        )}
 
       {/* v5.1: 框架折扣/混合模式配置 - 使用 PricingConfigList 组件 */}
-      {currentStrategy.pricingModel !== 'project' && currentStrategy.enabled && (
-        <div className="space-y-4 p-4 border border-stroke rounded-lg">
-          {/* 报价系数显示 */}
-          <div className="flex items-center justify-between pb-3 border-b border-stroke">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-content">
-                当前有效报价系数
-              </span>
-              <Popover
-                content={
-                  <div className="text-xs text-content-secondary max-w-xs">
-                    报价系数 = 最终对客报价 ÷ 达人刊例价
-                    <br />
-                    用于计算项目中达人的对客报价
-                    <br />
-                    <br />
-                    系数根据当前有效的配置项自动计算
-                  </div>
-                }
-                placement="top"
-              >
-                <QuestionCircleOutlined className="text-content-muted cursor-help" />
-              </Popover>
-            </div>
-            <div>
-              {currentQuotationCoefficient !== null ? (
-                <Tag color="blue" className="text-base font-semibold">
-                  {currentQuotationCoefficient.toFixed(4)}
-                </Tag>
-              ) : (
-                <span className="text-content-muted text-sm">
-                  暂无有效配置
+      {currentStrategy.pricingModel !== 'project' &&
+        currentStrategy.enabled && (
+          <div className="space-y-4 p-4 border border-stroke rounded-lg">
+            {/* 报价系数显示 */}
+            <div className="flex items-center justify-between pb-3 border-b border-stroke">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-content">
+                  当前有效报价系数
                 </span>
-              )}
+                <Popover
+                  content={
+                    <div className="text-xs text-content-secondary max-w-xs">
+                      报价系数 = 最终对客报价 ÷ 达人刊例价
+                      <br />
+                      用于计算项目中达人的对客报价
+                      <br />
+                      <br />
+                      系数根据当前有效的配置项自动计算
+                    </div>
+                  }
+                  placement="top"
+                >
+                  <QuestionCircleOutlined className="text-content-muted cursor-help" />
+                </Popover>
+              </div>
+              <div>
+                {currentQuotationCoefficient !== null ? (
+                  <Tag color="blue" className="text-base font-semibold">
+                    {currentQuotationCoefficient.toFixed(4)}
+                  </Tag>
+                ) : (
+                  <span className="text-content-muted text-sm">
+                    暂无有效配置
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* 多时间段配置列表 */}
-          <PricingConfigList
-            configs={currentStrategy.configs || []}
-            onChange={handleConfigsChange}
-            platformName={getPlatformName(selectedPlatform)}
-            platformConfig={currentPlatformConfigData}
-            readonly={false}
-          />
-        </div>
-      )}
+            {/* 多时间段配置列表 */}
+            <PricingConfigList
+              configs={currentStrategy.configs || []}
+              onChange={handleConfigsChange}
+              platformName={getPlatformName(selectedPlatform)}
+              platformConfig={currentPlatformConfigData}
+              readonly={false}
+            />
+          </div>
+        )}
     </div>
   );
 }

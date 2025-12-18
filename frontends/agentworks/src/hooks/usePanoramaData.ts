@@ -214,7 +214,7 @@ export function usePanoramaData(platform: Platform): UsePanoramaDataResult {
 
       // 重置到第1页（如果已经在第1页，通过 refreshTrigger 触发加载）
       if (currentPage === 1) {
-        setRefreshTrigger((prev) => prev + 1);
+        setRefreshTrigger(prev => prev + 1);
       } else {
         setCurrentPage(1);
       }
@@ -243,7 +243,7 @@ export function usePanoramaData(platform: Platform): UsePanoramaDataResult {
 
       // 重置到第1页（如果已经在第1页，通过 refreshTrigger 触发加载）
       if (currentPage === 1) {
-        setRefreshTrigger((prev) => prev + 1);
+        setRefreshTrigger(prev => prev + 1);
       } else {
         setCurrentPage(1);
       }
@@ -264,7 +264,7 @@ export function usePanoramaData(platform: Platform): UsePanoramaDataResult {
 
       // 重置到第1页（如果已经在第1页，通过 refreshTrigger 触发加载）
       if (currentPage === 1) {
-        setRefreshTrigger((prev) => prev + 1);
+        setRefreshTrigger(prev => prev + 1);
       } else {
         setCurrentPage(1);
       }

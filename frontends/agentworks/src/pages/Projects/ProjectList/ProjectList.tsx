@@ -7,11 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
 import { Button, Tag, Space, App, Checkbox, Tooltip } from 'antd';
-import {
-  PlusOutlined,
-  EyeOutlined,
-  EditOutlined,
-} from '@ant-design/icons';
+import { PlusOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons';
 import type {
   ProjectListItem,
   ProjectStatus,

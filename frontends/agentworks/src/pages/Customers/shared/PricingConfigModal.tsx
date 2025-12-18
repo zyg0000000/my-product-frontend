@@ -251,7 +251,9 @@ export function PricingConfigModal({
               <label className="block text-sm font-medium text-content mb-2">
                 平台费
               </label>
-              <Tag color="blue">{(platformFeeRate * 100).toFixed(0)}% (固定)</Tag>
+              <Tag color="blue">
+                {(platformFeeRate * 100).toFixed(0)}% (固定)
+              </Tag>
             </div>
             <Form.Item
               name="includesPlatformFee"
@@ -276,11 +278,7 @@ export function PricingConfigModal({
           </div>
 
           <div className="grid grid-cols-3 gap-4">
-            <Form.Item
-              name="includesTax"
-              label="报价税费设置"
-              className="mb-0"
-            >
+            <Form.Item name="includesTax" label="报价税费设置" className="mb-0">
               <Radio.Group>
                 <Radio value={true}>含税</Radio>
                 <Radio value={false}>不含</Radio>

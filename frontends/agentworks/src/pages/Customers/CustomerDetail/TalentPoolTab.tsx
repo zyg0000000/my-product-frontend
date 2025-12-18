@@ -52,7 +52,11 @@ import { TalentNameWithLinks } from '../../../components/TalentNameWithLinks';
 import { CustomerRebateModal } from '../../../components/CustomerRebateModal';
 import { BatchCustomerRebateModal } from '../../../components/BatchCustomerRebateModal';
 import { useTagConfigs } from '../../../hooks/useTagConfigs';
-import { formatRebateRate, REBATE_SOURCE_LABELS, type RebateSource } from '../../../types/rebate';
+import {
+  formatRebateRate,
+  REBATE_SOURCE_LABELS,
+  type RebateSource,
+} from '../../../types/rebate';
 import { logger } from '../../../utils/logger';
 
 interface TalentPoolTabProps {
@@ -376,7 +380,10 @@ export function TalentPoolTab({
       width: 100,
       align: 'center',
       render: (_, record) => {
-        if (record.customerRebate?.enabled && record.customerRebate?.rate !== null) {
+        if (
+          record.customerRebate?.enabled &&
+          record.customerRebate?.rate !== null
+        ) {
           return (
             <Tooltip title="客户专属返点">
               <span className="font-semibold text-primary-600 dark:text-primary-400">
@@ -396,13 +403,18 @@ export function TalentPoolTab({
       render: (_, record) => {
         const rate = record.talentInfo?.currentRebate?.rate;
         if (rate !== undefined && rate !== null) {
-          const source = record.talentInfo?.currentRebate?.source as RebateSource | undefined;
-          const sourceLabel = source ? REBATE_SOURCE_LABELS[source] : '系统默认';
+          const source = record.talentInfo?.currentRebate?.source as
+            | RebateSource
+            | undefined;
+          const sourceLabel = source
+            ? REBATE_SOURCE_LABELS[source]
+            : '系统默认';
           // 如果是机构返点，显示机构名称
           const agencyName = record.talentInfo?.agencyName;
-          const tooltipText = source === 'agency' && agencyName
-            ? `来源：${agencyName}`
-            : `来源：${sourceLabel}`;
+          const tooltipText =
+            source === 'agency' && agencyName
+              ? `来源：${agencyName}`
+              : `来源：${sourceLabel}`;
           return (
             <Tooltip title={tooltipText}>
               <span className="text-content-secondary">
@@ -723,7 +735,9 @@ export function TalentPoolTab({
           talent={{
             oneId: rebateModalTalent.talentOneId,
             platform: platform,
-            name: rebateModalTalent.talentInfo?.name || rebateModalTalent.talentOneId,
+            name:
+              rebateModalTalent.talentInfo?.name ||
+              rebateModalTalent.talentOneId,
           }}
           onSuccess={loadTalents}
         />
@@ -745,7 +759,7 @@ export function TalentPoolTab({
             oneId: t.talentOneId,
             name: t.talentInfo?.name || t.talentOneId,
             currentRebate: t.customerRebate?.enabled
-              ? t.customerRebate.rate ?? undefined
+              ? (t.customerRebate.rate ?? undefined)
               : t.talentInfo?.currentRebate?.rate,
           }))}
         onSuccess={loadTalents}

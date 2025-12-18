@@ -225,7 +225,9 @@ export const generateConfigId = (): string => {
  * 获取配置项默认值
  * @param platformFeeRate - 平台费率（从 usePlatformConfig 获取）
  */
-export const getDefaultConfigItem = (platformFeeRate = 0): PricingConfigItem => {
+export const getDefaultConfigItem = (
+  platformFeeRate = 0
+): PricingConfigItem => {
   const now = new Date().toISOString();
   return {
     id: generateConfigId(),
@@ -298,10 +300,7 @@ export const getEffectiveConfig = (
   // 1. 优先找日期范围匹配的
   const dateMatched = configs.find(
     c =>
-      c.validFrom &&
-      c.validTo &&
-      c.validFrom <= dateStr &&
-      c.validTo >= dateStr
+      c.validFrom && c.validTo && c.validFrom <= dateStr && c.validTo >= dateStr
   );
   if (dateMatched) return dateMatched;
 

@@ -15,7 +15,12 @@ import type {
 } from '../pages/Customers/shared/talentProcurement';
 
 // 重新导出供其他模块使用
-export type { PricingConfigItem, PlatformPricingStrategy, PlatformPricingConfigs, PricingModel };
+export type {
+  PricingConfigItem,
+  PlatformPricingStrategy,
+  PlatformPricingConfigs,
+  PricingModel,
+};
 
 // 客户级别
 export type CustomerLevel = 'VIP' | 'large' | 'medium' | 'small';

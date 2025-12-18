@@ -404,15 +404,10 @@ export function ProjectFormModal({
       }
 
       // 后备：从客户的 quotationCoefficients 读取
-      const strategy =
-        selectedCustomer?.businessStrategies?.talentProcurement;
+      const strategy = selectedCustomer?.businessStrategies?.talentProcurement;
       return strategy?.quotationCoefficients?.[platform] ?? null;
     },
-    [
-      getPlatformPricingStrategy,
-      getPlatformEffectiveConfig,
-      selectedCustomer,
-    ]
+    [getPlatformPricingStrategy, getPlatformEffectiveConfig, selectedCustomer]
   );
 
   /**

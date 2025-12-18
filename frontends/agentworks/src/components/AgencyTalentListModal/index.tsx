@@ -457,7 +457,8 @@ export function AgencyTalentListModal({
       >
         <div className="space-y-4 py-4">
           <div className="text-content-secondary">
-            将解绑 <span className="font-medium text-content">{selectedCount}</span>{' '}
+            将解绑{' '}
+            <span className="font-medium text-content">{selectedCount}</span>{' '}
             个达人，解绑后将变为野生达人。
           </div>
           <Form layout="vertical">
@@ -479,7 +480,8 @@ export function AgencyTalentListModal({
             </Form.Item>
           </Form>
           <div className="text-xs text-content-muted">
-            提示：返点率范围 {REBATE_VALIDATION.min}%-{REBATE_VALIDATION.max}%，最多两位小数
+            提示：返点率范围 {REBATE_VALIDATION.min}%-{REBATE_VALIDATION.max}
+            %，最多两位小数
           </div>
         </div>
       </Modal>

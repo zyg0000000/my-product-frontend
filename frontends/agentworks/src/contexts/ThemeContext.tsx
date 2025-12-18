@@ -5,6 +5,7 @@
  * @version 1.0.0
  */
 
+/* eslint-disable react-refresh/only-export-components */
 import React, {
   createContext,
   useContext,

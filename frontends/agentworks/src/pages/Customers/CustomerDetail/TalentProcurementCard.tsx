@@ -140,7 +140,8 @@ export function TalentProcurementCard({
               includesPlatformFee: legacy.includesPlatformFee || false,
               serviceFeeBase: legacy.serviceFeeBase || 'beforeDiscount',
               includesTax: legacy.includesTax ?? true,
-              taxCalculationBase: legacy.taxCalculationBase || 'excludeServiceFee',
+              taxCalculationBase:
+                legacy.taxCalculationBase || 'excludeServiceFee',
               validFrom: legacy.validFrom || null,
               validTo: legacy.validTo || null,
               isPermanent: legacy.isPermanent || false,
@@ -151,7 +152,8 @@ export function TalentProcurementCard({
             configs[platformKey] = {
               enabled: legacy.enabled || false,
               pricingModel: legacy.pricingModel || 'framework',
-              configs: legacy.pricingModel === 'project' ? null : [legacyConfig],
+              configs:
+                legacy.pricingModel === 'project' ? null : [legacyConfig],
             };
           }
         }
@@ -182,9 +184,10 @@ export function TalentProcurementCard({
     })
     .map(([key, config]) => {
       // 获取当前有效配置
-      const effectiveConfig = config.pricingModel !== 'project'
-        ? getEffectiveConfig(config.configs || [])
-        : null;
+      const effectiveConfig =
+        config.pricingModel !== 'project'
+          ? getEffectiveConfig(config.configs || [])
+          : null;
 
       return {
         key,
@@ -224,8 +227,9 @@ export function TalentProcurementCard({
     setSaving(true);
     try {
       // v5.1: 使用 calculateAllEffectiveCoefficients 计算所有有效系数
-      const quotationCoefficients =
-        calculateAllEffectiveCoefficients(platformPricingConfigs);
+      const quotationCoefficients = calculateAllEffectiveCoefficients(
+        platformPricingConfigs
+      );
 
       // 检查是否有无效系数
       const hasInvalidCoefficient = Object.entries(quotationCoefficients).some(
@@ -688,7 +692,9 @@ export function TalentProcurementCard({
                             configs={platformItem.strategy.configs || []}
                             readonly={true}
                             compact={true}
-                            quotationCoefficient={platformItem.quotationCoefficient}
+                            quotationCoefficient={
+                              platformItem.quotationCoefficient
+                            }
                           />
                         </div>
                       )}

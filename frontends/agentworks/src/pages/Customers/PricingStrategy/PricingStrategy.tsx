@@ -187,11 +187,14 @@ export default function PricingStrategy() {
                   id: `legacy_${platformKey}_${Date.now()}`,
                   discountRate: savedConfig.discountRate ?? 1.0,
                   serviceFeeRate: savedConfig.serviceFeeRate ?? 0,
-                  platformFeeRate: savedConfig.platformFeeRate || platformFeeRate,
+                  platformFeeRate:
+                    savedConfig.platformFeeRate || platformFeeRate,
                   includesPlatformFee: savedConfig.includesPlatformFee || false,
-                  serviceFeeBase: savedConfig.serviceFeeBase || 'beforeDiscount',
+                  serviceFeeBase:
+                    savedConfig.serviceFeeBase || 'beforeDiscount',
                   includesTax: savedConfig.includesTax ?? true,
-                  taxCalculationBase: savedConfig.taxCalculationBase || 'excludeServiceFee',
+                  taxCalculationBase:
+                    savedConfig.taxCalculationBase || 'excludeServiceFee',
                   validFrom: savedConfig.validFrom || null,
                   validTo: savedConfig.validTo || null,
                   isPermanent: savedConfig.isPermanent || false,
@@ -202,7 +205,10 @@ export default function PricingStrategy() {
                 loadedConfigs[platformKey] = {
                   enabled: savedConfig.enabled || false,
                   pricingModel: savedConfig.pricingModel || 'framework',
-                  configs: savedConfig.pricingModel === 'project' ? null : [legacyConfig],
+                  configs:
+                    savedConfig.pricingModel === 'project'
+                      ? null
+                      : [legacyConfig],
                 };
               }
             }
@@ -303,7 +309,9 @@ export default function PricingStrategy() {
     setSaving(true);
 
     // v5.1: 使用 calculateAllEffectiveCoefficients 计算当前有效配置的系数
-    const quotationCoefficients = calculateAllEffectiveCoefficients(platformPricingConfigs);
+    const quotationCoefficients = calculateAllEffectiveCoefficients(
+      platformPricingConfigs
+    );
 
     // 校验系数
     let hasInvalidCoefficient = false;
@@ -368,7 +376,8 @@ export default function PricingStrategy() {
       delete updatedConfigs[platformKey];
 
       // v5.1: 使用 calculateAllEffectiveCoefficients
-      const quotationCoefficients = calculateAllEffectiveCoefficients(updatedConfigs);
+      const quotationCoefficients =
+        calculateAllEffectiveCoefficients(updatedConfigs);
 
       const hasEnabledPlatform = Object.values(updatedConfigs).some(
         c => c?.enabled
@@ -450,7 +459,8 @@ export default function PricingStrategy() {
 
     try {
       // v5.1: 使用 calculateAllEffectiveCoefficients
-      const quotationCoefficients = calculateAllEffectiveCoefficients(updatedConfigs);
+      const quotationCoefficients =
+        calculateAllEffectiveCoefficients(updatedConfigs);
 
       const hasEnabledPlatform = Object.values(updatedConfigs).some(
         c => c?.enabled
@@ -522,9 +532,10 @@ export default function PricingStrategy() {
     .filter(([_, config]) => config !== undefined && config !== null)
     .map(([key, config]) => {
       // 获取当前有效配置
-      const effectiveConfig = config.pricingModel !== 'project'
-        ? getEffectiveConfig(config.configs || [])
-        : null;
+      const effectiveConfig =
+        config.pricingModel !== 'project'
+          ? getEffectiveConfig(config.configs || [])
+          : null;
 
       return {
         key,

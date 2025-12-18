@@ -203,10 +203,14 @@ export default function CustomerList() {
 
       // v5.1: 从 configs 数组获取有效配置
       const effectiveConfig = getEffectiveConfig(config.configs);
-      const discountRate = effectiveConfig?.discountRate ?? config.discountRate ?? 0;
-      const platformFeeRate = effectiveConfig?.platformFeeRate ?? config.platformFeeRate ?? 0;
-      const serviceFeeRate = effectiveConfig?.serviceFeeRate ?? config.serviceFeeRate ?? 0;
-      const includesPlatformFee = effectiveConfig?.includesPlatformFee ?? config.includesPlatformFee;
+      const discountRate =
+        effectiveConfig?.discountRate ?? config.discountRate ?? 0;
+      const platformFeeRate =
+        effectiveConfig?.platformFeeRate ?? config.platformFeeRate ?? 0;
+      const serviceFeeRate =
+        effectiveConfig?.serviceFeeRate ?? config.serviceFeeRate ?? 0;
+      const includesPlatformFee =
+        effectiveConfig?.includesPlatformFee ?? config.includesPlatformFee;
       const includesTax = effectiveConfig?.includesTax ?? config.includesTax;
       const taxRate = 0.06;
 
@@ -225,7 +229,10 @@ export default function CustomerList() {
 
       // 步骤 3: 计算服务费金额
       // v5.1: 从有效配置获取 serviceFeeBase
-      const serviceFeeBase = effectiveConfig?.serviceFeeBase ?? config.serviceFeeBase ?? 'afterDiscount';
+      const serviceFeeBase =
+        effectiveConfig?.serviceFeeBase ??
+        config.serviceFeeBase ??
+        'afterDiscount';
       let serviceFeeAmount = 0;
       if (serviceFeeRate > 0) {
         if (serviceFeeBase === 'beforeDiscount') {
@@ -237,7 +244,10 @@ export default function CustomerList() {
 
       // 步骤 4: 计算税费
       // v5.1: 从有效配置获取 taxCalculationBase
-      const taxCalculationBase = effectiveConfig?.taxCalculationBase ?? config.taxCalculationBase ?? 'excludeServiceFee';
+      const taxCalculationBase =
+        effectiveConfig?.taxCalculationBase ??
+        config.taxCalculationBase ??
+        'excludeServiceFee';
       let taxAmount = 0;
       if (!includesTax) {
         if (taxCalculationBase === 'includeServiceFee') {
@@ -400,7 +410,8 @@ export default function CustomerList() {
               <span className="whitespace-nowrap">
                 {(effectiveConfig?.isPermanent ?? config.isPermanent)
                   ? '长期有效'
-                  : (effectiveConfig?.validFrom ?? config.validFrom) && (effectiveConfig?.validTo ?? config.validTo)
+                  : (effectiveConfig?.validFrom ?? config.validFrom) &&
+                      (effectiveConfig?.validTo ?? config.validTo)
                     ? `${(effectiveConfig?.validFrom ?? config.validFrom)?.substring(0, 10)} ~ ${(effectiveConfig?.validTo ?? config.validTo)?.substring(0, 10)}`
                     : '未设置'}
               </span>

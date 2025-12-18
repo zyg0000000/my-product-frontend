@@ -9,13 +9,7 @@
  */
 
 import { useState } from 'react';
-import {
-  Modal,
-  Alert,
-  Table,
-  message,
-  Result,
-} from 'antd';
+import { Modal, Alert, Table, message, Result } from 'antd';
 import {
   ProForm,
   ProFormDigit,
@@ -89,7 +83,10 @@ export function BatchCustomerRebateModal({
       return;
     }
 
-    if (rebateRate < REBATE_VALIDATION.min || rebateRate > REBATE_VALIDATION.max) {
+    if (
+      rebateRate < REBATE_VALIDATION.min ||
+      rebateRate > REBATE_VALIDATION.max
+    ) {
       message.error(
         `返点率必须在 ${REBATE_VALIDATION.min}-${REBATE_VALIDATION.max} 之间`
       );
@@ -183,7 +180,8 @@ export function BatchCustomerRebateModal({
               批量设置客户返点 ({talents.length}个达人)
             </div>
             <div className="text-xs font-normal text-content-secondary mt-1">
-              为「{customerName}」批量设置达人专属返点 ({platformNames[platform] || platform})
+              为「{customerName}」批量设置达人专属返点 (
+              {platformNames[platform] || platform})
             </div>
           </div>
         ) : (
@@ -301,11 +299,7 @@ export function BatchCustomerRebateModal({
       {step === 'result' && result && (
         <Result
           status={result.failed.length === 0 ? 'success' : 'warning'}
-          title={
-            result.failed.length === 0
-              ? '批量设置成功'
-              : '部分设置成功'
-          }
+          title={result.failed.length === 0 ? '批量设置成功' : '部分设置成功'}
           subTitle={`成功设置 ${result.updated} 个达人${result.failed.length > 0 ? `，${result.failed.length} 个失败` : ''}`}
           extra={
             result.failed.length > 0 && (

@@ -48,11 +48,13 @@ export function PricingConfigList({
   platformName = '',
   platformConfig,
   readonly = false,
-  compact = false,
-  quotationCoefficient,
+  compact: _compact = false,
+  quotationCoefficient: _quotationCoefficient,
 }: PricingConfigListProps) {
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingConfig, setEditingConfig] = useState<PricingConfigItem | undefined>();
+  const [editingConfig, setEditingConfig] = useState<
+    PricingConfigItem | undefined
+  >();
 
   // 按状态排序：当前生效 > 即将生效 > 已过期
   const sortedConfigs = useMemo(() => {
@@ -129,8 +131,8 @@ export function PricingConfigList({
           isExpired
             ? 'border-stroke bg-surface-base opacity-60'
             : status === 'active' || status === 'permanent'
-            ? 'border-success-300 bg-success-50'
-            : 'border-primary-300 bg-primary-50'
+              ? 'border-success-300 bg-success-50'
+              : 'border-primary-300 bg-primary-50'
         }`}
       >
         <div className="flex items-center justify-between mb-3">
@@ -180,15 +182,21 @@ export function PricingConfigList({
         <div className="grid grid-cols-4 gap-4 text-sm">
           <div>
             <span className="text-content-secondary">折扣率</span>
-            <div className="font-medium">{(config.discountRate * 100).toFixed(2)}%</div>
+            <div className="font-medium">
+              {(config.discountRate * 100).toFixed(2)}%
+            </div>
           </div>
           <div>
             <span className="text-content-secondary">服务费率</span>
-            <div className="font-medium">{(config.serviceFeeRate * 100).toFixed(2)}%</div>
+            <div className="font-medium">
+              {(config.serviceFeeRate * 100).toFixed(2)}%
+            </div>
           </div>
           <div>
             <span className="text-content-secondary">平台费</span>
-            <div className="font-medium">{(config.platformFeeRate * 100).toFixed(0)}%</div>
+            <div className="font-medium">
+              {(config.platformFeeRate * 100).toFixed(0)}%
+            </div>
           </div>
           <div>
             <span className="text-content-secondary">报价系数</span>

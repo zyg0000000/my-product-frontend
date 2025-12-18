@@ -17,11 +17,7 @@ import {
   Select,
   Tooltip,
 } from 'antd';
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-} from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type {
   Collaboration,
   CollaborationStatus,

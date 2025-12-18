@@ -604,7 +604,9 @@ export function AgencyRebateModal({
                 共{' '}
                 <span className="font-medium text-content">{talentTotal}</span>{' '}
                 个达人，已选择{' '}
-                <span className="font-medium text-content">{selectedCount}</span>{' '}
+                <span className="font-medium text-content">
+                  {selectedCount}
+                </span>{' '}
                 个
               </div>
               <div className="flex gap-2">
@@ -639,21 +641,22 @@ export function AgencyRebateModal({
                 showSizeChanger: false,
                 showQuickJumper: true,
                 showTotal: t => `共 ${t} 条`,
-                onChange: (page) => loadTalents(page),
+                onChange: page => loadTalents(page),
               }}
               scroll={{ y: 300 }}
               locale={{
-                emptyText: (
-                  <Empty description="该机构在此平台暂无达人" />
-                ),
+                emptyText: <Empty description="该机构在此平台暂无达人" />,
               }}
               columns={[
                 {
                   title: (
                     <Checkbox
-                      checked={talents.length > 0 && talents.every(t => t.selected)}
+                      checked={
+                        talents.length > 0 && talents.every(t => t.selected)
+                      }
                       indeterminate={
-                        talents.some(t => t.selected) && !talents.every(t => t.selected)
+                        talents.some(t => t.selected) &&
+                        !talents.every(t => t.selected)
                       }
                       onChange={e => toggleSelectAll(e.target.checked)}
                       disabled={talents.length === 0}
