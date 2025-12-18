@@ -374,12 +374,17 @@ export function ProjectFormModal({
   );
 
   /**
-   * v5.1: 检查折扣率是否只读（framework 模式）
+   * v5.1: 检查折扣率是否只读（framework 或 hybrid 模式）
+   * - framework: 完全使用框架协议
+   * - hybrid: 部分使用框架协议，部分逐一报价（但项目级别的折扣率仍沿用框架配置）
    */
   const isDiscountReadOnly = useCallback(
     (platform: Platform): boolean => {
       const strategy = getPlatformPricingStrategy(platform);
-      return strategy?.pricingModel === 'framework';
+      return (
+        strategy?.pricingModel === 'framework' ||
+        strategy?.pricingModel === 'hybrid'
+      );
     },
     [getPlatformPricingStrategy]
   );
@@ -1159,7 +1164,7 @@ export function ProjectFormModal({
                           />
                         </Form.Item>
                         {isReadOnly && (
-                          <Tooltip title="框架模式，折扣率自动读取">
+                          <Tooltip title="折扣率自动读取（框架/混合模式）">
                             <LockOutlined className="text-content-muted text-xs" />
                           </Tooltip>
                         )}
