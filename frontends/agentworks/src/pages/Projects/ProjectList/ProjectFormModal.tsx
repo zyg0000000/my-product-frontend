@@ -319,40 +319,58 @@ export function ProjectFormModal({
    */
   const getPlatformEffectiveConfig = useCallback(
     (platform: Platform): PricingConfigItem | null => {
-      const platformStrategy = getPlatformPricingStrategy(platform);
-      if (!platformStrategy) return null;
-
-      // 项目比价模式没有预设配置
-      if (platformStrategy.pricingModel === 'project') return null;
-
-      // v5.1: 新结构使用 configs 数组
-      if (platformStrategy.configs && Array.isArray(platformStrategy.configs)) {
-        return getEffectiveConfig(platformStrategy.configs);
+      if (
+        !selectedCustomer?.businessStrategies?.talentProcurement ||
+        selectedBusinessType !== 'talentProcurement'
+      ) {
+        return null;
       }
 
-      // 兼容旧结构：单配置转换为 PricingConfigItem
-      if (platformStrategy.discountRate !== undefined) {
-        return {
-          id: `legacy_${platform}`,
-          discountRate: platformStrategy.discountRate,
-          serviceFeeRate: platformStrategy.serviceFeeRate || 0,
-          platformFeeRate: platformStrategy.platformFeeRate || 0,
-          includesPlatformFee: platformStrategy.includesPlatformFee || false,
-          serviceFeeBase: platformStrategy.serviceFeeBase || 'beforeDiscount',
-          includesTax: platformStrategy.includesTax ?? true,
-          taxCalculationBase:
-            platformStrategy.taxCalculationBase || 'excludeServiceFee',
-          validFrom: platformStrategy.validFrom || null,
-          validTo: platformStrategy.validTo || null,
-          isPermanent: platformStrategy.isPermanent || false,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
+      const strategy = selectedCustomer.businessStrategies.talentProcurement;
+
+      // 优先检查新结构 platformPricingConfigs
+      const newStrategy = strategy.platformPricingConfigs?.[platform];
+      if (newStrategy) {
+        // 项目比价模式没有预设配置
+        if (newStrategy.pricingModel === 'project') return null;
+
+        // 新结构使用 configs 数组
+        if (newStrategy.configs && Array.isArray(newStrategy.configs)) {
+          return getEffectiveConfig(newStrategy.configs);
+        }
+        return null;
+      }
+
+      // 兼容旧结构 platformFees
+      const legacyStrategy = strategy.platformFees?.[platform];
+      if (legacyStrategy && legacyStrategy.enabled) {
+        // 项目比价模式没有预设配置
+        if (legacyStrategy.pricingModel === 'project') return null;
+
+        // 旧结构：单配置转换为 PricingConfigItem
+        if (legacyStrategy.discountRate !== undefined) {
+          return {
+            id: `legacy_${platform}`,
+            discountRate: legacyStrategy.discountRate,
+            serviceFeeRate: legacyStrategy.serviceFeeRate || 0,
+            platformFeeRate: legacyStrategy.platformFeeRate || 0,
+            includesPlatformFee: legacyStrategy.includesPlatformFee || false,
+            serviceFeeBase: legacyStrategy.serviceFeeBase || 'beforeDiscount',
+            includesTax: legacyStrategy.includesTax ?? true,
+            taxCalculationBase:
+              legacyStrategy.taxCalculationBase || 'excludeServiceFee',
+            validFrom: legacyStrategy.validFrom || null,
+            validTo: legacyStrategy.validTo || null,
+            isPermanent: legacyStrategy.isPermanent || false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+        }
       }
 
       return null;
     },
-    [getPlatformPricingStrategy]
+    [selectedCustomer, selectedBusinessType]
   );
 
   /**

@@ -110,44 +110,48 @@ export function TalentProcurementCard({
   useEffect(() => {
     if (strategy && enabledPlatforms.length > 0) {
       const configs: PlatformPricingConfigs = {};
-      const savedConfigs =
-        strategy.platformPricingConfigs || strategy.platformFees || {};
+      // 优先使用新的 platformPricingConfigs，兼容旧的 platformFees
+      const savedConfigs = strategy.platformPricingConfigs || {};
+      const legacyConfigs = strategy.platformFees || {};
+
       enabledPlatforms.forEach(platformConfig => {
         const platformKey = platformConfig.platform;
         const platformFeeRate = platformConfig.business?.fee || 0;
+
+        // 优先检查新结构
         const saved = savedConfigs[platformKey];
-        // 只有数据库中存在该平台配置时才加载，不自动创建默认配置
         if (saved) {
-          // v5.1: 检查是否为新结构（有 configs 数组）
-          if (saved.configs !== undefined) {
-            // 新结构：直接使用
-            configs[platformKey] = {
-              enabled: saved.enabled || false,
-              pricingModel: saved.pricingModel || 'framework',
-              configs: saved.configs || null,
-            };
-          } else {
+          // 新结构：直接使用
+          configs[platformKey] = {
+            enabled: saved.enabled || false,
+            pricingModel: saved.pricingModel || 'framework',
+            configs: saved.configs || null,
+          };
+        } else {
+          // 检查旧结构
+          const legacy = legacyConfigs[platformKey];
+          if (legacy) {
             // 旧结构：转换为新结构（单配置转换为数组）
             const legacyConfig: PricingConfigItem = {
               id: `legacy_${platformKey}_${Date.now()}`,
-              discountRate: saved.discountRate ?? 1.0,
-              serviceFeeRate: saved.serviceFeeRate ?? 0,
-              platformFeeRate: saved.platformFeeRate || platformFeeRate,
-              includesPlatformFee: saved.includesPlatformFee || false,
-              serviceFeeBase: saved.serviceFeeBase || 'beforeDiscount',
-              includesTax: saved.includesTax ?? true,
-              taxCalculationBase: saved.taxCalculationBase || 'excludeServiceFee',
-              validFrom: saved.validFrom || null,
-              validTo: saved.validTo || null,
-              isPermanent: saved.isPermanent || false,
+              discountRate: legacy.discountRate ?? 1.0,
+              serviceFeeRate: legacy.serviceFeeRate ?? 0,
+              platformFeeRate: legacy.platformFeeRate || platformFeeRate,
+              includesPlatformFee: legacy.includesPlatformFee || false,
+              serviceFeeBase: legacy.serviceFeeBase || 'beforeDiscount',
+              includesTax: legacy.includesTax ?? true,
+              taxCalculationBase: legacy.taxCalculationBase || 'excludeServiceFee',
+              validFrom: legacy.validFrom || null,
+              validTo: legacy.validTo || null,
+              isPermanent: legacy.isPermanent || false,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             };
 
             configs[platformKey] = {
-              enabled: saved.enabled || false,
-              pricingModel: saved.pricingModel || 'framework',
-              configs: saved.pricingModel === 'project' ? null : [legacyConfig],
+              enabled: legacy.enabled || false,
+              pricingModel: legacy.pricingModel || 'framework',
+              configs: legacy.pricingModel === 'project' ? null : [legacyConfig],
             };
           }
         }

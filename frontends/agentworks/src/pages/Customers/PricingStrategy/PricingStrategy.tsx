@@ -40,7 +40,6 @@ import { logger } from '../../../utils/logger';
 import {
   PRICING_MODEL_NAMES,
   getDefaultPlatformStrategy,
-  calculateAllCoefficients,
   calculateAllEffectiveCoefficients,
   getPricingModeInfo,
   getEffectiveConfig,
@@ -48,7 +47,6 @@ import {
   type PlatformPricingStrategy,
   type PlatformPricingConfigs,
   type PricingConfigItem,
-  type CoefficientResult,
   type TalentProcurementStrategy,
 } from '../shared/talentProcurement';
 import { PricingConfigList } from '../shared/PricingConfigList';
@@ -120,10 +118,6 @@ export default function PricingStrategy() {
   // 编辑模式状态
   const [isEditing, setIsEditing] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState('');
-  // 报价系数
-  const [coefficients, setCoefficients] = useState<
-    Record<string, CoefficientResult>
-  >({});
 
   // 当平台列表加载完成后，设置默认选中的平台
   useEffect(() => {
@@ -242,10 +236,9 @@ export default function PricingStrategy() {
     }
   };
 
-  // 处理配置变化（更新系数）
+  // 处理配置变化
   const handleConfigChange = (configs: PlatformPricingConfigs) => {
     setPlatformPricingConfigs(configs);
-    setCoefficients(calculateAllCoefficients(configs));
   };
 
   // 检测策略是否有变化 (v5.1 支持新的 configs 数组结构)
@@ -502,7 +495,7 @@ export default function PricingStrategy() {
           onBack={() => navigate(-1)}
           backText="返回"
         />
-        <ProCard>
+        <Card>
           <Empty
             description="暂无启用价格管理功能的平台"
             image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -514,7 +507,7 @@ export default function PricingStrategy() {
               前往平台配置
             </Button>
           </Empty>
-        </ProCard>
+        </Card>
       </div>
     );
   }

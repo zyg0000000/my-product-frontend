@@ -28,22 +28,28 @@ import { PricingConfigModal } from './PricingConfigModal';
 interface PricingConfigListProps {
   /** 配置列表 */
   configs: PricingConfigItem[];
-  /** 配置变更回调 */
-  onChange: (configs: PricingConfigItem[]) => void;
-  /** 平台名称 */
-  platformName: string;
+  /** 配置变更回调（只读模式下可不传） */
+  onChange?: (configs: PricingConfigItem[]) => void;
+  /** 平台名称（只读模式下可不传） */
+  platformName?: string;
   /** 平台配置 */
   platformConfig?: ApiPlatformConfig;
   /** 是否只读模式 */
   readonly?: boolean;
+  /** 紧凑模式（减少显示信息） */
+  compact?: boolean;
+  /** 当前生效的报价系数（只读模式显示） */
+  quotationCoefficient?: number;
 }
 
 export function PricingConfigList({
   configs,
   onChange,
-  platformName,
+  platformName = '',
   platformConfig,
   readonly = false,
+  compact = false,
+  quotationCoefficient,
 }: PricingConfigListProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingConfig, setEditingConfig] = useState<PricingConfigItem | undefined>();
@@ -79,7 +85,7 @@ export function PricingConfigList({
   // 删除配置
   const handleDelete = (configId: string) => {
     const newConfigs = configs.filter(c => c.id !== configId);
-    onChange(newConfigs);
+    onChange?.(newConfigs);
   };
 
   // 保存配置
@@ -87,10 +93,10 @@ export function PricingConfigList({
     if (editingConfig) {
       // 编辑：替换原配置
       const newConfigs = configs.map(c => (c.id === config.id ? config : c));
-      onChange(newConfigs);
+      onChange?.(newConfigs);
     } else {
       // 新增：追加到列表
-      onChange([...configs, config]);
+      onChange?.([...configs, config]);
     }
   };
 
