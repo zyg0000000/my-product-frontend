@@ -1,7 +1,15 @@
 /**
- * [生产版 v4.3 - 客户管理 RESTful API]
+ * [生产版 v5.0 - 客户管理 RESTful API]
  * 云函数：customers
  * 描述：统一的客户管理 RESTful API，支持客户信息的增删改查和价格策略配置
+ *
+ * --- v5.0 更新日志 (2025-12-15) 🎉 多时间段定价支持 ---
+ * - [重大变更] 支持同一平台配置多个时间段的定价策略
+ * - [数据结构] platformPricingConfigs 内各平台增加 configs 数组
+ * - [新增] 时间段重叠校验
+ * - [新增] 细粒度审计日志（config_create/update/delete/model_change）
+ * - [优化] getEffectiveConfig 函数获取当前有效配置
+ * ---------------------
  *
  * --- v4.3 更新日志 (2025-12-02) 🔒 权限预留 ---
  * - [新增] 权限预留字段：organizationId, departmentId
@@ -478,6 +486,193 @@ async function deleteCustomer(id, queryParams = {}) {
 // ========== 辅助函数 ==========
 
 /**
+ * [v5.0] 获取当前有效的定价配置
+ *
+ * 优先级：
+ * 1. 日期范围覆盖今天的配置
+ * 2. 长期有效的配置
+ * 3. 无有效配置返回 null
+ *
+ * @param {Array} configs - 配置数组
+ * @param {Date} date - 目标日期（默认今天）
+ * @returns {Object|null} - 有效配置或 null
+ */
+function getEffectiveConfig(configs, date = new Date()) {
+  if (!configs || !Array.isArray(configs) || configs.length === 0) {
+    return null;
+  }
+
+  const dateStr = date.toISOString().split('T')[0];
+
+  // 1. 优先找日期范围匹配的
+  const dateMatched = configs.find(c =>
+    c.validFrom && c.validTo &&
+    c.validFrom <= dateStr &&
+    c.validTo >= dateStr
+  );
+  if (dateMatched) return dateMatched;
+
+  // 2. 兜底：找长期有效的
+  const permanent = configs.find(c => c.isPermanent);
+  if (permanent) return permanent;
+
+  return null;
+}
+
+/**
+ * [v5.0] 检测时间段是否重叠
+ *
+ * @param {Array} configs - 配置数组
+ * @returns {Object|null} - 返回重叠的配置对或 null
+ */
+function findTimeOverlap(configs) {
+  if (!configs || !Array.isArray(configs)) return null;
+
+  // 只检查有日期范围的配置
+  const datedConfigs = configs.filter(c => c.validFrom && c.validTo);
+
+  for (let i = 0; i < datedConfigs.length; i++) {
+    for (let j = i + 1; j < datedConfigs.length; j++) {
+      const a = datedConfigs[i];
+      const b = datedConfigs[j];
+
+      // 检查是否重叠：A的开始 <= B的结束 且 A的结束 >= B的开始
+      if (a.validFrom <= b.validTo && a.validTo >= b.validFrom) {
+        return { config1: a, config2: b };
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * [v5.0] 校验平台定价配置
+ *
+ * @param {Object} platformPricingConfigs - 平台定价配置
+ * @returns {Object} - { valid: boolean, errors: string[] }
+ */
+function validatePlatformPricingConfigs(platformPricingConfigs) {
+  const errors = [];
+
+  if (!platformPricingConfigs) {
+    return { valid: true, errors: [] };
+  }
+
+  for (const [platform, strategy] of Object.entries(platformPricingConfigs)) {
+    if (!strategy || !strategy.enabled) continue;
+
+    // project 模式不需要校验 configs
+    if (strategy.pricingModel === 'project') continue;
+
+    // framework/hybrid 模式需要有效配置
+    const configs = strategy.configs;
+
+    if (!configs || !Array.isArray(configs) || configs.length === 0) {
+      errors.push(`${platform}: 框架折扣/混合模式需要至少一个定价配置`);
+      continue;
+    }
+
+    // 检查时间段重叠
+    const overlap = findTimeOverlap(configs);
+    if (overlap) {
+      errors.push(`${platform}: 存在时间段重叠的配置（${overlap.config1.validFrom}~${overlap.config1.validTo} 与 ${overlap.config2.validFrom}~${overlap.config2.validTo}）`);
+    }
+
+    // 检查每个配置的有效期
+    for (const cfg of configs) {
+      if (!cfg.isPermanent && (!cfg.validFrom || !cfg.validTo)) {
+        errors.push(`${platform}: 配置 ${cfg.id} 必须设置有效期或标记为长期有效`);
+      }
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors
+  };
+}
+
+/**
+ * [v5.0] 计算单个配置的报价系数
+ *
+ * @param {Object} config - 定价配置项
+ * @returns {number} - 报价系数
+ */
+function calculateConfigCoefficient(config) {
+  const baseAmount = 1000;
+  const platformFeeRate = config.platformFeeRate || 0;
+  const platformFeeAmount = baseAmount * platformFeeRate;
+
+  const discountRate = config.discountRate || 1.0;
+
+  // 1. 计算折扣后金额
+  let discountedAmount;
+  if (config.includesPlatformFee) {
+    discountedAmount = (baseAmount + platformFeeAmount) * discountRate;
+  } else {
+    discountedAmount = baseAmount * discountRate + platformFeeAmount;
+  }
+
+  // 2. 计算服务费
+  const serviceFeeRate = config.serviceFeeRate || 0;
+  let serviceFeeAmount;
+  if (config.serviceFeeBase === 'beforeDiscount') {
+    serviceFeeAmount = (baseAmount + platformFeeAmount) * serviceFeeRate;
+  } else {
+    serviceFeeAmount = discountedAmount * serviceFeeRate;
+  }
+
+  // 3. 计算税费
+  let taxAmount = 0;
+  const taxRate = 0.06; // 固定6%
+
+  if (!config.includesTax) {
+    if (config.taxCalculationBase === 'includeServiceFee') {
+      taxAmount = (discountedAmount + serviceFeeAmount) * taxRate;
+    } else {
+      taxAmount = discountedAmount * taxRate;
+    }
+  }
+
+  // 4. 最终金额
+  const finalAmount = discountedAmount + serviceFeeAmount + taxAmount;
+
+  // 5. 计算系数并校验
+  const coefficient = finalAmount / baseAmount;
+
+  if (isNaN(coefficient) || !isFinite(coefficient) || coefficient <= 0 || coefficient >= 10) {
+    console.error('Invalid coefficient calculated:', { config, coefficient });
+    return 1.0;
+  }
+
+  return Number(coefficient.toFixed(4));
+}
+
+/**
+ * [v5.0] 计算所有平台的有效报价系数
+ *
+ * @param {Object} platformPricingConfigs - 平台定价配置
+ * @returns {Object} - { platform: coefficient }
+ */
+function calculateAllEffectiveCoefficients(platformPricingConfigs) {
+  const coefficients = {};
+
+  if (!platformPricingConfigs) return coefficients;
+
+  for (const [platform, strategy] of Object.entries(platformPricingConfigs)) {
+    if (!strategy || !strategy.enabled) continue;
+    if (strategy.pricingModel === 'project') continue;
+
+    const effectiveConfig = getEffectiveConfig(strategy.configs);
+    if (effectiveConfig) {
+      coefficients[platform] = calculateConfigCoefficient(effectiveConfig);
+    }
+  }
+
+  return coefficients;
+}
+
+/**
  * 获取 MongoDB 客户端
  */
 async function getMongoClient() {
@@ -518,7 +713,12 @@ async function generateCustomerCode(collection) {
 }
 
 /**
- * 获取默认业务策略（v4.2 使用 platformPricingConfigs）
+ * 获取默认业务策略（v5.0 多时间段定价支持）
+ *
+ * v5.0 变更：
+ * - platformPricingConfigs 内各平台使用 { enabled, pricingModel, configs } 结构
+ * - configs 为配置数组，支持多时间段
+ * - project 模式下 configs 为 null
  *
  * v4.2 变更：
  * - 字段重命名 platformFees -> platformPricingConfigs
@@ -529,22 +729,14 @@ async function generateCustomerCode(collection) {
  * - 每个平台默认 pricingModel: 'framework'
  */
 function getDefaultBusinessStrategies() {
-  // v4.2: 动态生成 platformPricingConfigs，支持所有已配置的平台
+  // v5.0: 动态生成 platformPricingConfigs，使用新的 configs 数组结构
   const platformPricingConfigs = {};
   TALENT_PLATFORMS.forEach(platform => {
     if (platform.fee !== null) {
       platformPricingConfigs[platform.key] = {
         enabled: false,
         pricingModel: 'framework', // v4.0: 每个平台独立定价模式
-        platformFeeRate: platform.fee,
-        discountRate: 1.0,
-        serviceFeeRate: 0,
-        validFrom: null,
-        validTo: null,
-        includesPlatformFee: false,
-        serviceFeeBase: 'beforeDiscount',
-        includesTax: true,
-        taxCalculationBase: 'excludeServiceFee'
+        configs: null // v5.0: 默认无配置，启用后需添加
       };
     }
   });
@@ -552,7 +744,7 @@ function getDefaultBusinessStrategies() {
   return {
     talentProcurement: {
       enabled: false,
-      // v4.2: 使用新字段名 platformPricingConfigs
+      // v5.0: 使用新的 configs 数组结构
       platformPricingConfigs,
       quotationCoefficients: {}
     }
@@ -693,24 +885,36 @@ function processCustomer(customer) {
 }
 
 /**
- * 记录价格策略变更历史
+ * 记录价格策略变更历史（v5.1 简化版）
+ *
+ * 变更类型：
+ * - strategy_update: 策略更新（记录完整的 before/after 快照）
+ *
+ * v5.1 简化：移除细粒度记录，每次保存只生成一条记录
  */
 async function recordPricingHistory(db, oldCustomer, newStrategies, userId) {
   try {
     const historyCollection = db.collection('pricing_history');
+    const oldStrategies = oldCustomer.businessStrategies;
 
-    const historyRecord = {
+    // 检查策略是否有变化
+    if (JSON.stringify(oldStrategies) === JSON.stringify(newStrategies)) {
+      return; // 无变化，不记录
+    }
+
+    // 记录一条完整的策略变更
+    const record = {
       customerId: oldCustomer._id,
       customerCode: oldCustomer.code,
       customerName: oldCustomer.name,
       changeType: 'strategy_update',
-      beforeValue: oldCustomer.businessStrategies,
-      afterValue: newStrategies,
+      beforeValue: oldStrategies?.talentProcurement || null,
+      afterValue: newStrategies?.talentProcurement || null,
       changedAt: new Date(),
       changedBy: userId || 'system'
     };
 
-    await historyCollection.insertOne(historyRecord);
+    await historyCollection.insertOne(record);
   } catch (error) {
     console.error('Error recording pricing history:', error);
   }

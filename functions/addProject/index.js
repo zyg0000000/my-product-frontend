@@ -1,7 +1,12 @@
 /**
  * @file addProject.js
- * @version 2.1-status-fix
+ * @version 2.2-pricing-snapshot
  * @description 接收前端发送的项目数据，创建一个新的项目文档。
+ *
+ * --- 更新日志 (v2.2) ---
+ * - [v5.0 定价快照] 新增 platformPricingSnapshots 存储项目创建时的有效定价配置
+ * - [v5.0 配置选择] 支持 getEffectiveConfig 自动选择当前有效的定价配置
+ * - [v5.0 校验] framework/hybrid 模式必须有覆盖当天的有效配置
  *
  * --- 更新日志 (v2.1) ---
  * - [兼容性修复] 状态转换只对 dbVersion=v2 (AgentWorks) 生效
@@ -52,6 +57,96 @@ async function connectToDatabase() {
   client = new MongoClient(MONGO_URI);
   await client.connect();
   return client;
+}
+
+/**
+ * [v5.0] 获取当前有效的定价配置
+ *
+ * 优先级：
+ * 1. 日期范围覆盖今天的配置
+ * 2. 长期有效的配置
+ * 3. 无有效配置返回 null
+ *
+ * @param {Array} configs - 配置数组
+ * @param {Date} date - 目标日期（默认今天）
+ * @returns {Object|null} - 有效配置或 null
+ */
+function getEffectiveConfig(configs, date = new Date()) {
+  if (!configs || !Array.isArray(configs) || configs.length === 0) {
+    return null;
+  }
+
+  const dateStr = date.toISOString().split('T')[0];
+
+  // 1. 优先找日期范围匹配的
+  const dateMatched = configs.find(c =>
+    c.validFrom && c.validTo &&
+    c.validFrom <= dateStr &&
+    c.validTo >= dateStr
+  );
+  if (dateMatched) return dateMatched;
+
+  // 2. 兜底：找长期有效的
+  const permanent = configs.find(c => c.isPermanent);
+  if (permanent) return permanent;
+
+  return null;
+}
+
+/**
+ * [v5.0] 计算单个配置的报价系数
+ *
+ * @param {Object} config - 定价配置项
+ * @returns {number} - 报价系数
+ */
+function calculateConfigCoefficient(config) {
+  const baseAmount = 1000;
+  const platformFeeRate = config.platformFeeRate || 0;
+  const platformFeeAmount = baseAmount * platformFeeRate;
+
+  const discountRate = config.discountRate || 1.0;
+
+  // 1. 计算折扣后金额
+  let discountedAmount;
+  if (config.includesPlatformFee) {
+    discountedAmount = (baseAmount + platformFeeAmount) * discountRate;
+  } else {
+    discountedAmount = baseAmount * discountRate + platformFeeAmount;
+  }
+
+  // 2. 计算服务费
+  const serviceFeeRate = config.serviceFeeRate || 0;
+  let serviceFeeAmount;
+  if (config.serviceFeeBase === 'beforeDiscount') {
+    serviceFeeAmount = (baseAmount + platformFeeAmount) * serviceFeeRate;
+  } else {
+    serviceFeeAmount = discountedAmount * serviceFeeRate;
+  }
+
+  // 3. 计算税费
+  let taxAmount = 0;
+  const taxRate = 0.06; // 固定6%
+
+  if (!config.includesTax) {
+    if (config.taxCalculationBase === 'includeServiceFee') {
+      taxAmount = (discountedAmount + serviceFeeAmount) * taxRate;
+    } else {
+      taxAmount = discountedAmount * taxRate;
+    }
+  }
+
+  // 4. 最终金额
+  const finalAmount = discountedAmount + serviceFeeAmount + taxAmount;
+
+  // 5. 计算系数并校验
+  const coefficient = finalAmount / baseAmount;
+
+  if (isNaN(coefficient) || !isFinite(coefficient) || coefficient <= 0 || coefficient >= 10) {
+    console.error('Invalid coefficient calculated:', { config, coefficient });
+    return 1.0;
+  }
+
+  return Number(coefficient.toFixed(4));
 }
 
 exports.handler = async (event, context) => {
@@ -153,6 +248,61 @@ exports.handler = async (event, context) => {
       });
     }
 
+    // [v2.2/v5.0] 处理平台定价配置快照
+    // platformPricingSnapshots: 存储项目创建时的有效定价配置完整快照
+    // 结构: { douyin: { configId, discountRate, serviceFeeRate, ... }, xiaohongshu: { ... } }
+    let platformPricingSnapshots = null;
+    if (inputData.platformPricingSnapshots && typeof inputData.platformPricingSnapshots === 'object') {
+      // 前端已传入快照，直接使用
+      platformPricingSnapshots = inputData.platformPricingSnapshots;
+    } else if (inputData.platformPricingConfigs && typeof inputData.platformPricingConfigs === 'object') {
+      // 从客户的 platformPricingConfigs 中自动提取当前有效配置
+      platformPricingSnapshots = {};
+      const today = new Date();
+
+      Object.entries(inputData.platformPricingConfigs).forEach(([platform, strategy]) => {
+        if (!strategy || !strategy.enabled) return;
+
+        // project 模式不存储定价快照
+        if (strategy.pricingModel === 'project') {
+          platformPricingSnapshots[platform] = {
+            pricingModel: 'project',
+            snapshotTime: today.toISOString()
+          };
+          return;
+        }
+
+        // framework/hybrid 模式：获取当前有效配置
+        const effectiveConfig = getEffectiveConfig(strategy.configs, today);
+        if (effectiveConfig) {
+          platformPricingSnapshots[platform] = {
+            configId: effectiveConfig.id,
+            pricingModel: strategy.pricingModel,
+            discountRate: effectiveConfig.discountRate,
+            serviceFeeRate: effectiveConfig.serviceFeeRate,
+            platformFeeRate: effectiveConfig.platformFeeRate,
+            includesPlatformFee: effectiveConfig.includesPlatformFee,
+            serviceFeeBase: effectiveConfig.serviceFeeBase,
+            includesTax: effectiveConfig.includesTax,
+            taxCalculationBase: effectiveConfig.taxCalculationBase,
+            validFrom: effectiveConfig.validFrom,
+            validTo: effectiveConfig.validTo,
+            isPermanent: effectiveConfig.isPermanent,
+            coefficient: calculateConfigCoefficient(effectiveConfig),
+            snapshotTime: today.toISOString()
+          };
+
+          // 同时更新报价系数（如果未传入）
+          if (!platformQuotationCoefficients) {
+            platformQuotationCoefficients = {};
+          }
+          if (!platformQuotationCoefficients[platform]) {
+            platformQuotationCoefficients[platform] = calculateConfigCoefficient(effectiveConfig);
+          }
+        }
+      });
+    }
+
     // [v1.7] 处理按平台的 KPI 配置
     // platformKPIConfigs: { douyin: { enabled: true, enabledKPIs: ['cpm'], targets: { cpm: 50 } } }
     let platformKPIConfigs = null;
@@ -226,6 +376,8 @@ exports.handler = async (event, context) => {
       platformPricingModes: platformPricingModes,
       // [v1.8] 平台报价系数快照
       platformQuotationCoefficients: platformQuotationCoefficients,
+      // [v2.2/v5.0] 平台定价配置完整快照
+      platformPricingSnapshots: platformPricingSnapshots,
       // [v1.7] 按平台 KPI 配置
       platformKPIConfigs: platformKPIConfigs,
       // [v1.6 deprecated] 旧版 KPI 配置

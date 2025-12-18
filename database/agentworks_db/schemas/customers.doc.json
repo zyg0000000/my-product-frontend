@@ -2,8 +2,8 @@
     "collection": "customers",
     "description": "客户管理集合 - 存储客户基础信息和业务策略配置",
     "database": "agentworks_db",
-    "version": "1.0",
-    "lastUpdated": "2025-12-04",
+    "version": "5.0",
+    "lastUpdated": "2025-12-15",
     "author": "产品团队",
     "fields": {
         "_id": {
@@ -106,8 +106,8 @@
                         },
                         "platformPricingConfigs": {
                             "type": "Object",
-                            "description": "各平台定价配置",
-                            "comment": "按平台独立配置定价策略",
+                            "description": "各平台定价配置（v5.0 多时间段支持）",
+                            "comment": "按平台独立配置定价策略，每个平台支持多个时间段的配置",
                             "properties": {
                                 "douyin": {
                                     "type": "Object",
@@ -122,62 +122,84 @@
                                             "type": "String",
                                             "description": "定价模式",
                                             "enum": ["framework", "project", "hybrid"],
-                                            "comment": "framework=框架合同, project=项目制, hybrid=混合模式"
+                                            "comment": "framework=框架折扣（固定折扣系数）, project=项目比价（单独定价）, hybrid=混合模式（达人级选择）"
                                         },
-                                        "platformFeeRate": {
-                                            "type": "Double",
-                                            "description": "平台费率（小数）",
-                                            "example": 0.05,
-                                            "comment": "5% = 0.05"
-                                        },
-                                        "discountRate": {
-                                            "type": "Double",
-                                            "description": "折扣率（小数）",
-                                            "example": 0.795,
-                                            "comment": "79.5% = 0.795"
-                                        },
-                                        "serviceFeeRate": {
-                                            "type": "Double",
-                                            "description": "服务费率（小数）",
-                                            "example": 0,
-                                            "default": 0
-                                        },
-                                        "validFrom": {
-                                            "type": "String",
-                                            "description": "生效日期",
-                                            "example": "2025-09-01"
-                                        },
-                                        "validTo": {
-                                            "type": "String",
-                                            "description": "失效日期",
-                                            "example": "2026-08-31"
-                                        },
-                                        "isPermanent": {
-                                            "type": "Boolean",
-                                            "description": "是否永久有效",
-                                            "default": false
-                                        },
-                                        "includesPlatformFee": {
-                                            "type": "Boolean",
-                                            "description": "报价是否包含平台费",
-                                            "default": true
-                                        },
-                                        "serviceFeeBase": {
-                                            "type": "String",
-                                            "description": "服务费计算基数",
-                                            "enum": ["beforeDiscount", "afterDiscount"],
-                                            "default": "beforeDiscount"
-                                        },
-                                        "includesTax": {
-                                            "type": "Boolean",
-                                            "description": "报价是否含税",
-                                            "default": true
-                                        },
-                                        "taxCalculationBase": {
-                                            "type": "String",
-                                            "description": "税费计算基数",
-                                            "enum": ["includeServiceFee", "excludeServiceFee"],
-                                            "default": "excludeServiceFee"
+                                        "configs": {
+                                            "type": "Array",
+                                            "description": "定价配置列表（v5.0新增，支持多时间段）",
+                                            "comment": "project模式为null，framework/hybrid模式为配置数组",
+                                            "itemType": "Object",
+                                            "itemSchema": {
+                                                "id": {
+                                                    "type": "String",
+                                                    "description": "配置唯一标识",
+                                                    "example": "cfg_1702656000000_abc123"
+                                                },
+                                                "discountRate": {
+                                                    "type": "Double",
+                                                    "description": "折扣率（小数）",
+                                                    "example": 0.795,
+                                                    "comment": "79.5% = 0.795"
+                                                },
+                                                "serviceFeeRate": {
+                                                    "type": "Double",
+                                                    "description": "服务费率（小数）",
+                                                    "example": 0,
+                                                    "default": 0
+                                                },
+                                                "platformFeeRate": {
+                                                    "type": "Double",
+                                                    "description": "平台费率（小数）",
+                                                    "example": 0.05,
+                                                    "comment": "5% = 0.05"
+                                                },
+                                                "includesPlatformFee": {
+                                                    "type": "Boolean",
+                                                    "description": "折扣是否包含平台费",
+                                                    "default": false
+                                                },
+                                                "serviceFeeBase": {
+                                                    "type": "String",
+                                                    "description": "服务费计算基数",
+                                                    "enum": ["beforeDiscount", "afterDiscount"],
+                                                    "default": "beforeDiscount"
+                                                },
+                                                "includesTax": {
+                                                    "type": "Boolean",
+                                                    "description": "报价是否含税",
+                                                    "default": true
+                                                },
+                                                "taxCalculationBase": {
+                                                    "type": "String",
+                                                    "description": "税费计算基数",
+                                                    "enum": ["includeServiceFee", "excludeServiceFee"],
+                                                    "default": "excludeServiceFee"
+                                                },
+                                                "validFrom": {
+                                                    "type": "String",
+                                                    "description": "生效日期（YYYY-MM-DD）",
+                                                    "example": "2025-01-01"
+                                                },
+                                                "validTo": {
+                                                    "type": "String",
+                                                    "description": "失效日期（YYYY-MM-DD）",
+                                                    "example": "2025-08-31"
+                                                },
+                                                "isPermanent": {
+                                                    "type": "Boolean",
+                                                    "description": "是否长期有效",
+                                                    "default": false,
+                                                    "comment": "长期有效时validFrom和validTo为null"
+                                                },
+                                                "createdAt": {
+                                                    "type": "String",
+                                                    "description": "配置创建时间（ISO格式）"
+                                                },
+                                                "updatedAt": {
+                                                    "type": "String",
+                                                    "description": "配置更新时间（ISO格式）"
+                                                }
+                                            }
                                         }
                                     }
                                 },
@@ -281,14 +303,15 @@
         "【核心设计】存储客户基础信息和业务策略配置",
         "【唯一标识】code 字段为客户唯一编码，格式 CUS + 8位数字",
         "【联系人】支持多联系人，通过 isPrimary 标记主要联系人",
-        "【定价策略】businessStrategies.talentProcurement.platformPricingConfigs 按平台独立配置",
-        "【平台独立】每个平台可以有独立的定价模式、费率和有效期",
-        "【报价系数】quotationCoefficients 用于计算最终客户报价",
+        "【定价策略v5.0】platformPricingConfigs 内各平台使用 { enabled, pricingModel, configs } 结构",
+        "【多时间段】configs 数组支持配置多个时间段的定价策略，时间段不可重叠",
+        "【有效期规则】日期范围优先级 > 长期有效；project 模式不需要 configs",
+        "【报价系数】quotationCoefficients 存储当前有效配置的系数，保存时自动计算",
         "【状态管理】通过 status 字段管理客户生命周期"
     ],
     "examples": [
         {
-            "description": "示例1：实际生产数据",
+            "description": "示例1：v5.0 多时间段定价配置",
             "data": {
                 "code": "CUS20250001",
                 "name": "抖音商城",
@@ -308,16 +331,43 @@
                             "douyin": {
                                 "enabled": true,
                                 "pricingModel": "framework",
-                                "platformFeeRate": 0.05,
-                                "discountRate": 0.795,
-                                "serviceFeeRate": 0,
-                                "validFrom": "2025-09-01",
-                                "validTo": "2026-08-31",
-                                "isPermanent": false,
-                                "includesPlatformFee": true,
-                                "serviceFeeBase": "beforeDiscount",
-                                "includesTax": true,
-                                "taxCalculationBase": "excludeServiceFee"
+                                "configs": [
+                                    {
+                                        "id": "cfg_001",
+                                        "discountRate": 0.795,
+                                        "serviceFeeRate": 0,
+                                        "platformFeeRate": 0.05,
+                                        "includesPlatformFee": false,
+                                        "serviceFeeBase": "beforeDiscount",
+                                        "includesTax": true,
+                                        "taxCalculationBase": "excludeServiceFee",
+                                        "validFrom": "2025-01-01",
+                                        "validTo": "2025-08-31",
+                                        "isPermanent": false,
+                                        "createdAt": "2025-01-01T00:00:00Z",
+                                        "updatedAt": "2025-01-01T00:00:00Z"
+                                    },
+                                    {
+                                        "id": "cfg_002",
+                                        "discountRate": 0.85,
+                                        "serviceFeeRate": 0,
+                                        "platformFeeRate": 0.05,
+                                        "includesPlatformFee": false,
+                                        "serviceFeeBase": "beforeDiscount",
+                                        "includesTax": true,
+                                        "taxCalculationBase": "excludeServiceFee",
+                                        "validFrom": "2025-09-01",
+                                        "validTo": "2026-12-31",
+                                        "isPermanent": false,
+                                        "createdAt": "2025-08-15T00:00:00Z",
+                                        "updatedAt": "2025-08-15T00:00:00Z"
+                                    }
+                                ]
+                            },
+                            "xiaohongshu": {
+                                "enabled": true,
+                                "pricingModel": "project",
+                                "configs": null
                             }
                         },
                         "quotationCoefficients": {
@@ -326,7 +376,7 @@
                     }
                 },
                 "createdAt": "2025-11-27T05:44:02.187Z",
-                "updatedAt": "2025-12-02T05:13:14.904Z",
+                "updatedAt": "2025-12-15T05:13:14.904Z",
                 "createdBy": "system",
                 "updatedBy": "system"
             }

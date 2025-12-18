@@ -406,6 +406,10 @@ export const antTheme: ThemeConfig = {
       trackHeight: 22,
       trackMinWidth: 44,
       handleSize: 18,
+      // 深色模式支持：使用 CSS Variables
+      colorPrimaryHover: designTokens.primary[500],
+      colorTextQuaternary: 'var(--color-switch-off)', // 关闭状态背景色
+      colorTextTertiary: 'var(--color-switch-off-hover)', // 关闭状态悬停背景色
     },
 
     // 日期选择器

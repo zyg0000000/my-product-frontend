@@ -1,5 +1,9 @@
 /**
- * 项目表单弹窗 (v4.5)
+ * 项目表单弹窗 (v5.1)
+ *
+ * v5.1 改造：
+ * - 支持多时间段定价配置，使用 getEffectiveConfig 获取当前有效配置
+ * - 报价系数、折扣率等从当前有效配置中读取
  *
  * v4.5 改造：
  * - 移除状态选择器（新建时默认状态）
@@ -53,6 +57,11 @@ import {
 import { projectApi } from '../../../services/projectApi';
 import { customerApi } from '../../../services/customerApi';
 import { logger } from '../../../utils/logger';
+import {
+  getEffectiveConfig,
+  calculateCoefficientFromConfig,
+  type PricingConfigItem,
+} from '../../Customers/shared/talentProcurement';
 
 /**
  * 客户选项（包含业务策略）
@@ -283,9 +292,9 @@ export function ProjectFormModal({
   }, [selectedCustomer, selectedBusinessType]);
 
   /**
-   * 获取平台的定价配置
+   * v5.1: 获取平台的定价策略（包含 pricingModel 和 configs 数组）
    */
-  const getPlatformPricingConfig = useCallback(
+  const getPlatformPricingStrategy = useCallback(
     (platform: Platform) => {
       if (
         !selectedCustomer?.businessStrategies?.talentProcurement ||
@@ -295,50 +304,97 @@ export function ProjectFormModal({
       }
 
       const strategy = selectedCustomer.businessStrategies.talentProcurement;
-      const platformConfig =
+      const platformStrategy =
         strategy.platformPricingConfigs?.[platform] ||
         strategy.platformFees?.[platform];
 
-      return platformConfig?.enabled ? platformConfig : null;
+      return platformStrategy?.enabled ? platformStrategy : null;
     },
     [selectedCustomer, selectedBusinessType]
   );
 
   /**
-   * 检查折扣率是否只读（framework 模式）
+   * v5.1: 获取平台的当前有效定价配置
+   * 从 configs 数组中根据当前日期获取有效的 PricingConfigItem
+   */
+  const getPlatformEffectiveConfig = useCallback(
+    (platform: Platform): PricingConfigItem | null => {
+      const platformStrategy = getPlatformPricingStrategy(platform);
+      if (!platformStrategy) return null;
+
+      // 项目比价模式没有预设配置
+      if (platformStrategy.pricingModel === 'project') return null;
+
+      // v5.1: 新结构使用 configs 数组
+      if (platformStrategy.configs && Array.isArray(platformStrategy.configs)) {
+        return getEffectiveConfig(platformStrategy.configs);
+      }
+
+      // 兼容旧结构：单配置转换为 PricingConfigItem
+      if (platformStrategy.discountRate !== undefined) {
+        return {
+          id: `legacy_${platform}`,
+          discountRate: platformStrategy.discountRate,
+          serviceFeeRate: platformStrategy.serviceFeeRate || 0,
+          platformFeeRate: platformStrategy.platformFeeRate || 0,
+          includesPlatformFee: platformStrategy.includesPlatformFee || false,
+          serviceFeeBase: platformStrategy.serviceFeeBase || 'beforeDiscount',
+          includesTax: platformStrategy.includesTax ?? true,
+          taxCalculationBase:
+            platformStrategy.taxCalculationBase || 'excludeServiceFee',
+          validFrom: platformStrategy.validFrom || null,
+          validTo: platformStrategy.validTo || null,
+          isPermanent: platformStrategy.isPermanent || false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+      }
+
+      return null;
+    },
+    [getPlatformPricingStrategy]
+  );
+
+  /**
+   * v5.1: 检查折扣率是否只读（framework 模式）
    */
   const isDiscountReadOnly = useCallback(
     (platform: Platform): boolean => {
-      const config = getPlatformPricingConfig(platform);
-      return config?.pricingModel === 'framework';
+      const strategy = getPlatformPricingStrategy(platform);
+      return strategy?.pricingModel === 'framework';
     },
-    [getPlatformPricingConfig]
+    [getPlatformPricingStrategy]
   );
 
   /**
-   * 获取平台的报价系数（只有 framework/hybrid 模式才有）
+   * v5.1: 获取平台的报价系数（只有 framework/hybrid 模式才有）
+   * 优先从当前有效配置计算，如无则从客户 quotationCoefficients 读取
    */
   const getPlatformQuotationCoefficient = useCallback(
     (platform: Platform): number | null => {
-      if (
-        !selectedCustomer?.businessStrategies?.talentProcurement ||
-        selectedBusinessType !== 'talentProcurement'
-      ) {
-        return null;
-      }
-
-      const strategy = selectedCustomer.businessStrategies.talentProcurement;
-      const pricingConfig = strategy.platformPricingConfigs?.[platform];
+      const platformStrategy = getPlatformPricingStrategy(platform);
+      if (!platformStrategy) return null;
 
       // 只有 framework 或 hybrid 模式才有报价系数
-      if (!pricingConfig?.enabled || pricingConfig.pricingModel === 'project') {
-        return null;
+      if (platformStrategy.pricingModel === 'project') return null;
+
+      // v5.1: 优先从当前有效配置实时计算
+      const effectiveConfig = getPlatformEffectiveConfig(platform);
+      if (effectiveConfig) {
+        // calculateCoefficientFromConfig 返回 CoefficientResult 对象，需要取 .coefficient
+        return calculateCoefficientFromConfig(effectiveConfig).coefficient;
       }
 
-      // 从 quotationCoefficients 中读取
-      return strategy.quotationCoefficients?.[platform] ?? null;
+      // 后备：从客户的 quotationCoefficients 读取
+      const strategy =
+        selectedCustomer?.businessStrategies?.talentProcurement;
+      return strategy?.quotationCoefficients?.[platform] ?? null;
     },
-    [selectedCustomer, selectedBusinessType]
+    [
+      getPlatformPricingStrategy,
+      getPlatformEffectiveConfig,
+      selectedCustomer,
+    ]
   );
 
   /**
@@ -481,16 +537,18 @@ export function ProjectFormModal({
   };
 
   /**
-   * 更新按平台折扣率和定价模式
+   * v5.1: 更新按平台折扣率和定价模式
+   * 从当前有效配置中读取折扣率
    */
   const updatePlatformDiscounts = (platforms: Platform[]) => {
     if (selectedBusinessType !== 'talentProcurement') return;
 
     const discounts: Record<string, number | undefined> = {};
     platforms.forEach(platform => {
-      const config = getPlatformPricingConfig(platform);
-      if (config?.discountRate) {
-        discounts[platform] = config.discountRate * 100;
+      // v5.1: 从当前有效配置中读取折扣率
+      const effectiveConfig = getPlatformEffectiveConfig(platform);
+      if (effectiveConfig?.discountRate) {
+        discounts[platform] = effectiveConfig.discountRate * 100;
       }
     });
 
@@ -625,10 +683,10 @@ export function ProjectFormModal({
         Object.entries(values.platformDiscounts).forEach(([platform, rate]) => {
           if (rate !== undefined && rate !== null) {
             platformDiscounts![platform] = (rate as number) / 100;
-            // 存储定价模式快照
-            const config = getPlatformPricingConfig(platform as Platform);
-            if (config) {
-              platformPricingModes![platform] = config.pricingModel;
+            // v5.1: 存储定价模式快照
+            const strategy = getPlatformPricingStrategy(platform as Platform);
+            if (strategy) {
+              platformPricingModes![platform] = strategy.pricingModel;
             }
             // 存储报价系数快照（只有 framework/hybrid 模式才有）
             const coefficient = getPlatformQuotationCoefficient(
@@ -758,11 +816,11 @@ export function ProjectFormModal({
   };
 
   /**
-   * 获取定价模式标签
+   * v5.1: 获取定价模式标签
    */
   const getPricingModeTag = (platform: Platform) => {
-    const config = getPlatformPricingConfig(platform);
-    if (!config) return null;
+    const strategy = getPlatformPricingStrategy(platform);
+    if (!strategy) return null;
 
     const modeConfig: Record<PricingModel, { color: string; text: string }> = {
       framework: { color: 'blue', text: '框架' },
@@ -770,7 +828,7 @@ export function ProjectFormModal({
       hybrid: { color: 'purple', text: '混合' },
     };
 
-    const mode = modeConfig[config.pricingModel || 'framework'];
+    const mode = modeConfig[strategy.pricingModel || 'framework'];
     return (
       <Tag color={mode.color} className="ml-2">
         {mode.text}

@@ -1,37 +1,33 @@
 /**
- * 达人采买策略表单组件 (v5.0)
+ * 达人采买策略表单组件 (v5.1)
  * 共用组件，被 TalentProcurementCard 和 PricingStrategy 页面使用
  *
  * 功能：
  * - 平台选择和启用开关
  * - 定价模式选择（框架折扣/项目比价/混合模式）
- * - 配置参数编辑（折扣率、服务费率、有效期等）
+ * - 多时间段配置列表编辑
  * - 报价系数实时计算
+ *
+ * v5.1 变更：
+ * - 配置参数编辑改用 PricingConfigList 组件，支持多时间段
+ * - 移除单配置参数编辑界面
  */
 
 import { useMemo } from 'react';
-import {
-  Radio,
-  InputNumber,
-  DatePicker,
-  Switch,
-  Select,
-  Tag,
-  Checkbox,
-  Popover,
-} from 'antd';
-import type { CheckboxChangeEvent } from 'antd/es/checkbox';
+import { Radio, Switch, Select, Tag, Popover } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
 import type { PlatformConfig as ApiPlatformConfig } from '../../../api/platformConfig';
 import {
-  getDefaultPlatformConfig,
-  calculateCoefficient,
+  getDefaultPlatformStrategy,
+  calculateCoefficientFromConfig,
+  getEffectiveConfig,
   getPricingModeInfo,
-  type PlatformConfig,
+  type PlatformPricingStrategy,
   type PlatformPricingConfigs,
   type PricingModel,
+  type PricingConfigItem,
 } from './talentProcurement';
+import { PricingConfigList } from './PricingConfigList';
 
 interface TalentProcurementFormProps {
   /** 启用价格管理的平台列表 */
@@ -67,30 +63,62 @@ export function TalentProcurementForm({
   // 当前选中平台的配置
   const currentPlatformConfigData = getPlatformConfigByKey(selectedPlatform);
   const currentPlatformFeeRate = currentPlatformConfigData?.business?.fee || 0;
-  const currentConfig = useMemo(() => {
+
+  // v5.1: 获取当前平台策略（使用新的 PlatformPricingStrategy 结构）
+  const currentStrategy = useMemo((): PlatformPricingStrategy => {
     return (
       platformPricingConfigs[selectedPlatform] ||
-      getDefaultPlatformConfig(currentPlatformFeeRate)
+      getDefaultPlatformStrategy(currentPlatformFeeRate)
     );
   }, [platformPricingConfigs, selectedPlatform, currentPlatformFeeRate]);
 
-  // 更新当前平台配置
-  const updateCurrentPlatformConfig = (
-    field: keyof PlatformConfig,
-    value: PlatformConfig[keyof PlatformConfig]
+  // v5.1: 计算当前有效配置的报价系数
+  const currentQuotationCoefficient = useMemo(() => {
+    if (!currentStrategy.enabled || currentStrategy.pricingModel === 'project') {
+      return null;
+    }
+    const effectiveConfig = getEffectiveConfig(currentStrategy.configs || []);
+    if (!effectiveConfig) return null;
+    // calculateCoefficientFromConfig 返回 CoefficientResult 对象，需要取 .coefficient
+    const result = calculateCoefficientFromConfig(effectiveConfig);
+    return result.coefficient;
+  }, [currentStrategy]);
+
+  // v5.1: 更新当前平台策略的字段
+  const updateCurrentPlatformStrategy = (
+    field: keyof PlatformPricingStrategy,
+    value: PlatformPricingStrategy[keyof PlatformPricingStrategy]
   ) => {
     const platformData = enabledPlatforms.find(
       p => p.platform === selectedPlatform
     );
     const feeRate = platformData?.business?.fee || 0;
-    const existingConfig = platformPricingConfigs[selectedPlatform];
-    const baseConfig = existingConfig || getDefaultPlatformConfig(feeRate);
+    const existingStrategy = platformPricingConfigs[selectedPlatform];
+    const baseStrategy = existingStrategy || getDefaultPlatformStrategy(feeRate);
 
     onConfigChange({
       ...platformPricingConfigs,
       [selectedPlatform]: {
-        ...baseConfig,
+        ...baseStrategy,
         [field]: value,
+      },
+    });
+  };
+
+  // v5.1: 处理配置列表变化
+  const handleConfigsChange = (newConfigs: PricingConfigItem[]) => {
+    const platformData = enabledPlatforms.find(
+      p => p.platform === selectedPlatform
+    );
+    const feeRate = platformData?.business?.fee || 0;
+    const existingStrategy = platformPricingConfigs[selectedPlatform];
+    const baseStrategy = existingStrategy || getDefaultPlatformStrategy(feeRate);
+
+    onConfigChange({
+      ...platformPricingConfigs,
+      [selectedPlatform]: {
+        ...baseStrategy,
+        configs: newConfigs,
       },
     });
   };
@@ -103,55 +131,10 @@ export function TalentProcurementForm({
       const platformFeeRate = platformConfig?.business?.fee || 0;
       onConfigChange({
         ...platformPricingConfigs,
-        [value]: getDefaultPlatformConfig(platformFeeRate),
+        [value]: getDefaultPlatformStrategy(platformFeeRate),
       });
     }
     onPlatformChange(value);
-  };
-
-  // 处理有效期变化
-  const handleValidityChange = (
-    dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null
-  ) => {
-    if (dates && dates[0] && dates[1]) {
-      onConfigChange({
-        ...platformPricingConfigs,
-        [selectedPlatform]: {
-          ...platformPricingConfigs[selectedPlatform],
-          validFrom: dates[0].format('YYYY-MM-DD'),
-          validTo: dates[1].format('YYYY-MM-DD'),
-          isPermanent: false, // 选择日期时取消长期有效
-        },
-      });
-    } else {
-      onConfigChange({
-        ...platformPricingConfigs,
-        [selectedPlatform]: {
-          ...platformPricingConfigs[selectedPlatform],
-          validFrom: null,
-          validTo: null,
-        },
-      });
-    }
-  };
-
-  // 处理长期有效变化
-  const handlePermanentChange = (e: CheckboxChangeEvent) => {
-    const isPermanent = e.target.checked;
-    onConfigChange({
-      ...platformPricingConfigs,
-      [selectedPlatform]: {
-        ...platformPricingConfigs[selectedPlatform],
-        isPermanent,
-        // 勾选长期有效时清空日期
-        validFrom: isPermanent
-          ? null
-          : platformPricingConfigs[selectedPlatform]?.validFrom,
-        validTo: isPermanent
-          ? null
-          : platformPricingConfigs[selectedPlatform]?.validTo,
-      },
-    });
   };
 
   return (
@@ -167,9 +150,9 @@ export function TalentProcurementForm({
             <span className="text-sm text-content-secondary">|</span>
             <span className="text-sm text-content-secondary">启用</span>
             <Switch
-              checked={currentConfig.enabled}
+              checked={currentStrategy.enabled}
               onChange={checked =>
-                updateCurrentPlatformConfig('enabled', checked)
+                updateCurrentPlatformStrategy('enabled', checked)
               }
             />
           </>
@@ -189,9 +172,9 @@ export function TalentProcurementForm({
             <span className="text-sm text-content-secondary">|</span>
             <span className="text-sm text-content-secondary">启用</span>
             <Switch
-              checked={currentConfig.enabled}
+              checked={currentStrategy.enabled}
               onChange={checked =>
-                updateCurrentPlatformConfig('enabled', checked)
+                updateCurrentPlatformStrategy('enabled', checked)
               }
             />
           </>
@@ -204,14 +187,14 @@ export function TalentProcurementForm({
           定价模式 ({getPlatformName(selectedPlatform)})
         </div>
         <Radio.Group
-          value={currentConfig.pricingModel || 'framework'}
+          value={currentStrategy.pricingModel || 'framework'}
           onChange={e =>
-            updateCurrentPlatformConfig(
+            updateCurrentPlatformStrategy(
               'pricingModel',
               e.target.value as PricingModel
             )
           }
-          disabled={!currentConfig.enabled}
+          disabled={!currentStrategy.enabled}
         >
           <Radio value="framework">框架折扣</Radio>
           <Radio value="project">项目比价</Radio>
@@ -219,14 +202,14 @@ export function TalentProcurementForm({
         </Radio.Group>
         <div className="mt-2 text-sm text-content-secondary">
           {
-            getPricingModeInfo(currentConfig.pricingModel || 'framework')
+            getPricingModeInfo(currentStrategy.pricingModel || 'framework')
               .description
           }
         </div>
       </div>
 
       {/* 项目比价模式提示 */}
-      {currentConfig.pricingModel === 'project' && currentConfig.enabled && (
+      {currentStrategy.pricingModel === 'project' && currentStrategy.enabled && (
         <div className="text-center py-6 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg">
           <div className="text-primary-900 dark:text-primary-100 font-semibold mb-1">
             项目比价模式
@@ -237,195 +220,52 @@ export function TalentProcurementForm({
         </div>
       )}
 
-      {/* 框架折扣/混合模式配置 */}
-      {currentConfig.pricingModel !== 'project' && currentConfig.enabled && (
+      {/* v5.1: 框架折扣/混合模式配置 - 使用 PricingConfigList 组件 */}
+      {currentStrategy.pricingModel !== 'project' && currentStrategy.enabled && (
         <div className="space-y-4 p-4 border border-stroke rounded-lg">
-          {/* 第一行：折扣率、服务费率、有效期、长期有效 */}
-          <div className="grid grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-content mb-1">
-                折扣率 (%)
-              </label>
-              <InputNumber
-                min={0}
-                max={100}
-                precision={2}
-                value={Number(
-                  ((currentConfig.discountRate || 0) * 100).toFixed(2)
-                )}
-                onChange={val =>
-                  updateCurrentPlatformConfig('discountRate', (val || 0) / 100)
+          {/* 报价系数显示 */}
+          <div className="flex items-center justify-between pb-3 border-b border-stroke">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-content">
+                当前有效报价系数
+              </span>
+              <Popover
+                content={
+                  <div className="text-xs text-content-secondary max-w-xs">
+                    报价系数 = 最终对客报价 ÷ 达人刊例价
+                    <br />
+                    用于计算项目中达人的对客报价
+                    <br />
+                    <br />
+                    系数根据当前有效的配置项自动计算
+                  </div>
                 }
-                style={{ width: '100%' }}
-              />
+                placement="top"
+              >
+                <QuestionCircleOutlined className="text-content-muted cursor-help" />
+              </Popover>
             </div>
             <div>
-              <label className="block text-sm font-medium text-content mb-1">
-                服务费率 (%)
-              </label>
-              <InputNumber
-                min={0}
-                max={100}
-                precision={2}
-                value={Number(
-                  ((currentConfig.serviceFeeRate || 0) * 100).toFixed(2)
-                )}
-                onChange={val =>
-                  updateCurrentPlatformConfig(
-                    'serviceFeeRate',
-                    (val || 0) / 100
-                  )
-                }
-                style={{ width: '100%' }}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-content mb-1">
-                有效期 <span className="text-danger-500">*</span>
-              </label>
-              <DatePicker.RangePicker
-                format="YYYY-MM-DD"
-                value={
-                  currentConfig.validFrom && currentConfig.validTo
-                    ? [
-                        dayjs(currentConfig.validFrom),
-                        dayjs(currentConfig.validTo),
-                      ]
-                    : null
-                }
-                onChange={handleValidityChange}
-                style={{ width: '100%' }}
-                placeholder={['开始', '结束']}
-                disabled={currentConfig.isPermanent}
-                allowEmpty={[true, true]}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-content mb-1">
-                长期有效
-              </label>
-              <div className="h-8 flex items-center">
-                <Checkbox
-                  checked={currentConfig.isPermanent}
-                  onChange={handlePermanentChange}
-                  className="whitespace-nowrap"
-                >
-                  长期有效
-                </Checkbox>
-              </div>
+              {currentQuotationCoefficient !== null ? (
+                <Tag color="blue" className="text-base font-semibold">
+                  {currentQuotationCoefficient.toFixed(4)}
+                </Tag>
+              ) : (
+                <span className="text-content-muted text-sm">
+                  暂无有效配置
+                </span>
+              )}
             </div>
           </div>
 
-          {/* 第二行：平台费 + 配置选项 + 报价系数 */}
-          <div className="grid grid-cols-6 gap-4 pt-3 border-t border-stroke">
-            <div>
-              <label className="block text-sm font-medium text-content mb-1">
-                平台费
-              </label>
-              <div className="h-8 flex items-center">
-                <Tag color="blue">
-                  {(
-                    (currentPlatformConfigData?.business?.fee || 0) * 100
-                  ).toFixed(0)}
-                  % (固定)
-                </Tag>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-content mb-1">
-                折扣包含平台费
-              </label>
-              <Radio.Group
-                value={currentConfig.includesPlatformFee}
-                onChange={e =>
-                  updateCurrentPlatformConfig(
-                    'includesPlatformFee',
-                    e.target.value
-                  )
-                }
-              >
-                <Radio value={false}>不含</Radio>
-                <Radio value={true}>含</Radio>
-              </Radio.Group>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-content mb-1">
-                服务费计算基准
-              </label>
-              <Radio.Group
-                value={currentConfig.serviceFeeBase}
-                onChange={e =>
-                  updateCurrentPlatformConfig('serviceFeeBase', e.target.value)
-                }
-              >
-                <Radio value="beforeDiscount">折扣前</Radio>
-                <Radio value="afterDiscount">折扣后</Radio>
-              </Radio.Group>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-content mb-1">
-                报价税费设置
-              </label>
-              <Radio.Group
-                value={currentConfig.includesTax}
-                onChange={e =>
-                  updateCurrentPlatformConfig('includesTax', e.target.value)
-                }
-              >
-                <Radio value={true}>含税</Radio>
-                <Radio value={false}>不含</Radio>
-              </Radio.Group>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-content mb-1">
-                税费计算基准
-              </label>
-              <Radio.Group
-                value={currentConfig.taxCalculationBase}
-                onChange={e =>
-                  updateCurrentPlatformConfig(
-                    'taxCalculationBase',
-                    e.target.value
-                  )
-                }
-                disabled={currentConfig.includesTax}
-              >
-                <Radio value="excludeServiceFee">不含服务费</Radio>
-                <Radio value="includeServiceFee">含服务费</Radio>
-              </Radio.Group>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-content mb-1">
-                报价系数
-                <Popover
-                  content={
-                    <div className="text-xs text-content-secondary max-w-xs">
-                      报价系数 = 最终对客报价 ÷ 达人刊例价
-                      <br />
-                      用于计算项目中达人的对客报价
-                    </div>
-                  }
-                  placement="top"
-                >
-                  <QuestionCircleOutlined className="ml-1 text-content-muted cursor-help" />
-                </Popover>
-              </label>
-              <div className="h-8 flex items-center">
-                {(() => {
-                  const config = platformPricingConfigs[selectedPlatform];
-                  if (config?.enabled && config.pricingModel !== 'project') {
-                    const result = calculateCoefficient(config);
-                    return (
-                      <Tag color="blue" className="text-base font-semibold">
-                        {result.coefficient.toFixed(4)}
-                      </Tag>
-                    );
-                  }
-                  return <span className="text-content-muted">-</span>;
-                })()}
-              </div>
-            </div>
-          </div>
+          {/* 多时间段配置列表 */}
+          <PricingConfigList
+            configs={currentStrategy.configs || []}
+            onChange={handleConfigsChange}
+            platformName={getPlatformName(selectedPlatform)}
+            platformConfig={currentPlatformConfigData}
+            readonly={false}
+          />
         </div>
       )}
     </div>

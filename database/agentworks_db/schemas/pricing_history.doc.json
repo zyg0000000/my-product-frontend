@@ -2,8 +2,8 @@
     "collection": "pricing_history",
     "description": "价格策略变更历史集合 - 记录客户价格策略的所有变更",
     "database": "agentworks_db",
-    "version": "1.0",
-    "lastUpdated": "2025-12-04",
+    "version": "5.0",
+    "lastUpdated": "2025-12-15",
     "author": "产品团队",
     "fields": {
         "_id": {
@@ -36,8 +36,15 @@
             "type": "String",
             "description": "变更类型",
             "required": true,
-            "enum": ["strategy_update", "discount_change", "fee_change", "platform_enable", "platform_disable"],
-            "comment": "strategy_update=策略更新, discount_change=折扣变更, fee_change=费率变更, platform_enable=启用平台, platform_disable=禁用平台"
+            "enum": ["strategy_update", "config_create", "config_update", "config_delete", "model_change", "platform_enable", "platform_disable"],
+            "comment": "strategy_update=通用策略更新, config_create=新增配置(v5.0), config_update=更新配置(v5.0), config_delete=删除配置(v5.0), model_change=切换定价模式(v5.0), platform_enable=启用平台, platform_disable=禁用平台"
+        },
+        "platform": {
+            "type": "String",
+            "description": "平台标识（v5.0新增）",
+            "required": false,
+            "example": "douyin",
+            "comment": "细粒度变更时记录具体平台"
         },
         "beforeValue": {
             "type": "Object",

@@ -132,6 +132,10 @@
   /* 填充 */
   --color-fill: var(--aw-gray-100);
   --color-fill-secondary: var(--aw-gray-50);
+
+  /* 开关 */
+  --color-switch-off: rgba(0, 0, 0, 0.25);
+  --color-switch-off-hover: rgba(0, 0, 0, 0.45);
 }
 
 /* ========================================
@@ -223,4 +227,8 @@
 
   --color-fill: var(--aw-gray-200);
   --color-fill-secondary: var(--aw-gray-100);
+
+  /* 开关 - 深色模式 */
+  --color-switch-off: rgba(255, 255, 255, 0.25);
+  --color-switch-off-hover: rgba(255, 255, 255, 0.35);
 }

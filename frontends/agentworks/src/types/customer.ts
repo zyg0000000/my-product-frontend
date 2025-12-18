@@ -1,8 +1,21 @@
 /**
  * 客户管理相关类型定义
+ *
+ * v5.0: 多时间段定价策略支持
+ * - PricingConfigItem: 单个时间段的配置项
+ * - PlatformPricingStrategy: 平台定价策略（含 configs 数组）
  */
 
 import type { CustomerProjectConfig } from './projectConfig';
+import type {
+  PricingConfigItem,
+  PlatformPricingStrategy,
+  PlatformPricingConfigs,
+  PricingModel,
+} from '../pages/Customers/shared/talentProcurement';
+
+// 重新导出供其他模块使用
+export type { PricingConfigItem, PlatformPricingStrategy, PlatformPricingConfigs, PricingModel };
 
 // 客户级别
 export type CustomerLevel = 'VIP' | 'large' | 'medium' | 'small';
@@ -19,37 +32,40 @@ export interface Contact {
   isPrimary?: boolean;
 }
 
-// 定价模式
-export type PricingModel = 'framework' | 'project' | 'hybrid';
-
-// 折扣配置
+/**
+ * @deprecated v5.0 废弃，使用 PricingConfigItem 代替
+ */
 export interface DiscountConfig {
   rate: number;
   includesPlatformFee: boolean;
-  validFrom?: string; // 有效期开始日期
-  validTo?: string; // 有效期结束日期
+  validFrom?: string;
+  validTo?: string;
 }
 
-// 服务费配置
+/**
+ * @deprecated v5.0 废弃
+ */
 export interface ServiceFeeConfig {
   rate: number;
   calculationBase: 'beforeDiscount' | 'afterDiscount';
 }
 
-// 平台费配置（v4.0 每个平台独立定价模式）
+/**
+ * @deprecated v5.0 废弃，使用 PlatformPricingStrategy 代替
+ */
 export interface PlatformFeeConfig {
   enabled: boolean;
-  pricingModel: PricingModel; // v4.0: 平台级定价模式（每个平台独立）
-  platformFeeRate?: number; // 平台费率（如抖音5%）
-  discountRate?: number; // 平台级折扣率（如抖音79.5%，小红书90%）- framework/hybrid 模式必填
-  serviceFeeRate?: number; // 平台级服务费率 - framework/hybrid 模式可选
-  validFrom?: string | null; // 平台级有效期开始 - framework/hybrid 模式可选
-  validTo?: string | null; // 平台级有效期结束 - framework/hybrid 模式可选
-  isPermanent?: boolean; // v4.3: 长期有效标记（与日期互斥）
-  includesPlatformFee?: boolean; // 折扣是否包含平台费 - framework/hybrid 模式可选
-  serviceFeeBase?: 'beforeDiscount' | 'afterDiscount'; // 服务费计算基准 - framework/hybrid 模式可选
-  includesTax?: boolean; // 是否含税报价 - framework/hybrid 模式可选
-  taxCalculationBase?: 'excludeServiceFee' | 'includeServiceFee'; // 税费计算基准 - framework/hybrid 模式可选
+  pricingModel: PricingModel;
+  platformFeeRate?: number;
+  discountRate?: number;
+  serviceFeeRate?: number;
+  validFrom?: string | null;
+  validTo?: string | null;
+  isPermanent?: boolean;
+  includesPlatformFee?: boolean;
+  serviceFeeBase?: 'beforeDiscount' | 'afterDiscount';
+  includesTax?: boolean;
+  taxCalculationBase?: 'excludeServiceFee' | 'includeServiceFee';
 }
 
 /**
@@ -88,44 +104,55 @@ export interface PlatformKPIConfigs {
   kuaishou?: PlatformKPIConfig;
 }
 
-// 达人采买业务策略（v4.2: platformFees 改名为 platformPricingConfigs）
+/**
+ * 达人采买业务策略
+ * v5.0: 支持多时间段定价配置
+ */
 export interface TalentProcurementStrategy {
   enabled: boolean;
-  // v4.0: pricingModel 已移到 PlatformFeeConfig 中，每个平台独立设置
-  // 保留 discount 和 serviceFee 用于向后兼容，但建议使用平台级配置
-  discount?: DiscountConfig;
-  serviceFee?: ServiceFeeConfig;
-  // v4.2: 重命名 platformFees -> platformPricingConfigs（平台定价配置）
-  platformPricingConfigs?: {
-    [key: string]: PlatformFeeConfig | undefined;
-    douyin?: PlatformFeeConfig;
-    xiaohongshu?: PlatformFeeConfig;
-    kuaishou?: PlatformFeeConfig;
-  };
-  /** @deprecated 已弃用，请使用 platformPricingConfigs */
-  platformFees?: {
-    [key: string]: PlatformFeeConfig | undefined;
-    douyin?: PlatformFeeConfig;
-    xiaohongshu?: PlatformFeeConfig;
-    kuaishou?: PlatformFeeConfig;
-  };
-  // 报价系数：只有 framework/hybrid 模式的平台才有
+
+  /**
+   * v5.0: 平台定价配置（新结构，支持多时间段）
+   * key 为平台标识，value 包含 enabled、pricingModel 和 configs 数组
+   */
+  platformPricingConfigs?: PlatformPricingConfigs;
+
+  /**
+   * 报价系数：保存时自动计算当前有效配置的系数
+   * 只有 framework/hybrid 模式的平台才有
+   */
   quotationCoefficients?: {
     [key: string]: number | undefined;
     douyin?: number;
     xiaohongshu?: number;
     kuaishou?: number;
   };
-  // v4.4: 二级业务标签（按平台，客户自定义）
+
+  /** v4.4: 二级业务标签（按平台，客户自定义） */
   platformBusinessTags?: {
     [key: string]: string[] | undefined;
     douyin?: string[];
     xiaohongshu?: string[];
     kuaishou?: string[];
   };
-  // v4.5: 按平台的 KPI 配置（推荐）
+
+  /** v4.5: 按平台的 KPI 配置 */
   platformKPIConfigs?: PlatformKPIConfigs;
-  /** @deprecated 已弃用，请使用 platformKPIConfigs */
+
+  // ===== 以下为废弃字段，保留用于向后兼容 =====
+
+  /** @deprecated v5.0 废弃 */
+  discount?: DiscountConfig;
+  /** @deprecated v5.0 废弃 */
+  serviceFee?: ServiceFeeConfig;
+  /** @deprecated v5.0 废弃，请使用 platformPricingConfigs */
+  platformFees?: {
+    [key: string]: PlatformFeeConfig | undefined;
+    douyin?: PlatformFeeConfig;
+    xiaohongshu?: PlatformFeeConfig;
+    kuaishou?: PlatformFeeConfig;
+  };
+  /** @deprecated v5.0 废弃，请使用 platformKPIConfigs */
   kpiConfig?: CustomerKPIConfig;
 }
 

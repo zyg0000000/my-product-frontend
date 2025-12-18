@@ -36,6 +36,7 @@ import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
 import { PageTransition } from '../../../components/PageTransition';
 import { logger } from '../../../utils/logger';
+import { getEffectiveConfig } from '../shared/talentProcurement';
 
 export default function CustomerList() {
   const { message } = App.useApp();
@@ -195,14 +196,18 @@ export default function CustomerList() {
       }));
 
     // 生成报价系数计算说明（完整计算步骤）
+    // v5.1: 支持新的 PlatformPricingStrategy 结构，从 configs 数组获取有效配置
     const generateTooltipContent = (platform: any) => {
       const { config, quotationCoefficient } = platform;
       const baseAmount = 1000; // 使用 1000 作为基数（与后端逻辑一致）
-      const discountRate = config.discountRate || 0;
-      const platformFeeRate = config.platformFeeRate || 0;
-      const serviceFeeRate = config.serviceFeeRate || 0;
-      const includesPlatformFee = config.includesPlatformFee;
-      const includesTax = config.includesTax;
+
+      // v5.1: 从 configs 数组获取有效配置
+      const effectiveConfig = getEffectiveConfig(config.configs);
+      const discountRate = effectiveConfig?.discountRate ?? config.discountRate ?? 0;
+      const platformFeeRate = effectiveConfig?.platformFeeRate ?? config.platformFeeRate ?? 0;
+      const serviceFeeRate = effectiveConfig?.serviceFeeRate ?? config.serviceFeeRate ?? 0;
+      const includesPlatformFee = effectiveConfig?.includesPlatformFee ?? config.includesPlatformFee;
+      const includesTax = effectiveConfig?.includesTax ?? config.includesTax;
       const taxRate = 0.06;
 
       // 步骤 1: 计算平台费金额
@@ -219,9 +224,11 @@ export default function CustomerList() {
       }
 
       // 步骤 3: 计算服务费金额
+      // v5.1: 从有效配置获取 serviceFeeBase
+      const serviceFeeBase = effectiveConfig?.serviceFeeBase ?? config.serviceFeeBase ?? 'afterDiscount';
       let serviceFeeAmount = 0;
       if (serviceFeeRate > 0) {
-        if (config.serviceFeeBase === 'beforeDiscount') {
+        if (serviceFeeBase === 'beforeDiscount') {
           serviceFeeAmount = (baseAmount + platformFeeAmount) * serviceFeeRate;
         } else {
           serviceFeeAmount = discountedAmount * serviceFeeRate;
@@ -229,9 +236,11 @@ export default function CustomerList() {
       }
 
       // 步骤 4: 计算税费
+      // v5.1: 从有效配置获取 taxCalculationBase
+      const taxCalculationBase = effectiveConfig?.taxCalculationBase ?? config.taxCalculationBase ?? 'excludeServiceFee';
       let taxAmount = 0;
       if (!includesTax) {
-        if (config.taxCalculationBase === 'includeServiceFee') {
+        if (taxCalculationBase === 'includeServiceFee') {
           taxAmount = (discountedAmount + serviceFeeAmount) * taxRate;
         } else {
           taxAmount = discountedAmount * taxRate;
@@ -389,10 +398,10 @@ export default function CustomerList() {
             <div className="flex justify-between gap-4">
               <span className="whitespace-nowrap">有效期:</span>
               <span className="whitespace-nowrap">
-                {config.isPermanent
+                {(effectiveConfig?.isPermanent ?? config.isPermanent)
                   ? '长期有效'
-                  : config.validFrom && config.validTo
-                    ? `${config.validFrom.substring(0, 10)} ~ ${config.validTo.substring(0, 10)}`
+                  : (effectiveConfig?.validFrom ?? config.validFrom) && (effectiveConfig?.validTo ?? config.validTo)
+                    ? `${(effectiveConfig?.validFrom ?? config.validFrom)?.substring(0, 10)} ~ ${(effectiveConfig?.validTo ?? config.validTo)?.substring(0, 10)}`
                     : '未设置'}
               </span>
             </div>

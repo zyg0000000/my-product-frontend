@@ -39,20 +39,20 @@
   --config-metric-orange: #f97316;
   --config-metric-purple: #8b5cf6;
 
-  /* 背景层级 */
-  --config-bg-base: #f8fafc;
-  --config-bg-elevated: #ffffff;
-  --config-bg-sunken: #f1f5f9;
+  /* 背景层级 - 使用全局 CSS Variables */
+  --config-bg-base: var(--color-bg-sunken, #f8fafc);
+  --config-bg-elevated: var(--color-bg-elevated, #ffffff);
+  --config-bg-sunken: var(--color-bg-base, #f1f5f9);
 
-  /* 边框 */
-  --config-border: #e2e8f0;
-  --config-border-hover: #cbd5e1;
+  /* 边框 - 使用全局 CSS Variables */
+  --config-border: var(--color-border, #e2e8f0);
+  --config-border-hover: var(--color-border-hover, #cbd5e1);
   --config-border-active: var(--config-accent);
 
-  /* 文字 */
-  --config-text-primary: #1e293b;
-  --config-text-secondary: #64748b;
-  --config-text-muted: #94a3b8;
+  /* 文字 - 使用全局 CSS Variables */
+  --config-text-primary: var(--color-text-primary, #1e293b);
+  --config-text-secondary: var(--color-text-secondary, #64748b);
+  --config-text-muted: var(--color-text-muted, #94a3b8);
 
   /* 间距 */
   --config-space-xs: 4px;
@@ -75,13 +75,59 @@
   --config-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* 深色模式 - 覆盖阴影和特殊效果 */
+.dark .config-editor,
+[data-theme="dark"] .config-editor {
+  --config-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --config-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --config-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --config-accent-bg: rgba(99, 102, 241, 0.15);
+
+  /* 深色模式图标背景 */
+  --config-icon-bg-primary: rgba(59, 130, 246, 0.15);
+  --config-icon-bg-success: rgba(16, 185, 129, 0.15);
+  --config-icon-bg-warning: rgba(245, 158, 11, 0.15);
+  --config-icon-bg-danger: rgba(239, 68, 68, 0.15);
+  --config-icon-bg-purple: rgba(139, 92, 246, 0.15);
+
+  /* 深色模式警告背景 */
+  --config-warning-bg: rgba(245, 158, 11, 0.1);
+  --config-warning-border: rgba(245, 158, 11, 0.3);
+  --config-warning-text: #fbbf24;
+  --config-info-bg: rgba(59, 130, 246, 0.1);
+  --config-info-border: rgba(59, 130, 246, 0.3);
+  --config-info-text: #60a5fa;
+  --config-error-bg: rgba(239, 68, 68, 0.1);
+  --config-error-border: rgba(239, 68, 68, 0.3);
+  --config-error-text: #f87171;
+}
+
+/* 浅色模式变量（默认） */
+.config-editor {
+  --config-icon-bg-primary: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  --config-icon-bg-success: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  --config-icon-bg-warning: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  --config-icon-bg-danger: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  --config-icon-bg-purple: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+
+  --config-warning-bg: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  --config-warning-border: #fed7aa;
+  --config-warning-text: #c2410c;
+  --config-info-bg: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  --config-info-border: #93c5fd;
+  --config-info-text: #1d4ed8;
+  --config-error-bg: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  --config-error-border: #fca5a5;
+  --config-error-text: #b91c1c;
+}
+
 /* ==========================================================================
    基础容器
    ========================================================================== */
 
 .config-editor {
   padding: var(--config-space-lg);
-  background: linear-gradient(180deg, var(--config-bg-base) 0%, #f1f5f9 100%);
+  background: var(--config-bg-base);
   border-radius: var(--config-radius-lg);
   min-height: 320px;
 }
@@ -156,25 +202,25 @@
   align-items: center;
   gap: var(--config-space-sm);
   padding: 12px 16px;
-  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
-  border: 1px solid #fed7aa;
+  background: var(--config-warning-bg);
+  border: 1px solid var(--config-warning-border);
   border-radius: var(--config-radius-md);
-  color: #c2410c;
+  color: var(--config-warning-text);
   font-size: 13px;
   margin-bottom: var(--config-space-md);
   animation: configSlideIn 0.3s ease-out;
 }
 
 .config-warning--info {
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  border-color: #93c5fd;
-  color: #1d4ed8;
+  background: var(--config-info-bg);
+  border-color: var(--config-info-border);
+  color: var(--config-info-text);
 }
 
 .config-warning--error {
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-  border-color: #fca5a5;
-  color: #b91c1c;
+  background: var(--config-error-bg);
+  border-color: var(--config-error-border);
+  color: var(--config-error-text);
 }
 
 /* ==========================================================================
@@ -254,27 +300,27 @@
 }
 
 .config-feature-card__icon--primary {
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  background: var(--config-icon-bg-primary);
   color: var(--config-info);
 }
 
 .config-feature-card__icon--success {
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  background: var(--config-icon-bg-success);
   color: var(--config-success);
 }
 
 .config-feature-card__icon--warning {
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  background: var(--config-icon-bg-warning);
   color: var(--config-warning);
 }
 
 .config-feature-card__icon--danger {
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  background: var(--config-icon-bg-danger);
   color: var(--config-danger);
 }
 
 .config-feature-card__icon--purple {
-  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  background: var(--config-icon-bg-purple);
   color: var(--config-metric-purple);
 }
 
@@ -311,18 +357,30 @@
    选项卡片网格（用于指标、周期等选择）
    ========================================================================== */
 
+/**
+ * 选项卡片网格布局
+ *
+ * 卡片内容结构：
+ *   padding(14px) + checkbox(24px) + gap(10px) + icon(30px) + gap(10px) + content + padding(14px)
+ *   基础宽度 ≈ 102px，剩余给 content (label + gap + unit)
+ *
+ * 不同场景的最小宽度计算：
+ * - compact: "T+7 数据 天" ≈ 65px → 总宽 ~170px
+ * - default: "播放量 次" ≈ 55px → 总宽 ~160px
+ * - wide: "资金占用费用 元" ≈ 95px → 总宽 ~200px
+ */
 .config-option-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
   gap: 10px;
 }
 
 .config-option-grid--compact {
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
 }
 
 .config-option-grid--wide {
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
 }
 
 .config-option-card {
@@ -387,8 +445,11 @@
 
 .config-option-card__content {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 4px;
   min-width: 0;
+  flex-wrap: nowrap;
 }
 
 .config-option-card__label {
@@ -396,13 +457,13 @@
   font-weight: 500;
   color: var(--config-text-primary);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .config-option-card__unit {
   font-size: 11px;
   color: var(--config-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .config-option-card__lock {

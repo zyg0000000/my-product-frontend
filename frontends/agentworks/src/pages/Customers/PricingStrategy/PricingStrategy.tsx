@@ -1,6 +1,11 @@
 /**
- * 业务策略中心页面 (v5.0)
- * 支持只读展示和编辑模式切换
+ * 业务策略中心页面 (v5.1)
+ * 支持多时间段定价配置
+ *
+ * v5.1 变更：
+ * - 支持每个平台配置多个时间段的定价策略
+ * - 使用 PricingConfigList 组件管理配置列表
+ * - 配置状态标记（当前生效/即将生效/已过期）
  *
  * v5.0 变更：
  * - 抽取共用表单组件 TalentProcurementForm
@@ -9,13 +14,11 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ProCard } from '@ant-design/pro-components';
 import {
   Tag,
   Tabs,
   App,
   Button,
-  Popover,
   Popconfirm,
   Empty,
   Spin,
@@ -24,7 +27,6 @@ import {
 } from 'antd';
 import {
   PlusOutlined,
-  QuestionCircleOutlined,
   CheckOutlined,
   CloseOutlined,
   TagsOutlined,
@@ -37,16 +39,19 @@ import { PageHeader } from '../../../components/PageHeader';
 import { logger } from '../../../utils/logger';
 import {
   PRICING_MODEL_NAMES,
-  getDefaultPlatformConfig,
-  calculateCoefficient,
+  getDefaultPlatformStrategy,
   calculateAllCoefficients,
+  calculateAllEffectiveCoefficients,
   getPricingModeInfo,
-  validateAllPlatformsValidity,
-  type PlatformConfig,
+  getEffectiveConfig,
+  validateAllPlatformStrategies,
+  type PlatformPricingStrategy,
   type PlatformPricingConfigs,
+  type PricingConfigItem,
   type CoefficientResult,
   type TalentProcurementStrategy,
 } from '../shared/talentProcurement';
+import { PricingConfigList } from '../shared/PricingConfigList';
 import { TalentProcurementForm } from '../shared/TalentProcurementForm';
 import {
   BusinessTagsEditor,
@@ -114,10 +119,11 @@ export default function PricingStrategy() {
 
   // 编辑模式状态
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState('');
+  // 报价系数
   const [coefficients, setCoefficients] = useState<
     Record<string, CoefficientResult>
   >({});
-  const [selectedPlatform, setSelectedPlatform] = useState('');
 
   // 当平台列表加载完成后，设置默认选中的平台
   useEffect(() => {
@@ -161,37 +167,54 @@ export default function PricingStrategy() {
         setCustomer(response.data as CustomerData);
         const strategy = response.data.businessStrategies?.talentProcurement;
         if (strategy) {
+          // v5.1: 加载新的 configs 数组结构
           const loadedConfigs: PlatformPricingConfigs = {};
           const savedConfigs =
             strategy.platformPricingConfigs || strategy.platformFees || {};
+
           Object.entries(savedConfigs).forEach(([platformKey, savedConfig]) => {
             if (savedConfig) {
               const platformConfig = enabledPlatforms.find(
                 p => p.platform === platformKey
               );
-              const platformFeeRate =
-                platformConfig?.business?.fee ||
-                savedConfig.platformFeeRate ||
-                0;
-              loadedConfigs[platformKey] = {
-                enabled: savedConfig.enabled || false,
-                pricingModel: savedConfig.pricingModel || 'framework',
-                platformFeeRate: savedConfig.platformFeeRate || platformFeeRate,
-                discountRate: savedConfig.discountRate ?? 1.0,
-                serviceFeeRate: savedConfig.serviceFeeRate ?? 0,
-                validFrom: savedConfig.validFrom || null,
-                validTo: savedConfig.validTo || null,
-                isPermanent: savedConfig.isPermanent || false,
-                includesPlatformFee: savedConfig.includesPlatformFee || false,
-                serviceFeeBase: savedConfig.serviceFeeBase || 'beforeDiscount',
-                includesTax: savedConfig.includesTax ?? true,
-                taxCalculationBase:
-                  savedConfig.taxCalculationBase || 'excludeServiceFee',
-              };
+              const platformFeeRate = platformConfig?.business?.fee || 0;
+
+              // v5.1: 检查是否为新结构（有 configs 数组）
+              if (savedConfig.configs !== undefined) {
+                // 新结构：直接使用
+                loadedConfigs[platformKey] = {
+                  enabled: savedConfig.enabled || false,
+                  pricingModel: savedConfig.pricingModel || 'framework',
+                  configs: savedConfig.configs || null,
+                };
+              } else {
+                // 旧结构：转换为新结构（单配置转换为数组）
+                const legacyConfig: PricingConfigItem = {
+                  id: `legacy_${platformKey}_${Date.now()}`,
+                  discountRate: savedConfig.discountRate ?? 1.0,
+                  serviceFeeRate: savedConfig.serviceFeeRate ?? 0,
+                  platformFeeRate: savedConfig.platformFeeRate || platformFeeRate,
+                  includesPlatformFee: savedConfig.includesPlatformFee || false,
+                  serviceFeeBase: savedConfig.serviceFeeBase || 'beforeDiscount',
+                  includesTax: savedConfig.includesTax ?? true,
+                  taxCalculationBase: savedConfig.taxCalculationBase || 'excludeServiceFee',
+                  validFrom: savedConfig.validFrom || null,
+                  validTo: savedConfig.validTo || null,
+                  isPermanent: savedConfig.isPermanent || false,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                };
+
+                loadedConfigs[platformKey] = {
+                  enabled: savedConfig.enabled || false,
+                  pricingModel: savedConfig.pricingModel || 'framework',
+                  configs: savedConfig.pricingModel === 'project' ? null : [legacyConfig],
+                };
+              }
             }
           });
+
           setPlatformPricingConfigs(loadedConfigs);
-          setCoefficients(calculateAllCoefficients(loadedConfigs));
 
           // v4.4: 加载业务标签
           const loadedTags = strategy.platformBusinessTags || {};
@@ -225,41 +248,17 @@ export default function PricingStrategy() {
     setCoefficients(calculateAllCoefficients(configs));
   };
 
-  // 检测策略是否有变化
+  // 检测策略是否有变化 (v5.1 支持新的 configs 数组结构)
   const hasStrategyChanged = (): boolean => {
     if (!originalSnapshot) return true;
 
-    // 检查平台配置变化
-    const originalKeys = Object.keys(originalSnapshot.platformPricingConfigs);
-    const currentKeys = Object.keys(platformPricingConfigs);
-
-    if (originalKeys.length !== currentKeys.length) {
+    // v5.1: 直接比较 JSON 字符串，支持新的 configs 数组结构
+    const originalConfigsStr = JSON.stringify(
+      originalSnapshot.platformPricingConfigs || {}
+    );
+    const currentConfigsStr = JSON.stringify(platformPricingConfigs || {});
+    if (originalConfigsStr !== currentConfigsStr) {
       return true;
-    }
-
-    for (const key of currentKeys) {
-      const original = originalSnapshot.platformPricingConfigs[key];
-      const current = platformPricingConfigs[key];
-
-      if (!original || !current) {
-        return true;
-      }
-
-      if (
-        original.enabled !== current.enabled ||
-        original.pricingModel !== current.pricingModel ||
-        original.discountRate !== current.discountRate ||
-        original.serviceFeeRate !== current.serviceFeeRate ||
-        original.platformFeeRate !== current.platformFeeRate ||
-        original.validFrom !== current.validFrom ||
-        original.validTo !== current.validTo ||
-        original.includesPlatformFee !== current.includesPlatformFee ||
-        original.serviceFeeBase !== current.serviceFeeBase ||
-        original.includesTax !== current.includesTax ||
-        original.taxCalculationBase !== current.taxCalculationBase
-      ) {
-        return true;
-      }
     }
 
     // v4.4: 检查业务标签变化
@@ -289,7 +288,7 @@ export default function PricingStrategy() {
     return config?.name || platformKey;
   };
 
-  // 保存策略
+  // 保存策略 (v5.1 支持新的 configs 数组结构)
   const handleSave = async () => {
     if (!id) return;
 
@@ -298,40 +297,32 @@ export default function PricingStrategy() {
       return;
     }
 
-    const validityErrors = validateAllPlatformsValidity(
+    // v5.1: 使用新的校验逻辑
+    const validationResult = validateAllPlatformStrategies(
       platformPricingConfigs,
       getPlatformName
     );
-    if (validityErrors.length > 0) {
-      message.error(validityErrors[0]);
+    if (!validationResult.valid) {
+      message.error(validationResult.errors[0]);
       return;
     }
 
     setSaving(true);
 
-    const quotationCoefficients: Record<string, number> = {};
-    let hasInvalidCoefficient = false;
+    // v5.1: 使用 calculateAllEffectiveCoefficients 计算当前有效配置的系数
+    const quotationCoefficients = calculateAllEffectiveCoefficients(platformPricingConfigs);
 
-    Object.entries(platformPricingConfigs).forEach(([platform, config]) => {
-      if (config?.enabled && config.pricingModel !== 'project') {
-        const coefficientData = coefficients[platform];
-        if (coefficientData) {
-          const coefficient = Number(coefficientData.coefficient);
-          if (
-            !isNaN(coefficient) &&
-            isFinite(coefficient) &&
-            coefficient > 0 &&
-            coefficient < 10
-          ) {
-            quotationCoefficients[platform] = Number(coefficient.toFixed(4));
-          } else {
-            logger.error(
-              `Invalid coefficient for ${platform}:`,
-              coefficientData.coefficient
-            );
-            hasInvalidCoefficient = true;
-          }
-        }
+    // 校验系数
+    let hasInvalidCoefficient = false;
+    Object.entries(quotationCoefficients).forEach(([platform, coefficient]) => {
+      if (
+        isNaN(coefficient) ||
+        !isFinite(coefficient) ||
+        coefficient <= 0 ||
+        coefficient >= 10
+      ) {
+        logger.error(`Invalid coefficient for ${platform}:`, coefficient);
+        hasInvalidCoefficient = true;
       }
     });
 
@@ -345,7 +336,7 @@ export default function PricingStrategy() {
       c => c?.enabled
     );
 
-    // v4.4: 包含业务标签; v4.5: 包含按平台 KPI 配置
+    // v5.1: 包含新的 configs 数组结构
     const strategy = {
       enabled: hasEnabledPlatform,
       platformPricingConfigs: platformPricingConfigs,
@@ -374,7 +365,7 @@ export default function PricingStrategy() {
     }
   };
 
-  // 删除平台配置
+  // 删除平台配置 (v5.1 支持新的 configs 数组结构)
   const handleDeletePlatform = async (platformKey: string) => {
     if (!id) return;
     setSaving(true);
@@ -383,18 +374,8 @@ export default function PricingStrategy() {
       const updatedConfigs = { ...platformPricingConfigs };
       delete updatedConfigs[platformKey];
 
-      const newCoefficients = calculateAllCoefficients(updatedConfigs);
-      const quotationCoefficients: Record<string, number> = {};
-      Object.entries(updatedConfigs).forEach(([platform, config]) => {
-        if (config?.enabled && config.pricingModel !== 'project') {
-          const coefficientData = newCoefficients[platform];
-          if (coefficientData) {
-            quotationCoefficients[platform] = Number(
-              coefficientData.coefficient.toFixed(4)
-            );
-          }
-        }
-      });
+      // v5.1: 使用 calculateAllEffectiveCoefficients
+      const quotationCoefficients = calculateAllEffectiveCoefficients(updatedConfigs);
 
       const hasEnabledPlatform = Object.values(updatedConfigs).some(
         c => c?.enabled
@@ -432,7 +413,7 @@ export default function PricingStrategy() {
     loadCustomer();
   };
 
-  // 开始新建策略
+  // 开始新建策略 (v5.1 使用新的 getDefaultPlatformStrategy)
   const handleStartCreate = () => {
     setIsEditing(true);
 
@@ -440,8 +421,9 @@ export default function PricingStrategy() {
       if (enabledPlatforms.length > 0) {
         const firstPlatform = enabledPlatforms[0];
         const platformFeeRate = firstPlatform.business?.fee || 0;
+        // v5.1: 使用新的 getDefaultPlatformStrategy，返回 { enabled, pricingModel, configs }
         setPlatformPricingConfigs({
-          [firstPlatform.platform]: getDefaultPlatformConfig(platformFeeRate),
+          [firstPlatform.platform]: getDefaultPlatformStrategy(platformFeeRate),
         });
         setSelectedPlatform(firstPlatform.platform);
       }
@@ -459,7 +441,7 @@ export default function PricingStrategy() {
     setIsEditing(true);
   };
 
-  // 切换平台启用状态
+  // 切换平台启用状态 (v5.1 支持新的 configs 数组结构)
   const handleTogglePlatformEnabled = async (
     platformKey: string,
     enabled: boolean
@@ -474,18 +456,8 @@ export default function PricingStrategy() {
     setPlatformPricingConfigs(updatedConfigs);
 
     try {
-      const newCoefficients = calculateAllCoefficients(updatedConfigs);
-      const quotationCoefficients: Record<string, number> = {};
-      Object.entries(updatedConfigs).forEach(([platform, config]) => {
-        if (config?.enabled && config.pricingModel !== 'project') {
-          const result = newCoefficients[platform];
-          if (result) {
-            quotationCoefficients[platform] = Number(
-              result.coefficient.toFixed(4)
-            );
-          }
-        }
-      });
+      // v5.1: 使用 calculateAllEffectiveCoefficients
+      const quotationCoefficients = calculateAllEffectiveCoefficients(updatedConfigs);
 
       const hasEnabledPlatform = Object.values(updatedConfigs).some(
         c => c?.enabled
@@ -552,173 +524,24 @@ export default function PricingStrategy() {
     strategy?.platformPricingConfigs || strategy?.platformFees;
   const isConfigured = savedConfigs && Object.keys(savedConfigs).length > 0;
 
-  // 获取所有已配置的平台列表
+  // v5.1: 获取所有已配置的平台列表（使用新的 PlatformPricingStrategy 结构）
   const configuredPlatformConfigsList = Object.entries(platformPricingConfigs)
     .filter(([_, config]) => config !== undefined && config !== null)
-    .map(([key, config]) => ({
-      key,
-      name: getPlatformName(key),
-      config,
-      pricingModel: config.pricingModel || 'framework',
-      coefficient:
-        config.enabled && config.pricingModel !== 'project'
-          ? calculateCoefficient(config)
-          : null,
-      quotationCoefficient: strategy?.quotationCoefficients?.[key],
-    }));
+    .map(([key, config]) => {
+      // 获取当前有效配置
+      const effectiveConfig = config.pricingModel !== 'project'
+        ? getEffectiveConfig(config.configs || [])
+        : null;
 
-  // 生成 tooltip 内容
-  const generateTooltipContent = (platform: {
-    key: string;
-    name: string;
-    config: PlatformConfig;
-    coefficient: CoefficientResult;
-    quotationCoefficient?: number;
-  }) => {
-    const { config, coefficient, quotationCoefficient } = platform;
-    const {
-      baseAmount,
-      platformFeeAmount,
-      discountedAmount,
-      serviceFeeAmount,
-      taxAmount,
-      finalAmount,
-    } = coefficient;
-
-    const discountRate = config.discountRate || 0;
-    const platformFeeRate = config.platformFeeRate || 0;
-    const serviceFeeRate = config.serviceFeeRate || 0;
-
-    return (
-      <div style={{ width: '340px' }}>
-        <div className="text-sm font-semibold text-white mb-3 pb-2 border-b border-gray-600">
-          {platform.name} - 报价系数计算
-        </div>
-
-        <div className="space-y-2 bg-surface-elevated dark:bg-gray-900 p-3 rounded text-xs">
-          <div className="flex justify-between gap-4">
-            <span className="text-gray-300 whitespace-nowrap">
-              1. 基础刊例价:
-            </span>
-            <span className="font-medium text-white whitespace-nowrap">
-              ¥{(baseAmount / 100).toFixed(2)}
-            </span>
-          </div>
-
-          <div className="flex justify-between gap-4">
-            <span className="text-gray-300 whitespace-nowrap">
-              2. 平台费 ({(platformFeeRate * 100).toFixed(2)}%):
-            </span>
-            <span className="font-medium text-white whitespace-nowrap">
-              ¥{(platformFeeAmount / 100).toFixed(2)}
-            </span>
-          </div>
-
-          <div className="border-t border-gray-600 pt-1.5 space-y-1">
-            <div className="flex justify-between gap-4">
-              <span className="text-gray-300 whitespace-nowrap">
-                3. 折扣率 ({(discountRate * 100).toFixed(2)}%):
-              </span>
-              <span className="text-white text-xs whitespace-nowrap">
-                {config.includesPlatformFee ? '含平台费' : '不含平台费'}
-              </span>
-            </div>
-
-            <div className="text-content-muted text-xs pl-3">
-              {config.includesPlatformFee
-                ? `(¥${(baseAmount / 100).toFixed(2)} + ¥${(platformFeeAmount / 100).toFixed(2)}) × ${(discountRate * 100).toFixed(2)}%`
-                : `¥${(baseAmount / 100).toFixed(2)} × ${(discountRate * 100).toFixed(2)}% + ¥${(platformFeeAmount / 100).toFixed(2)}`}
-            </div>
-
-            <div className="flex justify-between gap-4">
-              <span className="text-gray-300 whitespace-nowrap">
-                = 折扣后金额:
-              </span>
-              <span className="font-medium text-white whitespace-nowrap">
-                ¥{(discountedAmount / 100).toFixed(2)}
-              </span>
-            </div>
-          </div>
-
-          {serviceFeeRate > 0 && (
-            <div className="flex justify-between gap-4 border-t border-gray-600 pt-1">
-              <span className="text-gray-300 whitespace-nowrap">
-                4. 服务费 ({(serviceFeeRate * 100).toFixed(2)}%):
-              </span>
-              <span className="font-medium text-white whitespace-nowrap">
-                ¥{(serviceFeeAmount / 100).toFixed(2)}
-              </span>
-            </div>
-          )}
-
-          {taxAmount > 0 && (
-            <div className="flex justify-between gap-4 border-t border-gray-600 pt-1">
-              <span className="text-gray-300 whitespace-nowrap">
-                5. 增值税 (6%):
-              </span>
-              <span className="font-medium text-white whitespace-nowrap">
-                ¥{(taxAmount / 100).toFixed(2)}
-              </span>
-            </div>
-          )}
-
-          <div className="flex justify-between gap-4 border-t border-gray-600 pt-1.5 mt-1">
-            <span className="text-gray-300 font-semibold whitespace-nowrap">
-              6. 最终金额:
-            </span>
-            <span className="font-bold text-green-300 whitespace-nowrap">
-              ¥{(finalAmount / 100).toFixed(2)}
-            </span>
-          </div>
-        </div>
-
-        <div className="space-y-1 pt-2 text-xs">
-          <div className="flex justify-between gap-4 text-content-muted">
-            <span className="whitespace-nowrap">折扣含平台费:</span>
-            <span className="whitespace-nowrap">
-              {config.includesPlatformFee ? '是' : '否'}
-            </span>
-          </div>
-
-          <div className="flex justify-between gap-4 text-content-muted">
-            <span className="whitespace-nowrap">含税报价:</span>
-            <span className="whitespace-nowrap">
-              {config.includesTax ? '是（已含6%税）' : '否（需加税）'}
-            </span>
-          </div>
-
-          <div className="flex justify-between gap-4 text-content-muted">
-            <span className="whitespace-nowrap">有效期:</span>
-            <span className="whitespace-nowrap">
-              {config.isPermanent
-                ? '长期有效'
-                : config.validFrom && config.validTo
-                  ? `${config.validFrom.substring(0, 10)} ~ ${config.validTo.substring(0, 10)}`
-                  : '未设置'}
-            </span>
-          </div>
-        </div>
-
-        <div className="border-t border-gray-600 pt-2 mt-2">
-          <div className="flex justify-between items-center gap-4">
-            <span className="font-semibold text-primary-300 whitespace-nowrap">
-              报价系数:
-            </span>
-            <div className="text-right">
-              <div className="font-bold text-primary-200 text-sm whitespace-nowrap">
-                {quotationCoefficient?.toFixed(4) ||
-                  coefficient.coefficient.toFixed(4)}
-              </div>
-              <div className="text-xs text-content-muted whitespace-nowrap">
-                = ¥{(finalAmount / 100).toFixed(2)} ÷ ¥
-                {(baseAmount / 100).toFixed(2)}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
+      return {
+        key,
+        name: getPlatformName(key),
+        strategy: config as PlatformPricingStrategy, // v5.1: 使用 strategy 而非 config
+        pricingModel: config.pricingModel || 'framework',
+        effectiveConfig, // v5.1: 当前有效配置
+        quotationCoefficient: strategy?.quotationCoefficients?.[key],
+      };
+    });
 
   // Tab 配置
   const tabItems = [
@@ -769,18 +592,32 @@ export default function PricingStrategy() {
     },
   ];
 
-  // 渲染只读模式的平台卡片
+  // v5.1: 渲染只读模式的平台卡片（使用 PricingConfigList 展示多时间段配置）
   const renderReadOnlyPlatformCard = (platform: {
     key: string;
     name: string;
-    config: PlatformConfig;
+    strategy: PlatformPricingStrategy;
     pricingModel: string;
-    coefficient: CoefficientResult | null;
+    effectiveConfig: PricingConfigItem | null;
     quotationCoefficient?: number;
   }) => {
     const pricingModeInfo = getPricingModeInfo(platform.pricingModel);
     const isProjectMode = platform.pricingModel === 'project';
-    const isEnabled = platform.config.enabled;
+    const isEnabled = platform.strategy.enabled;
+    const platformConfig = getPlatformConfigByKey(platform.key as any);
+
+    // v5.1: 处理配置变更的回调
+    const handleConfigsChange = (newConfigs: PricingConfigItem[]) => {
+      const updatedStrategy: PlatformPricingStrategy = {
+        ...platform.strategy,
+        configs: newConfigs,
+      };
+      const updatedPlatformConfigs = {
+        ...platformPricingConfigs,
+        [platform.key]: updatedStrategy,
+      };
+      setPlatformPricingConfigs(updatedPlatformConfigs);
+    };
 
     return (
       <div
@@ -845,66 +682,14 @@ export default function PricingStrategy() {
             项目比价模式，创建项目时手动填写对客报价
           </div>
         ) : (
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-content-secondary">折扣率:</span>
-              <span className="font-medium">
-                {((platform.config.discountRate || 0) * 100).toFixed(2)}%
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-content-secondary">服务费率:</span>
-              <span className="font-medium">
-                {((platform.config.serviceFeeRate || 0) * 100).toFixed(2)}%
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-content-secondary">平台费:</span>
-              <span className="font-medium">
-                {((platform.config.platformFeeRate || 0) * 100).toFixed(0)}%
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-content-secondary">有效期:</span>
-              <span className="font-medium">
-                {platform.config.isPermanent ? (
-                  '长期有效'
-                ) : platform.config.validFrom && platform.config.validTo ? (
-                  `${platform.config.validFrom.substring(0, 10)} ~ ${platform.config.validTo.substring(0, 10)}`
-                ) : (
-                  <span className="text-danger-500">未设置</span>
-                )}
-              </span>
-            </div>
-            <div className="flex justify-between items-center pt-2 border-t border-stroke">
-              <span className="text-content-secondary">
-                {pricingModeInfo.coefficientLabel}:
-              </span>
-              {platform.coefficient ? (
-                <Popover
-                  content={generateTooltipContent({
-                    ...platform,
-                    coefficient: platform.coefficient,
-                  })}
-                  placement="top"
-                  trigger="hover"
-                  overlayInnerStyle={{
-                    padding: '12px',
-                    backgroundColor: '#1f2937',
-                    borderRadius: '6px',
-                  }}
-                >
-                  <span className="font-bold text-primary-600 dark:text-primary-400 cursor-help border-b border-dashed border-blue-300 flex items-center gap-1">
-                    {platform.quotationCoefficient?.toFixed(4) ||
-                      platform.coefficient.coefficient.toFixed(4)}
-                    <QuestionCircleOutlined className="text-xs" />
-                  </span>
-                </Popover>
-              ) : (
-                <span>-</span>
-              )}
-            </div>
-          </div>
+          // v5.1: 使用 PricingConfigList 组件展示多时间段配置
+          <PricingConfigList
+            configs={platform.strategy.configs || []}
+            onChange={handleConfigsChange}
+            platformName={platform.name}
+            platformConfig={platformConfig}
+            readonly={false} // 在只读模式下也允许编辑配置项
+          />
         )}
       </div>
     );
