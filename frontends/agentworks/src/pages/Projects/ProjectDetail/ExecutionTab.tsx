@@ -466,7 +466,10 @@ export function ExecutionTab({
       width: 120,
       fixed: 'right',
       render: (_, record, __, action) => [
-        <Tooltip key="edit" title={editable ? '编辑' : '项目已进入结算阶段，无法编辑'}>
+        <Tooltip
+          key="edit"
+          title={editable ? '编辑' : '项目已进入结算阶段，无法编辑'}
+        >
           <Button
             type="text"
             size="small"
@@ -571,16 +574,20 @@ export function ExecutionTab({
         dataSource={collaborations}
         loading={loading}
         rowKey="id"
-        editable={editable ? {
-          type: 'single',
-          form: editableForm,
-          editableKeys,
-          onChange: setEditableKeys,
-          onSave: handleSaveRow,
-          actionRender: (_row, _config, dom) => [dom.save, dom.cancel],
-          saveText: '保存',
-          cancelText: '取消',
-        } : undefined}
+        editable={
+          editable
+            ? {
+                type: 'single',
+                form: editableForm,
+                editableKeys,
+                onChange: setEditableKeys,
+                onSave: handleSaveRow,
+                actionRender: (_row, _config, dom) => [dom.save, dom.cancel],
+                saveText: '保存',
+                cancelText: '取消',
+              }
+            : undefined
+        }
         pagination={{
           pageSize: 20,
           showSizeChanger: true,

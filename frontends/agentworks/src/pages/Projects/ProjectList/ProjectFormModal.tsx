@@ -1344,30 +1344,30 @@ export function ProjectFormModal({
                                       min={0}
                                       precision={2}
                                       value={state.targets[kpiKey]}
-                                    onChange={value => {
-                                      setPlatformKPIStates(prev => {
-                                        const currentTargets =
-                                          prev[platform]?.targets || {};
-                                        const newTargets = {
-                                          ...currentTargets,
-                                        };
-                                        if (
-                                          value !== null &&
-                                          value !== undefined
-                                        ) {
-                                          newTargets[kpiKey] = value;
-                                        } else {
-                                          delete newTargets[kpiKey];
-                                        }
-                                        return {
-                                          ...prev,
-                                          [platform]: {
-                                            ...prev[platform],
-                                            targets: newTargets,
-                                          },
-                                        };
-                                      });
-                                    }}
+                                      onChange={value => {
+                                        setPlatformKPIStates(prev => {
+                                          const currentTargets =
+                                            prev[platform]?.targets || {};
+                                          const newTargets = {
+                                            ...currentTargets,
+                                          };
+                                          if (
+                                            value !== null &&
+                                            value !== undefined
+                                          ) {
+                                            newTargets[kpiKey] = value;
+                                          } else {
+                                            delete newTargets[kpiKey];
+                                          }
+                                          return {
+                                            ...prev,
+                                            [platform]: {
+                                              ...prev[platform],
+                                              targets: newTargets,
+                                            },
+                                          };
+                                        });
+                                      }}
                                     />
                                     <span
                                       style={{

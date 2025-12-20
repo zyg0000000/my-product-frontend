@@ -263,7 +263,10 @@ export function ProjectList() {
         icon: <RollbackOutlined />,
         label: `回退到「${PROJECT_STATUS_LABELS[PROJECT_STATUS_OPTIONS[currentIndex - 1]]}」`,
         onClick: () =>
-          handleStatusChange(record.id, PROJECT_STATUS_OPTIONS[currentIndex - 1]),
+          handleStatusChange(
+            record.id,
+            PROJECT_STATUS_OPTIONS[currentIndex - 1]
+          ),
       });
     }
 
@@ -273,7 +276,10 @@ export function ProjectList() {
         icon: <ArrowRightOutlined />,
         label: `推进到「${PROJECT_STATUS_LABELS[PROJECT_STATUS_OPTIONS[currentIndex + 1]]}」`,
         onClick: () =>
-          handleStatusChange(record.id, PROJECT_STATUS_OPTIONS[currentIndex + 1]),
+          handleStatusChange(
+            record.id,
+            PROJECT_STATUS_OPTIONS[currentIndex + 1]
+          ),
       });
     }
 

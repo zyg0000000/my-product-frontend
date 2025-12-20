@@ -403,7 +403,9 @@ export function ProjectDetail() {
           onBack={() => navigate(-1)}
           backText="返回"
           extra={
-            <Tooltip title={!isExecuting ? '项目已进入结算阶段，无法编辑' : undefined}>
+            <Tooltip
+              title={!isExecuting ? '项目已进入结算阶段，无法编辑' : undefined}
+            >
               <Button
                 type="primary"
                 icon={<EditOutlined />}
@@ -567,8 +569,8 @@ export function ProjectDetail() {
                   className="flex-1 max-w-[200px]"
                 />
                 <span className="text-xs text-content-secondary whitespace-nowrap shrink-0">
-                  {computedStats.publishedCount}/{computedStats.collaborationCount}{' '}
-                  已发布
+                  {computedStats.publishedCount}/
+                  {computedStats.collaborationCount} 已发布
                 </span>
               </div>
             </InfoItem>

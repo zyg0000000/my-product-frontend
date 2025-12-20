@@ -67,7 +67,11 @@ export function CollaborationsTab({
   const actionRef = useRef<ActionType>(null);
 
   // 平台配置
-  const { configs: platformConfigs, getPlatformNames, getPlatformColors } = usePlatformConfig();
+  const {
+    configs: platformConfigs,
+    getPlatformNames,
+    getPlatformColors,
+  } = usePlatformConfig();
   const platformNames = useMemo(() => getPlatformNames(), [getPlatformNames]);
   const platformColors = useMemo(
     () => getPlatformColors(),
@@ -82,7 +86,9 @@ export function CollaborationsTab({
 
   // 数据状态
   const [loading, setLoading] = useState(true);
-  const [rawCollaborations, setRawCollaborations] = useState<Collaboration[]>([]);
+  const [rawCollaborations, setRawCollaborations] = useState<Collaboration[]>(
+    []
+  );
   const [collaborations, setCollaborations] = useState<Collaboration[]>([]);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -157,7 +163,10 @@ export function CollaborationsTab({
 
     // 如果有财务计算上下文，计算财务数据
     if (financeContext) {
-      const calculatedItems = batchCalculateFinance(rawCollaborations, financeContext);
+      const calculatedItems = batchCalculateFinance(
+        rawCollaborations,
+        financeContext
+      );
       setCollaborations(calculatedItems);
     } else {
       setCollaborations(rawCollaborations);
@@ -400,15 +409,17 @@ export function CollaborationsTab({
         dataSource={collaborations}
         loading={loading}
         rowKey="id"
-        rowSelection={editable ? {
-          selectedRowKeys,
-          onChange: keys => setSelectedRowKeys(keys),
-        } : undefined}
+        rowSelection={
+          editable
+            ? {
+                selectedRowKeys,
+                onChange: keys => setSelectedRowKeys(keys),
+              }
+            : undefined
+        }
         tableAlertRender={({ selectedRowKeys: keys }) => {
           // 计算选中项的统计数据
-          const selectedItems = collaborations.filter(c =>
-            keys.includes(c.id)
-          );
+          const selectedItems = collaborations.filter(c => keys.includes(c.id));
           const stats = selectedItems.reduce(
             (acc, item) => {
               const amount = item.amount ?? 0;
@@ -427,14 +438,14 @@ export function CollaborationsTab({
             { count: 0, amount: 0, weightedRebate: 0, revenue: 0, profit: 0 }
           );
           // 加权平均返点率 = Σ(刊例价 × 返点率) / Σ(刊例价)
-          const avgRebateRate = stats.amount > 0 ? stats.weightedRebate / stats.amount : 0;
-          const profitRate = stats.revenue > 0 ? (stats.profit / stats.revenue) * 100 : 0;
+          const avgRebateRate =
+            stats.amount > 0 ? stats.weightedRebate / stats.amount : 0;
+          const profitRate =
+            stats.revenue > 0 ? (stats.profit / stats.revenue) * 100 : 0;
 
           return (
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-              <span className="font-medium">
-                已选择 {keys.length} 人
-              </span>
+              <span className="font-medium">已选择 {keys.length} 人</span>
               <span className="text-gray-300">|</span>
               <span>
                 刊例价{' '}
@@ -456,7 +467,9 @@ export function CollaborationsTab({
               </span>
               <span>
                 基础利润{' '}
-                <span className={`font-semibold ${stats.profit >= 0 ? 'text-success-600' : 'text-danger-500'}`}>
+                <span
+                  className={`font-semibold ${stats.profit >= 0 ? 'text-success-600' : 'text-danger-500'}`}
+                >
                   {formatMoney(stats.profit)}
                 </span>
                 <span
@@ -530,7 +543,10 @@ export function CollaborationsTab({
               value: s,
             }))}
           />,
-          <Tooltip key="add" title={!editable ? '项目已进入结算阶段，无法添加达人' : undefined}>
+          <Tooltip
+            key="add"
+            title={!editable ? '项目已进入结算阶段，无法添加达人' : undefined}
+          >
             <Button
               type="primary"
               icon={<PlusOutlined />}
