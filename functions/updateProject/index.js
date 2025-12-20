@@ -49,7 +49,7 @@ const PROJECTS_COLLECTION = process.env.MONGO_PROJECTS_COLLECTION || 'projects';
 
 // [v2.2] Add settlementFiles to allowed fields
 const ALLOWED_UPDATE_FIELDS = [
-    'name', 'qianchuanId', 'type', 'budget', 'benchmarkCPM', 'year', 'month',
+    'name', 'type', 'budget', 'benchmarkCPM', 'year', 'month',
     'financialYear', 'financialMonth', 'discount', 'capitalRateId',
     'status', 'adjustments', 'projectFiles', 'trackingStatus', 'trackingEnabled',
     // v1.6: v4.4 业务类型改造新增字段

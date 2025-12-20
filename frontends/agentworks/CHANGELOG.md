@@ -1,5 +1,75 @@
 # AgentWorks 更新日志
 
+## v5.3.0 (2025-12-20) 🔒 - 项目状态权限控制 + 状态变更交互
+
+### ✨ 新功能：项目状态变更
+
+#### 项目列表页状态变更
+- **Dropdown 交互组件**
+  - 点击状态标签展开下拉菜单
+  - 支持「回退」和「推进」两个选项
+  - 显示目标状态名称，操作清晰明确
+  - 使用 Ant Design Dropdown，深色模式兼容
+
+- **四阶段项目状态流程**
+  | 状态 | 中文名 | 可执行操作 |
+  |------|--------|-----------|
+  | executing | 执行中 | 推进 → 待结算 |
+  | pending_settlement | 待结算 | 回退 → 执行中，推进 → 已收款 |
+  | settled | 已收款 | 回退 → 待结算，推进 → 已终结 |
+  | closed | 已终结 | 回退 → 已收款 |
+
+#### 项目详情页状态变更
+- **Popover 悬停交互**
+  - 鼠标悬停显示回退/推进选项
+  - 点击状态标签直接推进到下一阶段
+  - 最终状态显示「已是最终状态」提示
+
+### 🔒 权限控制：编辑功能锁定
+
+#### 规则：只有「执行中」状态可编辑
+- **待结算/已收款/已终结** 状态下，以下功能被禁用：
+
+| 功能 | 页面 | 禁用内容 |
+|------|------|---------|
+| 编辑项目 | ProjectDetail | 「编辑项目」按钮灰显 + Tooltip |
+| 合作达人 | CollaborationsTab | 添加、编辑、删除按钮禁用；隐藏行选择 |
+| 执行追踪 | ExecutionTab | 行内编辑按钮禁用；editable 配置移除 |
+
+- **Tooltip 提示**：禁用按钮悬停显示「项目已进入结算阶段，无法编辑」
+
+### 🐛 Bug 修复
+
+#### 财务管理刷新按钮
+- **问题**: 刷新按钮调用 `actionRef.current?.reload()` 无效
+- **原因**: ProTable 使用 `dataSource` 而非 `request`，reload 不会触发数据刷新
+- **修复**: 改为调用 `loadCollaborations()` + `onRefresh?.()` 双重刷新
+
+### 📁 修改文件
+
+**前端** (5个):
+- `ProjectDetail.tsx` - 添加 `isExecuting` 判断，禁用编辑按钮，传递 `editable` prop
+- `CollaborationsTab.tsx` - 新增 `editable` prop，禁用添加/编辑/删除/批量操作
+- `ExecutionTab.tsx` - 新增 `editable` prop，禁用行内编辑
+- `FinancialTab.tsx` - 修复刷新按钮逻辑
+- `ProjectList.tsx` - 添加状态变更 Dropdown
+
+**类型** (1个):
+- `project.ts` - 添加 `collaborations` 可选属性（修复 TypeScript 错误）
+
+**云函数** (3个):
+- `getProjects/index.js` - 移除 `qianchuanId` 字段
+- `updateProject/index.js` - 移除 `qianchuanId` 允许更新
+- `getCollaborators/index.js` - v7.2 新增 platform/status/pageSize 筛选参数
+
+### 📊 技术细节
+
+- **状态判断**: `project.status === 'executing'` 作为 `isExecuting` 布尔值
+- **组件传参**: `editable={isExecuting}` 传递给子组件
+- **默认值**: `editable = true`（向后兼容）
+
+---
+
 ## v4.2.0 (2025-12-14) 💰 - 返点系统全面升级 + 批量操作扩容
 
 ### ✨ 新功能：返点系统升级
@@ -1627,6 +1697,6 @@ mongosh agentworks_db --file database/agentworks_db/scripts/fix-update-date-to-s
 ---
 
 **维护者**: Claude Code
-**最后更新**: 2025-12-14
+**最后更新**: 2025-12-20
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

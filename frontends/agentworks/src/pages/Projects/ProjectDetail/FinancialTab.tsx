@@ -1531,7 +1531,11 @@ export function FinancialTab({
                     <Button
                       size="small"
                       icon={<CheckSquareOutlined />}
-                      onClick={() => actionRef.current?.reload()}
+                      onClick={() => {
+                        loadCollaborations();
+                        onRefresh?.();
+                      }}
+                      loading={loading}
                     >
                       刷新
                     </Button>

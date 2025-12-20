@@ -256,9 +256,6 @@ export interface Project {
 
   capitalRateId?: string; // 资金费率配置ID
 
-  /** @deprecated v4.5 已移除 */
-  qianchuanId?: string; // 千川ID
-
   // 多平台支持
   platforms: Platform[];
 
@@ -271,6 +268,9 @@ export interface Project {
 
   // 统计缓存
   stats?: ProjectStats;
+
+  // 关联的合作记录（仅在项目详情视图中返回，由后端 lookup 填充）
+  collaborations?: Collaboration[];
 
   // 元数据
   createdAt: string;
@@ -749,6 +749,7 @@ export interface GetCollaborationsParams {
   pageSize?: number;
   platform?: Platform;
   status?: CollaborationStatus;
+  statuses?: string; // 多个状态，逗号分隔
 }
 
 // ============================================================================

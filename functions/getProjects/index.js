@@ -392,7 +392,7 @@ exports.handler = async (event, context) => {
 
         {
           $project: {
-             _id: 0, id: 1, name: 1, qianchuanId: 1, type: 1, year: 1, month: 1, financialYear: 1, financialMonth: 1,
+             _id: 0, id: 1, name: 1, type: 1, year: 1, month: 1, financialYear: 1, financialMonth: 1,
             status: 1, discount: 1, capitalRateId: 1, adjustments: 1, auditLog: 1, createdAt: 1, updatedAt: 1, budget: 1,
             benchmarkCPM: 1,
             // [v6.1 新增] 项目编号和业务类型

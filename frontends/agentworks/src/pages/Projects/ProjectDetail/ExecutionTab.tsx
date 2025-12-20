@@ -17,6 +17,7 @@ import {
   App,
   Button,
   Tooltip,
+  Select,
 } from 'antd';
 import {
   CheckCircleOutlined,
@@ -33,7 +34,6 @@ import type {
 } from '../../../types/project';
 import {
   COLLABORATION_STATUS_COLORS,
-  COLLABORATION_STATUS_VALUE_ENUM,
   formatMoney,
   isDelayed,
 } from '../../../types/project';
@@ -46,6 +46,13 @@ import {
 import { logger } from '../../../utils/logger';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 import { useTalentLinks } from '../../../hooks/useTalentLinks';
+import { FINANCE_VALID_STATUSES } from '../../../utils/financeCalculator';
+
+// 执行追踪 Tab 可用的状态筛选选项（排除"待提报工作台"和"工作台已提交"）
+const EXECUTION_STATUS_OPTIONS: CollaborationStatus[] = [
+  '客户已定档',
+  '视频已发布',
+];
 
 /**
  * KPI 统计数据
@@ -62,12 +69,15 @@ interface ExecutionTabProps {
   projectId: string;
   platforms: Platform[];
   onRefresh?: () => void;
+  /** 是否可编辑（项目状态为「执行中」时才可编辑） */
+  editable?: boolean;
 }
 
 export function ExecutionTab({
   projectId,
   platforms,
   onRefresh,
+  editable = true,
 }: ExecutionTabProps) {
   const { message } = App.useApp();
   const actionRef = useRef<ActionType>(null);
@@ -98,10 +108,10 @@ export function ExecutionTab({
   const [editableKeys, setEditableKeys] = useState<React.Key[]>([]);
   const [editableForm] = Form.useForm();
 
-  // 筛选状态
+  // 筛选状态（默认筛选"客户已定档"和"视频已发布"）
   const [platformFilter, setPlatformFilter] = useState<Platform | ''>('');
-  const [statusFilter, setStatusFilter] = useState<CollaborationStatus | ''>(
-    ''
+  const [statusFilter, setStatusFilter] = useState<CollaborationStatus[]>(
+    FINANCE_VALID_STATUSES
   );
 
   /**
@@ -147,7 +157,7 @@ export function ExecutionTab({
         page: 1,
         pageSize: 500, // 加载所有用于统计
         platform: platformFilter || undefined,
-        status: statusFilter || undefined,
+        statuses: statusFilter.length > 0 ? statusFilter.join(',') : undefined,
       });
 
       if (response.success) {
@@ -175,7 +185,7 @@ export function ExecutionTab({
     } finally {
       setLoading(false);
     }
-  }, [projectId, platformFilter, statusFilter, message]);
+  }, [projectId, platformFilter, statusFilter.join(','), message]);
 
   useEffect(() => {
     loadCollaborations();
@@ -265,17 +275,6 @@ export function ExecutionTab({
     }
   };
 
-  /**
-   * 生成平台筛选选项
-   */
-  const getPlatformOptions = () => {
-    const options: Record<string, { text: string }> = {};
-    platforms.forEach(p => {
-      options[p] = { text: platformNames[p] || p };
-    });
-    return options;
-  };
-
   const columns: ProColumns<Collaboration>[] = [
     {
       title: '达人昵称',
@@ -293,8 +292,7 @@ export function ExecutionTab({
       title: '平台',
       dataIndex: 'talentPlatform',
       width: 100,
-      valueType: 'select',
-      valueEnum: getPlatformOptions(),
+      search: false,
       editable: false,
       render: (_, record) => (
         <Tag color={platformColors[record.talentPlatform] || 'default'}>
@@ -306,8 +304,7 @@ export function ExecutionTab({
       title: '状态',
       dataIndex: 'status',
       width: 120,
-      valueType: 'select',
-      valueEnum: COLLABORATION_STATUS_VALUE_ENUM,
+      search: false,
       editable: false,
       render: (_, record) => (
         <Tag color={COLLABORATION_STATUS_COLORS[record.status]}>
@@ -466,14 +463,15 @@ export function ExecutionTab({
     {
       title: '操作',
       valueType: 'option',
-      width: 60,
+      width: 120,
       fixed: 'right',
       render: (_, record, __, action) => [
-        <Tooltip key="edit" title="编辑">
+        <Tooltip key="edit" title={editable ? '编辑' : '项目已进入结算阶段，无法编辑'}>
           <Button
             type="text"
             size="small"
             icon={<EditOutlined />}
+            disabled={!editable}
             onClick={() => {
               action?.startEditable?.(record.id);
             }}
@@ -573,7 +571,7 @@ export function ExecutionTab({
         dataSource={collaborations}
         loading={loading}
         rowKey="id"
-        editable={{
+        editable={editable ? {
           type: 'single',
           form: editableForm,
           editableKeys,
@@ -582,31 +580,48 @@ export function ExecutionTab({
           actionRender: (_row, _config, dom) => [dom.save, dom.cancel],
           saveText: '保存',
           cancelText: '取消',
-        }}
+        } : undefined}
         pagination={{
           pageSize: 20,
           showSizeChanger: true,
           showQuickJumper: true,
           showTotal: t => `共 ${t} 条`,
         }}
-        search={{
-          labelWidth: 80,
-          span: 8,
-          defaultCollapsed: true,
-        }}
-        onSubmit={params => {
-          setPlatformFilter((params.talentPlatform as Platform) || '');
-          setStatusFilter((params.status as CollaborationStatus) || '');
-        }}
-        onReset={() => {
-          setPlatformFilter('');
-          setStatusFilter('');
-        }}
+        search={false}
         dateFormatter="string"
-        headerTitle="执行明细"
-        scroll={{ x: 1400 }}
+        headerTitle={false}
+        toolBarRender={() => [
+          <Select
+            key="platform"
+            placeholder="选择平台"
+            allowClear
+            style={{ width: 120 }}
+            value={platformFilter || undefined}
+            onChange={v => setPlatformFilter(v || '')}
+            options={platforms.map(p => ({
+              label: platformNames[p] || p,
+              value: p,
+            }))}
+          />,
+          <Select
+            key="status"
+            mode="multiple"
+            placeholder="选择状态"
+            allowClear
+            maxTagCount="responsive"
+            style={{ width: 200 }}
+            value={statusFilter.length > 0 ? statusFilter : undefined}
+            onChange={v => setStatusFilter(v || [])}
+            options={EXECUTION_STATUS_OPTIONS.map(s => ({
+              label: s,
+              value: s,
+            }))}
+          />,
+        ]}
+        scroll={{ x: 1460 }}
         options={{
           fullScreen: true,
+          reload: () => loadCollaborations(),
           density: true,
           setting: true,
         }}

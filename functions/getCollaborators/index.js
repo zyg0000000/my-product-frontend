@@ -1,7 +1,12 @@
 /**
  * @file getCollaborators.js
- * @version 7.1 - 支持 hybrid 定价模式
+ * @version 7.2 - 支持平台和状态筛选
  * @description 获取合作记录列表，支持 v1 (byteproject) 和 v2 (agentworks) 数据库。
+ *
+ * --- v7.2 更新日志 ---
+ * - [筛选功能] v2 模式新增 platform 参数支持按平台筛选
+ * - [筛选功能] v2 模式新增 status 参数支持单个状态筛选（兼容已有的 statuses 多状态筛选）
+ * - [分页修复] v2 模式支持 pageSize 参数（映射到 limit）
  *
  * --- v7.1 更新日志 ---
  * - [v5.2 定价模式] v2 投影新增 pricingMode, quotationPrice, orderPrice 字段返回
@@ -442,13 +447,17 @@ async function handleV2Request(queryParams, db, collections) {
     allowGlobal,
     page = '1',
     limit = '10',
+    pageSize, // 前端使用 pageSize，映射到 limit
     sortBy = 'createdAt',
     order = 'desc',
     statuses,
+    status, // 单个状态筛选（前端发送）
+    platform, // 平台筛选（前端发送）
   } = queryParams;
 
   const pageNum = parseInt(page, 10);
-  const limitNum = parseInt(limit, 10);
+  // 优先使用 pageSize，回退到 limit
+  const limitNum = parseInt(pageSize || limit, 10);
   const skipNum = (pageNum - 1) * limitNum;
   const sortOrder = order === 'asc' ? 1 : -1;
 
@@ -495,6 +504,13 @@ async function handleV2Request(queryParams, db, collections) {
   const matchStage = {};
   if (projectId) matchStage.projectId = projectId;
   if (collaborationId) matchStage.id = collaborationId;
+
+  // 平台筛选（v7.2 新增）
+  if (platform) {
+    matchStage.talentPlatform = platform;
+  }
+
+  // 状态筛选：支持 statuses（逗号分隔多个）或 status（单个）
   if (statuses) {
     const statusArray = statuses
       .split(',')
@@ -503,6 +519,9 @@ async function handleV2Request(queryParams, db, collections) {
     if (statusArray.length > 0) {
       matchStage.status = { $in: statusArray };
     }
+  } else if (status) {
+    // 单个状态筛选
+    matchStage.status = status;
   }
 
   const aggregationPipeline = [];

@@ -8,22 +8,44 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Tabs, Spin, Button, Tag, Card, Empty, Progress, App } from 'antd';
+import {
+  Tabs,
+  Spin,
+  Button,
+  Tag,
+  Card,
+  Empty,
+  Progress,
+  App,
+  Popover,
+  Tooltip,
+} from 'antd';
 import {
   EditOutlined,
   TeamOutlined,
   ScheduleOutlined,
   DollarOutlined,
   LineChartOutlined,
+  RightOutlined,
+  RollbackOutlined,
+  ArrowRightOutlined,
 } from '@ant-design/icons';
 import { projectApi } from '../../../services/projectApi';
-import type { Project, ProjectStats } from '../../../types/project';
+import type { Project } from '../../../types/project';
+import type { ProjectStatus } from '../../../types/project';
 import {
   PROJECT_STATUS_COLORS,
   PROJECT_STATUS_LABELS,
+  PROJECT_STATUS_OPTIONS,
   formatMoney,
-  calculateProgress,
+  normalizeBusinessTypes,
 } from '../../../types/project';
+import { BUSINESS_TYPES } from '../../../types/customer';
+import {
+  FINANCE_VALID_STATUSES,
+  createFinanceContextFromProject,
+  calculateProjectFinanceStats,
+} from '../../../utils/financeCalculator';
 import { PageTransition } from '../../../components/PageTransition';
 import { PageHeader } from '../../../components/PageHeader';
 import { CollaborationsTab } from './CollaborationsTab';
@@ -66,7 +88,11 @@ export function ProjectDetail() {
   const { message } = App.useApp();
 
   // 平台配置
-  const { getPlatformNames, getPlatformColors } = usePlatformConfig();
+  const {
+    configs: platformConfigs,
+    getPlatformNames,
+    getPlatformColors,
+  } = usePlatformConfig();
   const platformNames = useMemo(() => getPlatformNames(), [getPlatformNames]);
   const platformColors = useMemo(
     () => getPlatformColors(),
@@ -84,6 +110,59 @@ export function ProjectDetail() {
 
   // 编辑弹窗
   const [editModalOpen, setEditModalOpen] = useState(false);
+
+  // 状态变更
+  const [statusUpdating, setStatusUpdating] = useState(false);
+  const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
+
+  // 获取当前状态在流程中的索引
+  const currentStatusIndex = project
+    ? PROJECT_STATUS_OPTIONS.indexOf(project.status)
+    : 0;
+  const canAdvance = currentStatusIndex < PROJECT_STATUS_OPTIONS.length - 1;
+  const canRollback = currentStatusIndex > 0;
+
+  // 状态变更处理
+  const handleStatusChange = async (newStatus: ProjectStatus) => {
+    if (!project || statusUpdating) return;
+
+    try {
+      setStatusUpdating(true);
+      setStatusPopoverOpen(false);
+      const response = await projectApi.updateProject(project.id, {
+        status: newStatus,
+      });
+      if (response.success) {
+        message.success(
+          `项目状态已更新为「${PROJECT_STATUS_LABELS[newStatus]}」`
+        );
+        loadProject();
+      } else {
+        message.error('状态更新失败');
+      }
+    } catch (error) {
+      logger.error('Failed to update project status:', error);
+      message.error('状态更新失败');
+    } finally {
+      setStatusUpdating(false);
+    }
+  };
+
+  // 推进到下一阶段
+  const handleAdvanceStatus = () => {
+    if (canAdvance) {
+      const nextStatus = PROJECT_STATUS_OPTIONS[currentStatusIndex + 1];
+      handleStatusChange(nextStatus);
+    }
+  };
+
+  // 回退到上一阶段
+  const handleRollbackStatus = () => {
+    if (canRollback) {
+      const prevStatus = PROJECT_STATUS_OPTIONS[currentStatusIndex - 1];
+      handleStatusChange(prevStatus);
+    }
+  };
 
   // 当配置加载完成后，确保 activeTab 是可见的
   useEffect(() => {
@@ -138,6 +217,70 @@ export function ProjectDetail() {
     loadProject();
   };
 
+  // 从 collaborations 计算统计数据（仅有效状态：客户已定档、视频已发布）
+  // 注意：useMemo 必须在条件返回之前调用，遵循 React hooks 规则
+  const computedStats = useMemo(() => {
+    const collabs = project?.collaborations || [];
+    const validCollabs = collabs.filter(c =>
+      FINANCE_VALID_STATUSES.includes(c.status)
+    );
+
+    const collaborationCount = validCollabs.length;
+    const publishedCount = collabs.filter(
+      c => c.status === '视频已发布'
+    ).length;
+    const totalAmount = validCollabs.reduce(
+      (sum, c) => sum + (c.amount || 0),
+      0
+    );
+
+    // 预算使用率（%）
+    const budgetUtilization =
+      project?.budget && project.budget > 0
+        ? (totalAmount / project.budget) * 100
+        : 0;
+
+    // 计算财务数据（客户收入、基础利润）
+    let totalRevenue = 0;
+    let baseProfit = 0;
+    let baseProfitRate = 0;
+
+    if (project && platformConfigs.length > 0 && collabs.length > 0) {
+      const financeContext = createFinanceContextFromProject(
+        project,
+        platformConfigs
+      );
+      const financeStats = calculateProjectFinanceStats(
+        collabs,
+        financeContext,
+        undefined,
+        true // filterByStatus
+      );
+      totalRevenue = financeStats.totalRevenue;
+      baseProfit = financeStats.baseProfit;
+      baseProfitRate = financeStats.baseProfitRate;
+    }
+
+    return {
+      collaborationCount,
+      publishedCount,
+      totalAmount,
+      budgetUtilization,
+      totalRevenue,
+      baseProfit,
+      baseProfitRate,
+    };
+  }, [project, platformConfigs]);
+
+  // 执行进度计算
+  const progress =
+    computedStats.collaborationCount > 0
+      ? Math.round(
+          (computedStats.publishedCount / computedStats.collaborationCount) *
+            100
+        )
+      : 0;
+
   if (loading || configLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -156,11 +299,11 @@ export function ProjectDetail() {
     );
   }
 
-  const stats = project.stats || ({} as ProjectStats);
-  const progress = calculateProgress(stats);
-
   // Tab 可见性配置
   const { tabVisibility } = projectConfig;
+
+  // 编辑权限：只有「执行中」状态才能编辑合作达人和执行追踪
+  const isExecuting = project.status === 'executing';
 
   // Tab 项定义（全量）
   const allTabItems = [
@@ -171,9 +314,9 @@ export function ProjectDetail() {
         <span className="flex items-center gap-1">
           <TeamOutlined />
           合作达人
-          {stats.collaborationCount ? (
+          {computedStats.collaborationCount ? (
             <span className="ml-1 text-content-muted">
-              ({stats.collaborationCount})
+              ({computedStats.collaborationCount})
             </span>
           ) : null}
         </span>
@@ -183,7 +326,9 @@ export function ProjectDetail() {
           projectId={project.id}
           customerId={project.customerId}
           platforms={project.platforms}
+          project={project}
           onRefresh={refreshProject}
+          editable={isExecuting}
         />
       ),
     },
@@ -201,6 +346,7 @@ export function ProjectDetail() {
           projectId={project.id}
           platforms={project.platforms}
           onRefresh={refreshProject}
+          editable={isExecuting}
         />
       ),
     },
@@ -257,13 +403,16 @@ export function ProjectDetail() {
           onBack={() => navigate(-1)}
           backText="返回"
           extra={
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              onClick={() => setEditModalOpen(true)}
-            >
-              编辑项目
-            </Button>
+            <Tooltip title={!isExecuting ? '项目已进入结算阶段，无法编辑' : undefined}>
+              <Button
+                type="primary"
+                icon={<EditOutlined />}
+                onClick={() => setEditModalOpen(true)}
+                disabled={!isExecuting}
+              >
+                编辑项目
+              </Button>
+            </Tooltip>
           }
         />
 
@@ -276,6 +425,12 @@ export function ProjectDetail() {
                 <h1 className="text-xl font-semibold text-content truncate">
                   {project.name}
                 </h1>
+                {/* 业务类型标签 */}
+                {normalizeBusinessTypes(project.businessType).map(type => (
+                  <Tag key={type} color="blue" className="shrink-0">
+                    {BUSINESS_TYPES[type]?.name || type}
+                  </Tag>
+                ))}
                 {project.businessTag && (
                   <Tag className="shrink-0">{project.businessTag}</Tag>
                 )}
@@ -298,12 +453,68 @@ export function ProjectDetail() {
             </div>
             <div className="shrink-0 text-right">
               <div className="text-xs text-content-muted mb-1.5">当前状态</div>
-              <Tag
-                color={PROJECT_STATUS_COLORS[project.status]}
-                className="text-sm px-3 py-0.5"
+              <Popover
+                open={statusPopoverOpen}
+                onOpenChange={setStatusPopoverOpen}
+                trigger="hover"
+                placement="bottomRight"
+                content={
+                  <div className="flex flex-col gap-1 min-w-[140px]">
+                    {canRollback && (
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<RollbackOutlined />}
+                        onClick={handleRollbackStatus}
+                        loading={statusUpdating}
+                        className="justify-start text-left"
+                      >
+                        回退到「
+                        {
+                          PROJECT_STATUS_LABELS[
+                            PROJECT_STATUS_OPTIONS[currentStatusIndex - 1]
+                          ]
+                        }
+                        」
+                      </Button>
+                    )}
+                    {canAdvance && (
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<ArrowRightOutlined />}
+                        onClick={handleAdvanceStatus}
+                        loading={statusUpdating}
+                        className="justify-start text-left"
+                      >
+                        推进到「
+                        {
+                          PROJECT_STATUS_LABELS[
+                            PROJECT_STATUS_OPTIONS[currentStatusIndex + 1]
+                          ]
+                        }
+                        」
+                      </Button>
+                    )}
+                    {!canRollback && !canAdvance && (
+                      <span className="text-content-muted text-xs px-2 py-1">
+                        已是最终状态
+                      </span>
+                    )}
+                  </div>
+                }
               >
-                {PROJECT_STATUS_LABELS[project.status] || project.status}
-              </Tag>
+                <Tag
+                  color={PROJECT_STATUS_COLORS[project.status]}
+                  className="text-sm px-3 py-0.5 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={canAdvance ? handleAdvanceStatus : undefined}
+                >
+                  {PROJECT_STATUS_LABELS[project.status] || project.status}
+                  {canAdvance && (
+                    <RightOutlined className="ml-1 text-xs opacity-60" />
+                  )}
+                </Tag>
+              </Popover>
             </div>
           </div>
 
@@ -331,13 +542,13 @@ export function ProjectDetail() {
 
             <InfoItem label="执行金额">
               <span className="font-semibold">
-                {formatMoney(stats.totalAmount || 0)}
+                {formatMoney(computedStats.totalAmount)}
               </span>
             </InfoItem>
 
             <InfoItem label="合作达人">
               <span className="font-semibold">
-                {stats.collaborationCount || 0}
+                {computedStats.collaborationCount}
                 <span className="font-normal text-content-muted ml-0.5">
                   人
                 </span>
@@ -356,14 +567,52 @@ export function ProjectDetail() {
                   className="flex-1 max-w-[200px]"
                 />
                 <span className="text-xs text-content-secondary whitespace-nowrap shrink-0">
-                  {stats.publishedCount || 0}/{stats.collaborationCount || 0}{' '}
+                  {computedStats.publishedCount}/{computedStats.collaborationCount}{' '}
                   已发布
                 </span>
               </div>
             </InfoItem>
           </div>
 
-          {/* TODO: 底部区域预留给 KPI 卡片 */}
+          {/* 第二行：财务指标 */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 py-5">
+            <InfoItem label="预算使用率">
+              <span
+                className={`font-semibold ${
+                  computedStats.budgetUtilization > 100
+                    ? 'text-danger-500'
+                    : computedStats.budgetUtilization > 80
+                      ? 'text-warning-500'
+                      : 'text-success-600'
+                }`}
+              >
+                {computedStats.budgetUtilization.toFixed(1)}%
+              </span>
+            </InfoItem>
+
+            <InfoItem label="客户收入">
+              <span className="font-semibold text-primary-600">
+                {formatMoney(computedStats.totalRevenue)}
+              </span>
+            </InfoItem>
+
+            <InfoItem label="基础利润">
+              <div>
+                <span className="font-semibold">
+                  {formatMoney(computedStats.baseProfit)}
+                </span>
+                <span
+                  className={`ml-1 text-xs ${
+                    computedStats.baseProfitRate >= 0
+                      ? 'text-success-600'
+                      : 'text-danger-500'
+                  }`}
+                >
+                  {computedStats.baseProfitRate.toFixed(1)}%
+                </span>
+              </div>
+            </InfoItem>
+          </div>
         </Card>
 
         {/* Tab 切换 - 使用 card 类型样式 */}

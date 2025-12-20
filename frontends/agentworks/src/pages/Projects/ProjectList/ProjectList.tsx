@@ -6,8 +6,16 @@ import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Space, App, Checkbox, Tooltip } from 'antd';
-import { PlusOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons';
+import { Button, Tag, Space, App, Checkbox, Tooltip, Dropdown } from 'antd';
+import type { MenuProps } from 'antd';
+import {
+  PlusOutlined,
+  EyeOutlined,
+  EditOutlined,
+  RollbackOutlined,
+  ArrowRightOutlined,
+  DownOutlined,
+} from '@ant-design/icons';
 import type {
   ProjectListItem,
   ProjectStatus,
@@ -16,6 +24,7 @@ import type {
 import {
   PROJECT_STATUS_COLORS,
   PROJECT_STATUS_LABELS,
+  PROJECT_STATUS_OPTIONS,
   PROJECT_STATUS_VALUE_ENUM,
   formatMoney,
   generateYearValueEnum,
@@ -89,6 +98,9 @@ export function ProjectList() {
   const [editingProject, setEditingProject] = useState<ProjectListItem | null>(
     null
   );
+
+  // 状态变更
+  const [statusUpdating, setStatusUpdating] = useState<string | null>(null); // 正在更新的项目ID
 
   // 请求取消控制器
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -205,6 +217,77 @@ export function ProjectList() {
     loadProjects();
   };
 
+  /**
+   * 状态变更处理
+   */
+  const handleStatusChange = async (
+    projectId: string,
+    newStatus: ProjectStatus
+  ) => {
+    if (statusUpdating) return;
+
+    try {
+      setStatusUpdating(projectId);
+      const response = await projectApi.updateProject(projectId, {
+        status: newStatus,
+      });
+      if (response.success) {
+        message.success(
+          `项目状态已更新为「${PROJECT_STATUS_LABELS[newStatus]}」`
+        );
+        loadProjects();
+      } else {
+        message.error('状态更新失败');
+      }
+    } catch (error) {
+      logger.error('Failed to update project status:', error);
+      message.error('状态更新失败');
+    } finally {
+      setStatusUpdating(null);
+    }
+  };
+
+  /**
+   * 生成状态变更 Dropdown 菜单项
+   */
+  const getStatusMenuItems = (record: ProjectListItem): MenuProps['items'] => {
+    const currentIndex = PROJECT_STATUS_OPTIONS.indexOf(record.status);
+    const canAdvance = currentIndex < PROJECT_STATUS_OPTIONS.length - 1;
+    const canRollback = currentIndex > 0;
+
+    const items: MenuProps['items'] = [];
+
+    if (canRollback) {
+      items.push({
+        key: 'rollback',
+        icon: <RollbackOutlined />,
+        label: `回退到「${PROJECT_STATUS_LABELS[PROJECT_STATUS_OPTIONS[currentIndex - 1]]}」`,
+        onClick: () =>
+          handleStatusChange(record.id, PROJECT_STATUS_OPTIONS[currentIndex - 1]),
+      });
+    }
+
+    if (canAdvance) {
+      items.push({
+        key: 'advance',
+        icon: <ArrowRightOutlined />,
+        label: `推进到「${PROJECT_STATUS_LABELS[PROJECT_STATUS_OPTIONS[currentIndex + 1]]}」`,
+        onClick: () =>
+          handleStatusChange(record.id, PROJECT_STATUS_OPTIONS[currentIndex + 1]),
+      });
+    }
+
+    if (!canRollback && !canAdvance) {
+      items.push({
+        key: 'final',
+        label: '已是最终状态',
+        disabled: true,
+      });
+    }
+
+    return items;
+  };
+
   const columns: ProColumns<ProjectListItem>[] = [
     {
       title: '项目编号',
@@ -292,14 +375,28 @@ export function ProjectList() {
     {
       title: '状态',
       dataIndex: 'status',
-      width: 80,
+      width: 110,
       valueType: 'select',
       valueEnum: PROJECT_STATUS_VALUE_ENUM,
-      render: (_, record) => (
-        <Tag color={PROJECT_STATUS_COLORS[record.status]}>
-          {PROJECT_STATUS_LABELS[record.status]}
-        </Tag>
-      ),
+      render: (_, record) => {
+        const isUpdating = statusUpdating === record.id;
+
+        return (
+          <Dropdown
+            menu={{ items: getStatusMenuItems(record) }}
+            trigger={['click']}
+            disabled={isUpdating}
+          >
+            <Tag
+              color={PROJECT_STATUS_COLORS[record.status]}
+              className="cursor-pointer hover:opacity-80 transition-opacity select-none"
+            >
+              {PROJECT_STATUS_LABELS[record.status]}
+              <DownOutlined className="ml-1 text-xs opacity-60" />
+            </Tag>
+          </Dropdown>
+        );
+      },
     },
     {
       title: '年份',

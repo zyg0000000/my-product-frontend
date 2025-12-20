@@ -1340,44 +1340,50 @@ export function ProjectFormModal({
                                   <Space.Compact style={{ width: '100%' }}>
                                     <InputNumber
                                       placeholder={`输入${kpi.name}目标`}
-                                      style={{ width: 'calc(100% - 40px)' }}
+                                      style={{ width: '100%' }}
                                       min={0}
                                       precision={2}
                                       value={state.targets[kpiKey]}
-                                      onChange={value => {
-                                        setPlatformKPIStates(prev => {
-                                          const currentTargets =
-                                            prev[platform]?.targets || {};
-                                          const newTargets = {
-                                            ...currentTargets,
-                                          };
-                                          if (
-                                            value !== null &&
-                                            value !== undefined
-                                          ) {
-                                            newTargets[kpiKey] = value;
-                                          } else {
-                                            delete newTargets[kpiKey];
-                                          }
-                                          return {
-                                            ...prev,
-                                            [platform]: {
-                                              ...prev[platform],
-                                              targets: newTargets,
-                                            },
-                                          };
-                                        });
-                                      }}
+                                    onChange={value => {
+                                      setPlatformKPIStates(prev => {
+                                        const currentTargets =
+                                          prev[platform]?.targets || {};
+                                        const newTargets = {
+                                          ...currentTargets,
+                                        };
+                                        if (
+                                          value !== null &&
+                                          value !== undefined
+                                        ) {
+                                          newTargets[kpiKey] = value;
+                                        } else {
+                                          delete newTargets[kpiKey];
+                                        }
+                                        return {
+                                          ...prev,
+                                          [platform]: {
+                                            ...prev[platform],
+                                            targets: newTargets,
+                                          },
+                                        };
+                                      });
+                                    }}
                                     />
-                                    <Input
+                                    <span
                                       style={{
-                                        width: 40,
-                                        pointerEvents: 'none',
-                                        textAlign: 'center',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        padding: '0 12px',
+                                        marginLeft: 8,
+                                        backgroundColor: 'var(--aw-gray-100)',
+                                        border: '1px solid var(--aw-gray-300)',
+                                        borderRadius: 'var(--aw-radius-md)',
+                                        color: 'var(--aw-gray-700)',
+                                        fontSize: 14,
                                       }}
-                                      defaultValue={kpi.unit}
-                                      disabled
-                                    />
+                                    >
+                                      {kpi.unit}
+                                    </span>
                                   </Space.Compact>
                                 </div>
                               </Col>

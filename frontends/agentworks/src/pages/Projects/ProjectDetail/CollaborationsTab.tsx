@@ -21,13 +21,18 @@ import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type {
   Collaboration,
   CollaborationStatus,
+  Project,
 } from '../../../types/project';
 import {
   COLLABORATION_STATUS_COLORS,
-  COLLABORATION_STATUS_VALUE_ENUM,
   COLLABORATION_STATUS_OPTIONS,
   formatMoney,
 } from '../../../types/project';
+import {
+  createFinanceContextFromProject,
+  batchCalculateFinance,
+  type FinanceCalculationContext,
+} from '../../../utils/financeCalculator';
 import type { Platform } from '../../../types/talent';
 import { projectApi } from '../../../services/projectApi';
 import { CollaborationFormModal } from './CollaborationFormModal';
@@ -42,29 +47,42 @@ interface CollaborationsTabProps {
   projectId: string;
   customerId: string; // v2.1: 用于获取客户级返点
   platforms: Platform[];
+  /** 项目数据（用于财务计算） */
+  project?: Project;
   onRefresh?: () => void;
+  /** 是否可编辑（项目状态为「执行中」时才可编辑） */
+  editable?: boolean;
 }
 
 export function CollaborationsTab({
   projectId,
   customerId,
   platforms,
+  project,
   onRefresh,
+  editable = true,
 }: CollaborationsTabProps) {
   const { message } = App.useApp();
   const navigate = useNavigate();
   const actionRef = useRef<ActionType>(null);
 
   // 平台配置
-  const { getPlatformNames, getPlatformColors } = usePlatformConfig();
+  const { configs: platformConfigs, getPlatformNames, getPlatformColors } = usePlatformConfig();
   const platformNames = useMemo(() => getPlatformNames(), [getPlatformNames]);
   const platformColors = useMemo(
     () => getPlatformColors(),
     [getPlatformColors]
   );
 
+  // 财务计算上下文
+  const financeContext = useMemo<FinanceCalculationContext | null>(() => {
+    if (!project || platformConfigs.length === 0) return null;
+    return createFinanceContextFromProject(project, platformConfigs);
+  }, [project, platformConfigs]);
+
   // 数据状态
   const [loading, setLoading] = useState(true);
+  const [rawCollaborations, setRawCollaborations] = useState<Collaboration[]>([]);
   const [collaborations, setCollaborations] = useState<Collaboration[]>([]);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -72,9 +90,7 @@ export function CollaborationsTab({
 
   // 筛选状态
   const [platformFilter, setPlatformFilter] = useState<Platform | ''>('');
-  const [statusFilter, setStatusFilter] = useState<CollaborationStatus | ''>(
-    ''
-  );
+  const [statusFilter, setStatusFilter] = useState<CollaborationStatus[]>([]);
 
   // 弹窗状态
   const [formModalOpen, setFormModalOpen] = useState(false);
@@ -100,30 +116,53 @@ export function CollaborationsTab({
         page: currentPage,
         pageSize,
         platform: platformFilter || undefined,
-        status: statusFilter || undefined,
+        statuses: statusFilter.length > 0 ? statusFilter.join(',') : undefined,
       });
 
       if (response.success) {
-        setCollaborations(response.data.items);
+        setRawCollaborations(response.data.items);
         setTotal(response.data.total);
       } else {
-        setCollaborations([]);
+        setRawCollaborations([]);
         setTotal(0);
         message.error('获取合作记录失败');
       }
     } catch (error) {
       logger.error('Error loading collaborations:', error);
       message.error('获取合作记录失败');
-      setCollaborations([]);
+      setRawCollaborations([]);
       setTotal(0);
     } finally {
       setLoading(false);
     }
-  }, [projectId, currentPage, pageSize, platformFilter, statusFilter, message]);
+  }, [
+    projectId,
+    currentPage,
+    pageSize,
+    platformFilter,
+    statusFilter.join(','),
+    message,
+  ]);
 
   useEffect(() => {
     loadCollaborations();
   }, [loadCollaborations]);
+
+  // 当原始数据或财务上下文变化时，计算财务字段
+  useEffect(() => {
+    if (rawCollaborations.length === 0) {
+      setCollaborations([]);
+      return;
+    }
+
+    // 如果有财务计算上下文，计算财务数据
+    if (financeContext) {
+      const calculatedItems = batchCalculateFinance(rawCollaborations, financeContext);
+      setCollaborations(calculatedItems);
+    } else {
+      setCollaborations(rawCollaborations);
+    }
+  }, [rawCollaborations, financeContext]);
 
   /**
    * 删除合作记录
@@ -212,17 +251,6 @@ export function CollaborationsTab({
     }
   };
 
-  /**
-   * 生成平台筛选选项
-   */
-  const getPlatformOptions = () => {
-    const options: Record<string, { text: string }> = {};
-    platforms.forEach(p => {
-      options[p] = { text: platformNames[p] || p };
-    });
-    return options;
-  };
-
   const columns: ProColumns<Collaboration>[] = [
     {
       title: '达人昵称',
@@ -243,8 +271,7 @@ export function CollaborationsTab({
       title: '平台',
       dataIndex: 'talentPlatform',
       width: 100,
-      valueType: 'select',
-      valueEnum: getPlatformOptions(),
+      search: false,
       render: (_, record) => (
         <Tag color={platformColors[record.talentPlatform] || 'default'}>
           {platformNames[record.talentPlatform] || record.talentPlatform}
@@ -255,8 +282,7 @@ export function CollaborationsTab({
       title: '状态',
       dataIndex: 'status',
       width: 120,
-      valueType: 'select',
-      valueEnum: COLLABORATION_STATUS_VALUE_ENUM,
+      search: false,
       render: (_, record) => (
         <Tag color={COLLABORATION_STATUS_COLORS[record.status]}>
           {record.status}
@@ -271,7 +297,7 @@ export function CollaborationsTab({
       render: (_, record) => record.talentSource || '-',
     },
     {
-      title: '执行金额',
+      title: '刊例价',
       dataIndex: 'amount',
       width: 120,
       search: false,
@@ -288,18 +314,58 @@ export function CollaborationsTab({
         record.rebateRate ? `${record.rebateRate}%` : '-',
     },
     {
+      title: '客户收入',
+      dataIndex: ['finance', 'revenue'],
+      width: 120,
+      search: false,
+      render: (_, record) => {
+        const revenue = record.finance?.revenue;
+        if (revenue === undefined) return '-';
+        return (
+          <span className="font-semibold text-primary-600">
+            {formatMoney(revenue)}
+          </span>
+        );
+      },
+    },
+    {
+      title: (
+        <Tooltip title="基础利润 = 收入 - 成本 + 返点收入">基础利润</Tooltip>
+      ),
+      dataIndex: ['finance', 'profit'],
+      width: 140,
+      search: false,
+      render: (_, record) => {
+        const profit = record.finance?.profit;
+        const revenue = record.finance?.revenue;
+        if (profit === undefined) return '-';
+        const profitRate = revenue ? (profit / revenue) * 100 : 0;
+        return (
+          <div>
+            <span className="font-semibold">{formatMoney(profit)}</span>
+            <span
+              className={`ml-1 text-xs ${profitRate >= 0 ? 'text-success-600' : 'text-danger-500'}`}
+            >
+              {profitRate.toFixed(1)}%
+            </span>
+          </div>
+        );
+      },
+    },
+    {
       title: '操作',
       valueType: 'option',
       width: 80,
       fixed: 'right',
       render: (_, record) => (
         <Space size={4}>
-          <Tooltip title="编辑">
+          <Tooltip title={editable ? '编辑' : '项目已进入结算阶段，无法编辑'}>
             <Button
               type="text"
               size="small"
               icon={<EditOutlined />}
               onClick={() => handleEdit(record)}
+              disabled={!editable}
             />
           </Tooltip>
           <Popconfirm
@@ -308,13 +374,15 @@ export function CollaborationsTab({
             onConfirm={() => handleDelete(record.id)}
             okText="确定"
             cancelText="取消"
+            disabled={!editable}
           >
-            <Tooltip title="删除">
+            <Tooltip title={editable ? '删除' : '项目已进入结算阶段，无法删除'}>
               <Button
                 type="text"
                 size="small"
                 danger
                 icon={<DeleteOutlined />}
+                disabled={!editable}
               />
             </Tooltip>
           </Popconfirm>
@@ -332,13 +400,74 @@ export function CollaborationsTab({
         dataSource={collaborations}
         loading={loading}
         rowKey="id"
-        rowSelection={{
+        rowSelection={editable ? {
           selectedRowKeys,
           onChange: keys => setSelectedRowKeys(keys),
+        } : undefined}
+        tableAlertRender={({ selectedRowKeys: keys }) => {
+          // 计算选中项的统计数据
+          const selectedItems = collaborations.filter(c =>
+            keys.includes(c.id)
+          );
+          const stats = selectedItems.reduce(
+            (acc, item) => {
+              const amount = item.amount ?? 0;
+              const rebateRate = item.rebateRate ?? 0;
+              const revenue = item.finance?.revenue ?? 0;
+              const profit = item.finance?.profit ?? 0;
+              return {
+                count: acc.count + 1,
+                amount: acc.amount + amount,
+                // 加权返点：刊例价 × 返点率
+                weightedRebate: acc.weightedRebate + amount * rebateRate,
+                revenue: acc.revenue + revenue,
+                profit: acc.profit + profit,
+              };
+            },
+            { count: 0, amount: 0, weightedRebate: 0, revenue: 0, profit: 0 }
+          );
+          // 加权平均返点率 = Σ(刊例价 × 返点率) / Σ(刊例价)
+          const avgRebateRate = stats.amount > 0 ? stats.weightedRebate / stats.amount : 0;
+          const profitRate = stats.revenue > 0 ? (stats.profit / stats.revenue) * 100 : 0;
+
+          return (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span className="font-medium">
+                已选择 {keys.length} 人
+              </span>
+              <span className="text-gray-300">|</span>
+              <span>
+                刊例价{' '}
+                <span className="font-semibold">
+                  {formatMoney(stats.amount)}
+                </span>
+              </span>
+              <span>
+                返点率{' '}
+                <span className="font-semibold">
+                  {avgRebateRate.toFixed(1)}%
+                </span>
+              </span>
+              <span>
+                客户收入{' '}
+                <span className="font-semibold text-primary-600">
+                  {formatMoney(stats.revenue)}
+                </span>
+              </span>
+              <span>
+                基础利润{' '}
+                <span className={`font-semibold ${stats.profit >= 0 ? 'text-success-600' : 'text-danger-500'}`}>
+                  {formatMoney(stats.profit)}
+                </span>
+                <span
+                  className={`ml-1 text-xs ${profitRate >= 0 ? 'text-success-600' : 'text-danger-500'}`}
+                >
+                  ({profitRate.toFixed(1)}%)
+                </span>
+              </span>
+            </div>
+          );
         }}
-        tableAlertRender={({ selectedRowKeys }) => (
-          <span>已选择 {selectedRowKeys.length} 项</span>
-        )}
         tableAlertOptionRender={() => (
           <Space>
             <Button
@@ -365,36 +494,57 @@ export function CollaborationsTab({
             setPageSize(size);
           },
         }}
-        search={{
-          labelWidth: 80,
-          span: 8,
-          defaultCollapsed: true,
-        }}
-        onSubmit={params => {
-          setPlatformFilter((params.talentPlatform as Platform) || '');
-          setStatusFilter((params.status as CollaborationStatus) || '');
-          setCurrentPage(1);
-        }}
-        onReset={() => {
-          setPlatformFilter('');
-          setStatusFilter('');
-          setCurrentPage(1);
-        }}
+        search={false}
         dateFormatter="string"
         headerTitle={false}
         toolBarRender={() => [
-          <Button
-            key="add"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleCreate}
-          >
-            添加达人
-          </Button>,
+          <Select
+            key="platform"
+            placeholder="选择平台"
+            allowClear
+            style={{ width: 120 }}
+            value={platformFilter || undefined}
+            onChange={v => {
+              setPlatformFilter(v || '');
+              setCurrentPage(1);
+            }}
+            options={platforms.map(p => ({
+              label: platformNames[p] || p,
+              value: p,
+            }))}
+          />,
+          <Select
+            key="status"
+            mode="multiple"
+            placeholder="选择状态"
+            allowClear
+            maxTagCount="responsive"
+            style={{ width: 200 }}
+            value={statusFilter.length > 0 ? statusFilter : undefined}
+            onChange={v => {
+              setStatusFilter(v || []);
+              setCurrentPage(1);
+            }}
+            options={COLLABORATION_STATUS_OPTIONS.map(s => ({
+              label: s,
+              value: s,
+            }))}
+          />,
+          <Tooltip key="add" title={!editable ? '项目已进入结算阶段，无法添加达人' : undefined}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleCreate}
+              disabled={!editable}
+            >
+              添加达人
+            </Button>
+          </Tooltip>,
         ]}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 1460 }}
         options={{
           fullScreen: true,
+          reload: () => loadCollaborations(),
           density: true,
           setting: true,
         }}

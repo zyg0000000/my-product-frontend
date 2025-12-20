@@ -550,6 +550,13 @@
   margin-left: var(--aw-space-gap-sm) !important; /* 8px */
 }
 
+/* InputNumber addonAfter 单位标签样式 */
+.ant-input-number-group-addon {
+  padding: 0 var(--aw-space-3) !important; /* 12px 内边距 */
+  margin-left: 20px !important; /* 20px 与输入框的间距 */
+  border-radius: var(--aw-radius-md) !important;
+}
+
 /* Segmented 组件 - 内部间距 */
 .ant-segmented {
   padding: var(--aw-space-1) !important; /* 4px */
