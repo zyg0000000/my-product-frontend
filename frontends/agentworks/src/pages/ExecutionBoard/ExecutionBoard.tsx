@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { Spin, Empty } from 'antd';
-import { PageHeader } from '../../components/PageHeader';
+import { PageTransition } from '../../components/PageTransition';
 import { FilterBar } from './components/FilterBar';
 import { KPIPanel } from './components/KPIPanel';
 import { WeekOverview } from './components/WeekOverview';
@@ -134,10 +134,15 @@ export function ExecutionBoard() {
   const hasData = filters.customerId && filters.projectIds.length > 0;
 
   return (
-    <div className="min-h-screen bg-surface-subtle">
-      <PageHeader title="执行看板" description="跨项目发布计划管理" />
-
-      <div className="px-6 py-5 space-y-5">
+    <PageTransition>
+      <div className="space-y-6">
+        {/* 页面标题 */}
+        <div>
+          <h1 className="text-2xl font-bold text-content">执行看板</h1>
+          <p className="mt-2 text-sm text-content-secondary">
+            跨项目发布计划管理
+          </p>
+        </div>
         {/* 筛选栏 */}
         <FilterBar
           customers={customers}
@@ -209,22 +214,22 @@ export function ExecutionBoard() {
             />
           </>
         )}
+
+        {/* 编辑弹窗 */}
+        <EditModal
+          collaboration={editingCollab}
+          open={!!editingCollab}
+          onSave={handleSave}
+          onCancel={() => setEditingCollab(null)}
+        />
+
+        {/* 查看弹窗 */}
+        <ViewModal
+          collaboration={viewingCollab}
+          open={!!viewingCollab}
+          onClose={() => setViewingCollab(null)}
+        />
       </div>
-
-      {/* 编辑弹窗 */}
-      <EditModal
-        collaboration={editingCollab}
-        open={!!editingCollab}
-        onSave={handleSave}
-        onCancel={() => setEditingCollab(null)}
-      />
-
-      {/* 查看弹窗 */}
-      <ViewModal
-        collaboration={viewingCollab}
-        open={!!viewingCollab}
-        onClose={() => setViewingCollab(null)}
-      />
-    </div>
+    </PageTransition>
   );
 }

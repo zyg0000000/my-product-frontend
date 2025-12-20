@@ -240,6 +240,7 @@
     background-color: var(--color-bg-elevated);
     border: 1px solid var(--color-border);
     box-shadow: var(--aw-shadow-card);
+    overflow: hidden;
   }
 
   .card-hover {
@@ -370,6 +371,13 @@
    ======================================== */
 
 @layer utilities {
+  /* 带圆角的 surface 容器 - 自动添加 overflow:hidden 防止子元素背景溢出 */
+  .bg-surface.rounded-lg,
+  .bg-surface.rounded-xl,
+  .bg-surface.rounded-2xl {
+    overflow: hidden;
+  }
+
   /* 文字截断 */
   .line-clamp-1 {
     display: -webkit-box;
@@ -422,29 +430,99 @@
    6. Ant Design 样式覆盖
    ======================================== */
 
-/* 统一圆角 */
-.ant-btn {
+/* 统一圆角 - 高优先级覆盖 Ant Design 默认样式 */
+.ant-btn,
+.ant-btn.ant-btn-default,
+.ant-btn.ant-btn-primary,
+.ant-btn.ant-btn-text,
+.ant-btn.ant-btn-link {
   border-radius: var(--aw-radius-md) !important;
 }
 
 .ant-input,
+.ant-input:hover,
+.ant-input:focus,
+.ant-input:focus-within,
 .ant-input-affix-wrapper,
+.ant-input-affix-wrapper:hover,
+.ant-input-affix-wrapper:focus,
+.ant-input-affix-wrapper:focus-within,
+.ant-input-affix-wrapper-focused,
+.ant-input-affix-wrapper .ant-input,
+.ant-select .ant-select-selector,
+.ant-select .ant-select-selector:hover,
+.ant-select-focused .ant-select-selector,
 .ant-select-selector,
+.ant-select-selector:hover,
 .ant-picker,
-.ant-input-number {
+.ant-picker:hover,
+.ant-picker-focused,
+.ant-picker-range,
+.ant-picker-range:hover,
+.ant-input-number,
+.ant-input-number:hover,
+.ant-input-number:focus,
+.ant-input-number-focused,
+.ant-input-number-input,
+.ant-input-search .ant-input,
+.ant-input-search .ant-input:hover,
+.ant-input-search .ant-input:focus,
+.ant-input-search .ant-input-affix-wrapper,
+.ant-input-search .ant-input-affix-wrapper:hover,
+.ant-input-search .ant-input-affix-wrapper:focus {
+  border-radius: var(--aw-radius-md) !important;
+}
+
+/* 搜索框特殊处理 */
+.ant-input-search .ant-input-group .ant-input,
+.ant-input-search .ant-input-group .ant-input-affix-wrapper {
+  border-radius: var(--aw-radius-md) 0 0 var(--aw-radius-md) !important;
+}
+
+.ant-input-search .ant-input-group .ant-input-group-addon,
+.ant-input-search .ant-input-group .ant-btn {
+  border-radius: 0 var(--aw-radius-md) var(--aw-radius-md) 0 !important;
+}
+
+/* 独立搜索框（无按钮） */
+.ant-input-search:not(.ant-input-search-with-button) .ant-input,
+.ant-input-search:not(.ant-input-search-with-button) .ant-input-affix-wrapper {
   border-radius: var(--aw-radius-md) !important;
 }
 
 .ant-card {
   border-radius: var(--aw-radius-lg) !important;
+  overflow: hidden;
 }
 
-/* Select/Cascader/TreeSelect 下拉面板 */
+/* Card 内部元素背景透明，让 Card 统一管理 */
+.ant-card-head,
+.ant-card-body {
+  background-color: transparent !important;
+}
+
+/* Select/Cascader/TreeSelect 下拉面板 - 完整圆角修复 */
 .ant-select-dropdown,
 .ant-cascader-dropdown,
 .ant-tree-select-dropdown {
   border-radius: var(--aw-radius-lg) !important;
   overflow: hidden !important;
+  /* 确保内部元素不会溢出圆角 */
+  isolation: isolate;
+}
+
+/* 下拉面板内部元素 - 继承圆角 */
+.ant-select-dropdown .rc-virtual-list,
+.ant-select-dropdown .rc-virtual-list-holder,
+.ant-select-dropdown .rc-virtual-list-holder-inner,
+.ant-select-dropdown .ant-select-item:first-child,
+.ant-select-dropdown .ant-select-item:last-child {
+  border-radius: inherit;
+}
+
+/* 虚拟列表容器背景透明化 */
+.ant-select-dropdown .rc-virtual-list-holder {
+  background: transparent !important;
 }
 
 .ant-modal-content {
@@ -497,15 +575,19 @@
   border-color: var(--aw-primary-300) !important;
 }
 
-/* 输入框焦点效果 */
+/* 输入框焦点效果 - 保持圆角 */
 .ant-input:focus,
 .ant-input-focused,
 .ant-input-affix-wrapper:focus,
 .ant-input-affix-wrapper-focused,
 .ant-select-focused .ant-select-selector,
-.ant-picker-focused {
+.ant-select-open .ant-select-selector,
+.ant-picker-focused,
+.ant-input-number:focus,
+.ant-input-number-focused {
   border-color: var(--aw-primary-500) !important;
   box-shadow: var(--aw-shadow-focus) !important;
+  border-radius: var(--aw-radius-md) !important;
 }
 
 /* 表格样式 */
@@ -657,18 +739,81 @@
 
 /* ProTable */
 .ant-pro-table-search {
-  background-color: var(--aw-gray-50) !important;
+  background-color: var(--color-bg-elevated) !important;
   border-radius: var(--aw-radius-lg) !important;
   margin-bottom: var(--aw-space-4) !important;
+  overflow: hidden;
+  border: 1px solid var(--color-border) !important;
+}
+
+/* ProTable 搜索区域内所有容器元素 - 背景透明 */
+.ant-pro-table-search .ant-pro-form,
+.ant-pro-table-search .ant-form,
+.ant-pro-table-search .ant-row,
+.ant-pro-table-search .ant-col,
+.ant-pro-table-search .ant-form-item,
+.ant-pro-table-search .ant-form-item-row,
+.ant-pro-table-search .ant-form-item-control,
+.ant-pro-table-search .ant-pro-query-filter,
+.ant-pro-table-search .ant-pro-query-filter-row,
+.ant-pro-table-search .ant-space,
+.ant-pro-table-search .ant-space-item {
+  background-color: transparent !important;
+}
+
+/* 输入框保持自己的背景色 */
+.ant-pro-table-search .ant-input,
+.ant-pro-table-search .ant-input-affix-wrapper,
+.ant-pro-table-search .ant-select-selector,
+.ant-pro-table-search .ant-picker {
+  background-color: var(--color-bg-elevated) !important;
 }
 
 .ant-pro-table .ant-table {
   border-radius: var(--aw-radius-lg) !important;
+  overflow: hidden;
+}
+
+/* ProTable 外层容器圆角和边框 */
+.ant-pro-table .ant-pro-card {
+  border-radius: var(--aw-radius-lg) !important;
+  overflow: hidden;
+}
+
+/* ProTable 内部表格容器 */
+.ant-pro-table .ant-table-container {
+  border-radius: var(--aw-radius-lg) !important;
+  overflow: hidden;
+}
+
+/* ProTable 列表工具栏 */
+.ant-pro-table-list-toolbar {
+  background-color: transparent !important;
+}
+
+/* ProTable 列表工具栏内部元素 - 背景透明 */
+.ant-pro-table-list-toolbar-container,
+.ant-pro-table-list-toolbar-left,
+.ant-pro-table-list-toolbar-right,
+.ant-pro-table-list-toolbar-title,
+.ant-pro-table-list-toolbar-setting {
+  background-color: transparent !important;
 }
 
 /* ProCard */
 .ant-pro-card {
   border-radius: var(--aw-radius-lg) !important;
+  overflow: hidden;
+  background-color: var(--color-bg-elevated) !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+/* ProCard 内部元素 - 背景透明，让父容器的背景色显示 */
+.ant-pro-card-body,
+.ant-pro-card-header,
+.ant-pro-card-header-title,
+.ant-pro-card-extra {
+  background-color: transparent !important;
 }
 
 /* ========================================
@@ -838,14 +983,14 @@
    需要通过 CSS 覆盖实现深色模式
    ======================================== */
 
-/* 表格组件 */
+/* 表格组件 - 背景透明，让 ProCard 统一管理背景色 */
 .dark .ant-table,
 .dark .ant-table-container,
 .dark .ant-table-content,
 [data-theme="dark"] .ant-table,
 [data-theme="dark"] .ant-table-container,
 [data-theme="dark"] .ant-table-content {
-  background-color: var(--aw-gray-100) !important;
+  background-color: transparent !important;
 }
 
 .dark .ant-table-thead > tr > th,
@@ -886,17 +1031,62 @@
 
 /* ProTable 组件 */
 .dark .ant-pro-table,
-.dark .ant-pro-table-search,
-.dark .ant-pro-table-list-toolbar,
-[data-theme="dark"] .ant-pro-table,
-[data-theme="dark"] .ant-pro-table-search,
-[data-theme="dark"] .ant-pro-table-list-toolbar {
+[data-theme="dark"] .ant-pro-table {
+  background-color: transparent !important;
+}
+
+/* ProTable 外层 ProCard - 深色模式 */
+.dark .ant-pro-table .ant-pro-card,
+[data-theme="dark"] .ant-pro-table .ant-pro-card {
   background-color: var(--aw-gray-100) !important;
+  border-radius: var(--aw-radius-lg) !important;
+  overflow: hidden;
+}
+
+/* ProTable 内部 card-body - 确保圆角裁切 */
+.dark .ant-pro-table .ant-pro-card-body,
+[data-theme="dark"] .ant-pro-table .ant-pro-card-body {
+  background-color: transparent !important;
+  border-radius: var(--aw-radius-lg) !important;
+  overflow: hidden;
+}
+
+/* ProTable 列表工具栏 - 深色模式 */
+.dark .ant-pro-table-list-toolbar,
+[data-theme="dark"] .ant-pro-table-list-toolbar {
+  background-color: transparent !important;
+}
+
+/* ProTable 搜索区域 - 深色模式（语义化变量已自动处理，这里只需确保圆角） */
+.dark .ant-pro-table-search,
+[data-theme="dark"] .ant-pro-table-search {
+  border-radius: var(--aw-radius-lg) !important;
+  overflow: hidden;
+}
+
+/* ProTable 搜索区域内部表单 */
+.dark .ant-pro-table-search .ant-pro-form,
+.dark .ant-pro-table-search .ant-form,
+.dark .ant-pro-table-search .ant-row,
+.dark .ant-pro-table-search .ant-pro-query-filter,
+[data-theme="dark"] .ant-pro-table-search .ant-pro-form,
+[data-theme="dark"] .ant-pro-table-search .ant-form,
+[data-theme="dark"] .ant-pro-table-search .ant-row,
+[data-theme="dark"] .ant-pro-table-search .ant-pro-query-filter {
+  background-color: transparent !important;
+}
+
+/* ProTable 搜索按钮区域 */
+.dark .ant-pro-table-search .ant-pro-form-query-filter-actions,
+.dark .ant-pro-table-search .ant-space,
+[data-theme="dark"] .ant-pro-table-search .ant-pro-form-query-filter-actions,
+[data-theme="dark"] .ant-pro-table-search .ant-space {
+  background-color: transparent !important;
 }
 
 .dark .ant-pro-table .ant-table-wrapper,
 [data-theme="dark"] .ant-pro-table .ant-table-wrapper {
-  background-color: var(--aw-gray-100) !important;
+  background-color: transparent !important;
 }
 
 /* ProTable 工具栏按钮（全屏、密度、设置等） */
@@ -938,31 +1128,66 @@
 [data-theme="dark"] .ant-card {
   background-color: var(--aw-gray-100) !important;
   border-color: var(--aw-gray-300) !important;
+  border-radius: var(--aw-radius-lg) !important;
+  overflow: hidden;
 }
 
 .dark .ant-card-head,
 [data-theme="dark"] .ant-card-head {
   border-color: var(--aw-gray-300) !important;
   color: var(--aw-gray-900) !important;
+  background-color: transparent !important;
 }
 
 .dark .ant-card-body,
 [data-theme="dark"] .ant-card-body {
   color: var(--aw-gray-900) !important;
+  background-color: transparent !important;
 }
 
-/* 输入框组件 */
+/* 输入框组件 - 深色模式（包含 hover/focus 状态） */
 .dark .ant-input,
+.dark .ant-input:hover,
+.dark .ant-input:focus,
 .dark .ant-input-affix-wrapper,
+.dark .ant-input-affix-wrapper:hover,
+.dark .ant-input-affix-wrapper:focus,
+.dark .ant-input-affix-wrapper-focused,
+.dark .ant-input-affix-wrapper .ant-input,
 .dark .ant-input-number,
+.dark .ant-input-number:hover,
+.dark .ant-input-number:focus,
+.dark .ant-input-number-focused,
 .dark .ant-input-number-input,
+.dark .ant-input-search .ant-input,
+.dark .ant-input-search .ant-input:hover,
+.dark .ant-input-search .ant-input:focus,
+.dark .ant-input-search .ant-input-affix-wrapper,
+.dark .ant-input-search .ant-input-affix-wrapper:hover,
+.dark .ant-input-search .ant-input-affix-wrapper:focus,
 [data-theme="dark"] .ant-input,
+[data-theme="dark"] .ant-input:hover,
+[data-theme="dark"] .ant-input:focus,
 [data-theme="dark"] .ant-input-affix-wrapper,
+[data-theme="dark"] .ant-input-affix-wrapper:hover,
+[data-theme="dark"] .ant-input-affix-wrapper:focus,
+[data-theme="dark"] .ant-input-affix-wrapper-focused,
+[data-theme="dark"] .ant-input-affix-wrapper .ant-input,
 [data-theme="dark"] .ant-input-number,
-[data-theme="dark"] .ant-input-number-input {
+[data-theme="dark"] .ant-input-number:hover,
+[data-theme="dark"] .ant-input-number:focus,
+[data-theme="dark"] .ant-input-number-focused,
+[data-theme="dark"] .ant-input-number-input,
+[data-theme="dark"] .ant-input-search .ant-input,
+[data-theme="dark"] .ant-input-search .ant-input:hover,
+[data-theme="dark"] .ant-input-search .ant-input:focus,
+[data-theme="dark"] .ant-input-search .ant-input-affix-wrapper,
+[data-theme="dark"] .ant-input-search .ant-input-affix-wrapper:hover,
+[data-theme="dark"] .ant-input-search .ant-input-affix-wrapper:focus {
   background-color: var(--aw-gray-200) !important;
   border-color: var(--aw-gray-300) !important;
   color: var(--aw-gray-900) !important;
+  border-radius: var(--aw-radius-md) !important;
 }
 
 .dark .ant-input::placeholder,
@@ -970,14 +1195,24 @@
   color: var(--aw-gray-500) !important;
 }
 
-/* 选择器组件 */
+/* 选择器组件 - 深色模式（包含 hover/focus 状态） */
 .dark .ant-select-selector,
-[data-theme="dark"] .ant-select-selector {
+.dark .ant-select-selector:hover,
+.dark .ant-select:hover .ant-select-selector,
+.dark .ant-select-focused .ant-select-selector,
+.dark .ant-select-open .ant-select-selector,
+[data-theme="dark"] .ant-select-selector,
+[data-theme="dark"] .ant-select-selector:hover,
+[data-theme="dark"] .ant-select:hover .ant-select-selector,
+[data-theme="dark"] .ant-select-focused .ant-select-selector,
+[data-theme="dark"] .ant-select-open .ant-select-selector {
   background-color: var(--aw-gray-200) !important;
   border-color: var(--aw-gray-300) !important;
   color: var(--aw-gray-900) !important;
+  border-radius: var(--aw-radius-md) !important;
 }
 
+/* 深色模式下拉框 - 完整圆角修复 */
 .dark .ant-select-dropdown,
 [data-theme="dark"] .ant-select-dropdown {
   background-color: var(--aw-gray-100) !important;
@@ -985,6 +1220,26 @@
   border-radius: var(--aw-radius-lg) !important;
   overflow: hidden !important;
   box-shadow: var(--aw-shadow-lg) !important;
+  isolation: isolate;
+}
+
+/* 深色模式 - 内部容器背景透明 */
+.dark .ant-select-dropdown .rc-virtual-list-holder,
+[data-theme="dark"] .ant-select-dropdown .rc-virtual-list-holder {
+  background: transparent !important;
+}
+
+/* 深色模式 - 确保选项背景不溢出圆角 */
+.dark .ant-select-dropdown .ant-select-item:first-child,
+[data-theme="dark"] .ant-select-dropdown .ant-select-item:first-child {
+  border-top-left-radius: calc(var(--aw-radius-lg) - 1px);
+  border-top-right-radius: calc(var(--aw-radius-lg) - 1px);
+}
+
+.dark .ant-select-dropdown .ant-select-item:last-child,
+[data-theme="dark"] .ant-select-dropdown .ant-select-item:last-child {
+  border-bottom-left-radius: calc(var(--aw-radius-lg) - 1px);
+  border-bottom-right-radius: calc(var(--aw-radius-lg) - 1px);
 }
 
 .dark .ant-select-item,
@@ -1161,6 +1416,7 @@
   background-color: var(--aw-gray-200) !important;
   border-color: var(--aw-gray-300) !important;
   color: var(--aw-gray-700) !important;
+  border-radius: var(--aw-radius-sm) !important;
 }
 
 /* 空状态 */
@@ -1169,11 +1425,22 @@
   color: var(--aw-gray-500) !important;
 }
 
-/* 日期选择器 */
+/* 日期选择器（包含 hover/focus 状态） */
 .dark .ant-picker,
-[data-theme="dark"] .ant-picker {
+.dark .ant-picker:hover,
+.dark .ant-picker-focused,
+.dark .ant-picker-range,
+.dark .ant-picker-range:hover,
+.dark .ant-picker-range-focused,
+[data-theme="dark"] .ant-picker,
+[data-theme="dark"] .ant-picker:hover,
+[data-theme="dark"] .ant-picker-focused,
+[data-theme="dark"] .ant-picker-range,
+[data-theme="dark"] .ant-picker-range:hover,
+[data-theme="dark"] .ant-picker-range-focused {
   background-color: var(--aw-gray-200) !important;
   border-color: var(--aw-gray-300) !important;
+  border-radius: var(--aw-radius-md) !important;
 }
 
 .dark .ant-picker-input > input,
@@ -1214,22 +1481,23 @@
   color: var(--aw-gray-500) !important;
 }
 
-/* ProCard 组件 */
-.dark .ant-pro-card,
-[data-theme="dark"] .ant-pro-card {
-  background-color: var(--aw-gray-100) !important;
-  border-color: var(--aw-gray-300) !important;
-}
-
-.dark .ant-pro-card-body,
-[data-theme="dark"] .ant-pro-card-body {
-  background-color: var(--aw-gray-100) !important;
-}
-
+/* ProCard 组件 - 深色模式（语义化变量在基础样式中已定义，此处仅作备份） */
 .dark .ant-pro-card-header,
 [data-theme="dark"] .ant-pro-card-header {
-  border-color: var(--aw-gray-300) !important;
-  color: var(--aw-gray-900) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.dark .ant-pro-table .ant-table-container,
+[data-theme="dark"] .ant-pro-table .ant-table-container {
+  border-radius: 0 !important; /* 内部容器不需要圆角，外层已处理 */
+}
+
+/* 表格边框优化 */
+.dark .ant-table-wrapper .ant-table,
+[data-theme="dark"] .ant-table-wrapper .ant-table {
+  border-radius: var(--aw-radius-lg) !important;
+  overflow: hidden;
 }
 
 /* Descriptions 描述列表 */
@@ -1485,17 +1753,88 @@
   color: var(--aw-primary-400) !important;
 }
 
-/* Collapse 折叠面板 */
+/* Collapse 折叠面板 - 基础样式 */
+.ant-collapse {
+  border-radius: var(--aw-radius-lg) !important;
+  overflow: hidden;
+}
+
+.ant-collapse > .ant-collapse-item {
+  border-radius: 0 !important;
+}
+
+.ant-collapse > .ant-collapse-item:first-child {
+  border-radius: var(--aw-radius-lg) var(--aw-radius-lg) 0 0 !important;
+}
+
+.ant-collapse > .ant-collapse-item:last-child {
+  border-radius: 0 0 var(--aw-radius-lg) var(--aw-radius-lg) !important;
+}
+
+.ant-collapse > .ant-collapse-item:only-child {
+  border-radius: var(--aw-radius-lg) !important;
+}
+
+.ant-collapse > .ant-collapse-item > .ant-collapse-header {
+  border-radius: 0 !important;
+}
+
+.ant-collapse > .ant-collapse-item:first-child > .ant-collapse-header {
+  border-radius: var(--aw-radius-lg) var(--aw-radius-lg) 0 0 !important;
+}
+
+.ant-collapse > .ant-collapse-item:only-child > .ant-collapse-header {
+  border-radius: var(--aw-radius-lg) !important;
+}
+
+.ant-collapse > .ant-collapse-item:only-child.ant-collapse-item-active > .ant-collapse-header {
+  border-radius: var(--aw-radius-lg) var(--aw-radius-lg) 0 0 !important;
+}
+
+/* Collapse 折叠面板 - 深色模式 */
 .dark .ant-collapse,
 [data-theme="dark"] .ant-collapse {
   background-color: var(--aw-gray-100) !important;
   border-color: var(--aw-gray-300) !important;
+  border-radius: var(--aw-radius-lg) !important;
+  overflow: hidden;
+}
+
+.dark .ant-collapse-item,
+[data-theme="dark"] .ant-collapse-item {
+  background-color: transparent !important;
 }
 
 .dark .ant-collapse-header,
 [data-theme="dark"] .ant-collapse-header {
   color: var(--aw-gray-900) !important;
   background-color: var(--aw-gray-200) !important;
+}
+
+/* Card 内部的 Collapse - 背景透明以继承 Card 背景 */
+.ant-card .ant-collapse {
+  background-color: transparent !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+.ant-card .ant-collapse-item {
+  background-color: transparent !important;
+}
+
+.dark .ant-card .ant-collapse,
+[data-theme="dark"] .ant-card .ant-collapse {
+  background-color: transparent !important;
+  border-color: var(--aw-gray-300) !important;
+}
+
+.dark .ant-card .ant-collapse-header,
+[data-theme="dark"] .ant-card .ant-collapse-header {
+  background-color: var(--aw-gray-200) !important;
+}
+
+.dark .ant-card .ant-collapse-content,
+[data-theme="dark"] .ant-card .ant-collapse-content {
+  background-color: transparent !important;
 }
 
 .dark .ant-collapse-content,

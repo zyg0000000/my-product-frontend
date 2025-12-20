@@ -249,10 +249,10 @@ export function PerformanceFilters({
   }
 
   return (
-    <div className="bg-surface rounded-lg shadow mb-4">
+    <div className="bg-surface rounded-lg shadow mb-4 overflow-hidden">
       {/* 筛选面板头部 */}
       <div
-        className="flex items-center justify-between px-4 py-3 border-b cursor-pointer hover:bg-surface-base"
+        className={`flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-surface-base ${!isExpanded ? 'rounded-lg' : 'rounded-t-lg border-b'}`}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-2">
