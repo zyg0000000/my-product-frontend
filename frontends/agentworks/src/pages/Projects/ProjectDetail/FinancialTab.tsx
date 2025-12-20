@@ -318,10 +318,10 @@ export function FinancialTab({
 
   // 生成动态 Tab 列表
   const businessTabItems = useMemo(() => {
-    const items: Array<{ key: string; label: string }> = projectBusinessTypes
+    const items = projectBusinessTypes
       .map(type => {
         const option = BUSINESS_TYPE_OPTIONS.find(opt => opt.value === type);
-        return option ? { key: option.value, label: option.label } : null;
+        return option ? { key: option.value as string, label: option.label } : null;
       })
       .filter((item): item is { key: string; label: string } => item !== null);
 
