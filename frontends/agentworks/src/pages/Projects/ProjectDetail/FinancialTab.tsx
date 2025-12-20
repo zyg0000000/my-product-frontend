@@ -321,7 +321,9 @@ export function FinancialTab({
     const items = projectBusinessTypes
       .map(type => {
         const option = BUSINESS_TYPE_OPTIONS.find(opt => opt.value === type);
-        return option ? { key: option.value as string, label: option.label } : null;
+        return option
+          ? { key: option.value as string, label: option.label }
+          : null;
       })
       .filter((item): item is { key: string; label: string } => item !== null);
 
