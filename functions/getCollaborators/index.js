@@ -1,7 +1,11 @@
 /**
  * @file getCollaborators.js
- * @version 7.0 - 支持双数据库
+ * @version 7.1 - 支持 hybrid 定价模式
  * @description 获取合作记录列表，支持 v1 (byteproject) 和 v2 (agentworks) 数据库。
+ *
+ * --- v7.1 更新日志 ---
+ * - [v5.2 定价模式] v2 投影新增 pricingMode, quotationPrice, orderPrice 字段返回
+ * - [向后兼容] 旧数据这些字段为 null/undefined，前端需做兼容处理
  *
  * --- v7.0 更新日志 ---
  * - [核心改造] 支持 dbVersion 参数选择数据库：
@@ -552,9 +556,12 @@ async function handleV2Request(queryParams, db, collections) {
     talentSource: 1,
     // 财务信息
     amount: 1,
-    priceInfo: 1,
     rebateRate: 1,
-    orderType: 1,
+    orderMode: 1, // 下单方式：'adjusted'(改价) | 'original'(原价)
+    // v7.1: 定价模式支持
+    pricingMode: 1, // 计价方式：'framework' | 'project'
+    quotationPrice: 1, // 对客报价（分）
+    orderPrice: 1, // 下单价（分）
     // 状态
     status: 1,
     // 执行追踪
@@ -565,7 +572,6 @@ async function handleV2Request(queryParams, db, collections) {
     videoUrl: 1,
     // 财务管理
     orderDate: 1,
-    paymentDate: 1,
     recoveryDate: 1,
     // 差异处理
     discrepancyReason: 1,

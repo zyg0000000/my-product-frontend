@@ -19,6 +19,7 @@ import type {
   DashboardOverview,
   SettlementFile,
 } from '../types/project';
+import { normalizeBusinessTypes } from '../types/project';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 const DB_VERSION = 'v2'; // AgentWorks 使用 v2 数据库
@@ -119,9 +120,11 @@ class ProjectApi {
         );
       }
       if (params.businessType) {
-        items = items.filter(
-          (p: ProjectListItem) => p.businessType === params.businessType
-        );
+        // v5.2: 支持多业务类型过滤
+        items = items.filter((p: ProjectListItem) => {
+          const projectTypes = normalizeBusinessTypes(p.businessType);
+          return projectTypes.includes(params.businessType!);
+        });
       }
       if (params.customerKeyword) {
         const keyword = params.customerKeyword.toLowerCase();
@@ -401,18 +404,23 @@ class ProjectApi {
 
   /**
    * 批量更新合作记录
+   * 复用 update-collaboration 端点，云函数已支持批量模式（传入 ids 数组）
    */
   async batchUpdateCollaborations(
     data: BatchUpdateCollaborationsRequest
   ): Promise<ApiResponse<{ updated: number }>> {
-    const url = `${API_BASE_URL}/collaborations/batch`;
+    // 复用现有的 update-collaboration 端点（云函数 v5.1 已支持批量模式）
+    const url = `${API_BASE_URL}/update-collaboration`;
 
     const response = await fetch(url, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        dbVersion: 'v2', // 批量更新仅支持 v2 模式
+      }),
     });
 
     if (!response.ok) {

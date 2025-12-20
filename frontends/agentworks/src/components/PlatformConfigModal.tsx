@@ -109,7 +109,7 @@ export function PlatformConfigModal({
           accountIdPlaceholder: '',
           accountIdHelpText: '',
           fee: null,
-          defaultRebate: 15,
+          orderPriceRatio: 100, // v5.2: 改价系数默认100%（不支持改价）
           links: [],
           priceManagement: false,
           performanceTracking: false,
@@ -149,7 +149,11 @@ export function PlatformConfigModal({
           accountIdHelpText: config.accountId?.helpText,
           fee:
             config.business?.fee !== null ? config.business?.fee * 100 : null,
-          defaultRebate: config.business?.defaultRebate,
+          // v5.2: 改价系数（存储为小数，显示为百分比）
+          orderPriceRatio:
+            config.business?.orderPriceRatio !== undefined
+              ? config.business.orderPriceRatio * 100
+              : 100,
           links: linksData,
           priceManagement: config.features?.priceManagement,
           performanceTracking: config.features?.performanceTracking,
@@ -184,16 +188,20 @@ export function PlatformConfigModal({
             values.accountIdPlaceholder ?? config?.accountId?.placeholder,
           helpText: values.accountIdHelpText ?? config?.accountId?.helpText,
         },
-        // business: 保留原有值
+        // business: 保留原有值（注：defaultRebate 已废弃，返点率由达人数据决定）
         business: {
           fee:
             values.fee !== null && values.fee !== undefined
               ? values.fee / 100
               : (config?.business?.fee ?? null),
-          defaultRebate:
-            values.defaultRebate ?? config?.business?.defaultRebate ?? 15,
           minRebate: config?.business?.minRebate ?? 0,
           maxRebate: config?.business?.maxRebate ?? 100,
+          // v5.2: 改价系数（表单为百分比，存储为小数）
+          orderPriceRatio:
+            values.orderPriceRatio !== null &&
+            values.orderPriceRatio !== undefined
+              ? values.orderPriceRatio / 100
+              : (config?.business?.orderPriceRatio ?? 1),
         },
         // links: 使用新的多链接配置，过滤掉 null/undefined 的无效项
         links: (values.links || []).filter(
@@ -524,7 +532,7 @@ export function PlatformConfigModal({
       label: '业务配置',
       children: (
         <ProCard>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-0">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-0">
             <ProFormDigit
               name="fee"
               label="平台费率 (%)"
@@ -538,16 +546,19 @@ export function PlatformConfigModal({
               extra="平台收取的服务费率，null 表示未配置"
             />
 
+            {/* v5.2: 改价系数 */}
             <ProFormDigit
-              name="defaultRebate"
-              label="默认返点率 (%)"
-              placeholder="如：15 表示 15%"
+              name="orderPriceRatio"
+              label="改价下单系数 (%)"
+              placeholder="如：80 表示可改价 20%"
               fieldProps={{
                 min: 0,
                 max: 100,
-                precision: 2,
+                precision: 0,
                 suffix: '%',
               }}
+              tooltip="下单时最低价格比例。如 80% 表示最多可改价 20%（即下单价最低为刊例价的 80%）"
+              extra="100% = 不支持改价，80% = 最多改价 20%"
             />
           </div>
 

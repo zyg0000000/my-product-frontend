@@ -20,6 +20,7 @@ import {
   formatMoney,
   generateYearValueEnum,
   generateMonthValueEnum,
+  normalizeBusinessTypes,
 } from '../../../types/project';
 import type { Platform } from '../../../types/talent';
 import {
@@ -246,12 +247,30 @@ export function ProjectList() {
     {
       title: '业务类型',
       dataIndex: 'businessType',
-      width: 90,
+      width: 140,
       valueType: 'select',
       valueEnum: BUSINESS_TYPE_VALUE_ENUM,
       render: (_, record) => {
-        const config = BUSINESS_TYPES[record.businessType];
-        return config?.name || record.businessType || '-';
+        // v5.2: 支持多业务类型显示
+        const types = normalizeBusinessTypes(record.businessType);
+        if (types.length === 0) return '-';
+        return (
+          <Space size={4} wrap>
+            {types.map(type => {
+              const config = BUSINESS_TYPES[type];
+              const colors: Record<BusinessTypeKey, string> = {
+                talentProcurement: 'blue',
+                adPlacement: 'orange',
+                contentProduction: 'purple',
+              };
+              return (
+                <Tag key={type} color={colors[type]} className="m-0">
+                  {config?.name || type}
+                </Tag>
+              );
+            })}
+          </Space>
+        );
       },
     },
     {

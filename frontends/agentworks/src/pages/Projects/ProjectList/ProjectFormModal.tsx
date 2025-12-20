@@ -40,7 +40,11 @@ import type {
   PlatformQuotationCoefficients,
   ProjectKPIConfigs,
 } from '../../../types/project';
-import { yuanToCents, centsToYuan } from '../../../types/project';
+import {
+  yuanToCents,
+  centsToYuan,
+  normalizeBusinessTypes,
+} from '../../../types/project';
 import type { Platform } from '../../../types/talent';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 import {
@@ -158,9 +162,10 @@ export function ProjectFormModal({
   // 选中的平台列表
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([]);
 
-  // 选中的业务类型
-  const [selectedBusinessType, setSelectedBusinessType] =
-    useState<BusinessTypeKey | null>(null);
+  // v5.2: 选中的业务类型（支持多选）
+  const [selectedBusinessTypes, setSelectedBusinessTypes] = useState<
+    BusinessTypeKey[]
+  >([]);
 
   // 按平台的 KPI 配置状态
   // key: platform, value: { enabled, enabledKPIs, targets }
@@ -237,15 +242,18 @@ export function ProjectFormModal({
   }, [selectedCustomer]);
 
   /**
-   * 获取当前业务类型已配置的平台列表
+   * v5.2: 获取当前业务类型已配置的平台列表（支持多业务类型）
    */
   const configuredPlatforms = useMemo(() => {
-    if (!selectedCustomer?.businessStrategies || !selectedBusinessType) {
+    if (
+      !selectedCustomer?.businessStrategies ||
+      selectedBusinessTypes.length === 0
+    ) {
       return platformOptions;
     }
 
-    // 目前只有达人采买有定价配置
-    if (selectedBusinessType === 'talentProcurement') {
+    // 如果选中的业务类型中包含达人采买，使用达人采买的定价配置
+    if (selectedBusinessTypes.includes('talentProcurement')) {
       const strategy = selectedCustomer.businessStrategies.talentProcurement;
       if (strategy?.platformPricingConfigs) {
         const configured = Object.entries(strategy.platformPricingConfigs)
@@ -259,37 +267,41 @@ export function ProjectFormModal({
     }
 
     return platformOptions;
-  }, [selectedCustomer, selectedBusinessType, platformOptions]);
+  }, [selectedCustomer, selectedBusinessTypes, platformOptions]);
 
   /**
-   * 获取当前业务类型的业务标签列表
+   * v5.2: 获取当前业务类型的业务标签列表（支持多业务类型）
+   * 合并所有选中业务类型的标签
    */
   const businessTagOptions = useMemo(() => {
-    if (!selectedCustomer?.businessStrategies || !selectedBusinessType) {
-      return [];
-    }
-
-    const strategy = selectedCustomer.businessStrategies[
-      selectedBusinessType
-    ] as
-      | TalentProcurementStrategy
-      | AdPlacementStrategy
-      | ContentProductionStrategy
-      | undefined;
-
-    if (!strategy?.platformBusinessTags) {
+    if (
+      !selectedCustomer?.businessStrategies ||
+      selectedBusinessTypes.length === 0
+    ) {
       return [];
     }
 
     const allTags = new Set<string>();
-    Object.values(strategy.platformBusinessTags).forEach(tags => {
-      if (Array.isArray(tags)) {
-        tags.forEach(tag => allTags.add(tag));
+
+    // 遍历所有选中的业务类型，收集所有标签
+    selectedBusinessTypes.forEach(businessType => {
+      const strategy = selectedCustomer.businessStrategies?.[businessType] as
+        | TalentProcurementStrategy
+        | AdPlacementStrategy
+        | ContentProductionStrategy
+        | undefined;
+
+      if (strategy?.platformBusinessTags) {
+        Object.values(strategy.platformBusinessTags).forEach(tags => {
+          if (Array.isArray(tags)) {
+            tags.forEach(tag => allTags.add(tag));
+          }
+        });
       }
     });
 
     return Array.from(allTags).map(tag => ({ label: tag, value: tag }));
-  }, [selectedCustomer, selectedBusinessType]);
+  }, [selectedCustomer, selectedBusinessTypes]);
 
   /**
    * v5.1: 获取平台的定价策略（包含 pricingModel 和 configs 数组）
@@ -298,7 +310,7 @@ export function ProjectFormModal({
     (platform: Platform) => {
       if (
         !selectedCustomer?.businessStrategies?.talentProcurement ||
-        selectedBusinessType !== 'talentProcurement'
+        !selectedBusinessTypes.includes('talentProcurement')
       ) {
         return null;
       }
@@ -310,7 +322,7 @@ export function ProjectFormModal({
 
       return platformStrategy?.enabled ? platformStrategy : null;
     },
-    [selectedCustomer, selectedBusinessType]
+    [selectedCustomer, selectedBusinessTypes]
   );
 
   /**
@@ -321,7 +333,7 @@ export function ProjectFormModal({
     (platform: Platform): PricingConfigItem | null => {
       if (
         !selectedCustomer?.businessStrategies?.talentProcurement ||
-        selectedBusinessType !== 'talentProcurement'
+        !selectedBusinessTypes.includes('talentProcurement')
       ) {
         return null;
       }
@@ -370,7 +382,7 @@ export function ProjectFormModal({
 
       return null;
     },
-    [selectedCustomer, selectedBusinessType]
+    [selectedCustomer, selectedBusinessTypes]
   );
 
   /**
@@ -491,9 +503,9 @@ export function ProjectFormModal({
 
     // 仅在非编辑模式初始化时重置
     if (!skipReset) {
-      form.setFieldValue('businessType', undefined);
+      form.setFieldValue('businessType', []); // v5.2: 多选数组
       form.setFieldValue('businessTag', undefined);
-      setSelectedBusinessType(null);
+      setSelectedBusinessTypes([]); // v5.2: 多选数组
       setSelectedPlatforms([]);
       form.setFieldValue('platforms', []);
       setPlatformKPIStates({});
@@ -501,10 +513,10 @@ export function ProjectFormModal({
   };
 
   /**
-   * 业务类型变化
+   * v5.2: 业务类型变化（支持多选）
    */
-  const handleBusinessTypeChange = (businessType: BusinessTypeKey) => {
-    setSelectedBusinessType(businessType);
+  const handleBusinessTypeChange = (businessTypes: BusinessTypeKey[]) => {
+    setSelectedBusinessTypes(businessTypes);
     form.setFieldValue('businessTag', undefined);
     form.setFieldValue('platforms', []);
     setSelectedPlatforms([]);
@@ -559,7 +571,7 @@ export function ProjectFormModal({
    * 从当前有效配置中读取折扣率
    */
   const updatePlatformDiscounts = (platforms: Platform[]) => {
-    if (selectedBusinessType !== 'talentProcurement') return;
+    if (!selectedBusinessTypes.includes('talentProcurement')) return;
 
     const discounts: Record<string, number | undefined> = {};
     platforms.forEach(platform => {
@@ -584,11 +596,18 @@ export function ProjectFormModal({
 
         if (editingProject) {
           // 编辑模式
+          // v5.2: 规范化业务类型为数组
+          const normalizedBusinessTypes = normalizeBusinessTypes(
+            editingProject.businessType
+          );
           const formValues: Record<string, unknown> = {
             projectCode: editingProject.projectCode,
             name: editingProject.name,
             customerId: editingProject.customerId,
-            businessType: editingProject.businessType || 'talentProcurement',
+            businessType:
+              normalizedBusinessTypes.length > 0
+                ? normalizedBusinessTypes
+                : ['talentProcurement'],
             businessTag: editingProject.businessTag || editingProject.type,
             platforms: editingProject.platforms,
             year: editingProject.year,
@@ -621,9 +640,11 @@ export function ProjectFormModal({
 
           form.setFieldsValue(formValues);
           setSelectedPlatforms(editingProject.platforms || []);
-          setSelectedBusinessType(
-            (editingProject.businessType as BusinessTypeKey) ||
-              'talentProcurement'
+          // v5.2: 设置为数组
+          setSelectedBusinessTypes(
+            normalizedBusinessTypes.length > 0
+              ? normalizedBusinessTypes
+              : ['talentProcurement']
           );
 
           // 编辑模式：先加载客户详情，再初始化 KPI 状态
@@ -662,10 +683,10 @@ export function ProjectFormModal({
             financialYear: now.getFullYear(),
             financialMonth: now.getMonth() + 1,
             platforms: [],
-            businessType: undefined,
+            businessType: [], // v5.2: 多选数组
           });
           setSelectedPlatforms([]);
-          setSelectedBusinessType(null);
+          setSelectedBusinessTypes([]); // v5.2: 多选数组
           setSelectedCustomer(null);
           setPlatformKPIStates({});
         }
@@ -827,7 +848,7 @@ export function ProjectFormModal({
   const handleCancel = () => {
     form.resetFields();
     setSelectedCustomer(null);
-    setSelectedBusinessType(null);
+    setSelectedBusinessTypes([]);
     setSelectedPlatforms([]);
     setPlatformKPIStates({});
     onCancel();
@@ -932,10 +953,12 @@ export function ProjectFormModal({
                 rules={[{ required: true, message: '请选择业务类型' }]}
               >
                 <Select
-                  placeholder="请选择"
+                  mode="multiple"
+                  placeholder="请选择（可多选）"
                   options={enabledBusinessTypes}
                   onChange={handleBusinessTypeChange}
                   disabled={!selectedCustomer}
+                  maxTagCount="responsive"
                 />
               </Form.Item>
             </Col>
@@ -948,7 +971,7 @@ export function ProjectFormModal({
                   options={businessTagOptions}
                   allowClear
                   showSearch
-                  disabled={!selectedBusinessType}
+                  disabled={selectedBusinessTypes.length === 0}
                 />
               </Form.Item>
             </Col>
@@ -1040,7 +1063,7 @@ export function ProjectFormModal({
           title={
             <span>
               投放配置
-              {selectedBusinessType === 'talentProcurement' &&
+              {selectedBusinessTypes.includes('talentProcurement') &&
                 configuredPlatforms.length < platformOptions.length && (
                   <Tooltip title="仅显示客户已配置定价策略的平台">
                     <InfoCircleOutlined className="ml-1 text-content-muted" />
@@ -1118,7 +1141,7 @@ export function ProjectFormModal({
                   {/* 平台勾选 */}
                   <Checkbox
                     checked={isSelected}
-                    disabled={!selectedBusinessType}
+                    disabled={selectedBusinessTypes.length === 0}
                     onChange={e => {
                       const newPlatforms = e.target.checked
                         ? [...selectedPlatforms, platform]
@@ -1197,11 +1220,12 @@ export function ProjectFormModal({
           </div>
 
           {/* 未选择平台时的提示 */}
-          {selectedPlatforms.length === 0 && selectedBusinessType && (
-            <div className="text-center py-2 text-orange-500 text-sm">
-              请至少选择一个投放平台
-            </div>
-          )}
+          {selectedPlatforms.length === 0 &&
+            selectedBusinessTypes.length > 0 && (
+              <div className="text-center py-2 text-orange-500 text-sm">
+                请至少选择一个投放平台
+              </div>
+            )}
         </Card>
 
         {/* 交付 KPI（按平台展示） */}

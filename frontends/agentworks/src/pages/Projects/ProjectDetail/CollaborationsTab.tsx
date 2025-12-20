@@ -227,7 +227,7 @@ export function CollaborationsTab({
     {
       title: '达人昵称',
       dataIndex: 'talentName',
-      width: 200,
+      width: 140,
       fixed: 'left',
       ellipsis: true,
       search: false,

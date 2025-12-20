@@ -77,9 +77,6 @@ export function ProjectConfigPage() {
             // 合并财务配置
             financeConfig: existingConfig.financeConfig
               ? {
-                  enabledMetrics:
-                    existingConfig.financeConfig.enabledMetrics ||
-                    DEFAULT_PROJECT_CONFIG.financeConfig!.enabledMetrics,
                   enableFundsOccupation:
                     existingConfig.financeConfig.enableFundsOccupation ??
                     DEFAULT_PROJECT_CONFIG.financeConfig!.enableFundsOccupation,
@@ -89,7 +86,9 @@ export function ProjectConfigPage() {
                   enableSettlementFiles:
                     existingConfig.financeConfig.enableSettlementFiles ??
                     DEFAULT_PROJECT_CONFIG.financeConfig!.enableSettlementFiles,
-                  customMetrics: existingConfig.financeConfig.customMetrics,
+                  adjustmentTypes:
+                    existingConfig.financeConfig.adjustmentTypes ||
+                    DEFAULT_PROJECT_CONFIG.financeConfig!.adjustmentTypes,
                 }
               : DEFAULT_PROJECT_CONFIG.financeConfig,
           });
@@ -125,14 +124,6 @@ export function ProjectConfigPage() {
       }
       if (config.effectConfig.enabledMetrics.length === 0) {
         message.warning('效果验收需要至少一个效果指标');
-        return;
-      }
-    }
-
-    // 验证：财务管理开启时需要有指标
-    if (config.tabVisibility.finance && config.financeConfig) {
-      if (config.financeConfig.enabledMetrics.length === 0) {
-        message.warning('财务管理需要至少一个财务指标');
         return;
       }
     }

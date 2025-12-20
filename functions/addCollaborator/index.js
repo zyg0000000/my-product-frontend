@@ -1,7 +1,12 @@
 /**
- * [生产版 v7.0 - 支持双数据库]
+ * [生产版 v7.1 - 支持 hybrid 定价模式]
  * 云函数：addCollaborator
  * 描述：为指定项目新增一条合作记录。
+ *
+ * --- v7.1 更新日志 ---
+ * - [v5.2 定价模式] 新增 pricingMode, quotationPrice, orderPrice 字段支持
+ * - [继承逻辑] pricingMode 从项目 platformPricingModes 继承，hybrid 模式默认 framework
+ * - [向后兼容] 旧数据不受影响，前端可按需读取新字段
  *
  * --- v7.0 更新日志 ---
  * - [核心改造] 支持 dbVersion 参数选择数据库：
@@ -183,6 +188,8 @@ async function handleV1Request(inputData, db, collections) {
 /**
  * v2 模式：处理新版请求 (agentworks)
  * 使用 talentOneId + talentPlatform 查找达人
+ *
+ * v5.2 更新：支持 pricingMode, quotationPrice, orderPrice 字段
  */
 async function handleV2Request(inputData, db, collections) {
   const {
@@ -190,10 +197,13 @@ async function handleV2Request(inputData, db, collections) {
     talentOneId,
     talentPlatform,
     amount,
-    priceInfo,
     rebateRate, // v2 使用 rebateRate
     plannedReleaseDate,
     talentSource: inputTalentSource, // 前端可传，也可不传让后端从达人库获取
+    // v5.2: 定价模式支持
+    pricingMode: inputPricingMode, // 前端可传，不传则从项目继承
+    quotationPrice, // 对客报价（分），比价模式手动填写
+    orderPrice, // 下单价（分），比价模式手动填写
   } = inputData;
 
   // 参数校验
@@ -252,6 +262,18 @@ async function handleV2Request(inputData, db, collections) {
     }
   }
 
+  // v5.2: 确定定价模式
+  // 优先使用前端传入的值，否则从项目配置继承
+  let pricingMode = inputPricingMode;
+  if (!pricingMode) {
+    // 从项目的 platformPricingModes 获取当前平台的定价模式
+    const projectPricingMode =
+      project.platformPricingModes?.[talentPlatform] || 'framework';
+    // hybrid 模式下默认使用 framework，用户可后续修改
+    pricingMode =
+      projectPricingMode === 'hybrid' ? 'framework' : projectPricingMode;
+  }
+
   // 创建合作记录 (v2 结构)
   const newCollaboration = {
     _id: new ObjectId(),
@@ -264,11 +286,14 @@ async function handleV2Request(inputData, db, collections) {
     talentSource,
     // 财务信息
     amount: Number(amount), // 金额（分）
-    priceInfo: priceInfo || '',
     rebateRate: rebateRate != null ? Number(rebateRate) : null, // 返点率 (%)
     // 状态
     status: '待提报工作台',
-    orderType: 'modified', // v2 默认 modified
+    orderMode: 'adjusted', // 下单方式：'adjusted'(改价) | 'original'(原价)
+    // v5.2: 定价模式支持
+    pricingMode, // 计价方式：'framework' | 'project'
+    quotationPrice: quotationPrice != null ? Number(quotationPrice) : null, // 对客报价（分）
+    orderPrice: orderPrice != null ? Number(orderPrice) : null, // 下单价（分）
     // 执行追踪
     plannedReleaseDate: plannedReleaseDate || null,
     actualReleaseDate: null,
@@ -277,7 +302,6 @@ async function handleV2Request(inputData, db, collections) {
     videoUrl: null,
     // 财务管理
     orderDate: null,
-    paymentDate: null,
     recoveryDate: null,
     // 差异处理
     discrepancyReason: null,

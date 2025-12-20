@@ -94,6 +94,8 @@ export interface PlatformConfig {
     defaultRebate?: number;
     minRebate?: number;
     maxRebate?: number;
+    /** v5.2: 改价下单系数，如 0.8 表示可改价 20%（默认 1.0 表示不支持改价） */
+    orderPriceRatio?: number;
   };
 
   features: {

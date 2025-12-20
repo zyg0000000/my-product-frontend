@@ -353,6 +353,25 @@
   margin-bottom: 6px;
 }
 
+.config-feature-card__badge {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--config-text-muted);
+  background: var(--config-bg-sunken);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.config-feature-card--wide {
+  grid-column: span 2;
+}
+
+@media (max-width: 768px) {
+  .config-feature-card--wide {
+    grid-column: span 1;
+  }
+}
+
 /* ==========================================================================
    选项卡片网格（用于指标、周期等选择）
    ========================================================================== */

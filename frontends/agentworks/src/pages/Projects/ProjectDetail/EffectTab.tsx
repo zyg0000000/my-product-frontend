@@ -629,7 +629,7 @@ export function EffectTab({
       {
         title: '达人昵称',
         dataIndex: 'talentName',
-        width: 200,
+        width: 140,
         fixed: 'left',
         ellipsis: true,
         render: (_, record) => (

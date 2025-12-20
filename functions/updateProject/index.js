@@ -1,7 +1,11 @@
 /**
  * @file updateProject.js
- * @version 2.2-status-fix
+ * @version 2.3-multi-business-type
  * @description 更新指定项目的基础信息或状态。
+ *
+ * --- 更新日志 (v2.3) ---
+ * - [v5.2 多业务类型] businessType 支持数组格式（多选）
+ * - [v5.2 向后兼容] 自动将字符串格式转换为数组格式
  *
  * --- 更新日志 (v2.2) ---
  * - [兼容性修复] 状态转换只对 dbVersion=v2 (AgentWorks) 生效
@@ -257,6 +261,24 @@ exports.handler = async (event, context) => {
                     updatePayload.$set[field] = validCoefs;
                 } else if (coefsValue === null) {
                     updatePayload.$unset[field] = "";
+                }
+            }
+            // [v2.3] Handle businessType - v5.2 支持数组格式（多选）
+            else if (field === 'businessType') {
+                let businessTypeValue = updateFields[field];
+                if (businessTypeValue === null || businessTypeValue === '') {
+                    updatePayload.$unset[field] = "";
+                } else {
+                    // 兼容字符串和数组格式，统一存储为数组
+                    if (!Array.isArray(businessTypeValue)) {
+                        businessTypeValue = businessTypeValue ? [businessTypeValue] : [];
+                    }
+                    // 验证业务类型值
+                    const validTypes = ['talentProcurement', 'adPlacement', 'contentProduction'];
+                    const validBusinessTypes = businessTypeValue.filter(t => validTypes.includes(t));
+                    if (validBusinessTypes.length > 0) {
+                        updatePayload.$set[field] = validBusinessTypes;
+                    }
                 }
             }
             else if (updateFields[field] === null || updateFields[field] === '') {

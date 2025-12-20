@@ -1,7 +1,16 @@
 /**
  * @file updateCollaborator/index.js
- * @version 5.0 - 支持双数据库
+ * @version 5.2 - 支持 hybrid 定价模式
  * @description 更新合作记录，支持 v1 (byteproject) 和 v2 (agentworks) 数据库。
+ *
+ * --- v5.2 更新日志 ---
+ * - [定价模式] v2 白名单新增 pricingMode, quotationPrice, orderPrice 字段
+ * - [hybrid 支持] 允许每条合作记录独立设置计价方式
+ *
+ * --- v5.1 更新日志 ---
+ * - [新增] 支持批量更新模式：传入 ids 数组可批量更新多条记录
+ * - [批量模式] 使用 bulkWrite + ordered:false 提高性能和容错性
+ * - [向后兼容] 传入单个 id 时行为与旧版完全一致
  *
  * --- v5.0 更新日志 ---
  * - [核心改造] 支持 dbVersion 参数选择数据库：
@@ -61,9 +70,12 @@ const V1_ALLOWED_UPDATE_FIELDS = [
 const V2_ALLOWED_UPDATE_FIELDS = [
   // 财务信息
   'amount',
-  'priceInfo',
   'rebateRate',
-  'orderType',
+  'orderMode', // 下单方式：'adjusted'(改价) | 'original'(原价)
+  // v5.2: 定价模式支持
+  'pricingMode', // 计价方式：'framework' | 'project'
+  'quotationPrice', // 对客报价（分）
+  'orderPrice', // 下单价（分）
   // 状态
   'status',
   // 执行追踪
@@ -74,7 +86,6 @@ const V2_ALLOWED_UPDATE_FIELDS = [
   'videoUrl',
   // 财务管理
   'orderDate',
-  'paymentDate',
   'recoveryDate',
   // 差异处理
   'discrepancyReason',
@@ -321,6 +332,149 @@ async function handleV2Request(id, updateFields, db, collections) {
   };
 }
 
+/**
+ * 构建更新操作的 payload
+ * @param {Object} updateFields - 更新字段
+ * @param {Array} allowedFields - 允许的字段列表
+ * @param {string} dbVersion - 数据库版本
+ * @returns {{ updatePayload: Object, hasValidFields: boolean }}
+ */
+function buildUpdatePayload(updateFields, allowedFields, dbVersion) {
+  const updatePayload = { $set: {}, $unset: {} };
+  let hasValidFields = false;
+
+  for (const field of allowedFields) {
+    if (Object.prototype.hasOwnProperty.call(updateFields, field)) {
+      hasValidFields = true;
+      if (
+        updateFields[field] === null ||
+        updateFields[field] === '' ||
+        (Array.isArray(updateFields[field]) && updateFields[field].length === 0)
+      ) {
+        updatePayload.$unset[field] = '';
+      } else {
+        updatePayload.$set[field] = updateFields[field];
+      }
+    }
+  }
+
+  // v2: 自动设置状态
+  if (
+    dbVersion === 'v2' &&
+    updateFields.actualReleaseDate &&
+    updateFields.status !== '视频已发布'
+  ) {
+    if (!updatePayload.$set.status) {
+      updatePayload.$set.status = '视频已发布';
+    }
+  }
+
+  if (Object.keys(updatePayload.$set).length > 0) {
+    updatePayload.$set.updatedAt = new Date();
+  }
+
+  return { updatePayload, hasValidFields };
+}
+
+/**
+ * v2 批量更新模式：批量更新多条合作记录
+ * @param {Array<string>} ids - 要更新的合作记录 ID 数组
+ * @param {Object} updateFields - 要更新的字段
+ * @param {Object} db - 数据库实例
+ * @param {Object} collections - 集合配置
+ */
+async function handleV2BatchRequest(ids, updateFields, db, collections) {
+  const collaborationsCollection = db.collection(collections.collaborations);
+
+  // 验证 ids 数组
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return {
+      statusCode: 400,
+      body: { success: false, message: 'ids 必须是非空数组。' },
+    };
+  }
+
+  // 限制批量更新数量，防止性能问题
+  const MAX_BATCH_SIZE = 100;
+  if (ids.length > MAX_BATCH_SIZE) {
+    return {
+      statusCode: 400,
+      body: {
+        success: false,
+        message: `批量更新数量不能超过 ${MAX_BATCH_SIZE} 条。`,
+      },
+    };
+  }
+
+  // 构建更新 payload
+  const { updatePayload, hasValidFields } = buildUpdatePayload(
+    updateFields,
+    V2_ALLOWED_UPDATE_FIELDS,
+    'v2'
+  );
+
+  if (!hasValidFields) {
+    return {
+      statusCode: 400,
+      body: { success: false, message: '请求体中没有需要更新的有效字段。' },
+    };
+  }
+
+  // 构建 finalUpdate
+  const finalUpdate = {};
+  if (Object.keys(updatePayload.$set).length > 0) {
+    finalUpdate.$set = updatePayload.$set;
+  }
+  if (Object.keys(updatePayload.$unset).length > 0) {
+    finalUpdate.$unset = updatePayload.$unset;
+  }
+
+  if (Object.keys(finalUpdate).length === 0) {
+    return {
+      statusCode: 200,
+      body: {
+        success: true,
+        dbVersion: 'v2',
+        message: '没有字段需要更新。',
+        modifiedCount: 0,
+      },
+    };
+  }
+
+  // 使用 bulkWrite 批量更新
+  const bulkOperations = ids.map((id) => ({
+    updateOne: {
+      filter: { id: id },
+      update: finalUpdate,
+    },
+  }));
+
+  const result = await collaborationsCollection.bulkWrite(bulkOperations, {
+    ordered: false, // 允许部分失败，继续执行其他操作
+  });
+
+  console.log(
+    `[Batch Update] 批量更新完成: matched=${result.matchedCount}, modified=${result.modifiedCount}`
+  );
+
+  return {
+    statusCode: 200,
+    body: {
+      success: true,
+      dbVersion: 'v2',
+      message: `批量更新完成: ${result.modifiedCount} 条记录已更新。`,
+      // 兼容前端期望的格式
+      data: {
+        updated: result.modifiedCount,
+        matched: result.matchedCount,
+      },
+      // 保留原字段向后兼容
+      matchedCount: result.matchedCount,
+      modifiedCount: result.modifiedCount,
+    },
+  };
+}
+
 exports.handler = async (event, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -343,18 +497,26 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // 从 body 中同时解构 id、dbVersion 和其他更新字段
-    const { id, dbVersion = 'v1', ...updateFields } = JSON.parse(
-      event.body || '{}'
-    );
+    // 从 body 中同时解构 id、ids、updates、dbVersion 和其他更新字段
+    const {
+      id,
+      ids,
+      updates,
+      dbVersion = 'v1',
+      ...restUpdateFields
+    } = JSON.parse(event.body || '{}');
 
-    if (!id) {
+    // 批量模式使用 updates 字段，单条模式使用展开的字段
+    const updateFields = updates || restUpdateFields;
+
+    // 验证：必须提供 id 或 ids
+    if (!id && !ids) {
       return {
         statusCode: 400,
         headers,
         body: JSON.stringify({
           success: false,
-          message: '请求体中缺少合作记录ID (id)。',
+          message: '请求体中缺少合作记录ID (id) 或批量ID数组 (ids)。',
         }),
       };
     }
@@ -366,9 +528,30 @@ exports.handler = async (event, context) => {
     const dbClient = await connectToDatabase();
     const db = dbClient.db(config.dbName);
 
-    // 根据版本调用不同处理逻辑
+    // 根据模式调用不同处理逻辑
     let result;
-    if (dbVersion === 'v2') {
+
+    // 批量更新模式（仅 v2 支持）
+    if (ids && Array.isArray(ids)) {
+      if (dbVersion !== 'v2') {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({
+            success: false,
+            message: '批量更新模式仅支持 dbVersion=v2。',
+          }),
+        };
+      }
+      result = await handleV2BatchRequest(
+        ids,
+        updateFields,
+        db,
+        config.collections
+      );
+    }
+    // 单条更新模式
+    else if (dbVersion === 'v2') {
       result = await handleV2Request(id, updateFields, db, config.collections);
     } else {
       result = await handleV1Request(id, updateFields, db, config.collections);

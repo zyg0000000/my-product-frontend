@@ -212,8 +212,8 @@ export interface Project {
   projectCode?: string;
   name: string;
 
-  // v4.4: 业务类型改造
-  businessType: BusinessTypeKey; // 一级业务类型
+  // v4.4: 业务类型改造，v5.2: 支持多选
+  businessType: BusinessTypeKey | BusinessTypeKey[]; // 一级业务类型（支持单选或多选）
   businessTag?: string; // 二级业务标签（可选，如 '常规秒杀'）
 
   /** @deprecated 请使用 businessTag，保留用于兼容旧数据 */
@@ -288,8 +288,8 @@ export interface ProjectListItem {
   projectCode?: string;
   name: string;
 
-  // v4.4: 业务类型
-  businessType: BusinessTypeKey;
+  // v4.4: 业务类型，v5.2: 支持多选
+  businessType: BusinessTypeKey | BusinessTypeKey[];
   businessTag?: string;
 
   /** @deprecated 兼容旧数据 */
@@ -340,8 +340,8 @@ export interface CreateProjectRequest {
   budget: number;
   platforms: Platform[];
 
-  // v4.4: 业务类型（必填）
-  businessType: BusinessTypeKey;
+  // v4.4: 业务类型（必填），v5.2: 支持多选
+  businessType: BusinessTypeKey | BusinessTypeKey[];
   businessTag?: string; // 二级业务标签（可选）
 
   // v4.4: 按平台折扣率（从客户策略读取的快照）
@@ -512,6 +512,30 @@ export interface CollaborationAdjustment {
 }
 
 /**
+ * v5.2: 下单方式
+ * - adjusted: 改价下单（默认，可降低成本）
+ * - original: 原价下单（全额返点）
+ */
+export type OrderMode = 'adjusted' | 'original';
+
+/**
+ * v5.2: 合作记录财务计算结果
+ * 保存时计算，用于看板汇总和表格展示
+ */
+export interface CollaborationFinance {
+  /** 对客报价（收入，分） */
+  revenue: number;
+  /** 下单成本（分） */
+  cost: number;
+  /** 返点收入（分） */
+  rebateIncome: number;
+  /** 利润 = 收入 - 成本 + 返点收入（不含调整项） */
+  profit: number;
+  /** 计算时间 */
+  calculatedAt: string;
+}
+
+/**
  * 合作记录完整信息
  */
 export interface Collaboration {
@@ -523,16 +547,34 @@ export interface Collaboration {
   talentPlatform: Platform;
   talentName?: string; // 冗余字段
   talentSource?: TalentSource;
+  /** 达人详情（后端 populate 填充，用于外链展示） */
+  talentInfo?: {
+    name?: string;
+    platform?: Platform;
+    platformAccountId?: string;
+    platformSpecific?: Record<string, string>;
+  };
 
   // 状态
   status: CollaborationStatus;
   orderType?: OrderType;
 
   // 财务信息
-  amount: number; // 执行金额（分）
-  priceInfo?: string; // 价格档期说明
+  amount: number; // 金额（分）
   rebateRate?: number; // 返点率 (%)
   actualRebate?: number; // 实际返点金额（分）
+
+  // v5.2: 定价模式支持
+  /** 计价方式（hybrid 模式下每条记录选择） */
+  pricingMode?: 'framework' | 'project';
+  /** 下单方式：'discount'=改价下单（默认）, 'original'=原价下单 */
+  orderMode?: OrderMode;
+  /** 对客报价（分）- project 模式手动填写 */
+  quotationPrice?: number;
+  /** 下单价（分）- 计算或手动填写 */
+  orderPrice?: number;
+  /** 财务计算结果（保存时计算） */
+  finance?: CollaborationFinance;
 
   // 执行追踪
   plannedReleaseDate?: string; // 计划发布日期 YYYY-MM-DD
@@ -543,7 +585,6 @@ export interface Collaboration {
 
   // 财务管理
   orderDate?: string; // 下单日期
-  paymentDate?: string; // 打款日期
   recoveryDate?: string; // 回款日期
 
   // 差异处理
@@ -604,11 +645,17 @@ export interface UpdateCollaborationRequest {
   videoId?: string;
   videoUrl?: string;
   orderDate?: string;
-  paymentDate?: string;
   recoveryDate?: string;
   discrepancyReason?: string;
   effectData?: EffectData;
   adjustments?: CollaborationAdjustment[];
+
+  // v5.2: 定价模式支持
+  pricingMode?: 'framework' | 'project';
+  orderMode?: OrderMode;
+  quotationPrice?: number;
+  orderPrice?: number;
+  finance?: CollaborationFinance;
 }
 
 /**
@@ -820,4 +867,27 @@ export function generateMonthValueEnum(): Record<number, { text: string }> {
     months[m] = { text: `${m}月` };
   }
   return months;
+}
+
+/**
+ * v5.2: 规范化业务类型为数组格式
+ * 兼容旧数据（单选字符串）和新数据（多选数组）
+ */
+export function normalizeBusinessTypes(
+  businessType: BusinessTypeKey | BusinessTypeKey[] | undefined
+): BusinessTypeKey[] {
+  if (!businessType) return [];
+  if (Array.isArray(businessType)) return businessType;
+  return [businessType];
+}
+
+/**
+ * v5.2: 获取业务类型的第一个值（用于需要单选场景的兼容）
+ */
+export function getPrimaryBusinessType(
+  businessType: BusinessTypeKey | BusinessTypeKey[] | undefined
+): BusinessTypeKey | undefined {
+  if (!businessType) return undefined;
+  if (Array.isArray(businessType)) return businessType[0];
+  return businessType;
 }

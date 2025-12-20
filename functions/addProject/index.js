@@ -1,7 +1,11 @@
 /**
  * @file addProject.js
- * @version 2.2-pricing-snapshot
+ * @version 2.3-multi-business-type
  * @description 接收前端发送的项目数据，创建一个新的项目文档。
+ *
+ * --- 更新日志 (v2.3) ---
+ * - [v5.2 多业务类型] businessType 支持数组格式（多选）
+ * - [v5.2 向后兼容] 自动将字符串格式转换为数组格式
  *
  * --- 更新日志 (v2.2) ---
  * - [v5.0 定价快照] 新增 platformPricingSnapshots 存储项目创建时的有效定价配置
@@ -205,11 +209,15 @@ exports.handler = async (event, context) => {
       trackingStatus = 'active';
     }
 
-    // [v1.5] 处理业务类型字段
-    // businessType: 一级业务类型 (talentProcurement | adPlacement | contentProduction)
+    // [v1.5 + v5.2] 处理业务类型字段
+    // businessType: 一级业务类型，v5.2 支持数组格式（多选）
     // businessTag: 二级业务标签（可选，如 '常规秒杀'）
     // type: 兼容旧字段，如果没有 businessTag 则使用 type
-    const businessType = inputData.businessType || 'talentProcurement'; // 默认达人采买
+    let businessType = inputData.businessType || 'talentProcurement';
+    // v5.2: 兼容字符串和数组格式
+    if (!Array.isArray(businessType)) {
+      businessType = businessType ? [businessType] : ['talentProcurement'];
+    }
     const businessTag = inputData.businessTag || inputData.type || null;
 
     // [v1.5] 处理平台折扣率

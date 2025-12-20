@@ -82,60 +82,17 @@ export interface ExecutionTabConfig {
 }
 
 /**
- * 财务指标键值
- */
-export type FinanceMetricKey =
-  | 'totalAmount' // 执行总额
-  | 'orderedAmount' // 已下单
-  | 'paidAmount' // 已打款
-  | 'recoveredAmount' // 已回款
-  | 'pendingCount' // 待下单数
-  | 'adjustmentTotal' // 调整合计
-  | 'totalExpense' // 下单支出（高级）
-  | 'fundsOccupation' // 资金占用费用（高级）
-  | 'expenseAdjustment' // 支出调整（高级）
-  | 'incomeAdjustment' // 收入调整（高级）
-  | 'operationalCost' // 总运营成本（高级）
-  | 'grossProfit' // 毛利润（高级）
-  | 'grossMargin'; // 毛利率（高级）
-
-/**
- * 财务指标分类
- */
-export type FinanceMetricCategory = 'basic' | 'advanced';
-
-/**
- * 财务指标配置
- */
-export interface FinanceMetricConfig {
-  /** 指标键 */
-  key: FinanceMetricKey;
-  /** 显示名称 */
-  label: string;
-  /** 单位 */
-  unit: string;
-  /** 分类 */
-  category: FinanceMetricCategory;
-  /** 排序顺序 */
-  order: number;
-  /** 颜色类型 */
-  colorType?: 'income' | 'expense' | 'profit' | 'adjustment' | 'progress';
-}
-
-/**
  * 财务管理配置
  */
 export interface FinanceTabConfig {
-  /** 启用的指标（决定看板显示哪些卡片） */
-  enabledMetrics: FinanceMetricKey[];
   /** 是否启用资金占用费用计算 */
   enableFundsOccupation?: boolean;
   /** 资金占用月费率（%），默认 0.7 */
   fundsOccupationRate?: number;
   /** 是否显示结算文件管理 */
   enableSettlementFiles?: boolean;
-  /** 自定义指标（客户特有） */
-  customMetrics?: FinanceMetricConfig[];
+  /** 调整项类型选项（不配置则使用默认） */
+  adjustmentTypes?: string[];
 }
 
 /**
@@ -175,146 +132,24 @@ export const DEFAULT_PROJECT_CONFIG: CustomerProjectConfig = {
     benchmarks: {},
   },
   financeConfig: {
-    enabledMetrics: [
-      'totalAmount',
-      'orderedAmount',
-      'paidAmount',
-      'recoveredAmount',
-      'pendingCount',
-      'adjustmentTotal',
-    ],
     enableFundsOccupation: false,
     enableSettlementFiles: false,
   },
 };
 
 /**
- * 默认财务配置（基础指标）
+ * 默认调整项类型
  */
-export const DEFAULT_FINANCE_CONFIG: FinanceTabConfig = {
-  enabledMetrics: [
-    'totalAmount',
-    'orderedAmount',
-    'paidAmount',
-    'recoveredAmount',
-    'pendingCount',
-    'adjustmentTotal',
-  ],
-  enableFundsOccupation: false,
-  enableSettlementFiles: false,
-};
+export const DEFAULT_ADJUSTMENT_TYPES = ['价格调整', '其他'];
 
 /**
- * 可用的财务指标定义
+ * 默认财务配置
  */
-export const AVAILABLE_FINANCE_METRICS: FinanceMetricConfig[] = [
-  // 基础指标（前端可直接计算）
-  {
-    key: 'totalAmount',
-    label: '执行总额',
-    unit: '元',
-    category: 'basic',
-    order: 1,
-    colorType: 'income',
-  },
-  {
-    key: 'orderedAmount',
-    label: '已下单',
-    unit: '元',
-    category: 'basic',
-    order: 2,
-    colorType: 'income',
-  },
-  {
-    key: 'paidAmount',
-    label: '已打款',
-    unit: '元',
-    category: 'basic',
-    order: 3,
-    colorType: 'income',
-  },
-  {
-    key: 'recoveredAmount',
-    label: '已回款',
-    unit: '元',
-    category: 'basic',
-    order: 4,
-    colorType: 'income',
-  },
-  {
-    key: 'pendingCount',
-    label: '待下单',
-    unit: '条',
-    category: 'basic',
-    order: 5,
-    colorType: 'progress',
-  },
-  {
-    key: 'adjustmentTotal',
-    label: '调整合计',
-    unit: '元',
-    category: 'basic',
-    order: 6,
-    colorType: 'adjustment',
-  },
-  // 高级指标（需要额外数据或配置）
-  {
-    key: 'totalExpense',
-    label: '下单支出',
-    unit: '元',
-    category: 'advanced',
-    order: 10,
-    colorType: 'expense',
-  },
-  {
-    key: 'fundsOccupation',
-    label: '资金占用费用',
-    unit: '元',
-    category: 'advanced',
-    order: 11,
-    colorType: 'expense',
-  },
-  {
-    key: 'expenseAdjustment',
-    label: '支出调整',
-    unit: '元',
-    category: 'advanced',
-    order: 12,
-    colorType: 'adjustment',
-  },
-  {
-    key: 'incomeAdjustment',
-    label: '收入调整',
-    unit: '元',
-    category: 'advanced',
-    order: 13,
-    colorType: 'adjustment',
-  },
-  {
-    key: 'operationalCost',
-    label: '总运营成本',
-    unit: '元',
-    category: 'advanced',
-    order: 14,
-    colorType: 'expense',
-  },
-  {
-    key: 'grossProfit',
-    label: '毛利润',
-    unit: '元',
-    category: 'advanced',
-    order: 15,
-    colorType: 'profit',
-  },
-  {
-    key: 'grossMargin',
-    label: '毛利率',
-    unit: '%',
-    category: 'advanced',
-    order: 16,
-    colorType: 'profit',
-  },
-];
+export const DEFAULT_FINANCE_CONFIG: FinanceTabConfig = {
+  enableFundsOccupation: false,
+  enableSettlementFiles: false,
+  adjustmentTypes: DEFAULT_ADJUSTMENT_TYPES,
+};
 
 /**
  * 可用的效果指标定义
