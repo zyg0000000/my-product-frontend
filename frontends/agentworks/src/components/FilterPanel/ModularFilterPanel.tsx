@@ -303,7 +303,9 @@ export function ModularFilterPanel({
   }
 
   return (
-    <div className={`bg-surface rounded-lg shadow mb-4 overflow-hidden ${className}`}>
+    <div
+      className={`bg-surface rounded-lg shadow mb-4 overflow-hidden ${className}`}
+    >
       {/* 筛选面板头部 */}
       <div
         className={`flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-surface-base ${!isExpanded ? 'rounded-lg' : 'rounded-t-lg border-b'}`}
