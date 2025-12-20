@@ -1,6 +1,6 @@
 # AgentWorks 功能文档索引
 
-> 更新时间: 2025-12-08 | 版本: v4.0.0
+> 更新时间: 2025-12-21 | 版本: v4.1.0
 
 ## 📁 目录结构
 
@@ -16,7 +16,8 @@ features/
 │   └── PRICING_STRATEGY.md          # 定价策略
 │
 ├── projects/                         # 📁 项目管理
-│   └── PROJECT_MANAGEMENT.md        # 项目管理
+│   ├── PROJECT_MANAGEMENT.md        # 项目管理
+│   └── EXECUTION_BOARD.md           # 执行看板 🆕
 │
 ├── talents/                          # 👥 达人管理
 │   ├── TALENT_PERFORMANCE_DESIGN.md     # 表现数据设计
@@ -67,6 +68,7 @@ features/
 | 文档 | 说明 | 状态 |
 |------|------|------|
 | [项目管理](./projects/PROJECT_MANAGEMENT.md) | 项目全生命周期管理 | ✅ v1.3 |
+| [执行看板](./projects/EXECUTION_BOARD.md) | 跨项目发布计划管理 | ✅ v1.0 🆕 |
 
 ---
 
@@ -117,4 +119,4 @@ features/
 ---
 
 **维护者**: AgentWorks Team
-**最后更新**: 2025-12-08
+**最后更新**: 2025-12-21
