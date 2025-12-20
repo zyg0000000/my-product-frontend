@@ -55,6 +55,11 @@ const ProjectDetail = lazy(() =>
     default: m.ProjectDetail,
   }))
 );
+const ExecutionBoard = lazy(() =>
+  import('./pages/ExecutionBoard').then(m => ({
+    default: m.ExecutionBoard,
+  }))
+);
 const AnalyticsHome = lazy(() =>
   import('./pages/Analytics/AnalyticsHome').then(m => ({
     default: m.AnalyticsHome,
@@ -195,6 +200,7 @@ function ThemedApp() {
                   <Route path="projects" element={<ProjectsHome />} />
                   <Route path="projects/list" element={<ProjectList />} />
                   <Route path="projects/:id" element={<ProjectDetail />} />
+                  <Route path="execution-board" element={<ExecutionBoard />} />
                   <Route path="analytics" element={<AnalyticsHome />} />
                   <Route
                     path="analytics/talent-panorama"

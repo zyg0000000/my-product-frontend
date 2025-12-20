@@ -54,7 +54,10 @@ const navigation: NavItem[] = [
     name: '项目管理',
     path: '/projects',
     icon: FolderIcon,
-    children: [{ name: '项目列表', path: '/projects/list' }],
+    children: [
+      { name: '项目列表', path: '/projects/list' },
+      { name: '执行看板', path: '/execution-board' },
+    ],
   },
   {
     name: '数据分析',
