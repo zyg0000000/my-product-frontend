@@ -318,7 +318,7 @@ export function FinancialTab({
 
   // 生成动态 Tab 列表
   const businessTabItems = useMemo(() => {
-    const items = projectBusinessTypes
+    const items: Array<{ key: string; label: string }> = projectBusinessTypes
       .map(type => {
         const option = BUSINESS_TYPE_OPTIONS.find(opt => opt.value === type);
         return option ? { key: option.value, label: option.label } : null;

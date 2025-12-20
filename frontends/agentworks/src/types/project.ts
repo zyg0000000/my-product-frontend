@@ -388,8 +388,8 @@ export interface UpdateProjectRequest {
   financialYear?: number;
   financialMonth?: number;
 
-  // v4.4: 业务类型
-  businessType?: BusinessTypeKey;
+  // v4.4: 业务类型，v5.2: 支持多选
+  businessType?: BusinessTypeKey | BusinessTypeKey[];
   businessTag?: string;
 
   // v4.4: 按平台折扣率
