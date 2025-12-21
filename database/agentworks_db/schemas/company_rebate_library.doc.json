@@ -1,0 +1,136 @@
+{
+    "collection": "company_rebate_library",
+    "description": "公司返点库 - 存储公司 Excel 导入的返点数据，支持多版本",
+    "database": "agentworks_db",
+    "version": "1.0",
+    "lastUpdated": "2025-12-21",
+    "author": "产品团队",
+    "fields": {
+        "_id": {
+            "type": "ObjectId",
+            "description": "MongoDB 文档 ID",
+            "required": true,
+            "auto": true
+        },
+        "importId": {
+            "type": "String",
+            "description": "版本标识（关联 company_rebate_imports）",
+            "required": true,
+            "pattern": "^import_[0-9]{6}(_[0-9]+)?$",
+            "example": "import_202512",
+            "comment": "格式：import_{YYYYMM} 或 import_{YYYYMM}_{序号}"
+        },
+        "xingtuId": {
+            "type": "String",
+            "description": "星图ID（平台账号ID）",
+            "required": true,
+            "example": "7011422213328863269",
+            "comment": "用于与 agentworks talents 的 platformAccountId 匹配"
+        },
+        "nickname": {
+            "type": "String",
+            "description": "达人昵称",
+            "required": true,
+            "example": "胖甜的幸福生活"
+        },
+        "mcn": {
+            "type": "String",
+            "description": "MCN机构名称",
+            "required": true,
+            "example": "缤纷多彩",
+            "comment": "公司 Excel 中的 MCN 字段"
+        },
+        "rebateRate": {
+            "type": "Number",
+            "description": "返点率（整数百分比）",
+            "required": true,
+            "min": 0,
+            "max": 100,
+            "example": 26,
+            "comment": "从备注字段解析，0.26 → 26"
+        },
+        "rawRemark": {
+            "type": "String",
+            "description": "原始备注字段",
+            "required": false,
+            "example": "sxskyskxhj|0.26",
+            "comment": "保留原始数据用于追溯"
+        }
+    },
+    "indexes": [
+        {
+            "name": "idx_importId_xingtuId",
+            "fields": { "importId": 1, "xingtuId": 1 },
+            "description": "复合索引：按版本+星图ID查询（主要查询）"
+        },
+        {
+            "name": "idx_importId",
+            "fields": { "importId": 1 },
+            "description": "按版本查询（删除版本、统计）"
+        },
+        {
+            "name": "idx_xingtuId",
+            "fields": { "xingtuId": 1 },
+            "description": "跨版本查询某达人的所有记录"
+        }
+    ],
+    "relations": [
+        {
+            "collection": "company_rebate_imports",
+            "type": "many-to-one",
+            "foreignKey": "importId",
+            "description": "多条返点记录对应一个导入版本"
+        },
+        {
+            "collection": "talents",
+            "type": "lookup",
+            "foreignKey": "xingtuId",
+            "targetKey": "platformAccountId",
+            "description": "通过星图ID关联 agentworks 达人"
+        }
+    ],
+    "notes": [
+        "【设计目的】存储公司 Excel 导入的返点数据，支持多版本切换对比",
+        "【存储策略】每次导入创建新版本，多版本共存",
+        "【去重规则】同一 Excel 中完全相同的记录只存一条",
+        "【保留多条】同一达人不同 MCN 的记录全部保留",
+        "【匹配逻辑】通过 xingtuId 与 talents.platformAccountId 匹配",
+        "【版本管理】用户可手动删除不需要的旧版本",
+        "【数据量】每版本约 3.6 万条，预计保留 6-12 个版本"
+    ],
+    "examples": [
+        {
+            "description": "示例1：标准返点记录",
+            "data": {
+                "importId": "import_202512",
+                "xingtuId": "7011422213328863269",
+                "nickname": "胖甜的幸福生活",
+                "mcn": "缤纷多彩",
+                "rebateRate": 26,
+                "rawRemark": "sxskyskxhj|0.26"
+            }
+        },
+        {
+            "description": "示例2：同一达人不同机构（多条记录）",
+            "data": {
+                "importId": "import_202512",
+                "xingtuId": "7011422213328863269",
+                "nickname": "胖甜的幸福生活",
+                "mcn": "其他机构",
+                "rebateRate": 28,
+                "rawRemark": "other|0.28"
+            }
+        }
+    ],
+    "migrations": [
+        {
+            "version": "v1.0",
+            "date": "2025-12-21",
+            "description": "创建 company_rebate_library 集合",
+            "operations": [
+                "创建集合",
+                "创建3个索引"
+            ]
+        }
+    ]
+}

@@ -1,20 +1,25 @@
 /**
  * @file platformConfigManager/index.js
- * @version 1.0.0
- * @description 云函数：平台配置管理（RESTful）
+ * @version 1.1.0
+ * @description 云函数：系统配置管理（RESTful）
+ *
+ * --- 支持的 configType ---
+ * - platform: 平台配置
+ * - talent_tags: 达人标签配置
+ * - project: 项目管理配置
+ * - company_rebate_import: 公司返点导入配置
  *
  * --- 更新日志 ---
+ * [v1.1.0] 2025-12-22
+ * - 新增 company_rebate_import 配置类型支持
+ * - 支持通用 configType 查询
+ *
  * [v1.0.0] 2025-11-23
  * - 初始版本
  * - 支持 GET/POST/PUT/DELETE 操作
  * - 实现配置缓存机制
  * - 添加配置完整性验证
  * - 完整的日志记录和错误处理
- *
- * --- 未来计划 ---
- * [v1.1.0] 计划功能
- * - 添加配置变更历史追踪
- * - 支持批量更新操作
  */
 
 const { MongoClient } = require('mongodb');
@@ -52,6 +57,11 @@ function getHeaders() {
 }
 
 /**
+ * 支持的 configType 列表
+ */
+const SUPPORTED_CONFIG_TYPES = ['platform', 'talent_tags', 'project', 'company_rebate_import'];
+
+/**
  * 验证平台配置完整性
  */
 function validatePlatformConfig(config) {
@@ -81,15 +91,103 @@ function validatePlatformConfig(config) {
 }
 
 /**
+ * 验证公司返点导入配置完整性
+ */
+function validateCompanyRebateImportConfig(config) {
+  // 验证列映射
+  if (!config.columnMapping) {
+    throw new Error('缺少列映射配置 (columnMapping)');
+  }
+
+  const requiredColumns = ['xingtuId'];
+  const missingColumns = requiredColumns.filter(col => !config.columnMapping[col]);
+  if (missingColumns.length > 0) {
+    throw new Error(`列映射缺少必填字段: ${missingColumns.join(', ')}`);
+  }
+
+  // 验证返点解析规则
+  if (!config.rebateParser) {
+    throw new Error('缺少返点解析规则 (rebateParser)');
+  }
+
+  const validParserTypes = ['direct', 'regex', 'percent'];
+  if (!validParserTypes.includes(config.rebateParser.type)) {
+    throw new Error(`不支持的解析类型: ${config.rebateParser.type}，支持: ${validParserTypes.join(', ')}`);
+  }
+
+  if (config.rebateParser.type === 'regex' && !config.rebateParser.pattern) {
+    throw new Error('正则解析模式需要提供 pattern');
+  }
+
+  return true;
+}
+
+/**
  * 处理 GET 请求
  */
 async function handleGet(event) {
   const params = event.queryStringParameters || {};
-  const { platform, enabled } = params;
+  const { platform, enabled, configType } = params;
 
   const dbClient = await connectToDatabase();
   const db = dbClient.db(DB_NAME);
   const collection = db.collection(COLLECTION_NAME);
+
+  // 查询非平台类型的配置（如 company_rebate_import）
+  if (configType && configType !== 'platform') {
+    console.log(`[INFO] 查询配置类型: ${configType}`);
+
+    if (!SUPPORTED_CONFIG_TYPES.includes(configType)) {
+      return {
+        statusCode: 400,
+        headers: getHeaders(),
+        body: JSON.stringify({
+          success: false,
+          message: `不支持的配置类型: ${configType}，支持: ${SUPPORTED_CONFIG_TYPES.join(', ')}`
+        })
+      };
+    }
+
+    const config = await collection.findOne({ configType });
+
+    if (!config) {
+      // 对于 company_rebate_import，返回默认配置
+      if (configType === 'company_rebate_import') {
+        return {
+          statusCode: 200,
+          headers: getHeaders(),
+          body: JSON.stringify({
+            success: true,
+            data: null,
+            message: '配置不存在，请先创建',
+            timestamp: new Date().toISOString()
+          })
+        };
+      }
+
+      return {
+        statusCode: 404,
+        headers: getHeaders(),
+        body: JSON.stringify({
+          success: false,
+          message: `配置不存在: ${configType}`
+        })
+      };
+    }
+
+    // 移除 MongoDB _id 字段
+    delete config._id;
+
+    return {
+      statusCode: 200,
+      headers: getHeaders(),
+      body: JSON.stringify({
+        success: true,
+        data: config,
+        timestamp: new Date().toISOString()
+      })
+    };
+  }
 
   // 获取单个平台配置
   if (platform) {
@@ -158,15 +256,58 @@ async function handleGet(event) {
  */
 async function handleCreate(event) {
   const config = JSON.parse(event.body || '{}');
-
-  console.log(`[INFO] 创建新平台配置: ${config.platform}`);
-
-  // 验证配置
-  validatePlatformConfig(config);
+  const { configType = 'platform' } = config;
 
   const dbClient = await connectToDatabase();
   const db = dbClient.db(DB_NAME);
   const collection = db.collection(COLLECTION_NAME);
+
+  // 处理 company_rebate_import 类型
+  if (configType === 'company_rebate_import') {
+    console.log(`[INFO] 创建/更新公司返点导入配置`);
+
+    // 验证配置
+    validateCompanyRebateImportConfig(config);
+
+    // 检查是否已存在（upsert 模式）
+    const existing = await collection.findOne({ configType: 'company_rebate_import' });
+
+    const configData = {
+      ...config,
+      configType: 'company_rebate_import',
+      updatedAt: new Date(),
+      version: existing ? (existing.version || 1) + 1 : 1
+    };
+
+    if (!existing) {
+      configData.createdAt = new Date();
+    }
+
+    await collection.updateOne(
+      { configType: 'company_rebate_import' },
+      { $set: configData },
+      { upsert: true }
+    );
+
+    console.log(`[SUCCESS] 公司返点导入配置保存成功`);
+
+    return {
+      statusCode: existing ? 200 : 201,
+      headers: getHeaders(),
+      body: JSON.stringify({
+        success: true,
+        message: existing ? '配置更新成功' : '配置创建成功',
+        data: { version: configData.version },
+        timestamp: new Date().toISOString()
+      })
+    };
+  }
+
+  // 处理平台配置
+  console.log(`[INFO] 创建新平台配置: ${config.platform}`);
+
+  // 验证配置
+  validatePlatformConfig(config);
 
   // 检查是否已存在
   const existing = await collection.findOne({

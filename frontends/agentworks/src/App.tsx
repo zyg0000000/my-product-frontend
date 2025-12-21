@@ -32,6 +32,11 @@ const AgenciesList = lazy(() =>
     default: m.AgenciesList,
   }))
 );
+const RebateComparison = lazy(() =>
+  import('./pages/Talents/RebateComparison/RebateComparison').then(m => ({
+    default: m.RebateComparison,
+  }))
+);
 const TalentDetail = lazy(() =>
   import('./pages/TalentDetail/TalentDetail').then(m => ({
     default: m.TalentDetail,
@@ -100,6 +105,11 @@ const TagManagement = lazy(() =>
     default: m.TagManagement,
   }))
 );
+const CompanyRebateImportConfig = lazy(() =>
+  import('./pages/Settings/CompanyRebateImportConfig').then(m => ({
+    default: m.CompanyRebateImportConfig,
+  }))
+);
 const CustomersHome = lazy(() =>
   import('./pages/Customers/CustomersHome').then(m => ({
     default: m.CustomersHome,
@@ -164,6 +174,10 @@ function ThemedApp() {
                   <Route path="talents/basic" element={<BasicInfo />} />
                   <Route path="talents/create" element={<CreateTalent />} />
                   <Route path="talents/agencies" element={<AgenciesList />} />
+                  <Route
+                    path="talents/rebate-comparison"
+                    element={<RebateComparison />}
+                  />
                   <Route
                     path="talents/:oneId/:platform"
                     element={<TalentDetail />}
@@ -239,6 +253,10 @@ function ThemedApp() {
                   <Route
                     path="settings/tag-management"
                     element={<TagManagement />}
+                  />
+                  <Route
+                    path="settings/company-rebate-import"
+                    element={<CompanyRebateImportConfig />}
                   />
 
                   <Route path="*" element={<Navigate to="/" replace />} />

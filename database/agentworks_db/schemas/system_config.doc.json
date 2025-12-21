@@ -2,8 +2,8 @@
     "collection": "system_config",
     "description": "系统配置集合 - 存储平台配置、标签配置等全局系统配置",
     "database": "agentworks_db",
-    "version": "1.0",
-    "lastUpdated": "2025-12-04",
+    "version": "1.1",
+    "lastUpdated": "2025-12-22",
     "author": "产品团队",
     "fields": {
         "_id": {
@@ -16,8 +16,8 @@
             "type": "String",
             "description": "配置类型",
             "required": true,
-            "enum": ["platform", "talent_tags", "project"],
-            "comment": "platform=平台配置, talent_tags=达人标签配置, project=项目管理配置"
+            "enum": ["platform", "talent_tags", "project", "company_rebate_import"],
+            "comment": "platform=平台配置, talent_tags=达人标签配置, project=项目管理配置, company_rebate_import=公司返点导入配置"
         }
     },
     "configTypes": {
@@ -406,6 +406,83 @@
                     "description": "更新时间"
                 }
             }
+        },
+        "company_rebate_import": {
+            "description": "公司返点导入配置 - 定义 Excel 文件列映射和返点解析规则",
+            "fields": {
+                "columnMapping": {
+                    "type": "Object",
+                    "description": "Excel 列映射配置",
+                    "required": true,
+                    "properties": {
+                        "xingtuId": {
+                            "type": "String",
+                            "description": "星图ID对应的列名",
+                            "required": true,
+                            "example": "星图ID"
+                        },
+                        "nickname": {
+                            "type": "String",
+                            "description": "昵称对应的列名",
+                            "example": "昵称"
+                        },
+                        "mcn": {
+                            "type": "String",
+                            "description": "MCN机构对应的列名",
+                            "example": "MCN"
+                        },
+                        "rebate": {
+                            "type": "String",
+                            "description": "返点数据对应的列名",
+                            "example": "备注"
+                        }
+                    }
+                },
+                "rebateParser": {
+                    "type": "Object",
+                    "description": "返点解析规则配置",
+                    "required": true,
+                    "properties": {
+                        "type": {
+                            "type": "String",
+                            "description": "解析模式",
+                            "enum": ["direct", "regex", "percent"],
+                            "required": true,
+                            "comment": "direct=直接数值, regex=正则匹配, percent=百分比格式"
+                        },
+                        "pattern": {
+                            "type": "String",
+                            "description": "正则表达式（仅 regex 模式需要）",
+                            "example": "\\|(\\d+\\.?\\d*)"
+                        },
+                        "multiplier": {
+                            "type": "Number",
+                            "description": "乘数（当数值<=1时自动乘以此值）",
+                            "default": 100,
+                            "example": 100
+                        },
+                        "groupIndex": {
+                            "type": "Integer",
+                            "description": "正则捕获组序号（从1开始）",
+                            "default": 1,
+                            "example": 1
+                        }
+                    }
+                },
+                "version": {
+                    "type": "Integer",
+                    "description": "配置版本号",
+                    "example": 1
+                },
+                "createdAt": {
+                    "type": "Date",
+                    "description": "创建时间"
+                },
+                "updatedAt": {
+                    "type": "Date",
+                    "description": "更新时间"
+                }
+            }
         }
     },
     "indexes": [
@@ -427,6 +504,7 @@
         "【平台配置】configType='platform' 存储各平台的业务配置",
         "【标签配置】configType='talent_tags' 存储达人标签的选项配置",
         "【项目配置】configType='project' 存储项目状态和交付KPI指标定义",
+        "【返点导入配置】configType='company_rebate_import' 存储 Excel 列映射和返点解析规则",
         "【key/name 映射】标签配置提供 key 和 name 的双向映射",
         "【颜色配置】支持自定义背景色和文字色，用于前端展示",
         "【KPI公式】availableKPIs.formula 定义自动计算公式，支持分子/分母/乘数",
@@ -553,6 +631,27 @@
                 "version": 1,
                 "createdAt": "2025-12-07T00:00:00.000Z",
                 "createdBy": "system"
+            }
+        },
+        {
+            "description": "示例4：公司返点导入配置",
+            "data": {
+                "configType": "company_rebate_import",
+                "columnMapping": {
+                    "xingtuId": "星图ID",
+                    "nickname": "昵称",
+                    "mcn": "MCN",
+                    "rebate": "备注"
+                },
+                "rebateParser": {
+                    "type": "regex",
+                    "pattern": "\\|(\\d+\\.?\\d*)",
+                    "multiplier": 100,
+                    "groupIndex": 1
+                },
+                "version": 1,
+                "createdAt": "2025-12-22T00:00:00.000Z",
+                "updatedAt": "2025-12-22T00:00:00.000Z"
             }
         }
     ]

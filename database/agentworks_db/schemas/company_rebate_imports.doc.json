@@ -1,0 +1,124 @@
+{
+    "collection": "company_rebate_imports",
+    "description": "公司返点库导入版本元信息 - 记录每次导入的版本信息",
+    "database": "agentworks_db",
+    "version": "1.0",
+    "lastUpdated": "2025-12-21",
+    "author": "产品团队",
+    "fields": {
+        "_id": {
+            "type": "ObjectId",
+            "description": "MongoDB 文档 ID",
+            "required": true,
+            "auto": true
+        },
+        "importId": {
+            "type": "String",
+            "description": "版本唯一标识",
+            "required": true,
+            "unique": true,
+            "pattern": "^import_[0-9]{6}(_[0-9]+)?$",
+            "example": "import_202512",
+            "comment": "格式：import_{YYYYMM} 或 import_{YYYYMM}_{序号}"
+        },
+        "fileName": {
+            "type": "String",
+            "description": "源文件名",
+            "required": true,
+            "example": "2025年12月公司返点.xlsx"
+        },
+        "recordCount": {
+            "type": "Number",
+            "description": "导入记录数",
+            "required": true,
+            "example": 36000
+        },
+        "importedAt": {
+            "type": "Date",
+            "description": "导入时间",
+            "required": true,
+            "example": "2025-12-21T10:00:00.000Z"
+        },
+        "isDefault": {
+            "type": "Boolean",
+            "description": "是否为默认版本",
+            "required": true,
+            "default": false,
+            "comment": "对比时默认使用的版本，同时只有一个为 true"
+        },
+        "note": {
+            "type": "String",
+            "description": "备注说明",
+            "required": false,
+            "example": "12月份更新",
+            "maxLength": 200
+        }
+    },
+    "indexes": [
+        {
+            "name": "idx_importId",
+            "fields": { "importId": 1 },
+            "unique": true,
+            "description": "版本ID唯一索引"
+        },
+        {
+            "name": "idx_isDefault",
+            "fields": { "isDefault": 1 },
+            "description": "查找默认版本"
+        },
+        {
+            "name": "idx_importedAt",
+            "fields": { "importedAt": -1 },
+            "description": "按导入时间倒序（版本列表）"
+        }
+    ],
+    "relations": [
+        {
+            "collection": "company_rebate_library",
+            "type": "one-to-many",
+            "foreignKey": "importId",
+            "description": "一个版本对应多条返点记录"
+        }
+    ],
+    "notes": [
+        "【设计目的】记录每次导入的版本元信息，便于版本管理",
+        "【默认版本】同时只有一个版本的 isDefault 为 true",
+        "【版本命名】格式为 import_{YYYYMM}，同月多次导入加序号",
+        "【删除版本】删除版本时同步删除 company_rebate_library 中对应记录"
+    ],
+    "examples": [
+        {
+            "description": "示例1：默认版本",
+            "data": {
+                "importId": "import_202512",
+                "fileName": "2025年12月公司返点.xlsx",
+                "recordCount": 36000,
+                "importedAt": "2025-12-21T10:00:00.000Z",
+                "isDefault": true,
+                "note": "12月份更新"
+            }
+        },
+        {
+            "description": "示例2：历史版本",
+            "data": {
+                "importId": "import_202511",
+                "fileName": "2025年11月公司返点.xlsx",
+                "recordCount": 35000,
+                "importedAt": "2025-11-15T14:30:00.000Z",
+                "isDefault": false,
+                "note": "11月份"
+            }
+        }
+    ],
+    "migrations": [
+        {
+            "version": "v1.0",
+            "date": "2025-12-21",
+            "description": "创建 company_rebate_imports 集合",
+            "operations": [
+                "创建集合",
+                "创建3个索引"
+            ]
+        }
+    ]
+}

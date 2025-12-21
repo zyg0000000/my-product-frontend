@@ -2,6 +2,58 @@
 
 所有重要的更改都将记录在此文件中。
 
+## [2.6.0] - 2025-12-22
+
+### ✨ 新功能 (Features)
+
+#### 返点对比看板
+- **公司返点库管理**：支持导入公司返点 Excel 文件，多版本管理
+- **智能对比功能**：自动匹配 AgentWorks 达人与公司返点库记录
+- **同机构识别**：区分同机构可同步和跨机构仅参考的返点
+- **批量同步**：支持一键批量同步返点到 AgentWorks
+
+#### 返点导入配置
+- **灵活的列映射**：支持配置星图ID、昵称、MCN、返点列名
+- **多格式解析**：支持 `0.26`、`30%`、`返点25`、`返点:30%` 等多种返点格式
+- **正则表达式配置**：可自定义返点解析规则
+- **文件测试功能**：导入前可测试解析效果，显示成功/失败/跳过统计
+
+### 🔧 技术改进 (Technical Improvements)
+
+#### 前端优化
+- **深色模式兼容**：返点对比看板全面支持深色模式，使用语义化颜色变量
+- **平台配置联动**：平台选择器从系统配置动态加载，与产品其他页面保持一致
+- **Excel 解析优化**：使用 xlsx 库在前端解析，支持大文件处理
+
+#### 后端云函数
+- **companyRebateLibrary v1.0**：新增公司返点库云函数
+  - `import`：导入新版本
+  - `listVersions`：获取版本列表
+  - `compare`：执行对比
+  - `deleteVersion`：删除版本
+  - `setDefaultVersion`：设置默认版本
+- **同机构判断逻辑**：野生达人只匹配明确的野生关键词（野生、个人、无），避免误判
+
+#### 数据库
+- **company_rebate_library**：公司返点记录表，按版本存储
+- **company_rebate_imports**：版本元信息表
+
+### 📝 受影响的文件
+
+#### 新增文件
+- `frontends/agentworks/src/pages/Talents/RebateComparison/` - 返点对比看板页面
+- `frontends/agentworks/src/pages/Settings/CompanyRebateImportConfig.tsx` - 导入配置页
+- `frontends/agentworks/src/api/companyRebateLibrary.ts` - API 封装
+- `functions/companyRebateLibrary/` - 云函数
+- `database/agentworks_db/schemas/company_rebate_*.json` - 数据库 Schema
+
+#### 修改文件
+- `frontends/agentworks/src/App.tsx` - 添加路由
+- `frontends/agentworks/src/components/Sidebar/Sidebar.tsx` - 添加侧边栏菜单
+- `functions/platformConfigManager/index.js` - 支持导入配置类型
+
+---
+
 ## [2.5.0] - 2025-12-09
 
 ### ✨ 新功能 (Features)
