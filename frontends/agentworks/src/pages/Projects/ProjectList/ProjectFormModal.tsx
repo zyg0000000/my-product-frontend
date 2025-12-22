@@ -614,8 +614,14 @@ export function ProjectFormModal({
             month: editingProject.month,
             // 财务周期：优先使用已保存的值，否则默认等于业务周期
             financialYear: editingProject.financialYear || editingProject.year,
-            financialMonth:
-              editingProject.financialMonth || editingProject.month,
+            // 处理数据兼容：M 前缀格式转为数字
+            financialMonth: (() => {
+              const fm = editingProject.financialMonth || editingProject.month;
+              if (typeof fm === 'string' && fm.startsWith('M')) {
+                return parseInt(fm.replace('M', ''), 10);
+              }
+              return typeof fm === 'string' ? parseInt(fm, 10) : fm;
+            })(),
             budget: centsToYuan(editingProject.budget),
           };
 
@@ -1204,7 +1210,7 @@ export function ProjectFormModal({
                               报价系数:
                             </span>
                             <span className="font-medium text-primary-600 dark:text-primary-400">
-                              {coefficient.toFixed(4)}
+                              {coefficient.toFixed(5)}
                             </span>
                             <Tooltip title="报价系数 = 折扣率 × (1 - 平台服务费率) × (1 - 机构服务费率)，用于计算达人报价">
                               <InfoCircleOutlined className="text-content-muted text-xs" />

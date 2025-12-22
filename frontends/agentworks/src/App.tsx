@@ -110,6 +110,11 @@ const CompanyRebateImportConfig = lazy(() =>
     default: m.CompanyRebateImportConfig,
   }))
 );
+const MigrationHome = lazy(() =>
+  import('./pages/Migration/MigrationHome').then(m => ({
+    default: m.MigrationHome,
+  }))
+);
 const CustomersHome = lazy(() =>
   import('./pages/Customers/CustomersHome').then(m => ({
     default: m.CustomersHome,
@@ -257,6 +262,10 @@ function ThemedApp() {
                   <Route
                     path="settings/company-rebate-import"
                     element={<CompanyRebateImportConfig />}
+                  />
+                  <Route
+                    path="settings/data-migration"
+                    element={<MigrationHome />}
                   />
 
                   <Route path="*" element={<Navigate to="/" replace />} />

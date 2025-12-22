@@ -557,7 +557,7 @@ export const calculateCoefficientFromConfig = (
     serviceFeeAmount,
     taxAmount,
     finalAmount,
-    coefficient: Number(coefficient.toFixed(4)),
+    coefficient: Number(coefficient.toFixed(5)),
   };
 };
 
@@ -607,7 +607,7 @@ export const calculateCoefficient = (
     serviceFeeAmount,
     taxAmount,
     finalAmount,
-    coefficient: Number(coefficient.toFixed(4)),
+    coefficient: Number(coefficient.toFixed(5)),
   };
 };
 

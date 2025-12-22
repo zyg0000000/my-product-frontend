@@ -132,6 +132,11 @@ class ProjectApi {
           p.customerName?.toLowerCase().includes(keyword)
         );
       }
+      if (params.customerId) {
+        items = items.filter(
+          (p: ProjectListItem) => p.customerId === params.customerId
+        );
+      }
       if (params.financialYear) {
         items = items.filter(
           (p: ProjectListItem) => p.financialYear === params.financialYear

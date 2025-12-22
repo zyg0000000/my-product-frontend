@@ -581,11 +581,11 @@ export function ProjectDetail() {
             <InfoItem label="预算使用率">
               <span
                 className={`font-semibold ${
-                  computedStats.budgetUtilization > 100
-                    ? 'text-danger-500'
-                    : computedStats.budgetUtilization > 80
+                  computedStats.budgetUtilization >= 100
+                    ? 'text-success-600'
+                    : computedStats.budgetUtilization >= 80
                       ? 'text-warning-500'
-                      : 'text-success-600'
+                      : 'text-danger-500'
                 }`}
               >
                 {computedStats.budgetUtilization.toFixed(1)}%

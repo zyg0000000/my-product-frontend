@@ -1,0 +1,9 @@
+{
+  "name": "data-migration",
+  "version": "1.0.0",
+  "description": "项目数据迁移接口 - 从 ByteProject(kol_data) 迁移至 AgentWorks(agentworks_db)",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^4.5.0"
+  }
+}

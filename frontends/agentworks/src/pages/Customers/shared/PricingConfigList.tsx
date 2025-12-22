@@ -201,7 +201,7 @@ export function PricingConfigList({
           <div>
             <span className="text-content-secondary">报价系数</span>
             <div className="font-semibold text-primary-600">
-              {coefficient.coefficient.toFixed(4)}
+              {coefficient.coefficient.toFixed(5)}
             </div>
           </div>
         </div>

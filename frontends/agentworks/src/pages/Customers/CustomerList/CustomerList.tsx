@@ -435,8 +435,8 @@ export default function CustomerList() {
                   className="font-bold text-sm whitespace-nowrap"
                   style={{ color: '#c7d2fe' }}
                 >
-                  {quotationCoefficient?.toFixed(4) ||
-                    calculatedCoefficient.toFixed(4)}
+                  {quotationCoefficient?.toFixed(5) ||
+                    calculatedCoefficient.toFixed(5)}
                 </div>
                 <div
                   className="text-xs whitespace-nowrap"
@@ -504,7 +504,7 @@ export default function CustomerList() {
                       }}
                     >
                       <span className="font-bold text-primary-600 cursor-help border-b border-dashed border-primary-300 text-sm">
-                        {platform.quotationCoefficient?.toFixed(4) || '-'}
+                        {platform.quotationCoefficient?.toFixed(5) || '-'}
                       </span>
                     </Popover>
                   )}

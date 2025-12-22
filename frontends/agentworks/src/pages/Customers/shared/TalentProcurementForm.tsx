@@ -255,7 +255,7 @@ export function TalentProcurementForm({
               <div>
                 {currentQuotationCoefficient !== null ? (
                   <Tag color="blue" className="text-base font-semibold">
-                    {currentQuotationCoefficient.toFixed(4)}
+                    {currentQuotationCoefficient.toFixed(5)}
                   </Tag>
                 ) : (
                   <span className="text-content-muted text-sm">

@@ -311,7 +311,7 @@ export function PricingConfigModal({
                 </Popover>
               </label>
               <Tag color="blue" className="text-base font-semibold">
-                {coefficient?.coefficient.toFixed(4) || '-'}
+                {coefficient?.coefficient.toFixed(5) || '-'}
               </Tag>
             </div>
           </div>

@@ -53,7 +53,7 @@ export function useExecutionData(
       logger.info('[useExecutionData] 客户列表响应:', response);
       if (response.success && response.data?.customers) {
         const customerList = response.data.customers.map(c => ({
-          id: c._id || c.code, // MongoDB 使用 _id，如果没有则用 code 作为后备
+          id: c.code, // 使用 code 作为 ID，因为项目的 customerId 存储的是 code
           name: c.name,
           code: c.code || '',
         }));
