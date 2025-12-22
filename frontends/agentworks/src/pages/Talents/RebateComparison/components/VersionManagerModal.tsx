@@ -3,11 +3,7 @@
  */
 
 import { Modal, Table, Button, Popconfirm, Tag, Tooltip, Empty } from 'antd';
-import {
-  DeleteOutlined,
-  StarOutlined,
-  StarFilled,
-} from '@ant-design/icons';
+import { DeleteOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type { CompanyRebateVersion } from '../types';
 
@@ -144,9 +140,7 @@ export function VersionManagerModal({
       title="管理版本"
       open={open}
       onCancel={onClose}
-      footer={
-        <Button onClick={onClose}>关闭</Button>
-      }
+      footer={<Button onClick={onClose}>关闭</Button>}
       width={800}
     >
       <div className="py-2">

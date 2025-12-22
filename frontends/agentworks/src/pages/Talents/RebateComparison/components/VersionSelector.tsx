@@ -65,7 +65,8 @@ export function VersionSelector({
               )}
             </div>
             <span className="text-content-muted text-xs flex-shrink-0">
-              {formatCount(version.recordCount)}条 · {formatDate(version.importedAt)}
+              {formatCount(version.recordCount)}条 ·{' '}
+              {formatDate(version.importedAt)}
             </span>
           </div>
         </Select.Option>

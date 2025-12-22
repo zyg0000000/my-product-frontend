@@ -119,7 +119,9 @@ export function RebateComparison() {
       });
 
       if (response.success) {
-        message.success(`成功同步 ${response.data?.updated || selectedRows.length} 个达人的返点`);
+        message.success(
+          `成功同步 ${response.data?.updated || selectedRows.length} 个达人的返点`
+        );
         // 清除选择
         setSelectedRowKeys([]);
         setSelectedRows([]);
@@ -203,7 +205,10 @@ export function RebateComparison() {
                 onClick={() => setSyncModalOpen(true)}
                 disabled={selectedRowKeys.length === 0}
               >
-                批量同步 {selectedRowKeys.length > 0 ? `(${selectedRowKeys.length})` : ''}
+                批量同步{' '}
+                {selectedRowKeys.length > 0
+                  ? `(${selectedRowKeys.length})`
+                  : ''}
               </Button>
             )}
 

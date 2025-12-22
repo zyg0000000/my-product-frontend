@@ -13,7 +13,12 @@ import {
   DownOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import type { ComparisonResult, ComparisonFilter, DiffType, CompanyRecord } from '../types';
+import type {
+  ComparisonResult,
+  ComparisonFilter,
+  DiffType,
+  CompanyRecord,
+} from '../types';
 
 interface ComparisonTableProps {
   comparisons: ComparisonResult[];
@@ -23,7 +28,10 @@ interface ComparisonTableProps {
 }
 
 // 差异类型标签配置
-const DIFF_TYPE_CONFIG: Record<DiffType, { color: string; text: string; icon: React.ReactNode }> = {
+const DIFF_TYPE_CONFIG: Record<
+  DiffType,
+  { color: string; text: string; icon: React.ReactNode }
+> = {
   companyHigher: {
     color: 'orange',
     text: '公司更高',
@@ -53,7 +61,6 @@ function MultiRecordCell({
   records: CompanyRecord[];
   awAgencyName: string | null;
 }) {
-
   if (records.length === 0) {
     return <span className="text-content-muted">-</span>;
   }
@@ -79,12 +86,16 @@ function MultiRecordCell({
 
   const content = (
     <div className="space-y-2 max-w-xs">
-      <div className="text-sm font-medium mb-2">公司库记录 ({records.length}条)</div>
+      <div className="text-sm font-medium mb-2">
+        公司库记录 ({records.length}条)
+      </div>
       {records.map((record, index) => (
         <div
           key={index}
           className={`flex items-center justify-between gap-4 p-2 rounded ${
-            record.isSameAgency ? 'bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800' : 'bg-surface-subtle'
+            record.isSameAgency
+              ? 'bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800'
+              : 'bg-surface-subtle'
           }`}
         >
           <div className="flex items-center gap-2">
@@ -100,7 +111,9 @@ function MultiRecordCell({
               </Tag>
             )}
           </div>
-          <span className="text-content-secondary text-xs truncate">{record.mcn}</span>
+          <span className="text-content-secondary text-xs truncate">
+            {record.mcn}
+          </span>
         </div>
       ))}
       {sameAgencyRecord && sameAgencyRecord.rebateRate < maxRate && (
@@ -116,7 +129,9 @@ function MultiRecordCell({
       <Button type="link" size="small" className="p-0">
         <div className="flex items-center gap-1">
           <span className="font-medium">{maxRate}%</span>
-          <span className="text-content-muted text-xs">({records.length}条)</span>
+          <span className="text-content-muted text-xs">
+            ({records.length}条)
+          </span>
           <DownOutlined className="text-xs" />
         </div>
       </Button>
@@ -158,7 +173,9 @@ export function ComparisonTable({
         const searchLower = filter.search.toLowerCase();
         const matchName = item.talentName.toLowerCase().includes(searchLower);
         const matchXingtuId = item.xingtuId.toLowerCase().includes(searchLower);
-        const matchAgency = item.awAgencyName?.toLowerCase().includes(searchLower);
+        const matchAgency = item.awAgencyName
+          ?.toLowerCase()
+          .includes(searchLower);
         if (!matchName && !matchXingtuId && !matchAgency) {
           return false;
         }
@@ -188,7 +205,8 @@ export function ComparisonTable({
       key: 'awAgencyName',
       width: 120,
       ellipsis: true,
-      render: (name: string | null) => name || <span className="text-content-muted">野生达人</span>,
+      render: (name: string | null) =>
+        name || <span className="text-content-muted">野生达人</span>,
     },
     {
       title: 'AW 返点',
@@ -259,7 +277,11 @@ export function ComparisonTable({
         if (!record.canSync || record.syncRebate === null) {
           return <span className="text-content-muted">-</span>;
         }
-        return <span className="font-medium text-success-600 dark:text-success-400">{record.syncRebate}%</span>;
+        return (
+          <span className="font-medium text-success-600 dark:text-success-400">
+            {record.syncRebate}%
+          </span>
+        );
       },
     },
   ];
@@ -284,7 +306,9 @@ export function ComparisonTable({
           placeholder="搜索达人名称、星图ID、机构"
           prefix={<SearchOutlined className="text-content-muted" />}
           value={filter.search}
-          onChange={e => setFilter(prev => ({ ...prev, search: e.target.value }))}
+          onChange={e =>
+            setFilter(prev => ({ ...prev, search: e.target.value }))
+          }
           style={{ width: 260 }}
           allowClear
         />
@@ -304,7 +328,9 @@ export function ComparisonTable({
 
         <Select
           value={filter.syncStatus}
-          onChange={value => setFilter(prev => ({ ...prev, syncStatus: value }))}
+          onChange={value =>
+            setFilter(prev => ({ ...prev, syncStatus: value }))
+          }
           style={{ width: 140 }}
           options={[
             { value: 'all', label: '全部状态' },
@@ -317,7 +343,9 @@ export function ComparisonTable({
           共 {filteredData.length} 条记录
           {selectedRowKeys.length > 0 && (
             <span className="ml-2">
-              ，已选 <span className="text-primary-600">{selectedRowKeys.length}</span> 条
+              ，已选{' '}
+              <span className="text-primary-600">{selectedRowKeys.length}</span>{' '}
+              条
             </span>
           )}
         </div>

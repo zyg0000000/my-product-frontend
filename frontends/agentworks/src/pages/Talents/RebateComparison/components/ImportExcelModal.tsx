@@ -48,7 +48,9 @@ export function ImportExcelModal({
 
   // 处理文件上传
   const handleUpload: UploadProps['customRequest'] = useCallback(
-    async (options: Parameters<NonNullable<UploadProps['customRequest']>>[0]) => {
+    async (
+      options: Parameters<NonNullable<UploadProps['customRequest']>>[0]
+    ) => {
       const file = options.file as File;
       await parseFile(file);
       options.onSuccess?.(null);
@@ -145,12 +147,7 @@ export function ImportExcelModal({
 
         {/* 错误提示 */}
         {error && (
-          <Alert
-            type="error"
-            message="解析失败"
-            description={error}
-            showIcon
-          />
+          <Alert type="error" message="解析失败" description={error} showIcon />
         )}
 
         {/* 解析成功提示 */}

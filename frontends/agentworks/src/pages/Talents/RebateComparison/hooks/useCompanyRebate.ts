@@ -38,7 +38,11 @@ interface UseCompanyRebateResult {
   /** 加载版本列表 */
   loadVersions: () => Promise<void>;
   /** 导入新版本 */
-  importVersion: (records: ParsedExcelRecord[], fileName: string, note?: string) => Promise<boolean>;
+  importVersion: (
+    records: ParsedExcelRecord[],
+    fileName: string,
+    note?: string
+  ) => Promise<boolean>;
   /** 删除版本 */
   deleteVersion: (importId: string) => Promise<boolean>;
   /** 设置默认版本 */
@@ -56,7 +60,9 @@ interface UseCompanyRebateResult {
  */
 export function useCompanyRebate(): UseCompanyRebateResult {
   const [versions, setVersions] = useState<CompanyRebateVersion[]>([]);
-  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
+  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(
+    null
+  );
   const [comparisons, setComparisons] = useState<ComparisonResult[]>([]);
   const [summary, setSummary] = useState<ComparisonSummary | null>(null);
   const [loading, setLoading] = useState(false);
@@ -88,7 +94,11 @@ export function useCompanyRebate(): UseCompanyRebateResult {
 
   // 导入新版本
   const importVersion = useCallback(
-    async (records: ParsedExcelRecord[], fileName: string, note?: string): Promise<boolean> => {
+    async (
+      records: ParsedExcelRecord[],
+      fileName: string,
+      note?: string
+    ): Promise<boolean> => {
       setImporting(true);
       try {
         const response = await importCompanyRebates(records, fileName, note);

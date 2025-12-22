@@ -69,7 +69,8 @@ export function SyncConfirmModal({
         const change = (record.syncRebate || 0) - record.awRebate;
         return (
           <span className={change > 0 ? 'text-green-600' : 'text-red-600'}>
-            {change > 0 ? '+' : ''}{change}%
+            {change > 0 ? '+' : ''}
+            {change}%
           </span>
         );
       },

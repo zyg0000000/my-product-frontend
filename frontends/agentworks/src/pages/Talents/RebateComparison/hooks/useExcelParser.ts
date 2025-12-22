@@ -285,10 +285,7 @@ export function useExcelParser(): UseExcelParserResult {
           ]);
 
           // 解析返点
-          const rebateRate = parseRebateValue(
-            rawRemark || null,
-            rebateParser
-          );
+          const rebateRate = parseRebateValue(rawRemark || null, rebateParser);
 
           // 验证必要字段
           if (!xingtuId) {

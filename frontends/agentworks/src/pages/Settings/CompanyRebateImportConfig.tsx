@@ -141,10 +141,7 @@ export function CompanyRebateImportConfig() {
       // 检查返回数据的完整性
       const data = response.data;
       const isValidConfig =
-        response.success &&
-        data &&
-        data.columnMapping &&
-        data.rebateParser;
+        response.success && data && data.columnMapping && data.rebateParser;
 
       if (isValidConfig) {
         setConfig(data);
@@ -761,10 +758,7 @@ export function CompanyRebateImportConfig() {
                     customRequest={handleFileUpload}
                     disabled={fileTestParsing}
                   >
-                    <Button
-                      icon={<UploadOutlined />}
-                      loading={fileTestParsing}
-                    >
+                    <Button icon={<UploadOutlined />} loading={fileTestParsing}>
                       上传样本文件测试
                     </Button>
                   </Upload>
@@ -789,8 +783,9 @@ export function CompanyRebateImportConfig() {
                     className="mb-3"
                     message={
                       <span>
-                        共 <strong>{fileTestStats.total.toLocaleString()}</strong> 行，
-                        解析成功{' '}
+                        共{' '}
+                        <strong>{fileTestStats.total.toLocaleString()}</strong>{' '}
+                        行， 解析成功{' '}
                         <strong className="text-success-600">
                           {fileTestStats.success.toLocaleString()}
                         </strong>{' '}
