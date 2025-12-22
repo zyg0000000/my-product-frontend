@@ -13,20 +13,15 @@ import {
   Button,
   Tag,
   Alert,
-  Modal,
   message,
   Spin,
   Result,
   Descriptions,
-  Space,
   Popconfirm,
-  Progress,
 } from 'antd';
 import {
   DatabaseOutlined,
   UserOutlined,
-  FileTextOutlined,
-  LineChartOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
   SyncOutlined,
@@ -119,7 +114,7 @@ export function MigrationHome() {
 
   // 选择项目
   const handleSelectProject = async (project: SourceProject) => {
-    setState((prev) => ({
+    setState(prev => ({
       ...prev,
       selectedProject: project,
       step: 'validate',
@@ -129,7 +124,7 @@ export function MigrationHome() {
     setLoading(true);
     try {
       const result = await migrationApi.validateTalents(project.id);
-      setState((prev) => ({
+      setState(prev => ({
         ...prev,
         talentValidation: result,
       }));
@@ -149,7 +144,7 @@ export function MigrationHome() {
     }
 
     // 设置状态，跳过项目迁移步骤
-    setState((prev) => ({
+    setState(prev => ({
       ...prev,
       selectedProject: project,
       projectMigration: {
@@ -158,9 +153,15 @@ export function MigrationHome() {
         sourceProjectId: project.id,
         projectName: project.name,
       },
-      step: project.hasCollaborations ? 'migrate_effects' : 'migrate_collaborations',
+      step: project.hasCollaborations
+        ? 'migrate_effects'
+        : 'migrate_collaborations',
       collaborationMigration: project.hasCollaborations
-        ? { success: true, count: project.collaborationCount || 0, mappings: {} }
+        ? {
+            success: true,
+            count: project.collaborationCount || 0,
+            mappings: {},
+          }
         : null,
     }));
 
@@ -173,9 +174,11 @@ export function MigrationHome() {
 
     setLoading(true);
     try {
-      const result = await migrationApi.migrateProject(state.selectedProject.id);
+      const result = await migrationApi.migrateProject(
+        state.selectedProject.id
+      );
       if (result.success) {
-        setState((prev) => ({
+        setState(prev => ({
           ...prev,
           projectMigration: result,
           step: 'migrate_collaborations',
@@ -203,7 +206,7 @@ export function MigrationHome() {
         state.projectMigration.newProjectId
       );
       if (result.success) {
-        setState((prev) => ({
+        setState(prev => ({
           ...prev,
           collaborationMigration: result,
           step: 'migrate_effects',
@@ -231,12 +234,14 @@ export function MigrationHome() {
         state.collaborationMigration?.mappings
       );
       if (result.success) {
-        setState((prev) => ({
+        setState(prev => ({
           ...prev,
           effectMigration: result,
           step: 'validation',
         }));
-        message.success(`效果数据迁移完成，更新了 ${result.updatedCount} 条记录`);
+        message.success(
+          `效果数据迁移完成，更新了 ${result.updatedCount} 条记录`
+        );
 
         // 自动执行验证
         if (state.projectMigration?.newProjectId) {
@@ -244,7 +249,7 @@ export function MigrationHome() {
             state.selectedProject.id,
             state.projectMigration.newProjectId
           );
-          setState((prev) => ({
+          setState(prev => ({
             ...prev,
             migrationValidation: validationResult,
           }));
@@ -339,7 +344,9 @@ export function MigrationHome() {
       key: 'status',
       width: 100,
       render: (status: string) => (
-        <Tag color={status === '执行中' ? 'processing' : 'default'}>{status}</Tag>
+        <Tag color={status === '执行中' ? 'processing' : 'default'}>
+          {status}
+        </Tag>
       ),
     },
     {
@@ -349,9 +356,10 @@ export function MigrationHome() {
       render: (_: unknown, record: SourceProject) => {
         // 处理月份显示：去掉 M 前缀，显示为 "12月" 格式
         const fm = record.financialMonth;
-        const monthNum = typeof fm === 'string' && fm.startsWith('M')
-          ? fm.replace('M', '')
-          : fm;
+        const monthNum =
+          typeof fm === 'string' && fm.startsWith('M')
+            ? fm.replace('M', '')
+            : fm;
         return `${record.financialYear} ${monthNum}月`;
       },
     },
@@ -466,9 +474,7 @@ export function MigrationHome() {
               项目: {state.selectedProject?.name}
             </p>
           </div>
-          <Button onClick={handleBackToSelect}>
-            返回选择
-          </Button>
+          <Button onClick={handleBackToSelect}>返回选择</Button>
         </div>
 
         {loading ? (
@@ -481,19 +487,33 @@ export function MigrationHome() {
             <ProCard>
               <div className="grid grid-cols-4 gap-6">
                 <div className="flex flex-col">
-                  <span className="text-sm text-content-secondary mb-1">涉及达人</span>
-                  <span className="text-lg font-medium text-content">{validation.totalTalents}</span>
+                  <span className="text-sm text-content-secondary mb-1">
+                    涉及达人
+                  </span>
+                  <span className="text-lg font-medium text-content">
+                    {validation.totalTalents}
+                  </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm text-content-secondary mb-1">已匹配</span>
-                  <span className="text-lg font-medium text-success-600">{validation.matched.length}</span>
+                  <span className="text-sm text-content-secondary mb-1">
+                    已匹配
+                  </span>
+                  <span className="text-lg font-medium text-success-600">
+                    {validation.matched.length}
+                  </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm text-content-secondary mb-1">未匹配</span>
-                  <span className="text-lg font-medium text-error-600">{validation.unmatched.length}</span>
+                  <span className="text-sm text-content-secondary mb-1">
+                    未匹配
+                  </span>
+                  <span className="text-lg font-medium text-error-600">
+                    {validation.unmatched.length}
+                  </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm text-content-secondary mb-1">可继续</span>
+                  <span className="text-sm text-content-secondary mb-1">
+                    可继续
+                  </span>
                   {validation.canProceed ? (
                     <Tag color="success">是</Tag>
                   ) : (
@@ -511,11 +531,14 @@ export function MigrationHome() {
                 message="有未匹配的达人"
                 description={
                   <div className="mt-2">
-                    <p className="mb-2">以下达人在 AgentWorks 中未找到，请先创建达人后再继续迁移：</p>
+                    <p className="mb-2">
+                      以下达人在 AgentWorks 中未找到，请先创建达人后再继续迁移：
+                    </p>
                     <ul className="list-disc list-inside">
-                      {validation.unmatched.map((t) => (
+                      {validation.unmatched.map(t => (
                         <li key={t.talentId}>
-                          {t.nickname} (星图ID: {t.xingtuId || '无'}) - {t.reason}
+                          {t.nickname} (星图ID: {t.xingtuId || '无'}) -{' '}
+                          {t.reason}
                         </li>
                       ))}
                     </ul>
@@ -529,7 +552,9 @@ export function MigrationHome() {
               <Button
                 type="primary"
                 disabled={!validation.canProceed}
-                onClick={() => setState((prev) => ({ ...prev, step: 'migrate_project' }))}
+                onClick={() =>
+                  setState(prev => ({ ...prev, step: 'migrate_project' }))
+                }
               >
                 继续迁移
               </Button>
@@ -542,14 +567,28 @@ export function MigrationHome() {
 
   // 渲染分模块迁移步骤
   const renderMigrateStep = () => {
-    const getModuleStatus = (module: 'project' | 'collaborations' | 'effects') => {
+    const getModuleStatus = (
+      module: 'project' | 'collaborations' | 'effects'
+    ) => {
       switch (module) {
         case 'project':
-          return state.projectMigration ? 'completed' : state.step === 'migrate_project' ? 'current' : 'pending';
+          return state.projectMigration
+            ? 'completed'
+            : state.step === 'migrate_project'
+              ? 'current'
+              : 'pending';
         case 'collaborations':
-          return state.collaborationMigration ? 'completed' : state.step === 'migrate_collaborations' ? 'current' : 'pending';
+          return state.collaborationMigration
+            ? 'completed'
+            : state.step === 'migrate_collaborations'
+              ? 'current'
+              : 'pending';
         case 'effects':
-          return state.effectMigration ? 'completed' : state.step === 'migrate_effects' ? 'current' : 'pending';
+          return state.effectMigration
+            ? 'completed'
+            : state.step === 'migrate_effects'
+              ? 'current'
+              : 'pending';
       }
     };
 
@@ -592,9 +631,13 @@ export function MigrationHome() {
               {state.projectMigration ? (
                 <div className="space-y-2">
                   <div className="text-sm">
-                    新项目ID: <code className="px-1 py-0.5 bg-surface-sunken rounded">{state.projectMigration.newProjectId}</code>
+                    新项目ID:{' '}
+                    <code className="px-1 py-0.5 bg-surface-sunken rounded">
+                      {state.projectMigration.newProjectId}
+                    </code>
                   </div>
-                  {state.projectMigration.discountComparison?.hasDiscrepancy && (
+                  {state.projectMigration.discountComparison
+                    ?.hasDiscrepancy && (
                     <Alert
                       type="warning"
                       message="折扣差异"
@@ -632,7 +675,11 @@ export function MigrationHome() {
               </div>
               {state.collaborationMigration ? (
                 <div className="text-sm">
-                  已迁移 <span className="font-medium text-success-600">{state.collaborationMigration.count}</span> 条合作记录
+                  已迁移{' '}
+                  <span className="font-medium text-success-600">
+                    {state.collaborationMigration.count}
+                  </span>{' '}
+                  条合作记录
                 </div>
               ) : (
                 <Button
@@ -663,7 +710,11 @@ export function MigrationHome() {
               </div>
               {state.effectMigration ? (
                 <div className="text-sm">
-                  处理 {state.effectMigration.totalWorks} 条，更新 <span className="font-medium text-success-600">{state.effectMigration.updatedCount}</span> 条
+                  处理 {state.effectMigration.totalWorks} 条，更新{' '}
+                  <span className="font-medium text-success-600">
+                    {state.effectMigration.updatedCount}
+                  </span>{' '}
+                  条
                 </div>
               ) : (
                 <Button
@@ -729,10 +780,16 @@ export function MigrationHome() {
                   )}
                 </Descriptions.Item>
                 <Descriptions.Item label="总金额 (源)">
-                  {(validation.comparison.totalAmount.source / 100).toLocaleString()} 元
+                  {(
+                    validation.comparison.totalAmount.source / 100
+                  ).toLocaleString()}{' '}
+                  元
                 </Descriptions.Item>
                 <Descriptions.Item label="总金额 (目标)">
-                  {(validation.comparison.totalAmount.target / 100).toLocaleString()} 元
+                  {(
+                    validation.comparison.totalAmount.target / 100
+                  ).toLocaleString()}{' '}
+                  元
                   {validation.comparison.totalAmount.match ? (
                     <CheckCircleOutlined className="ml-2 text-success-500" />
                   ) : (
@@ -806,7 +863,7 @@ export function MigrationHome() {
         <ProCard>
           <Steps
             current={getCurrentStepIndex()}
-            items={STEP_CONFIG.map((step) => ({
+            items={STEP_CONFIG.map(step => ({
               title: step.title,
               icon: step.icon,
             }))}
