@@ -642,7 +642,6 @@ export function MigrationHome() {
                       type="warning"
                       message="折扣差异"
                       description={`源: ${state.projectMigration.discountComparison.sourceDiscount} vs 配置: ${state.projectMigration.discountComparison.customerDiscount}`}
-                      size="small"
                     />
                   )}
                 </div>

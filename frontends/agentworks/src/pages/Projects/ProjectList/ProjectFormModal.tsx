@@ -614,13 +614,15 @@ export function ProjectFormModal({
             month: editingProject.month,
             // 财务周期：优先使用已保存的值，否则默认等于业务周期
             financialYear: editingProject.financialYear || editingProject.year,
-            // 处理数据兼容：M 前缀格式转为数字
+            // 财务月份：处理数据兼容（旧数据可能有 M 前缀字符串格式）
             financialMonth: (() => {
-              const fm = editingProject.financialMonth || editingProject.month;
-              if (typeof fm === 'string' && fm.startsWith('M')) {
-                return parseInt(fm.replace('M', ''), 10);
+              const fm = editingProject.financialMonth ?? editingProject.month;
+              // 处理可能存在的旧格式数据（类型断言以绕过严格检查）
+              const fmValue = fm as string | number | undefined;
+              if (typeof fmValue === 'string' && fmValue.startsWith('M')) {
+                return parseInt(fmValue.replace('M', ''), 10);
               }
-              return typeof fm === 'string' ? parseInt(fm, 10) : fm;
+              return typeof fmValue === 'string' ? parseInt(fmValue, 10) : fmValue;
             })(),
             budget: centsToYuan(editingProject.budget),
           };
