@@ -41,7 +41,11 @@ import {
 /** 输入类型配置 */
 const inputTypeConfig: Record<
   string,
-  { label: string; placeholder: string; icon: React.ComponentType<{ className?: string }> }
+  {
+    label: string;
+    placeholder: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }
 > = {
   xingtuId: {
     label: '星图ID',
@@ -117,9 +121,10 @@ function ActionResultItem({ result }: { result: ActionResult }) {
 function ExecutionResult({ result }: { result: TaskExecuteResponse }) {
   const summary = result.summary || { total: 0, successful: 0, failed: 0 };
   const results = result.results || [];
-  const successRate = summary.total > 0
-    ? Math.round((summary.successful / summary.total) * 100)
-    : 0;
+  const successRate =
+    summary.total > 0
+      ? Math.round((summary.successful / summary.total) * 100)
+      : 0;
 
   return (
     <div className="space-y-4">
@@ -181,9 +186,7 @@ function ExecutionResult({ result }: { result: TaskExecuteResponse }) {
                     ) : (
                       <CloseCircleOutlined className="text-danger-500" />
                     ),
-                    children: (
-                      <ActionResultItem key={index} result={r} />
-                    ),
+                    children: <ActionResultItem key={index} result={r} />,
                   }))}
                 />
               ),
@@ -218,7 +221,8 @@ export function WorkflowExecutor({
 
   // 执行状态
   const [executing, setExecuting] = useState(false);
-  const [executionResult, setExecutionResult] = useState<TaskExecuteResponse | null>(null);
+  const [executionResult, setExecutionResult] =
+    useState<TaskExecuteResponse | null>(null);
 
   // 加载工作流列表 - 当服务器连接成功时触发
   useEffect(() => {
@@ -331,7 +335,9 @@ export function WorkflowExecutor({
                     <span>{w.name}</span>
                     {w.requiredInput && (
                       <Tag className="ml-2" color="blue">
-                        {inputTypeConfig[w.requiredInput]?.label || w.inputLabel || w.requiredInput}
+                        {inputTypeConfig[w.requiredInput]?.label ||
+                          w.inputLabel ||
+                          w.requiredInput}
                       </Tag>
                     )}
                   </div>
@@ -381,7 +387,9 @@ export function WorkflowExecutor({
           <div className="flex items-center justify-center py-8 bg-surface-sunken rounded-lg">
             <div className="text-center">
               <Spin
-                indicator={<LoadingOutlined className="text-3xl text-primary-600" spin />}
+                indicator={
+                  <LoadingOutlined className="text-3xl text-primary-600" spin />
+                }
               />
               <p className="mt-3 text-content-secondary">
                 正在执行工作流，请稍候...
@@ -414,12 +422,15 @@ export function WorkflowExecutor({
         )}
 
         {/* 空状态 */}
-        {!executing && !executionResult && workflows.length === 0 && !loadingWorkflows && (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="暂无可用工作流"
-          />
-        )}
+        {!executing &&
+          !executionResult &&
+          workflows.length === 0 &&
+          !loadingWorkflows && (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="暂无可用工作流"
+            />
+          )}
 
         {/* 使用提示 */}
         {!executing && !executionResult && workflows.length > 0 && (

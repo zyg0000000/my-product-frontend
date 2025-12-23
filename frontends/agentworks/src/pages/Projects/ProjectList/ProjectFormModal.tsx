@@ -622,7 +622,9 @@ export function ProjectFormModal({
               if (typeof fmValue === 'string' && fmValue.startsWith('M')) {
                 return parseInt(fmValue.replace('M', ''), 10);
               }
-              return typeof fmValue === 'string' ? parseInt(fmValue, 10) : fmValue;
+              return typeof fmValue === 'string'
+                ? parseInt(fmValue, 10)
+                : fmValue;
             })(),
             budget: centsToYuan(editingProject.budget),
           };

@@ -60,7 +60,11 @@ interface UseWorkflowsReturn {
 export function useWorkflows(
   options: UseWorkflowsOptions = {}
 ): UseWorkflowsReturn {
-  const { autoLoad = true, platform: initialPlatform, activeOnly = false } = options;
+  const {
+    autoLoad = true,
+    platform: initialPlatform,
+    activeOnly = false,
+  } = options;
   const { message } = App.useApp();
 
   // 状态

@@ -15,7 +15,10 @@ import {
   ClockIcon,
   CpuChipIcon,
 } from '@heroicons/react/24/outline';
-import { automationApi, type ServerStatus as ServerStatusType } from '../../api/automation';
+import {
+  automationApi,
+  type ServerStatus as ServerStatusType,
+} from '../../api/automation';
 
 /** 格式化运行时间 */
 function formatUptime(seconds: number): string {
@@ -66,30 +69,33 @@ export function ServerStatus({
   const [connected, setConnected] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const fetchStatus = useCallback(async (showMessage = false) => {
-    try {
-      setLoading(true);
-      const data = await automationApi.getServerStatus();
-      setStatus(data);
-      setConnected(data.status === 'running');
-      setLastUpdated(new Date());
-      onStatusChange?.(data.status === 'running');
+  const fetchStatus = useCallback(
+    async (showMessage = false) => {
+      try {
+        setLoading(true);
+        const data = await automationApi.getServerStatus();
+        setStatus(data);
+        setConnected(data.status === 'running');
+        setLastUpdated(new Date());
+        onStatusChange?.(data.status === 'running');
 
-      if (showMessage) {
-        message.success('服务器状态已刷新');
-      }
-    } catch (error) {
-      console.error('Failed to fetch server status:', error);
-      setConnected(false);
-      onStatusChange?.(false);
+        if (showMessage) {
+          message.success('服务器状态已刷新');
+        }
+      } catch (error) {
+        console.error('Failed to fetch server status:', error);
+        setConnected(false);
+        onStatusChange?.(false);
 
-      if (showMessage) {
-        message.error('无法连接到服务器');
+        if (showMessage) {
+          message.error('无法连接到服务器');
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  }, [message, onStatusChange]);
+    },
+    [message, onStatusChange]
+  );
 
   // 初始加载和自动刷新
   useEffect(() => {

@@ -7,7 +7,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, Button, Tooltip, App } from 'antd';
-import { ReloadOutlined, UploadOutlined, LoadingOutlined } from '@ant-design/icons';
+import {
+  ReloadOutlined,
+  UploadOutlined,
+  LoadingOutlined,
+} from '@ant-design/icons';
 import {
   KeyIcon,
   ShieldCheckIcon,
@@ -122,7 +126,9 @@ export function SessionManager({
   }, [fetchStatus, refreshInterval]);
 
   // 处理文件上传
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -159,9 +165,7 @@ export function SessionManager({
       }
     } catch (error) {
       console.error('Cookie upload failed:', error);
-      message.error(
-        error instanceof Error ? error.message : 'Cookie 上传失败'
-      );
+      message.error(error instanceof Error ? error.message : 'Cookie 上传失败');
     } finally {
       setUploading(false);
     }
@@ -282,7 +286,8 @@ export function SessionManager({
             <p className="text-xs text-content-muted">
               <strong>刷新步骤：</strong>
               <br />
-              1. 在本地运行 <code className="text-primary-600">node refresh-cookie.js</code>
+              1. 在本地运行{' '}
+              <code className="text-primary-600">node refresh-cookie.js</code>
               <br />
               2. 在浏览器中完成登录
               <br />

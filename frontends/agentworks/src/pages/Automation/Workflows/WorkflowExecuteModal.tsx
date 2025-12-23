@@ -306,17 +306,19 @@ export function WorkflowExecuteModal({
         <div className="py-12 text-center">
           <InfoCircleOutlined className="text-4xl text-content-muted mb-4" />
           <p className="text-content-secondary">
-            {platform
-              ? `该平台暂无可用的工作流`
-              : '暂无可用的工作流'}
+            {platform ? `该平台暂无可用的工作流` : '暂无可用的工作流'}
           </p>
         </div>
       ) : executing ? (
         <div className="py-12 text-center">
           <Spin
-            indicator={<LoadingOutlined className="text-4xl text-primary-600" spin />}
+            indicator={
+              <LoadingOutlined className="text-4xl text-primary-600" spin />
+            }
           />
-          <p className="mt-4 text-content-secondary">正在执行工作流，请稍候...</p>
+          <p className="mt-4 text-content-secondary">
+            正在执行工作流，请稍候...
+          </p>
           <p className="mt-1 text-xs text-content-muted">
             任务执行中，浏览器会自动完成所有操作
           </p>
@@ -412,7 +414,9 @@ export function WorkflowExecuteModal({
               value={inputValue}
               onChange={e => setInputValue(e.target.value)}
               disabled={!selectedWorkflowId}
-              prefix={<DocumentTextIcon className="w-4 h-4 text-content-muted" />}
+              prefix={
+                <DocumentTextIcon className="w-4 h-4 text-content-muted" />
+              }
               onPressEnter={handleExecute}
             />
           </div>

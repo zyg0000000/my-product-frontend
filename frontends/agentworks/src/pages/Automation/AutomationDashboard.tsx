@@ -7,10 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import { Card } from 'antd';
-import {
-  CheckCircleOutlined,
-  ThunderboltOutlined,
-} from '@ant-design/icons';
+import { CheckCircleOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import {
   CpuChipIcon,
   BoltIcon,
@@ -136,22 +133,16 @@ export function AutomationDashboard() {
   const [cookieValid, setCookieValid] = useState(false);
 
   // 执行完成回调
-  const handleExecutionComplete = useCallback(
-    (result: TaskExecuteResponse) => {
-      console.log('Execution completed:', result);
-      // 这里可以更新统计数据、保存历史记录等
-    },
-    []
-  );
+  const handleExecutionComplete = useCallback((result: TaskExecuteResponse) => {
+    console.log('Execution completed:', result);
+    // 这里可以更新统计数据、保存历史记录等
+  }, []);
 
   return (
     <PageTransition>
       <div className="space-y-6">
         {/* 页面标题 */}
-        <PageHeader
-          title="自动化管理"
-          description="ECS 爬虫服务控制中心"
-        />
+        <PageHeader title="自动化管理" description="ECS 爬虫服务控制中心" />
 
         {/* 状态卡片行 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

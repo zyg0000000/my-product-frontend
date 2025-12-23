@@ -273,7 +273,9 @@ function SortableStepCard({
                 value: a.value,
                 label: (
                   <div className="flex items-center gap-2">
-                    <span className="text-primary-600 flex-shrink-0">{a.icon}</span>
+                    <span className="text-primary-600 flex-shrink-0">
+                      {a.icon}
+                    </span>
                     <span>{a.label}</span>
                   </div>
                 ),
@@ -418,7 +420,10 @@ function SortableStepCard({
                         placeholder="2000"
                         value={step.milliseconds}
                         onChange={milliseconds =>
-                          onChange({ ...step, milliseconds: milliseconds || undefined })
+                          onChange({
+                            ...step,
+                            milliseconds: milliseconds || undefined,
+                          })
                         }
                         className="w-full"
                       />
@@ -586,7 +591,9 @@ function SortableStepCard({
                         </label>
                         <TextArea
                           rows={2}
-                          placeholder={'触达用户 ${age_gender}\n集中 ${city_tier}'}
+                          placeholder={
+                            '触达用户 ${age_gender}\n集中 ${city_tier}'
+                          }
                           value={step.template || ''}
                           onChange={e =>
                             onChange({ ...step, template: e.target.value })
@@ -755,14 +762,20 @@ function CanvasDropZone({
 }
 
 /** 拖拽预览层 */
-function DragOverlayContent({ actionType }: { actionType: WorkflowActionType }) {
+function DragOverlayContent({
+  actionType,
+}: {
+  actionType: WorkflowActionType;
+}) {
   const actionConfig = ACTION_TYPES.find(a => a.value === actionType);
   if (!actionConfig) return null;
 
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg border bg-surface shadow-lg border-primary-500">
       <span className="text-primary-600">{actionConfig.icon}</span>
-      <div className="text-sm font-medium text-content">{actionConfig.label}</div>
+      <div className="text-sm font-medium text-content">
+        {actionConfig.label}
+      </div>
     </div>
   );
 }
@@ -948,10 +961,8 @@ export function WorkflowEditor() {
       const values = await form.validateFields();
       setSaving(true);
 
-      const inputConfig =
-        WORKFLOW_INPUT_CONFIGS[values.inputKey] ||
-        availableInputConfigs.find(c => c.key === values.inputKey) ||
-        {
+      const inputConfig = WORKFLOW_INPUT_CONFIGS[values.inputKey] ||
+        availableInputConfigs.find(c => c.key === values.inputKey) || {
           key: values.inputKey,
           label: values.inputKey,
           idSource: 'custom' as const,
@@ -1105,7 +1116,10 @@ export function WorkflowEditor() {
                 <Switch checkedChildren="启用" unCheckedChildren="停用" />
               </Form.Item>
 
-              <Form.Item name="description" className="!mb-0 flex-1 min-w-[200px]">
+              <Form.Item
+                name="description"
+                className="!mb-0 flex-1 min-w-[200px]"
+              >
                 <Input placeholder="描述（可选）" />
               </Form.Item>
             </Form>
@@ -1199,18 +1213,17 @@ export function WorkflowEditor() {
                     <BoltIcon className="w-4 h-4 text-primary-600 mt-0.5" />
                     <div>
                       <span className="font-medium">变量说明：</span>
-                    使用{' '}
-                    <code className="px-1 py-0.5 rounded bg-surface text-primary-600">
-                      {'{{input}}'}
-                    </code>{' '}
-                    引用用户输入的参数值
+                      使用{' '}
+                      <code className="px-1 py-0.5 rounded bg-surface text-primary-600">
+                        {'{{input}}'}
+                      </code>{' '}
+                      引用用户输入的参数值
                     </div>
                   </div>
                 </div>
               </ProCard>
             </div>
           </div>
-
         </div>
 
         {/* 拖拽预览层 */}

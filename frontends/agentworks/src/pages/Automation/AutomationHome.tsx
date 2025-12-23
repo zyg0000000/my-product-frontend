@@ -37,16 +37,22 @@ export function AutomationHome() {
     {
       key: 'dashboard',
       title: '控制台',
-      description: 'ECS 爬虫服务控制中心，监控服务器状态、管理登录会话、执行自动化任务',
-      icon: <CpuChipIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />,
+      description:
+        'ECS 爬虫服务控制中心，监控服务器状态、管理登录会话、执行自动化任务',
+      icon: (
+        <CpuChipIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+      ),
       path: '/automation/dashboard',
       status: 'active',
     },
     {
       key: 'workflows',
       title: '工作流管理',
-      description: '管理自动化工作流，创建、编辑、删除工作流定义，支持多平台配置',
-      icon: <Cog6ToothIcon className="w-6 h-6 text-success-600 dark:text-success-400" />,
+      description:
+        '管理自动化工作流，创建、编辑、删除工作流定义，支持多平台配置',
+      icon: (
+        <Cog6ToothIcon className="w-6 h-6 text-success-600 dark:text-success-400" />
+      ),
       path: '/automation/workflows',
       status: 'active',
     },
@@ -141,8 +147,12 @@ export function AutomationHome() {
             >
               <CpuChipIcon className="w-5 h-5 text-content-muted" />
               <div>
-                <div className="text-sm font-medium text-content">查看服务器状态</div>
-                <div className="text-xs text-content-muted">监控 ECS 运行状况</div>
+                <div className="text-sm font-medium text-content">
+                  查看服务器状态
+                </div>
+                <div className="text-xs text-content-muted">
+                  监控 ECS 运行状况
+                </div>
               </div>
             </button>
             <button
@@ -151,8 +161,12 @@ export function AutomationHome() {
             >
               <Cog6ToothIcon className="w-5 h-5 text-content-muted" />
               <div>
-                <div className="text-sm font-medium text-content">管理工作流</div>
-                <div className="text-xs text-content-muted">查看和编辑工作流</div>
+                <div className="text-sm font-medium text-content">
+                  管理工作流
+                </div>
+                <div className="text-xs text-content-muted">
+                  查看和编辑工作流
+                </div>
               </div>
             </button>
             <button
@@ -161,7 +175,9 @@ export function AutomationHome() {
             >
               <BoltIcon className="w-5 h-5 text-content-muted" />
               <div>
-                <div className="text-sm font-medium text-content">创建工作流</div>
+                <div className="text-sm font-medium text-content">
+                  创建工作流
+                </div>
                 <div className="text-xs text-content-muted">新建自动化任务</div>
               </div>
             </button>
@@ -176,7 +192,8 @@ export function AutomationHome() {
               <h4 className="alert-info-title mb-1">关于自动化模块</h4>
               <p className="alert-info-text">
                 自动化模块用于管理和执行数据采集任务。工作流定义了具体的操作步骤，
-                通过 ECS 服务器执行浏览器自动化操作。请确保服务器在线且登录凭证有效后再执行任务。
+                通过 ECS
+                服务器执行浏览器自动化操作。请确保服务器在线且登录凭证有效后再执行任务。
               </p>
             </div>
           </div>
