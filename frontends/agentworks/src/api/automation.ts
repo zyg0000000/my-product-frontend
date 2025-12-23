@@ -23,9 +23,10 @@ import type {
   WorkflowOperationResponse,
 } from '../types/workflow';
 
-// ECS 服务器地址
+// ECS 服务器地址（通过 Cloudflare Tunnel 提供 HTTPS）
 const ECS_API_BASE_URL =
-  import.meta.env.VITE_ECS_API_URL || 'http://14.103.18.8:3001';
+  import.meta.env.VITE_ECS_API_URL ||
+  'https://aaron-calls-calcium-leather.trycloudflare.com';
 
 // ========== 类型定义 ==========
 
