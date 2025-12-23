@@ -17,6 +17,7 @@ import {
   ChevronDownIcon,
   SunIcon,
   MoonIcon,
+  BoltIcon,
 } from '@heroicons/react/24/outline';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -70,6 +71,15 @@ const navigation: NavItem[] = [
     ],
   },
   {
+    name: '爬虫管理',
+    path: '/automation',
+    icon: BoltIcon,
+    children: [
+      { name: '控制台', path: '/automation/dashboard' },
+      { name: '工作流管理', path: '/automation/workflows' },
+    ],
+  },
+  {
     name: '系统设置',
     path: '/settings',
     icon: Cog6ToothIcon,
@@ -90,6 +100,7 @@ export function Sidebar() {
     '客户管理',
     '项目管理',
     '数据分析',
+    '爬虫管理',
     '系统设置',
   ]);
   const location = useLocation();
@@ -109,7 +120,7 @@ export function Sidebar() {
   return (
     <div
       className={`flex h-screen flex-col border-r border-stroke bg-surface transition-all duration-300 ease-in-out ${
-        isCollapsed ? 'w-16' : 'w-48'
+        isCollapsed ? 'w-16' : 'w-auto min-w-[11rem] max-w-[14rem]'
       }`}
     >
       {/* Logo */}

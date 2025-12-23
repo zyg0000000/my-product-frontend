@@ -306,36 +306,98 @@ export async function post<T>(
 
 /**
  * PUT 请求
+ * @param endpoint - API 端点
+ * @param data - 请求体数据
+ * @param params - 查询参数（可选）
+ * @param options - 请求配置（可选）
  */
 export async function put<T>(
   endpoint: string,
   data?: RequestBodyData,
+  params?: Record<string, RequestParamValue>,
   options?: RequestOptions
 ): Promise<T> {
-  return apiRequest<T>(endpoint, {
+  let url = endpoint;
+
+  // 合并 dbVersion 到查询参数中
+  const allParams = {
+    dbVersion: DB_VERSION,
+    ...params,
+  };
+
+  const queryString = new URLSearchParams(
+    Object.entries(allParams).reduce(
+      (acc, [key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          acc[key] = String(value);
+        }
+        return acc;
+      },
+      {} as Record<string, string>
+    )
+  ).toString();
+
+  if (queryString) {
+    url += `?${queryString}`;
+  }
+
+  return apiRequest<T>(url, {
     method: 'PUT',
-    body: JSON.stringify({
-      dbVersion: DB_VERSION,
-      ...data,
-    }),
+    body: data
+      ? JSON.stringify({
+          dbVersion: DB_VERSION,
+          ...data,
+        })
+      : undefined,
     ...options,
   });
 }
 
 /**
  * DELETE 请求
+ * @param endpoint - API 端点
+ * @param data - 请求体数据（可选，保持向后兼容）
+ * @param params - 查询参数（可选）
+ * @param options - 请求配置（可选）
  */
 export async function del<T>(
   endpoint: string,
   data?: RequestBodyData,
+  params?: Record<string, RequestParamValue>,
   options?: RequestOptions
 ): Promise<T> {
-  return apiRequest<T>(endpoint, {
+  let url = endpoint;
+
+  // 合并 dbVersion 到查询参数中
+  const allParams = {
+    dbVersion: DB_VERSION,
+    ...params,
+  };
+
+  const queryString = new URLSearchParams(
+    Object.entries(allParams).reduce(
+      (acc, [key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          acc[key] = String(value);
+        }
+        return acc;
+      },
+      {} as Record<string, string>
+    )
+  ).toString();
+
+  if (queryString) {
+    url += `?${queryString}`;
+  }
+
+  return apiRequest<T>(url, {
     method: 'DELETE',
-    body: JSON.stringify({
-      dbVersion: DB_VERSION,
-      ...data,
-    }),
+    body: data
+      ? JSON.stringify({
+          dbVersion: DB_VERSION,
+          ...data,
+        })
+      : undefined,
     ...options,
   });
 }

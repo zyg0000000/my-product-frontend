@@ -115,6 +115,27 @@ const MigrationHome = lazy(() =>
     default: m.MigrationHome,
   }))
 );
+// 自动化模块
+const AutomationHome = lazy(() =>
+  import('./pages/Automation/AutomationHome').then(m => ({
+    default: m.AutomationHome,
+  }))
+);
+const AutomationDashboard = lazy(() =>
+  import('./pages/Automation/AutomationDashboard').then(m => ({
+    default: m.AutomationDashboard,
+  }))
+);
+const WorkflowList = lazy(() =>
+  import('./pages/Automation/Workflows/WorkflowList').then(m => ({
+    default: m.WorkflowList,
+  }))
+);
+const WorkflowEditor = lazy(() =>
+  import('./pages/Automation/Workflows/WorkflowEditor').then(m => ({
+    default: m.WorkflowEditor,
+  }))
+);
 const CustomersHome = lazy(() =>
   import('./pages/Customers/CustomersHome').then(m => ({
     default: m.CustomersHome,
@@ -266,6 +287,25 @@ function ThemedApp() {
                   <Route
                     path="settings/data-migration"
                     element={<MigrationHome />}
+                  />
+
+                  {/* 自动化管理模块 */}
+                  <Route path="automation" element={<AutomationHome />} />
+                  <Route
+                    path="automation/dashboard"
+                    element={<AutomationDashboard />}
+                  />
+                  <Route
+                    path="automation/workflows"
+                    element={<WorkflowList />}
+                  />
+                  <Route
+                    path="automation/workflows/new"
+                    element={<WorkflowEditor />}
+                  />
+                  <Route
+                    path="automation/workflows/:id/edit"
+                    element={<WorkflowEditor />}
                   />
 
                   <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,356 +1,287 @@
 # 自动化功能详解
 
-> **页面文件**: `frontends/byteproject/project_automation.html`
-> **优化时间**: 2025-11
-> **架构**: 3-Tab 设计
+> **页面文件**: `frontends/agentworks/src/pages/Automation/`
+> **更新时间**: 2025-12-24
+> **架构**: 工作流管理 + ECS 服务器执行
 
 ---
 
-## 📋 概述
+## 概述
 
-自动化功能用于批量执行重复性任务，包括截图抓取、数据提取、飞书表格生成等。采用工作流引擎驱动，支持多种自动化场景。
+AgentWorks 自动化模块用于批量执行重复性数据采集任务，包括截图抓取、数据提取等。采用工作流引擎驱动，支持多平台、多场景的自动化操作。
 
-## 🏗️ 架构设计
+### 核心特性
 
-### 模块划分
+- **多平台支持**: 抖音（星图）、小红书（蒲公英）等平台
+- **工作流管理**: 完整的 CRUD 操作，可视化编辑
+- **ECS 云端执行**: 服务器部署 Puppeteer 执行器
+- **配置驱动**: 输入参数从平台配置动态获取
+
+---
+
+## 模块结构
 
 ```
-project_automation/
-├── main.js                      # 主控制器
-├── tab-talents.js               # Tab 1: 发起任务
-├── tab-jobs.js                  # Tab 2: 任务批次
-├── tab-sheets.js                # Tab 3: 飞书表格生成
-├── modal-automation.js          # 自动化配置弹窗
-├── modal-sheet-generator.js     # 表格生成抽屉
-└── modals.js                    # 其他弹窗
+src/pages/Automation/
+├── AutomationDashboard.tsx    # 控制台（服务器状态、Cookie 管理）
+└── Workflows/
+    ├── WorkflowList.tsx       # 工作流列表
+    ├── WorkflowEditor.tsx     # 工作流编辑器
+    └── WorkflowExecuteModal.tsx # 执行弹窗
+
+src/components/automation/
+├── ServerStatus.tsx           # 服务器状态卡片
+├── SessionManager.tsx         # 会话管理卡片
+└── WorkflowExecutor.tsx       # 工作流执行器
+
+src/hooks/
+└── useWorkflows.ts            # 工作流数据管理 Hook
+
+src/types/
+└── workflow.ts                # 工作流类型定义
 ```
 
 ---
 
-## 📋 Tab 1: 发起任务
+## 工作流数据模型
 
-### 功能说明
+### 类型定义
 
-选择达人发起自动化任务，执行预定义的工作流。
+```typescript
+// src/types/workflow.ts
+interface Workflow {
+  _id: string;
+  name: string;
+  description?: string;
+  type?: 'screenshot' | 'data_scraping' | 'composite';
 
-### 核心功能
+  // 多平台支持
+  platform: Platform;
 
-1. **达人选择**
-   - 显示当前项目的所有合作达人
-   - 支持批量选择
-   - 显示达人基本信息
+  // 输入配置（配置驱动）
+  inputConfig: WorkflowInputConfig;
 
-2. **工作流选择**
-   - 从下拉列表选择工作流类型
-   - 显示工作流说明
-   - 预览工作流步骤
+  // 步骤定义
+  steps: WorkflowStep[];
 
-3. **任务配置**
-   - 设置任务参数
-   - 选择执行时间
-   - 配置通知方式
+  // 状态
+  isActive: boolean;
 
-4. **提交任务**
-   - 创建任务批次
-   - 启动自动化执行
+  createdAt: string;
+  updatedAt: string;
+}
 
----
-
-## 📊 Tab 2: 任务批次
-
-### 功能说明
-
-查看和管理所有自动化任务批次，支持筛选和进度跟踪。
-
-### 筛选卡片设计（性能优化）
-
-**统计卡片展示**：
-- 全部任务
-- 各工作流任务数量
-
-**快速筛选**：
-- 点击卡片筛选对应工作流的任务
-- 单表分页显示，避免全展开导致的性能问题
-
-### 任务列表
-
-**批次信息**：
-- 批次 ID
-- 创建时间
-- 工作流类型（带类型标签）
-
-**状态追踪**：
-| 状态 | 说明 |
-|------|------|
-| 进行中 | 任务正在执行 |
-| 已完成 | 所有子任务完成 |
-| 失败 | 存在失败的子任务 |
-
-**进度统计**：
-- 成功任务数 / 总任务数
-- 失败任务数
-- 完成率百分比
-
-### 操作功能
-
-- **查看详情**：展开查看所有子任务
-- **重试失败任务**：重新执行失败的子任务
-- **取消任务**：停止执行中的任务
-
----
-
-## 📑 Tab 3: 飞书表格生成记录
-
-### 功能说明
-
-根据自动化任务结果生成飞书多维表格，并记录生成历史。
-
-### 模板-工作流关联（核心特性）
-
-**关联配置**：
-- 选择报告模板
-- 模板配置 `allowedWorkflowIds` 字段
-- 自动筛选允许的工作流类型
-
-**精准控制**：
-- 仅显示允许的工作流类型的已完成任务
-- 避免数据源混乱
-- 提高表格生成准确性
-
-### 功能操作
-
-1. **选择任务记录**
-   - 显示已完成的任务批次
-   - 根据模板配置过滤工作流类型
-   - 支持多选
-
-2. **一键生成飞书表格**
-   - 选择映射模板
-   - 配置表格参数
-   - 生成并同步到飞书
-
-3. **历史生成记录查看**
-   - 显示所有生成记录
-   - 记录生成时间、模板、任务批次
-   - 表格链接快速跳转
-
-### 技术亮点
-
-- ✅ **Tab样式统一**：参考 `project_report` 的Tab设计，包含图标和动效
-- ✅ **性能优化**：工作流筛选卡片替代全展开设计
-- ✅ **配置化控制**：模板-工作流关联实现业务逻辑配置化
-- ✅ **向后兼容**：未配置关联的旧模板仍可正常使用
-
----
-
-## 🔧 工作流引擎
-
-### 工作流定义
-
-工作流由一系列步骤组成，每个步骤定义了要执行的操作。
-
-**示例工作流**：
-```javascript
-{
-  id: 'workflow-1',
-  name: '抓取返点截图',
-  steps: [
-    {
-      type: 'navigate',
-      url: 'https://star.toutiao.com/order/{{xingtuId}}'
-    },
-    {
-      type: 'wait',
-      selector: '.order-detail',
-      timeout: 5000
-    },
-    {
-      type: 'screenshot',
-      selector: '.rebate-info',
-      uploadPath: 'screenshots/rebate/{{talentId}}_{{date}}.png'
-    },
-    {
-      type: 'extract',
-      selector: '.rebate-value',
-      field: 'actualRebate'
-    }
-  ]
+interface WorkflowInputConfig {
+  key: string;              // 参数键名（如 xingtuId）
+  label: string;            // 显示标签
+  placeholder?: string;
+  platform?: Platform;      // 关联平台
+  idSource: 'talent' | 'collaboration' | 'custom';
+  idField?: string;         // 对应的数据库字段
+  required?: boolean;
 }
 ```
 
-### 步骤类型
+### 预定义输入配置
 
-| 类型 | 说明 | 参数 |
-|------|------|------|
-| navigate | 导航到URL | url, waitUntil |
-| click | 点击元素 | selector, waitAfter |
-| wait | 等待元素出现 | selector, timeout |
-| screenshot | 截图并上传 | selector, uploadPath |
-| extract | 提取数据 | selector, field, transform |
-| input | 输入文本 | selector, value |
-| scroll | 滚动页面 | direction, distance |
+```typescript
+// WORKFLOW_INPUT_CONFIGS
+{
+  xingtuId: {
+    key: 'xingtuId',
+    label: '星图ID',
+    platform: 'douyin',
+    idSource: 'talent',
+    idField: 'platformAccountId',  // 从 talent.platformAccountId 取值
+  },
+  douyinTaskId: {
+    key: 'taskId',
+    label: '星图任务ID',
+    platform: 'douyin',
+    idSource: 'collaboration',
+    idField: 'taskId',
+  },
+  douyinVideoId: {
+    key: 'videoId',
+    label: '抖音视频ID',
+    platform: 'douyin',
+    idSource: 'collaboration',
+    idField: 'videoId',
+  },
+}
+```
 
-### URL 占位符
+---
 
-支持以下占位符，执行时自动替换：
+## 工作流步骤类型
 
-| 占位符 | 说明 | 示例 |
+| 动作类型 | 说明 | 主要参数 |
+|---------|------|---------|
+| `Go to URL` | 导航到 URL | url |
+| `waitForSelector` | 等待元素出现 | selector, timeout |
+| `click` | 点击元素 | selector |
+| `screenshot` | 截图 | saveAs, stitched |
+| `wait` | 等待时间 | milliseconds |
+| `scrollPage` | 滚动页面 | - |
+| `extractData` | 提取数据 | selector, dataName |
+| `compositeExtract` | 复合提取 | template, sources |
+| `type` | 输入文本 | selector, text |
+| `evaluate` | 执行脚本 | script |
+
+### URL 变量替换
+
+工作流 URL 支持变量占位符，执行时自动替换：
+
+| 占位符 | 说明 | 来源 |
 |--------|------|------|
-| `{{xingtuId}}` | 星图ID | 12345678 |
-| `{{taskId}}` | 任务ID | task-001 |
-| `{{videoId}}` | 视频ID | v1234567890 |
-| `{{talentId}}` | 达人ID | talent-001 |
-| `{{date}}` | 当前日期 | 2025-11-11 |
+| `{{xingtuId}}` | 星图ID | task.xingtuId 参数 |
+| `{{taskId}}` | 任务ID | task.taskId 参数 |
+| `{{videoId}}` | 视频ID | task.videoId 参数 |
 
 ---
 
-## 🤖 本地爬虫代理
+## ECS 服务器
 
-### 代理说明
+### 服务器信息
 
-**代码位置**: [my-local-agent](https://github.com/zyg0000000/my-local-agent)
+| 配置项 | 值 |
+|--------|-----|
+| 公网 IP | `14.103.18.8` |
+| API 端口 | `3001` |
+| 项目目录 | `/opt/puppeteer-executor/` |
 
-本地部署的 Puppeteer 自动化代理，负责执行工作流中定义的截图和数据抓取任务。
+### API 接口
 
-### 核心功能
+| 方法 | 端点 | 说明 |
+|------|------|------|
+| GET | `/api/status` | 服务器状态 |
+| GET | `/api/cookie-status` | Cookie 状态 |
+| GET | `/api/workflows` | 获取工作流列表 |
+| POST | `/api/task/execute` | 执行任务 |
+| POST | `/api/task/batch` | 批量执行 |
+| POST | `/api/cookie/upload` | 上传 Cookie |
 
-1. **执行工作流步骤**
-   - 导航、点击、等待
-   - 截图、提取数据
+### Cookie 刷新
 
-2. **URL 占位符替换**
-   - 自动替换 `{{xingtuId}}`、`{{taskId}}` 等
+Cookie 过期后需要手动刷新：
 
-3. **截图上传**
-   - 上传到 TOS 对象存储
-   - 返回文件URL
+```bash
+# 1. 本地运行登录脚本
+cd /Users/yigongzhang/字节专用程序/截图套件
+node refresh-cookie.js
 
-4. **任务状态同步**
-   - 实时更新任务状态
-   - 记录执行日志
-
-### 工作流程
-
-```
-1. 前端创建任务批次
-   ↓
-2. 任务分发到爬虫代理
-   ↓
-3. 代理执行工作流步骤
-   ↓
-4. 截图上传到 TOS
-   ↓
-5. 数据提取并保存
-   ↓
-6. 更新任务状态
-   ↓
-7. 前端显示执行结果
+# 2. 在浏览器中完成登录
+# 3. 脚本自动上传 Cookie 到 ECS
 ```
 
----
-
-## 📊 模板管理
-
-### 映射模板配置
-
-**页面文件**: `frontends/byteproject/mapping_templates.html`
-
-### 模板配置
-
-1. **基础信息**
-   - 名称
-   - 描述
-   - 飞书表格Token
-
-2. **字段映射**
-   - 飞书表格列与数据字段的映射规则
-   - 支持自定义转换函数
-
-3. **工作流关联**（新增）
-   - 动态加载可用工作流列表
-   - 多选checkbox配置允许的工作流
-   - 未选择表示允许所有工作流
-   - 保存到数据库 `allowedWorkflowIds` 字段
-
-### 后端支持
-
-**云函数 v4.0**（mapping-templates-api）：
-- 支持 `allowedWorkflowIds` 字段的存储和查询
-- GET 接口返回工作流关联配置
-- POST/PUT 接口支持更新工作流关联
-
-**相关文档**：
-- 📖 快速参考：`docs/api/backend-api-v4.0-README.md`
-- 📝 更新日志：`docs/api/backend-api-v4.0-CHANGELOG.md`
-- 🚀 部署指南：`docs/api/backend-api-v4.0-DEPLOYMENT.md`
+详细说明参考: `截图套件/ECS-操作说明.md`
 
 ---
 
-## 🎯 使用场景
+## 前端组件
 
-### 场景 1: 批量抓取返点截图
+### AutomationDashboard
 
-1. 打开项目自动化页面
-2. 选择需要抓取截图的达人
-3. 选择"抓取返点截图"工作流
-4. 点击"发起任务"
-5. 切换到"任务批次" Tab 查看进度
-6. 等待任务完成，查看截图
+ECS 服务控制中心，显示：
+- 服务器运行状态和内存使用
+- Cookie 会话状态和有效期
+- 快速统计卡片
+- 工作流执行器
 
-### 场景 2: 生成飞书报表
+### WorkflowList
 
-1. 切换到"飞书表格生成记录" Tab
-2. 选择报告模板
-3. 选择已完成的任务批次（自动过滤工作流类型）
-4. 点击"生成表格"
-5. 查看生成记录，点击链接打开飞书表格
+工作流管理列表，支持：
+- 按平台筛选
+- 搜索工作流
+- 启用/停用工作流
+- 编辑和删除
 
-### 场景 3: 重试失败任务
+### WorkflowEditor
 
-1. 在"任务批次" Tab 找到失败的任务
-2. 点击"查看详情"
-3. 查看失败原因
-4. 点击"重试失败任务"
-5. 等待重试完成
+可视化工作流编辑器，功能：
+- 拖拽排序步骤
+- 动作库选择
+- 参数配置表单
+- 步骤预览
 
----
+### WorkflowExecuteModal
 
-## 🐛 常见问题
-
-### Q1: 为什么任务一直在"进行中"状态？
-
-**A**:
-1. 检查本地爬虫代理是否正常运行
-2. 查看代理日志，确认是否有错误
-3. 检查网络连接
-4. 如长时间未完成，可取消任务重新发起
-
-### Q2: 截图上传失败怎么办？
-
-**A**:
-1. 检查 TOS 存储配置
-2. 确认访问密钥是否正确
-3. 查看代理日志中的详细错误信息
-4. 重试任务
-
-### Q3: 如何添加新的工作流？
-
-**A**:
-1. 在 `automation-workflows` 集合中创建新工作流
-2. 定义工作流步骤和参数
-3. 在前端下拉列表中会自动显示
-4. 如需模板关联，更新模板配置
+执行弹窗组件，用于：
+- 选择工作流
+- 输入参数
+- 查看执行结果
 
 ---
 
-## 🔗 相关文档
+## ID 架构说明
 
-- [项目日报功能](./PROJECT_REPORT.md)
-- [本地爬虫代理文档](https://github.com/zyg0000000/my-local-agent)
+AgentWorks 统一使用 `platformAccountId` 作为平台账号 ID 的存储字段：
+
+```
+AgentWorks 达人数据:
+├── platformAccountId: "7069698789983911971"  ← 星图ID（必填）
+└── platformSpecific:
+    └── uid: "827303091503240"                ← 抖音UID（可选）
+
+工作流执行时:
+AgentWorks 从 talent.platformAccountId 获取值
+  → 传给 ECS: { xingtuId: "xxx" }
+  → ECS 替换 {{xingtuId}} 变量
+```
+
+---
+
+## 数据库
+
+### 工作流集合
+
+- **AgentWorks**: `agentworks_db.automation-workflows`
+- **ByteProject**: `kol_data.automation-workflows`（独立管理）
+
+### 云函数 API
+
+```
+GET    /automation-workflows?platform=douyin   # 按平台筛选
+POST   /automation-workflows                    # 创建
+PUT    /automation-workflows?id=xxx            # 更新
+DELETE /automation-workflows?id=xxx            # 删除
+```
+
+---
+
+## 待开发功能
+
+### P0 - 高优先级
+
+1. **工作流管理页面优化**
+   - 移除渐变统计卡片
+   - 简化筛选栏布局
+   - 简化工作流卡片样式
+
+2. **达人详情页集成工作流执行**
+   - 添加「爬取数据」按钮
+   - 自动填充 platformAccountId
+   - 支持选择工作流类型
+
+### P1 - 中优先级
+
+3. **滑块验证自动处理**
+4. **执行失败自动重试**
+
+### P2 - 低优先级
+
+5. **告警通知**（Cookie 过期、连续失败）
+6. **多平台扩展**（小红书蒲公英）
+
+---
+
+## 相关文档
+
+- [ECS 操作说明](../../../../截图套件/ECS-操作说明.md)
+- [待办开发计划](../../../../截图套件/待办-开发计划.md)
 - [云函数 API 文档](../api/API_REFERENCE.md)
-- [数据库 Schema](../../database/README.md)
 
 ---
 
-**最后更新**: 2025-11-11
-**文档版本**: v1.0
+**最后更新**: 2025-12-24
+**文档版本**: v2.0
