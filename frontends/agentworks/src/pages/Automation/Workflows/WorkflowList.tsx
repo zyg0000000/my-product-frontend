@@ -1,13 +1,13 @@
 /**
  * 工作流列表页
  *
- * @version 3.0.0
- * @description ProTable 表格形式的工作流管理，符合 AgentWorks 设计规范
+ * @version 3.1.0
+ * @description ProTable 表格形式的工作流管理，支持平台筛选
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Tag, Popconfirm, Space, App, Switch } from 'antd';
+import { Button, Tag, Popconfirm, Space, App, Switch, Select } from 'antd';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns } from '@ant-design/pro-components';
 import {
@@ -21,6 +21,7 @@ import { useWorkflows } from '../../../hooks/useWorkflows';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 import { WorkflowExecuteModal } from './WorkflowExecuteModal';
 import type { Workflow } from '../../../types/workflow';
+import type { Platform } from '../../../types/talent';
 
 export function WorkflowList() {
   const navigate = useNavigate();
@@ -34,6 +35,28 @@ export function WorkflowList() {
   // 工作流数据
   const { workflows, loading, deleteWorkflow, toggleActive, refreshWorkflows } =
     useWorkflows();
+
+  // 平台筛选状态
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform | 'all'>(
+    'all'
+  );
+
+  // 筛选后的工作流
+  const filteredWorkflows = useMemo(() => {
+    if (selectedPlatform === 'all') {
+      return workflows;
+    }
+    return workflows.filter(w => w.platform === selectedPlatform);
+  }, [workflows, selectedPlatform]);
+
+  // 平台选项
+  const platformOptions = useMemo(() => {
+    const options = [{ value: 'all', label: '全部平台' }];
+    Object.entries(platformNames).forEach(([key, name]) => {
+      options.push({ value: key, label: name });
+    });
+    return options;
+  }, [platformNames]);
 
   // 执行弹窗状态
   const [executeModalOpen, setExecuteModalOpen] = useState(false);
@@ -174,7 +197,7 @@ export function WorkflowList() {
         {/* ProTable */}
         <ProTable<Workflow>
           columns={columns}
-          dataSource={workflows}
+          dataSource={filteredWorkflows}
           loading={loading}
           rowKey="_id"
           search={false}
@@ -185,9 +208,18 @@ export function WorkflowList() {
           }}
           pagination={false}
           headerTitle={
-            <span className="text-content-secondary text-sm">
-              共 {workflows.length} 个工作流
-            </span>
+            <div className="flex items-center gap-4">
+              <span className="text-content-secondary text-sm">
+                共 {filteredWorkflows.length} 个工作流
+              </span>
+              <Select
+                value={selectedPlatform}
+                onChange={setSelectedPlatform}
+                options={platformOptions}
+                style={{ width: 120 }}
+                size="small"
+              />
+            </div>
           }
           toolBarRender={() => [
             <Button
