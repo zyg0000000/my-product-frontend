@@ -322,6 +322,8 @@ export interface TrackingOverviewData {
   archivedProjectCount: number;
   /** 今日待录入数据条数 */
   pendingEntriesCount: number;
+  /** CPM 异常项目数 */
+  cpmAbnormalProjectCount?: number;
   /** 当前日期 */
   date: string;
 }

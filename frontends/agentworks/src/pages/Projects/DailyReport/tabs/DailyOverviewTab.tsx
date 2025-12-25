@@ -3,11 +3,11 @@
  * 包含汇总仪表板、CPM分布、达人表格
  */
 
-import { useMemo, RefObject } from 'react';
+import { useMemo } from 'react';
+import type { RefObject } from 'react';
 import { Alert, Empty } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import {
-  StatCard,
   calculateChange,
   TalentDetailTable,
   CPMDistributionBar,

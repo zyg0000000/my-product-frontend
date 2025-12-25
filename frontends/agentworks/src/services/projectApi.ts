@@ -200,8 +200,8 @@ class ProjectApi {
       let items = result.data || [];
 
       // 前端筛选（按项目名称）
-      if (params?.name) {
-        const keyword = params.name.toLowerCase();
+      if (params?.keyword) {
+        const keyword = params.keyword.toLowerCase();
         items = items.filter((p: ProjectListItem) =>
           p.name?.toLowerCase().includes(keyword)
         );

@@ -3,7 +3,8 @@
  * 使用 html-to-image 将 DOM 元素导出为 PNG 图片
  */
 
-import { useState, useCallback, RefObject } from 'react';
+import { useState, useCallback } from 'react';
+import type { RefObject } from 'react';
 import { toPng } from 'html-to-image';
 import { message } from 'antd';
 

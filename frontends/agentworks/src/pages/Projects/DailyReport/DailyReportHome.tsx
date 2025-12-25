@@ -45,7 +45,6 @@ import {
   TRACKING_STATUS_COLORS,
   TRACKING_VERSION_LABELS,
   TRACKING_VERSION_COLORS,
-  formatViews,
   formatCPM,
 } from '../../../types/dailyReport';
 import type { ProjectTrackingStats } from '../../../types/dailyReport';
@@ -75,11 +74,11 @@ const CPM_STATUS_VALUE_ENUM = {
   abnormal: { text: '异常' },
 };
 
-// 进度筛选选项
-const PROGRESS_VALUE_ENUM = {
-  has: { text: '未完成' },
-  none: { text: '已完成' },
-};
+// 进度筛选选项（备用，暂未启用）
+// const PROGRESS_VALUE_ENUM = {
+//   has: { text: '未完成' },
+//   none: { text: '已完成' },
+// };
 
 export function DailyReportHome() {
   const navigate = useNavigate();

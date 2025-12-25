@@ -93,30 +93,3 @@ export function CPMDistributionBar({
     </div>
   );
 }
-
-// 计算 CPM 分布（纯 CPM 范围分类）
-export function calculateCPMDistribution(
-  data: Array<{ totalViews: number; cpm: number }>
-): Record<CPMCategory, number> {
-  const distribution: Record<CPMCategory, number> = {
-    excellent: 0,
-    acceptable: 0,
-    poor: 0,
-    critical: 0,
-  };
-
-  data.forEach(item => {
-    // 纯按 CPM 范围分类
-    if (item.cpm < 20) {
-      distribution.excellent++;
-    } else if (item.cpm < 40) {
-      distribution.acceptable++;
-    } else if (item.cpm < 100) {
-      distribution.poor++;
-    } else {
-      distribution.critical++;
-    }
-  });
-
-  return distribution;
-}

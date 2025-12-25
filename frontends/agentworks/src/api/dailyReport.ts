@@ -14,7 +14,6 @@ import type {
   SaveDailyStatsRequest,
   SaveReportSolutionRequest,
   TrackingConfig,
-  PreviousOverview,
 } from '../types/dailyReport';
 
 // API 基础路径

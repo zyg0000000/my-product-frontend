@@ -23,7 +23,8 @@ import type {
   TrendDataPoint,
 } from '../../../../types/dailyReport';
 import { formatViews, calculateCPM } from '../../../../types/dailyReport';
-import type { PricingMode } from '../../../../types/project';
+// 定价模式类型（本地定义，避免循环依赖）
+type PricingMode = 'framework' | 'project';
 
 interface TalentTrendTabProps {
   details: DailyReportDetail[];

@@ -32,7 +32,6 @@ export function ProjectDailyReport() {
   // 日报数据
   const {
     data,
-    overview,
     previousOverview,
     groupedDetails,
     missingDataVideos,
@@ -53,12 +52,15 @@ export function ProjectDailyReport() {
   const { isDark } = useTheme();
 
   // 导出图片
-  const exportRef = useRef<HTMLDivElement>(null);
-  const { exporting, exportImage } = useExportImage(exportRef, {
-    filename: `日报概览-${data?.projectName || '项目'}-${currentDate}`,
-    backgroundColor: isDark ? '#1a1a2e' : '#ffffff',
-    pixelRatio: 2,
-  });
+  const exportRef = useRef<HTMLDivElement | null>(null);
+  const { exporting, exportImage } = useExportImage(
+    exportRef as React.RefObject<HTMLElement>,
+    {
+      filename: `日报概览-${data?.projectName || '项目'}-${currentDate}`,
+      backgroundColor: isDark ? '#1a1a2e' : '#ffffff',
+      pixelRatio: 2,
+    }
+  );
 
   // 将 groupedDetails 转为扁平数组
   const allDetails = useMemo(() => {
@@ -78,7 +80,7 @@ export function ProjectDailyReport() {
   };
 
   // 查看达人趋势
-  const handleViewTrend = (collaborationId: string, talentName: string) => {
+  const handleViewTrend = (_collaborationId: string, _talentName: string) => {
     setActiveTab('trend');
     // TODO: 可以自动选中该达人
   };
@@ -104,7 +106,7 @@ export function ProjectDailyReport() {
             onViewTrend={handleViewTrend}
             saving={saving}
             currentDate={currentDate}
-            exportRef={exportRef}
+            exportRef={exportRef as React.RefObject<HTMLDivElement>}
             isExporting={exporting}
           />
         ),

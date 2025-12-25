@@ -7,12 +7,7 @@ import {
   ArrowDownOutlined,
   MinusOutlined,
 } from '@ant-design/icons';
-
-export interface ChangeData {
-  value: number; // 变化百分比
-  absoluteChange?: number; // 绝对值变化
-  direction: 'up' | 'down' | 'neutral';
-}
+import type { ChangeData } from './utils';
 
 interface StatCardProps {
   title: string;
@@ -96,24 +91,4 @@ export function StatCard({
       )}
     </div>
   );
-}
-
-// 计算环比变化
-export function calculateChange(
-  current: number,
-  previous: number | undefined | null
-): ChangeData | undefined {
-  if (previous === undefined || previous === null || previous === 0) {
-    return undefined;
-  }
-
-  const changePercent = ((current - previous) / previous) * 100;
-  const absoluteChange = current - previous;
-
-  return {
-    value: changePercent,
-    absoluteChange,
-    direction:
-      changePercent > 0 ? 'up' : changePercent < 0 ? 'down' : 'neutral',
-  };
 }

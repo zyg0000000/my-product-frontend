@@ -594,6 +594,14 @@ export interface Collaboration {
   // 效果数据
   effectData?: EffectData;
 
+  // 日报数据（每日播放量统计）
+  dailyStats?: Array<{
+    date: string;
+    totalViews: number;
+    source?: 'auto' | 'manual' | 'migrated';
+    solution?: string;
+  }>;
+
   // 调整项
   adjustments?: CollaborationAdjustment[];
 

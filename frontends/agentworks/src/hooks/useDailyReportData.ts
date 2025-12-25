@@ -27,7 +27,8 @@ import {
   getTodayString,
   calculateCPM,
 } from '../types/dailyReport';
-import type { PricingMode } from '../types/project';
+// 定价模式类型（本地定义，避免循环依赖）
+type PricingMode = 'framework' | 'project';
 
 /**
  * 按 CPM 分类的日报数据
