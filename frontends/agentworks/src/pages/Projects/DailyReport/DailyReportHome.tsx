@@ -149,15 +149,20 @@ export function DailyReportHome() {
     useState<ProjectWithTracking | null>(null);
 
   // 调度配置状态
-  const [schedulerConfig, setSchedulerConfig] = useState<SchedulerConfig | null>(null);
+  const [schedulerConfig, setSchedulerConfig] =
+    useState<SchedulerConfig | null>(null);
   const [schedulerLoading, setSchedulerLoading] = useState(false);
   const [schedulerSaving, setSchedulerSaving] = useState(false);
-  const [eligibleProjects, setEligibleProjects] = useState<EligibleProject[]>([]);
+  const [eligibleProjects, setEligibleProjects] = useState<EligibleProject[]>(
+    []
+  );
   const [executions, setExecutions] = useState<ScheduledExecution[]>([]);
   const [executionsLoading, setExecutionsLoading] = useState(false);
 
   // 调度配置编辑状态（本地修改，保存时提交）
-  const [editedConfig, setEditedConfig] = useState<Partial<SchedulerConfig>>({});
+  const [editedConfig, setEditedConfig] = useState<Partial<SchedulerConfig>>(
+    {}
+  );
   const [configDirty, setConfigDirty] = useState(false);
 
   /**
@@ -786,20 +791,22 @@ export function DailyReportHome() {
                   checked={editedConfig.enabled ?? false}
                   onChange={checked => updateEditedConfig({ enabled: checked })}
                 />
-                {editedConfig.enabled && (
-                  <Tag color="processing">已启用</Tag>
-                )}
+                {editedConfig.enabled && <Tag color="processing">已启用</Tag>}
               </div>
 
               {/* 项目选择 */}
               <div className="flex items-start gap-3">
-                <span className="text-content-secondary w-20 pt-1">选择项目:</span>
+                <span className="text-content-secondary w-20 pt-1">
+                  选择项目:
+                </span>
                 <div className="flex-1">
                   <Select
                     mode="multiple"
                     placeholder="选择要自动抓取的项目"
                     value={editedConfig.selectedProjectIds ?? []}
-                    onChange={ids => updateEditedConfig({ selectedProjectIds: ids })}
+                    onChange={ids =>
+                      updateEditedConfig({ selectedProjectIds: ids })
+                    }
                     options={eligibleProjects.map(p => ({
                       label: p.name,
                       value: p.id,
@@ -809,11 +816,14 @@ export function DailyReportHome() {
                     maxTagPlaceholder={omitted => `+${omitted.length} 个项目`}
                     disabled={!editedConfig.enabled}
                     filterOption={(input, option) =>
-                      (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
+                      (option?.label as string)
+                        ?.toLowerCase()
+                        .includes(input.toLowerCase())
                     }
                   />
                   <div className="text-xs text-content-muted mt-1">
-                    仅显示「追踪中」状态的项目，共 {eligibleProjects.length} 个可选
+                    仅显示「追踪中」状态的项目，共 {eligibleProjects.length}{' '}
+                    个可选
                   </div>
                 </div>
               </div>
@@ -836,7 +846,9 @@ export function DailyReportHome() {
                 <Radio.Group
                   value={editedConfig.frequency ?? 'daily'}
                   onChange={(e: RadioChangeEvent) =>
-                    updateEditedConfig({ frequency: e.target.value as ScheduleFrequency })
+                    updateEditedConfig({
+                      frequency: e.target.value as ScheduleFrequency,
+                    })
                   }
                   disabled={!editedConfig.enabled}
                 >
@@ -868,9 +880,7 @@ export function DailyReportHome() {
                   </span>
                 ) : (
                   <span className="text-content-muted">
-                    {!editedConfig.enabled
-                      ? '调度未启用'
-                      : '请选择项目'}
+                    {!editedConfig.enabled ? '调度未启用' : '请选择项目'}
                   </span>
                 )}
               </div>
@@ -880,7 +890,9 @@ export function DailyReportHome() {
                 <div className="flex items-center gap-3">
                   <span className="text-content-secondary w-20">上次执行:</span>
                   <span className="text-content-muted">
-                    {new Date(schedulerConfig.lastExecutedAt).toLocaleString('zh-CN')}
+                    {new Date(schedulerConfig.lastExecutedAt).toLocaleString(
+                      'zh-CN'
+                    )}
                   </span>
                 </div>
               )}

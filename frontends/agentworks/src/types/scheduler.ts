@@ -21,7 +21,12 @@ export type ExecutionStatus = 'pending' | 'running' | 'completed' | 'failed';
 /**
  * 任务状态
  */
-export type TaskStatus = 'pending' | 'running' | 'success' | 'failed' | 'skipped';
+export type TaskStatus =
+  | 'pending'
+  | 'running'
+  | 'success'
+  | 'failed'
+  | 'skipped';
 
 /**
  * 全局调度配置

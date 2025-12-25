@@ -5,7 +5,11 @@
 
 import { useState, useEffect } from 'react';
 import { Form, Select, Checkbox, Button, Space } from 'antd';
-import { SearchOutlined, ReloadOutlined, CalendarOutlined } from '@ant-design/icons';
+import {
+  SearchOutlined,
+  ReloadOutlined,
+  CalendarOutlined,
+} from '@ant-design/icons';
 import { usePlatformConfig } from '../../../../hooks/usePlatformConfig';
 import { customerApi } from '../../../../services/customerApi';
 import type { Customer } from '../../../../types/customer';
@@ -171,11 +175,7 @@ export function FilterPanel({
               </Select>
             </Form.Item>
           </Space>
-          <Form.Item
-            name="useFinancialPeriod"
-            valuePropName="checked"
-            noStyle
-          >
+          <Form.Item name="useFinancialPeriod" valuePropName="checked" noStyle>
             <Checkbox className="ml-2 text-xs">
               <span className="text-content-secondary text-xs">财务周期</span>
             </Checkbox>

@@ -34,7 +34,9 @@ function formatPercent(rate: number): string {
 /**
  * 生成汇总统计 Sheet 数据
  */
-function generateSummarySheet(summary: SummaryStats | null): (string | number)[][] {
+function generateSummarySheet(
+  summary: SummaryStats | null
+): (string | number)[][] {
   if (!summary) {
     return [['暂无数据']];
   }
@@ -56,7 +58,9 @@ function generateSummarySheet(summary: SummaryStats | null): (string | number)[]
 /**
  * 生成按平台统计 Sheet 数据
  */
-function generatePlatformSheet(stats: PlatformGroupStats[]): (string | number)[][] {
+function generatePlatformSheet(
+  stats: PlatformGroupStats[]
+): (string | number)[][] {
   const headers = [
     '平台',
     '项目数',
@@ -122,7 +126,9 @@ function generateStatusSheet(stats: StatusGroupStats[]): (string | number)[][] {
 /**
  * 生成按客户统计 Sheet 数据
  */
-function generateCustomerSheet(stats: CustomerGroupStats[]): (string | number)[][] {
+function generateCustomerSheet(
+  stats: CustomerGroupStats[]
+): (string | number)[][] {
   const headers = [
     '客户',
     '项目数',
@@ -155,7 +161,9 @@ function generateCustomerSheet(stats: CustomerGroupStats[]): (string | number)[]
 /**
  * 生成项目明细 Sheet 数据
  */
-function generateProjectsSheet(projects: ProjectWithFinance[]): (string | number)[][] {
+function generateProjectsSheet(
+  projects: ProjectWithFinance[]
+): (string | number)[][] {
   const headers = [
     '项目名称',
     '项目编号',
@@ -190,10 +198,14 @@ function generateProjectsSheet(projects: ProjectWithFinance[]): (string | number
     formatMoney(p.financeStats?.cost ?? 0),
     formatMoney(p.financeStats?.rebateIncome ?? 0),
     formatMoney(p.financeStats?.profit ?? 0),
-    p.financeStats?.profitRate !== undefined ? formatPercent(p.financeStats.profitRate) : '-',
+    p.financeStats?.profitRate !== undefined
+      ? formatPercent(p.financeStats.profitRate)
+      : '-',
     formatMoney(p.financeStats?.fundsOccupation ?? 0),
     formatMoney(p.financeStats?.netProfit ?? 0),
-    p.financeStats?.netProfitRate !== undefined ? formatPercent(p.financeStats.netProfitRate) : '-',
+    p.financeStats?.netProfitRate !== undefined
+      ? formatPercent(p.financeStats.netProfitRate)
+      : '-',
   ]);
 
   return [headers, ...rows];
@@ -212,16 +224,22 @@ function generateFilterInfo(filters: DashboardFilters): string {
         `${periodType}: ${filters.startYear}年${filters.startMonth}月 - ${filters.endYear}年${filters.endMonth}月`
       );
     } else {
-      parts.push(`${periodType}: ${filters.startYear}年${filters.startMonth}月`);
+      parts.push(
+        `${periodType}: ${filters.startYear}年${filters.startMonth}月`
+      );
     }
   }
 
   if (filters.statuses?.length) {
-    parts.push(`状态: ${filters.statuses.map(s => PROJECT_STATUS_LABELS[s]).join('、')}`);
+    parts.push(
+      `状态: ${filters.statuses.map(s => PROJECT_STATUS_LABELS[s]).join('、')}`
+    );
   }
 
   if (filters.platforms?.length) {
-    parts.push(`平台: ${filters.platforms.map(p => PLATFORM_NAMES[p] || p).join('、')}`);
+    parts.push(
+      `平台: ${filters.platforms.map(p => PLATFORM_NAMES[p] || p).join('、')}`
+    );
   }
 
   return parts.length > 0 ? parts.join(' | ') : '全部数据';
@@ -305,23 +323,23 @@ export function exportDashboardToExcel(data: DashboardExportData): void {
     const projectsData = generateProjectsSheet(data.projects);
     const projectsSheet = XLSX.utils.aoa_to_sheet(projectsData);
     projectsSheet['!cols'] = [
-      { wch: 25 },  // 项目名称
-      { wch: 15 },  // 项目编号
-      { wch: 15 },  // 客户
-      { wch: 15 },  // 平台
-      { wch: 10 },  // 状态
-      { wch: 12 },  // 业务周期
-      { wch: 8 },   // 达人数
-      { wch: 8 },   // 已发布
-      { wch: 12 },  // 执行金额
-      { wch: 12 },  // 收入
-      { wch: 12 },  // 成本
-      { wch: 12 },  // 返点收入
-      { wch: 12 },  // 基础利润
-      { wch: 12 },  // 基础利润率
-      { wch: 12 },  // 资金占用费
-      { wch: 12 },  // 净利润
-      { wch: 12 },  // 净利润率
+      { wch: 25 }, // 项目名称
+      { wch: 15 }, // 项目编号
+      { wch: 15 }, // 客户
+      { wch: 15 }, // 平台
+      { wch: 10 }, // 状态
+      { wch: 12 }, // 业务周期
+      { wch: 8 }, // 达人数
+      { wch: 8 }, // 已发布
+      { wch: 12 }, // 执行金额
+      { wch: 12 }, // 收入
+      { wch: 12 }, // 成本
+      { wch: 12 }, // 返点收入
+      { wch: 12 }, // 基础利润
+      { wch: 12 }, // 基础利润率
+      { wch: 12 }, // 资金占用费
+      { wch: 12 }, // 净利润
+      { wch: 12 }, // 净利润率
     ];
     XLSX.utils.book_append_sheet(workbook, projectsSheet, '项目明细');
   }

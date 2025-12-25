@@ -149,7 +149,9 @@ export function useDashboardData(): UseDashboardDataReturn {
   const [hasSearched, setHasSearched] = useState(false);
   const [filters, setFiltersState] = useState<DashboardFilters>(initialFilters);
   const [allProjects, setAllProjects] = useState<ProjectListItem[]>([]);
-  const [projectDetails, setProjectDetails] = useState<Map<string, Project>>(new Map());
+  const [projectDetails, setProjectDetails] = useState<Map<string, Project>>(
+    new Map()
+  );
   const [projectCollaborations, setProjectCollaborations] = useState<
     Map<string, Collaboration[]>
   >(new Map());
@@ -356,7 +358,10 @@ export function useDashboardData(): UseDashboardDataReturn {
         customerConfig?.financeConfig?.fundsOccupationRate ?? 0.7;
 
       if (detail && collaborations.length > 0) {
-        const context = createFinanceContextFromProject(detail, platformConfigs);
+        const context = createFinanceContextFromProject(
+          detail,
+          platformConfigs
+        );
 
         collaborations.filter(isValidForFinance).forEach(collab => {
           collaborationCount++;
@@ -391,7 +396,8 @@ export function useDashboardData(): UseDashboardDataReturn {
     });
 
     const baseProfit = totalRevenue - totalCost + totalRebateIncome;
-    const baseProfitRate = totalRevenue > 0 ? (baseProfit / totalRevenue) * 100 : 0;
+    const baseProfitRate =
+      totalRevenue > 0 ? (baseProfit / totalRevenue) * 100 : 0;
 
     return {
       projectCount: activeProjects.length,
@@ -405,7 +411,14 @@ export function useDashboardData(): UseDashboardDataReturn {
       baseProfitRate,
       totalFundsOccupation,
     };
-  }, [filteredProjects, excludedIds, projectCollaborations, projectDetails, customerConfigs, platformConfigs]);
+  }, [
+    filteredProjects,
+    excludedIds,
+    projectCollaborations,
+    projectDetails,
+    customerConfigs,
+    platformConfigs,
+  ]);
 
   // 按平台分组统计（排除 excludedIds 中的项目）
   const platformStats = useMemo<PlatformGroupStats[]>(() => {
@@ -450,7 +463,10 @@ export function useDashboardData(): UseDashboardDataReturn {
         );
 
         if (detail && platformCollabs.length > 0) {
-          const context = createFinanceContextFromProject(detail, platformConfigs);
+          const context = createFinanceContextFromProject(
+            detail,
+            platformConfigs
+          );
 
           platformCollabs.filter(isValidForFinance).forEach(collab => {
             stats.collaborationCount++;
@@ -487,7 +503,13 @@ export function useDashboardData(): UseDashboardDataReturn {
         profitRate,
       };
     });
-  }, [filteredProjects, excludedIds, projectCollaborations, projectDetails, platformConfigs]);
+  }, [
+    filteredProjects,
+    excludedIds,
+    projectCollaborations,
+    projectDetails,
+    platformConfigs,
+  ]);
 
   // 按状态分组统计（排除 excludedIds 中的项目）
   const statusStats = useMemo<StatusGroupStats[]>(() => {
@@ -527,7 +549,10 @@ export function useDashboardData(): UseDashboardDataReturn {
       const detail = projectDetails.get(project.id);
 
       if (detail && collaborations.length > 0) {
-        const context = createFinanceContextFromProject(detail, platformConfigs);
+        const context = createFinanceContextFromProject(
+          detail,
+          platformConfigs
+        );
 
         collaborations.filter(isValidForFinance).forEach(collab => {
           stats.collaborationCount++;
@@ -567,7 +592,13 @@ export function useDashboardData(): UseDashboardDataReturn {
         profitRate,
       };
     });
-  }, [filteredProjects, excludedIds, projectCollaborations, projectDetails, platformConfigs]);
+  }, [
+    filteredProjects,
+    excludedIds,
+    projectCollaborations,
+    projectDetails,
+    platformConfigs,
+  ]);
 
   // 按客户分组统计（排除 excludedIds 中的项目）
   const customerStats = useMemo<CustomerGroupStats[]>(() => {
@@ -609,7 +640,10 @@ export function useDashboardData(): UseDashboardDataReturn {
       const detail = projectDetails.get(project.id);
 
       if (detail && collaborations.length > 0) {
-        const context = createFinanceContextFromProject(detail, platformConfigs);
+        const context = createFinanceContextFromProject(
+          detail,
+          platformConfigs
+        );
 
         collaborations.filter(isValidForFinance).forEach(collab => {
           stats.collaborationCount++;
@@ -651,7 +685,13 @@ export function useDashboardData(): UseDashboardDataReturn {
         };
       })
       .sort((a, b) => b.totalRevenue - a.totalRevenue); // 按收入降序
-  }, [filteredProjects, excludedIds, projectCollaborations, projectDetails, platformConfigs]);
+  }, [
+    filteredProjects,
+    excludedIds,
+    projectCollaborations,
+    projectDetails,
+    platformConfigs,
+  ]);
 
   // 带财务信息的项目列表
   const projectList = useMemo<ProjectWithFinance[]>(() => {
@@ -668,7 +708,10 @@ export function useDashboardData(): UseDashboardDataReturn {
       let financeStats: ProjectFinanceInfo | undefined;
 
       if (detail && collaborations.length > 0) {
-        const context = createFinanceContextFromProject(detail, platformConfigs);
+        const context = createFinanceContextFromProject(
+          detail,
+          platformConfigs
+        );
         const validCollabs = collaborations.filter(isValidForFinance);
 
         let totalAmount = 0;
@@ -727,7 +770,13 @@ export function useDashboardData(): UseDashboardDataReturn {
         collaborations,
       };
     });
-  }, [filteredProjects, projectCollaborations, projectDetails, customerConfigs, platformConfigs]);
+  }, [
+    filteredProjects,
+    projectCollaborations,
+    projectDetails,
+    customerConfigs,
+    platformConfigs,
+  ]);
 
   // 不自动加载，需要用户点击查询按钮
   // useEffect(() => {

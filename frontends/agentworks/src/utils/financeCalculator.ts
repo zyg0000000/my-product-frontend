@@ -244,7 +244,9 @@ function calculateOrderCost(
     const actualDiscountRatio = Math.min(maxDiscountRatio, rebateRatio);
 
     // 成本 = 刊例价 × (1 + 平台费率) × (1 - 实际改价比例)
-    cost = Math.round(amount * (1 + platformFeeRate) * (1 - actualDiscountRatio));
+    cost = Math.round(
+      amount * (1 + platformFeeRate) * (1 - actualDiscountRatio)
+    );
 
     // 返点收入 = 刊例价 × (返点率 - 实际改价比例)
     // 改价用掉的部分不再返点

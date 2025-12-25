@@ -263,7 +263,6 @@ export function TrackingConfigPanel({
                 </div>
               </div>
             </div>
-
           </>
         )}
 

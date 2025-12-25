@@ -234,7 +234,8 @@ export function GroupStatsTable({ type, data, loading }: GroupStatsTableProps) {
         const totals = pageData.reduce(
           (acc, curr) => ({
             projectCount: acc.projectCount + curr.projectCount,
-            collaborationCount: acc.collaborationCount + curr.collaborationCount,
+            collaborationCount:
+              acc.collaborationCount + curr.collaborationCount,
             publishedCount: acc.publishedCount + curr.publishedCount,
             totalAmount: acc.totalAmount + curr.totalAmount,
             totalRevenue: acc.totalRevenue + curr.totalRevenue,
@@ -299,7 +300,9 @@ export function GroupStatsTable({ type, data, loading }: GroupStatsTableProps) {
               </Table.Summary.Cell>
               <Table.Summary.Cell index={9} align="right">
                 <span
-                  className={profitRate >= 0 ? 'text-green-600' : 'text-red-500'}
+                  className={
+                    profitRate >= 0 ? 'text-green-600' : 'text-red-500'
+                  }
                 >
                   {formatPercent(profitRate)}
                 </span>
