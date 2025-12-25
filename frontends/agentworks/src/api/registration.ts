@@ -8,7 +8,7 @@
  */
 
 import { get, post, del } from './client';
-import { executeTask } from './automation';
+import { executeTask, subscribeToTaskProgress, type TaskProgress } from './automation';
 import type {
   RegistrationResult,
   RegistrationTalentItem,
@@ -118,12 +118,24 @@ export interface BatchFetchRequest {
   }>;
 }
 
+/** 步骤级进度信息 */
+export interface StepProgressInfo {
+  currentStep: number;
+  totalSteps: number;
+  currentAction: string;
+}
+
 /**
  * 批量抓取回调
  */
 export interface BatchFetchCallbacks {
+  /** 整体进度回调（第几个达人） */
   onProgress?: (current: number, total: number, talentName: string) => void;
+  /** 步骤级进度回调（当前达人的执行步骤，SSE 推送） */
+  onStepProgress?: (stepInfo: StepProgressInfo) => void;
+  /** 单个任务成功回调 */
   onSuccess?: (collaborationId: string, result: unknown) => void;
+  /** 单个任务失败回调 */
   onError?: (collaborationId: string, error: string) => void;
 }
 
@@ -163,6 +175,9 @@ export async function executeBatchFetch(
     // 进度回调
     callbacks?.onProgress?.(i + 1, talents.length, talent.talentName);
 
+    // 用于存储 SSE 取消函数
+    let unsubscribe: (() => void) | null = null;
+
     try {
       // 执行抓取
       const taskResult = await executeFetchTask(workflowId, talent.xingtuId, {
@@ -171,6 +186,27 @@ export async function executeBatchFetch(
         talentName: talent.talentName,
         workflowName,
       });
+
+      // 如果有 taskId 且有步骤进度回调，订阅 SSE
+      if (taskResult.taskId && callbacks?.onStepProgress) {
+        unsubscribe = subscribeToTaskProgress(
+          taskResult.taskId,
+          (progress: TaskProgress) => {
+            if (
+              progress.status === 'running' &&
+              progress.currentStep &&
+              progress.totalSteps &&
+              progress.currentAction
+            ) {
+              callbacks.onStepProgress?.({
+                currentStep: progress.currentStep,
+                totalSteps: progress.totalSteps,
+                currentAction: progress.currentAction,
+              });
+            }
+          }
+        );
+      }
 
       if (taskResult.success) {
         // ECS executeActions 返回格式：
@@ -237,6 +273,11 @@ export async function executeBatchFetch(
         error: errorMessage,
       });
       callbacks?.onError?.(talent.collaborationId, errorMessage);
+    } finally {
+      // 确保取消 SSE 订阅
+      if (unsubscribe) {
+        unsubscribe();
+      }
     }
   }
 

@@ -172,18 +172,27 @@ export function RegistrationTab({
               ...prev,
               completed: current,
               current: talentName,
+              stepInfo: undefined, // 开始新达人时重置步骤进度
+            }));
+          },
+          onStepProgress: stepInfo => {
+            setFetchProgress(prev => ({
+              ...prev,
+              stepInfo,
             }));
           },
           onSuccess: () => {
             setFetchProgress(prev => ({
               ...prev,
               success: prev.success + 1,
+              stepInfo: undefined, // 成功后清除步骤进度
             }));
           },
           onError: () => {
             setFetchProgress(prev => ({
               ...prev,
               failed: prev.failed + 1,
+              stepInfo: undefined, // 失败后清除步骤进度
             }));
           },
         }
@@ -422,6 +431,21 @@ export function RegistrationTab({
                 {fetchProgress.current && `正在处理: ${fetchProgress.current}`}
               </span>
             </div>
+
+            {/* 步骤级进度（SSE 实时推送） */}
+            {fetchProgress.stepInfo && (
+              <div className="mt-2 flex items-center gap-2 text-xs text-content-muted">
+                <span className="text-primary-500 font-medium">
+                  步骤 {fetchProgress.stepInfo.currentStep}/
+                  {fetchProgress.stepInfo.totalSteps}
+                </span>
+                <span className="text-content-muted">|</span>
+                <span className="truncate max-w-[300px]">
+                  {fetchProgress.stepInfo.currentAction}
+                </span>
+              </div>
+            )}
+
             <div className="mt-2 text-xs text-content-muted">
               进度: {fetchProgress.completed}/{fetchProgress.total} | 成功:{' '}
               {fetchProgress.success} | 失败: {fetchProgress.failed}

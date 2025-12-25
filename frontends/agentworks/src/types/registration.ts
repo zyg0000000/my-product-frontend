@@ -152,6 +152,18 @@ export interface FetchTaskRequest {
 }
 
 /**
+ * 步骤级进度信息（SSE 推送）
+ */
+export interface StepProgressInfo {
+  /** 当前步骤 */
+  currentStep: number;
+  /** 总步骤数 */
+  totalSteps: number;
+  /** 当前动作描述 */
+  currentAction: string;
+}
+
+/**
  * 抓取进度
  */
 export interface FetchProgress {
@@ -167,6 +179,8 @@ export interface FetchProgress {
   current?: string;
   /** 是否正在抓取 */
   isFetching: boolean;
+  /** 步骤级进度（SSE 实时推送） */
+  stepInfo?: StepProgressInfo;
 }
 
 /**
