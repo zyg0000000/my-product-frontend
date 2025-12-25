@@ -28,7 +28,7 @@ import {
   calculateCPM,
 } from '../types/dailyReport';
 // 定价模式类型（本地定义，避免循环依赖）
-type PricingMode = 'framework' | 'project';
+type PricingMode = 'framework' | 'project' | 'hybrid';
 
 /**
  * 按 CPM 分类的日报数据

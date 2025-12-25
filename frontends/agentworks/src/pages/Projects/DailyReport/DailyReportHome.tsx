@@ -126,7 +126,7 @@ export function DailyReportHome() {
       );
 
       // 找出最新数据日期
-      let latestDataDate: string | undefined;
+      let latestDataDate: string | null = null;
       collaborations.forEach(c => {
         (c.dailyStats || []).forEach(stat => {
           if (!latestDataDate || stat.date > latestDataDate) {

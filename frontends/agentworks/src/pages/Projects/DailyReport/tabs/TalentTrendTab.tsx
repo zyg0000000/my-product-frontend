@@ -24,7 +24,7 @@ import type {
 } from '../../../../types/dailyReport';
 import { formatViews, calculateCPM } from '../../../../types/dailyReport';
 // 定价模式类型（本地定义，避免循环依赖）
-type PricingMode = 'framework' | 'project';
+type PricingMode = 'framework' | 'project' | 'hybrid';
 
 interface TalentTrendTabProps {
   details: DailyReportDetail[];
