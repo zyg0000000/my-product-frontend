@@ -414,17 +414,17 @@ export function DailyReportHome() {
 
   // 处理分组保存
   const handleGroupSave = useCallback(
-    (
+    async (
       formData: DailyReportGroupFormData
-    ): { success: boolean; error?: string } => {
+    ): Promise<{ success: boolean; error?: string }> => {
       if (editingGroup) {
-        const result = updateGroup(editingGroup.id, formData);
+        const result = await updateGroup(editingGroup.id, formData);
         if (result.success) {
           message.success('分组已更新');
         }
         return result;
       } else {
-        const result = createGroup(formData);
+        const result = await createGroup(formData);
         if (result.success) {
           message.success('分组创建成功');
         }

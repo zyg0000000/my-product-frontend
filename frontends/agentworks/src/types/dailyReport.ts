@@ -660,6 +660,8 @@ export type TaskStatus =
  * 全局调度配置
  */
 export interface SchedulerConfig {
+  /** MongoDB ID */
+  _id?: string;
   /** 配置类型标识 */
   configType?: 'daily_report_scheduler';
   /** 是否启用定时调度 */

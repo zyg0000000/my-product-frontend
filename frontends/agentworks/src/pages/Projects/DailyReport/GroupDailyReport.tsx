@@ -7,7 +7,7 @@
  * - 复用现有的日报概览和趋势组件
  */
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Tabs,
@@ -41,11 +41,7 @@ export function GroupDailyReport() {
   const navigate = useNavigate();
 
   // 获取分组信息
-  const {
-    groups,
-    loading: groupsLoading,
-    getGroupById,
-  } = useDailyReportGroups();
+  const { loading: groupsLoading, getGroupById } = useDailyReportGroups();
   const group = useMemo(() => {
     if (!groupId) return null;
     return getGroupById(groupId);

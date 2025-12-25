@@ -175,7 +175,7 @@ export async function executeBatchFetch(
       if (taskResult.success) {
         // ECS executeActions 返回格式：
         // results: { status: 'completed', result: { screenshots: [], data: {} }, completedAt }
-        const ecsResult = taskResult.results as {
+        const ecsResult = taskResult.results as unknown as {
           status: string;
           result?: {
             screenshots?: Array<{ name: string; url: string }>;

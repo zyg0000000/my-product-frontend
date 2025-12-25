@@ -167,7 +167,7 @@ export function RegistrationTab({
           })),
         },
         {
-          onProgress: (current, total, talentName) => {
+          onProgress: (current, _total, talentName) => {
             setFetchProgress(prev => ({
               ...prev,
               completed: current,
