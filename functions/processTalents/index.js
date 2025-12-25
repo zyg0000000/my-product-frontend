@@ -60,6 +60,32 @@ async function generateNextOneId(db) {
 }
 
 /**
+ * 确保 platformSpecific 包含平台ID字段
+ * @param {string} platform - 平台类型
+ * @param {string} platformAccountId - 平台账号ID
+ * @param {object} platformSpecific - 现有的 platformSpecific 对象
+ * @returns {object} 补全后的 platformSpecific
+ */
+function ensurePlatformSpecificId(platform, platformAccountId, platformSpecific = {}) {
+  const result = { ...platformSpecific };
+  if (!platformAccountId) return result;
+
+  const PLATFORM_ID_FIELDS = {
+    douyin: 'xingtuId',
+    xiaohongshu: 'xiaohongshuId',
+    bilibili: 'bilibiliId',
+    kuaishou: 'kuaishouId',
+  };
+
+  const idField = PLATFORM_ID_FIELDS[platform];
+  if (idField && !result[idField]) {
+    result[idField] = platformAccountId;
+  }
+
+  return result;
+}
+
+/**
  * v1 处理逻辑（保持原有功能不变）
  */
 async function handleV1Process(db, talentsToProcess, headers) {
@@ -167,7 +193,11 @@ async function handleV2Process(db, talentsToProcess, headers) {
         talentTier: talent.talentTier,
         agencyId: talent.agencyId,
         prices: talent.prices || [],
-        platformSpecific: talent.platformSpecific || {},
+        platformSpecific: ensurePlatformSpecificId(
+          talent.platform,
+          talent.platformAccountId,
+          talent.platformSpecific
+        ),
         performanceData: talent.performanceData || {},
         schedules: talent.schedules || [],
         remarks: talent.remarks || {},

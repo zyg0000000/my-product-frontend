@@ -184,7 +184,10 @@ export function useWorkflows(
         const response = await automationApi.toggleWorkflowActive(id, isActive);
         if (response.success) {
           message.success(isActive ? '工作流已启用' : '工作流已停用');
-          await loadWorkflows();
+          // 本地更新状态，避免重新加载导致排序变化
+          setWorkflows(prev =>
+            prev.map(w => (w._id === id ? { ...w, isActive } : w))
+          );
           return true;
         } else {
           throw new Error(response.message || '操作失败');
@@ -196,7 +199,7 @@ export function useWorkflows(
         return false;
       }
     },
-    [loadWorkflows, message]
+    [message]
   );
 
   // 根据 ID 获取工作流

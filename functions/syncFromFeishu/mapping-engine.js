@@ -772,6 +772,16 @@ async function bulkUpdateTalents(db, processedData, dbVersion, performanceData =
         for (const [specKey, specValue] of Object.entries(value)) {
           updateFields[`platformSpecific.${specKey}`] = specValue;
         }
+        // 自动补全平台ID字段（如果缺失）
+        if (talent.platform === 'douyin' && talent.platformAccountId && !value.xingtuId) {
+          updateFields['platformSpecific.xingtuId'] = talent.platformAccountId;
+        } else if (talent.platform === 'xiaohongshu' && talent.platformAccountId && !value.xiaohongshuId) {
+          updateFields['platformSpecific.xiaohongshuId'] = talent.platformAccountId;
+        } else if (talent.platform === 'bilibili' && talent.platformAccountId && !value.bilibiliId) {
+          updateFields['platformSpecific.bilibiliId'] = talent.platformAccountId;
+        } else if (talent.platform === 'kuaishou' && talent.platformAccountId && !value.kuaishouId) {
+          updateFields['platformSpecific.kuaishouId'] = talent.platformAccountId;
+        }
       } else {
         // 顶层字段直接更新
         updateFields[key] = value;
@@ -794,9 +804,12 @@ async function bulkUpdateTalents(db, processedData, dbVersion, performanceData =
     // 构建查询条件
     let filter;
     if (dbVersion === 'v2') {
-      // v2 抖音: platformAccountId 就是星图ID
+      // v2 优先级：platformAccountId > platformSpecific.xingtuId > oneId
       if (talent.platformAccountId) {
         filter = { platformAccountId: talent.platformAccountId, platform: talent.platform };
+      } else if (talent.platformSpecific?.xingtuId && talent.platform === 'douyin') {
+        // 兼容：支持通过 platformSpecific.xingtuId 匹配抖音达人
+        filter = { platformAccountId: talent.platformSpecific.xingtuId, platform: 'douyin' };
       } else if (talent.oneId) {
         // 备选: 使用 oneId（如果有）
         filter = { oneId: talent.oneId, platform: talent.platform };
