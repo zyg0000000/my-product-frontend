@@ -9,7 +9,7 @@
  * - 重试失败任务
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   Button,
   Card,
@@ -23,6 +23,7 @@ import {
   Space,
   Alert,
   Spin,
+  Switch,
 } from 'antd';
 import {
   SyncOutlined,
@@ -47,6 +48,10 @@ interface DataFetchTabProps {
   currentDate: string;
   missingDataVideos: MissingDataVideo[];
   onFetchComplete?: () => void;
+  /** 强制刷新模式变更时的回调（用于通知父组件重新请求数据） */
+  onForceRefreshChange?: (forceRefresh: boolean) => void;
+  /** 当前是否为强制刷新模式 */
+  forceRefresh?: boolean;
 }
 
 /**
@@ -98,8 +103,22 @@ export function DataFetchTab({
   currentDate,
   missingDataVideos,
   onFetchComplete,
+  onForceRefreshChange,
+  forceRefresh = false,
 }: DataFetchTabProps) {
   const [showVideoList, setShowVideoList] = useState(false);
+  const [localForceRefresh, setLocalForceRefresh] = useState(forceRefresh);
+
+  // 同步外部 forceRefresh 状态
+  useEffect(() => {
+    setLocalForceRefresh(forceRefresh);
+  }, [forceRefresh]);
+
+  // 切换强制刷新模式
+  const handleForceRefreshChange = (checked: boolean) => {
+    setLocalForceRefresh(checked);
+    onForceRefreshChange?.(checked);
+  };
 
   const {
     session,
@@ -129,8 +148,14 @@ export function DataFetchTab({
     let after14Days = 0;
     let noVideoId = 0;
     let noWorkflow = 0;
+    let hasCurrentData = 0; // 已有当日数据的视频数
 
     for (const video of missingDataVideos) {
+      // 统计已有当日数据的视频
+      if (video.hasCurrentData) {
+        hasCurrentData++;
+      }
+
       const check = canFetch(video);
       if (check.canFetch) {
         fetchable++;
@@ -156,6 +181,9 @@ export function DataFetchTab({
       after14Days,
       noVideoId,
       noWorkflow,
+      hasCurrentData,
+      // 无当日数据的视频数
+      missingData: total - hasCurrentData,
     };
   }, [missingDataVideos, canFetch]);
 
@@ -277,6 +305,16 @@ export function DataFetchTab({
       },
     },
     {
+      title: '当日数据',
+      width: 90,
+      render: (_: unknown, record: MissingDataVideo) =>
+        record.hasCurrentData ? (
+          <Tag color="success">已有</Tag>
+        ) : (
+          <Tag color="default">无</Tag>
+        ),
+    },
+    {
       title: '可抓取',
       width: 80,
       render: (_: unknown, record: MissingDataVideo) => {
@@ -353,10 +391,25 @@ export function DataFetchTab({
       />
 
       {/* 统计卡片 */}
-      <Card size="small" title="待抓取视频">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <Card
+        size="small"
+        title={localForceRefresh ? '全部已发布视频' : '待抓取视频'}
+        extra={
+          <Space>
+            <span className="text-sm text-[var(--aw-gray-500)]">强制刷新</span>
+            <Tooltip title="开启后可重新抓取已有当日数据的视频，覆盖现有数据">
+              <Switch
+                size="small"
+                checked={localForceRefresh}
+                onChange={handleForceRefreshChange}
+              />
+            </Tooltip>
+          </Space>
+        }
+      >
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
           <Statistic
-            title="总缺失数据"
+            title={localForceRefresh ? '总视频数' : '缺失数据'}
             value={videoStats.total}
             suffix="个"
             valueStyle={{ color: '#1890ff' }}
@@ -379,6 +432,14 @@ export function DataFetchTab({
             suffix="个"
             valueStyle={{ color: '#fa8c16' }}
           />
+          {localForceRefresh && (
+            <Statistic
+              title="已有数据"
+              value={videoStats.hasCurrentData}
+              suffix="个"
+              valueStyle={{ color: '#13c2c2' }}
+            />
+          )}
         </div>
 
         {/* 不可抓取原因 */}
@@ -503,7 +564,7 @@ export function DataFetchTab({
       )}
 
       {/* 无数据提示 */}
-      {missingDataVideos.length === 0 && (
+      {missingDataVideos.length === 0 && !localForceRefresh && (
         <Card size="small">
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -514,7 +575,7 @@ export function DataFetchTab({
                   所有视频数据已完整
                 </p>
                 <p className="text-xs text-[var(--aw-gray-400)] mt-1">
-                  无需抓取
+                  如需重新抓取，请开启「强制刷新」模式
                 </p>
               </div>
             }

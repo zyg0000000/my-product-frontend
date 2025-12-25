@@ -58,7 +58,8 @@ const navigation: NavItem[] = [
     icon: FolderIcon,
     children: [
       { name: '项目列表', path: '/projects/list' },
-      { name: '执行看板', path: '/execution-board' },
+      { name: '项目看板', path: '/projects/dashboard' },
+      { name: '项目执行', path: '/execution-board' },
       { name: '项目日报', path: '/projects/daily-report' },
     ],
   },
@@ -68,7 +69,7 @@ const navigation: NavItem[] = [
     icon: ChartBarIcon,
     children: [
       { name: '达人全景', path: '/analytics/talent-panorama' },
-      { name: '达人效果趋势', path: '/analytics/talent-trends' },
+      { name: '达人趋势', path: '/analytics/talent-trends' },
     ],
   },
   {

@@ -7,7 +7,7 @@
  * - 数据抓取（预留）
  */
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, DatePicker, Button, Space, Spin, Empty } from 'antd';
 import {
@@ -47,6 +47,19 @@ export function ProjectDailyReport() {
 
   // 当前 Tab
   const [activeTab, setActiveTab] = useState('overview');
+
+  // 强制刷新模式
+  const [forceRefresh, setForceRefresh] = useState(false);
+
+  // 处理强制刷新模式变更
+  const handleForceRefreshChange = useCallback(
+    (checked: boolean) => {
+      setForceRefresh(checked);
+      // 重新加载数据，传入 forceRefresh 参数
+      refresh(checked);
+    },
+    [refresh]
+  );
 
   // 主题
   const { isDark } = useTheme();
@@ -145,6 +158,8 @@ export function ProjectDailyReport() {
             projectId={projectId || ''}
             currentDate={currentDate}
             missingDataVideos={missingDataVideos}
+            forceRefresh={forceRefresh}
+            onForceRefreshChange={handleForceRefreshChange}
             onFetchComplete={() => {
               // 不自动刷新，让用户查看抓取结果后手动刷新
             }}
@@ -166,6 +181,8 @@ export function ProjectDailyReport() {
     refresh,
     currentDate,
     exporting,
+    forceRefresh,
+    handleForceRefreshChange,
   ]);
 
   if (!projectId) {

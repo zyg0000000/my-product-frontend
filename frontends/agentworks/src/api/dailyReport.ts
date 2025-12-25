@@ -35,7 +35,7 @@ interface ApiResponse<T> {
 
 /**
  * 获取项目日报数据
- * @param params - 查询参数（projectId, date, includePrevious）
+ * @param params - 查询参数（projectId, date, includePrevious, forceRefresh）
  */
 export async function getDailyReport(
   params: GetDailyReportParams
@@ -48,6 +48,9 @@ export async function getDailyReport(
   }
   if (params.includePrevious) {
     queryParams.includePrevious = 'true';
+  }
+  if (params.forceRefresh) {
+    queryParams.forceRefresh = 'true';
   }
 
   const response = await get<ApiResponse<DailyReportData>>(

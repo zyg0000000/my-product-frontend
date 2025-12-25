@@ -125,6 +125,9 @@ export function DailyReportHome() {
   // 数据状态
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<ProjectWithTracking[]>([]);
+  const [allFilteredProjects, setAllFilteredProjects] = useState<
+    ProjectWithTracking[]
+  >([]); // 全量筛选后的数据，用于统计
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -259,10 +262,10 @@ export function DailyReportHome() {
 
     try {
       setLoading(true);
-      // 使用完整视图 API 获取包含 collaborations 的项目数据
+      // 使用完整视图 API 获取所有项目数据（前端筛选需要全量数据）
       const response = await projectApi.getProjects({
-        page: currentPage,
-        pageSize: pageSize,
+        page: 1,
+        pageSize: 1000, // 获取全量数据用于前端筛选
         keyword: nameFilter || undefined,
       });
 
@@ -315,8 +318,12 @@ export function DailyReportHome() {
           });
         }
 
-        setProjects(filtered);
+        // 保存全量筛选后的数据（用于统计和分页）
+        setAllFilteredProjects(filtered);
         setTotal(filtered.length);
+
+        // 筛选条件变化时重置到第一页
+        setCurrentPage(1);
       }
     } catch (error) {
       message.error('加载项目列表失败');
@@ -326,8 +333,6 @@ export function DailyReportHome() {
   }, [
     configLoading,
     platformConfigs,
-    currentPage,
-    pageSize,
     nameFilter,
     trackingStatusFilter,
     versionFilter,
@@ -336,6 +341,16 @@ export function DailyReportHome() {
     calculateTrackingStats,
     message,
   ]);
+
+  // 分页切片（仅在翻页时更新，不触发 API 请求）
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const paginatedData = allFilteredProjects.slice(
+      startIndex,
+      startIndex + pageSize
+    );
+    setProjects(paginatedData);
+  }, [currentPage, pageSize, allFilteredProjects]);
 
   // 加载调度配置和可选项目
   const loadSchedulerData = useCallback(async () => {
@@ -464,15 +479,15 @@ export function DailyReportHome() {
     setConfigModalOpen(true);
   };
 
-  // 统计数据
+  // 统计数据（基于全量筛选后的数据，而非当前页）
   const stats = useMemo(() => {
-    const activeCount = projects.filter(
+    const activeCount = allFilteredProjects.filter(
       p => p.trackingConfig?.status === 'active'
     ).length;
-    const archivedCount = projects.filter(
+    const archivedCount = allFilteredProjects.filter(
       p => p.trackingConfig?.status === 'archived'
     ).length;
-    const disabledCount = projects.filter(
+    const disabledCount = allFilteredProjects.filter(
       p => !p.trackingConfig || p.trackingConfig.status === 'disabled'
     ).length;
 
@@ -480,9 +495,9 @@ export function DailyReportHome() {
       activeCount,
       archivedCount,
       disabledCount,
-      total: projects.length,
+      total: allFilteredProjects.length,
     };
-  }, [projects]);
+  }, [allFilteredProjects]);
 
   // 表格列定义
   const columns: ProColumns<ProjectWithTracking>[] = [
@@ -994,7 +1009,12 @@ export function DailyReportHome() {
               showQuickJumper: true,
               showTotal: t => `共 ${t} 条`,
               onChange: (page, size) => {
-                setCurrentPage(page);
+                // 如果每页条数改变，重置到第一页
+                if (size !== pageSize) {
+                  setCurrentPage(1);
+                } else {
+                  setCurrentPage(page);
+                }
                 setPageSize(size);
               },
             }}
@@ -1040,15 +1060,7 @@ export function DailyReportHome() {
                 <Tag color="default">{stats.disabledCount} 未启用</Tag>
               </Space>
             }
-            toolBarRender={() => [
-              <Button
-                key="refresh"
-                icon={<ReloadOutlined spin={loading} />}
-                onClick={loadProjects}
-              >
-                刷新
-              </Button>,
-            ]}
+            toolBarRender={() => []}
             scroll={{ x: 1200 }}
             options={{
               fullScreen: true,

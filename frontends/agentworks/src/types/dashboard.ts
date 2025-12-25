@@ -61,6 +61,8 @@ export interface SummaryStats {
   baseProfit: number;
   /** 基础利润率 (%) */
   baseProfitRate: number;
+  /** 资金占用费（分） */
+  totalFundsOccupation: number;
 }
 
 // ============================================================================
@@ -171,10 +173,16 @@ export interface ProjectFinanceInfo {
   cost: number;
   /** 返点收入（分） */
   rebateIncome: number;
-  /** 利润（分） */
+  /** 基础利润（分）= 收入 - 成本 + 返点 */
   profit: number;
-  /** 利润率 (%) */
+  /** 基础利润率 (%) */
   profitRate: number;
+  /** 资金占用费（分） */
+  fundsOccupation: number;
+  /** 净利润（分）= 基础利润 - 资金占用费 */
+  netProfit: number;
+  /** 净利润率 (%) */
+  netProfitRate: number;
 }
 
 /**
@@ -221,6 +229,8 @@ export interface DashboardExportData {
 export interface UseDashboardDataReturn {
   /** 加载状态 */
   loading: boolean;
+  /** 是否已执行过查询 */
+  hasSearched: boolean;
   /** 筛选条件 */
   filters: DashboardFilters;
   /** 设置筛选条件 */
@@ -245,4 +255,8 @@ export interface UseDashboardDataReturn {
   setPagination: (current: number, pageSize: number) => void;
   /** 刷新数据 */
   refresh: () => void;
+  /** 排除的项目ID集合 */
+  excludedIds: Set<string>;
+  /** 设置排除状态 */
+  setExcluded: (projectId: string, excluded: boolean) => void;
 }

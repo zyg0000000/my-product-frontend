@@ -147,6 +147,11 @@ const ProjectDailyReport = lazy(() =>
     default: m.ProjectDailyReport,
   }))
 );
+const ProjectDashboard = lazy(() =>
+  import('./pages/Projects/Dashboard').then(m => ({
+    default: m.ProjectDashboard,
+  }))
+);
 const CustomersHome = lazy(() =>
   import('./pages/Customers/CustomersHome').then(m => ({
     default: m.CustomersHome,
@@ -250,6 +255,10 @@ function ThemedApp() {
                   {/* 项目管理模块 */}
                   <Route path="projects" element={<ProjectsHome />} />
                   <Route path="projects/list" element={<ProjectList />} />
+                  <Route
+                    path="projects/dashboard"
+                    element={<ProjectDashboard />}
+                  />
                   <Route
                     path="projects/daily-report"
                     element={<DailyReportHome />}

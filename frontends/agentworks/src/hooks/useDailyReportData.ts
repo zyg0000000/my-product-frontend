@@ -201,7 +201,7 @@ export function useDailyReportData(projectId: string | undefined) {
 
   // 获取日报数据
   const fetchData = useCallback(
-    async (date?: string, includePrevious = true) => {
+    async (date?: string, includePrevious = true, forceRefresh = false) => {
       if (!projectId) return;
 
       const targetDate = date || currentDate;
@@ -215,6 +215,7 @@ export function useDailyReportData(projectId: string | undefined) {
           projectId,
           date: targetDate,
           includePrevious,
+          forceRefresh,
         })) as unknown as DailyReportDataRaw;
 
         // 处理原始数据，计算所有财务字段
@@ -355,9 +356,12 @@ export function useDailyReportData(projectId: string | undefined) {
   );
 
   // 刷新数据
-  const refresh = useCallback(() => {
-    fetchData(currentDate);
-  }, [fetchData, currentDate]);
+  const refresh = useCallback(
+    (forceRefresh = false) => {
+      fetchData(currentDate, true, forceRefresh);
+    },
+    [fetchData, currentDate]
+  );
 
   // 日期范围信息
   const dateRange = useMemo(

@@ -192,6 +192,8 @@ export interface MissingDataVideo extends CollaborationFinanceFields {
   videoId?: string | null;
   /** 星图任务 ID（用于 14 天内抓取） */
   taskId?: string | null;
+  /** 是否已有当日数据（强制刷新模式下使用） */
+  hasCurrentData?: boolean;
 }
 
 /**
@@ -412,6 +414,7 @@ export interface GetDailyReportParams {
   projectId: string;
   date?: string; // YYYY-MM-DD，默认今天
   includePrevious?: boolean; // 是否包含前一天数据（用于环比）
+  forceRefresh?: boolean; // 强制刷新模式：返回所有已发布视频（含已有当日数据的）
 }
 
 /**

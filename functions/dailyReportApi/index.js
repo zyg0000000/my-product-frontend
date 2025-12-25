@@ -49,8 +49,10 @@ function getTodayString() {
 /**
  * v2.0: 只返回原始数据，不做财务计算
  * 前端负责用 financeCalculator.ts 计算 revenue, cpm 等
+ *
+ * @param {boolean} forceRefresh - 如果为 true，强制刷新模式会返回所有已发布视频（含已有当日数据的）
  */
-async function getDailyReport(db, projectId, date, includePrevious = false) {
+async function getDailyReport(db, projectId, date, includePrevious = false, forceRefresh = false) {
     const dateStr = date || getTodayString();
 
     // 1. 获取项目信息
@@ -145,8 +147,16 @@ async function getDailyReport(db, projectId, date, includePrevious = false) {
                 // 日期
                 publishDate: collab.actualReleaseDate || collab.publishDate
             });
-        } else if (isPublished && (collab.actualReleaseDate || collab.publishDate) && (collab.actualReleaseDate || collab.publishDate) <= dateStr) {
-            // 已发布但无数据
+        }
+
+        // 判断是否需要加入 missingDataVideos
+        // forceRefresh=true: 返回所有已发布视频（用于强制刷新覆盖已有数据）
+        // forceRefresh=false: 仅返回无当日数据的视频
+        const publishDate = collab.actualReleaseDate || collab.publishDate;
+        const shouldIncludeInMissing = isPublished && publishDate && publishDate <= dateStr &&
+            (forceRefresh || !todayStats);
+
+        if (shouldIncludeInMissing) {
             missingDataVideos.push({
                 collaborationId: collab.id,
                 talentId: talentKey,
@@ -163,7 +173,9 @@ async function getDailyReport(db, projectId, date, includePrevious = false) {
                 quotationPrice: collab.quotationPrice || null,
                 orderPrice: collab.orderPrice || null,
                 orderMode: collab.orderMode || 'adjusted',
-                publishDate: collab.actualReleaseDate || collab.publishDate
+                publishDate: publishDate,
+                // 标记是否已有当日数据（用于前端显示）
+                hasCurrentData: !!todayStats
             });
         }
     }
@@ -471,11 +483,11 @@ exports.handler = async (event, context) => {
 
         } else if (httpMethod === 'GET' && path.includes('/daily-report')) {
             // 获取项目日报
-            const { projectId, date, includePrevious } = queryParams;
+            const { projectId, date, includePrevious, forceRefresh } = queryParams;
             if (!projectId) {
                 return { statusCode: 400, headers, body: JSON.stringify({ success: false, message: '缺少 projectId 参数' }) };
             }
-            result = await getDailyReport(db, projectId, date, includePrevious === 'true');
+            result = await getDailyReport(db, projectId, date, includePrevious === 'true', forceRefresh === 'true');
 
         } else if (httpMethod === 'POST' && path.includes('/daily-stats')) {
             // 批量写入日报数据
