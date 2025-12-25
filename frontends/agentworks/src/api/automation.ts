@@ -26,7 +26,7 @@ import type {
 // ECS 服务器地址（通过 Cloudflare Tunnel 提供 HTTPS）
 const ECS_API_BASE_URL =
   import.meta.env.VITE_ECS_API_URL ||
-  'https://aaron-calls-calcium-leather.trycloudflare.com';
+  'https://ecs.agent-works.net';
 
 // ========== 类型定义 ==========
 
