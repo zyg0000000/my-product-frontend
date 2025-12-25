@@ -7,7 +7,7 @@
  * - 复用现有的日报概览和趋势组件
  */
 
-import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Tabs,
@@ -49,7 +49,8 @@ export function GroupDailyReport() {
   const group = useMemo(() => {
     if (!groupId) return null;
     return getGroupById(groupId);
-  }, [groupId, getGroupById, groups]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupId, getGroupById]);
 
   // 分组日报数据
   const {
@@ -106,14 +107,8 @@ export function GroupDailyReport() {
     setActiveTab('trend');
   };
 
-  // 分组不存在的处理（分组弹窗回调用于刷新）
-  const [notFound, setNotFound] = useState(false);
-
-  useEffect(() => {
-    if (!groupsLoading && groupId && !group) {
-      setNotFound(true);
-    }
-  }, [groupsLoading, groupId, group]);
+  // 分组不存在的处理
+  const notFound = !groupsLoading && groupId && !group;
 
   // Tab 配置（分组日报不显示数据抓取 Tab）
   const tabItems = useMemo(() => {

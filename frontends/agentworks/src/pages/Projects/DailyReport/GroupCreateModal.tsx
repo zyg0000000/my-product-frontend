@@ -67,10 +67,15 @@ export function GroupCreateModal({
         primaryProjectId: editingGroup.primaryProjectId,
         projectIds: editingGroup.projectIds,
       });
-      setSelectedProjectIds(editingGroup.projectIds);
+      // 延迟设置以避免级联渲染
+      requestAnimationFrame(() => {
+        setSelectedProjectIds(editingGroup.projectIds);
+      });
     } else if (open) {
       form.resetFields();
-      setSelectedProjectIds([]);
+      requestAnimationFrame(() => {
+        setSelectedProjectIds([]);
+      });
     }
     setError(null);
   }, [open, editingGroup, form]);
