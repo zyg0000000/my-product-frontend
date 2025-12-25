@@ -7,8 +7,6 @@ import { useState } from 'react';
 import { Button, Tabs, App, Badge } from 'antd';
 import {
   DownloadOutlined,
-  ReloadOutlined,
-  FundProjectionScreenOutlined,
   AppstoreOutlined,
   UserOutlined,
   CheckCircleOutlined,
@@ -94,25 +92,13 @@ export function ProjectDashboard() {
       <div className="space-y-5">
         {/* 页面标题 */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-              <FundProjectionScreenOutlined className="text-xl text-primary-600 dark:text-primary-400" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-content">项目看板</h1>
-              <p className="text-sm text-content-secondary">
-                汇总统计信息，支持多维度筛选和导出
-              </p>
-            </div>
+          <div>
+            <h1 className="text-2xl font-bold text-content">项目看板</h1>
+            <p className="text-sm text-content-secondary">
+              汇总统计信息，支持多维度筛选和导出
+            </p>
           </div>
           <div className="flex gap-2">
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={refresh}
-              loading={loading}
-            >
-              刷新
-            </Button>
             <Button
               type="primary"
               icon={<DownloadOutlined />}

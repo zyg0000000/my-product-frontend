@@ -3,14 +3,9 @@
  * 精工极简设计风格
  */
 
-import { useState, useEffect, useMemo } from 'react';
-import { Form, Select, Checkbox, Button, Space, Badge } from 'antd';
-import {
-  SearchOutlined,
-  ReloadOutlined,
-  CalendarOutlined,
-  FilterOutlined,
-} from '@ant-design/icons';
+import { useState, useEffect } from 'react';
+import { Form, Select, Checkbox, Button, Space } from 'antd';
+import { SearchOutlined, ReloadOutlined, CalendarOutlined } from '@ant-design/icons';
 import { usePlatformConfig } from '../../../../hooks/usePlatformConfig';
 import { customerApi } from '../../../../services/customerApi';
 import type { Customer } from '../../../../types/customer';
@@ -60,17 +55,6 @@ export function FilterPanel({
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customersLoading, setCustomersLoading] = useState(false);
   const { configs: platformConfigs } = usePlatformConfig();
-
-  // 计算已选筛选条件数量
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (filters.startYear || filters.endYear) count++;
-    if (filters.customerIds?.length) count++;
-    if (filters.statuses?.length) count++;
-    if (filters.platforms?.length) count++;
-    if (filters.businessTypes?.length) count++;
-    return count;
-  }, [filters]);
 
   // 加载客户列表
   useEffect(() => {
@@ -200,9 +184,6 @@ export function FilterPanel({
 
         {/* 筛选条件区域 */}
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-subtle">
-          <Badge count={activeFilterCount} size="small" offset={[-2, 2]}>
-            <FilterOutlined className="text-content-muted text-sm" />
-          </Badge>
           <Form.Item name="customerIds" noStyle>
             <Select
               mode="multiple"

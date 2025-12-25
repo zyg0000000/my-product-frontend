@@ -2,6 +2,54 @@
 
 所有重要的更改都将记录在此文件中。
 
+## [3.0.1] - 2025-12-25
+
+### 🎨 UI 优化 (UI Improvements)
+
+#### 项目看板页面重构
+- **SummaryCards 组件**：重构为精美 StatItem 卡片设计
+  - 语义化颜色变量（primary/success/warning/danger/purple/blue/pink）
+  - 图标装饰 + 圆角背景
+  - 悬停效果（translate-y + shadow）
+  - 骨架屏加载状态和空状态优化
+- **FilterPanel 组件**：优化筛选面板布局
+  - 分组设计（时间范围区域 + 筛选条件区域）
+  - 添加 CalendarOutlined 图标装饰
+  - 移除冗余的筛选条件数量徽章
+- **ProjectDashboard 主页面**：精简布局
+  - 移除页面标题图标装饰
+  - 移除重复的「刷新」按钮（保留筛选面板中的「查询」）
+- **ProjectTable 组件**：细节优化
+  - 语义化颜色类（text-success-600、text-danger-600 等）
+  - tabular-nums 数字对齐
+  - 深色模式支持
+
+#### 侧边栏菜单重命名
+- 执行看板 → 项目执行
+- 达人效果趋势 → 达人趋势
+
+### ✨ 功能增强 (Features)
+
+#### Excel 导出增强
+- **项目明细 Sheet**：新增 3 个字段
+  - 资金占用费
+  - 净利润
+  - 净利润率
+
+#### 汇总卡片顺序调整
+- 基础利润 ↔ 资金占用费 位置对调（基础利润在前）
+
+### 📝 受影响的文件
+
+- `frontends/agentworks/src/pages/Projects/Dashboard/ProjectDashboard.tsx`
+- `frontends/agentworks/src/pages/Projects/Dashboard/components/SummaryCards.tsx`
+- `frontends/agentworks/src/pages/Projects/Dashboard/components/FilterPanel.tsx`
+- `frontends/agentworks/src/pages/Projects/Dashboard/components/ProjectTable.tsx`
+- `frontends/agentworks/src/utils/dashboardExport.ts`
+- `frontends/agentworks/src/components/Sidebar/Sidebar.tsx`
+
+---
+
 ## [3.0.0] - 2025-12-25
 
 ### ✨ 新功能 (Features)

@@ -245,17 +245,17 @@ export function SummaryCards({
       variant: 'success',
     },
     {
-      label: '资金占用费',
-      value: formatMoney(stats.totalFundsOccupation),
-      icon: <ClockCircleOutlined />,
-      variant: 'pink',
-    },
-    {
       label: '基础利润',
       value: formatMoney(stats.baseProfit),
       icon: <RiseOutlined />,
       variant: stats.baseProfit >= 0 ? 'success' : 'danger',
       suffix: formatPercent(stats.baseProfitRate),
+    },
+    {
+      label: '资金占用费',
+      value: formatMoney(stats.totalFundsOccupation),
+      icon: <ClockCircleOutlined />,
+      variant: 'pink',
     },
   ];
 

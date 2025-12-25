@@ -169,8 +169,11 @@ function generateProjectsSheet(projects: ProjectWithFinance[]): (string | number
     '收入',
     '成本',
     '返点收入',
-    '利润',
-    '利润率',
+    '基础利润',
+    '基础利润率',
+    '资金占用费',
+    '净利润',
+    '净利润率',
   ];
 
   const rows = projects.map(p => [
@@ -187,7 +190,10 @@ function generateProjectsSheet(projects: ProjectWithFinance[]): (string | number
     formatMoney(p.financeStats?.cost ?? 0),
     formatMoney(p.financeStats?.rebateIncome ?? 0),
     formatMoney(p.financeStats?.profit ?? 0),
-    p.financeStats?.profitRate ? formatPercent(p.financeStats.profitRate) : '-',
+    p.financeStats?.profitRate !== undefined ? formatPercent(p.financeStats.profitRate) : '-',
+    formatMoney(p.financeStats?.fundsOccupation ?? 0),
+    formatMoney(p.financeStats?.netProfit ?? 0),
+    p.financeStats?.netProfitRate !== undefined ? formatPercent(p.financeStats.netProfitRate) : '-',
   ]);
 
   return [headers, ...rows];
@@ -299,20 +305,23 @@ export function exportDashboardToExcel(data: DashboardExportData): void {
     const projectsData = generateProjectsSheet(data.projects);
     const projectsSheet = XLSX.utils.aoa_to_sheet(projectsData);
     projectsSheet['!cols'] = [
-      { wch: 25 },
-      { wch: 15 },
-      { wch: 15 },
-      { wch: 15 },
-      { wch: 10 },
-      { wch: 12 },
-      { wch: 8 },
-      { wch: 8 },
-      { wch: 12 },
-      { wch: 12 },
-      { wch: 12 },
-      { wch: 12 },
-      { wch: 12 },
-      { wch: 10 },
+      { wch: 25 },  // 项目名称
+      { wch: 15 },  // 项目编号
+      { wch: 15 },  // 客户
+      { wch: 15 },  // 平台
+      { wch: 10 },  // 状态
+      { wch: 12 },  // 业务周期
+      { wch: 8 },   // 达人数
+      { wch: 8 },   // 已发布
+      { wch: 12 },  // 执行金额
+      { wch: 12 },  // 收入
+      { wch: 12 },  // 成本
+      { wch: 12 },  // 返点收入
+      { wch: 12 },  // 基础利润
+      { wch: 12 },  // 基础利润率
+      { wch: 12 },  // 资金占用费
+      { wch: 12 },  // 净利润
+      { wch: 12 },  // 净利润率
     ];
     XLSX.utils.book_append_sheet(workbook, projectsSheet, '项目明细');
   }
