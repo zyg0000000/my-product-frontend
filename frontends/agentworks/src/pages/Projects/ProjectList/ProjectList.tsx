@@ -116,7 +116,8 @@ export function ProjectList() {
 
   // 删除相关状态
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [deletingProject, setDeletingProject] = useState<ProjectListItem | null>(null);
+  const [deletingProject, setDeletingProject] =
+    useState<ProjectListItem | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deletePreCheckData, setDeletePreCheckData] = useState<{
     collaborations: number;
@@ -690,22 +691,30 @@ export function ProjectList() {
 
               {deletePreCheckData && (
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                  <Typography.Text strong>以下关联数据将被一并删除：</Typography.Text>
+                  <Typography.Text strong>
+                    以下关联数据将被一并删除：
+                  </Typography.Text>
                   <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
                     {deletePreCheckData.collaborations > 0 && (
                       <li>{deletePreCheckData.collaborations} 条合作记录</li>
                     )}
                     {deletePreCheckData.registrationResults > 0 && (
-                      <li>{deletePreCheckData.registrationResults} 条抓取结果</li>
+                      <li>
+                        {deletePreCheckData.registrationResults} 条抓取结果
+                      </li>
                     )}
                     {deletePreCheckData.dailyReportCache > 0 && (
                       <li>{deletePreCheckData.dailyReportCache} 条日报缓存</li>
                     )}
                     {deletePreCheckData.dailyReportExecutions > 0 && (
-                      <li>{deletePreCheckData.dailyReportExecutions} 条执行记录</li>
+                      <li>
+                        {deletePreCheckData.dailyReportExecutions} 条执行记录
+                      </li>
                     )}
                     {deletePreCheckData.projectGroups > 0 && (
-                      <li>将从 {deletePreCheckData.projectGroups} 个项目组中移除</li>
+                      <li>
+                        将从 {deletePreCheckData.projectGroups} 个项目组中移除
+                      </li>
                     )}
                     {Object.values(deletePreCheckData).every(v => v === 0) && (
                       <li className="text-gray-400">无关联数据</li>
