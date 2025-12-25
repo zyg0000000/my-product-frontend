@@ -1,7 +1,14 @@
 /**
  * @file updateProject.js
- * @version 2.3-multi-business-type
+ * @version 2.5-tracking-version
  * @description 更新指定项目的基础信息或状态。
+ *
+ * --- 更新日志 (v2.5) ---
+ * - [日报版本] trackingConfig 新增 version 字段（'standard' | 'joint'）
+ *
+ * --- 更新日志 (v2.4) ---
+ * - [日报功能] 新增 trackingConfig 对象字段支持
+ * - [结构验证] trackingConfig 支持 status, enableAutoFetch, fetchTime, startDate, endDate, benchmarkCPM
  *
  * --- 更新日志 (v2.3) ---
  * - [v5.2 多业务类型] businessType 支持数组格式（多选）
@@ -63,7 +70,9 @@ const ALLOWED_UPDATE_FIELDS = [
     // v2.1: 项目编号
     'projectCode',
     // v2.2: 结算文件（agentworks 财务管理）
-    'settlementFiles'
+    'settlementFiles',
+    // v2.4: 追踪配置（日报功能）
+    'trackingConfig'
 ];
 
 // [v1.7] 状态映射（中文到 key）
@@ -279,6 +288,54 @@ exports.handler = async (event, context) => {
                     if (validBusinessTypes.length > 0) {
                         updatePayload.$set[field] = validBusinessTypes;
                     }
+                }
+            }
+            // [v2.4] Handle trackingConfig - 日报追踪配置对象
+            // [v2.5] 新增 version 字段支持（'standard' | 'joint'）
+            else if (field === 'trackingConfig') {
+                const configValue = updateFields[field];
+                if (configValue === null) {
+                    updatePayload.$unset[field] = "";
+                } else if (configValue && typeof configValue === 'object') {
+                    // 验证并清理 trackingConfig 对象
+                    const validConfig = {};
+                    // status: 'active' | 'archived' | 'disabled'
+                    if (['active', 'archived', 'disabled'].includes(configValue.status)) {
+                        validConfig.status = configValue.status;
+                    }
+                    // version: 'standard' | 'joint' (日报版本，选择后不可更改)
+                    if (['standard', 'joint'].includes(configValue.version)) {
+                        validConfig.version = configValue.version;
+                    }
+                    // enableAutoFetch: boolean
+                    if (typeof configValue.enableAutoFetch === 'boolean') {
+                        validConfig.enableAutoFetch = configValue.enableAutoFetch;
+                    }
+                    // fetchTime: string (e.g., "09:00")
+                    if (typeof configValue.fetchTime === 'string') {
+                        validConfig.fetchTime = configValue.fetchTime;
+                    }
+                    // startDate: string (e.g., "2025-01-01")
+                    if (typeof configValue.startDate === 'string') {
+                        validConfig.startDate = configValue.startDate;
+                    }
+                    // endDate: string
+                    if (typeof configValue.endDate === 'string') {
+                        validConfig.endDate = configValue.endDate;
+                    }
+                    // benchmarkCPM: number
+                    if (typeof configValue.benchmarkCPM === 'number' && !isNaN(configValue.benchmarkCPM)) {
+                        validConfig.benchmarkCPM = configValue.benchmarkCPM;
+                    }
+                    // lastFetchAt: Date
+                    if (configValue.lastFetchAt) {
+                        validConfig.lastFetchAt = new Date(configValue.lastFetchAt);
+                    }
+                    // lastFetchStatus: 'success' | 'partial' | 'failed'
+                    if (['success', 'partial', 'failed'].includes(configValue.lastFetchStatus)) {
+                        validConfig.lastFetchStatus = configValue.lastFetchStatus;
+                    }
+                    updatePayload.$set[field] = validConfig;
                 }
             }
             else if (updateFields[field] === null || updateFields[field] === '') {

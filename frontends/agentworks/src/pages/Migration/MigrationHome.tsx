@@ -18,7 +18,9 @@ import {
   Result,
   Descriptions,
   Popconfirm,
+  Radio,
 } from 'antd';
+import type { RadioChangeEvent } from 'antd';
 import {
   DatabaseOutlined,
   UserOutlined,
@@ -36,6 +38,7 @@ import type {
   ProjectMigrationResult,
   CollaborationMigrationResult,
   EffectMigrationResult,
+  DailyStatsMigrationResult,
   MigrationValidationResult,
 } from '../../api/dataMigration';
 
@@ -49,6 +52,9 @@ type MigrationStep =
   | 'validation'
   | 'completed';
 
+// 追踪状态类型
+type TrackingStatusChoice = 'active' | 'archived' | 'disabled';
+
 interface MigrationState {
   step: MigrationStep;
   selectedProject: SourceProject | null;
@@ -56,7 +62,9 @@ interface MigrationState {
   projectMigration: ProjectMigrationResult | null;
   collaborationMigration: CollaborationMigrationResult | null;
   effectMigration: EffectMigrationResult | null;
+  dailyStatsMigration: DailyStatsMigrationResult | null;
   migrationValidation: MigrationValidationResult | null;
+  trackingStatusChoice: TrackingStatusChoice;
 }
 
 const STEP_CONFIG = [
@@ -77,7 +85,9 @@ export function MigrationHome() {
     projectMigration: null,
     collaborationMigration: null,
     effectMigration: null,
+    dailyStatsMigration: null,
     migrationValidation: null,
+    trackingStatusChoice: 'archived',
   });
 
   // 加载项目列表
@@ -107,7 +117,9 @@ export function MigrationHome() {
       projectMigration: null,
       collaborationMigration: null,
       effectMigration: null,
+      dailyStatsMigration: null,
       migrationValidation: null,
+      trackingStatusChoice: 'archived',
     });
     loadProjects();
   }, [loadProjects]);
@@ -237,23 +249,13 @@ export function MigrationHome() {
         setState(prev => ({
           ...prev,
           effectMigration: result,
-          step: 'validation',
         }));
         message.success(
           `效果数据迁移完成，更新了 ${result.updatedCount} 条记录`
         );
 
-        // 自动执行验证
-        if (state.projectMigration?.newProjectId) {
-          const validationResult = await migrationApi.validateMigration(
-            state.selectedProject.id,
-            state.projectMigration.newProjectId
-          );
-          setState(prev => ({
-            ...prev,
-            migrationValidation: validationResult,
-          }));
-        }
+        // 检查是否可以进入验证步骤（效果和日报都完成或日报无数据）
+        checkAndMoveToValidation();
       } else {
         message.error(result.message || '效果数据迁移失败');
       }
@@ -263,6 +265,81 @@ export function MigrationHome() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 迁移日报数据
+  const handleMigrateDailyStats = async () => {
+    if (!state.selectedProject) return;
+
+    setLoading(true);
+    try {
+      const result = await migrationApi.migrateDailyStats(
+        state.selectedProject.id,
+        state.collaborationMigration?.mappings,
+        state.trackingStatusChoice
+      );
+      if (result.success) {
+        setState(prev => ({
+          ...prev,
+          dailyStatsMigration: result,
+        }));
+        if (result.migratedCount > 0) {
+          message.success(
+            `日报数据迁移完成，迁移了 ${result.migratedCount} 条记录`
+          );
+        } else {
+          message.info(result.message || '无日报数据需要迁移');
+        }
+
+        // 检查是否可以进入验证步骤
+        checkAndMoveToValidation();
+      } else {
+        message.error(result.message || '日报数据迁移失败');
+      }
+    } catch (error) {
+      message.error('日报数据迁移失败');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 追踪状态变更
+  const handleTrackingStatusChange = (e: RadioChangeEvent) => {
+    setState(prev => ({
+      ...prev,
+      trackingStatusChoice: e.target.value,
+    }));
+  };
+
+  // 检查并进入验证步骤
+  const checkAndMoveToValidation = async () => {
+    // 需要在最新状态中检查
+    setState(prev => {
+      const effectDone = !!prev.effectMigration;
+      const dailyStatsDone = !!prev.dailyStatsMigration;
+
+      // 两个都完成后进入验证
+      if (effectDone && dailyStatsDone) {
+        // 异步执行验证
+        if (prev.selectedProject && prev.projectMigration?.newProjectId) {
+          migrationApi
+            .validateMigration(
+              prev.selectedProject.id,
+              prev.projectMigration.newProjectId
+            )
+            .then(validationResult => {
+              setState(p => ({
+                ...p,
+                migrationValidation: validationResult,
+                step: 'validation',
+              }));
+            });
+        }
+      }
+
+      return prev;
+    });
   };
 
   // 回滚迁移
@@ -284,7 +361,9 @@ export function MigrationHome() {
           projectMigration: null,
           collaborationMigration: null,
           effectMigration: null,
+          dailyStatsMigration: null,
           migrationValidation: null,
+          trackingStatusChoice: 'archived',
         });
         loadProjects();
       }
@@ -305,7 +384,9 @@ export function MigrationHome() {
       projectMigration: null,
       collaborationMigration: null,
       effectMigration: null,
+      dailyStatsMigration: null,
       migrationValidation: null,
+      trackingStatusChoice: 'archived',
     });
     loadProjects();
     message.success('迁移流程完成');
@@ -568,7 +649,7 @@ export function MigrationHome() {
   // 渲染分模块迁移步骤
   const renderMigrateStep = () => {
     const getModuleStatus = (
-      module: 'project' | 'collaborations' | 'effects'
+      module: 'project' | 'collaborations' | 'effects' | 'dailyStats'
     ) => {
       switch (module) {
         case 'project':
@@ -584,13 +665,14 @@ export function MigrationHome() {
               ? 'current'
               : 'pending';
         case 'effects':
-          return state.effectMigration
-            ? 'completed'
-            : state.step === 'migrate_effects'
-              ? 'current'
-              : 'pending';
+          return state.effectMigration ? 'completed' : 'pending';
+        case 'dailyStats':
+          return state.dailyStatsMigration ? 'completed' : 'pending';
       }
     };
+
+    // 是否可以执行数据迁移（效果/日报）
+    const canMigrateData = state.step === 'migrate_effects';
 
     return (
       <div className="space-y-4">
@@ -614,7 +696,8 @@ export function MigrationHome() {
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        {/* Step 3a & 3b: 项目和合作记录 */}
+        <div className="grid grid-cols-2 gap-4">
           {/* 项目基础信息 */}
           <ProCard
             title="3a. 项目基础信息"
@@ -693,19 +776,21 @@ export function MigrationHome() {
               )}
             </div>
           </ProCard>
+        </div>
 
-          {/* 效果数据 */}
-          <ProCard
-            title="3c. 效果数据"
-            extra={
-              getModuleStatus('effects') === 'completed' ? (
-                <CheckCircleOutlined className="text-success-500" />
-              ) : null
-            }
-          >
-            <div className="space-y-3">
-              <div className="text-sm text-content-secondary">
-                迁移 T7/T21 播放量、互动等效果数据
+        {/* Step 3c: 数据迁移（效果数据 | 日报数据 并行） */}
+        <ProCard title="3c. 数据迁移" className="mt-4">
+          <div className="grid grid-cols-2 gap-4">
+            {/* 效果数据 */}
+            <div className="border border-stroke rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-content">效果数据</h4>
+                {getModuleStatus('effects') === 'completed' && (
+                  <CheckCircleOutlined className="text-success-500" />
+                )}
+              </div>
+              <div className="text-sm text-content-secondary mb-3">
+                T7/T21/T30 播放量数据
               </div>
               {state.effectMigration ? (
                 <div className="text-sm">
@@ -719,16 +804,85 @@ export function MigrationHome() {
                 <Button
                   type="primary"
                   block
-                  loading={loading && state.step === 'migrate_effects'}
-                  disabled={state.step !== 'migrate_effects'}
+                  loading={loading && !state.effectMigration}
+                  disabled={!canMigrateData}
                   onClick={handleMigrateEffects}
                 >
                   迁移效果数据
                 </Button>
               )}
             </div>
-          </ProCard>
-        </div>
+
+            {/* 日报数据 */}
+            <div className="border border-stroke rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-content">日报数据</h4>
+                {getModuleStatus('dailyStats') === 'completed' && (
+                  <CheckCircleOutlined className="text-success-500" />
+                )}
+              </div>
+              <div className="text-sm text-content-secondary mb-3">
+                每日播放量统计数据
+              </div>
+              {state.dailyStatsMigration ? (
+                <div className="text-sm">
+                  迁移{' '}
+                  <span className="font-medium text-success-600">
+                    {state.dailyStatsMigration.migratedCount}
+                  </span>{' '}
+                  条，追踪状态:{' '}
+                  <Tag
+                    color={
+                      state.dailyStatsMigration.trackingStatus === 'active'
+                        ? 'processing'
+                        : state.dailyStatsMigration.trackingStatus === 'archived'
+                          ? 'default'
+                          : 'error'
+                    }
+                  >
+                    {state.dailyStatsMigration.trackingStatus === 'active'
+                      ? '追踪中'
+                      : state.dailyStatsMigration.trackingStatus === 'archived'
+                        ? '已归档'
+                        : '未启用'}
+                  </Tag>
+                </div>
+              ) : (
+                <Button
+                  type="primary"
+                  block
+                  loading={loading && !state.dailyStatsMigration}
+                  disabled={!canMigrateData}
+                  onClick={handleMigrateDailyStats}
+                >
+                  迁移日报数据
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* 追踪状态选择器 */}
+          {canMigrateData && !state.dailyStatsMigration && (
+            <div className="mt-4 p-4 border border-stroke rounded-lg bg-surface-sunken">
+              <div className="text-sm text-content-secondary mb-2">
+                迁移后的追踪状态:
+              </div>
+              <Radio.Group
+                value={state.trackingStatusChoice}
+                onChange={handleTrackingStatusChange}
+              >
+                <Radio value="active">追踪中</Radio>
+                <Radio value="archived">
+                  已归档{' '}
+                  <span className="text-xs text-content-muted">
+                    (推荐历史项目)
+                  </span>
+                </Radio>
+                <Radio value="disabled">不启用追踪</Radio>
+              </Radio.Group>
+            </div>
+          )}
+        </ProCard>
       </div>
     );
   };
@@ -801,6 +955,27 @@ export function MigrationHome() {
                 <Descriptions.Item label="效果数据 (目标)">
                   {validation.comparison.effects.targetWithEffects}
                 </Descriptions.Item>
+                {validation.comparison.dailyStats && (
+                  <>
+                    <Descriptions.Item label="日报数据 (源)">
+                      {validation.comparison.dailyStats.sourceStatsEntries} 条
+                      <span className="text-content-muted ml-1">
+                        ({validation.comparison.dailyStats.sourceWorksWithStats} 个合作)
+                      </span>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="日报数据 (目标)">
+                      {validation.comparison.dailyStats.targetStatsEntries} 条
+                      <span className="text-content-muted ml-1">
+                        ({validation.comparison.dailyStats.targetWithStats} 个合作)
+                      </span>
+                      {validation.comparison.dailyStats.match ? (
+                        <CheckCircleOutlined className="ml-2 text-success-500" />
+                      ) : (
+                        <ExclamationCircleOutlined className="ml-2 text-warning-500" />
+                      )}
+                    </Descriptions.Item>
+                  </>
+                )}
               </Descriptions>
             </ProCard>
 

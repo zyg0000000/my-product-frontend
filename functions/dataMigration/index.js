@@ -1,6 +1,6 @@
 /**
  * @file dataMigration/index.js
- * @version 1.0
+ * @version 1.1 - 数据迁移云函数
  * @description ByteProject (kol_data) → AgentWorks (agentworks_db) 数据迁移云函数
  *
  * 支持的操作:
@@ -8,8 +8,9 @@
  * - validateTalents: 校验项目涉及的达人是否已在 agentworks 中存在
  * - migrateProject: 迁移项目基础信息
  * - migrateCollaborations: 迁移合作记录
- * - migrateEffects: 迁移效果数据
- * - validateMigration: 验证迁移结果
+ * - migrateEffects: 迁移效果数据（T7/T21/T30）
+ * - migrateDailyStats: 迁移日报数据（dailyStats）
+ * - validateMigration: 验证迁移结果（含日报数据对比）
  * - rollbackMigration: 回滚迁移
  */
 const { MongoClient } = require('mongodb');
@@ -374,7 +375,10 @@ const operations = {
       id: newProjectId,
       name: sourceProject.name,
       status: PROJECT_STATUS_MAP[sourceProject.status] || 'executing',
-      businessType: 'talentProcurement', // 固定为达人采买（驼峰格式）
+      businessType: ['talentProcurement'], // 数组格式，与新系统一致
+      businessTag: null, // 新系统字段，迁移时为空
+      type: null, // 新系统字段，迁移时为空
+      dbVersion: 'v2', // 标记为 v2 版本数据
 
       // 时间（确保为数字类型）
       financialYear: typeof sourceProject.financialYear === 'string'
@@ -415,8 +419,15 @@ const operations = {
           targets: {
             cpm: sourceProject.benchmarkCPM || 15, // 默认 CPM 目标值为 15
           },
+          actuals: {}, // 新系统字段
         },
       },
+
+      // 新系统预留字段
+      platformPricingSnapshots: null,
+      kpiConfig: null,
+      benchmarkCPM: null,
+      trackingStatus: null,
 
       // 客户
       customerId: customerId,
@@ -510,7 +521,7 @@ const operations = {
     const collaborationMappings = {};
     const targetCollabs = sourceCollabs.map((collab) => {
       const newCollabId = generateId('collab');
-      collaborationMappings[collab._id?.toString() || collab.id] = newCollabId;
+      collaborationMappings[collab.id] = newCollabId;  // 统一使用 id 字段（与 work.collaborationId 一致）
 
       const targetOneId = mappings[collab.talentId];
 
@@ -535,12 +546,17 @@ const operations = {
 
         // 下单方式和报价系数
         orderMode: orderMode,
-        // priceCoefficient 需要在前端根据项目折扣计算，迁移时不设置
+        // 定价模式（迁移项目都是框架模式）
+        pricingMode: 'framework',
 
         // 金额（kol_data 存元，agentworks_db 存分，需要 × 100）
         amount: (collab.amount || 0) * 100,
         rebateRate: collab.rebate || 0,
         actualRebate: collab.actualRebate ? collab.actualRebate * 100 : null,
+
+        // 新系统定价字段（迁移项目为框架模式，无需这些字段）
+        quotationPrice: null,
+        orderPrice: null,
 
         // 状态（已确认完全一致）
         status: collab.status || '待提报工作台',
@@ -554,14 +570,26 @@ const operations = {
         plannedReleaseDate: collab.plannedReleaseDate || null,
         actualReleaseDate: collab.publishDate || null,
 
-        // 返点截图
+        // 财务管理
+        orderDate: null,
+        recoveryDate: null,
+
+        // 差异处理
+        discrepancyReason: null,
         rebateScreenshots: collab.rebateScreenshots || [],
+
+        // 效果数据（单独迁移）
+        effectData: null,
+
+        // 调整项
+        adjustments: [],
 
         // 元数据
         createdAt: collab.createdAt || new Date(),
         updatedAt: new Date(),
         migratedFrom: {
-          sourceCollabId: collab._id?.toString() || collab.id,
+          sourceCollabId: collab.id,  // 统一使用 id 字段（与 work.collaborationId 一致）
+          sourceCollabObjectId: collab._id?.toString() || null,  // 备用 _id
           sourceTalentId: collab.talentId,
           migratedAt: new Date().toISOString(),
         },
@@ -641,6 +669,166 @@ const operations = {
   },
 
   /**
+   * 迁移日报数据 (dailyStats)
+   */
+  migrateDailyStats: async (dbClient, params) => {
+    const { sourceProjectId, collaborationMappings, trackingStatus = 'archived' } = params;
+    if (!sourceProjectId) {
+      return { success: false, message: '缺少 sourceProjectId 参数' };
+    }
+
+    const sourceDb = dbClient.db(DB_SOURCE);
+    const targetDb = dbClient.db(DB_TARGET);
+
+    // 调试：先检查源项目是否存在
+    const sourceProject = await sourceDb.collection('projects').findOne({ id: sourceProjectId });
+    console.log('[migrateDailyStats] sourceProjectId:', sourceProjectId);
+    console.log('[migrateDailyStats] sourceProject found:', !!sourceProject);
+
+    // 1. 获取源项目的所有 works（有 dailyStats 的）
+    const works = await sourceDb
+      .collection('works')
+      .find({
+        projectId: sourceProjectId,
+        dailyStats: { $exists: true, $ne: [] }
+      })
+      .toArray();
+
+    console.log('[migrateDailyStats] works with dailyStats found:', works.length);
+
+    if (works.length === 0) {
+      // 调试：检查是否有任何 works（不管有没有 dailyStats）
+      const allWorks = await sourceDb.collection('works').find({ projectId: sourceProjectId }).toArray();
+      console.log('[migrateDailyStats] total works for this project:', allWorks.length);
+      if (allWorks.length > 0) {
+        console.log('[migrateDailyStats] sample work:', JSON.stringify(allWorks[0], null, 2));
+      }
+
+      return {
+        success: true,
+        message: `源项目无日报数据，跳过迁移 (sourceProjectId: ${sourceProjectId}, 项目存在: ${!!sourceProject}, 总works数: ${allWorks.length})`,
+        migratedCount: 0,
+        totalWorks: 0,
+        trackingStatus,
+        debug: {
+          sourceProjectId,
+          sourceProjectExists: !!sourceProject,
+          totalWorksCount: allWorks.length,
+          sampleWorkId: allWorks[0]?.id || null
+        }
+      };
+    }
+
+    // 2. 查找目标项目（用于方式3）
+    const targetProject = await targetDb.collection('projects').findOne({
+      'migratedFrom.sourceProjectId': sourceProjectId,
+    });
+    const targetProjectId = targetProject?.id;
+    console.log('[migrateDailyStats] targetProject found:', !!targetProject, 'id:', targetProjectId);
+
+    let migratedCount = 0;
+    let skippedCount = 0;
+
+    for (const work of works) {
+      // 尝试多种方式找到目标合作记录
+      let targetCollab = null;
+
+      // 方式1：通过 collaborationMappings（如果有传入且非空）
+      if (collaborationMappings && Object.keys(collaborationMappings).length > 0 && work.collaborationId) {
+        const targetCollabId = collaborationMappings[work.collaborationId];
+        if (targetCollabId) {
+          targetCollab = await targetDb.collection('collaborations').findOne({ id: targetCollabId });
+        }
+      }
+
+      // 方式2：通过 migratedFrom.sourceCollabId 匹配（继续迁移场景）
+      if (!targetCollab && work.collaborationId && targetProjectId) {
+        targetCollab = await targetDb.collection('collaborations').findOne({
+          projectId: targetProjectId,
+          'migratedFrom.sourceCollabId': work.collaborationId,
+        });
+      }
+
+      // 方式3：通过 videoId 匹配
+      if (!targetCollab && work.videoId) {
+        targetCollab = await targetDb.collection('collaborations').findOne({ videoId: work.videoId });
+      }
+
+      if (!targetCollab) {
+        console.log('[migrateDailyStats] skipped work:', work.collaborationId, 'videoId:', work.videoId);
+        skippedCount++;
+        continue;
+      }
+
+      // 3. 迁移 dailyStats：只迁移播放量，不迁移 cpm（由前端计算）
+      const migratedStats = (work.dailyStats || []).map(stat => ({
+        date: stat.date,
+        totalViews: stat.totalViews || 0,
+        // 不迁移 cpm 和 cpmChange，由前端用 financeCalculator.ts 计算
+        solution: stat.solution || '',
+        source: 'migrated',
+        migratedAt: new Date().toISOString(),
+        createdAt: stat.createdAt || new Date(),
+        updatedAt: new Date(),
+      }));
+
+      // 4. 更新目标合作记录
+      await targetDb.collection('collaborations').updateOne(
+        { id: targetCollab.id },
+        {
+          $set: {
+            dailyStats: migratedStats,
+            lastReportDate: migratedStats.length > 0
+              ? migratedStats[migratedStats.length - 1].date
+              : null,
+            'migratedFrom.dailyStatsMigratedAt': new Date().toISOString(),
+          },
+        }
+      );
+      migratedCount++;
+    }
+
+    // 5. 更新目标项目的追踪配置（复用前面已查询的 targetProject）
+    if (targetProject) {
+      // 计算日期范围
+      let firstReportDate = null;
+      let lastReportDate = null;
+      for (const work of works) {
+        for (const stat of (work.dailyStats || [])) {
+          if (!firstReportDate || stat.date < firstReportDate) firstReportDate = stat.date;
+          if (!lastReportDate || stat.date > lastReportDate) lastReportDate = stat.date;
+        }
+      }
+
+      await targetDb.collection('projects').updateOne(
+        { id: targetProject.id },
+        {
+          $set: {
+            trackingConfig: {
+              status: trackingStatus,
+              version: 'standard',
+              enableAutoFetch: false,
+              benchmarkCPM: 30,
+              migratedAt: new Date().toISOString(),
+              firstReportDate,
+              lastReportDate,
+            },
+          },
+        }
+      );
+    }
+
+    return {
+      success: true,
+      migratedCount,
+      skippedCount,
+      totalWorks: works.length,
+      trackingStatus,
+      targetProjectId: targetProject?.id || null,
+    };
+  },
+
+  /**
    * 验证迁移结果
    */
   validateMigration: async (dbClient, params) => {
@@ -682,6 +870,35 @@ const operations = {
 
     const targetEffectCount = targetCollabs.filter((c) => c.effectData).length;
 
+    // 日报数据对比
+    const sourceDailyStatsCount = await sourceDb
+      .collection('works')
+      .countDocuments({
+        projectId: sourceProjectId,
+        dailyStats: { $exists: true, $ne: [] },
+      });
+
+    const targetDailyStatsCount = targetCollabs.filter(
+      (c) => c.dailyStats && c.dailyStats.length > 0
+    ).length;
+
+    // 统计源日报条目总数
+    const sourceStatsAggregate = await sourceDb
+      .collection('works')
+      .aggregate([
+        { $match: { projectId: sourceProjectId, dailyStats: { $exists: true, $ne: [] } } },
+        { $unwind: '$dailyStats' },
+        { $count: 'total' },
+      ])
+      .toArray();
+    const sourceStatsTotal = sourceStatsAggregate[0]?.total || 0;
+
+    // 统计目标日报条目总数
+    const targetStatsTotal = targetCollabs.reduce(
+      (sum, c) => sum + (c.dailyStats?.length || 0),
+      0
+    );
+
     return {
       success: true,
       sourceProjectId,
@@ -700,6 +917,13 @@ const operations = {
         effects: {
           sourceWorks: sourceWorksCount,
           targetWithEffects: targetEffectCount,
+        },
+        dailyStats: {
+          sourceWorksWithStats: sourceDailyStatsCount,
+          targetWithStats: targetDailyStatsCount,
+          sourceStatsEntries: sourceStatsTotal,
+          targetStatsEntries: targetStatsTotal,
+          match: sourceStatsTotal === targetStatsTotal,
         },
       },
       allMatch:

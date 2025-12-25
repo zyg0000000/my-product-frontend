@@ -1,0 +1,9 @@
+{
+  "name": "daily-report-api",
+  "version": "1.0.0",
+  "description": "AgentWorks 日报 API - 获取/写入日报数据和追踪概览",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^4.17.2"
+  }
+}

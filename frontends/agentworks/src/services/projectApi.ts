@@ -174,6 +174,65 @@ class ProjectApi {
   }
 
   /**
+   * 获取项目追踪列表（用于日报首页）
+   * 使用 view=simple 返回 trackingStats 统计数据
+   */
+  async getProjectsForTracking(
+    params?: GetProjectsParams
+  ): Promise<ApiResponse<ProjectListResponse>> {
+    // 使用 simple 视图，返回 trackingStats 统计数据
+    const url = `${API_BASE_URL}/projects?view=simple&dbVersion=${DB_VERSION}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
+      let items = result.data || [];
+
+      // 前端筛选（按项目名称）
+      if (params?.name) {
+        const keyword = params.name.toLowerCase();
+        items = items.filter((p: ProjectListItem) =>
+          p.name?.toLowerCase().includes(keyword)
+        );
+      }
+
+      // 前端分页
+      const total = items.length;
+      const page = params?.page || 1;
+      const pageSize = params?.pageSize || 20;
+      const start = (page - 1) * pageSize;
+      const paginatedItems = items.slice(start, start + pageSize);
+
+      return {
+        success: true,
+        data: {
+          items: paginatedItems,
+          total,
+          page,
+          pageSize,
+        },
+      };
+    }
+
+    return {
+      success: false,
+      data: { items: [], total: 0, page: 1, pageSize: 20 },
+      message: result.message,
+    };
+  }
+
+  /**
    * 获取项目详情
    */
   async getProjectById(id: string): Promise<ApiResponse<Project>> {

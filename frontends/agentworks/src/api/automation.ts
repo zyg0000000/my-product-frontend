@@ -71,6 +71,7 @@ export interface TaskExecuteRequest {
     source?: string;
     projectId?: string;
     talentId?: string;
+    collaborationId?: string;
   };
 }
 

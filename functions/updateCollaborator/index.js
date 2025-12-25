@@ -1,6 +1,6 @@
 /**
  * @file updateCollaborator/index.js
- * @version 5.2 - 支持 hybrid 定价模式
+ * @version 5.2 - 定价模式支持
  * @description 更新合作记录，支持 v1 (byteproject) 和 v2 (agentworks) 数据库。
  *
  * --- v5.2 更新日志 ---
@@ -41,6 +41,7 @@ const DB_CONFIG = {
     collections: {
       collaborations: 'collaborations',
       works: 'works',
+      projects: 'projects',
     },
   },
 };
@@ -71,7 +72,6 @@ const V2_ALLOWED_UPDATE_FIELDS = [
   // 财务信息
   'amount',
   'rebateRate',
-  'orderMode', // 下单方式：'adjusted'(改价) | 'original'(原价)
   // v5.2: 定价模式支持
   'pricingMode', // 计价方式：'framework' | 'project'
   'quotationPrice', // 对客报价（分）

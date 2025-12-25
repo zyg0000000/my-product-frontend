@@ -20,7 +20,7 @@ import {
   deleteTalent,
   deleteTalentAll,
 } from '../../../api/talent';
-import type { Talent, Platform } from '../../../types/talent';
+import type { Talent, Platform, PriceRecord } from '../../../types/talent';
 import { PLATFORM_NAMES } from '../../../types/talent';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 import { PriceModal } from '../../../components/PriceModal';
@@ -149,8 +149,24 @@ export function BasicInfo() {
   };
 
   // 保存价格
-  const handleSavePrices = async () => {
-    await loadTalents();
+  const handleSavePrices = async (talentId: string, prices: PriceRecord[]) => {
+    try {
+      const response = await updateTalent({
+        oneId: talentId,
+        platform: selectedPlatform,
+        prices: prices,
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || '保存价格失败');
+      }
+
+      await loadTalents();
+    } catch (err) {
+      logger.error('保存价格失败:', err);
+      message.error('保存价格失败，请重试');
+      throw err;
+    }
   };
 
   // 关闭返点管理弹窗
@@ -392,6 +408,7 @@ export function BasicInfo() {
             onClose={handleClosePriceModal}
             talent={selectedTalent}
             onSave={handleSavePrices}
+            onTalentUpdate={setSelectedTalent}
           />
         )}
 

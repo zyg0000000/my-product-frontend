@@ -38,6 +38,7 @@ interface PriceModalProps {
   onClose: () => void;
   talent: Talent | null;
   onSave: (talentId: string, prices: PriceRecord[]) => Promise<void>;
+  onTalentUpdate?: (updatedTalent: Talent) => void;
 }
 
 interface NewPriceForm {
@@ -53,6 +54,7 @@ export function PriceModal({
   onClose,
   talent,
   onSave,
+  onTalentUpdate,
 }: PriceModalProps) {
   const { message } = App.useApp();
   const [saving, setSaving] = useState(false);
@@ -136,6 +138,11 @@ export function PriceModal({
       }
 
       await onSave(talent.oneId, updatedPrices);
+
+      // 更新本地 talent 数据以刷新左侧列表
+      if (onTalentUpdate) {
+        onTalentUpdate({ ...talent, prices: updatedPrices });
+      }
 
       message.success('价格保存成功');
 

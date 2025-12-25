@@ -29,6 +29,7 @@ import {
   RightOutlined,
   RollbackOutlined,
   ArrowRightOutlined,
+  BarChartOutlined,
 } from '@ant-design/icons';
 import { projectApi } from '../../../services/projectApi';
 import type { Project } from '../../../types/project';
@@ -403,18 +404,26 @@ export function ProjectDetail() {
           onBack={() => navigate(-1)}
           backText="返回"
           extra={
-            <Tooltip
-              title={!isExecuting ? '项目已进入结算阶段，无法编辑' : undefined}
-            >
+            <div className="flex items-center gap-2">
               <Button
-                type="primary"
-                icon={<EditOutlined />}
-                onClick={() => setEditModalOpen(true)}
-                disabled={!isExecuting}
+                icon={<BarChartOutlined />}
+                onClick={() => navigate(`/projects/${project.id}/daily-report`)}
               >
-                编辑项目
+                查看日报
               </Button>
-            </Tooltip>
+              <Tooltip
+                title={!isExecuting ? '项目已进入结算阶段，无法编辑' : undefined}
+              >
+                <Button
+                  type="primary"
+                  icon={<EditOutlined />}
+                  onClick={() => setEditModalOpen(true)}
+                  disabled={!isExecuting}
+                >
+                  编辑项目
+                </Button>
+              </Tooltip>
+            </div>
           }
         />
 

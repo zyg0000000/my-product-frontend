@@ -90,6 +90,17 @@ export interface EffectMigrationResult {
   message?: string;
 }
 
+/** 日报数据迁移结果 */
+export interface DailyStatsMigrationResult {
+  success: boolean;
+  migratedCount: number;
+  skippedCount: number;
+  totalWorks: number;
+  trackingStatus: 'active' | 'archived' | 'disabled';
+  targetProjectId: string | null;
+  message?: string;
+}
+
 /** 迁移验证结果 */
 export interface MigrationValidationResult {
   success: boolean;
@@ -109,6 +120,13 @@ export interface MigrationValidationResult {
     effects: {
       sourceWorks: number;
       targetWithEffects: number;
+    };
+    dailyStats?: {
+      sourceWorksWithStats: number;
+      targetWithStats: number;
+      sourceStatsEntries: number;
+      targetStatsEntries: number;
+      match: boolean;
     };
   };
   allMatch: boolean;
@@ -196,6 +214,22 @@ export async function migrateEffects(
     operation: 'migrateEffects',
     sourceProjectId,
     collaborationMappings,
+  });
+}
+
+/**
+ * 迁移日报数据
+ */
+export async function migrateDailyStats(
+  sourceProjectId: string,
+  collaborationMappings?: Record<string, string>,
+  trackingStatus: 'active' | 'archived' | 'disabled' = 'archived'
+): Promise<DailyStatsMigrationResult> {
+  return post<DailyStatsMigrationResult>(ENDPOINT, {
+    operation: 'migrateDailyStats',
+    sourceProjectId,
+    collaborationMappings,
+    trackingStatus,
   });
 }
 

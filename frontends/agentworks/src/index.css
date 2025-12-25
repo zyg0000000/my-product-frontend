@@ -1123,6 +1123,17 @@
   color: var(--aw-gray-900) !important;
 }
 
+/* ProTable 列设置弹窗宽度 */
+.ant-pro-table-column-setting-overlay {
+  min-width: 180px !important;
+}
+
+.ant-pro-table-column-setting-list-item-title {
+  max-width: none !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+}
+
 /* 卡片组件 */
 .dark .ant-card,
 [data-theme="dark"] .ant-card {
@@ -1467,12 +1478,23 @@
 
 .dark .ant-picker-cell,
 [data-theme="dark"] .ant-picker-cell {
-  color: var(--aw-gray-600) !important;
+  color: var(--aw-gray-500) !important;
 }
 
 .dark .ant-picker-cell-in-view,
 [data-theme="dark"] .ant-picker-cell-in-view {
   color: var(--aw-gray-900) !important;
+}
+
+/* DatePicker 日期单元格 - 禁用状态 */
+.dark .ant-picker-cell-disabled,
+[data-theme="dark"] .ant-picker-cell-disabled {
+  color: var(--aw-gray-400) !important;
+}
+
+.dark .ant-picker-cell-disabled::before,
+[data-theme="dark"] .ant-picker-cell-disabled::before {
+  background: transparent !important;
 }
 
 /* 统计数值 */

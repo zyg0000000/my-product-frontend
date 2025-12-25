@@ -59,6 +59,7 @@ const navigation: NavItem[] = [
     children: [
       { name: '项目列表', path: '/projects/list' },
       { name: '执行看板', path: '/execution-board' },
+      { name: '项目日报', path: '/projects/daily-report' },
     ],
   },
   {
