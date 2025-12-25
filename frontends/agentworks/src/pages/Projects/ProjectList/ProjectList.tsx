@@ -253,8 +253,11 @@ export function ProjectList() {
 
     try {
       const response = await projectApi.preCheckDeleteProject(record.id);
-      if (response.success && response.data) {
-        setDeletePreCheckData(response.data.affectedData);
+      // 注意：后端直接返回 affectedData，不包装在 data 中
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data = (response as any).affectedData || response.data?.affectedData;
+      if (response.success && data) {
+        setDeletePreCheckData(data);
       }
     } catch (error) {
       logger.error('预检查删除失败:', error);
