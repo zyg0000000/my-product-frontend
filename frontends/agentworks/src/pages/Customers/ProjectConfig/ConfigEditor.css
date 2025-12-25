@@ -38,6 +38,7 @@
   --config-metric-red: #ef4444;
   --config-metric-orange: #f97316;
   --config-metric-purple: #8b5cf6;
+  --config-metric-cyan: #06b6d4;
 
   /* 背景层级 - 使用全局 CSS Variables */
   --config-bg-base: var(--color-bg-sunken, #f8fafc);
@@ -89,6 +90,7 @@
   --config-icon-bg-warning: rgba(245, 158, 11, 0.15);
   --config-icon-bg-danger: rgba(239, 68, 68, 0.15);
   --config-icon-bg-purple: rgba(139, 92, 246, 0.15);
+  --config-icon-bg-cyan: rgba(6, 182, 212, 0.15);
 
   /* 深色模式警告背景 */
   --config-warning-bg: rgba(245, 158, 11, 0.1);
@@ -109,6 +111,7 @@
   --config-icon-bg-warning: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
   --config-icon-bg-danger: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
   --config-icon-bg-purple: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  --config-icon-bg-cyan: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%);
 
   --config-warning-bg: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
   --config-warning-border: #fed7aa;
@@ -322,6 +325,11 @@
 .config-feature-card__icon--purple {
   background: var(--config-icon-bg-purple);
   color: var(--config-metric-purple);
+}
+
+.config-feature-card__icon--cyan {
+  background: var(--config-icon-bg-cyan);
+  color: var(--config-metric-cyan);
 }
 
 .config-feature-card__title {

@@ -178,7 +178,7 @@ export function EditModal({
         </div>
       }
       width={480}
-      destroyOnClose
+      destroyOnHidden
       className="edit-modal-compact"
     >
       {/* 基本信息卡片 */}

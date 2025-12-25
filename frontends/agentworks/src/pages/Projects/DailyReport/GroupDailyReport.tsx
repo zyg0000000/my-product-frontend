@@ -1,65 +1,74 @@
 /**
- * 单项目日报详情页 (重构版)
+ * 分组日报详情页
  *
  * 功能：
- * - 日报概览（汇总+达人表格）
- * - 达人趋势（CPM 折线图）
- * - 数据抓取（预留）
+ * - 合并多个项目的日报数据
+ * - 使用主项目名称作为日报标题
+ * - 复用现有的日报概览和趋势组件
  */
 
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Tabs, DatePicker, Button, Space, Spin, Empty } from 'antd';
+import {
+  Tabs,
+  DatePicker,
+  Button,
+  Space,
+  Spin,
+  Empty,
+  Tag,
+  Tooltip,
+} from 'antd';
 import {
   ArrowLeftOutlined,
   ReloadOutlined,
   BarChartOutlined,
   LineChartOutlined,
-  CloudDownloadOutlined,
   DownloadOutlined,
+  AppstoreOutlined,
+  InfoCircleOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { PageTransition } from '../../../components/PageTransition';
-import { useDailyReportData } from '../../../hooks/useDailyReportData';
+import { useGroupDailyReportData } from '../../../hooks/useGroupDailyReportData';
+import { useDailyReportGroups } from '../../../hooks/useDailyReportGroups';
 import { useExportImage } from '../../../hooks/useExportImage';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { DailyOverviewTab, TalentTrendTab, DataFetchTab } from './tabs';
+import { DailyOverviewTab, TalentTrendTab } from './tabs';
 
-export function ProjectDailyReport() {
-  const { id: projectId } = useParams<{ id: string }>();
+export function GroupDailyReport() {
+  const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
 
-  // 日报数据
+  // 获取分组信息
+  const {
+    groups,
+    loading: groupsLoading,
+    getGroupById,
+  } = useDailyReportGroups();
+  const group = useMemo(() => {
+    if (!groupId) return null;
+    return getGroupById(groupId);
+  }, [groupId, getGroupById, groups]);
+
+  // 分组日报数据
   const {
     data,
     previousOverview,
     groupedDetails,
     missingDataVideos,
     loading,
-    saving,
     currentDate,
     dateRange,
     changeDate,
-    saveSolution,
     refresh,
     trackingConfig,
-  } = useDailyReportData(projectId);
+    groupName,
+    projectCount,
+  } = useGroupDailyReportData(group || null);
 
   // 当前 Tab
   const [activeTab, setActiveTab] = useState('overview');
-
-  // 强制刷新模式
-  const [forceRefresh, setForceRefresh] = useState(false);
-
-  // 处理强制刷新模式变更
-  const handleForceRefreshChange = useCallback(
-    (checked: boolean) => {
-      setForceRefresh(checked);
-      // 重新加载数据，传入 forceRefresh 参数
-      refresh(checked);
-    },
-    [refresh]
-  );
 
   // 主题
   const { isDark } = useTheme();
@@ -69,7 +78,7 @@ export function ProjectDailyReport() {
   const { exporting, exportImage } = useExportImage(
     exportRef as React.RefObject<HTMLElement>,
     {
-      filename: `日报概览-${data?.projectName || '项目'}-${currentDate}`,
+      filename: `日报概览-${groupName || '分组'}-${currentDate}`,
       backgroundColor: isDark ? '#1a1a2e' : '#ffffff',
       pixelRatio: 2,
     }
@@ -95,12 +104,20 @@ export function ProjectDailyReport() {
   // 查看达人趋势
   const handleViewTrend = (_collaborationId: string, _talentName: string) => {
     setActiveTab('trend');
-    // TODO: 可以自动选中该达人
   };
 
-  // Tab 配置
+  // 分组不存在的处理（分组弹窗回调用于刷新）
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!groupsLoading && groupId && !group) {
+      setNotFound(true);
+    }
+  }, [groupsLoading, groupId, group]);
+
+  // Tab 配置（分组日报不显示数据抓取 Tab）
   const tabItems = useMemo(() => {
-    const items = [
+    return [
       {
         key: 'overview',
         label: (
@@ -115,9 +132,9 @@ export function ProjectDailyReport() {
             previousOverview={previousOverview}
             details={allDetails}
             missingDataVideos={missingDataVideos}
-            onSaveSolution={saveSolution}
+            onSaveSolution={() => Promise.resolve(false)} // 分组模式不支持保存备注
             onViewTrend={handleViewTrend}
-            saving={saving}
+            saving={false}
             currentDate={currentDate}
             exportRef={exportRef as React.RefObject<HTMLDivElement>}
             isExporting={exporting}
@@ -140,55 +157,48 @@ export function ProjectDailyReport() {
           />
         ),
       },
-      {
-        key: 'fetch',
-        label: (
-          <span className="flex items-center gap-1.5">
-            <CloudDownloadOutlined />
-            数据抓取
-            {missingDataVideos.length > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-[var(--aw-warning-100)] text-[var(--aw-warning-600)]">
-                {missingDataVideos.length}
-              </span>
-            )}
-          </span>
-        ),
-        children: (
-          <DataFetchTab
-            projectId={projectId || ''}
-            currentDate={currentDate}
-            missingDataVideos={missingDataVideos}
-            forceRefresh={forceRefresh}
-            onForceRefreshChange={handleForceRefreshChange}
-            onFetchComplete={() => {
-              // 不自动刷新，让用户查看抓取结果后手动刷新
-            }}
-          />
-        ),
-      },
     ];
-
-    return items;
   }, [
     data,
     previousOverview,
     allDetails,
     missingDataVideos,
-    saving,
-    saveSolution,
     trackingConfig,
-    projectId,
-    refresh,
     currentDate,
     exporting,
-    forceRefresh,
-    handleForceRefreshChange,
   ]);
 
-  if (!projectId) {
+  if (!groupId) {
     return (
       <PageTransition>
-        <Empty description="未找到项目" />
+        <Empty description="未找到分组" />
+      </PageTransition>
+    );
+  }
+
+  if (groupsLoading) {
+    return (
+      <PageTransition className="min-h-screen bg-[var(--aw-gray-50)] p-6">
+        <div className="flex items-center justify-center py-24">
+          <Spin size="large" />
+        </div>
+      </PageTransition>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <PageTransition className="min-h-screen bg-[var(--aw-gray-50)] p-6">
+        <div className="mb-6">
+          <Button type="text" icon={<ArrowLeftOutlined />} onClick={handleBack}>
+            返回列表
+          </Button>
+        </div>
+        <Empty description="分组不存在或已被删除">
+          <Button type="primary" onClick={handleBack}>
+            返回日报列表
+          </Button>
+        </Empty>
       </PageTransition>
     );
   }
@@ -207,9 +217,18 @@ export function ProjectDailyReport() {
               返回列表
             </Button>
             <div className="h-4 w-px bg-[var(--aw-gray-300)]" />
-            <h1 className="text-xl font-semibold text-[var(--aw-gray-900)]">
-              {data?.projectName || '项目日报'}
-            </h1>
+            <div className="flex items-center gap-2">
+              <AppstoreOutlined className="text-primary-500" />
+              <h1 className="text-xl font-semibold text-[var(--aw-gray-900)]">
+                {groupName || '分组日报'}
+              </h1>
+              <Tooltip title={`此日报合并了 ${projectCount} 个项目的数据`}>
+                <Tag color="blue" className="ml-2">
+                  <InfoCircleOutlined className="mr-1" />
+                  {projectCount} 个项目
+                </Tag>
+              </Tooltip>
+            </div>
           </div>
 
           <Space>
@@ -269,4 +288,4 @@ export function ProjectDailyReport() {
   );
 }
 
-export default ProjectDailyReport;
+export default GroupDailyReport;

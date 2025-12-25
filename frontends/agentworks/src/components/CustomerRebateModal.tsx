@@ -450,7 +450,7 @@ export function CustomerRebateModal({
       onCancel={onClose}
       footer={null}
       width={600}
-      destroyOnClose
+      destroyOnHidden
       centered
     >
       <Tabs

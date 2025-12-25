@@ -26,6 +26,7 @@ import {
   ScheduleOutlined,
   DollarOutlined,
   LineChartOutlined,
+  FormOutlined,
   RightOutlined,
   RollbackOutlined,
   ArrowRightOutlined,
@@ -53,6 +54,7 @@ import { CollaborationsTab } from './CollaborationsTab';
 import { ExecutionTab } from './ExecutionTab';
 import { FinancialTab } from './FinancialTab';
 import { EffectTab } from './EffectTab';
+import { RegistrationTab } from './RegistrationTab';
 import { ProjectFormModal } from '../ProjectList/ProjectFormModal';
 import { logger } from '../../../utils/logger';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
@@ -170,7 +172,13 @@ export function ProjectDetail() {
     if (!configLoading && projectConfig) {
       const { tabVisibility } = projectConfig;
       const visibleTabs = (
-        ['collaborations', 'execution', 'finance', 'effect'] as const
+        [
+          'collaborations',
+          'execution',
+          'finance',
+          'effect',
+          'registration',
+        ] as const
       ).filter(key => tabVisibility[key]);
 
       // 如果当前 activeTab 不在可见列表中，切换到第一个可见 Tab
@@ -386,6 +394,23 @@ export function ProjectDetail() {
           platforms={project.platforms}
           benchmarkCPM={project.benchmarkCPM}
           effectConfig={projectConfig.effectConfig}
+          onRefresh={refreshProject}
+        />
+      ),
+    },
+    {
+      key: 'registration',
+      visible: tabVisibility.registration ?? false,
+      label: (
+        <span className="flex items-center gap-1">
+          <FormOutlined />
+          报名管理
+        </span>
+      ),
+      children: (
+        <RegistrationTab
+          projectId={project.id}
+          platforms={project.platforms}
           onRefresh={refreshProject}
         />
       ),

@@ -123,7 +123,7 @@ export function ImportExcelModal({
         loading: importing,
       }}
       width={560}
-      destroyOnClose
+      destroyOnHidden
     >
       <div className="space-y-4">
         {/* 上传区域 */}

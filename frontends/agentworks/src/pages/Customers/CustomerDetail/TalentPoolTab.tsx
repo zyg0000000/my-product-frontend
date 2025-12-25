@@ -668,7 +668,7 @@ export function TalentPoolTab({
         okText="保存"
         cancelText="取消"
         width={480}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={editForm} layout="vertical" className="mt-4">
           <Form.Item name="tags" label="标签">
@@ -698,7 +698,7 @@ export function TalentPoolTab({
         okText="确认"
         cancelText="取消"
         width={480}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={batchTagForm} layout="vertical" className="mt-4">
           <Form.Item name="tags" label="标签">

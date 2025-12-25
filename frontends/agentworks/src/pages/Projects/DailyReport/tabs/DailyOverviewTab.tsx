@@ -218,7 +218,7 @@ export function DailyOverviewTab({
             type="warning"
             showIcon
             icon={<ExclamationCircleOutlined />}
-            message={
+            title={
               <span>
                 有 <strong>{missingDataVideos.length}</strong> 条数据需要录入
               </span>

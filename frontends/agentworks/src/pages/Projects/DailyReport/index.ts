@@ -4,3 +4,4 @@
 
 export { DailyReportHome } from './DailyReportHome';
 export { ProjectDailyReport } from './ProjectDailyReport';
+export { GroupDailyReport } from './GroupDailyReport';

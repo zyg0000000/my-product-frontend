@@ -13,7 +13,8 @@ export type ProjectTabKey =
   | 'collaborations'
   | 'execution'
   | 'finance'
-  | 'effect';
+  | 'effect'
+  | 'registration';
 
 /**
  * Tab 可见性配置
@@ -27,6 +28,8 @@ export interface TabVisibilityConfig {
   finance: boolean;
   /** 效果验收 */
   effect: boolean;
+  /** 报名管理（默认关闭） */
+  registration?: boolean;
 }
 
 /**
@@ -125,6 +128,7 @@ export const DEFAULT_PROJECT_CONFIG: CustomerProjectConfig = {
     execution: true,
     finance: true,
     effect: true,
+    registration: false,
   },
   effectConfig: {
     enabledPeriods: ['t7', 't21'],
@@ -201,5 +205,10 @@ export const PROJECT_TABS_METADATA: Record<
     label: '效果验收',
     icon: 'LineChartOutlined',
     description: '录入和查看投放效果数据',
+  },
+  registration: {
+    label: '报名管理',
+    icon: 'FormOutlined',
+    description: '抓取星图页面数据并生成报名表',
   },
 };

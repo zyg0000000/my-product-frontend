@@ -204,7 +204,7 @@ export function BatchCustomerRebateModal({
           : undefined
       }
       width={600}
-      destroyOnClose
+      destroyOnHidden
       centered
     >
       {step === 'form' && (

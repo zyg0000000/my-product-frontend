@@ -1893,7 +1893,7 @@ export function FinancialTab({
           open={adjustmentModalOpen}
           onOk={handleAddAdjustment}
           onCancel={() => setAdjustmentModalOpen(false)}
-          destroyOnClose
+          destroyOnHidden
         >
           <Form form={adjustmentForm} layout="vertical" className="mt-4">
             <Form.Item

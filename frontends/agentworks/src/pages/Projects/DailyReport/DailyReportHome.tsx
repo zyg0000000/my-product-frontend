@@ -5,6 +5,7 @@
  * - 项目列表展示（ProTable 形式）
  * - 追踪配置管理（弹窗编辑）
  * - 筛选功能（项目名称、日报版本、追踪状态、CPM状态、待录入）
+ * - 分组视图：将多个项目合并为一份日报
  */
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
@@ -24,6 +25,9 @@ import {
   Spin,
   Table,
   Empty,
+  Segmented,
+  Card,
+  Popconfirm,
 } from 'antd';
 import type { RadioChangeEvent } from 'antd';
 import {
@@ -36,11 +40,21 @@ import {
   ClockCircleOutlined,
   CalendarOutlined,
   SaveOutlined,
+  AppstoreOutlined,
+  UnorderedListOutlined,
+  EditOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons';
 import { PageTransition } from '../../../components/PageTransition';
 import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
 import { TrackingConfigModal } from './TrackingConfigModal';
+import { GroupCreateModal } from './GroupCreateModal';
 import { projectApi } from '../../../services/projectApi';
+import { useDailyReportGroups } from '../../../hooks/useDailyReportGroups';
+import type {
+  DailyReportGroup,
+  DailyReportGroupFormData,
+} from '../../../types/dailyReportGroup';
 import type {
   ProjectListItem,
   Project,
@@ -50,13 +64,11 @@ import type {
   TrackingConfig,
   TrackingStatus,
   TrackingVersion,
-} from '../../../types/dailyReport';
-import type {
   SchedulerConfig,
   EligibleProject,
   ScheduledExecution,
   ScheduleFrequency,
-} from '../../../types/scheduler';
+} from '../../../types/dailyReport';
 import {
   generateTimeOptions,
   calculateNextExecutionTime,
@@ -65,8 +77,8 @@ import {
   EXECUTION_STATUS_LABELS,
   EXECUTION_STATUS_COLORS,
   TRIGGER_TYPE_LABELS,
-} from '../../../types/scheduler';
-import * as schedulerApi from '../../../api/scheduler';
+} from '../../../types/dailyReport';
+import * as dailyReportApi from '../../../api/dailyReport';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 import {
   calculateCollaborationFinance,
@@ -113,6 +125,9 @@ const CPM_STATUS_VALUE_ENUM = {
 //   none: { text: '已完成' },
 // };
 
+// 视图类型
+type ViewType = 'project' | 'group';
+
 export function DailyReportHome() {
   const navigate = useNavigate();
   const { message } = App.useApp();
@@ -122,15 +137,35 @@ export function DailyReportHome() {
   const { configs: platformConfigs, loading: configLoading } =
     usePlatformConfig();
 
+  // 视图切换状态
+  const [viewType, setViewType] = useState<ViewType>('project');
+
+  // 分组管理 Hook
+  const {
+    groups,
+    loading: groupsLoading,
+    createGroup,
+    updateGroup,
+    deleteGroup,
+    getGroupByProjectId,
+  } = useDailyReportGroups();
+
+  // 分组弹窗状态
+  const [groupModalOpen, setGroupModalOpen] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<DailyReportGroup | null>(
+    null
+  );
+
   // 数据状态
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<ProjectWithTracking[]>([]);
+  const [allProjects, setAllProjects] = useState<ProjectWithTracking[]>([]); // 所有项目（用于分组选择）
   const [allFilteredProjects, setAllFilteredProjects] = useState<
     ProjectWithTracking[]
   >([]); // 全量筛选后的数据，用于统计
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(10);
 
   // 筛选状态
   const [nameFilter, setNameFilter] = useState('');
@@ -327,6 +362,16 @@ export function DailyReportHome() {
         setAllFilteredProjects(filtered);
         setTotal(filtered.length);
 
+        // 保存所有项目（用于分组选择）
+        setAllProjects(
+          (items as Project[])
+            .filter(project => project != null)
+            .map(project => ({
+              ...project,
+              trackingStats: calculateTrackingStats(project),
+            })) as ProjectWithTracking[]
+        );
+
         // 筛选条件变化时重置到第一页
         setCurrentPage(1);
       }
@@ -347,6 +392,74 @@ export function DailyReportHome() {
     message,
   ]);
 
+  // 分组项目选项（用于分组弹窗）- 只显示追踪中的项目
+  const groupProjectOptions = useMemo(() => {
+    return allProjects
+      .filter(p => p.trackingConfig?.status === 'active')
+      .map(p => {
+        const existingGroup = getGroupByProjectId(p.id);
+        const isOccupied =
+          !!existingGroup && existingGroup.id !== editingGroup?.id;
+
+        return {
+          id: p.id,
+          name: p.name,
+          isOccupied,
+          occupiedGroupName: isOccupied
+            ? existingGroup?.name || '未命名分组'
+            : undefined,
+        };
+      });
+  }, [allProjects, getGroupByProjectId, editingGroup]);
+
+  // 处理分组保存
+  const handleGroupSave = useCallback(
+    (
+      formData: DailyReportGroupFormData
+    ): { success: boolean; error?: string } => {
+      if (editingGroup) {
+        const result = updateGroup(editingGroup.id, formData);
+        if (result.success) {
+          message.success('分组已更新');
+        }
+        return result;
+      } else {
+        const result = createGroup(formData);
+        if (result.success) {
+          message.success('分组创建成功');
+        }
+        return result;
+      }
+    },
+    [editingGroup, createGroup, updateGroup, message]
+  );
+
+  // 处理分组删除
+  const handleGroupDelete = useCallback(
+    (groupId: string) => {
+      deleteGroup(groupId);
+      message.success('分组已删除');
+    },
+    [deleteGroup, message]
+  );
+
+  // 跳转到分组日报
+  const handleViewGroupReport = (groupId: string) => {
+    navigate(`/projects/daily-report/group/${groupId}`);
+  };
+
+  // 打开创建分组弹窗
+  const handleOpenGroupModal = () => {
+    setEditingGroup(null);
+    setGroupModalOpen(true);
+  };
+
+  // 打开编辑分组弹窗
+  const handleEditGroup = (group: DailyReportGroup) => {
+    setEditingGroup(group);
+    setGroupModalOpen(true);
+  };
+
   // 分页切片（仅在翻页时更新，不触发 API 请求）
   useEffect(() => {
     const startIndex = (currentPage - 1) * pageSize;
@@ -362,8 +475,8 @@ export function DailyReportHome() {
     setSchedulerLoading(true);
     try {
       const [configRes, projectsRes] = await Promise.all([
-        schedulerApi.getSchedulerConfig().catch(() => null),
-        schedulerApi.getEligibleProjects().catch(() => []),
+        dailyReportApi.getSchedulerConfig().catch(() => null),
+        dailyReportApi.getEligibleProjects().catch(() => []),
       ]);
 
       // 如果API未部署，使用默认配置
@@ -405,7 +518,7 @@ export function DailyReportHome() {
   const loadExecutions = useCallback(async () => {
     setExecutionsLoading(true);
     try {
-      const data = await schedulerApi.getExecutions(undefined, 10);
+      const data = await dailyReportApi.getExecutions(undefined, 10);
       setExecutions(data);
     } catch (error) {
       // 静默失败，不阻塞页面
@@ -420,7 +533,7 @@ export function DailyReportHome() {
     if (!configDirty) return;
     setSchedulerSaving(true);
     try {
-      const updated = await schedulerApi.updateSchedulerConfig(editedConfig);
+      const updated = await dailyReportApi.updateSchedulerConfig(editedConfig);
       setSchedulerConfig(updated);
       setConfigDirty(false);
       message.success('调度配置已保存');
@@ -749,6 +862,27 @@ export function DailyReportHome() {
     },
   ];
 
+  // 获取分组对应的项目名称
+  const getGroupProjectNames = useCallback(
+    (group: DailyReportGroup): string[] => {
+      return group.projectIds
+        .map(id => allProjects.find(p => p.id === id)?.name || id)
+        .slice(0, 3); // 最多显示3个
+    },
+    [allProjects]
+  );
+
+  // 获取主项目名称
+  const getPrimaryProjectName = useCallback(
+    (group: DailyReportGroup): string => {
+      return (
+        allProjects.find(p => p.id === group.primaryProjectId)?.name ||
+        '未知项目'
+      );
+    },
+    [allProjects]
+  );
+
   return (
     <PageTransition>
       <div className="space-y-6">
@@ -760,252 +894,418 @@ export function DailyReportHome() {
           </p>
         </div>
 
-        {/* 全局调度配置区 */}
-        <ProCard
-          title={
-            <Space>
-              <ClockCircleOutlined />
-              <span>自动抓取调度</span>
-            </Space>
-          }
-          extra={
+        {/* 视图切换栏 */}
+        <div className="flex items-center justify-between py-3 px-4 bg-[var(--color-bg-elevated)] rounded-lg border border-stroke">
+          <Segmented
+            value={viewType}
+            onChange={value => setViewType(value as ViewType)}
+            size="large"
+            options={[
+              {
+                label: (
+                  <Space size={6}>
+                    <UnorderedListOutlined />
+                    <span>项目视图</span>
+                  </Space>
+                ),
+                value: 'project',
+              },
+              {
+                label: (
+                  <Space size={6}>
+                    <AppstoreOutlined />
+                    <span>分组视图</span>
+                    {groups.length > 0 && (
+                      <Tag color="blue" style={{ marginLeft: 4 }}>
+                        {groups.length}
+                      </Tag>
+                    )}
+                  </Space>
+                ),
+                value: 'group',
+              },
+            ]}
+          />
+          {viewType === 'group' && (
             <Button
               type="primary"
-              icon={<SaveOutlined />}
-              loading={schedulerSaving}
-              disabled={!configDirty}
-              onClick={handleSaveSchedulerConfig}
+              icon={<PlusOutlined />}
+              onClick={handleOpenGroupModal}
             >
-              保存配置
+              创建分组
             </Button>
-          }
-          loading={schedulerLoading}
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* 左侧：配置区 */}
-            <div className="space-y-4">
-              {/* 启用开关 */}
-              <div className="flex items-center gap-3">
-                <span className="text-content-secondary w-20">启用调度:</span>
-                <Switch
-                  checked={editedConfig.enabled ?? false}
-                  onChange={checked => updateEditedConfig({ enabled: checked })}
-                />
-                {editedConfig.enabled && <Tag color="processing">已启用</Tag>}
-              </div>
+          )}
+        </div>
 
-              {/* 项目选择 */}
-              <div className="flex items-start gap-3">
-                <span className="text-content-secondary w-20 pt-1">
-                  选择项目:
-                </span>
-                <div className="flex-1">
-                  <Select
-                    mode="multiple"
-                    placeholder="选择要自动抓取的项目"
-                    value={editedConfig.selectedProjectIds ?? []}
-                    onChange={ids =>
-                      updateEditedConfig({ selectedProjectIds: ids })
-                    }
-                    options={eligibleProjects.map(p => ({
-                      label: p.name,
-                      value: p.id,
-                    }))}
-                    className="w-full"
-                    maxTagCount={3}
-                    maxTagPlaceholder={omitted => `+${omitted.length} 个项目`}
-                    disabled={!editedConfig.enabled}
-                    filterOption={(input, option) =>
-                      (option?.label as string)
-                        ?.toLowerCase()
-                        .includes(input.toLowerCase())
+        {/* 全局调度配置区 - 仅在项目视图显示 */}
+        {viewType === 'project' && (
+          <ProCard
+            title={
+              <Space>
+                <ClockCircleOutlined />
+                <span>自动抓取调度</span>
+              </Space>
+            }
+            extra={
+              <Button
+                type="primary"
+                icon={<SaveOutlined />}
+                loading={schedulerSaving}
+                disabled={!configDirty}
+                onClick={handleSaveSchedulerConfig}
+              >
+                保存配置
+              </Button>
+            }
+            loading={schedulerLoading}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 左侧：配置区 */}
+              <div className="space-y-4">
+                {/* 启用开关 */}
+                <div className="flex items-center gap-3">
+                  <span className="text-content-secondary w-20">启用调度:</span>
+                  <Switch
+                    checked={editedConfig.enabled ?? false}
+                    onChange={checked =>
+                      updateEditedConfig({ enabled: checked })
                     }
                   />
-                  <div className="text-xs text-content-muted mt-1">
-                    仅显示「追踪中」状态的项目，共 {eligibleProjects.length}{' '}
-                    个可选
+                  {editedConfig.enabled && <Tag color="processing">已启用</Tag>}
+                </div>
+
+                {/* 项目选择 */}
+                <div className="flex items-start gap-3">
+                  <span className="text-content-secondary w-20 pt-1">
+                    选择项目:
+                  </span>
+                  <div className="flex-1">
+                    <Select
+                      mode="multiple"
+                      placeholder="选择要自动抓取的项目"
+                      value={editedConfig.selectedProjectIds ?? []}
+                      onChange={ids =>
+                        updateEditedConfig({ selectedProjectIds: ids })
+                      }
+                      options={eligibleProjects.map(p => ({
+                        label: p.name,
+                        value: p.id,
+                      }))}
+                      className="w-full"
+                      maxTagCount={3}
+                      maxTagPlaceholder={omitted => `+${omitted.length} 个项目`}
+                      disabled={!editedConfig.enabled}
+                      filterOption={(input, option) =>
+                        (option?.label as string)
+                          ?.toLowerCase()
+                          .includes(input.toLowerCase())
+                      }
+                    />
+                    <div className="text-xs text-content-muted mt-1">
+                      仅显示「追踪中」状态的项目，共 {eligibleProjects.length}{' '}
+                      个可选
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* 执行时间 */}
-              <div className="flex items-center gap-3">
-                <span className="text-content-secondary w-20">执行时间:</span>
-                <Select
-                  value={editedConfig.time ?? '10:00'}
-                  onChange={time => updateEditedConfig({ time })}
-                  options={generateTimeOptions()}
-                  className="w-32"
-                  disabled={!editedConfig.enabled}
-                />
-              </div>
+                {/* 执行时间 */}
+                <div className="flex items-center gap-3">
+                  <span className="text-content-secondary w-20">执行时间:</span>
+                  <Select
+                    value={editedConfig.time ?? '10:00'}
+                    onChange={time => updateEditedConfig({ time })}
+                    options={generateTimeOptions()}
+                    className="w-32"
+                    disabled={!editedConfig.enabled}
+                  />
+                </div>
 
-              {/* 执行频率 */}
-              <div className="flex items-center gap-3">
-                <span className="text-content-secondary w-20">执行频率:</span>
-                <Radio.Group
-                  value={editedConfig.frequency ?? 'daily'}
-                  onChange={(e: RadioChangeEvent) =>
-                    updateEditedConfig({
-                      frequency: e.target.value as ScheduleFrequency,
-                    })
-                  }
-                  disabled={!editedConfig.enabled}
-                >
-                  <Radio value="daily">{FREQUENCY_LABELS.daily}</Radio>
-                  <Radio value="weekdays">
-                    {FREQUENCY_LABELS.weekdays}
-                    <span className="text-xs text-content-muted ml-1">
-                      (周一至周五)
+                {/* 执行频率 */}
+                <div className="flex items-center gap-3">
+                  <span className="text-content-secondary w-20">执行频率:</span>
+                  <Radio.Group
+                    value={editedConfig.frequency ?? 'daily'}
+                    onChange={(e: RadioChangeEvent) =>
+                      updateEditedConfig({
+                        frequency: e.target.value as ScheduleFrequency,
+                      })
+                    }
+                    disabled={!editedConfig.enabled}
+                  >
+                    <Radio value="daily">{FREQUENCY_LABELS.daily}</Radio>
+                    <Radio value="weekdays">
+                      {FREQUENCY_LABELS.weekdays}
+                      <span className="text-xs text-content-muted ml-1">
+                        (周一至周五)
+                      </span>
+                    </Radio>
+                  </Radio.Group>
+                </div>
+
+                {/* 下次执行时间预览 */}
+                <div className="flex items-center gap-3 pt-2 border-t border-stroke">
+                  <span className="text-content-secondary w-20">下次执行:</span>
+                  {nextExecutionTime ? (
+                    <span className="text-primary-600 font-medium">
+                      <CalendarOutlined className="mr-1" />
+                      {nextExecutionTime.toLocaleString('zh-CN', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                      <span className="text-content-muted ml-2">
+                        ({formatRelativeTime(nextExecutionTime)})
+                      </span>
                     </span>
-                  </Radio>
-                </Radio.Group>
-              </div>
-
-              {/* 下次执行时间预览 */}
-              <div className="flex items-center gap-3 pt-2 border-t border-stroke">
-                <span className="text-content-secondary w-20">下次执行:</span>
-                {nextExecutionTime ? (
-                  <span className="text-primary-600 font-medium">
-                    <CalendarOutlined className="mr-1" />
-                    {nextExecutionTime.toLocaleString('zh-CN', {
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                    <span className="text-content-muted ml-2">
-                      ({formatRelativeTime(nextExecutionTime)})
+                  ) : (
+                    <span className="text-content-muted">
+                      {!editedConfig.enabled ? '调度未启用' : '请选择项目'}
                     </span>
-                  </span>
-                ) : (
-                  <span className="text-content-muted">
-                    {!editedConfig.enabled ? '调度未启用' : '请选择项目'}
-                  </span>
+                  )}
+                </div>
+
+                {/* 上次执行时间 */}
+                {schedulerConfig?.lastExecutedAt && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-content-secondary w-20">
+                      上次执行:
+                    </span>
+                    <span className="text-content-muted">
+                      {new Date(schedulerConfig.lastExecutedAt).toLocaleString(
+                        'zh-CN'
+                      )}
+                    </span>
+                  </div>
                 )}
               </div>
 
-              {/* 上次执行时间 */}
-              {schedulerConfig?.lastExecutedAt && (
-                <div className="flex items-center gap-3">
-                  <span className="text-content-secondary w-20">上次执行:</span>
-                  <span className="text-content-muted">
-                    {new Date(schedulerConfig.lastExecutedAt).toLocaleString(
-                      'zh-CN'
-                    )}
-                  </span>
+              {/* 右侧：执行记录 */}
+              <div className="border-l border-stroke pl-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-content">最近执行记录</h4>
+                  <Button
+                    type="link"
+                    size="small"
+                    icon={<ReloadOutlined spin={executionsLoading} />}
+                    onClick={loadExecutions}
+                  >
+                    刷新
+                  </Button>
                 </div>
-              )}
-            </div>
-
-            {/* 右侧：执行记录 */}
-            <div className="border-l border-stroke pl-6">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-medium text-content">最近执行记录</h4>
-                <Button
-                  type="link"
-                  size="small"
-                  icon={<ReloadOutlined spin={executionsLoading} />}
-                  onClick={loadExecutions}
-                >
-                  刷新
-                </Button>
+                {executionsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Spin />
+                  </div>
+                ) : executions.length === 0 ? (
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description="暂无执行记录"
+                  />
+                ) : (
+                  <Table
+                    dataSource={executions}
+                    rowKey="_id"
+                    size="small"
+                    pagination={false}
+                    columns={[
+                      {
+                        title: '时间',
+                        dataIndex: 'executedAt',
+                        width: 90,
+                        render: (val: string) => {
+                          const date = new Date(val);
+                          return (
+                            <span className="tabular-nums text-xs">
+                              {date.toLocaleDateString('zh-CN', {
+                                month: '2-digit',
+                                day: '2-digit',
+                              })}{' '}
+                              {date.toLocaleTimeString('zh-CN', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                          );
+                        },
+                      },
+                      {
+                        title: '项目',
+                        dataIndex: 'projectName',
+                        ellipsis: true,
+                        render: (name: string, record: ScheduledExecution) => (
+                          <a
+                            className="text-primary-600 hover:text-primary-700 cursor-pointer"
+                            onClick={() => handleViewReport(record.projectId)}
+                          >
+                            {name}
+                          </a>
+                        ),
+                      },
+                      {
+                        title: '触发',
+                        dataIndex: 'triggerType',
+                        width: 50,
+                        render: (type: 'scheduled' | 'manual') => (
+                          <Tag
+                            color={type === 'scheduled' ? 'blue' : 'default'}
+                          >
+                            {TRIGGER_TYPE_LABELS[type]}
+                          </Tag>
+                        ),
+                      },
+                      {
+                        title: '结果',
+                        width: 80,
+                        render: (_: unknown, record: ScheduledExecution) => (
+                          <Space size={4}>
+                            <span className="text-success-600 tabular-nums">
+                              {record.successCount}
+                            </span>
+                            <span className="text-content-muted">/</span>
+                            <span className="text-error-600 tabular-nums">
+                              {record.failedCount}
+                            </span>
+                          </Space>
+                        ),
+                      },
+                      {
+                        title: '状态',
+                        dataIndex: 'status',
+                        width: 70,
+                        render: (status: ScheduledExecution['status']) => (
+                          <Tag color={EXECUTION_STATUS_COLORS[status]}>
+                            {EXECUTION_STATUS_LABELS[status]}
+                          </Tag>
+                        ),
+                      },
+                    ]}
+                  />
+                )}
               </div>
-              {executionsLoading ? (
-                <div className="flex justify-center py-8">
-                  <Spin />
-                </div>
-              ) : executions.length === 0 ? (
+            </div>
+          </ProCard>
+        )}
+
+        {/* 分组视图 */}
+        {viewType === 'group' && (
+          <div className="space-y-4">
+            {groupsLoading ? (
+              <div className="flex justify-center py-12">
+                <Spin tip="加载分组数据..." />
+              </div>
+            ) : groups.length === 0 ? (
+              <Card>
                 <Empty
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description="暂无执行记录"
-                />
-              ) : (
-                <Table
-                  dataSource={executions}
-                  rowKey="_id"
-                  size="small"
-                  pagination={false}
-                  columns={[
-                    {
-                      title: '时间',
-                      dataIndex: 'executedAt',
-                      width: 90,
-                      render: (val: string) => {
-                        const date = new Date(val);
-                        return (
-                          <span className="tabular-nums text-xs">
-                            {date.toLocaleDateString('zh-CN', {
-                              month: '2-digit',
-                              day: '2-digit',
-                            })}{' '}
-                            {date.toLocaleTimeString('zh-CN', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
-                        );
-                      },
-                    },
-                    {
-                      title: '项目',
-                      dataIndex: 'projectName',
-                      ellipsis: true,
-                      render: (name: string, record: ScheduledExecution) => (
-                        <a
-                          className="text-primary-600 hover:text-primary-700 cursor-pointer"
-                          onClick={() => handleViewReport(record.projectId)}
-                        >
-                          {name}
-                        </a>
-                      ),
-                    },
-                    {
-                      title: '触发',
-                      dataIndex: 'triggerType',
-                      width: 50,
-                      render: (type: 'scheduled' | 'manual') => (
-                        <Tag color={type === 'scheduled' ? 'blue' : 'default'}>
-                          {TRIGGER_TYPE_LABELS[type]}
-                        </Tag>
-                      ),
-                    },
-                    {
-                      title: '结果',
-                      width: 80,
-                      render: (_: unknown, record: ScheduledExecution) => (
-                        <Space size={4}>
-                          <span className="text-success-600 tabular-nums">
-                            {record.successCount}
-                          </span>
-                          <span className="text-content-muted">/</span>
-                          <span className="text-error-600 tabular-nums">
-                            {record.failedCount}
-                          </span>
-                        </Space>
-                      ),
-                    },
-                    {
-                      title: '状态',
-                      dataIndex: 'status',
-                      width: 70,
-                      render: (status: ScheduledExecution['status']) => (
-                        <Tag color={EXECUTION_STATUS_COLORS[status]}>
-                          {EXECUTION_STATUS_LABELS[status]}
-                        </Tag>
-                      ),
-                    },
-                  ]}
-                />
-              )}
-            </div>
-          </div>
-        </ProCard>
+                  description={
+                    <span className="text-content-muted">
+                      暂无分组，点击「创建分组」将多个项目合并为一份日报
+                    </span>
+                  }
+                >
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={handleOpenGroupModal}
+                  >
+                    创建分组
+                  </Button>
+                </Empty>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {groups.map(group => {
+                  const projectNames = getGroupProjectNames(group);
+                  const primaryName = getPrimaryProjectName(group);
+                  const displayName = group.name || primaryName;
 
-        {/* 主内容区 */}
-        {loading && projects.length === 0 ? (
+                  return (
+                    <Card
+                      key={group.id}
+                      hoverable
+                      className="cursor-pointer"
+                      onClick={() => handleViewGroupReport(group.id)}
+                      actions={[
+                        <Tooltip key="edit" title="编辑分组">
+                          <EditOutlined
+                            onClick={e => {
+                              e.stopPropagation();
+                              handleEditGroup(group);
+                            }}
+                          />
+                        </Tooltip>,
+                        <Popconfirm
+                          key="delete"
+                          title="确定删除此分组？"
+                          description="删除后分组内的项目将恢复为独立项目"
+                          onConfirm={e => {
+                            e?.stopPropagation();
+                            handleGroupDelete(group.id);
+                          }}
+                          onCancel={e => e?.stopPropagation()}
+                          okText="删除"
+                          cancelText="取消"
+                        >
+                          <DeleteOutlined
+                            onClick={e => e.stopPropagation()}
+                            className="text-error-500 hover:text-error-600"
+                          />
+                        </Popconfirm>,
+                        <Tooltip key="view" title="查看日报">
+                          <BarChartOutlined />
+                        </Tooltip>,
+                      ]}
+                    >
+                      <Card.Meta
+                        title={
+                          <div className="flex items-center gap-2">
+                            <AppstoreOutlined className="text-primary-500" />
+                            <span className="truncate">{displayName}</span>
+                          </div>
+                        }
+                        description={
+                          <div className="space-y-2 mt-2">
+                            <div className="text-xs text-content-muted">
+                              包含 {group.projectIds.length} 个项目
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {projectNames.map((name, idx) => (
+                                <Tag
+                                  key={idx}
+                                  color="default"
+                                  className="text-xs"
+                                >
+                                  {name}
+                                </Tag>
+                              ))}
+                              {group.projectIds.length > 3 && (
+                                <Tag color="default" className="text-xs">
+                                  +{group.projectIds.length - 3}
+                                </Tag>
+                              )}
+                            </div>
+                            <div className="text-xs text-content-muted pt-1 border-t border-stroke">
+                              主项目:{' '}
+                              <span className="text-content">
+                                {primaryName}
+                              </span>
+                            </div>
+                          </div>
+                        }
+                      />
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 主内容区 - 项目视图 */}
+        {viewType === 'project' && loading && projects.length === 0 ? (
           <TableSkeleton columnCount={10} rowCount={10} />
-        ) : (
+        ) : viewType === 'project' ? (
           <ProTable<ProjectWithTracking>
             columns={columns}
             actionRef={actionRef}
@@ -1019,6 +1319,7 @@ export function DailyReportHome() {
               total: total,
               showSizeChanger: true,
               showQuickJumper: true,
+              pageSizeOptions: [10, 20, 50, 100],
               showTotal: t => `共 ${t} 条`,
               onChange: (page, size) => {
                 // 如果每页条数改变，重置到第一页
@@ -1084,7 +1385,7 @@ export function DailyReportHome() {
               },
             }}
           />
-        )}
+        ) : null}
 
         {/* 追踪配置弹窗 */}
         <TrackingConfigModal
@@ -1097,6 +1398,18 @@ export function DailyReportHome() {
             setSelectedProject(null);
           }}
           onSave={handleConfigSave}
+        />
+
+        {/* 分组创建/编辑弹窗 */}
+        <GroupCreateModal
+          open={groupModalOpen}
+          onClose={() => {
+            setGroupModalOpen(false);
+            setEditingGroup(null);
+          }}
+          onSave={handleGroupSave}
+          editingGroup={editingGroup}
+          projects={groupProjectOptions}
         />
       </div>
     </PageTransition>

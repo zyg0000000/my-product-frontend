@@ -184,7 +184,7 @@ export function PricingConfigModal({
       onCancel={onClose}
       onOk={handleSubmit}
       width={700}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" className="mt-4">
         {/* 第一行：折扣率、服务费率 */}

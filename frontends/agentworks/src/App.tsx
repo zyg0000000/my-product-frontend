@@ -147,6 +147,11 @@ const ProjectDailyReport = lazy(() =>
     default: m.ProjectDailyReport,
   }))
 );
+const GroupDailyReport = lazy(() =>
+  import('./pages/Projects/DailyReport').then(m => ({
+    default: m.GroupDailyReport,
+  }))
+);
 const ProjectDashboard = lazy(() =>
   import('./pages/Projects/Dashboard').then(m => ({
     default: m.ProjectDashboard,
@@ -262,6 +267,10 @@ function ThemedApp() {
                   <Route
                     path="projects/daily-report"
                     element={<DailyReportHome />}
+                  />
+                  <Route
+                    path="projects/daily-report/group/:groupId"
+                    element={<GroupDailyReport />}
                   />
                   <Route
                     path="projects/:id/daily-report"

@@ -1,0 +1,9 @@
+{
+  "name": "registration-results",
+  "version": "1.0.0",
+  "description": "AgentWorks 报名管理 - 抓取结果 API",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^6.0.0"
+  }
+}

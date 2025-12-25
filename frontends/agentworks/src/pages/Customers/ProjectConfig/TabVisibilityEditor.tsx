@@ -11,6 +11,7 @@ import {
   ScheduleOutlined,
   DollarOutlined,
   LineChartOutlined,
+  FormOutlined,
   EyeOutlined,
   SafetyCertificateOutlined,
 } from '@ant-design/icons';
@@ -32,6 +33,7 @@ const TAB_ICONS: Record<ProjectTabKey, React.ReactNode> = {
   execution: <ScheduleOutlined />,
   finance: <DollarOutlined />,
   effect: <LineChartOutlined />,
+  registration: <FormOutlined />,
 };
 
 const TAB_COLORS: Record<ProjectTabKey, string> = {
@@ -39,6 +41,7 @@ const TAB_COLORS: Record<ProjectTabKey, string> = {
   execution: 'warning',
   finance: 'success',
   effect: 'purple',
+  registration: 'cyan',
 };
 
 export function TabVisibilityEditor({
@@ -55,6 +58,7 @@ export function TabVisibilityEditor({
     'execution',
     'finance',
     'effect',
+    'registration',
   ];
 
   // 计算启用的 Tab 数量
