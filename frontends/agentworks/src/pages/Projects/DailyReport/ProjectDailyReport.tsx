@@ -227,7 +227,7 @@ export function ProjectDailyReport() {
                 return false;
               }}
             />
-            <Button icon={<ReloadOutlined spin={loading} />} onClick={refresh}>
+            <Button icon={<ReloadOutlined spin={loading} />} onClick={() => refresh()}>
               刷新
             </Button>
             {activeTab === 'overview' && (

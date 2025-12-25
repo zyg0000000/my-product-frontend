@@ -148,65 +148,65 @@ export function GroupStatsTable({ type, data, loading }: GroupStatsTableProps) {
 
     // 根据类型添加第一列
     if (type === 'platform') {
-      return [
-        {
-          title: '平台',
-          dataIndex: 'platformName',
-          key: 'platform',
-          width: 100,
-          fixed: 'left',
-          render: (name: string, record: PlatformGroupStats) => (
-            <Tag
-              style={{
-                backgroundColor:
-                  PLATFORM_COLORS[(record as PlatformGroupStats).platform] ||
-                  '#666',
-                color: 'white',
-                border: 'none',
-              }}
-            >
-              {name}
-            </Tag>
-          ),
-        },
-        ...baseColumns,
-      ] as ColumnsType<PlatformGroupStats>;
+      const platformColumn = {
+        title: '平台',
+        dataIndex: 'platformName',
+        key: 'platform',
+        width: 100,
+        fixed: 'left' as const,
+        render: (
+          name: string,
+          record: PlatformGroupStats | StatusGroupStats | CustomerGroupStats
+        ) => (
+          <Tag
+            style={{
+              backgroundColor:
+                PLATFORM_COLORS[(record as PlatformGroupStats).platform] ||
+                '#666',
+              color: 'white',
+              border: 'none',
+            }}
+          >
+            {name}
+          </Tag>
+        ),
+      };
+      return [platformColumn, ...baseColumns];
     }
 
     if (type === 'status') {
-      return [
-        {
-          title: '状态',
-          dataIndex: 'statusLabel',
-          key: 'status',
-          width: 100,
-          fixed: 'left',
-          render: (label: string, record: StatusGroupStats) => (
-            <Tag
-              color={
-                STATUS_COLORS[(record as StatusGroupStats).status] || 'default'
-              }
-            >
-              {label}
-            </Tag>
-          ),
-        },
-        ...baseColumns,
-      ] as ColumnsType<StatusGroupStats>;
+      const statusColumn = {
+        title: '状态',
+        dataIndex: 'statusLabel',
+        key: 'status',
+        width: 100,
+        fixed: 'left' as const,
+        render: (
+          label: string,
+          record: PlatformGroupStats | StatusGroupStats | CustomerGroupStats
+        ) => (
+          <Tag
+            color={
+              STATUS_COLORS[(record as StatusGroupStats).status] || 'default'
+            }
+          >
+            {label}
+          </Tag>
+        ),
+      };
+      return [statusColumn, ...baseColumns];
     }
 
     // customer
-    return [
-      {
-        title: '客户',
-        dataIndex: 'customerName',
-        key: 'customer',
-        width: 150,
-        fixed: 'left',
-        ellipsis: true,
-      },
-      ...baseColumns,
-    ] as ColumnsType<CustomerGroupStats>;
+    const customerColumn = {
+      title: '客户',
+      dataIndex: 'customerName',
+      key: 'customer',
+      width: 150,
+      fixed: 'left' as const,
+      ellipsis: true,
+    };
+    return [customerColumn, ...baseColumns];
   };
 
   // 生成 rowKey
