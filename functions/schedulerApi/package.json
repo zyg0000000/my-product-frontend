@@ -1,0 +1,9 @@
+{
+  "name": "scheduler-api",
+  "version": "1.0.0",
+  "description": "调度器 API - 管理自动抓取调度配置和执行记录",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^6.12.0"
+  }
+}

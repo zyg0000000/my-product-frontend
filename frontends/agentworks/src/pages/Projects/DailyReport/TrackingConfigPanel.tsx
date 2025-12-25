@@ -5,20 +5,17 @@
  * - 启用/停用项目追踪
  * - 设置追踪状态（active/archived）
  * - 配置基准 CPM
- * - 设置自动抓取时间
  */
 
 import { useState, useEffect } from 'react';
-import { Switch, InputNumber, TimePicker, Button, App, Tag, Radio } from 'antd';
+import { Switch, InputNumber, Button, App, Tag, Radio } from 'antd';
 import type { RadioChangeEvent } from 'antd';
 import {
   CheckCircleOutlined,
-  ClockCircleOutlined,
   PauseCircleOutlined,
   SettingOutlined,
   FileTextOutlined,
 } from '@ant-design/icons';
-import dayjs from 'dayjs';
 import type {
   TrackingConfig,
   TrackingStatus,
@@ -49,8 +46,6 @@ export function TrackingConfigPanel({
   const [config, setConfig] = useState<TrackingConfig>({
     status: 'disabled',
     version: 'standard',
-    enableAutoFetch: false,
-    fetchTime: '09:00',
     benchmarkCPM: 30,
     ...initialConfig,
   });
@@ -269,56 +264,6 @@ export function TrackingConfigPanel({
               </div>
             </div>
 
-            {/* 自动抓取设置 */}
-            <div className="rounded-lg border border-[var(--aw-gray-200)] bg-[var(--color-bg-elevated)] p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <ClockCircleOutlined className="text-[var(--aw-primary-600)]" />
-                <h4 className="font-medium text-[var(--aw-gray-800)]">
-                  自动抓取设置
-                </h4>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-sm text-[var(--aw-gray-700)]">
-                      启用自动抓取
-                    </span>
-                    <p className="text-xs text-[var(--aw-gray-500)] mt-0.5">
-                      每天定时自动抓取视频播放数据
-                    </p>
-                  </div>
-                  <Switch
-                    checked={config.enableAutoFetch}
-                    onChange={v => updateField('enableAutoFetch', v)}
-                    disabled={isArchived}
-                  />
-                </div>
-
-                {config.enableAutoFetch && (
-                  <div className="flex items-center justify-between pt-2">
-                    <div>
-                      <span className="text-sm text-[var(--aw-gray-700)]">
-                        抓取时间
-                      </span>
-                      <p className="text-xs text-[var(--aw-gray-500)] mt-0.5">
-                        每天此时间自动执行抓取任务
-                      </p>
-                    </div>
-                    <TimePicker
-                      value={dayjs(config.fetchTime, 'HH:mm')}
-                      onChange={v =>
-                        updateField('fetchTime', v?.format('HH:mm') || '09:00')
-                      }
-                      format="HH:mm"
-                      minuteStep={30}
-                      style={{ width: 120 }}
-                      disabled={isArchived}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
           </>
         )}
 

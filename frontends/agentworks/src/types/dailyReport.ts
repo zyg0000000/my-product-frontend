@@ -42,10 +42,6 @@ export interface TrackingConfig {
   status: TrackingStatus;
   /** 日报版本（选择后不可更改） */
   version?: TrackingVersion;
-  /** 是否启用自动抓取 */
-  enableAutoFetch?: boolean;
-  /** 自动抓取时间 (HH:mm) */
-  fetchTime?: string;
   /** 追踪开始日期 */
   startDate?: string;
   /** 追踪结束日期 */

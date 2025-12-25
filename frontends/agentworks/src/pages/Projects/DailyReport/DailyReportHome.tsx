@@ -342,25 +342,44 @@ export function DailyReportHome() {
     setSchedulerLoading(true);
     try {
       const [configRes, projectsRes] = await Promise.all([
-        schedulerApi.getSchedulerConfig(),
-        schedulerApi.getEligibleProjects(),
+        schedulerApi.getSchedulerConfig().catch(() => null),
+        schedulerApi.getEligibleProjects().catch(() => []),
       ]);
-      setSchedulerConfig(configRes);
-      setEligibleProjects(projectsRes);
+
+      // 如果API未部署，使用默认配置
+      const defaultConfig: SchedulerConfig = {
+        _id: 'global',
+        enabled: false,
+        time: '10:00',
+        frequency: 'daily',
+        selectedProjectIds: [],
+      };
+
+      const config = configRes || defaultConfig;
+      setSchedulerConfig(config);
+      setEligibleProjects(projectsRes || []);
+
       // 初始化编辑状态
       setEditedConfig({
-        enabled: configRes.enabled,
-        time: configRes.time,
-        frequency: configRes.frequency,
-        selectedProjectIds: configRes.selectedProjectIds,
+        enabled: config.enabled,
+        time: config.time,
+        frequency: config.frequency,
+        selectedProjectIds: config.selectedProjectIds,
       });
       setConfigDirty(false);
     } catch (error) {
-      message.error('加载调度配置失败');
+      // 静默失败，使用默认配置
+      console.error('加载调度配置失败:', error);
+      setEditedConfig({
+        enabled: false,
+        time: '10:00',
+        frequency: 'daily',
+        selectedProjectIds: [],
+      });
     } finally {
       setSchedulerLoading(false);
     }
-  }, [message]);
+  }, []);
 
   // 加载执行记录
   const loadExecutions = useCallback(async () => {

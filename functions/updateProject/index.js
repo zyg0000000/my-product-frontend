@@ -292,6 +292,7 @@ exports.handler = async (event, context) => {
             }
             // [v2.4] Handle trackingConfig - 日报追踪配置对象
             // [v2.5] 新增 version 字段支持（'standard' | 'joint'）
+            // [v2.6] 移除 enableAutoFetch/fetchTime（改为全局调度配置）
             else if (field === 'trackingConfig') {
                 const configValue = updateFields[field];
                 if (configValue === null) {
@@ -306,14 +307,6 @@ exports.handler = async (event, context) => {
                     // version: 'standard' | 'joint' (日报版本，选择后不可更改)
                     if (['standard', 'joint'].includes(configValue.version)) {
                         validConfig.version = configValue.version;
-                    }
-                    // enableAutoFetch: boolean
-                    if (typeof configValue.enableAutoFetch === 'boolean') {
-                        validConfig.enableAutoFetch = configValue.enableAutoFetch;
-                    }
-                    // fetchTime: string (e.g., "09:00")
-                    if (typeof configValue.fetchTime === 'string') {
-                        validConfig.fetchTime = configValue.fetchTime;
                     }
                     // startDate: string (e.g., "2025-01-01")
                     if (typeof configValue.startDate === 'string') {
