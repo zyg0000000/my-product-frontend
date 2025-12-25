@@ -198,19 +198,22 @@ export function calculateCollaborationFinance(
 /**
  * 计算下单成本和返点收入
  *
- * 成本公式：成本 = 刊例价 × (1 + 平台费率) × 改价系数
- * - 刊例价是不含平台费的达人报价
- * - 平台（如星图）会额外收取平台费
- * - 改价系数决定最终下单折扣
+ * 成本公式：
+ * - 原价下单：成本 = 刊例价 × (1 + 平台费率)
+ * - 改价下单：成本 = 刊例价 × (1 + 平台费率) × (1 - 实际改价比例)
+ *
+ * 实际改价比例 = min(平台允许的最大改价, 达人返点率)
+ * - 平台允许的最大改价 = 1 - 改价系数（如 1 - 0.8 = 20%）
+ * - 达人返点率决定了改价上限，不能超过返点率（否则达人会亏钱）
  *
  * 返点规则：
- * - 原价下单：返点收入 = 刊例价 × 返点率
- * - 改价下单：返点收入 = 刊例价 × max(0, 返点率 - 可改价比例)
+ * - 原价下单：返点收入 = 刊例价 × 返点率（全额返点）
+ * - 改价下单：返点收入 = 刊例价 × (返点率 - 实际改价比例)
  *
  * @param amount - 刊例价（分）
  * @param platformFeeRate - 平台费率（如 0.05 = 5%）
  * @param rebateRate - 返点率（%，如 10 表示 10%）
- * @param orderPriceRatio - 改价系数（如 0.8 表示最低可改到 80%）
+ * @param orderPriceRatio - 改价系数（如 0.8 表示平台允许最低改到 80%）
  * @param orderMode - 下单方式（'adjusted' 改价下单 | 'original' 原价下单）
  * @returns { cost, rebateIncome }
  */
@@ -234,16 +237,18 @@ function calculateOrderCost(
     rebateIncome = Math.round(amount * rebateRatio);
   } else {
     // 【改价下单】
-    // 成本 = 刊例价 × (1 + 平台费率) × 改价系数
-    cost = Math.round(amount * (1 + platformFeeRate) * orderPriceRatio);
-
-    // 可改价比例 = 1 - 改价系数（如 1 - 0.8 = 0.2，可改 20%）
+    // 平台允许的最大改价比例 = 1 - 改价系数（如 1 - 0.8 = 0.2，最多可改 20%）
     const maxDiscountRatio = 1 - orderPriceRatio;
-    // 返点收入 = 刊例价 × max(0, 返点率 - 可改价比例)
+    // 实际改价比例 = min(平台允许的最大改价, 达人返点率)
+    // 改价不能超过返点，否则达人会亏钱
+    const actualDiscountRatio = Math.min(maxDiscountRatio, rebateRatio);
+
+    // 成本 = 刊例价 × (1 + 平台费率) × (1 - 实际改价比例)
+    cost = Math.round(amount * (1 + platformFeeRate) * (1 - actualDiscountRatio));
+
+    // 返点收入 = 刊例价 × (返点率 - 实际改价比例)
     // 改价用掉的部分不再返点
-    rebateIncome = Math.round(
-      amount * Math.max(0, rebateRatio - maxDiscountRatio)
-    );
+    rebateIncome = Math.round(amount * (rebateRatio - actualDiscountRatio));
   }
 
   return { cost, rebateIncome };

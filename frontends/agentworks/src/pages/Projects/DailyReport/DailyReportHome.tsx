@@ -9,9 +9,23 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ProTable } from '@ant-design/pro-components';
+import { ProTable, ProCard } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Space, App, Switch, Tooltip, Progress } from 'antd';
+import {
+  Button,
+  Tag,
+  Space,
+  App,
+  Tooltip,
+  Progress,
+  Select,
+  Switch,
+  Radio,
+  Spin,
+  Table,
+  Empty,
+} from 'antd';
+import type { RadioChangeEvent } from 'antd';
 import {
   ReloadOutlined,
   SettingOutlined,
@@ -19,6 +33,9 @@ import {
   PlusOutlined,
   WarningOutlined,
   CheckCircleOutlined,
+  ClockCircleOutlined,
+  CalendarOutlined,
+  SaveOutlined,
 } from '@ant-design/icons';
 import { PageTransition } from '../../../components/PageTransition';
 import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
@@ -34,6 +51,22 @@ import type {
   TrackingStatus,
   TrackingVersion,
 } from '../../../types/dailyReport';
+import type {
+  SchedulerConfig,
+  EligibleProject,
+  ScheduledExecution,
+  ScheduleFrequency,
+} from '../../../types/scheduler';
+import {
+  generateTimeOptions,
+  calculateNextExecutionTime,
+  formatRelativeTime,
+  FREQUENCY_LABELS,
+  EXECUTION_STATUS_LABELS,
+  EXECUTION_STATUS_COLORS,
+  TRIGGER_TYPE_LABELS,
+} from '../../../types/scheduler';
+import * as schedulerApi from '../../../api/scheduler';
 import { usePlatformConfig } from '../../../hooks/usePlatformConfig';
 import {
   calculateCollaborationFinance,
@@ -111,6 +144,18 @@ export function DailyReportHome() {
   const [configModalOpen, setConfigModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] =
     useState<ProjectWithTracking | null>(null);
+
+  // 调度配置状态
+  const [schedulerConfig, setSchedulerConfig] = useState<SchedulerConfig | null>(null);
+  const [schedulerLoading, setSchedulerLoading] = useState(false);
+  const [schedulerSaving, setSchedulerSaving] = useState(false);
+  const [eligibleProjects, setEligibleProjects] = useState<EligibleProject[]>([]);
+  const [executions, setExecutions] = useState<ScheduledExecution[]>([]);
+  const [executionsLoading, setExecutionsLoading] = useState(false);
+
+  // 调度配置编辑状态（本地修改，保存时提交）
+  const [editedConfig, setEditedConfig] = useState<Partial<SchedulerConfig>>({});
+  const [configDirty, setConfigDirty] = useState(false);
 
   /**
    * 计算项目的 trackingStats（在前端计算）
@@ -292,10 +337,88 @@ export function DailyReportHome() {
     message,
   ]);
 
+  // 加载调度配置和可选项目
+  const loadSchedulerData = useCallback(async () => {
+    setSchedulerLoading(true);
+    try {
+      const [configRes, projectsRes] = await Promise.all([
+        schedulerApi.getSchedulerConfig(),
+        schedulerApi.getEligibleProjects(),
+      ]);
+      setSchedulerConfig(configRes);
+      setEligibleProjects(projectsRes);
+      // 初始化编辑状态
+      setEditedConfig({
+        enabled: configRes.enabled,
+        time: configRes.time,
+        frequency: configRes.frequency,
+        selectedProjectIds: configRes.selectedProjectIds,
+      });
+      setConfigDirty(false);
+    } catch (error) {
+      message.error('加载调度配置失败');
+    } finally {
+      setSchedulerLoading(false);
+    }
+  }, [message]);
+
+  // 加载执行记录
+  const loadExecutions = useCallback(async () => {
+    setExecutionsLoading(true);
+    try {
+      const data = await schedulerApi.getExecutions(undefined, 10);
+      setExecutions(data);
+    } catch (error) {
+      // 静默失败，不阻塞页面
+      console.error('加载执行记录失败:', error);
+    } finally {
+      setExecutionsLoading(false);
+    }
+  }, []);
+
+  // 保存调度配置
+  const handleSaveSchedulerConfig = async () => {
+    if (!configDirty) return;
+    setSchedulerSaving(true);
+    try {
+      const updated = await schedulerApi.updateSchedulerConfig(editedConfig);
+      setSchedulerConfig(updated);
+      setConfigDirty(false);
+      message.success('调度配置已保存');
+    } catch (error) {
+      message.error('保存调度配置失败');
+    } finally {
+      setSchedulerSaving(false);
+    }
+  };
+
+  // 更新编辑状态
+  const updateEditedConfig = (updates: Partial<SchedulerConfig>) => {
+    setEditedConfig(prev => ({ ...prev, ...updates }));
+    setConfigDirty(true);
+  };
+
+  // 计算下次执行时间
+  const nextExecutionTime = useMemo(() => {
+    if (!editedConfig.enabled || !editedConfig.selectedProjectIds?.length) {
+      return null;
+    }
+    const tempConfig: SchedulerConfig = {
+      _id: 'global',
+      enabled: editedConfig.enabled ?? false,
+      time: editedConfig.time ?? '10:00',
+      frequency: editedConfig.frequency ?? 'daily',
+      selectedProjectIds: editedConfig.selectedProjectIds ?? [],
+    };
+    return calculateNextExecutionTime(tempConfig);
+  }, [editedConfig]);
+
   // 初始加载
   useEffect(() => {
     loadProjects();
-  }, [loadProjects]);
+    loadSchedulerData();
+    loadExecutions();
+  }, [loadProjects, loadSchedulerData, loadExecutions]);
 
   // 打开配置弹窗
   const handleOpenConfig = (project: ProjectWithTracking) => {
@@ -520,28 +643,6 @@ export function DailyReportHome() {
       },
     },
     {
-      title: '自动抓取',
-      dataIndex: ['trackingConfig', 'enableAutoFetch'],
-      width: 80,
-      align: 'center',
-      search: false,
-      render: (_, record) => {
-        if (
-          !record.trackingConfig ||
-          record.trackingConfig.status === 'disabled'
-        ) {
-          return <span className="text-[var(--aw-gray-400)]">-</span>;
-        }
-        return (
-          <Switch
-            size="small"
-            checked={record.trackingConfig?.enableAutoFetch}
-            disabled
-          />
-        );
-      },
-    },
-    {
       title: '数据日期',
       dataIndex: ['trackingStats', 'latestDataDate'],
       width: 80,
@@ -616,9 +717,244 @@ export function DailyReportHome() {
         <div>
           <h1 className="text-2xl font-bold text-content">项目日报</h1>
           <p className="mt-2 text-sm text-content-secondary">
-            管理项目效果追踪配置
+            管理项目效果追踪配置，设置自动抓取调度
           </p>
         </div>
+
+        {/* 全局调度配置区 */}
+        <ProCard
+          title={
+            <Space>
+              <ClockCircleOutlined />
+              <span>自动抓取调度</span>
+            </Space>
+          }
+          extra={
+            <Button
+              type="primary"
+              icon={<SaveOutlined />}
+              loading={schedulerSaving}
+              disabled={!configDirty}
+              onClick={handleSaveSchedulerConfig}
+            >
+              保存配置
+            </Button>
+          }
+          loading={schedulerLoading}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 左侧：配置区 */}
+            <div className="space-y-4">
+              {/* 启用开关 */}
+              <div className="flex items-center gap-3">
+                <span className="text-content-secondary w-20">启用调度:</span>
+                <Switch
+                  checked={editedConfig.enabled ?? false}
+                  onChange={checked => updateEditedConfig({ enabled: checked })}
+                />
+                {editedConfig.enabled && (
+                  <Tag color="processing">已启用</Tag>
+                )}
+              </div>
+
+              {/* 项目选择 */}
+              <div className="flex items-start gap-3">
+                <span className="text-content-secondary w-20 pt-1">选择项目:</span>
+                <div className="flex-1">
+                  <Select
+                    mode="multiple"
+                    placeholder="选择要自动抓取的项目"
+                    value={editedConfig.selectedProjectIds ?? []}
+                    onChange={ids => updateEditedConfig({ selectedProjectIds: ids })}
+                    options={eligibleProjects.map(p => ({
+                      label: p.name,
+                      value: p.id,
+                    }))}
+                    className="w-full"
+                    maxTagCount={3}
+                    maxTagPlaceholder={omitted => `+${omitted.length} 个项目`}
+                    disabled={!editedConfig.enabled}
+                    filterOption={(input, option) =>
+                      (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
+                    }
+                  />
+                  <div className="text-xs text-content-muted mt-1">
+                    仅显示「追踪中」状态的项目，共 {eligibleProjects.length} 个可选
+                  </div>
+                </div>
+              </div>
+
+              {/* 执行时间 */}
+              <div className="flex items-center gap-3">
+                <span className="text-content-secondary w-20">执行时间:</span>
+                <Select
+                  value={editedConfig.time ?? '10:00'}
+                  onChange={time => updateEditedConfig({ time })}
+                  options={generateTimeOptions()}
+                  className="w-32"
+                  disabled={!editedConfig.enabled}
+                />
+              </div>
+
+              {/* 执行频率 */}
+              <div className="flex items-center gap-3">
+                <span className="text-content-secondary w-20">执行频率:</span>
+                <Radio.Group
+                  value={editedConfig.frequency ?? 'daily'}
+                  onChange={(e: RadioChangeEvent) =>
+                    updateEditedConfig({ frequency: e.target.value as ScheduleFrequency })
+                  }
+                  disabled={!editedConfig.enabled}
+                >
+                  <Radio value="daily">{FREQUENCY_LABELS.daily}</Radio>
+                  <Radio value="weekdays">
+                    {FREQUENCY_LABELS.weekdays}
+                    <span className="text-xs text-content-muted ml-1">
+                      (周一至周五)
+                    </span>
+                  </Radio>
+                </Radio.Group>
+              </div>
+
+              {/* 下次执行时间预览 */}
+              <div className="flex items-center gap-3 pt-2 border-t border-stroke">
+                <span className="text-content-secondary w-20">下次执行:</span>
+                {nextExecutionTime ? (
+                  <span className="text-primary-600 font-medium">
+                    <CalendarOutlined className="mr-1" />
+                    {nextExecutionTime.toLocaleString('zh-CN', {
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                    <span className="text-content-muted ml-2">
+                      ({formatRelativeTime(nextExecutionTime)})
+                    </span>
+                  </span>
+                ) : (
+                  <span className="text-content-muted">
+                    {!editedConfig.enabled
+                      ? '调度未启用'
+                      : '请选择项目'}
+                  </span>
+                )}
+              </div>
+
+              {/* 上次执行时间 */}
+              {schedulerConfig?.lastExecutedAt && (
+                <div className="flex items-center gap-3">
+                  <span className="text-content-secondary w-20">上次执行:</span>
+                  <span className="text-content-muted">
+                    {new Date(schedulerConfig.lastExecutedAt).toLocaleString('zh-CN')}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* 右侧：执行记录 */}
+            <div className="border-l border-stroke pl-6">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-content">最近执行记录</h4>
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<ReloadOutlined spin={executionsLoading} />}
+                  onClick={loadExecutions}
+                >
+                  刷新
+                </Button>
+              </div>
+              {executionsLoading ? (
+                <div className="flex justify-center py-8">
+                  <Spin />
+                </div>
+              ) : executions.length === 0 ? (
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description="暂无执行记录"
+                />
+              ) : (
+                <Table
+                  dataSource={executions}
+                  rowKey="_id"
+                  size="small"
+                  pagination={false}
+                  columns={[
+                    {
+                      title: '时间',
+                      dataIndex: 'executedAt',
+                      width: 90,
+                      render: (val: string) => {
+                        const date = new Date(val);
+                        return (
+                          <span className="tabular-nums text-xs">
+                            {date.toLocaleDateString('zh-CN', {
+                              month: '2-digit',
+                              day: '2-digit',
+                            })}{' '}
+                            {date.toLocaleTimeString('zh-CN', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                        );
+                      },
+                    },
+                    {
+                      title: '项目',
+                      dataIndex: 'projectName',
+                      ellipsis: true,
+                      render: (name: string, record: ScheduledExecution) => (
+                        <a
+                          className="text-primary-600 hover:text-primary-700 cursor-pointer"
+                          onClick={() => handleViewReport(record.projectId)}
+                        >
+                          {name}
+                        </a>
+                      ),
+                    },
+                    {
+                      title: '触发',
+                      dataIndex: 'triggerType',
+                      width: 50,
+                      render: (type: 'scheduled' | 'manual') => (
+                        <Tag color={type === 'scheduled' ? 'blue' : 'default'}>
+                          {TRIGGER_TYPE_LABELS[type]}
+                        </Tag>
+                      ),
+                    },
+                    {
+                      title: '结果',
+                      width: 80,
+                      render: (_: unknown, record: ScheduledExecution) => (
+                        <Space size={4}>
+                          <span className="text-success-600 tabular-nums">
+                            {record.successCount}
+                          </span>
+                          <span className="text-content-muted">/</span>
+                          <span className="text-error-600 tabular-nums">
+                            {record.failedCount}
+                          </span>
+                        </Space>
+                      ),
+                    },
+                    {
+                      title: '状态',
+                      dataIndex: 'status',
+                      width: 70,
+                      render: (status: ScheduledExecution['status']) => (
+                        <Tag color={EXECUTION_STATUS_COLORS[status]}>
+                          {EXECUTION_STATUS_LABELS[status]}
+                        </Tag>
+                      ),
+                    },
+                  ]}
+                />
+              )}
+            </div>
+          </div>
+        </ProCard>
 
         {/* 主内容区 */}
         {loading && projects.length === 0 ? (
