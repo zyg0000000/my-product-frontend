@@ -108,6 +108,16 @@ export interface HealthResponse {
   status: 'ok' | 'error';
 }
 
+/** 任务进度（SSE 推送） */
+export interface TaskProgress {
+  taskId: string;
+  status: 'running' | 'completed' | 'failed';
+  currentStep?: number;
+  totalSteps?: number;
+  currentAction?: string;
+  result?: unknown;
+}
+
 /** API 错误 */
 export class EcsApiError extends Error {
   statusCode?: number;
@@ -245,6 +255,46 @@ export async function checkServerReachable(): Promise<boolean> {
   }
 }
 
+// ========== SSE 实时进度 ==========
+
+/**
+ * 订阅任务进度（SSE）
+ * @param taskId - 任务 ID
+ * @param onProgress - 进度回调函数
+ * @returns 取消订阅函数
+ */
+export function subscribeToTaskProgress(
+  taskId: string,
+  onProgress: (progress: TaskProgress) => void
+): () => void {
+  const url = `${ECS_API_BASE_URL}/api/task/stream/${taskId}`;
+  const eventSource = new EventSource(url);
+
+  eventSource.onmessage = event => {
+    try {
+      const progress = JSON.parse(event.data) as TaskProgress;
+      onProgress(progress);
+
+      // 任务完成或失败时自动关闭连接
+      if (progress.status === 'completed' || progress.status === 'failed') {
+        eventSource.close();
+      }
+    } catch (e) {
+      logger.error('SSE 解析进度数据失败:', e);
+    }
+  };
+
+  eventSource.onerror = () => {
+    logger.warn('SSE 连接断开');
+    eventSource.close();
+  };
+
+  // 返回取消订阅函数
+  return () => {
+    eventSource.close();
+  };
+}
+
 /** Cookie 上传响应 */
 export interface CookieUploadResponse {
   success: boolean;
@@ -362,6 +412,9 @@ export const automationApi = {
   checkHealth,
   checkServerReachable,
   uploadCookie,
+
+  // SSE 实时进度
+  subscribeToTaskProgress,
 
   // 工作流 CRUD API（云函数）
   getWorkflowList,
