@@ -2,6 +2,59 @@
 
 所有重要的更改都将记录在此文件中。
 
+## [3.0.0] - 2025-12-25
+
+### ✨ 新功能 (Features)
+
+#### 项目日报追踪系统
+- **日报首页**：项目日报列表，支持按追踪状态、CPM 状态筛选
+- **项目日报详情**：单项目日报概览，包含汇总仪表板、CPM 分布、达人明细表
+- **达人趋势图表**：支持单达人/多达人 CPM 和播放量趋势对比
+- **追踪配置管理**：支持启用/归档/停用追踪，配置基准 CPM
+- **图片导出**：支持将日报概览导出为 PNG 图片
+
+#### 数据迁移增强
+- **日报数据迁移**：支持从 ByteProject 迁移日报数据到 AgentWorks
+- **追踪状态选择**：迁移时可选择追踪状态（追踪中/已归档/不启用）
+- **迁移验证**：验证结果包含日报数据对比
+
+### 🔧 技术改进 (Technical Improvements)
+
+#### 前端架构
+- **财务计算统一**：日报金额计算复用 `financeCalculator.ts`，与财务管理 Tab 保持一致
+- **React Fast Refresh 兼容**：将工具函数从组件文件分离到 `utils.ts`
+- **TypeScript 严格模式**：修复所有 TypeScript 编译错误，支持 Cloudflare 构建
+
+#### 后端云函数
+- **dailyReportApi v1.0**：新增日报数据云函数
+  - `getDailyReport`：获取项目日报数据
+  - `saveDailyStats`：批量写入日报数据
+  - `saveReportSolution`：保存日报备注
+  - `getTalentTrend`：获取达人趋势数据
+- **dataMigration v1.1**：新增 `migrateDailyStats` 操作
+
+#### 数据库
+- **dailyStats 字段**：Collaboration 新增每日播放量统计数组
+- **trackingConfig 字段**：Project 新增追踪配置
+
+### 📝 受影响的文件
+
+#### 新增文件
+- `frontends/agentworks/src/pages/Projects/DailyReport/` - 日报模块页面
+- `frontends/agentworks/src/api/dailyReport.ts` - 日报 API
+- `frontends/agentworks/src/hooks/useDailyReportData.ts` - 日报数据 Hook
+- `frontends/agentworks/src/hooks/useExportImage.ts` - 图片导出 Hook
+- `frontends/agentworks/src/types/dailyReport.ts` - 日报类型定义
+- `functions/dailyReportApi/` - 日报云函数
+
+#### 修改文件
+- `frontends/agentworks/src/App.tsx` - 添加日报路由
+- `frontends/agentworks/src/components/Sidebar/Sidebar.tsx` - 添加日报菜单
+- `frontends/agentworks/src/types/project.ts` - 添加 dailyStats 字段
+- `functions/dataMigration/index.js` - 添加日报迁移支持
+
+---
+
 ## [2.6.0] - 2025-12-22
 
 ### ✨ 新功能 (Features)
