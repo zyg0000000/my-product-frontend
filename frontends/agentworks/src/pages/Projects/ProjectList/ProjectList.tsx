@@ -6,15 +6,27 @@ import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns, ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Space, App, Checkbox, Tooltip, Dropdown } from 'antd';
+import {
+  Button,
+  Tag,
+  Space,
+  App,
+  Checkbox,
+  Tooltip,
+  Dropdown,
+  Modal,
+  Typography,
+} from 'antd';
 import type { MenuProps } from 'antd';
 import {
   PlusOutlined,
   EyeOutlined,
   EditOutlined,
+  DeleteOutlined,
   RollbackOutlined,
   ArrowRightOutlined,
   DownOutlined,
+  ExclamationCircleOutlined,
 } from '@ant-design/icons';
 import type {
   ProjectListItem,
@@ -101,6 +113,18 @@ export function ProjectList() {
 
   // 状态变更
   const [statusUpdating, setStatusUpdating] = useState<string | null>(null); // 正在更新的项目ID
+
+  // 删除相关状态
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletingProject, setDeletingProject] = useState<ProjectListItem | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deletePreCheckData, setDeletePreCheckData] = useState<{
+    collaborations: number;
+    registrationResults: number;
+    dailyReportCache: number;
+    dailyReportExecutions: number;
+    projectGroups: number;
+  } | null>(null);
 
   // 请求取消控制器
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -215,6 +239,63 @@ export function ProjectList() {
     setFormModalOpen(false);
     setEditingProject(null);
     loadProjects();
+  };
+
+  /**
+   * 打开删除确认弹窗（带预检查）
+   */
+  const handleDeleteClick = async (record: ProjectListItem) => {
+    setDeletingProject(record);
+    setDeleteLoading(true);
+    setDeleteModalOpen(true);
+    setDeletePreCheckData(null);
+
+    try {
+      const response = await projectApi.preCheckDeleteProject(record.id);
+      if (response.success && response.data) {
+        setDeletePreCheckData(response.data.affectedData);
+      }
+    } catch (error) {
+      logger.error('预检查删除失败:', error);
+      message.error('获取关联数据失败');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  /**
+   * 确认删除项目
+   */
+  const handleDeleteConfirm = async () => {
+    if (!deletingProject) return;
+
+    try {
+      setDeleteLoading(true);
+      const response = await projectApi.deleteProject(deletingProject.id);
+      if (response.success) {
+        message.success(response.data?.message || '项目删除成功');
+        setDeleteModalOpen(false);
+        setDeletingProject(null);
+        setDeletePreCheckData(null);
+        loadProjects();
+      } else {
+        message.error(response.message || '删除失败');
+      }
+    } catch (error) {
+      logger.error('删除项目失败:', error);
+      message.error('删除项目失败');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  /**
+   * 取消删除
+   */
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setDeletingProject(null);
+    setDeletePreCheckData(null);
   };
 
   /**
@@ -440,7 +521,7 @@ export function ProjectList() {
     {
       title: '操作',
       valueType: 'option',
-      width: 80,
+      width: 110,
       fixed: 'right',
       render: (_, record) => (
         <Space size={4}>
@@ -458,6 +539,15 @@ export function ProjectList() {
               size="small"
               icon={<EditOutlined />}
               onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
+          <Tooltip title="删除">
+            <Button
+              type="text"
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleDeleteClick(record)}
             />
           </Tooltip>
         </Space>
@@ -568,6 +658,68 @@ export function ProjectList() {
           }}
           onSuccess={handleFormSuccess}
         />
+
+        {/* 删除确认弹窗 */}
+        <Modal
+          title={
+            <Space>
+              <ExclamationCircleOutlined className="text-red-500" />
+              <span>确认删除项目</span>
+            </Space>
+          }
+          open={deleteModalOpen}
+          onOk={handleDeleteConfirm}
+          onCancel={handleDeleteCancel}
+          okText="确认删除"
+          cancelText="取消"
+          okButtonProps={{ danger: true, loading: deleteLoading }}
+          confirmLoading={deleteLoading}
+          width={480}
+        >
+          {deletingProject && (
+            <div className="space-y-4">
+              <Typography.Text>
+                确定要删除项目「<strong>{deletingProject.name}</strong>」吗？
+              </Typography.Text>
+
+              {deleteLoading && !deletePreCheckData && (
+                <Typography.Text type="secondary">
+                  正在检查关联数据...
+                </Typography.Text>
+              )}
+
+              {deletePreCheckData && (
+                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                  <Typography.Text strong>以下关联数据将被一并删除：</Typography.Text>
+                  <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                    {deletePreCheckData.collaborations > 0 && (
+                      <li>{deletePreCheckData.collaborations} 条合作记录</li>
+                    )}
+                    {deletePreCheckData.registrationResults > 0 && (
+                      <li>{deletePreCheckData.registrationResults} 条抓取结果</li>
+                    )}
+                    {deletePreCheckData.dailyReportCache > 0 && (
+                      <li>{deletePreCheckData.dailyReportCache} 条日报缓存</li>
+                    )}
+                    {deletePreCheckData.dailyReportExecutions > 0 && (
+                      <li>{deletePreCheckData.dailyReportExecutions} 条执行记录</li>
+                    )}
+                    {deletePreCheckData.projectGroups > 0 && (
+                      <li>将从 {deletePreCheckData.projectGroups} 个项目组中移除</li>
+                    )}
+                    {Object.values(deletePreCheckData).every(v => v === 0) && (
+                      <li className="text-gray-400">无关联数据</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+
+              <Typography.Text type="danger" className="block">
+                此操作不可恢复，请谨慎操作。
+              </Typography.Text>
+            </div>
+          )}
+        </Modal>
       </div>
     </PageTransition>
   );

@@ -302,10 +302,59 @@ class ProjectApi {
   }
 
   /**
-   * 删除项目
+   * 预检查删除项目 - 返回将被删除的关联数据统计
+   */
+  async preCheckDeleteProject(id: string): Promise<
+    ApiResponse<{
+      preCheck: true;
+      project: { id: string; name: string; projectCode?: string };
+      affectedData: {
+        collaborations: number;
+        registrationResults: number;
+        dailyReportCache: number;
+        dailyReportExecutions: number;
+        projectGroups: number;
+      };
+    }>
+  > {
+    const url = `${API_BASE_URL}/delete-project`;
+
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        projectId: id,
+        dbVersion: DB_VERSION,
+        preCheck: true,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * 删除项目（级联删除所有关联数据）
    * 注意：后端 deleteProject 云函数绑定的是 /delete-project 路由
    */
-  async deleteProject(id: string): Promise<ApiResponse<{ message: string }>> {
+  async deleteProject(id: string): Promise<
+    ApiResponse<{
+      message: string;
+      deletedData?: {
+        collaborations: number;
+        registrationResults: number;
+        dailyReportCache: number;
+        dailyReportExecutions: number;
+        projectGroupsUpdated: number;
+        projectDeleted: boolean;
+      };
+    }>
+  > {
     const url = `${API_BASE_URL}/delete-project`;
 
     const response = await fetch(url, {

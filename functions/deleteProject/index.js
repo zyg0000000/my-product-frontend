@@ -1,8 +1,13 @@
 /**
- * [生产版 v2.0-dbversion-support]
+ * [生产版 v3.0-cascade-delete]
  * 云函数：deleteProject
- * 描述：删除一个指定的项目，并级联删除所有相关的合作记录。
+ * 描述：删除一个指定的项目，并级联删除所有相关数据。
  * 触发器：API 网关, 通过 DELETE /delete-project 调用。
+ *
+ * --- 更新日志 (v3.0) ---
+ * - [级联删除] 支持删除所有关联数据：collaborations, registration_results, daily_report_cache, daily_report_executions
+ * - [项目组处理] 自动从 project_groups 中移除项目引用
+ * - [预检查模式] 新增 preCheck=true 参数，返回将被删除的数据统计
  *
  * --- 更新日志 (v2.0) ---
  * - [架构升级] 新增 dbVersion 参数支持，v2 使用 agentworks_db 数据库
@@ -16,8 +21,16 @@ const MONGO_URI = process.env.MONGO_URI;
 // [v2.0] 支持 dbVersion 参数切换数据库
 const DB_NAME_V1 = process.env.MONGO_DB_NAME || 'kol_data';
 const DB_NAME_V2 = 'agentworks_db';
-const COLLABS_COLLECTION = 'collaborations';
-const PROJECTS_COLLECTION = 'projects';
+
+// 关联的集合列表
+const COLLECTIONS = {
+  projects: 'projects',
+  collaborations: 'collaborations',
+  registrationResults: 'registration_results',
+  dailyReportCache: 'daily_report_cache',
+  dailyReportExecutions: 'daily_report_executions',
+  projectGroups: 'project_groups',
+};
 
 let client;
 
@@ -28,6 +41,83 @@ async function connectToDatabase() {
   client = new MongoClient(MONGO_URI);
   await client.connect();
   return client;
+}
+
+/**
+ * 预检查：统计将被删除的关联数据
+ */
+async function preCheckDeletion(db, projectId) {
+  const stats = {
+    collaborations: 0,
+    registrationResults: 0,
+    dailyReportCache: 0,
+    dailyReportExecutions: 0,
+    projectGroups: 0, // 受影响的项目组数量
+  };
+
+  // 统计各集合的关联数据
+  stats.collaborations = await db.collection(COLLECTIONS.collaborations).countDocuments({ projectId });
+  stats.registrationResults = await db.collection(COLLECTIONS.registrationResults).countDocuments({ projectId });
+  stats.dailyReportCache = await db.collection(COLLECTIONS.dailyReportCache).countDocuments({ projectId });
+  stats.dailyReportExecutions = await db.collection(COLLECTIONS.dailyReportExecutions).countDocuments({ projectId });
+
+  // 检查项目组引用
+  stats.projectGroups = await db.collection(COLLECTIONS.projectGroups).countDocuments({ projectIds: projectId });
+
+  return stats;
+}
+
+/**
+ * 执行级联删除
+ */
+async function executeCascadeDelete(db, projectId) {
+  const results = {
+    collaborations: 0,
+    registrationResults: 0,
+    dailyReportCache: 0,
+    dailyReportExecutions: 0,
+    projectGroupsUpdated: 0,
+  };
+
+  // 1. 删除合作记录
+  const collabResult = await db.collection(COLLECTIONS.collaborations).deleteMany({ projectId });
+  results.collaborations = collabResult.deletedCount;
+
+  // 2. 删除抓取结果
+  const regResult = await db.collection(COLLECTIONS.registrationResults).deleteMany({ projectId });
+  results.registrationResults = regResult.deletedCount;
+
+  // 3. 删除日报缓存
+  const cacheResult = await db.collection(COLLECTIONS.dailyReportCache).deleteMany({ projectId });
+  results.dailyReportCache = cacheResult.deletedCount;
+
+  // 4. 删除日报执行记录
+  const execResult = await db.collection(COLLECTIONS.dailyReportExecutions).deleteMany({ projectId });
+  results.dailyReportExecutions = execResult.deletedCount;
+
+  // 5. 从项目组中移除引用（不删除项目组，只移除引用）
+  const groupUpdateResult = await db.collection(COLLECTIONS.projectGroups).updateMany(
+    { projectIds: projectId },
+    { $pull: { projectIds: projectId } }
+  );
+  results.projectGroupsUpdated = groupUpdateResult.modifiedCount;
+
+  // 6. 如果项目是某个组的 primaryProjectId，需要更新
+  await db.collection(COLLECTIONS.projectGroups).updateMany(
+    { primaryProjectId: projectId },
+    [{ $set: { primaryProjectId: { $arrayElemAt: ['$projectIds', 0] } } }]
+  );
+
+  // 7. 删除空的项目组（没有项目的组）
+  await db.collection(COLLECTIONS.projectGroups).deleteMany({ projectIds: { $size: 0 } });
+
+  // 8. 最后删除项目本身
+  const projectResult = await db.collection(COLLECTIONS.projects).deleteOne({ id: projectId });
+
+  return {
+    ...results,
+    projectDeleted: projectResult.deletedCount > 0,
+  };
 }
 
 exports.handler = async (event, context) => {
@@ -53,7 +143,7 @@ exports.handler = async (event, context) => {
         inputData = event.queryStringParameters;
     }
 
-    const { projectId, dbVersion } = inputData;
+    const { projectId, dbVersion, preCheck } = inputData;
 
     if (!projectId) {
       return { statusCode: 400, headers, body: JSON.stringify({ success: false, message: '请求体中缺少必要的字段 (projectId)。' }) };
@@ -64,32 +154,74 @@ exports.handler = async (event, context) => {
     console.log(`[deleteProject] 使用数据库: ${DB_NAME} (dbVersion=${dbVersion || 'v1'})`);
 
     const dbClient = await connectToDatabase();
-    const collabsCollection = dbClient.db(DB_NAME).collection(COLLABS_COLLECTION);
-    const projectsCollection = dbClient.db(DB_NAME).collection(PROJECTS_COLLECTION);
+    const db = dbClient.db(DB_NAME);
 
-    // 1. 先删除所有相关的合作记录
-    const collabDeletionResult = await collabsCollection.deleteMany({ projectId: projectId });
-
-    // 2. 再删除项目本身
-    const projectDeletionResult = await projectsCollection.deleteOne({ id: projectId });
-
-    if (projectDeletionResult.deletedCount === 0) {
-      return { 
-          statusCode: 404, 
-          headers, 
-          body: JSON.stringify({ 
-              success: false, 
-              message: `项目ID '${projectId}' 未找到，无法删除。`
-          }) 
+    // 检查项目是否存在
+    const project = await db.collection(COLLECTIONS.projects).findOne({ id: projectId });
+    if (!project) {
+      return {
+        statusCode: 404,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          message: `项目ID '${projectId}' 未找到。`
+        })
       };
     }
+
+    // [v3.0] 预检查模式：只返回统计信息，不执行删除
+    if (preCheck === 'true' || preCheck === true) {
+      const stats = await preCheckDeletion(db, projectId);
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          preCheck: true,
+          project: {
+            id: project.id,
+            name: project.name,
+            projectCode: project.projectCode,
+          },
+          affectedData: stats,
+          message: '预检查完成，以上数据将在删除时被清理。',
+        }),
+      };
+    }
+
+    // [v3.0] 执行级联删除
+    const results = await executeCascadeDelete(db, projectId);
+
+    if (!results.projectDeleted) {
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          message: '项目删除失败，请重试。'
+        })
+      };
+    }
+
+    // 构建删除摘要
+    const deletedItems = [];
+    if (results.collaborations > 0) deletedItems.push(`${results.collaborations} 条合作记录`);
+    if (results.registrationResults > 0) deletedItems.push(`${results.registrationResults} 条抓取结果`);
+    if (results.dailyReportCache > 0) deletedItems.push(`${results.dailyReportCache} 条日报缓存`);
+    if (results.dailyReportExecutions > 0) deletedItems.push(`${results.dailyReportExecutions} 条执行记录`);
+    if (results.projectGroupsUpdated > 0) deletedItems.push(`${results.projectGroupsUpdated} 个项目组引用`);
+
+    const summary = deletedItems.length > 0
+      ? `同时清理了 ${deletedItems.join('、')}`
+      : '无关联数据需要清理';
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ 
-          success: true, 
-          message: `项目删除成功，同时清理了 ${collabDeletionResult.deletedCount} 条关联的合作记录。`
+      body: JSON.stringify({
+        success: true,
+        message: `项目「${project.name}」删除成功，${summary}。`,
+        deletedData: results,
       }),
     };
 
