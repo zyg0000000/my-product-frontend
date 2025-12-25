@@ -835,7 +835,8 @@ export function MigrationHome() {
                     color={
                       state.dailyStatsMigration.trackingStatus === 'active'
                         ? 'processing'
-                        : state.dailyStatsMigration.trackingStatus === 'archived'
+                        : state.dailyStatsMigration.trackingStatus ===
+                            'archived'
                           ? 'default'
                           : 'error'
                     }
@@ -960,13 +961,15 @@ export function MigrationHome() {
                     <Descriptions.Item label="日报数据 (源)">
                       {validation.comparison.dailyStats.sourceStatsEntries} 条
                       <span className="text-content-muted ml-1">
-                        ({validation.comparison.dailyStats.sourceWorksWithStats} 个合作)
+                        ({validation.comparison.dailyStats.sourceWorksWithStats}{' '}
+                        个合作)
                       </span>
                     </Descriptions.Item>
                     <Descriptions.Item label="日报数据 (目标)">
                       {validation.comparison.dailyStats.targetStatsEntries} 条
                       <span className="text-content-muted ml-1">
-                        ({validation.comparison.dailyStats.targetWithStats} 个合作)
+                        ({validation.comparison.dailyStats.targetWithStats}{' '}
+                        个合作)
                       </span>
                       {validation.comparison.dailyStats.match ? (
                         <CheckCircleOutlined className="ml-2 text-success-500" />

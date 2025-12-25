@@ -22,7 +22,11 @@ import type {
   TrackingConfig,
   PreviousOverview,
 } from '../types/dailyReport';
-import { getCPMCategory, getTodayString, calculateCPM } from '../types/dailyReport';
+import {
+  getCPMCategory,
+  getTodayString,
+  calculateCPM,
+} from '../types/dailyReport';
 import type { PricingMode } from '../types/project';
 
 /**
@@ -65,7 +69,11 @@ function calculateRevenue(
  * 处理后端返回的原始数据，计算所有财务字段
  */
 function processRawData(rawData: DailyReportDataRaw): DailyReportData {
-  const { platformQuotationCoefficients, allCollaborationsFinanceData, previousData } = rawData;
+  const {
+    platformQuotationCoefficients,
+    allCollaborationsFinanceData,
+    previousData,
+  } = rawData;
 
   // 1. 计算每条详情的收入和 CPM
   const details: DailyReportDetail[] = rawData.details.map(detail => {
@@ -135,13 +143,21 @@ function processRawData(rawData: DailyReportDataRaw): DailyReportData {
     let prevTotalRevenue = 0;
     previousData.details.forEach(prev => {
       // 找到对应的合作记录获取收入
-      const collab = allCollaborationsFinanceData.find(c => c.collaborationId === prev.collaborationId);
+      const collab = allCollaborationsFinanceData.find(
+        c => c.collaborationId === prev.collaborationId
+      );
       if (collab) {
-        prevTotalRevenue += calculateRevenue(collab, platformQuotationCoefficients);
+        prevTotalRevenue += calculateRevenue(
+          collab,
+          platformQuotationCoefficients
+        );
       }
     });
 
-    const prevAverageCPM = calculateCPM(prevTotalRevenue, previousData.totalViews);
+    const prevAverageCPM = calculateCPM(
+      prevTotalRevenue,
+      previousData.totalViews
+    );
 
     previousOverview = {
       date: previousData.date,
@@ -174,48 +190,54 @@ export function useDailyReportData(projectId: string | undefined) {
 
   // 状态
   const [data, setData] = useState<DailyReportData | null>(null);
-  const [trackingConfig, setTrackingConfig] = useState<TrackingConfig | null>(null);
+  const [trackingConfig, setTrackingConfig] = useState<TrackingConfig | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState(getTodayString());
 
   // 获取日报数据
-  const fetchData = useCallback(async (date?: string, includePrevious = true) => {
-    if (!projectId) return;
+  const fetchData = useCallback(
+    async (date?: string, includePrevious = true) => {
+      if (!projectId) return;
 
-    const targetDate = date || currentDate;
+      const targetDate = date || currentDate;
 
-    try {
-      setLoading(true);
-      setError(null);
+      try {
+        setLoading(true);
+        setError(null);
 
-      // 获取原始数据
-      const rawResult = await dailyReportApi.getDailyReport({
-        projectId,
-        date: targetDate,
-        includePrevious,
-      }) as unknown as DailyReportDataRaw;
+        // 获取原始数据
+        const rawResult = (await dailyReportApi.getDailyReport({
+          projectId,
+          date: targetDate,
+          includePrevious,
+        })) as unknown as DailyReportDataRaw;
 
-      // 处理原始数据，计算所有财务字段
-      // 后端返回的 rawResult 已包含 platformQuotationCoefficients
-      const processedData = processRawData(rawResult);
+        // 处理原始数据，计算所有财务字段
+        // 后端返回的 rawResult 已包含 platformQuotationCoefficients
+        const processedData = processRawData(rawResult);
 
-      setData(processedData);
-      setCurrentDate(targetDate);
+        setData(processedData);
+        setCurrentDate(targetDate);
 
-      // 从返回数据中提取追踪配置
-      if (processedData.trackingConfig) {
-        setTrackingConfig(processedData.trackingConfig);
+        // 从返回数据中提取追踪配置
+        if (processedData.trackingConfig) {
+          setTrackingConfig(processedData.trackingConfig);
+        }
+      } catch (err) {
+        const errorMsg =
+          err instanceof Error ? err.message : '获取日报数据失败';
+        setError(errorMsg);
+        message.error(errorMsg);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : '获取日报数据失败';
-      setError(errorMsg);
-      message.error(errorMsg);
-    } finally {
-      setLoading(false);
-    }
-  }, [projectId, currentDate, message]);
+    },
+    [projectId, currentDate, message]
+  );
 
   // 初始加载
   useEffect(() => {
@@ -225,10 +247,13 @@ export function useDailyReportData(projectId: string | undefined) {
   }, [projectId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 切换日期
-  const changeDate = useCallback((date: string) => {
-    setCurrentDate(date);
-    fetchData(date);
-  }, [fetchData]);
+  const changeDate = useCallback(
+    (date: string) => {
+      setCurrentDate(date);
+      fetchData(date);
+    },
+    [fetchData]
+  );
 
   // 按 CPM 分类的数据
   const groupedDetails = useMemo<GroupedReportDetails>(() => {
@@ -255,77 +280,78 @@ export function useDailyReportData(projectId: string | undefined) {
   }, [data?.details]);
 
   // 保存日报数据
-  const saveStats = useCallback(async (entries: DailyStatsEntry[]) => {
-    if (!projectId) return false;
+  const saveStats = useCallback(
+    async (entries: DailyStatsEntry[]) => {
+      if (!projectId) return false;
 
-    try {
-      setSaving(true);
+      try {
+        setSaving(true);
 
-      const result = await dailyReportApi.saveDailyStats({
-        projectId,
-        date: currentDate,
-        data: entries,
-      });
+        const result = await dailyReportApi.saveDailyStats({
+          projectId,
+          date: currentDate,
+          data: entries,
+        });
 
-      if (result.success) {
-        message.success(result.message || '保存成功');
-        // 重新获取数据
-        await fetchData(currentDate);
-        return true;
-      } else {
-        message.error(result.message || '保存失败');
+        if (result.success) {
+          message.success(result.message || '保存成功');
+          // 重新获取数据
+          await fetchData(currentDate);
+          return true;
+        } else {
+          message.error(result.message || '保存失败');
+          return false;
+        }
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : '保存失败';
+        message.error(errorMsg);
         return false;
+      } finally {
+        setSaving(false);
       }
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : '保存失败';
-      message.error(errorMsg);
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  }, [projectId, currentDate, fetchData, message]);
+    },
+    [projectId, currentDate, fetchData, message]
+  );
 
   // 保存备注
-  const saveSolution = useCallback(async (
-    collaborationId: string,
-    solution: string
-  ) => {
-    try {
-      setSaving(true);
+  const saveSolution = useCallback(
+    async (collaborationId: string, solution: string) => {
+      try {
+        setSaving(true);
 
-      const result = await dailyReportApi.saveReportSolution({
-        collaborationId,
-        date: currentDate,
-        solution,
-      });
-
-      if (result.success) {
-        message.success('备注保存成功');
-        // 更新本地数据
-        setData(prev => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            details: prev.details.map(d =>
-              d.collaborationId === collaborationId
-                ? { ...d, solution }
-                : d
-            ),
-          };
+        const result = await dailyReportApi.saveReportSolution({
+          collaborationId,
+          date: currentDate,
+          solution,
         });
-        return true;
-      } else {
-        message.error(result.message || '保存失败');
+
+        if (result.success) {
+          message.success('备注保存成功');
+          // 更新本地数据
+          setData(prev => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              details: prev.details.map(d =>
+                d.collaborationId === collaborationId ? { ...d, solution } : d
+              ),
+            };
+          });
+          return true;
+        } else {
+          message.error(result.message || '保存失败');
+          return false;
+        }
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : '保存失败';
+        message.error(errorMsg);
         return false;
+      } finally {
+        setSaving(false);
       }
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : '保存失败';
-      message.error(errorMsg);
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  }, [currentDate, message]);
+    },
+    [currentDate, message]
+  );
 
   // 刷新数据
   const refresh = useCallback(() => {
@@ -333,11 +359,14 @@ export function useDailyReportData(projectId: string | undefined) {
   }, [fetchData, currentDate]);
 
   // 日期范围信息
-  const dateRange = useMemo(() => ({
-    first: data?.firstReportDate,
-    last: data?.lastReportDate,
-    current: currentDate,
-  }), [data?.firstReportDate, data?.lastReportDate, currentDate]);
+  const dateRange = useMemo(
+    () => ({
+      first: data?.firstReportDate,
+      last: data?.lastReportDate,
+      current: currentDate,
+    }),
+    [data?.firstReportDate, data?.lastReportDate, currentDate]
+  );
 
   // 更新追踪配置的回调
   const updateTrackingConfig = useCallback((config: TrackingConfig) => {

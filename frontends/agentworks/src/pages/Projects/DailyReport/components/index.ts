@@ -3,4 +3,7 @@ export type { ChangeData } from './StatCard';
 
 export { TalentDetailTable } from './TalentDetailTable';
 
-export { CPMDistributionBar, calculateCPMDistribution } from './CPMDistributionBar';
+export {
+  CPMDistributionBar,
+  calculateCPMDistribution,
+} from './CPMDistributionBar';

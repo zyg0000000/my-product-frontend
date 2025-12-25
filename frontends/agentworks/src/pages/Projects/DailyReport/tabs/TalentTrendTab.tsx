@@ -35,7 +35,12 @@ interface TalentTrendTabProps {
 
 // 指标配置
 const METRIC_OPTIONS = [
-  { key: 'cpm', label: 'CPM', unit: '元', format: (v: number) => `¥${v.toFixed(2)}` },
+  {
+    key: 'cpm',
+    label: 'CPM',
+    unit: '元',
+    format: (v: number) => `¥${v.toFixed(2)}`,
+  },
   { key: 'totalViews', label: '播放量', unit: '万', format: formatViews },
 ];
 
@@ -144,32 +149,38 @@ export function TalentTrendTab({
   }, [details]);
 
   // 处理达人选择
-  const handleTalentChange = useCallback(async (values: string[]) => {
-    setSelectedTalents(values);
+  const handleTalentChange = useCallback(
+    async (values: string[]) => {
+      setSelectedTalents(values);
 
-    if (values.length === 0) {
-      setTrendData([]);
-      return;
-    }
+      if (values.length === 0) {
+        setTrendData([]);
+        return;
+      }
 
-    setTrendLoading(true);
-    try {
-      // 获取原始数据（不含 CPM）
-      const rawData = await getTalentTrend({
-        collaborationIds: values,
-        days: 14,
-      });
-      // 前端计算 CPM
-      const processedData = processTrendRawData(rawData, platformQuotationCoefficients);
-      setTrendData(processedData);
-    } catch (error) {
-      console.error('获取趋势数据失败:', error);
-      message.error('获取趋势数据失败');
-      setTrendData([]);
-    } finally {
-      setTrendLoading(false);
-    }
-  }, [platformQuotationCoefficients]);
+      setTrendLoading(true);
+      try {
+        // 获取原始数据（不含 CPM）
+        const rawData = await getTalentTrend({
+          collaborationIds: values,
+          days: 14,
+        });
+        // 前端计算 CPM
+        const processedData = processTrendRawData(
+          rawData,
+          platformQuotationCoefficients
+        );
+        setTrendData(processedData);
+      } catch (error) {
+        console.error('获取趋势数据失败:', error);
+        message.error('获取趋势数据失败');
+        setTrendData([]);
+      } finally {
+        setTrendLoading(false);
+      }
+    },
+    [platformQuotationCoefficients]
+  );
 
   // 处理指标选择
   const handleMetricChange = (values: string[]) => {
@@ -203,7 +214,9 @@ export function TalentTrendTab({
       const dualData = talent.data.map((point, index) => {
         const prevPoint = index > 0 ? talent.data[index - 1] : null;
         const cpmChange = prevPoint ? point.cpm - prevPoint.cpm : null;
-        const viewsChange = prevPoint ? (point.totalViews - prevPoint.totalViews) / 10000 : null;
+        const viewsChange = prevPoint
+          ? (point.totalViews - prevPoint.totalViews) / 10000
+          : null;
         return {
           date: point.date,
           cpm: point.cpm,
@@ -217,14 +230,22 @@ export function TalentTrendTab({
 
     // 多达人或单指标模式 - Line 数据
     const metric = selectedMetrics[0];
-    const lineData: Array<{ date: string; value: number; talent: string; change: number | null }> = [];
+    const lineData: Array<{
+      date: string;
+      value: number;
+      talent: string;
+      change: number | null;
+    }> = [];
 
     trendData.forEach(talent => {
       talent.data.forEach((point, index) => {
         let value = metric === 'cpm' ? point.cpm : point.totalViews;
-        let prevValue = index > 0
-          ? (metric === 'cpm' ? talent.data[index - 1].cpm : talent.data[index - 1].totalViews)
-          : null;
+        let prevValue =
+          index > 0
+            ? metric === 'cpm'
+              ? talent.data[index - 1].cpm
+              : talent.data[index - 1].totalViews
+            : null;
 
         // 播放量转为万
         if (metric === 'totalViews') {
@@ -297,31 +318,46 @@ export function TalentTrendTab({
       },
       interaction: {
         tooltip: {
-          render: (_: unknown, tooltipData: { title: string; items: Array<{ name: string; value: number; color: string }> }) => {
+          render: (
+            _: unknown,
+            tooltipData: {
+              title: string;
+              items: Array<{ name: string; value: number; color: string }>;
+            }
+          ) => {
             const { title, items } = tooltipData;
             // 根据 date 和 talent 从原始数据中找到完整数据点
             const getDataPoint = (talentName: string) => {
-              return lineChartData.find(d => d.date === title && d.talent === talentName);
+              return lineChartData.find(
+                d => d.date === title && d.talent === talentName
+              );
             };
             return `<div style="padding: 8px 12px;">
               <div style="margin-bottom: 8px; color: rgba(255,255,255,0.65);">${title}</div>
-              ${items.map(item => {
-                const dataPoint = getDataPoint(item.name);
-                const value = dataPoint?.value ?? item.value;
-                const formattedValue = isCPM ? `¥${value.toFixed(2)}` : `${value.toFixed(1)}万`;
-                let changeText = '';
-                if (dataPoint?.change !== undefined && dataPoint.change !== null) {
-                  const sign = dataPoint.change >= 0 ? '+' : '';
-                  changeText = isCPM
-                    ? ` (${sign}¥${dataPoint.change.toFixed(2)})`
-                    : ` (${sign}${dataPoint.change.toFixed(1)}万)`;
-                }
-                return `<div style="display: flex; align-items: center; gap: 8px; margin: 4px 0;">
+              ${items
+                .map(item => {
+                  const dataPoint = getDataPoint(item.name);
+                  const value = dataPoint?.value ?? item.value;
+                  const formattedValue = isCPM
+                    ? `¥${value.toFixed(2)}`
+                    : `${value.toFixed(1)}万`;
+                  let changeText = '';
+                  if (
+                    dataPoint?.change !== undefined &&
+                    dataPoint.change !== null
+                  ) {
+                    const sign = dataPoint.change >= 0 ? '+' : '';
+                    changeText = isCPM
+                      ? ` (${sign}¥${dataPoint.change.toFixed(2)})`
+                      : ` (${sign}${dataPoint.change.toFixed(1)}万)`;
+                  }
+                  return `<div style="display: flex; align-items: center; gap: 8px; margin: 4px 0;">
                   <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${item.color};"></span>
                   <span style="color: rgba(255,255,255,0.85);">${item.name}</span>
                   <span style="color: #fff; margin-left: auto;">${formattedValue}${changeText}</span>
                 </div>`;
-              }).join('')}
+                })
+                .join('')}
             </div>`;
           },
         },
@@ -347,7 +383,15 @@ export function TalentTrendTab({
         ],
       }),
     };
-  }, [lineChartData, selectedTalentNames, benchmarkCPM, chartTheme, currentMetricConfig, selectedMetrics, isSingleTalentMode]);
+  }, [
+    lineChartData,
+    selectedTalentNames,
+    benchmarkCPM,
+    chartTheme,
+    currentMetricConfig,
+    selectedMetrics,
+    isSingleTalentMode,
+  ]);
 
   // DualAxes 图表配置（单达人双指标）
   const dualAxesConfig = useMemo(() => {
@@ -362,31 +406,43 @@ export function TalentTrendTab({
       axis: { y: false },
       interaction: {
         tooltip: {
-          render: (_: unknown, tooltipData: { title: string; items: Array<{ name: string; value: number; color: string }> }) => {
+          render: (
+            _: unknown,
+            tooltipData: {
+              title: string;
+              items: Array<{ name: string; value: number; color: string }>;
+            }
+          ) => {
             const { title, items } = tooltipData;
             const dataPoint = dualAxesData.find(d => d.date === title);
 
             return `<div style="padding: 8px 12px;">
               <div style="margin-bottom: 8px; color: rgba(255,255,255,0.65);">${title}</div>
-              ${items.map(item => {
-                const isCpm = item.name === 'cpm';
-                const value = item.value;
-                const change = isCpm ? dataPoint?.cpmChange : dataPoint?.viewsChange;
-                const formattedValue = isCpm ? `¥${value.toFixed(2)}` : `${value.toFixed(1)}万`;
-                let changeText = '';
-                if (change !== undefined && change !== null) {
-                  const sign = change >= 0 ? '+' : '';
-                  changeText = isCpm
-                    ? ` (${sign}¥${change.toFixed(2)})`
-                    : ` (${sign}${change.toFixed(1)}万)`;
-                }
-                const displayName = isCpm ? 'CPM' : '播放量';
-                return `<div style="display: flex; align-items: center; gap: 8px; margin: 4px 0;">
+              ${items
+                .map(item => {
+                  const isCpm = item.name === 'cpm';
+                  const value = item.value;
+                  const change = isCpm
+                    ? dataPoint?.cpmChange
+                    : dataPoint?.viewsChange;
+                  const formattedValue = isCpm
+                    ? `¥${value.toFixed(2)}`
+                    : `${value.toFixed(1)}万`;
+                  let changeText = '';
+                  if (change !== undefined && change !== null) {
+                    const sign = change >= 0 ? '+' : '';
+                    changeText = isCpm
+                      ? ` (${sign}¥${change.toFixed(2)})`
+                      : ` (${sign}${change.toFixed(1)}万)`;
+                  }
+                  const displayName = isCpm ? 'CPM' : '播放量';
+                  return `<div style="display: flex; align-items: center; gap: 8px; margin: 4px 0;">
                   <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${item.color};"></span>
                   <span style="color: rgba(255,255,255,0.85);">${displayName}</span>
                   <span style="color: #fff; margin-left: auto;">${formattedValue}${changeText}</span>
                 </div>`;
-              }).join('')}
+                })
+                .join('')}
             </div>`;
           },
         },
@@ -477,14 +533,24 @@ export function TalentTrendTab({
           {isSingleTalentMode ? (
             <Checkbox.Group
               value={selectedMetrics}
-              onChange={handleMetricChange as (values: (string | number | boolean)[]) => void}
-              options={METRIC_OPTIONS.map(m => ({ label: m.label, value: m.key }))}
+              onChange={
+                handleMetricChange as (
+                  values: (string | number | boolean)[]
+                ) => void
+              }
+              options={METRIC_OPTIONS.map(m => ({
+                label: m.label,
+                value: m.key,
+              }))}
             />
           ) : (
             <Radio.Group
               value={selectedMetrics[0]}
               onChange={e => setSelectedMetrics([e.target.value])}
-              options={METRIC_OPTIONS.map(m => ({ label: m.label, value: m.key }))}
+              options={METRIC_OPTIONS.map(m => ({
+                label: m.label,
+                value: m.key,
+              }))}
               optionType="button"
               buttonStyle="solid"
               size="small"
@@ -513,7 +579,7 @@ export function TalentTrendTab({
           <div className="flex items-center justify-center py-24">
             <Spin size="large" />
           </div>
-        ) : (lineChartData.length === 0 && dualAxesData.length === 0) ? (
+        ) : lineChartData.length === 0 && dualAxesData.length === 0 ? (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description="暂无趋势数据"

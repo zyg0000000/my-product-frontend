@@ -6,7 +6,11 @@
 import { useState } from 'react';
 import { Table, Tag, Input, Button, Space } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { EditOutlined, SaveOutlined, LineChartOutlined } from '@ant-design/icons';
+import {
+  EditOutlined,
+  SaveOutlined,
+  LineChartOutlined,
+} from '@ant-design/icons';
 import type { DailyReportDetail } from '../../../../types/dailyReport';
 import {
   CPM_CATEGORIES,
@@ -19,7 +23,10 @@ import {
 
 interface TalentDetailTableProps {
   data: DailyReportDetail[];
-  onSaveSolution: (collaborationId: string, solution: string) => Promise<boolean>;
+  onSaveSolution: (
+    collaborationId: string,
+    solution: string
+  ) => Promise<boolean>;
   onViewTrend?: (collaborationId: string, talentName: string) => void;
   saving: boolean;
   /** 是否正在导出图片（隐藏编辑按钮和操作列） */
@@ -82,7 +89,9 @@ export function TalentDetailTable({
       sorter: (a, b) => {
         if (!a.publishDate) return 1;
         if (!b.publishDate) return -1;
-        return new Date(a.publishDate).getTime() - new Date(b.publishDate).getTime();
+        return (
+          new Date(a.publishDate).getTime() - new Date(b.publishDate).getTime()
+        );
       },
     },
     {
@@ -132,7 +141,8 @@ export function TalentDetailTable({
                     : 'text-[var(--aw-gray-400)]'
               }`}
             >
-              {record.viewsChange > 0 ? '+' : ''}{formatViews(record.viewsChange)}
+              {record.viewsChange > 0 ? '+' : ''}
+              {formatViews(record.viewsChange)}
             </span>
           )}
         </span>
@@ -170,9 +180,7 @@ export function TalentDetailTable({
         // 导出时只显示文字，不显示编辑按钮
         if (isExporting) {
           return (
-            <span className="text-[var(--aw-gray-600)]">
-              {solution || '-'}
-            </span>
+            <span className="text-[var(--aw-gray-600)]">{solution || '-'}</span>
           );
         }
 
@@ -220,21 +228,27 @@ export function TalentDetailTable({
       },
     },
     // 导出时不显示操作列
-    ...(!isExporting ? [{
-      title: '操作',
-      key: 'action',
-      width: 70,
-      align: 'center' as const,
-      render: (_: unknown, record: DailyReportDetail) => (
-        <Button
-          type="text"
-          size="small"
-          icon={<LineChartOutlined />}
-          onClick={() => onViewTrend?.(record.collaborationId, record.talentName)}
-          title="查看趋势"
-        />
-      ),
-    }] : []),
+    ...(!isExporting
+      ? [
+          {
+            title: '操作',
+            key: 'action',
+            width: 70,
+            align: 'center' as const,
+            render: (_: unknown, record: DailyReportDetail) => (
+              <Button
+                type="text"
+                size="small"
+                icon={<LineChartOutlined />}
+                onClick={() =>
+                  onViewTrend?.(record.collaborationId, record.talentName)
+                }
+                title="查看趋势"
+              />
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -244,7 +258,9 @@ export function TalentDetailTable({
         columns={columns}
         dataSource={data}
         rowKey="collaborationId"
-        pagination={data.length > 20 ? { pageSize: 20, showSizeChanger: true } : false}
+        pagination={
+          data.length > 20 ? { pageSize: 20, showSizeChanger: true } : false
+        }
         size="small"
         scroll={{ x: 890 }}
         className="border border-[var(--aw-gray-200)] rounded-lg overflow-hidden"

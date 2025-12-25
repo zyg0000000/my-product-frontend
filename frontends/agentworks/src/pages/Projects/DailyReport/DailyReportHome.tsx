@@ -24,7 +24,11 @@ import { PageTransition } from '../../../components/PageTransition';
 import { TableSkeleton } from '../../../components/Skeletons/TableSkeleton';
 import { TrackingConfigModal } from './TrackingConfigModal';
 import { projectApi } from '../../../services/projectApi';
-import type { ProjectListItem, Project, Collaboration } from '../../../types/project';
+import type {
+  ProjectListItem,
+  Project,
+  Collaboration,
+} from '../../../types/project';
 import type {
   TrackingConfig,
   TrackingStatus,
@@ -83,7 +87,8 @@ export function DailyReportHome() {
   const actionRef = useRef<ActionType>(null);
 
   // 平台配置（用于财务计算）
-  const { configs: platformConfigs, loading: configLoading } = usePlatformConfig();
+  const { configs: platformConfigs, loading: configLoading } =
+    usePlatformConfig();
 
   // 数据状态
   const [loading, setLoading] = useState(true);
@@ -144,9 +149,10 @@ export function DailyReportHome() {
       let totalViews = 0;
 
       // 创建财务计算上下文（如果平台配置可用）
-      const financeContext = platformConfigs.length > 0
-        ? createFinanceContextFromProject(project, platformConfigs)
-        : null;
+      const financeContext =
+        platformConfigs.length > 0
+          ? createFinanceContextFromProject(project, platformConfigs)
+          : null;
 
       // 计算总金额（所有已定档+已发布的合作）
       scheduledCollabs.forEach(collab => {
@@ -184,7 +190,7 @@ export function DailyReportHome() {
       // 计算平均 CPM
       const avgCPM =
         totalViews > 0
-          ? Math.round(((enteredAmount / 100) / totalViews) * 1000 * 100) / 100
+          ? Math.round((enteredAmount / 100 / totalViews) * 1000 * 100) / 100
           : 0;
 
       return {
@@ -329,7 +335,12 @@ export function DailyReportHome() {
       p => !p.trackingConfig || p.trackingConfig.status === 'disabled'
     ).length;
 
-    return { activeCount, archivedCount, disabledCount, total: projects.length };
+    return {
+      activeCount,
+      archivedCount,
+      disabledCount,
+      total: projects.length,
+    };
   }, [projects]);
 
   // 表格列定义
@@ -392,7 +403,10 @@ export function DailyReportHome() {
       width: 100,
       search: false,
       render: (_, record) => {
-        if (!record.trackingConfig || record.trackingConfig.status === 'disabled') {
+        if (
+          !record.trackingConfig ||
+          record.trackingConfig.status === 'disabled'
+        ) {
           return <span className="text-[var(--aw-gray-400)]">-</span>;
         }
         const entered = record.trackingStats?.dataEnteredCount || 0;
@@ -400,7 +414,9 @@ export function DailyReportHome() {
         const percent = total > 0 ? Math.round((entered / total) * 100) : 0;
         return (
           <div className="flex flex-col gap-1">
-            <span className="tabular-nums text-sm font-medium">{entered}/{total}</span>
+            <span className="tabular-nums text-sm font-medium">
+              {entered}/{total}
+            </span>
             <Progress percent={percent} size="small" showInfo={false} />
           </div>
         );
@@ -413,7 +429,10 @@ export function DailyReportHome() {
       align: 'right',
       search: false,
       render: (_, record) => {
-        if (!record.trackingConfig || record.trackingConfig.status === 'disabled') {
+        if (
+          !record.trackingConfig ||
+          record.trackingConfig.status === 'disabled'
+        ) {
           return <span className="text-[var(--aw-gray-400)]">-</span>;
         }
         const views = record.trackingStats?.totalViews || 0;
@@ -429,7 +448,10 @@ export function DailyReportHome() {
       valueType: 'select',
       valueEnum: CPM_STATUS_VALUE_ENUM,
       render: (_, record) => {
-        if (!record.trackingConfig || record.trackingConfig.status === 'disabled') {
+        if (
+          !record.trackingConfig ||
+          record.trackingConfig.status === 'disabled'
+        ) {
           return <span className="text-[var(--aw-gray-400)]">-</span>;
         }
         const avgCPM = record.trackingStats?.avgCPM || 0;
@@ -454,7 +476,10 @@ export function DailyReportHome() {
       width: 150,
       search: false,
       render: (_, record) => {
-        if (!record.trackingConfig || record.trackingConfig.status === 'disabled') {
+        if (
+          !record.trackingConfig ||
+          record.trackingConfig.status === 'disabled'
+        ) {
           return <span className="text-[var(--aw-gray-400)]">-</span>;
         }
         const entered = record.trackingStats?.enteredAmount || 0;
@@ -485,7 +510,10 @@ export function DailyReportHome() {
       align: 'right',
       search: false,
       render: (_, record) => {
-        if (!record.trackingConfig || record.trackingConfig.status === 'disabled') {
+        if (
+          !record.trackingConfig ||
+          record.trackingConfig.status === 'disabled'
+        ) {
           return <span className="text-[var(--aw-gray-400)]">-</span>;
         }
         const cpm = record.trackingConfig?.benchmarkCPM || 30;
@@ -499,7 +527,10 @@ export function DailyReportHome() {
       align: 'center',
       search: false,
       render: (_, record) => {
-        if (!record.trackingConfig || record.trackingConfig.status === 'disabled') {
+        if (
+          !record.trackingConfig ||
+          record.trackingConfig.status === 'disabled'
+        ) {
           return <span className="text-[var(--aw-gray-400)]">-</span>;
         }
         return (
@@ -518,7 +549,10 @@ export function DailyReportHome() {
       align: 'center',
       search: false,
       render: (_, record) => {
-        if (!record.trackingConfig || record.trackingConfig.status === 'disabled') {
+        if (
+          !record.trackingConfig ||
+          record.trackingConfig.status === 'disabled'
+        ) {
           return <span className="text-[var(--aw-gray-400)]">-</span>;
         }
         const date = record.trackingStats?.latestDataDate;
@@ -618,16 +652,21 @@ export function DailyReportHome() {
             onSubmit={params => {
               setNameFilter((params.name as string) || '');
               setTrackingStatusFilter(
-                ((params.trackingConfig as { status?: TrackingStatus })?.status as TrackingStatus) || ''
+                ((params.trackingConfig as { status?: TrackingStatus })
+                  ?.status as TrackingStatus) || ''
               );
               setVersionFilter(
-                ((params.trackingConfig as { version?: TrackingVersion })?.version as TrackingVersion) || ''
+                ((params.trackingConfig as { version?: TrackingVersion })
+                  ?.version as TrackingVersion) || ''
               );
               setCpmStatusFilter(
-                ((params.trackingStats as { avgCPM?: string })?.avgCPM as 'normal' | 'abnormal') || ''
+                ((params.trackingStats as { avgCPM?: string })?.avgCPM as
+                  | 'normal'
+                  | 'abnormal') || ''
               );
               setPendingFilter(
-                ((params.trackingStats as { pendingCount?: string })?.pendingCount as 'has' | 'none') || ''
+                ((params.trackingStats as { pendingCount?: string })
+                  ?.pendingCount as 'has' | 'none') || ''
               );
               setCurrentPage(1);
             }}

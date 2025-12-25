@@ -9,15 +9,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import {
-  Switch,
-  InputNumber,
-  TimePicker,
-  Button,
-  App,
-  Tag,
-  Radio,
-} from 'antd';
+import { Switch, InputNumber, TimePicker, Button, App, Tag, Radio } from 'antd';
 import type { RadioChangeEvent } from 'antd';
 import {
   CheckCircleOutlined,
@@ -27,7 +19,11 @@ import {
   FileTextOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import type { TrackingConfig, TrackingStatus, TrackingVersion } from '../../../types/dailyReport';
+import type {
+  TrackingConfig,
+  TrackingStatus,
+  TrackingVersion,
+} from '../../../types/dailyReport';
 import {
   TRACKING_STATUS_LABELS,
   TRACKING_STATUS_COLORS,
@@ -84,7 +80,8 @@ export function TrackingConfigPanel({
 
   // 切换归档状态
   const handleToggleArchive = () => {
-    const newStatus: TrackingStatus = config.status === 'archived' ? 'active' : 'archived';
+    const newStatus: TrackingStatus =
+      config.status === 'archived' ? 'active' : 'archived';
     updateField('status', newStatus);
   };
 
@@ -253,7 +250,9 @@ export function TrackingConfigPanel({
                   </div>
                   <InputNumber
                     value={config.benchmarkCPM}
-                    onChange={v => updateField('benchmarkCPM', v ?? config.benchmarkCPM)}
+                    onChange={v =>
+                      updateField('benchmarkCPM', v ?? config.benchmarkCPM)
+                    }
                     onBlur={() => {
                       // 失焦时如果为空，恢复默认值
                       if (!config.benchmarkCPM || config.benchmarkCPM < 1) {

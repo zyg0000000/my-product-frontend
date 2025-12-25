@@ -2,7 +2,11 @@
  * 统计卡片组件 - 支持环比显示
  */
 
-import { ArrowUpOutlined, ArrowDownOutlined, MinusOutlined } from '@ant-design/icons';
+import {
+  ArrowUpOutlined,
+  ArrowDownOutlined,
+  MinusOutlined,
+} from '@ant-design/icons';
 
 export interface ChangeData {
   value: number; // 变化百分比
@@ -33,13 +37,16 @@ export function StatCard({
 }: StatCardProps) {
   // 计算变化的颜色
   const getChangeColor = () => {
-    if (!change || change.direction === 'neutral') return 'text-[var(--aw-gray-500)]';
+    if (!change || change.direction === 'neutral')
+      return 'text-[var(--aw-gray-500)]';
 
     const isGood =
       (changeDirection === 'positive' && change.direction === 'up') ||
       (changeDirection === 'negative' && change.direction === 'down');
 
-    return isGood ? 'text-[var(--aw-success-500)]' : 'text-[var(--aw-danger-500)]';
+    return isGood
+      ? 'text-[var(--aw-success-500)]'
+      : 'text-[var(--aw-danger-500)]';
   };
 
   const ChangeIcon =
@@ -63,15 +70,26 @@ export function StatCard({
         )}
       </div>
       {change && (
-        <div className={`mt-2 flex items-center gap-1.5 text-sm font-medium ${getChangeColor()}`}>
+        <div
+          className={`mt-2 flex items-center gap-1.5 text-sm font-medium ${getChangeColor()}`}
+        >
           <ChangeIcon className="text-xs" />
           {change.absoluteChange !== undefined && formatAbsoluteChange ? (
             <>
-              <span>{change.direction === 'down' ? '-' : '+'}{formatAbsoluteChange(Math.abs(change.absoluteChange))}</span>
-              <span className="text-[var(--aw-gray-400)] font-normal">({change.direction === 'down' ? '' : '+'}{change.value.toFixed(1)}%)</span>
+              <span>
+                {change.direction === 'down' ? '-' : '+'}
+                {formatAbsoluteChange(Math.abs(change.absoluteChange))}
+              </span>
+              <span className="text-[var(--aw-gray-400)] font-normal">
+                ({change.direction === 'down' ? '' : '+'}
+                {change.value.toFixed(1)}%)
+              </span>
             </>
           ) : (
-            <span>{change.direction === 'down' ? '' : '+'}{change.value.toFixed(1)}%</span>
+            <span>
+              {change.direction === 'down' ? '' : '+'}
+              {change.value.toFixed(1)}%
+            </span>
           )}
           <span className="text-[var(--aw-gray-400)] font-normal">vs 昨日</span>
         </div>
@@ -95,6 +113,7 @@ export function calculateChange(
   return {
     value: changePercent,
     absoluteChange,
-    direction: changePercent > 0 ? 'up' : changePercent < 0 ? 'down' : 'neutral',
+    direction:
+      changePercent > 0 ? 'up' : changePercent < 0 ? 'down' : 'neutral',
   };
 }

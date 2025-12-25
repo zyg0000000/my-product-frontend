@@ -412,7 +412,9 @@ export function ProjectDetail() {
                 查看日报
               </Button>
               <Tooltip
-                title={!isExecuting ? '项目已进入结算阶段，无法编辑' : undefined}
+                title={
+                  !isExecuting ? '项目已进入结算阶段，无法编辑' : undefined
+                }
               >
                 <Button
                   type="primary"

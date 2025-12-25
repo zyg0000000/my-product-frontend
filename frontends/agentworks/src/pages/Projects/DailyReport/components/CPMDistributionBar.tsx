@@ -5,7 +5,10 @@
 
 import { Tooltip } from 'antd';
 import type { CPMCategory } from '../../../../types/dailyReport';
-import { CPM_CATEGORIES, getCPMCategoryConfig } from '../../../../types/dailyReport';
+import {
+  CPM_CATEGORIES,
+  getCPMCategoryConfig,
+} from '../../../../types/dailyReport';
 
 interface CPMDistributionBarProps {
   distribution: Record<CPMCategory, number>;

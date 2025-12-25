@@ -334,10 +334,10 @@ export interface TrackingOverviewData {
  * CPM 分类
  */
 export type CPMCategory =
-  | 'excellent'       // 优秀（CPM<20）
-  | 'acceptable'      // 良好（CPM 20-40）
-  | 'poor'            // 较差（CPM 40-100）
-  | 'critical';       // 很差（CPM>100）
+  | 'excellent' // 优秀（CPM<20）
+  | 'acceptable' // 良好（CPM 20-40）
+  | 'poor' // 较差（CPM 40-100）
+  | 'critical'; // 很差（CPM>100）
 
 /**
  * CPM 分类配置
@@ -617,7 +617,10 @@ export function formatReportDate(dateStr: string): string {
  * @param totalViews 播放量
  * @returns CPM 值
  */
-export function calculateCPM(revenueInCents: number, totalViews: number): number {
+export function calculateCPM(
+  revenueInCents: number,
+  totalViews: number
+): number {
   if (totalViews <= 0) return 0;
   const revenueInYuan = revenueInCents / 100;
   return Math.round((revenueInYuan / totalViews) * 1000 * 100) / 100;

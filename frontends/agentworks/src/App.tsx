@@ -250,8 +250,14 @@ function ThemedApp() {
                   {/* 项目管理模块 */}
                   <Route path="projects" element={<ProjectsHome />} />
                   <Route path="projects/list" element={<ProjectList />} />
-                  <Route path="projects/daily-report" element={<DailyReportHome />} />
-                  <Route path="projects/:id/daily-report" element={<ProjectDailyReport />} />
+                  <Route
+                    path="projects/daily-report"
+                    element={<DailyReportHome />}
+                  />
+                  <Route
+                    path="projects/:id/daily-report"
+                    element={<ProjectDailyReport />}
+                  />
                   <Route path="projects/:id" element={<ProjectDetail />} />
                   <Route path="execution-board" element={<ExecutionBoard />} />
                   <Route path="analytics" element={<AnalyticsHome />} />

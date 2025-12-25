@@ -57,9 +57,12 @@ export function useExportImage(
         backgroundColor,
         pixelRatio,
         // 过滤掉按钮等不需要导出的元素
-        filter: (node) => {
+        filter: node => {
           // 过滤掉带有 data-export-ignore 属性的元素
-          if (node instanceof HTMLElement && node.dataset.exportIgnore === 'true') {
+          if (
+            node instanceof HTMLElement &&
+            node.dataset.exportIgnore === 'true'
+          ) {
             return false;
           }
           return true;

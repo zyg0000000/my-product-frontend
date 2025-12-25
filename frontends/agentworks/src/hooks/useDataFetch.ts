@@ -200,7 +200,11 @@ function parseViewsFromResult(
     for (const key of possibleKeys) {
       if (data[key] !== undefined) {
         const views = parseViewsValue(data[key]);
-        console.log('[DataFetch] parseViewsFromResult ECS格式:', { key, raw: data[key], parsed: views });
+        console.log('[DataFetch] parseViewsFromResult ECS格式:', {
+          key,
+          raw: data[key],
+          parsed: views,
+        });
         if (views !== null) return views;
       }
     }
@@ -232,7 +236,10 @@ function parseViewsFromResult(
     }
   }
 
-  console.log('[DataFetch] parseViewsFromResult 未找到播放量, results结构:', JSON.stringify(results, null, 2));
+  console.log(
+    '[DataFetch] parseViewsFromResult 未找到播放量, results结构:',
+    JSON.stringify(results, null, 2)
+  );
   return null;
 }
 
@@ -372,11 +379,14 @@ export function useDataFetch({
   // 保存抓取结果到日报
   const saveResults = useCallback(
     async (tasks: FetchTask[]): Promise<void> => {
-      console.log('[DataFetch] saveResults 收到任务:', tasks.map(t => ({
-        talent: t.talentName,
-        status: t.status,
-        views: t.fetchedViews,
-      })));
+      console.log(
+        '[DataFetch] saveResults 收到任务:',
+        tasks.map(t => ({
+          talent: t.talentName,
+          status: t.status,
+          views: t.fetchedViews,
+        }))
+      );
 
       const successTasks = tasks.filter(
         t => t.status === 'success' && t.fetchedViews !== undefined
@@ -395,7 +405,12 @@ export function useDataFetch({
         source: 'auto' as const,
       }));
 
-      console.log('[DataFetch] 准备保存的数据:', entries, '目标日期:', targetDate);
+      console.log(
+        '[DataFetch] 准备保存的数据:',
+        entries,
+        '目标日期:',
+        targetDate
+      );
 
       try {
         const result = await saveDailyStats({
@@ -494,7 +509,10 @@ export function useDataFetch({
           }
 
           const task = executableTasks[i];
-          console.log(`[DataFetch] 执行任务 ${i + 1}/${executableTasks.length}:`, task.talentName);
+          console.log(
+            `[DataFetch] 执行任务 ${i + 1}/${executableTasks.length}:`,
+            task.talentName
+          );
 
           // 更新状态为 running
           setSession(prev => {
@@ -575,7 +593,9 @@ export function useDataFetch({
         });
       } catch (error) {
         console.error('[DataFetch] 抓取过程出错:', error);
-        message.error(`抓取失败: ${error instanceof Error ? error.message : '未知错误'}`);
+        message.error(
+          `抓取失败: ${error instanceof Error ? error.message : '未知错误'}`
+        );
 
         // 出错时也要更新状态
         setSession(prev => {

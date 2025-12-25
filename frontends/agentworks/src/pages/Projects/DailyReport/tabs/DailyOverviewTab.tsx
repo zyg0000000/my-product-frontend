@@ -13,7 +13,11 @@ import {
   CPMDistributionBar,
   calculateCPMDistribution,
 } from '../components';
-import type { DailyReportData, DailyReportDetail, PreviousOverview } from '../../../../types/dailyReport';
+import type {
+  DailyReportData,
+  DailyReportDetail,
+  PreviousOverview,
+} from '../../../../types/dailyReport';
 import { formatViews, formatCPM } from '../../../../types/dailyReport';
 
 interface DailyOverviewTabProps {
@@ -25,7 +29,10 @@ interface DailyOverviewTabProps {
     talentName: string;
     publishDate?: string;
   }>;
-  onSaveSolution: (collaborationId: string, solution: string) => Promise<boolean>;
+  onSaveSolution: (
+    collaborationId: string,
+    solution: string
+  ) => Promise<boolean>;
   onViewTrend?: (collaborationId: string, talentName: string) => void;
   saving: boolean;
   /** 当前日期，用于导出文件名 */
@@ -85,7 +92,8 @@ export function DailyOverviewTab({
   // 计算执行进度
   const totalRevenue = overview?.totalRevenue || 0;
   const publishedRevenue = overview?.publishedRevenue || 0;
-  const executionRate = totalRevenue > 0 ? Math.round((publishedRevenue / totalRevenue) * 100) : 0;
+  const executionRate =
+    totalRevenue > 0 ? Math.round((publishedRevenue / totalRevenue) * 100) : 0;
 
   // 达人发布进度
   const totalTalents = overview?.totalCollaborations || 0;
@@ -109,15 +117,21 @@ export function DailyOverviewTab({
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {/* 播放量卡片 */}
           <div className="rounded-lg border border-[var(--aw-gray-200)] bg-[var(--color-bg-elevated)] p-4">
-            <div className="text-sm text-[var(--aw-gray-500)] mb-1">总播放量</div>
+            <div className="text-sm text-[var(--aw-gray-500)] mb-1">
+              总播放量
+            </div>
             <div className="text-2xl font-semibold text-[var(--aw-gray-900)] tabular-nums">
               {(overview?.totalViews || 0).toLocaleString()}
             </div>
             {changes.views && (
-              <div className={`mt-2 text-sm ${changes.views.direction === 'up' ? 'text-green-500' : 'text-red-500'}`}>
-                {changes.views.direction === 'up' ? '↑' : '↓'} {formatViews(Math.abs(changes.views.absoluteChange || 0))}
+              <div
+                className={`mt-2 text-sm ${changes.views.direction === 'up' ? 'text-green-500' : 'text-red-500'}`}
+              >
+                {changes.views.direction === 'up' ? '↑' : '↓'}{' '}
+                {formatViews(Math.abs(changes.views.absoluteChange || 0))}
                 <span className="text-[var(--aw-gray-400)] ml-1">
-                  ({changes.views.direction === 'up' ? '+' : ''}{changes.views.value.toFixed(1)}%)
+                  ({changes.views.direction === 'up' ? '+' : ''}
+                  {changes.views.value.toFixed(1)}%)
                 </span>
               </div>
             )}
@@ -125,15 +139,21 @@ export function DailyOverviewTab({
 
           {/* CPM卡片 */}
           <div className="rounded-lg border border-[var(--aw-gray-200)] bg-[var(--color-bg-elevated)] p-4">
-            <div className="text-sm text-[var(--aw-gray-500)] mb-1">平均 CPM</div>
+            <div className="text-sm text-[var(--aw-gray-500)] mb-1">
+              平均 CPM
+            </div>
             <div className="text-2xl font-semibold text-[var(--aw-gray-900)] tabular-nums">
               {formatCPM(overview?.averageCPM || 0)}
             </div>
             {changes.cpm && (
-              <div className={`mt-2 text-sm ${changes.cpm.direction === 'down' ? 'text-green-500' : 'text-red-500'}`}>
-                {changes.cpm.direction === 'up' ? '↑' : '↓'} ¥{Math.abs(changes.cpm.absoluteChange || 0).toFixed(2)}
+              <div
+                className={`mt-2 text-sm ${changes.cpm.direction === 'down' ? 'text-green-500' : 'text-red-500'}`}
+              >
+                {changes.cpm.direction === 'up' ? '↑' : '↓'} ¥
+                {Math.abs(changes.cpm.absoluteChange || 0).toFixed(2)}
                 <span className="text-[var(--aw-gray-400)] ml-1">
-                  ({changes.cpm.direction === 'up' ? '+' : ''}{changes.cpm.value.toFixed(1)}%)
+                  ({changes.cpm.direction === 'up' ? '+' : ''}
+                  {changes.cpm.value.toFixed(1)}%)
                 </span>
               </div>
             )}
@@ -141,7 +161,9 @@ export function DailyOverviewTab({
 
           {/* 达人进度卡片 */}
           <div className="rounded-lg border border-[var(--aw-gray-200)] bg-[var(--color-bg-elevated)] p-4">
-            <div className="text-sm text-[var(--aw-gray-500)] mb-1">达人进度</div>
+            <div className="text-sm text-[var(--aw-gray-500)] mb-1">
+              达人进度
+            </div>
             <div className="text-2xl font-semibold text-[var(--aw-gray-900)] tabular-nums">
               {publishedTalents}/{totalTalents}
             </div>
@@ -149,7 +171,9 @@ export function DailyOverviewTab({
               <div className="h-1.5 bg-[var(--aw-gray-200)] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-blue-500 rounded-full transition-all"
-                  style={{ width: `${totalTalents > 0 ? (publishedTalents / totalTalents) * 100 : 0}%` }}
+                  style={{
+                    width: `${totalTalents > 0 ? (publishedTalents / totalTalents) * 100 : 0}%`,
+                  }}
                 />
               </div>
             </div>
@@ -157,7 +181,9 @@ export function DailyOverviewTab({
 
           {/* 金额进度卡片 */}
           <div className="rounded-lg border border-[var(--aw-gray-200)] bg-[var(--color-bg-elevated)] p-4">
-            <div className="text-sm text-[var(--aw-gray-500)] mb-1">执行金额</div>
+            <div className="text-sm text-[var(--aw-gray-500)] mb-1">
+              执行金额
+            </div>
             <div className="text-2xl font-semibold text-[var(--aw-gray-900)] tabular-nums">
               {formatMoney(publishedRevenue)}
             </div>
@@ -165,13 +191,18 @@ export function DailyOverviewTab({
               <span className="text-[var(--aw-gray-400)]">
                 / {formatMoney(totalRevenue)}
               </span>
-              <span className="text-blue-500 font-medium">{executionRate}%</span>
+              <span className="text-blue-500 font-medium">
+                {executionRate}%
+              </span>
             </div>
           </div>
         </div>
 
         {/* CPM 分布 - 不导出 */}
-        <div className="rounded-lg border border-[var(--aw-gray-200)] bg-[var(--color-bg-elevated)] p-4" data-export-ignore="true">
+        <div
+          className="rounded-lg border border-[var(--aw-gray-200)] bg-[var(--color-bg-elevated)] p-4"
+          data-export-ignore="true"
+        >
           <h3 className="text-sm font-medium text-[var(--aw-gray-700)] mb-3">
             CPM 分布
           </h3>
