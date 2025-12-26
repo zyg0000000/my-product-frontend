@@ -1,8 +1,34 @@
 /**
  * @file utils.js
- * @version 12.3.0
- * @date 2025-11-29
+ * @version 12.4.8
+ * @date 2025-12-26
  * @changelog
+ * - v12.4.8 (2025-12-26): 修复数值字段上传类型
+ *   - formatOutput 返回 Number 类型而非 String
+ *   - 确保飞书表格中数值字段可参与计算
+ *   - percentage 类型仍返回字符串（如 "62.50%"）
+ * - v12.4.7 (2025-12-26): 修复价格单位转换
+ *   - AgentWorks 价格单位是"分"，ByteProject 模板期望"元"
+ *   - latestPrice 从分转换为元（÷ 100）
+ * - v12.4.6 (2025-12-26): 修复 generateRegistrationSheet 达人价格获取
+ *   - 添加通过 xingtuId 关联查询 talents 集合
+ *   - AgentWorks talents 结构: platformSpecific.xingtuId, name, prices[]
+ *   - 计算 latestPrice 并填充到 contextData
+ *   - 支持 talents.latestPrice 等模板路径
+ * - v12.4.5 (2025-12-26): 重构 generateRegistrationSheet，复用 ByteProject 逻辑
+ * - v12.4.4 (2025-12-26): 修复 generateRegistrationSheet 图片嵌入问题
+ * - v12.4.3 (2025-12-26): 修复 generateRegistrationSheet 数据映射问题
+ * - v12.4.2 (2025-12-26): 修复 generateRegistrationSheet 列名计算错误
+ *   - 使用 columnIndexToLetter 替代 String.fromCharCode(64 + n)
+ *   - 修复超过 26 列时列名错误（28列应为 AB，而非 \）
+ * - v12.4.1 (2025-12-26): 修复 generateRegistrationSheet API 调用错误
+ *   - 修复获取工作表信息 API 从 V3 改为 V2（与 generateAutomationReport 保持一致）
+ *   - V3 API 路径错误导致 500 错误
+ * - v12.4.0 (2025-12-26): AgentWorks 报名管理表格生成
+ *   - 新增 generateRegistrationSheet 函数
+ *   - 支持从 registration_results 集合生成飞书表格
+ *   - 新增 getNestedValue 辅助函数
+ *   - handleFeishuRequest 添加 generateRegistrationSheet case
  * - v12.3.0 (2025-11-29): 支持自定义 snapshotDate 导入历史数据
  *   - handleTalentImport 新增 snapshotDate 参数
  *   - handleFeishuRequest 支持解析 snapshotDate
@@ -21,7 +47,7 @@
  *   - 100% 向后兼容 v1 调用
  *
  * @description
- * [重大升级] 模块化重构 + AgentWorks v2.0 支持 + 价格导入
+ * [重大升级] 模块化重构 + AgentWorks v2.0 支持 + 价格导入 + 报名管理表格生成
  */
 const axios = require('axios');
 const { MongoClient, ObjectId } = require('mongodb');
@@ -45,6 +71,9 @@ const PROJECTS_COLLECTION = 'projects';
 const TALENTS_COLLECTION = 'talents';
 const MAPPING_TEMPLATES_COLLECTION = 'mapping_templates';
 const AUTOMATION_TASKS_COLLECTION = 'automation-tasks';
+const REGISTRATION_RESULTS_COLLECTION = 'registration_results';
+const REPORT_TEMPLATES_COLLECTION = 'report_templates';
+const GENERATED_SHEETS_COLLECTION = 'generated_sheets';
 
 // --- 模块级缓存 ---
 let tenantAccessToken = null;
@@ -202,14 +231,18 @@ function formatOutput(value, format) {
     if (format === 'percentage') {
         const num = parseToNumberForEval(value);
         if (isNaN(num)) return 'N/A';
+        // percentage 类型返回字符串（带 % 符号）
         return `${(num * 100).toFixed(2)}%`;
     }
     const numberMatch = format.match(/number\((\d+)\)/);
     if (numberMatch) {
         const num = parseToNumberForEval(value);
         if (isNaN(num)) return 'N/A';
-        return num.toFixed(parseInt(numberMatch[1], 10));
+        // [v12.4.8] 返回 Number 类型，确保飞书表格中可参与计算
+        return Number(num.toFixed(parseInt(numberMatch[1], 10)));
     }
+    // 数字类型直接返回 Number
+    if (typeof value === 'number') return value;
     return String(value);
 }
 
@@ -480,14 +513,292 @@ async function generateAutomationSheet(payload) {
     }
     
     console.log("\n======== [END] generateAutomationSheet ========");
-    return { 
-        message: "飞书表格已生成并成功处理！", 
+    return {
+        message: "飞书表格已生成并成功处理！",
         sheetUrl: newFile.url,
         fileName: newFileName,
         sheetToken: newSpreadsheetToken
     };
 }
 
+
+// --- 业务逻辑：报名管理表格生成 ---
+
+/**
+ * [AgentWorks] 生成报名管理飞书表格
+ *
+ * @param {Object} payload - 请求参数
+ * @param {string} payload.projectId - 项目ID
+ * @param {string} payload.templateId - 模板ID
+ * @param {string} payload.templateName - 模板名称
+ * @param {string} payload.sheetName - 生成的表格名称
+ * @param {string[]} payload.collaborationIds - 合作ID列表
+ * @param {string} [payload.destinationFolderToken] - 目标文件夹Token
+ */
+async function generateRegistrationSheet(payload) {
+    const { projectId, templateId, templateName, sheetName, collaborationIds, destinationFolderToken } = payload;
+
+    console.log("======== [START] generateRegistrationSheet ========");
+    console.log("收到的参数:", JSON.stringify(payload, null, 2));
+
+    if (!templateId || !collaborationIds || !collaborationIds.length) {
+        throw new AppError('Missing required parameters: templateId, collaborationIds.', 400);
+    }
+
+    const token = await getTenantAccessToken();
+    const client = await getDbConnection();
+    const db = client.db('agentworks_db');  // AgentWorks 使用 agentworks_db
+
+    // 1. 获取模板配置
+    console.log("\n--- [步骤 1] 获取模板配置 ---");
+    const template = await db.collection(REPORT_TEMPLATES_COLLECTION).findOne({ _id: new ObjectId(templateId) });
+    if (!template) {
+        throw new AppError(`模板不存在: ${templateId}`, 404);
+    }
+    console.log(`--> 模板: ${template.name}, 表头数: ${template.feishuSheetHeaders?.length || 0}`);
+
+    // 2. 复制飞书模板表格
+    console.log("\n--- [步骤 2] 复制模板表格 ---");
+    const templateToken = getSpreadsheetTokenFromUrl(template.spreadsheetToken);
+    if (!templateToken) throw new AppError('无法从模板中解析出有效的Token。', 400);
+
+    const newFileName = sheetName || `${templateName || template.name} - ${new Date().toISOString().split('T')[0]}`;
+    const copyPayload = { name: newFileName, type: 'sheet', folder_token: "" };
+    console.log(`--> 复制模板: ${templateToken} -> ${newFileName}`);
+
+    const copyResponse = await axios.post(
+        `https://open.feishu.cn/open-apis/drive/v1/files/${templateToken}/copy`,
+        copyPayload,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+    );
+    if (copyResponse.data.code !== 0) {
+        console.error("--> [错误] 复制文件API返回失败:", JSON.stringify(copyResponse.data, null, 2));
+        throw new AppError(`复制飞书表格失败: ${copyResponse.data.msg}`, 500);
+    }
+    const newFile = copyResponse.data.data.file;
+    const newSpreadsheetToken = newFile.token;
+    console.log(`--> 成功! 新Token: ${newSpreadsheetToken}`);
+
+    // 3. 从数据库查询报名结果数据 + 关联达人信息
+    console.log("\n--- [步骤 3] 查询报名结果数据 ---");
+    console.log(`--> 查询 collaborationIds: ${JSON.stringify(collaborationIds)}`);
+
+    // 查询 registration_results
+    const regResults = await db.collection(REGISTRATION_RESULTS_COLLECTION)
+        .find({ collaborationId: { $in: collaborationIds }, status: 'success' })
+        .toArray();
+    console.log(`--> 查询到 ${regResults.length} 条成功的报名结果`);
+
+    if (regResults.length === 0) {
+        throw new AppError('没有找到匹配的报名结果数据', 400);
+    }
+
+    // 关联查询达人信息（通过 xingtuId）以获取价格
+    // AgentWorks 的 talents 集合结构：platformSpecific.xingtuId, name, prices[]
+    const xingtuIds = regResults.map(r => r.xingtuId).filter(Boolean);
+    const talentsMap = {};
+    if (xingtuIds.length > 0) {
+        const talents = await db.collection(TALENTS_COLLECTION)
+            .find({ 'platformSpecific.xingtuId': { $in: xingtuIds } })
+            .toArray();
+        console.log(`--> 关联查询到 ${talents.length} 个达人信息`);
+
+        // 构建 xingtuId -> talent 映射，并计算 latestPrice
+        talents.forEach(talent => {
+            const xingtuId = talent.platformSpecific?.xingtuId;
+            if (xingtuId) {
+                // 计算最新价格（与 ByteProject 逻辑一致）
+                let latestPrice = 0;
+                if (Array.isArray(talent.prices) && talent.prices.length > 0) {
+                    const sortedPrices = [...talent.prices].sort((a, b) => (b.year - a.year) || (b.month - a.month));
+                    const latestPriceEntry = sortedPrices.find(p => p.status === 'confirmed') || sortedPrices[0];
+                    if (latestPriceEntry) {
+                        latestPrice = latestPriceEntry.price;
+                    }
+                }
+                talentsMap[xingtuId] = {
+                    ...talent,
+                    latestPrice
+                };
+            }
+        });
+    }
+
+    // 合并数据
+    const results = regResults.map(doc => ({
+        ...doc,
+        _talent: talentsMap[doc.xingtuId] || null
+    }));
+    console.log(`--> 数据合并完成，${Object.keys(talentsMap).length} 个达人匹配成功`);
+
+    // 4. 应用映射规则，写入数据（复用 ByteProject 的 evaluateFormula 和 formatOutput）
+    console.log("\n--- [步骤 4] 应用映射规则并写入数据 ---");
+    const headers = template.feishuSheetHeaders || [];
+    const mappingRules = template.mappingRules || {};
+
+    // 获取工作表信息（使用 V2 API，与 generateAutomationReport 保持一致）
+    const metaInfoResponse = await axios.get(
+        `https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/${newSpreadsheetToken}/metainfo`,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+    );
+    if (metaInfoResponse.data.code !== 0) {
+        console.error("--> [错误] 获取工作表信息失败:", JSON.stringify(metaInfoResponse.data, null, 2));
+        throw new AppError(`获取工作表信息失败: ${metaInfoResponse.data.msg}`, 500);
+    }
+    const firstSheetId = metaInfoResponse.data.data?.sheets?.[0]?.sheetId;
+    if (!firstSheetId) throw new AppError('无法获取工作表ID', 500);
+
+    /**
+     * 构建上下文数据，使用与 ByteProject 相同的格式
+     * 这样模板中的路径 (如 talents.xingtuId, automation-tasks.result.data.xxx) 可以直接使用
+     *
+     * AgentWorks 数据源:
+     * - registration_results: xingtuId, talentName, extractedData, screenshots
+     * - talents (关联查询): platformSpecific.xingtuId, name, prices[] -> latestPrice
+     */
+    const contextData = results.map(doc => {
+        const talent = doc._talent;  // 关联查询到的达人信息
+
+        // AgentWorks 价格单位是"分"，需要转换为"元"
+        // ByteProject 的模板期望价格单位是"元"
+        const latestPriceInFen = talent?.latestPrice || 0;
+        const latestPriceInYuan = latestPriceInFen / 100;
+
+        return {
+            // 模拟 talents 集合结构（优先使用关联查询的数据）
+            talents: {
+                xingtuId: doc.xingtuId,
+                nickname: doc.talentName,
+                uid: talent?.platformSpecific?.uid || '',
+                latestPrice: latestPriceInYuan,  // 转换为元（分 / 100）
+            },
+            // 模拟 automation-tasks 集合结构
+            'automation-tasks': {
+                result: {
+                    data: doc.extractedData || {},
+                    screenshots: doc.screenshots || [],
+                }
+            },
+            // 模拟 projects 集合结构
+            projects: {
+                name: doc.projectName || '',
+            },
+            // 模拟 collaborations 集合结构
+            collaborations: {
+                id: doc.collaborationId,
+            }
+        };
+    });
+
+    // 构建数据行和图片写入队列（复用 ByteProject 的逻辑）
+    const dataToWrite = [];
+    const imageWriteQueue = [];
+    const START_ROW = 2;
+
+    for (let i = 0; i < contextData.length; i++) {
+        const context = contextData[i];
+        const rowData = [];
+
+        for (let j = 0; j < headers.length; j++) {
+            const feishuHeader = headers[j];
+            const rule = mappingRules[feishuHeader];
+            let finalValue = null;
+
+            if (typeof rule === 'string') {
+                // 直接映射：解析 collection.field.subfield 格式
+                const pathParts = rule.split('.');
+                if (pathParts.length > 1) {
+                    const collection = pathParts[0];
+                    const trueContext = context[collection];
+                    finalValue = pathParts.slice(1).reduce((obj, key) => (obj && obj[key] !== undefined) ? obj[key] : null, trueContext);
+                }
+            } else if (typeof rule === 'object' && rule !== null && rule.formula) {
+                // 公式计算：复用 evaluateFormula 和 formatOutput
+                const rawResult = evaluateFormula(rule.formula, context);
+                finalValue = rule.output ? formatOutput(rawResult, rule.output) : rawResult;
+            }
+
+            // 判断是否为图片字段
+            const isImageField = (typeof rule === 'string' && rule.includes('screenshots'));
+            if (isImageField && typeof finalValue === 'string' && finalValue.startsWith('http')) {
+                rowData.push(null);
+                imageWriteQueue.push({
+                    range: `${columnIndexToLetter(j)}${START_ROW + i}`,
+                    url: finalValue,
+                    name: `${feishuHeader}.png`
+                });
+            } else {
+                rowData.push(finalValue === null || finalValue === undefined ? null : finalValue);
+            }
+        }
+        dataToWrite.push(rowData);
+    }
+
+    // 写入文本数据
+    if (dataToWrite.length > 0) {
+        const textRange = `${firstSheetId}!A${START_ROW}:${columnIndexToLetter(dataToWrite[0].length - 1)}${START_ROW + dataToWrite.length - 1}`;
+        console.log(`--> [写入文本] 目标范围: ${textRange}, 行数: ${dataToWrite.length}`);
+
+        try {
+            await axios.put(
+                `https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/${newSpreadsheetToken}/values`,
+                { valueRange: { range: textRange, values: dataToWrite } },
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            );
+            console.log(`--> [写入文本] 成功写入 ${dataToWrite.length} 行数据。`);
+        } catch (writeError) {
+            console.error(`--> [写入文本] 写入失败: ${writeError.response?.data?.msg || writeError.message}`);
+            throw new AppError(`写入飞书表格失败: ${writeError.response?.data?.msg || writeError.message}`, 500);
+        }
+    }
+
+    // 写入图片数据
+    if (imageWriteQueue.length > 0) {
+        console.log(`--> [写入图片] 准备写入 ${imageWriteQueue.length} 张图片...`);
+        for (const imageJob of imageWriteQueue) {
+            const imageRange = `${firstSheetId}!${imageJob.range}:${imageJob.range}`;
+            await writeImageToCell(token, newSpreadsheetToken, imageRange, imageJob.url, imageJob.name);
+        }
+        console.log(`--> [写入图片] 图片写入完成。`);
+    }
+
+    // 5. 移动到指定文件夹
+    console.log("\n--- [步骤 5] 移动文件到指定文件夹 ---");
+    const parsedFolderToken = getSpreadsheetTokenFromUrl(destinationFolderToken);
+    await moveFileToFolder(newSpreadsheetToken, 'sheet', parsedFolderToken, token);
+
+    // 6. 处理权限
+    console.log("\n--- [步骤 6] 处理文件权限 ---");
+    const ownerTransferred = await transferOwner(newSpreadsheetToken, token);
+    if (!ownerTransferred) {
+        await grantEditPermissions(newSpreadsheetToken, token);
+    }
+
+    // 7. 保存生成记录
+    console.log("\n--- [步骤 7] 保存生成记录 ---");
+    const generatedSheet = {
+        projectId,
+        templateId,
+        templateName: template.name,
+        fileName: newFileName,
+        sheetUrl: newFile.url,
+        sheetToken: newSpreadsheetToken,
+        type: 'registration',
+        talentCount: results.length,
+        createdAt: new Date(),
+    };
+    await db.collection(GENERATED_SHEETS_COLLECTION).insertOne(generatedSheet);
+    console.log("--> 生成记录已保存");
+
+    console.log("\n======== [END] generateRegistrationSheet ========");
+    return {
+        message: "报名表格已生成成功！",
+        url: newFile.url,
+        fileName: newFileName,
+        sheetToken: newSpreadsheetToken,
+        talentCount: results.length
+    };
+}
 
 // --- 业务逻辑：导入功能 ---
 
@@ -1038,6 +1349,12 @@ async function handleFeishuRequest(requestBody) {
                  throw new AppError('Invalid payload structure for generateAutomationReport.', 400);
              }
             return await generateAutomationSheet(payload);
+        case 'generateRegistrationSheet':
+            // AgentWorks: 生成报名管理飞书表格
+            if (!payload || !payload.templateId || !payload.collaborationIds) {
+                throw new AppError('Invalid payload structure for generateRegistrationSheet. Required: templateId, collaborationIds.', 400);
+            }
+            return await generateRegistrationSheet(payload);
         case 'talentPerformance':
         case 't7':
         case 't21':
@@ -1056,7 +1373,7 @@ async function handleFeishuRequest(requestBody) {
             }
         }
         default:
-            throw new AppError(`Invalid dataType "${dataType}". Supported types are: getMappingSchemas, getSheetHeaders, generateAutomationReport, talentPerformance, t7, t21, manualDailyUpdate.`, 400);
+            throw new AppError(`Invalid dataType "${dataType}". Supported types are: getMappingSchemas, getSheetHeaders, generateAutomationReport, generateRegistrationSheet, talentPerformance, t7, t21, manualDailyUpdate.`, 400);
     }
 }
 
