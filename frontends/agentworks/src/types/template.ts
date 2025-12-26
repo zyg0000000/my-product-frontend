@@ -29,7 +29,9 @@ export type MappingRule = DirectMappingRule | FormulaMappingRule;
 /**
  * 判断映射规则是否为公式类型
  */
-export function isFormulaMappingRule(rule: MappingRule): rule is FormulaMappingRule {
+export function isFormulaMappingRule(
+  rule: MappingRule
+): rule is FormulaMappingRule {
   return typeof rule === 'object' && rule !== null && 'formula' in rule;
 }
 

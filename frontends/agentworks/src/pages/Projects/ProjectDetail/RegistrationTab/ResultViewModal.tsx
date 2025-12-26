@@ -48,15 +48,11 @@ export function ResultViewModal({
 
   // 预览导航
   const handlePrevImage = useCallback(() => {
-    setPreviewIndex((prev) =>
-      prev > 0 ? prev - 1 : screenshots.length - 1
-    );
+    setPreviewIndex(prev => (prev > 0 ? prev - 1 : screenshots.length - 1));
   }, [screenshots.length]);
 
   const handleNextImage = useCallback(() => {
-    setPreviewIndex((prev) =>
-      prev < screenshots.length - 1 ? prev + 1 : 0
-    );
+    setPreviewIndex(prev => (prev < screenshots.length - 1 ? prev + 1 : 0));
   }, [screenshots.length]);
 
   // 键盘事件处理
@@ -94,9 +90,7 @@ export function ResultViewModal({
       return (
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description={
-            <span className="text-content-muted">暂无提取数据</span>
-          }
+          description={<span className="text-content-muted">暂无提取数据</span>}
         />
       );
     }
@@ -179,9 +173,15 @@ export function ResultViewModal({
                   style={{ color: 'white', border: 'none' }}
                 >
                   {status === 'success' ? (
-                    <><CheckCircleOutlined className="mr-1" />成功</>
+                    <>
+                      <CheckCircleOutlined className="mr-1" />
+                      成功
+                    </>
                   ) : (
-                    <><CloseCircleOutlined className="mr-1" />失败</>
+                    <>
+                      <CloseCircleOutlined className="mr-1" />
+                      失败
+                    </>
                   )}
                 </Tag>
               </h2>
@@ -198,7 +198,9 @@ export function ResultViewModal({
             </div>
             <div className="text-right">
               <div className="text-white/80 text-xs font-medium">星图 ID</div>
-              <div className="font-mono text-sm text-white font-medium">{result.xingtuId}</div>
+              <div className="font-mono text-sm text-white font-medium">
+                {result.xingtuId}
+              </div>
             </div>
           </div>
         </div>
@@ -211,9 +213,10 @@ export function ResultViewModal({
               className={`
                 flex items-center gap-2 px-6 py-4 text-sm font-medium transition-all
                 border-b-2 -mb-px
-                ${activeTab === 'screenshots'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-content-muted hover:text-content-secondary hover:border-stroke'
+                ${
+                  activeTab === 'screenshots'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-content-muted hover:text-content-secondary hover:border-stroke'
                 }
               `}
             >
@@ -228,9 +231,10 @@ export function ResultViewModal({
               className={`
                 flex items-center gap-2 px-6 py-4 text-sm font-medium transition-all
                 border-b-2 -mb-px
-                ${activeTab === 'data'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-content-muted hover:text-content-secondary hover:border-stroke'
+                ${
+                  activeTab === 'data'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-content-muted hover:text-content-secondary hover:border-stroke'
                 }
               `}
             >
@@ -276,36 +280,42 @@ export function ResultViewModal({
                           alt={screenshot.name}
                           className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                           loading="lazy"
-                          onError={(e) => {
+                          onError={e => {
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
                           }}
                         />
                         {/* 悬浮遮罩 */}
-                        <div className="
+                        <div
+                          className="
                           absolute inset-0 bg-black/0 group-hover:bg-black/30
                           flex items-center justify-center
                           transition-all duration-200
-                        ">
-                          <div className="
+                        "
+                        >
+                          <div
+                            className="
                             opacity-0 group-hover:opacity-100
                             transform scale-75 group-hover:scale-100
                             transition-all duration-200
                             bg-surface/90 backdrop-blur-sm rounded-full p-3
-                          ">
+                          "
+                          >
                             <ZoomInOutlined className="text-xl text-content" />
                           </div>
                         </div>
                       </div>
                       {/* 图片名称 */}
-                      <div className="
+                      <div
+                        className="
                         px-4 py-3
                         bg-surface border-t border-stroke
                         text-sm text-content-secondary
                         truncate
                         group-hover:text-primary-600
                         transition-colors
-                      ">
+                      "
+                      >
                         {screenshot.name}
                       </div>
                     </div>
@@ -328,7 +338,7 @@ export function ResultViewModal({
           {/* 导航按钮 - 左 */}
           {screenshots.length > 1 && (
             <button
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 handlePrevImage();
               }}
@@ -349,7 +359,7 @@ export function ResultViewModal({
           {/* 图片 */}
           <div
             className="max-w-[90vw] max-h-[90vh] relative"
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           >
             <img
               src={screenshots[previewIndex].url}
@@ -370,7 +380,7 @@ export function ResultViewModal({
           {/* 导航按钮 - 右 */}
           {screenshots.length > 1 && (
             <button
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 handleNextImage();
               }}
@@ -399,15 +409,16 @@ export function ResultViewModal({
               {screenshots.map((_, index) => (
                 <button
                   key={index}
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     setPreviewIndex(index);
                   }}
                   className={`
                     w-2.5 h-2.5 rounded-full transition-all
-                    ${index === previewIndex
-                      ? 'bg-white scale-125'
-                      : 'bg-white/40 hover:bg-white/60'
+                    ${
+                      index === previewIndex
+                        ? 'bg-white scale-125'
+                        : 'bg-white/40 hover:bg-white/60'
                     }
                   `}
                 />

@@ -34,7 +34,9 @@ export function TemplateList() {
   const { templates, loading, remove, refresh } = useTemplates();
 
   // 类型筛选状态
-  const [selectedType, setSelectedType] = useState<'all' | 'registration' | 'general'>('all');
+  const [selectedType, setSelectedType] = useState<
+    'all' | 'registration' | 'general'
+  >('all');
 
   // 筛选后的模板
   const filteredTemplates = useMemo(() => {
@@ -53,7 +55,9 @@ export function TemplateList() {
 
   // 编辑弹窗状态
   const [editorOpen, setEditorOpen] = useState(false);
-  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(
+    null
+  );
 
   // 处理删除
   const handleDelete = async (id: string) => {
@@ -183,12 +187,7 @@ export function TemplateList() {
             cancelText="取消"
             okButtonProps={{ danger: true }}
           >
-            <Button
-              type="link"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-            >
+            <Button type="link" size="small" danger icon={<DeleteOutlined />}>
               删除
             </Button>
           </Popconfirm>
@@ -208,11 +207,7 @@ export function TemplateList() {
               创建和管理用于生成飞书报告的数据映射模板
             </p>
           </div>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleCreate}
-          >
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
             新建模板
           </Button>
         </div>

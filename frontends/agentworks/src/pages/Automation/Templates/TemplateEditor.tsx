@@ -30,7 +30,11 @@ import {
   SettingOutlined,
   FunctionOutlined,
 } from '@ant-design/icons';
-import { useTemplates, useMappingSchemas, useSheetHeaders } from '../../../hooks/useTemplates';
+import {
+  useTemplates,
+  useMappingSchemas,
+  useSheetHeaders,
+} from '../../../hooks/useTemplates';
 import { useWorkflows } from '../../../hooks/useWorkflows';
 import type {
   ReportTemplate,
@@ -68,16 +72,26 @@ export function TemplateEditor({
 
   // Hooks
   const { create, update, getById } = useTemplates({ autoLoad: false });
-  const { schemas, loading: schemasLoading } = useMappingSchemas('registration');
-  const { headers, loading: headersLoading, load: loadHeaders, clear: clearHeaders } = useSheetHeaders();
-  const { workflows, loading: workflowsLoading } = useWorkflows({ activeOnly: true });
+  const { schemas, loading: schemasLoading } =
+    useMappingSchemas('registration');
+  const {
+    headers,
+    loading: headersLoading,
+    load: loadHeaders,
+    clear: clearHeaders,
+  } = useSheetHeaders();
+  const { workflows, loading: workflowsLoading } = useWorkflows({
+    activeOnly: true,
+  });
 
   // 状态
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [templateData, setTemplateData] = useState<ReportTemplate | null>(null);
   const [selectedWorkflowIds, setSelectedWorkflowIds] = useState<string[]>([]);
-  const [fieldMappings, setFieldMappings] = useState<Record<string, FieldMappingConfig>>({});
+  const [fieldMappings, setFieldMappings] = useState<
+    Record<string, FieldMappingConfig>
+  >({});
 
   // 是否编辑模式
   const isEditing = !!templateId;
@@ -98,7 +112,10 @@ export function TemplateEditor({
             });
             setSelectedWorkflowIds(template.allowedWorkflowIds || []);
             // 初始化映射配置
-            initFieldMappings(template.feishuSheetHeaders, template.mappingRules);
+            initFieldMappings(
+              template.feishuSheetHeaders,
+              template.mappingRules
+            );
           }
         })
         .finally(() => setLoading(false));
@@ -113,35 +130,38 @@ export function TemplateEditor({
   }, [open, templateId, form, getById, clearHeaders]);
 
   // 初始化字段映射配置
-  const initFieldMappings = useCallback((headers: string[], rules: Record<string, MappingRule>) => {
-    const mappings: Record<string, FieldMappingConfig> = {};
-    headers.forEach(header => {
-      const rule = rules[header];
-      if (typeof rule === 'object' && rule !== null && 'formula' in rule) {
-        mappings[header] = {
-          mode: 'formula',
-          directValue: '',
-          formulaValue: rule.formula,
-          outputFormat: rule.output as FieldMappingConfig['outputFormat'],
-        };
-      } else if (typeof rule === 'string') {
-        mappings[header] = {
-          mode: 'direct',
-          directValue: rule,
-          formulaValue: '',
-          outputFormat: 'default',
-        };
-      } else {
-        mappings[header] = {
-          mode: 'direct',
-          directValue: '',
-          formulaValue: '',
-          outputFormat: 'default',
-        };
-      }
-    });
-    setFieldMappings(mappings);
-  }, []);
+  const initFieldMappings = useCallback(
+    (headers: string[], rules: Record<string, MappingRule>) => {
+      const mappings: Record<string, FieldMappingConfig> = {};
+      headers.forEach(header => {
+        const rule = rules[header];
+        if (typeof rule === 'object' && rule !== null && 'formula' in rule) {
+          mappings[header] = {
+            mode: 'formula',
+            directValue: '',
+            formulaValue: rule.formula,
+            outputFormat: rule.output as FieldMappingConfig['outputFormat'],
+          };
+        } else if (typeof rule === 'string') {
+          mappings[header] = {
+            mode: 'direct',
+            directValue: rule,
+            formulaValue: '',
+            outputFormat: 'default',
+          };
+        } else {
+          mappings[header] = {
+            mode: 'direct',
+            directValue: '',
+            formulaValue: '',
+            outputFormat: 'default',
+          };
+        }
+      });
+      setFieldMappings(mappings);
+    },
+    []
+  );
 
   // 加载表头后初始化映射配置
   useEffect(() => {
@@ -166,22 +186,29 @@ export function TemplateEditor({
   // 当前显示的表头（优先使用加载的表头，否则使用模板中的表头）
   const displayHeaders = useMemo(() => {
     if (headers.length > 0) return headers;
-    if (templateData?.feishuSheetHeaders) return templateData.feishuSheetHeaders;
+    if (templateData?.feishuSheetHeaders)
+      return templateData.feishuSheetHeaders;
     return [];
   }, [headers, templateData]);
 
   // 更新单个字段的映射配置
-  const updateFieldMapping = useCallback((header: string, updates: Partial<FieldMappingConfig>) => {
-    setFieldMappings(prev => ({
-      ...prev,
-      [header]: { ...prev[header], ...updates },
-    }));
-  }, []);
+  const updateFieldMapping = useCallback(
+    (header: string, updates: Partial<FieldMappingConfig>) => {
+      setFieldMappings(prev => ({
+        ...prev,
+        [header]: { ...prev[header], ...updates },
+      }));
+    },
+    []
+  );
 
   // 构建数据源下拉选项
   const dataSourceOptions = useMemo(() => {
     if (!schemas) return [];
-    const options: { label: string; options: { value: string; label: string }[] }[] = [];
+    const options: {
+      label: string;
+      options: { value: string; label: string }[];
+    }[] = [];
     Object.entries(schemas).forEach(([collectionName, schema]) => {
       // 安全检查：确保 schema 和 fields 存在
       if (!schema || !Array.isArray(schema.fields)) return;
@@ -254,7 +281,10 @@ export function TemplateEditor({
     };
 
     return (
-      <div key={header} className="p-4 bg-surface-sunken rounded-lg border border-stroke">
+      <div
+        key={header}
+        className="p-4 bg-surface-sunken rounded-lg border border-stroke"
+      >
         {/* 字段名称和模式切换 */}
         <div className="flex justify-between items-center mb-3">
           <span className="font-medium text-content">{header}</span>
@@ -274,7 +304,9 @@ export function TemplateEditor({
             className="w-full"
             placeholder="选择数据源字段"
             value={config.directValue || undefined}
-            onChange={value => updateFieldMapping(header, { directValue: value })}
+            onChange={value =>
+              updateFieldMapping(header, { directValue: value })
+            }
             options={dataSourceOptions}
             allowClear
             showSearch
@@ -285,14 +317,18 @@ export function TemplateEditor({
             <Input.TextArea
               placeholder="例如: ({talents.latestPrice} / {metrics.plays}) * 1000"
               value={config.formulaValue}
-              onChange={e => updateFieldMapping(header, { formulaValue: e.target.value })}
+              onChange={e =>
+                updateFieldMapping(header, { formulaValue: e.target.value })
+              }
               rows={2}
               className="font-mono text-sm"
             />
             <Select
               className="w-full"
               value={config.outputFormat}
-              onChange={value => updateFieldMapping(header, { outputFormat: value })}
+              onChange={value =>
+                updateFieldMapping(header, { outputFormat: value })
+              }
               options={[
                 { value: 'default', label: '默认输出' },
                 { value: 'percentage', label: '格式化为百分比 (e.g., 58.34%)' },
@@ -397,14 +433,14 @@ export function TemplateEditor({
                     <Form.Item
                       name="spreadsheetToken"
                       label="飞书表格链接或 Token"
-                      rules={[{ required: true, message: '请输入飞书表格链接' }]}
+                      rules={[
+                        { required: true, message: '请输入飞书表格链接' },
+                      ]}
                     >
                       <Input.Search
                         placeholder="粘贴飞书表格的完整链接或 Token"
                         enterButton={
-                          <Button loading={headersLoading}>
-                            加载表头
-                          </Button>
+                          <Button loading={headersLoading}>加载表头</Button>
                         }
                         onSearch={handleLoadHeaders}
                       />
@@ -461,9 +497,16 @@ export function TemplateEditor({
                             checked={selectedWorkflowIds.includes(wf._id)}
                             onChange={e => {
                               if (e.target.checked) {
-                                setSelectedWorkflowIds([...selectedWorkflowIds, wf._id]);
+                                setSelectedWorkflowIds([
+                                  ...selectedWorkflowIds,
+                                  wf._id,
+                                ]);
                               } else {
-                                setSelectedWorkflowIds(selectedWorkflowIds.filter(id => id !== wf._id));
+                                setSelectedWorkflowIds(
+                                  selectedWorkflowIds.filter(
+                                    id => id !== wf._id
+                                  )
+                                );
                               }
                             }}
                             className="block p-2 hover:bg-surface rounded"
@@ -505,7 +548,9 @@ export function TemplateEditor({
                       />
                     ) : (
                       <div className="space-y-3">
-                        {displayHeaders.map(header => renderFieldMappingRow(header))}
+                        {displayHeaders.map(header =>
+                          renderFieldMappingRow(header)
+                        )}
                       </div>
                     )}
                   </div>

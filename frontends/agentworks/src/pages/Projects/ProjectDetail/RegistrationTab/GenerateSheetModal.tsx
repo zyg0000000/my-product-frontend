@@ -112,7 +112,8 @@ export function GenerateSheetModal({
         templateName: selectedTemplate.name,
         sheetName: values.sheetName.trim(),
         collaborationIds: selectedTalents.map(t => t.collaborationId),
-        destinationFolderToken: values.destinationFolderToken?.trim() || undefined,
+        destinationFolderToken:
+          values.destinationFolderToken?.trim() || undefined,
       });
 
       if (result.success && result.data) {

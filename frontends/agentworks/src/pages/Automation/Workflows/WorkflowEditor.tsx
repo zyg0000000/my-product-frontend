@@ -1073,7 +1073,11 @@ export function WorkflowEditor() {
             <Form
               form={form}
               layout="inline"
-              initialValues={{ platform: 'douyin', isActive: true, enableVNC: false }}
+              initialValues={{
+                platform: 'douyin',
+                isActive: true,
+                enableVNC: false,
+              }}
               className="flex flex-wrap gap-4"
             >
               <Form.Item
