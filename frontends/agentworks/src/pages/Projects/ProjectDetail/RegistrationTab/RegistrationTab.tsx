@@ -200,19 +200,35 @@ export function RegistrationTab({
               stepInfo,
             }));
           },
-          onSuccess: () => {
+          onSuccess: collaborationId => {
             setFetchProgress(prev => ({
               ...prev,
               success: prev.success + 1,
               stepInfo: undefined, // 成功后清除步骤进度
             }));
+            // 立即更新该达人的状态
+            setTalents(prev =>
+              prev.map(t =>
+                t.collaborationId === collaborationId
+                  ? { ...t, fetchStatus: 'success', fetchedAt: new Date().toISOString(), hasResult: true }
+                  : t
+              )
+            );
           },
-          onError: () => {
+          onError: collaborationId => {
             setFetchProgress(prev => ({
               ...prev,
               failed: prev.failed + 1,
               stepInfo: undefined, // 失败后清除步骤进度
             }));
+            // 立即更新该达人的状态
+            setTalents(prev =>
+              prev.map(t =>
+                t.collaborationId === collaborationId
+                  ? { ...t, fetchStatus: 'failed', fetchedAt: new Date().toISOString() }
+                  : t
+              )
+            );
           },
           onPause: info => {
             setPauseInfo(info);
@@ -308,21 +324,37 @@ export function RegistrationTab({
               stepInfo,
             }));
           },
-          onSuccess: () => {
+          onSuccess: collaborationId => {
             setFetchProgress(prev => ({
               ...prev,
               completed: 1,
               success: 1,
               stepInfo: undefined,
             }));
+            // 立即更新该达人的状态
+            setTalents(prev =>
+              prev.map(t =>
+                t.collaborationId === collaborationId
+                  ? { ...t, fetchStatus: 'success', fetchedAt: new Date().toISOString(), hasResult: true }
+                  : t
+              )
+            );
           },
-          onError: () => {
+          onError: collaborationId => {
             setFetchProgress(prev => ({
               ...prev,
               completed: 1,
               failed: 1,
               stepInfo: undefined,
             }));
+            // 立即更新该达人的状态
+            setTalents(prev =>
+              prev.map(t =>
+                t.collaborationId === collaborationId
+                  ? { ...t, fetchStatus: 'failed', fetchedAt: new Date().toISOString() }
+                  : t
+              )
+            );
           },
           onPause: info => {
             setPauseInfo(info);
