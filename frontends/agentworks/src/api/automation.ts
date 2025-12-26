@@ -282,9 +282,11 @@ export async function resumeTask(taskId: string): Promise<ResumeTaskResponse> {
 
 /**
  * 订阅任务进度（SSE）
+ * 支持断开后自动重连，最多重试 5 次
+ *
  * @param taskId - 任务 ID
  * @param onProgress - 进度回调函数
- * @param onError - 连接错误回调（可选）
+ * @param onError - 连接错误回调（可选，只在最终失败时调用）
  * @returns 取消订阅函数
  */
 export function subscribeToTaskProgress(
@@ -293,31 +295,64 @@ export function subscribeToTaskProgress(
   onError?: (error: Error) => void
 ): () => void {
   const url = `${ECS_API_BASE_URL}/api/task/stream/${taskId}`;
-  const eventSource = new EventSource(url);
+  let eventSource: EventSource | null = null;
+  let retryCount = 0;
+  const maxRetries = 5;
+  const retryDelay = 2000; // 2 秒后重连
+  let isCancelled = false;
+  let isCompleted = false;
 
-  eventSource.onmessage = event => {
-    try {
-      const progress = JSON.parse(event.data) as TaskProgress;
-      onProgress(progress);
+  function connect() {
+    if (isCancelled || isCompleted) return;
 
-      // 任务完成或失败时自动关闭连接
-      if (progress.status === 'completed' || progress.status === 'failed') {
-        eventSource.close();
+    eventSource = new EventSource(url);
+
+    eventSource.onopen = () => {
+      logger.info(`[SSE] 连接成功: ${taskId}`);
+      retryCount = 0; // 连接成功后重置重试计数
+    };
+
+    eventSource.onmessage = event => {
+      try {
+        const progress = JSON.parse(event.data) as TaskProgress;
+        onProgress(progress);
+
+        // 任务完成或失败时标记完成并关闭连接
+        if (progress.status === 'completed' || progress.status === 'failed') {
+          isCompleted = true;
+          eventSource?.close();
+        }
+      } catch (e) {
+        logger.error('SSE 解析进度数据失败:', e);
       }
-    } catch (e) {
-      logger.error('SSE 解析进度数据失败:', e);
-    }
-  };
+    };
 
-  eventSource.onerror = () => {
-    logger.warn('SSE 连接断开');
-    eventSource.close();
-    onError?.(new Error('SSE 连接断开'));
-  };
+    eventSource.onerror = () => {
+      logger.warn(`[SSE] 连接断开: ${taskId}, 重试次数: ${retryCount}/${maxRetries}`);
+      eventSource?.close();
+
+      // 如果任务已完成或被取消，不重连
+      if (isCancelled || isCompleted) return;
+
+      // 重试逻辑
+      if (retryCount < maxRetries) {
+        retryCount++;
+        logger.info(`[SSE] ${retryDelay}ms 后重连 (第 ${retryCount} 次)...`);
+        setTimeout(connect, retryDelay);
+      } else {
+        logger.error(`[SSE] 达到最大重试次数，放弃连接: ${taskId}`);
+        onError?.(new Error('SSE 连接失败，已达到最大重试次数'));
+      }
+    };
+  }
+
+  // 开始连接
+  connect();
 
   // 返回取消订阅函数
   return () => {
-    eventSource.close();
+    isCancelled = true;
+    eventSource?.close();
   };
 }
 
