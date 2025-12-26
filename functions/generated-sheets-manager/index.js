@@ -1,8 +1,12 @@
 /**
  * @file 云函数: generated-sheets-manager
- * @version 2.4.0
- * @date 2025-11-24
+ * @version 3.0.0
+ * @date 2025-12-26
  * @changelog
+ * - v3.0.0 (2025-12-26): 双数据库支持
+ *   - 新增 dbVersion 参数：v1=kol_data (ByteProject), v2=agentworks_db (AgentWorks)
+ *   - 默认使用 v1 保持向后兼容
+ *   - 同时支持两个产品的表格记录管理
  * - v2.4.0 (2025-11-24): 严格模式 - 只有飞书删除成功才删数据库
  *   - 修复严重 BUG：之前版本在 404 时会删除数据库记录，但文件还在
  *   - 改为严格模式：任何飞书 API 错误都不删除数据库记录
@@ -19,6 +23,7 @@
  *
  * @description
  * - [核心功能] 管理飞书表格生成历史记录
+ * - [双产品支持] ByteProject (v1) 和 AgentWorks (v2)
  * - [删除策略] 严格模式 - 只有飞书删除成功才删数据库记录
  * - [权限要求] 应用需是文件所有者 + 有父文件夹编辑权限
  * - [安全保证] 避免数据库和飞书文件不一致
@@ -31,32 +36,38 @@ const { MongoClient, ObjectId } = require('mongodb');
 const axios = require('axios');
 
 // --- 版本信息 ---
-const VERSION = '2.4.0';
+const VERSION = '3.0.0';
 
 // --- 配置信息 ---
 const MONGO_URI = process.env.MONGODB_URI;
-const DB_NAME = 'kol_data';
 const COLLECTION_NAME = 'generated_sheets';
+
+// 根据 dbVersion 选择数据库
+function getDbName(dbVersion) {
+    if (dbVersion === 'v2') {
+        return 'agentworks_db';
+    }
+    // v1 或默认使用 kol_data（向后兼容）
+    return 'kol_data';
+}
 
 // 飞书应用凭证，需要配置在云函数环境变量中
 const APP_ID = process.env.FEISHU_APP_ID;
 const APP_SECRET = process.env.FEISHU_APP_SECRET;
 
 // --- 模块级缓存 ---
-let cachedDb = null;
+let cachedClient = null;
 let tenantAccessToken = null;
 let tokenExpiresAt = 0;
 
 // --- 数据库连接管理 ---
-async function connectToDatabase() {
-    if (cachedDb) {
-        return cachedDb;
+async function connectToDatabase(dbVersion) {
+    if (!cachedClient) {
+        cachedClient = new MongoClient(MONGO_URI);
+        await cachedClient.connect();
     }
-    const client = new MongoClient(MONGO_URI);
-    await client.connect();
-    const db = client.db(DB_NAME);
-    cachedDb = db;
-    return db;
+    const dbName = getDbName(dbVersion);
+    return cachedClient.db(dbName);
 }
 
 // --- 飞书认证 ---
@@ -101,7 +112,7 @@ const createResponse = (statusCode, body) => {
 };
 
 // --- 云函数主处理程序 ---
-exports.handler = async (event, context) => {
+exports.handler = async (event) => {
     console.log(`[v${VERSION}] 云函数开始执行 - Method: ${event.httpMethod}`);
 
     // 预检请求处理
@@ -110,12 +121,26 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        const db = await connectToDatabase();
-        const collection = db.collection(COLLECTION_NAME);
         const method = event.httpMethod;
         const queryParams = event.queryStringParameters || {};
 
-        console.log(`[v${VERSION}] 请求参数:`, { method, queryParams });
+        // 解析 dbVersion：优先从 query 获取，其次从 body 获取
+        let dbVersion = queryParams.dbVersion;
+        if (!dbVersion && event.body) {
+            try {
+                const body = JSON.parse(event.body);
+                dbVersion = body.dbVersion;
+            } catch (e) {
+                // ignore parse error
+            }
+        }
+        // 默认 v1（向后兼容 ByteProject）
+        dbVersion = dbVersion || 'v1';
+
+        console.log(`[v${VERSION}] 请求参数:`, { method, queryParams, dbVersion });
+
+        const db = await connectToDatabase(dbVersion);
+        const collection = db.collection(COLLECTION_NAME);
 
         // --- API 路由逻辑 ---
 
@@ -123,10 +148,10 @@ exports.handler = async (event, context) => {
         if (method === 'GET') {
             const { projectId } = queryParams;
             if (!projectId) {
-                return createResponse(400, { error: 'projectId is required' });
+                return createResponse(400, { success: false, error: 'projectId is required' });
             }
             const records = await collection.find({ projectId }).sort({ createdAt: -1 }).toArray();
-            return createResponse(200, { data: records });
+            return createResponse(200, { success: true, data: records });
         }
 
         if (method === 'POST') {
@@ -269,7 +294,7 @@ exports.handler = async (event, context) => {
             await collection.deleteOne({ _id: new ObjectId(id) });
             console.log(`[MongoDB] Successfully deleted record with id: ${id}`);
 
-            return createResponse(204, {}); // 204 No Content 表示成功删除
+            return createResponse(200, { success: true }); // 返回成功状态
         }
 
         return createResponse(404, { error: 'Not Found' });

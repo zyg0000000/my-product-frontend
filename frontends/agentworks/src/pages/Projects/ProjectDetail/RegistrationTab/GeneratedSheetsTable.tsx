@@ -62,12 +62,12 @@ export function GeneratedSheetsTable({ projectId }: GeneratedSheetsTableProps) {
   const columns: ColumnsType<GeneratedSheet> = [
     {
       title: '文件名',
-      dataIndex: 'name',
-      key: 'name',
-      render: (name: string) => (
+      dataIndex: 'fileName',
+      key: 'fileName',
+      render: (fileName: string) => (
         <span className="flex items-center gap-2">
           <FileExcelOutlined className="text-success-500" />
-          {name}
+          {fileName}
         </span>
       ),
     },
@@ -86,8 +86,8 @@ export function GeneratedSheetsTable({ projectId }: GeneratedSheetsTableProps) {
     },
     {
       title: '生成时间',
-      dataIndex: 'generatedAt',
-      key: 'generatedAt',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
       width: 180,
       render: (time: string) => new Date(time).toLocaleString('zh-CN'),
     },
@@ -101,7 +101,7 @@ export function GeneratedSheetsTable({ projectId }: GeneratedSheetsTableProps) {
             type="link"
             size="small"
             icon={<LinkOutlined />}
-            href={record.url}
+            href={record.sheetUrl}
             target="_blank"
           >
             打开
@@ -122,9 +122,10 @@ export function GeneratedSheetsTable({ projectId }: GeneratedSheetsTableProps) {
     },
   ];
 
-  if (sheets.length === 0 && !loading) {
-    return null; // 没有表格时不显示这个区域
-  }
+  // 始终显示，让用户知道这个功能存在
+  // if (sheets.length === 0 && !loading) {
+  //   return null;
+  // }
 
   return (
     <Card

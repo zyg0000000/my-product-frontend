@@ -93,18 +93,20 @@ export interface GeneratedSheet {
   projectId: string;
   /** 表格类型 */
   type: 'registration';
-  /** 表格名称 */
-  name: string;
-  /** 飞书文档 URL */
-  url: string;
+  /** 表格名称（兼容 fileName） */
+  fileName: string;
+  /** 飞书文档 URL（兼容 sheetUrl） */
+  sheetUrl: string;
+  /** 飞书文件 Token */
+  sheetToken?: string;
   /** 使用的模板 ID */
   templateId?: string;
   /** 使用的模板名称 */
   templateName?: string;
   /** 包含的达人数量 */
   talentCount: number;
-  /** 生成时间 */
-  generatedAt: string;
+  /** 生成时间（兼容 createdAt） */
+  createdAt: string;
   /** 生成人 */
   generatedBy?: string;
 }

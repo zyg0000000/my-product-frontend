@@ -504,7 +504,11 @@ export async function generateRegistrationSheet(
 export async function getGeneratedSheets(
   projectId: string
 ): Promise<RegistrationApiResponse<GeneratedSheet[]>> {
-  return get('/generated-sheets', { projectId, type: 'registration' });
+  return get('/generated-sheets-manager', {
+    projectId,
+    type: 'registration',
+    dbVersion: 'v2',
+  });
 }
 
 /**
@@ -515,7 +519,10 @@ export async function getGeneratedSheets(
 export async function deleteGeneratedSheet(
   sheetId: string
 ): Promise<RegistrationApiResponse<void>> {
-  return del('/generated-sheets', undefined, { id: sheetId });
+  return del('/generated-sheets-manager', undefined, {
+    id: sheetId,
+    dbVersion: 'v2',
+  });
 }
 
 // ========== 导出 API 对象 ==========
