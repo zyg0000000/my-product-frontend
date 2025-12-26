@@ -8,7 +8,12 @@
  */
 
 import { get, post, del } from './client';
-import { executeTask, subscribeToTaskProgress, type TaskProgress } from './automation';
+import {
+  executeTask,
+  subscribeToTaskProgress,
+  resumeTask,
+  type TaskProgress,
+} from './automation';
 import type {
   RegistrationResult,
   RegistrationTalentItem,
@@ -18,6 +23,119 @@ import type {
   GenerateSheetRequest,
   RegistrationApiResponse,
 } from '../types/registration';
+
+// ========== SSE 任务等待 ==========
+
+/** SSE 任务完成结果 */
+interface TaskCompletionResult {
+  status: 'completed' | 'failed' | 'paused';
+  result?: unknown;
+  error?: string;
+  duration?: number;
+  // 暂停状态时的额外信息
+  vncUrl?: string;
+  message?: string;
+}
+
+/** 暂停信息（用于回调） */
+export interface PauseInfo {
+  taskId: string;
+  vncUrl: string;
+  message: string;
+}
+
+/**
+ * 通过 SSE 等待任务完成
+ * @param taskId - 任务 ID
+ * @param onStepProgress - 步骤进度回调
+ * @param onPause - 暂停回调（验证码需要手动处理时）
+ * @param timeout - 超时时间（毫秒），默认 5 分钟
+ */
+function waitForTaskCompletion(
+  taskId: string,
+  onStepProgress?: (stepInfo: StepProgressInfo) => void,
+  onPause?: (pauseInfo: PauseInfo) => void,
+  timeout = 5 * 60 * 1000
+): Promise<TaskCompletionResult> {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      unsubscribe();
+      reject(new Error('任务执行超时'));
+    }, timeout);
+
+    const unsubscribe = subscribeToTaskProgress(
+      taskId,
+      (
+        progress: TaskProgress & {
+          captcha?: boolean;
+          captchaStatus?: string;
+          captchaMessage?: string;
+        }
+      ) => {
+        // 调试日志
+        console.log('[SSE] 收到进度更新:', progress.status, progress);
+
+        // 推送步骤进度（包含滑块验证信息）
+        if (progress.status === 'running') {
+          // 滑块验证状态
+          if (progress.captcha) {
+            onStepProgress?.({
+              currentStep: progress.currentStep || 0,
+              totalSteps: progress.totalSteps || 0,
+              currentAction: progress.captchaMessage || '处理滑块验证...',
+              captcha: progress.captcha,
+              captchaStatus: progress.captchaStatus as
+                | 'detecting'
+                | 'success'
+                | 'failed',
+              captchaMessage: progress.captchaMessage,
+            });
+          } else if (
+            progress.currentStep &&
+            progress.totalSteps &&
+            progress.currentAction
+          ) {
+            // 普通步骤进度
+            onStepProgress?.({
+              currentStep: progress.currentStep,
+              totalSteps: progress.totalSteps,
+              currentAction: progress.currentAction,
+            });
+          }
+        }
+
+        // 任务暂停（需要手动处理验证码）
+        if (progress.status === 'paused') {
+          // 通知上层显示 VNC 弹窗
+          onPause?.({
+            taskId,
+            vncUrl: progress.vncUrl || 'http://14.103.18.8:6080/vnc.html',
+            message: progress.message || '验证码需要手动处理',
+          });
+          // 注意：不关闭 SSE 连接，等待用户处理完成后继续接收进度
+        }
+
+        // 任务完成或失败
+        if (progress.status === 'completed' || progress.status === 'failed') {
+          console.log('[SSE] 任务最终状态:', progress.status);
+          console.log('[SSE] 任务结果:', JSON.stringify(progress, null, 2));
+          clearTimeout(timeoutId);
+          unsubscribe();
+          resolve({
+            status: progress.status,
+            result: progress.result,
+            error: (progress as TaskProgress & { error?: string }).error,
+          });
+        }
+      },
+      // SSE 连接错误时 reject
+      (error: Error) => {
+        clearTimeout(timeoutId);
+        reject(error);
+      }
+    );
+  });
+}
 
 // ========== 抓取结果 API ==========
 
@@ -82,6 +200,7 @@ export async function getRegistrationTalents(
  * @param workflowId - 工作流 ID
  * @param xingtuId - 星图 ID
  * @param metadata - 元数据
+ * @param enableVNC - 是否启用 VNC 远程桌面模式
  */
 export async function executeFetchTask(
   workflowId: string,
@@ -91,11 +210,13 @@ export async function executeFetchTask(
     collaborationId: string;
     talentName: string;
     workflowName: string;
-  }
+  },
+  enableVNC?: boolean
 ) {
   return executeTask({
     workflowId,
     inputValue: xingtuId,
+    enableVNC,
     metadata: {
       source: 'registration',
       projectId: metadata.projectId,
@@ -111,6 +232,8 @@ export interface BatchFetchRequest {
   projectId: string;
   workflowId: string;
   workflowName: string;
+  /** 是否启用 VNC 远程桌面模式 */
+  enableVNC?: boolean;
   talents: Array<{
     collaborationId: string;
     talentName: string;
@@ -123,6 +246,10 @@ export interface StepProgressInfo {
   currentStep: number;
   totalSteps: number;
   currentAction: string;
+  /** 滑块验证状态 */
+  captcha?: boolean;
+  captchaStatus?: 'detecting' | 'success' | 'failed';
+  captchaMessage?: string;
 }
 
 /**
@@ -137,6 +264,8 @@ export interface BatchFetchCallbacks {
   onSuccess?: (collaborationId: string, result: unknown) => void;
   /** 单个任务失败回调 */
   onError?: (collaborationId: string, error: string) => void;
+  /** 任务暂停回调（验证码需要手动处理时） */
+  onPause?: (pauseInfo: PauseInfo) => void;
 }
 
 /**
@@ -159,7 +288,7 @@ export async function executeBatchFetch(
     error?: string;
   }>;
 }> {
-  const { projectId, workflowId, workflowName, talents } = request;
+  const { projectId, workflowId, workflowName, enableVNC, talents } = request;
   const results: Array<{
     collaborationId: string;
     status: 'success' | 'failed';
@@ -175,78 +304,88 @@ export async function executeBatchFetch(
     // 进度回调
     callbacks?.onProgress?.(i + 1, talents.length, talent.talentName);
 
-    // 用于存储 SSE 取消函数
-    let unsubscribe: (() => void) | null = null;
-
     try {
-      // 执行抓取
-      const taskResult = await executeFetchTask(workflowId, talent.xingtuId, {
-        projectId,
-        collaborationId: talent.collaborationId,
-        talentName: talent.talentName,
-        workflowName,
-      });
+      // 1. 发起执行请求（异步模式，立即返回 taskId）
+      const taskResult = await executeFetchTask(
+        workflowId,
+        talent.xingtuId,
+        {
+          projectId,
+          collaborationId: talent.collaborationId,
+          talentName: talent.talentName,
+          workflowName,
+        },
+        enableVNC
+      );
 
-      // 如果有 taskId 且有步骤进度回调，订阅 SSE
-      if (taskResult.taskId && callbacks?.onStepProgress) {
-        unsubscribe = subscribeToTaskProgress(
-          taskResult.taskId,
-          (progress: TaskProgress) => {
-            if (
-              progress.status === 'running' &&
-              progress.currentStep &&
-              progress.totalSteps &&
-              progress.currentAction
-            ) {
-              callbacks.onStepProgress?.({
-                currentStep: progress.currentStep,
-                totalSteps: progress.totalSteps,
-                currentAction: progress.currentAction,
-              });
-            }
-          }
-        );
+      if (!taskResult.success || !taskResult.taskId) {
+        throw new Error(taskResult.error || '任务提交失败');
       }
 
-      if (taskResult.success) {
-        // ECS executeActions 返回格式：
-        // results: { status: 'completed', result: { screenshots: [], data: {} }, completedAt }
-        const ecsResult = taskResult.results as unknown as {
-          status: string;
+      // 2. 通过 SSE 等待任务完成并获取结果
+      const finalResult = await waitForTaskCompletion(
+        taskResult.taskId,
+        callbacks?.onStepProgress,
+        callbacks?.onPause
+      );
+
+      // 3. 处理执行结果
+      console.log(
+        '[Registration] finalResult:',
+        JSON.stringify(finalResult, null, 2)
+      );
+      console.log('[Registration] finalResult.status:', finalResult.status);
+      console.log('[Registration] finalResult.result:', !!finalResult.result);
+      if (finalResult.status === 'completed' && finalResult.result) {
+        // ECS 返回的格式: { status, result: { screenshots, data }, ... }
+        const ecsResult = finalResult.result as {
+          status?: string;
           result?: {
             screenshots?: Array<{ name: string; url: string }>;
             data?: Record<string, unknown>;
           };
-          errorMessage?: string;
+          // 兼容旧格式（直接返回 screenshots/data）
+          screenshots?: Array<{ name: string; url: string }>;
+          data?: Record<string, unknown>;
         };
 
-        if (ecsResult.status === 'completed' && ecsResult.result) {
-          // 保存成功结果到数据库
-          await saveRegistrationResult({
-            collaborationId: talent.collaborationId,
-            projectId,
-            talentName: talent.talentName,
-            xingtuId: talent.xingtuId,
-            workflowId,
-            workflowName,
-            status: 'success',
-            screenshots: ecsResult.result.screenshots || [],
-            extractedData: ecsResult.result.data || {},
-            fetchedAt: new Date().toISOString(),
-          });
+        // 兼容两种格式
+        const screenshots =
+          ecsResult.result?.screenshots || ecsResult.screenshots || [];
+        const extractedData = ecsResult.result?.data || ecsResult.data || {};
 
-          successCount++;
-          results.push({
-            collaborationId: talent.collaborationId,
-            status: 'success',
-          });
-          callbacks?.onSuccess?.(talent.collaborationId, taskResult);
-        } else {
-          // ECS 返回 status: 'failed'
-          throw new Error(ecsResult.errorMessage || '工作流执行失败');
-        }
+        console.log(
+          '[Registration] ECS 返回结果:',
+          JSON.stringify(ecsResult, null, 2)
+        );
+        console.log('[Registration] 解析后截图数量:', screenshots.length);
+        console.log(
+          '[Registration] 解析后数据字段:',
+          Object.keys(extractedData)
+        );
+
+        // 保存成功结果到数据库
+        await saveRegistrationResult({
+          collaborationId: talent.collaborationId,
+          projectId,
+          talentName: talent.talentName,
+          xingtuId: talent.xingtuId,
+          workflowId,
+          workflowName,
+          status: 'success',
+          screenshots,
+          extractedData,
+          fetchedAt: new Date().toISOString(),
+        });
+
+        successCount++;
+        results.push({
+          collaborationId: talent.collaborationId,
+          status: 'success',
+        });
+        callbacks?.onSuccess?.(talent.collaborationId, finalResult);
       } else {
-        throw new Error(taskResult.error || '抓取失败');
+        throw new Error(finalResult.error || '工作流执行失败');
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '未知错误';
@@ -273,11 +412,6 @@ export async function executeBatchFetch(
         error: errorMessage,
       });
       callbacks?.onError?.(talent.collaborationId, errorMessage);
-    } finally {
-      // 确保取消 SSE 订阅
-      if (unsubscribe) {
-        unsubscribe();
-      }
     }
   }
 
@@ -312,7 +446,25 @@ export async function getRegistrationWorkflows(): Promise<
 export async function getReportTemplates(): Promise<
   RegistrationApiResponse<ReportTemplateOption[]>
 > {
-  return get('/report-templates', { type: 'registration' });
+  const response = await get<
+    RegistrationApiResponse<
+      Array<{ _id: string; name: string; description?: string }>
+    >
+  >('/report-templates', { type: 'registration' });
+
+  // 转换 _id 为 id
+  if (response.success && response.data) {
+    return {
+      ...response,
+      data: response.data.map(t => ({
+        id: t._id,
+        name: t.name,
+        description: t.description,
+      })),
+    };
+  }
+
+  return response as RegistrationApiResponse<ReportTemplateOption[]>;
 }
 
 // ========== 生成表格 API ==========
@@ -325,9 +477,17 @@ export async function getReportTemplates(): Promise<
 export async function generateRegistrationSheet(
   request: GenerateSheetRequest
 ): Promise<RegistrationApiResponse<GeneratedSheet>> {
+  // 注意：sync-from-feishu 云函数期望 dataType + payload 格式
   return post('/sync-from-feishu', {
-    action: 'generate-registration-sheet',
-    ...request,
+    dataType: 'generateRegistrationSheet',
+    payload: {
+      projectId: request.projectId,
+      templateId: request.templateId,
+      templateName: request.templateName,
+      sheetName: request.sheetName,
+      collaborationIds: request.collaborationIds,
+      destinationFolderToken: request.destinationFolderToken,
+    },
   });
 }
 
@@ -368,6 +528,7 @@ export const registrationApi = {
   // 抓取执行
   executeFetchTask,
   executeBatchFetch,
+  resumeTask,
 
   // 工作流
   getRegistrationWorkflows,

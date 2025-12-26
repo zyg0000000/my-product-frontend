@@ -1,0 +1,9 @@
+{
+  "name": "report-templates",
+  "version": "1.0.0",
+  "description": "报告模板 CRUD API - 支持双数据库",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  }
+}

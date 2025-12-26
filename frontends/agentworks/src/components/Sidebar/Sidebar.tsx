@@ -79,6 +79,7 @@ const navigation: NavItem[] = [
     children: [
       { name: '控制台', path: '/automation/dashboard' },
       { name: '工作流管理', path: '/automation/workflows' },
+      { name: '模板管理', path: '/automation/templates' },
     ],
   },
   {

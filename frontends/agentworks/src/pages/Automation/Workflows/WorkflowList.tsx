@@ -7,7 +7,7 @@
 
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Tag, Popconfirm, Space, App, Switch, Select } from 'antd';
+import { Button, Tag, Popconfirm, Space, App, Switch, Select, Tooltip } from 'antd';
 import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns } from '@ant-design/pro-components';
 import {
@@ -15,6 +15,7 @@ import {
   DeleteOutlined,
   EditOutlined,
   PlayCircleOutlined,
+  DesktopOutlined,
 } from '@ant-design/icons';
 import { PageTransition } from '../../../components/PageTransition';
 import { useWorkflows } from '../../../hooks/useWorkflows';
@@ -88,10 +89,17 @@ export function WorkflowList() {
     {
       title: '工作流名称',
       dataIndex: 'name',
-      width: 200,
+      width: 220,
       ellipsis: true,
       render: (_, record) => (
-        <span className="font-medium text-content">{record.name}</span>
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-content">{record.name}</span>
+          {record.enableVNC && (
+            <Tooltip title="远程桌面模式">
+              <DesktopOutlined className="text-blue-500" />
+            </Tooltip>
+          )}
+        </div>
       ),
     },
     {

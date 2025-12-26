@@ -45,7 +45,6 @@ export function GroupDailyReport() {
   const group = useMemo(() => {
     if (!groupId) return null;
     return getGroupById(groupId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId, getGroupById]);
 
   // 分组日报数据

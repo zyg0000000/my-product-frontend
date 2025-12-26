@@ -410,6 +410,7 @@ export function ProjectDetail() {
       children: (
         <RegistrationTab
           projectId={project.id}
+          projectName={project.name}
           platforms={project.platforms}
           onRefresh={refreshProject}
         />

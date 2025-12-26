@@ -88,7 +88,7 @@ async function listTalentsWithResults(db, projectId) {
             collaborationId: collab.id,
             talentName: collab.talentName || talent?.name || '未知达人',
             platform: collab.talentPlatform || 'douyin',
-            xingtuId: collab.xingtuId || talent?.xingtuId || null,
+            xingtuId: collab.xingtuId || talent?.platformSpecific?.xingtuId || null,
             fetchStatus: result?.status || null,
             fetchedAt: result?.fetchedAt || null,
             hasResult: !!result,

@@ -234,6 +234,7 @@ export function WorkflowExecuteModal({
       const response = await automationApi.executeTask({
         workflowId: selectedWorkflowId,
         inputValue: inputValue.trim(),
+        enableVNC: selectedWorkflow?.enableVNC,
         metadata: {
           source: metadata?.source || 'workflow-execute-modal',
           ...metadata,

@@ -25,8 +25,7 @@ import type {
 
 // ECS 服务器地址（通过 Cloudflare Tunnel 提供 HTTPS）
 const ECS_API_BASE_URL =
-  import.meta.env.VITE_ECS_API_URL ||
-  'https://ecs.agent-works.net';
+  import.meta.env.VITE_ECS_API_URL || 'https://ecs.agent-works.net';
 
 // ========== 类型定义 ==========
 
@@ -61,12 +60,16 @@ export interface EcsWorkflow {
   description?: string;
   requiredInput?: 'xingtuId' | 'taskId' | 'videoId' | 'url';
   inputLabel?: string;
+  /** 是否启用 VNC 远程桌面模式 */
+  enableVNC?: boolean;
 }
 
 /** 任务执行请求 */
 export interface TaskExecuteRequest {
   workflowId: string;
   inputValue: string;
+  /** 是否启用 VNC 远程桌面模式 */
+  enableVNC?: boolean;
   metadata?: {
     source?: string;
     projectId?: string;
@@ -111,11 +114,15 @@ export interface HealthResponse {
 /** 任务进度（SSE 推送） */
 export interface TaskProgress {
   taskId: string;
-  status: 'running' | 'completed' | 'failed';
+  status: 'running' | 'completed' | 'failed' | 'paused';
   currentStep?: number;
   totalSteps?: number;
   currentAction?: string;
   result?: unknown;
+  // 暂停状态时的额外字段（验证码手动处理）
+  reason?: 'captcha';
+  vncUrl?: string;
+  message?: string;
 }
 
 /** API 错误 */
@@ -255,17 +262,35 @@ export async function checkServerReachable(): Promise<boolean> {
   }
 }
 
+/** 恢复任务响应 */
+export interface ResumeTaskResponse {
+  success: boolean;
+  message?: string;
+}
+
+/**
+ * 恢复暂停的任务（用户完成验证码后调用）
+ * @param taskId - 任务 ID
+ */
+export async function resumeTask(taskId: string): Promise<ResumeTaskResponse> {
+  return ecsRequest<ResumeTaskResponse>(`/api/task/${taskId}/resume`, {
+    method: 'POST',
+  });
+}
+
 // ========== SSE 实时进度 ==========
 
 /**
  * 订阅任务进度（SSE）
  * @param taskId - 任务 ID
  * @param onProgress - 进度回调函数
+ * @param onError - 连接错误回调（可选）
  * @returns 取消订阅函数
  */
 export function subscribeToTaskProgress(
   taskId: string,
-  onProgress: (progress: TaskProgress) => void
+  onProgress: (progress: TaskProgress) => void,
+  onError?: (error: Error) => void
 ): () => void {
   const url = `${ECS_API_BASE_URL}/api/task/stream/${taskId}`;
   const eventSource = new EventSource(url);
@@ -287,6 +312,7 @@ export function subscribeToTaskProgress(
   eventSource.onerror = () => {
     logger.warn('SSE 连接断开');
     eventSource.close();
+    onError?.(new Error('SSE 连接断开'));
   };
 
   // 返回取消订阅函数
@@ -412,6 +438,7 @@ export const automationApi = {
   checkHealth,
   checkServerReachable,
   uploadCookie,
+  resumeTask,
 
   // SSE 实时进度
   subscribeToTaskProgress,

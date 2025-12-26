@@ -31,6 +31,7 @@ import {
   CloseCircleOutlined,
   MinusCircleOutlined,
   WarningOutlined,
+  DesktopOutlined,
 } from '@ant-design/icons';
 import { registrationApi } from '../../../../api/registration';
 import { automationApi } from '../../../../api/automation';
@@ -42,15 +43,18 @@ import type {
 import type { Platform } from '../../../../types/talent';
 import { ResultViewModal } from './ResultViewModal';
 import { GeneratedSheetsTable } from './GeneratedSheetsTable';
+import { GenerateSheetModal } from './GenerateSheetModal';
 
 interface RegistrationTabProps {
   projectId: string;
+  projectName: string;
   platforms: Platform[];
   onRefresh?: () => void;
 }
 
 export function RegistrationTab({
   projectId,
+  projectName,
   platforms,
   onRefresh,
 }: RegistrationTabProps) {
@@ -74,10 +78,23 @@ export function RegistrationTab({
     isFetching: false,
   });
 
+  // 暂停状态（验证码需要手动处理时）
+  const [pauseInfo, setPauseInfo] = useState<{
+    taskId: string;
+    vncUrl: string;
+    message: string;
+  } | null>(null);
+
   // 结果查看弹窗
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [viewingTalent, setViewingTalent] =
     useState<RegistrationTalentItem | null>(null);
+
+  // 生成表格弹窗
+  const [generateModalOpen, setGenerateModalOpen] = useState(false);
+
+  // 已生成表格列表刷新触发器
+  const [sheetsRefreshKey, setSheetsRefreshKey] = useState(0);
 
   // 加载数据
   const loadData = useCallback(async () => {
@@ -101,6 +118,7 @@ export function RegistrationTab({
             id: w.id,
             name: w.name,
             description: w.description,
+            enableVNC: w.enableVNC,
           }))
         );
       }
@@ -160,6 +178,7 @@ export function RegistrationTab({
           projectId,
           workflowId: selectedWorkflow,
           workflowName: workflow.name,
+          enableVNC: workflow.enableVNC,
           talents: fetchableTalents.map(t => ({
             collaborationId: t.collaborationId,
             talentName: t.talentName,
@@ -195,6 +214,9 @@ export function RegistrationTab({
               stepInfo: undefined, // 失败后清除步骤进度
             }));
           },
+          onPause: info => {
+            setPauseInfo(info);
+          },
         }
       );
 
@@ -212,13 +234,19 @@ export function RegistrationTab({
   };
 
   // 生成表格
-  const handleGenerateSheet = async () => {
+  const handleGenerateSheet = () => {
     if (generatableTalents.length === 0) {
       message.warning('没有可生成表格的达人（需要先抓取成功）');
       return;
     }
+    setGenerateModalOpen(true);
+  };
 
-    message.info('表格生成功能开发中...');
+  // 生成表格成功回调
+  const handleGenerateSuccess = () => {
+    setGenerateModalOpen(false);
+    // 刷新已生成表格列表
+    setSheetsRefreshKey(prev => prev + 1);
   };
 
   // 查看结果
@@ -239,7 +267,82 @@ export function RegistrationTab({
       return;
     }
 
-    message.info('重试功能开发中...');
+    const workflow = workflows.find(w => w.id === selectedWorkflow);
+    if (!workflow) return;
+
+    // 使用批量抓取接口（只传一个达人）
+    setFetchProgress({
+      total: 1,
+      completed: 0,
+      success: 0,
+      failed: 0,
+      isFetching: true,
+      current: record.talentName,
+    });
+
+    try {
+      const result = await registrationApi.executeBatchFetch(
+        {
+          projectId,
+          workflowId: selectedWorkflow,
+          workflowName: workflow.name,
+          enableVNC: workflow.enableVNC,
+          talents: [
+            {
+              collaborationId: record.collaborationId,
+              talentName: record.talentName,
+              xingtuId: record.xingtuId,
+            },
+          ],
+        },
+        {
+          onProgress: (_current, _total, talentName) => {
+            setFetchProgress(prev => ({
+              ...prev,
+              current: talentName,
+            }));
+          },
+          onStepProgress: stepInfo => {
+            setFetchProgress(prev => ({
+              ...prev,
+              stepInfo,
+            }));
+          },
+          onSuccess: () => {
+            setFetchProgress(prev => ({
+              ...prev,
+              completed: 1,
+              success: 1,
+              stepInfo: undefined,
+            }));
+          },
+          onError: () => {
+            setFetchProgress(prev => ({
+              ...prev,
+              completed: 1,
+              failed: 1,
+              stepInfo: undefined,
+            }));
+          },
+          onPause: info => {
+            setPauseInfo(info);
+          },
+        }
+      );
+
+      if (result.success > 0) {
+        message.success(`重试成功: ${record.talentName}`);
+      } else {
+        message.error(`重试失败: ${record.talentName}`);
+      }
+      loadData();
+      onRefresh?.();
+    } catch (error) {
+      message.error('重试执行出错');
+      console.error('Retry error:', error);
+    } finally {
+      setFetchProgress(prev => ({ ...prev, isFetching: false }));
+    }
   };
 
   // 表格列定义
@@ -434,21 +537,79 @@ export function RegistrationTab({
 
             {/* 步骤级进度（SSE 实时推送） */}
             {fetchProgress.stepInfo && (
-              <div className="mt-2 flex items-center gap-2 text-xs text-content-muted">
-                <span className="text-primary-500 font-medium">
-                  步骤 {fetchProgress.stepInfo.currentStep}/
-                  {fetchProgress.stepInfo.totalSteps}
-                </span>
-                <span className="text-content-muted">|</span>
-                <span className="truncate max-w-[300px]">
-                  {fetchProgress.stepInfo.currentAction}
-                </span>
+              <div className="mt-2 flex items-center gap-2 text-xs">
+                {/* 滑块验证状态特殊显示 */}
+                {fetchProgress.stepInfo.captcha ? (
+                  <span
+                    className={`font-medium ${
+                      fetchProgress.stepInfo.captchaStatus === 'detecting'
+                        ? 'text-warning-500'
+                        : fetchProgress.stepInfo.captchaStatus === 'success'
+                          ? 'text-success-500'
+                          : 'text-error-500'
+                    }`}
+                  >
+                    🔐 {fetchProgress.stepInfo.captchaMessage}
+                  </span>
+                ) : (
+                  <>
+                    <span className="text-primary-500 font-medium">
+                      步骤 {fetchProgress.stepInfo.currentStep}/
+                      {fetchProgress.stepInfo.totalSteps}
+                    </span>
+                    <span className="text-content-muted">|</span>
+                    <span className="truncate max-w-[300px] text-content-muted">
+                      {fetchProgress.stepInfo.currentAction}
+                    </span>
+                  </>
+                )}
               </div>
             )}
 
             <div className="mt-2 text-xs text-content-muted">
               进度: {fetchProgress.completed}/{fetchProgress.total} | 成功:{' '}
               {fetchProgress.success} | 失败: {fetchProgress.failed}
+            </div>
+          </div>
+        )}
+
+        {/* 验证码暂停提示 */}
+        {pauseInfo && (
+          <div className="mt-4 p-4 bg-warning-50 border border-warning-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <WarningOutlined className="text-warning-500 text-xl mt-0.5" />
+              <div className="flex-1">
+                <h4 className="font-medium text-warning-700 mb-1">
+                  验证码需要手动处理
+                </h4>
+                <p className="text-sm text-warning-600 mb-3">
+                  {pauseInfo.message}
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    type="primary"
+                    icon={<DesktopOutlined />}
+                    onClick={() => window.open(pauseInfo.vncUrl, '_blank')}
+                  >
+                    打开远程桌面
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      const res = await registrationApi.resumeTask(
+                        pauseInfo.taskId
+                      );
+                      if (res.success) {
+                        setPauseInfo(null);
+                        message.success('任务已恢复');
+                      } else {
+                        message.warning(res.message || '验证码仍未完成');
+                      }
+                    }}
+                  >
+                    继续执行
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -491,7 +652,7 @@ export function RegistrationTab({
       </Card>
 
       {/* 已生成表格列表 */}
-      <GeneratedSheetsTable projectId={projectId} />
+      <GeneratedSheetsTable projectId={projectId} key={sheetsRefreshKey} />
 
       {/* 结果查看弹窗 */}
       <ResultViewModal
@@ -501,6 +662,16 @@ export function RegistrationTab({
           setViewModalOpen(false);
           setViewingTalent(null);
         }}
+      />
+
+      {/* 生成表格弹窗 */}
+      <GenerateSheetModal
+        open={generateModalOpen}
+        onClose={() => setGenerateModalOpen(false)}
+        onSuccess={handleGenerateSuccess}
+        projectId={projectId}
+        projectName={projectName}
+        selectedTalents={generatableTalents}
       />
     </div>
   );

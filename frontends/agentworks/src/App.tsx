@@ -136,6 +136,11 @@ const WorkflowEditor = lazy(() =>
     default: m.WorkflowEditor,
   }))
 );
+const TemplateList = lazy(() =>
+  import('./pages/Automation/Templates/TemplateList').then(m => ({
+    default: m.TemplateList,
+  }))
+);
 // 日报模块
 const DailyReportHome = lazy(() =>
   import('./pages/Projects/DailyReport').then(m => ({
@@ -343,6 +348,10 @@ function ThemedApp() {
                   <Route
                     path="automation/workflows/:id/edit"
                     element={<WorkflowEditor />}
+                  />
+                  <Route
+                    path="automation/templates"
+                    element={<TemplateList />}
                   />
 
                   <Route path="*" element={<Navigate to="/" replace />} />

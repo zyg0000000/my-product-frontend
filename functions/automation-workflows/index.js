@@ -213,6 +213,10 @@ module.exports.handler = async (event, context) => {
                     newWorkflow.platform = body.platform || 'douyin';
                     newWorkflow.inputConfig = body.inputConfig || null;
                     newWorkflow.isActive = body.isActive !== undefined ? body.isActive : true;
+                    // [v3.1] 支持 VNC 远程桌面模式
+                    if (body.enableVNC !== undefined) {
+                        newWorkflow.enableVNC = body.enableVNC;
+                    }
                 }
 
                 const createResult = await collection.insertOne(newWorkflow);

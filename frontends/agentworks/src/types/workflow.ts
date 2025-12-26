@@ -146,6 +146,10 @@ export interface Workflow {
   /** 是否激活 */
   isActive: boolean;
 
+  // ========== 执行配置 ==========
+  /** 是否启用远程桌面模式（VNC），便于处理验证码 */
+  enableVNC?: boolean;
+
   // ========== 元数据 ==========
   createdAt: string;
   updatedAt: string;
@@ -165,6 +169,7 @@ export interface WorkflowListItem {
   inputConfig: WorkflowInputConfig;
   stepsCount: number;
   isActive: boolean;
+  enableVNC?: boolean;
   updatedAt: string;
 }
 
@@ -181,6 +186,7 @@ export interface CreateWorkflowRequest {
   inputConfig: WorkflowInputConfig;
   steps: WorkflowStep[];
   isActive?: boolean;
+  enableVNC?: boolean;
 }
 
 /**
@@ -195,6 +201,7 @@ export interface UpdateWorkflowRequest {
   inputConfig?: WorkflowInputConfig;
   steps?: WorkflowStep[];
   isActive?: boolean;
+  enableVNC?: boolean;
 }
 
 // ==================== API 响应 ====================

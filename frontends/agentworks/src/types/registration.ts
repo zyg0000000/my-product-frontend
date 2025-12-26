@@ -119,6 +119,8 @@ export interface WorkflowOption {
   name: string;
   /** 描述 */
   description?: string;
+  /** 是否启用 VNC 远程桌面模式 */
+  enableVNC?: boolean;
 }
 
 /**
@@ -161,6 +163,12 @@ export interface StepProgressInfo {
   totalSteps: number;
   /** 当前动作描述 */
   currentAction: string;
+  /** 是否遇到滑块验证 */
+  captcha?: boolean;
+  /** 滑块验证状态 */
+  captchaStatus?: 'detecting' | 'success' | 'failed';
+  /** 滑块验证消息 */
+  captchaMessage?: string;
 }
 
 /**
@@ -197,6 +205,8 @@ export interface GenerateSheetRequest {
   sheetName: string;
   /** 达人合作 ID 列表（必须已有抓取结果） */
   collaborationIds: string[];
+  /** 目标文件夹 Token（可选，留空则保存在模板所在文件夹） */
+  destinationFolderToken?: string;
 }
 
 /**

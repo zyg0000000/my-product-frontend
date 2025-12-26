@@ -853,6 +853,7 @@ export function WorkflowEditor() {
             platform: wf.platform,
             inputKey: wf.inputConfig?.key || wf.requiredInput,
             isActive: wf.isActive,
+            enableVNC: wf.enableVNC,
           });
         } else {
           message.error('工作流不存在');
@@ -959,6 +960,8 @@ export function WorkflowEditor() {
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
+      console.log('[WorkflowEditor] 表单值:', values);
+      console.log('[WorkflowEditor] enableVNC:', values.enableVNC);
       setSaving(true);
 
       const inputConfig = WORKFLOW_INPUT_CONFIGS[values.inputKey] ||
@@ -977,6 +980,7 @@ export function WorkflowEditor() {
           inputConfig,
           steps,
           isActive: values.isActive,
+          enableVNC: values.enableVNC,
         };
         const success = await updateWorkflow(updateData);
         if (success) {
@@ -991,6 +995,7 @@ export function WorkflowEditor() {
           inputConfig,
           steps,
           isActive: values.isActive ?? true,
+          enableVNC: values.enableVNC,
         };
         const success = await createWorkflow(createData);
         if (success) {
@@ -1068,7 +1073,7 @@ export function WorkflowEditor() {
             <Form
               form={form}
               layout="inline"
-              initialValues={{ platform: 'douyin', isActive: true }}
+              initialValues={{ platform: 'douyin', isActive: true, enableVNC: false }}
               className="flex flex-wrap gap-4"
             >
               <Form.Item
@@ -1115,6 +1120,16 @@ export function WorkflowEditor() {
               >
                 <Switch checkedChildren="启用" unCheckedChildren="停用" />
               </Form.Item>
+
+              <Tooltip title="启用后任务将在可视化浏览器中执行，便于处理验证码">
+                <Form.Item
+                  name="enableVNC"
+                  valuePropName="checked"
+                  className="!mb-0"
+                >
+                  <Switch checkedChildren="VNC" unCheckedChildren="VNC" />
+                </Form.Item>
+              </Tooltip>
 
               <Form.Item
                 name="description"
