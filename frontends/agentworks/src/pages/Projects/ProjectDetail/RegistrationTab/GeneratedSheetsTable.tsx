@@ -28,8 +28,26 @@ export function GeneratedSheetsTable({ projectId }: GeneratedSheetsTableProps) {
     try {
       setLoading(true);
       const response = await registrationApi.getGeneratedSheets(projectId);
+      console.log('[GeneratedSheetsTable] API 响应:', response);
       if (response.success && response.data) {
-        setSheets(response.data);
+        console.log('[GeneratedSheetsTable] 原始数据:', JSON.stringify(response.data, null, 2));
+        // 兼容处理：统一字段名（支持旧格式 name/url/timestamp 和新格式 fileName/sheetUrl/createdAt）
+        const normalizedData = response.data.map(item => {
+          // 使用类型断言处理可能的旧字段名
+          const rawItem = item as GeneratedSheet & {
+            name?: string;
+            url?: string;
+            timestamp?: string;
+          };
+          return {
+            ...item,
+            fileName: item.fileName || rawItem.name || '未知文件',
+            sheetUrl: item.sheetUrl || rawItem.url || '',
+            createdAt: item.createdAt || rawItem.timestamp || new Date().toISOString(),
+          };
+        });
+        console.log('[GeneratedSheetsTable] 标准化数据:', JSON.stringify(normalizedData, null, 2));
+        setSheets(normalizedData);
       }
     } catch (error) {
       console.error('Load generated sheets error:', error);
@@ -89,7 +107,26 @@ export function GeneratedSheetsTable({ projectId }: GeneratedSheetsTableProps) {
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 180,
-      render: (time: string) => new Date(time).toLocaleString('zh-CN'),
+      render: (time: string | Date | { $date: string }) => {
+        // 处理多种日期格式：字符串、Date 对象、MongoDB ISODate 对象
+        let dateValue: Date;
+        if (typeof time === 'string') {
+          dateValue = new Date(time);
+        } else if (time instanceof Date) {
+          dateValue = time;
+        } else if (time && typeof time === 'object' && '$date' in time) {
+          // MongoDB 返回的 ISODate 格式: { $date: "..." }
+          dateValue = new Date(time.$date);
+        } else {
+          return '-';
+        }
+        // 检查日期是否有效
+        if (isNaN(dateValue.getTime())) {
+          console.warn('[GeneratedSheetsTable] 无法解析日期:', time);
+          return '-';
+        }
+        return dateValue.toLocaleString('zh-CN');
+      },
     },
     {
       title: '操作',
