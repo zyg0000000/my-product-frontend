@@ -96,7 +96,13 @@ export async function getMappingSchemas(
 export async function loadSheetHeaders(
   spreadsheetToken: string
 ): Promise<TemplateApiResponse<string[]>> {
-  const result = await post('/sync-from-feishu', {
+  const result = await post<{
+    success: boolean;
+    headers?: string[];
+    data?: { headers?: string[] };
+    message?: string;
+    error?: string;
+  }>('/sync-from-feishu', {
     dataType: 'getSheetHeaders',
     payload: { spreadsheetToken },
   });

@@ -464,7 +464,12 @@ export async function getReportTemplates(): Promise<
     };
   }
 
-  return response as RegistrationApiResponse<ReportTemplateOption[]>;
+  // 失败时返回空数组
+  return {
+    success: false,
+    data: [],
+    message: response.message,
+  };
 }
 
 // ========== 生成表格 API ==========

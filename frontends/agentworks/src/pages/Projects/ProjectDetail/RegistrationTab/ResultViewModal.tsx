@@ -143,11 +143,9 @@ export function ResultViewModal({
         className="result-view-modal"
         styles={{
           body: { padding: 0 },
-          content: {
+          wrapper: {
             borderRadius: '16px',
             overflow: 'hidden',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-            border: '1px solid var(--color-border)',
           },
           header: { display: 'none' },
           mask: { backdropFilter: 'blur(4px)' },

@@ -40,7 +40,6 @@ import type {
   ReportTemplate,
   CreateTemplateRequest,
   MappingRule,
-  MappingSchemas,
 } from '../../../types/template';
 
 interface TemplateEditorProps {
