@@ -120,8 +120,8 @@ export function GenerateSheetModal({
         message.success('飞书表格生成成功！');
 
         // 打开生成的表格
-        if (result.data.url) {
-          window.open(result.data.url, '_blank');
+        if (result.data.sheetUrl) {
+          window.open(result.data.sheetUrl, '_blank');
         }
 
         onSuccess();
