@@ -174,6 +174,24 @@ export interface StepProgressInfo {
 }
 
 /**
+ * 单个达人的抓取结果（用于进度面板实时展示）
+ */
+export interface TalentFetchResult {
+  /** 达人合作 ID */
+  collaborationId: string;
+  /** 达人名称 */
+  talentName: string;
+  /** 执行状态 */
+  status: 'pending' | 'running' | 'success' | 'failed';
+  /** 耗时（毫秒） */
+  duration?: number;
+  /** 错误信息 */
+  error?: string;
+  /** 开始执行时间戳 */
+  startTime?: number;
+}
+
+/**
  * 抓取进度
  */
 export interface FetchProgress {
@@ -191,6 +209,10 @@ export interface FetchProgress {
   isFetching: boolean;
   /** 步骤级进度（SSE 实时推送） */
   stepInfo?: StepProgressInfo;
+  /** 批量抓取开始时间 */
+  startTime?: number;
+  /** 每个达人的执行结果列表 */
+  talentResults?: TalentFetchResult[];
 }
 
 /**

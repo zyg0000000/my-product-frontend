@@ -260,10 +260,14 @@ export interface BatchFetchCallbacks {
   onProgress?: (current: number, total: number, talentName: string) => void;
   /** 步骤级进度回调（当前达人的执行步骤，SSE 推送） */
   onStepProgress?: (stepInfo: StepProgressInfo) => void;
-  /** 单个任务成功回调 */
-  onSuccess?: (collaborationId: string, result: unknown) => void;
-  /** 单个任务失败回调 */
-  onError?: (collaborationId: string, error: string) => void;
+  /** 单个任务成功回调（增加 duration 参数） */
+  onSuccess?: (
+    collaborationId: string,
+    result: unknown,
+    duration: number
+  ) => void;
+  /** 单个任务失败回调（增加 duration 参数） */
+  onError?: (collaborationId: string, error: string, duration: number) => void;
   /** 任务暂停回调（验证码需要手动处理时） */
   onPause?: (pauseInfo: PauseInfo) => void;
 }
@@ -300,6 +304,7 @@ export async function executeBatchFetch(
 
   for (let i = 0; i < talents.length; i++) {
     const talent = talents[i];
+    const talentStartTime = Date.now(); // 记录单个达人开始时间
 
     // 进度回调
     callbacks?.onProgress?.(i + 1, talents.length, talent.talentName);
@@ -383,7 +388,8 @@ export async function executeBatchFetch(
           collaborationId: talent.collaborationId,
           status: 'success',
         });
-        callbacks?.onSuccess?.(talent.collaborationId, finalResult);
+        const duration = Date.now() - talentStartTime;
+        callbacks?.onSuccess?.(talent.collaborationId, finalResult, duration);
       } else {
         throw new Error(finalResult.error || '工作流执行失败');
       }
@@ -411,7 +417,8 @@ export async function executeBatchFetch(
         status: 'failed',
         error: errorMessage,
       });
-      callbacks?.onError?.(talent.collaborationId, errorMessage);
+      const duration = Date.now() - talentStartTime;
+      callbacks?.onError?.(talent.collaborationId, errorMessage, duration);
     }
   }
 

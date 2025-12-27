@@ -32,6 +32,8 @@ import {
   MinusCircleOutlined,
   WarningOutlined,
   DesktopOutlined,
+  LoadingOutlined,
+  ClockCircleOutlined,
 } from '@ant-design/icons';
 import { registrationApi } from '../../../../api/registration';
 import { automationApi } from '../../../../api/automation';
@@ -164,12 +166,19 @@ export function RegistrationTab({
     const workflow = workflows.find(w => w.id === selectedWorkflow);
     if (!workflow) return;
 
+    // 初始化进度状态，包含每个达人的执行结果列表
     setFetchProgress({
       total: fetchableTalents.length,
       completed: 0,
       success: 0,
       failed: 0,
       isFetching: true,
+      startTime: Date.now(),
+      talentResults: fetchableTalents.map(t => ({
+        collaborationId: t.collaborationId,
+        talentName: t.talentName,
+        status: 'pending' as const,
+      })),
     });
 
     try {
@@ -192,6 +201,12 @@ export function RegistrationTab({
               completed: current,
               current: talentName,
               stepInfo: undefined, // 开始新达人时重置步骤进度
+              // 更新当前达人状态为 running
+              talentResults: prev.talentResults?.map(t =>
+                t.talentName === talentName
+                  ? { ...t, status: 'running' as const, startTime: Date.now() }
+                  : t
+              ),
             }));
           },
           onStepProgress: stepInfo => {
@@ -200,32 +215,53 @@ export function RegistrationTab({
               stepInfo,
             }));
           },
-          onSuccess: collaborationId => {
+          onSuccess: (collaborationId, _result, duration) => {
             setFetchProgress(prev => ({
               ...prev,
               success: prev.success + 1,
               stepInfo: undefined, // 成功后清除步骤进度
+              // 更新该达人状态为 success
+              talentResults: prev.talentResults?.map(t =>
+                t.collaborationId === collaborationId
+                  ? { ...t, status: 'success' as const, duration }
+                  : t
+              ),
             }));
-            // 立即更新该达人的状态
+            // 立即更新达人列表表格
             setTalents(prev =>
               prev.map(t =>
                 t.collaborationId === collaborationId
-                  ? { ...t, fetchStatus: 'success', fetchedAt: new Date().toISOString(), hasResult: true }
+                  ? {
+                      ...t,
+                      fetchStatus: 'success',
+                      fetchedAt: new Date().toISOString(),
+                      hasResult: true,
+                    }
                   : t
               )
             );
           },
-          onError: collaborationId => {
+          onError: (collaborationId, error, duration) => {
             setFetchProgress(prev => ({
               ...prev,
               failed: prev.failed + 1,
               stepInfo: undefined, // 失败后清除步骤进度
+              // 更新该达人状态为 failed
+              talentResults: prev.talentResults?.map(t =>
+                t.collaborationId === collaborationId
+                  ? { ...t, status: 'failed' as const, duration, error }
+                  : t
+              ),
             }));
-            // 立即更新该达人的状态
+            // 立即更新达人列表表格
             setTalents(prev =>
               prev.map(t =>
                 t.collaborationId === collaborationId
-                  ? { ...t, fetchStatus: 'failed', fetchedAt: new Date().toISOString() }
+                  ? {
+                      ...t,
+                      fetchStatus: 'failed',
+                      fetchedAt: new Date().toISOString(),
+                    }
                   : t
               )
             );
@@ -335,7 +371,12 @@ export function RegistrationTab({
             setTalents(prev =>
               prev.map(t =>
                 t.collaborationId === collaborationId
-                  ? { ...t, fetchStatus: 'success', fetchedAt: new Date().toISOString(), hasResult: true }
+                  ? {
+                      ...t,
+                      fetchStatus: 'success',
+                      fetchedAt: new Date().toISOString(),
+                      hasResult: true,
+                    }
                   : t
               )
             );
@@ -351,7 +392,11 @@ export function RegistrationTab({
             setTalents(prev =>
               prev.map(t =>
                 t.collaborationId === collaborationId
-                  ? { ...t, fetchStatus: 'failed', fetchedAt: new Date().toISOString() }
+                  ? {
+                      ...t,
+                      fetchStatus: 'failed',
+                      fetchedAt: new Date().toISOString(),
+                    }
                   : t
               )
             );
@@ -551,70 +596,205 @@ export function RegistrationTab({
           </div>
         </div>
 
-        {/* 抓取进度条 */}
+        {/* 批量抓取进度面板 */}
         {fetchProgress.isFetching && (
           <div className="mt-4 pt-4 border-t border-stroke">
-            <div className="flex items-center gap-4">
+            <div className="p-4 bg-surface-sunken rounded-lg">
+              {/* 头部：当前达人和时间信息 */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-500/10">
+                    <LoadingOutlined className="text-primary-500" spin />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-content">
+                      正在处理: {fetchProgress.current || '准备中...'}
+                    </div>
+                    <div className="text-xs text-content-muted">
+                      第 {fetchProgress.completed}/{fetchProgress.total} 位达人
+                    </div>
+                  </div>
+                </div>
+
+                {/* 时间信息 */}
+                <div className="flex items-center gap-4 text-xs">
+                  {fetchProgress.startTime && (
+                    <div className="flex items-center gap-1.5 text-content-secondary">
+                      <ClockCircleOutlined />
+                      <span>
+                        已用:{' '}
+                        {Math.floor(
+                          (Date.now() - fetchProgress.startTime) / 1000
+                        )}
+                        秒
+                      </span>
+                    </div>
+                  )}
+                  {fetchProgress.success + fetchProgress.failed > 0 && (
+                    <div className="text-content-muted">
+                      预计剩余:{' '}
+                      {Math.round(
+                        (((Date.now() -
+                          (fetchProgress.startTime || Date.now())) /
+                          (fetchProgress.success + fetchProgress.failed)) *
+                          (fetchProgress.total -
+                            fetchProgress.success -
+                            fetchProgress.failed)) /
+                          1000
+                      )}
+                      秒
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 进度条 */}
               <Progress
                 percent={Math.round(
-                  (fetchProgress.completed / fetchProgress.total) * 100
+                  ((fetchProgress.success + fetchProgress.failed) /
+                    fetchProgress.total) *
+                    100
                 )}
                 status="active"
-                className="flex-1"
+                strokeColor={{
+                  '0%': 'var(--aw-primary-500)',
+                  '100%': 'var(--aw-primary-600)',
+                }}
               />
-              <span className="text-sm text-content-secondary whitespace-nowrap">
-                {fetchProgress.current && `正在处理: ${fetchProgress.current}`}
-              </span>
-            </div>
 
-            {/* 步骤级进度（SSE 实时推送） */}
-            {fetchProgress.stepInfo && (
-              <div className="mt-2 flex items-center gap-2 text-xs">
-                {/* 滑块验证状态特殊显示 */}
-                {fetchProgress.stepInfo.captcha ? (
-                  <span
-                    className={`font-medium ${
-                      fetchProgress.stepInfo.captchaStatus === 'detecting'
-                        ? 'text-warning-500'
-                        : fetchProgress.stepInfo.captchaStatus === 'success'
-                          ? 'text-success-500'
-                          : 'text-error-500'
-                    }`}
-                  >
-                    🔐 {fetchProgress.stepInfo.captchaMessage}
+              {/* 步骤级进度 */}
+              {fetchProgress.stepInfo && (
+                <div className="mt-3 flex items-center gap-2">
+                  {fetchProgress.stepInfo.captcha ? (
+                    <Tag
+                      icon={
+                        fetchProgress.stepInfo.captchaStatus === 'detecting' ? (
+                          <LoadingOutlined spin />
+                        ) : fetchProgress.stepInfo.captchaStatus ===
+                          'success' ? (
+                          <CheckCircleOutlined />
+                        ) : (
+                          <CloseCircleOutlined />
+                        )
+                      }
+                      color={
+                        fetchProgress.stepInfo.captchaStatus === 'detecting'
+                          ? 'processing'
+                          : fetchProgress.stepInfo.captchaStatus === 'success'
+                            ? 'success'
+                            : 'error'
+                      }
+                    >
+                      {fetchProgress.stepInfo.captchaMessage}
+                    </Tag>
+                  ) : (
+                    <>
+                      <Tag color="blue" className="font-mono">
+                        步骤 {fetchProgress.stepInfo.currentStep}/
+                        {fetchProgress.stepInfo.totalSteps}
+                      </Tag>
+                      <span className="text-xs text-content-muted truncate max-w-[280px]">
+                        {fetchProgress.stepInfo.currentAction}
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* 汇总统计 */}
+              <div className="mt-3 pt-3 border-t border-stroke flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-primary-500" />
+                  <span className="text-xs text-content-secondary">
+                    进度{' '}
+                    <span className="font-medium text-content">
+                      {fetchProgress.completed}/{fetchProgress.total}
+                    </span>
                   </span>
-                ) : (
-                  <>
-                    <span className="text-primary-500 font-medium">
-                      步骤 {fetchProgress.stepInfo.currentStep}/
-                      {fetchProgress.stepInfo.totalSteps}
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-success-500" />
+                  <span className="text-xs text-content-secondary">
+                    成功{' '}
+                    <span className="font-medium text-success-600">
+                      {fetchProgress.success}
                     </span>
-                    <span className="text-content-muted">|</span>
-                    <span className="truncate max-w-[300px] text-content-muted">
-                      {fetchProgress.stepInfo.currentAction}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-danger-500" />
+                  <span className="text-xs text-content-secondary">
+                    失败{' '}
+                    <span className="font-medium text-danger-500">
+                      {fetchProgress.failed}
                     </span>
-                  </>
-                )}
+                  </span>
+                </div>
               </div>
-            )}
 
-            <div className="mt-2 text-xs text-content-muted">
-              进度: {fetchProgress.completed}/{fetchProgress.total} | 成功:{' '}
-              {fetchProgress.success} | 失败: {fetchProgress.failed}
+              {/* 达人执行列表 */}
+              {fetchProgress.talentResults &&
+                fetchProgress.talentResults.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-stroke space-y-1.5 max-h-[160px] overflow-y-auto">
+                    {fetchProgress.talentResults.map(t => (
+                      <div
+                        key={t.collaborationId}
+                        className="flex items-center gap-2 text-sm py-1"
+                      >
+                        {t.status === 'success' && (
+                          <CheckCircleOutlined className="text-success-500" />
+                        )}
+                        {t.status === 'failed' && (
+                          <CloseCircleOutlined className="text-danger-500" />
+                        )}
+                        {t.status === 'running' && (
+                          <LoadingOutlined className="text-primary-500" spin />
+                        )}
+                        {t.status === 'pending' && (
+                          <MinusCircleOutlined className="text-content-muted" />
+                        )}
+
+                        <span
+                          className={
+                            t.status === 'running'
+                              ? 'text-content font-medium'
+                              : 'text-content-secondary'
+                          }
+                        >
+                          {t.talentName}
+                        </span>
+
+                        <span className="ml-auto text-xs text-content-muted">
+                          {t.status === 'success' &&
+                            `${Math.round((t.duration || 0) / 1000)}秒`}
+                          {t.status === 'failed' && (
+                            <Tooltip title={t.error}>
+                              <span className="text-danger-500 cursor-help">
+                                失败
+                              </span>
+                            </Tooltip>
+                          )}
+                          {t.status === 'running' && '执行中...'}
+                          {t.status === 'pending' && '等待中'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
             </div>
           </div>
         )}
 
         {/* 验证码暂停提示 */}
         {pauseInfo && (
-          <div className="mt-4 p-4 bg-warning-50 border border-warning-200 rounded-lg">
+          <div className="mt-4 p-4 bg-warning-500/10 dark:bg-warning-900/20 border border-warning-500/30 rounded-lg">
             <div className="flex items-start gap-3">
-              <WarningOutlined className="text-warning-500 text-xl mt-0.5" />
+              <WarningOutlined className="text-warning-500 text-xl mt-0.5 flex-shrink-0" />
               <div className="flex-1">
-                <h4 className="font-medium text-warning-700 mb-1">
+                <h4 className="font-medium text-content mb-1">
                   验证码需要手动处理
                 </h4>
-                <p className="text-sm text-warning-600 mb-3">
+                <p className="text-sm text-content-secondary mb-3">
                   {pauseInfo.message}
                 </p>
                 <div className="flex gap-2">
