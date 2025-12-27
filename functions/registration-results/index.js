@@ -62,7 +62,7 @@ async function listTalentsWithResults(db, projectId) {
     // 1. 获取项目下所有合作记录
     const collaborations = await db.collection('collaborations').find({
         projectId,
-        status: { $in: ['客户已定档', '视频已发布', 'scheduled', 'published'] }
+        status: { $in: ['客户已定档', '视频已发布', 'scheduled', 'published', '待提报工作台', '工作台已提交'] }
     }).toArray();
 
     // 2. 获取项目的所有抓取结果
