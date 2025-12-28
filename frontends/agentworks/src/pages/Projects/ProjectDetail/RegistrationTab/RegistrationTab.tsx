@@ -510,13 +510,19 @@ export function RegistrationTab({
             // 已抓取（当前项目）
             if (fetchStatus === 'failed') {
               return (
-                <Tag icon={<CloseCircleOutlined />} color="error">
+                <Tag
+                  icon={<CloseCircleOutlined />}
+                  className="!bg-danger-500/10 !text-danger-600 !border-danger-500/20"
+                >
                   失败
                 </Tag>
               );
             }
             return (
-              <Tag icon={<CheckCircleOutlined />} color="success">
+              <Tag
+                icon={<CheckCircleOutlined />}
+                className="!bg-success-500/10 !text-success-600 !border-success-500/20"
+              >
                 已抓取
               </Tag>
             );
@@ -533,8 +539,7 @@ export function RegistrationTab({
               >
                 <Tag
                   icon={<HistoryOutlined />}
-                  color="blue"
-                  className="cursor-pointer"
+                  className="!bg-info-500/10 !text-info-600 !border-info-500/20 cursor-pointer"
                   onClick={() => handleViewHistoryRecord(record)}
                 >
                   可复用
@@ -549,8 +554,7 @@ export function RegistrationTab({
               <Tooltip title="历史数据已过期（>30天），建议重新抓取">
                 <Tag
                   icon={<ExclamationCircleOutlined />}
-                  color="warning"
-                  className="cursor-pointer"
+                  className="!bg-warning-500/10 !text-warning-600 !border-warning-500/20 cursor-pointer"
                   onClick={() => handleViewHistoryRecord(record)}
                 >
                   数据过期
@@ -562,7 +566,10 @@ export function RegistrationTab({
           default:
             // 未抓取（全局无记录）
             return (
-              <Tag icon={<MinusCircleOutlined />} color="default">
+              <Tag
+                icon={<MinusCircleOutlined />}
+                className="!bg-surface-sunken !text-content-secondary !border-stroke"
+              >
                 未抓取
               </Tag>
             );

@@ -80,8 +80,8 @@ export function HistoryRecordsModal({
         className={`
           p-4 rounded-lg border transition-all
           ${isRecommended ? 'border-primary-500 bg-primary-500/5' : ''}
-          ${isExpired ? 'border-border-secondary bg-surface-secondary opacity-70' : ''}
-          ${!isRecommended && !isExpired ? 'border-border hover:border-primary-400' : ''}
+          ${isExpired ? 'border-stroke bg-surface-sunken opacity-70' : ''}
+          ${!isRecommended && !isExpired ? 'border-stroke hover:border-primary-400' : ''}
         `}
       >
         <div className="flex items-start justify-between gap-4">
@@ -93,13 +93,19 @@ export function HistoryRecordsModal({
                 {record.projectName}
               </span>
               {isRecommended && (
-                <Tag icon={<StarOutlined />} color="gold">
+                <Tag
+                  icon={<StarOutlined />}
+                  className="!bg-warning-500/10 !text-warning-600 !border-warning-500/20"
+                >
                   推荐
                 </Tag>
               )}
               {isExpired && (
                 <Tooltip title="抓取时间距离当前合作创建时间超过30天">
-                  <Tag icon={<ExclamationCircleOutlined />} color="warning">
+                  <Tag
+                    icon={<ExclamationCircleOutlined />}
+                    className="!bg-warning-500/10 !text-warning-600 !border-warning-500/20"
+                  >
                     已过期
                   </Tag>
                 </Tooltip>
@@ -147,7 +153,7 @@ export function HistoryRecordsModal({
                       ))}
                   </Image.PreviewGroup>
                   {record.result.screenshots.length > 3 && (
-                    <div className="w-[60px] h-[60px] rounded bg-surface-secondary flex items-center justify-center text-content-secondary text-sm">
+                    <div className="w-[60px] h-[60px] rounded bg-surface-sunken flex items-center justify-center text-content-secondary text-sm">
                       +{record.result.screenshots.length - 3}
                     </div>
                   )}
@@ -186,7 +192,7 @@ export function HistoryRecordsModal({
         </Button>
 
         {/* 来源信息 */}
-        <div className="p-3 bg-surface-secondary rounded-lg">
+        <div className="p-3 bg-surface-sunken rounded-lg">
           <div className="text-sm text-content-secondary">
             来自项目「{viewingRecord.projectName}」的抓取记录
           </div>
@@ -237,7 +243,7 @@ export function HistoryRecordsModal({
             <div className="text-sm font-medium text-content mb-2">
               提取数据
             </div>
-            <div className="bg-surface-secondary rounded-lg p-3 space-y-2">
+            <div className="bg-surface-sunken rounded-lg p-3 space-y-2">
               {Object.entries(extractedData).map(([key, value]) => (
                 <div key={key} className="flex justify-between text-sm">
                   <span className="text-content-secondary">{key}</span>
