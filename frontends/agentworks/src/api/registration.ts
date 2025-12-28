@@ -490,17 +490,26 @@ export async function generateRegistrationSheet(
   request: GenerateSheetRequest
 ): Promise<RegistrationApiResponse<GeneratedSheet>> {
   // 注意：sync-from-feishu 云函数期望 dataType + payload 格式
-  return post('/sync-from-feishu', {
-    dataType: 'generateRegistrationSheet',
-    payload: {
-      projectId: request.projectId,
-      templateId: request.templateId,
-      templateName: request.templateName,
-      sheetName: request.sheetName,
-      collaborationIds: request.collaborationIds,
-      destinationFolderToken: request.destinationFolderToken,
+  return post(
+    '/sync-from-feishu',
+    {
+      dataType: 'generateRegistrationSheet',
+      payload: {
+        projectId: request.projectId,
+        templateId: request.templateId,
+        templateName: request.templateName,
+        sheetName: request.sheetName,
+        collaborationIds: request.collaborationIds,
+        destinationFolderToken: request.destinationFolderToken,
+      },
     },
-  });
+    {
+      // 生成表格是写操作，云函数需要30-40秒写多张图片
+      // 延长超时时间到2分钟，并禁用重试防止重复创建
+      timeout: 120000,
+      skipRetry: true,
+    }
+  );
 }
 
 /**

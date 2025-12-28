@@ -549,6 +549,32 @@ async function generateRegistrationSheet(payload) {
     const client = await getDbConnection();
     const db = client.db('agentworks_db');  // AgentWorks 使用 agentworks_db
 
+    // 幂等性检查：防止超时重试导致重复创建表格
+    // 相同 projectId + collaborationIds 组合在5分钟内只创建一次
+    console.log("\n--- [幂等性检查] 检查是否有重复请求 ---");
+    const sortedIds = [...collaborationIds].sort().join(',');
+    const requestKey = `${projectId}_${sortedIds}`;
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+    const existingSheet = await db.collection(GENERATED_SHEETS_COLLECTION).findOne({
+        projectId,
+        requestKey,
+        createdAt: { $gte: fiveMinutesAgo }
+    });
+
+    if (existingSheet) {
+        console.log(`--> [幂等] 发现5分钟内的重复请求，复用已有结果: ${existingSheet.sheetToken}`);
+        return {
+            message: "表格已生成（复用已有结果）",
+            url: existingSheet.sheetUrl,
+            fileName: existingSheet.fileName,
+            sheetToken: existingSheet.sheetToken,
+            talentCount: existingSheet.talentCount,
+            reused: true
+        };
+    }
+    console.log("--> 无重复请求，继续生成新表格");
+
     // 1. 获取模板配置
     console.log("\n--- [步骤 1] 获取模板配置 ---");
     const template = await db.collection(REPORT_TEMPLATES_COLLECTION).findOne({ _id: new ObjectId(templateId) });
@@ -785,6 +811,7 @@ async function generateRegistrationSheet(payload) {
         sheetToken: newSpreadsheetToken,
         type: 'registration',
         talentCount: results.length,
+        requestKey,  // 用于幂等性检查
         createdAt: new Date(),
     };
     await db.collection(GENERATED_SHEETS_COLLECTION).insertOne(generatedSheet);
