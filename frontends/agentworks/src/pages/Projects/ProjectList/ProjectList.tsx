@@ -254,7 +254,7 @@ export function ProjectList() {
     try {
       const response = await projectApi.preCheckDeleteProject(record.id);
       // 注意：后端直接返回 affectedData，不包装在 data 中
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const data =
         (response as any).affectedData || response.data?.affectedData;
       if (response.success && data) {

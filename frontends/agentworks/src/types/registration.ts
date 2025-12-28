@@ -9,12 +9,41 @@
  */
 
 /**
- * 抓取状态
+ * 抓取状态（当前项目）
  */
 export type RegistrationFetchStatus =
   | 'pending' // 抓取中
   | 'success' // 成功
   | 'failed'; // 失败
+
+/**
+ * 达人抓取状态类型（综合跨项目历史）
+ * - fetched: 当前项目已有抓取结果
+ * - reusable: 其他项目有可复用的记录（未过期）
+ * - expired: 其他项目有记录但已过期（>30天）
+ * - none: 全局无抓取记录
+ */
+export type TalentFetchStatusType = 'fetched' | 'reusable' | 'expired' | 'none';
+
+/**
+ * 跨项目历史抓取记录
+ */
+export interface HistoryRecord {
+  /** 来源项目 ID */
+  projectId: string;
+  /** 来源项目名称 */
+  projectName: string;
+  /** 来源合作 ID */
+  collaborationId: string;
+  /** 抓取时间 */
+  fetchedAt: string;
+  /** 距离当前合作创建时间的天数 */
+  daysDiff: number;
+  /** 是否已过期（>30天） */
+  isExpired: boolean;
+  /** 完整的抓取结果 */
+  result: RegistrationResult;
+}
 
 /**
  * 截图信息
@@ -62,25 +91,35 @@ export interface RegistrationResult {
 
 /**
  * 达人列表项（用于 ProTable 显示）
- * 合并 collaboration 基础信息 + 抓取结果状态
+ * 合并 collaboration 基础信息 + 抓取结果状态 + 跨项目历史
  */
 export interface RegistrationTalentItem {
   /** 合作 ID */
   collaborationId: string;
+  /** 合作创建时间（用于计算历史记录是否过期） */
+  collaborationCreatedAt?: string;
   /** 达人昵称 */
   talentName: string;
   /** 平台 */
   platform: string;
   /** 星图 ID（可能为空） */
   xingtuId?: string;
-  /** 抓取状态（null 表示未抓取） */
+  /** 当前项目的抓取状态（null 表示未抓取） */
   fetchStatus: RegistrationFetchStatus | null;
   /** 抓取时间 */
   fetchedAt?: string;
-  /** 是否有抓取结果 */
+  /** 是否有抓取结果（当前项目） */
   hasResult: boolean;
   /** 关联的抓取结果（用于查看详情） */
   result?: RegistrationResult;
+
+  // ===== 跨项目复用相关字段 =====
+  /** 综合抓取状态类型 */
+  fetchStatusType?: TalentFetchStatusType;
+  /** 其他项目的历史抓取记录列表（按距离排序） */
+  historyRecords?: HistoryRecord[];
+  /** 系统推荐的复用记录（未过期且距离最近） */
+  recommendedRecord?: HistoryRecord | null;
 }
 
 /**

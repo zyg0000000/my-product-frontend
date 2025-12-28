@@ -30,7 +30,10 @@ export function GeneratedSheetsTable({ projectId }: GeneratedSheetsTableProps) {
       const response = await registrationApi.getGeneratedSheets(projectId);
       console.log('[GeneratedSheetsTable] API 响应:', response);
       if (response.success && response.data) {
-        console.log('[GeneratedSheetsTable] 原始数据:', JSON.stringify(response.data, null, 2));
+        console.log(
+          '[GeneratedSheetsTable] 原始数据:',
+          JSON.stringify(response.data, null, 2)
+        );
         // 兼容处理：统一字段名（支持旧格式 name/url/timestamp 和新格式 fileName/sheetUrl/createdAt）
         const normalizedData = response.data.map(item => {
           // 使用类型断言处理可能的旧字段名
@@ -43,10 +46,14 @@ export function GeneratedSheetsTable({ projectId }: GeneratedSheetsTableProps) {
             ...item,
             fileName: item.fileName || rawItem.name || '未知文件',
             sheetUrl: item.sheetUrl || rawItem.url || '',
-            createdAt: item.createdAt || rawItem.timestamp || new Date().toISOString(),
+            createdAt:
+              item.createdAt || rawItem.timestamp || new Date().toISOString(),
           };
         });
-        console.log('[GeneratedSheetsTable] 标准化数据:', JSON.stringify(normalizedData, null, 2));
+        console.log(
+          '[GeneratedSheetsTable] 标准化数据:',
+          JSON.stringify(normalizedData, null, 2)
+        );
         setSheets(normalizedData);
       }
     } catch (error) {

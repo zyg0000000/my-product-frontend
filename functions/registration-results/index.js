@@ -57,19 +57,48 @@ async function getResultByCollaboration(db, collaborationId) {
     };
 }
 
-// ==================== 获取达人列表（合并 collaborations + results） ====================
+/**
+ * 计算两个日期之间的天数差
+ * @param {string} date1 - ISO 日期字符串
+ * @param {string} date2 - ISO 日期字符串
+ * @returns {number} 天数差（绝对值）
+ */
+function calculateDaysDiff(date1, date2) {
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+    return Math.abs(Math.floor((d1 - d2) / (1000 * 60 * 60 * 24)));
+}
+
+/**
+ * 确定达人的抓取状态
+ * @param {boolean} hasCurrentResult - 当前项目是否有抓取结果
+ * @param {Array} historyRecords - 历史抓取记录
+ * @returns {'fetched' | 'reusable' | 'expired' | 'none'}
+ */
+function determineFetchStatus(hasCurrentResult, historyRecords) {
+    if (hasCurrentResult) return 'fetched';
+    if (!historyRecords || historyRecords.length === 0) return 'none';
+
+    // 检查是否有未过期的记录
+    const hasValidRecord = historyRecords.some(r => !r.isExpired);
+    return hasValidRecord ? 'reusable' : 'expired';
+}
+
+// ==================== 获取达人列表（合并 collaborations + results + 跨项目历史） ====================
 async function listTalentsWithResults(db, projectId) {
+    const EXPIRY_THRESHOLD_DAYS = 30;
+
     // 1. 获取项目下所有合作记录
     const collaborations = await db.collection('collaborations').find({
         projectId,
         status: { $in: ['客户已定档', '视频已发布', 'scheduled', 'published', '待提报工作台', '工作台已提交'] }
     }).toArray();
 
-    // 2. 获取项目的所有抓取结果
-    const results = await db.collection('registration_results')
+    // 2. 获取当前项目的所有抓取结果
+    const currentResults = await db.collection('registration_results')
         .find({ projectId })
         .toArray();
-    const resultMap = new Map(results.map(r => [r.collaborationId, r]));
+    const currentResultMap = new Map(currentResults.map(r => [r.collaborationId, r]));
 
     // 3. 获取达人信息
     const talentIds = [...new Set(collaborations.map(c => c.talentOneId || c.talentId).filter(Boolean))];
@@ -78,21 +107,99 @@ async function listTalentsWithResults(db, projectId) {
     }).toArray();
     const talentMap = new Map(talents.map(t => [t.oneId, t]));
 
-    // 4. 合并数据
+    // 4. 收集所有 xingtuId，用于查询跨项目历史
+    const allXingtuIds = [];
+    const collabXingtuIdMap = new Map(); // collaborationId -> xingtuId
+
+    collaborations.forEach(collab => {
+        const talentKey = collab.talentOneId || collab.talentId;
+        const talent = talentMap.get(talentKey);
+        const xingtuId = collab.xingtuId || talent?.platformSpecific?.xingtuId || null;
+
+        if (xingtuId) {
+            allXingtuIds.push(xingtuId);
+            collabXingtuIdMap.set(collab.id, xingtuId);
+        }
+    });
+
+    // 5. 查询所有相关达人的全局抓取记录（跨项目）
+    const uniqueXingtuIds = [...new Set(allXingtuIds.filter(Boolean))];
+    const globalResults = uniqueXingtuIds.length > 0
+        ? await db.collection('registration_results')
+            .find({
+                xingtuId: { $in: uniqueXingtuIds },
+                status: 'success'  // 只查成功的记录
+            })
+            .sort({ fetchedAt: -1 })
+            .toArray()
+        : [];
+
+    // 6. 按 xingtuId 分组历史记录
+    const historyByXingtuId = new Map();
+    globalResults.forEach(r => {
+        if (!historyByXingtuId.has(r.xingtuId)) {
+            historyByXingtuId.set(r.xingtuId, []);
+        }
+        historyByXingtuId.get(r.xingtuId).push(r);
+    });
+
+    // 7. 获取所有涉及的项目名称
+    const allProjectIds = [...new Set(globalResults.map(r => r.projectId))];
+    const projects = allProjectIds.length > 0
+        ? await db.collection('projects').find({ id: { $in: allProjectIds } }).toArray()
+        : [];
+    const projectNameMap = new Map(projects.map(p => [p.id, p.name]));
+
+    // 8. 合并数据，计算状态
     const talentItems = collaborations.map(collab => {
         const talentKey = collab.talentOneId || collab.talentId;
         const talent = talentMap.get(talentKey);
-        const result = resultMap.get(collab.id);
+        const currentResult = currentResultMap.get(collab.id);
+        const xingtuId = collabXingtuIdMap.get(collab.id);
+
+        // 获取该达人的所有历史记录
+        const allHistoryRecords = xingtuId ? (historyByXingtuId.get(xingtuId) || []) : [];
+
+        // 计算每条历史记录的状态（排除当前项目的记录，因为那是"已抓取"）
+        const collaborationCreatedAt = collab.createdAt || new Date().toISOString();
+        const historyRecords = allHistoryRecords
+            .filter(r => r.projectId !== projectId)  // 排除当前项目
+            .map(r => {
+                const daysDiff = calculateDaysDiff(r.fetchedAt, collaborationCreatedAt);
+                const isExpired = daysDiff > EXPIRY_THRESHOLD_DAYS;
+                return {
+                    projectId: r.projectId,
+                    projectName: projectNameMap.get(r.projectId) || '未知项目',
+                    collaborationId: r.collaborationId,
+                    fetchedAt: r.fetchedAt,
+                    daysDiff,
+                    isExpired,
+                    result: r
+                };
+            })
+            .sort((a, b) => a.daysDiff - b.daysDiff);  // 按距离排序，最近的在前
+
+        // 找到推荐记录（未过期且距离最近的）
+        const recommendedRecord = historyRecords.find(r => !r.isExpired) || null;
+
+        // 确定抓取状态
+        const fetchStatusType = determineFetchStatus(!!currentResult, historyRecords);
 
         return {
             collaborationId: collab.id,
+            collaborationCreatedAt,
             talentName: collab.talentName || talent?.name || '未知达人',
             platform: collab.talentPlatform || 'douyin',
-            xingtuId: collab.xingtuId || talent?.platformSpecific?.xingtuId || null,
-            fetchStatus: result?.status || null,
-            fetchedAt: result?.fetchedAt || null,
-            hasResult: !!result,
-            result: result || null
+            xingtuId,
+            // 当前项目的抓取状态
+            fetchStatus: currentResult?.status || null,
+            fetchedAt: currentResult?.fetchedAt || null,
+            hasResult: !!currentResult,
+            result: currentResult || null,
+            // 新增：跨项目复用相关字段
+            fetchStatusType,  // 'fetched' | 'reusable' | 'expired' | 'none'
+            historyRecords,   // 其他项目的历史记录列表
+            recommendedRecord // 系统推荐的复用记录
         };
     });
 

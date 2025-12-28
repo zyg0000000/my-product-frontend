@@ -328,7 +328,9 @@ export function subscribeToTaskProgress(
     };
 
     eventSource.onerror = () => {
-      logger.warn(`[SSE] 连接断开: ${taskId}, 重试次数: ${retryCount}/${maxRetries}`);
+      logger.warn(
+        `[SSE] 连接断开: ${taskId}, 重试次数: ${retryCount}/${maxRetries}`
+      );
       eventSource?.close();
 
       // 如果任务已完成或被取消，不重连

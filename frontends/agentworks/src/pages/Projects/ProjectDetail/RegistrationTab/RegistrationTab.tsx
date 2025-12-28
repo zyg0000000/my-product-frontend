@@ -34,6 +34,8 @@ import {
   DesktopOutlined,
   LoadingOutlined,
   ClockCircleOutlined,
+  HistoryOutlined,
+  ExclamationCircleOutlined,
 } from '@ant-design/icons';
 import { registrationApi } from '../../../../api/registration';
 import { automationApi } from '../../../../api/automation';
@@ -41,11 +43,13 @@ import type {
   RegistrationTalentItem,
   WorkflowOption,
   FetchProgress,
+  TalentFetchStatusType,
 } from '../../../../types/registration';
 import type { Platform } from '../../../../types/talent';
 import { ResultViewModal } from './ResultViewModal';
 import { GeneratedSheetsTable } from './GeneratedSheetsTable';
 import { GenerateSheetModal } from './GenerateSheetModal';
+import { HistoryRecordsModal } from './HistoryRecordsModal';
 
 interface RegistrationTabProps {
   projectId: string;
@@ -90,6 +94,11 @@ export function RegistrationTab({
   // 结果查看弹窗
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [viewingTalent, setViewingTalent] =
+    useState<RegistrationTalentItem | null>(null);
+
+  // 历史记录查看弹窗（跨项目复用）
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [historyViewingTalent, setHistoryViewingTalent] =
     useState<RegistrationTalentItem | null>(null);
 
   // 生成表格弹窗
@@ -146,9 +155,13 @@ export function RegistrationTab({
     return selectedTalents.filter(t => t.xingtuId);
   }, [selectedTalents]);
 
-  // 可生成表格的达人（已抓取成功）
+  // 可生成表格的达人（当前项目已抓取成功，或有可复用的历史记录）
   const generatableTalents = useMemo(() => {
-    return selectedTalents.filter(t => t.fetchStatus === 'success');
+    return selectedTalents.filter(
+      t =>
+        t.fetchStatus === 'success' ||
+        (t.fetchStatusType === 'reusable' && t.recommendedRecord)
+    );
   }, [selectedTalents]);
 
   // 开始抓取
@@ -307,6 +320,12 @@ export function RegistrationTab({
     setViewModalOpen(true);
   };
 
+  // 查看历史记录（跨项目复用）
+  const handleViewHistoryRecord = (record: RegistrationTalentItem) => {
+    setHistoryViewingTalent(record);
+    setHistoryModalOpen(true);
+  };
+
   // 重试单个
   const handleRetry = async (record: RegistrationTalentItem) => {
     if (!selectedWorkflow) {
@@ -457,45 +476,112 @@ export function RegistrationTab({
     },
     {
       title: '抓取状态',
-      dataIndex: 'fetchStatus',
-      key: 'fetchStatus',
-      width: 120,
-      render: (status: RegistrationTalentItem['fetchStatus']) => {
-        if (!status) {
+      dataIndex: 'fetchStatusType',
+      key: 'fetchStatusType',
+      width: 160,
+      render: (
+        _: TalentFetchStatusType | undefined,
+        record: RegistrationTalentItem
+      ) => {
+        const { fetchStatusType, fetchStatus, recommendedRecord } = record;
+
+        // 当前项目正在抓取中
+        if (fetchStatus === 'pending') {
           return (
-            <Tag icon={<MinusCircleOutlined />} color="default">
-              未抓取
+            <Tag icon={<LoadingOutlined spin />} color="processing">
+              抓取中
             </Tag>
           );
         }
-        if (status === 'success') {
-          return (
-            <Tag icon={<CheckCircleOutlined />} color="success">
-              已完成
-            </Tag>
-          );
+
+        // 兼容性处理：如果 fetchStatusType 未定义，根据 fetchStatus 判断
+        // （云函数未部署时，旧 API 只返回 fetchStatus 不返回 fetchStatusType）
+        const effectiveStatusType: TalentFetchStatusType | undefined =
+          fetchStatusType ??
+          (fetchStatus === 'success'
+            ? 'fetched'
+            : fetchStatus === 'failed'
+              ? 'fetched'
+              : undefined);
+
+        // 根据综合状态类型渲染
+        switch (effectiveStatusType) {
+          case 'fetched':
+            // 已抓取（当前项目）
+            if (fetchStatus === 'failed') {
+              return (
+                <Tag icon={<CloseCircleOutlined />} color="error">
+                  失败
+                </Tag>
+              );
+            }
+            return (
+              <Tag icon={<CheckCircleOutlined />} color="success">
+                已抓取
+              </Tag>
+            );
+
+          case 'reusable':
+            // 可复用（其他项目有未过期记录）
+            return (
+              <Tooltip
+                title={
+                  recommendedRecord
+                    ? `来自「${recommendedRecord.projectName}」(${recommendedRecord.daysDiff}天前)`
+                    : '可复用历史数据'
+                }
+              >
+                <Tag
+                  icon={<HistoryOutlined />}
+                  color="blue"
+                  className="cursor-pointer"
+                  onClick={() => handleViewHistoryRecord(record)}
+                >
+                  可复用
+                  {recommendedRecord && ` (${recommendedRecord.daysDiff}天)`}
+                </Tag>
+              </Tooltip>
+            );
+
+          case 'expired':
+            // 数据过期（其他项目有记录但超过30天）
+            return (
+              <Tooltip title="历史数据已过期（>30天），建议重新抓取">
+                <Tag
+                  icon={<ExclamationCircleOutlined />}
+                  color="warning"
+                  className="cursor-pointer"
+                  onClick={() => handleViewHistoryRecord(record)}
+                >
+                  数据过期
+                </Tag>
+              </Tooltip>
+            );
+
+          case 'none':
+          default:
+            // 未抓取（全局无记录）
+            return (
+              <Tag icon={<MinusCircleOutlined />} color="default">
+                未抓取
+              </Tag>
+            );
         }
-        if (status === 'failed') {
-          return (
-            <Tag icon={<CloseCircleOutlined />} color="error">
-              失败
-            </Tag>
-          );
-        }
-        return (
-          <Tag icon={<PlayCircleOutlined />} color="processing">
-            抓取中
-          </Tag>
-        );
       },
       filters: [
-        { text: '未抓取', value: 'null' },
-        { text: '已完成', value: 'success' },
-        { text: '失败', value: 'failed' },
+        { text: '已抓取', value: 'fetched' },
+        { text: '可复用', value: 'reusable' },
+        { text: '数据过期', value: 'expired' },
+        { text: '未抓取', value: 'none' },
       ],
       onFilter: (value, record) => {
-        if (value === 'null') return record.fetchStatus === null;
-        return record.fetchStatus === value;
+        // 兼容性处理：fetchStatusType 未定义时根据 fetchStatus 计算
+        const effectiveStatus =
+          record.fetchStatusType ??
+          (record.fetchStatus === 'success' || record.fetchStatus === 'failed'
+            ? 'fetched'
+            : 'none');
+        return effectiveStatus === value;
       },
     },
     {
@@ -509,9 +595,10 @@ export function RegistrationTab({
     {
       title: '操作',
       key: 'actions',
-      width: 150,
+      width: 180,
       render: (_, record) => (
         <Space size="small">
+          {/* 当前项目有结果：查看 */}
           {record.hasResult && (
             <Button
               type="link"
@@ -522,6 +609,20 @@ export function RegistrationTab({
               查看
             </Button>
           )}
+          {/* 可复用/过期：查看历史 */}
+          {!record.hasResult &&
+            (record.fetchStatusType === 'reusable' ||
+              record.fetchStatusType === 'expired') && (
+              <Button
+                type="link"
+                size="small"
+                icon={<HistoryOutlined />}
+                onClick={() => handleViewHistoryRecord(record)}
+              >
+                查看历史
+              </Button>
+            )}
+          {/* 失败：重试 */}
           {record.fetchStatus === 'failed' && (
             <Button
               type="link"
@@ -884,6 +985,16 @@ export function RegistrationTab({
         projectId={projectId}
         projectName={projectName}
         selectedTalents={generatableTalents}
+      />
+
+      {/* 历史记录查看弹窗（跨项目复用） */}
+      <HistoryRecordsModal
+        open={historyModalOpen}
+        talent={historyViewingTalent}
+        onClose={() => {
+          setHistoryModalOpen(false);
+          setHistoryViewingTalent(null);
+        }}
       />
     </div>
   );
