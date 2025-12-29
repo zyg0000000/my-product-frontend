@@ -108,7 +108,8 @@ export function RegistrationTab({
 
   // 追加数据弹窗
   const [appendModalOpen, setAppendModalOpen] = useState(false);
-  const [appendTargetSheet, setAppendTargetSheet] = useState<GeneratedSheet | null>(null);
+  const [appendTargetSheet, setAppendTargetSheet] =
+    useState<GeneratedSheet | null>(null);
 
   // 已生成表格列表刷新触发器
   const [sheetsRefreshKey, setSheetsRefreshKey] = useState(0);

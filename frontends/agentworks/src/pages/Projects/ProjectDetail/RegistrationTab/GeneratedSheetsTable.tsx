@@ -20,7 +20,10 @@ interface GeneratedSheetsTableProps {
   onAppendClick?: (sheet: GeneratedSheet) => void;
 }
 
-export function GeneratedSheetsTable({ projectId, onAppendClick }: GeneratedSheetsTableProps) {
+export function GeneratedSheetsTable({
+  projectId,
+  onAppendClick,
+}: GeneratedSheetsTableProps) {
   const { message } = App.useApp();
 
   const [loading, setLoading] = useState(true);

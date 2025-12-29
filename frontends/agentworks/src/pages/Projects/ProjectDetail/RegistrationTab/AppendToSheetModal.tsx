@@ -59,7 +59,10 @@ export function AppendToSheetModal({
 
     // 过滤：已抓取成功 + 不在表格中
     return allTalents.filter(
-      t => t.hasResult && t.fetchStatus === 'success' && !existingCollabIds.has(t.collaborationId)
+      t =>
+        t.hasResult &&
+        t.fetchStatus === 'success' &&
+        !existingCollabIds.has(t.collaborationId)
     );
   }, [allTalents, targetSheet]);
 
@@ -114,8 +117,15 @@ export function AppendToSheetModal({
       });
 
       if (result.success) {
-        const data = result.data as { appendedCount?: number; skippedCount?: number; message?: string };
-        message.success(data?.message || `成功追加 ${data?.appendedCount || selectedIds.size} 个达人`);
+        const data = result.data as {
+          appendedCount?: number;
+          skippedCount?: number;
+          message?: string;
+        };
+        message.success(
+          data?.message ||
+            `成功追加 ${data?.appendedCount || selectedIds.size} 个达人`
+        );
 
         // 打开表格
         if (targetSheet.sheetUrl) {
@@ -144,8 +154,11 @@ export function AppendToSheetModal({
     onClose();
   };
 
-  const isAllSelected = appendableTalents.length > 0 && selectedIds.size === appendableTalents.length;
-  const isIndeterminate = selectedIds.size > 0 && selectedIds.size < appendableTalents.length;
+  const isAllSelected =
+    appendableTalents.length > 0 &&
+    selectedIds.size === appendableTalents.length;
+  const isIndeterminate =
+    selectedIds.size > 0 && selectedIds.size < appendableTalents.length;
 
   return (
     <Modal
@@ -178,7 +191,9 @@ export function AppendToSheetModal({
       {appending ? (
         <div className="flex flex-col items-center justify-center py-12">
           <Spin size="large" />
-          <div className="mt-4 text-content-secondary">正在追加数据，请稍候...</div>
+          <div className="mt-4 text-content-secondary">
+            正在追加数据，请稍候...
+          </div>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
@@ -231,7 +246,9 @@ export function AppendToSheetModal({
                     <List.Item className="px-3 py-2 hover:bg-gray-50">
                       <Checkbox
                         checked={selectedIds.has(talent.collaborationId)}
-                        onChange={e => handleSelect(talent.collaborationId, e.target.checked)}
+                        onChange={e =>
+                          handleSelect(talent.collaborationId, e.target.checked)
+                        }
                       >
                         <span className="ml-2">{talent.talentName}</span>
                         {talent.xingtuId && (
