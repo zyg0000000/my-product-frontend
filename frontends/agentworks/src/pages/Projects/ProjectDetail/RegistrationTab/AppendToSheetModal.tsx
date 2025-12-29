@@ -57,11 +57,13 @@ export function AppendToSheetModal({
       }
     });
 
-    // 过滤：已抓取成功 + 不在表格中
+    // 过滤：有结果数据 + 不在表格中
+    // 支持：当前项目已抓取成功 或 其他项目有可复用数据
     return allTalents.filter(
       t =>
-        t.hasResult &&
-        t.fetchStatus === 'success' &&
+        // 有数据：当前项目有结果 或 有可复用的推荐记录
+        (t.hasResult || t.recommendedRecord) &&
+        (t.fetchStatusType === 'fetched' || t.fetchStatusType === 'reusable') &&
         !existingCollabIds.has(t.collaborationId)
     );
   }, [allTalents, targetSheet]);
@@ -267,7 +269,7 @@ export function AppendToSheetModal({
           {/* 提示信息 */}
           {appendableTalents.length > 0 && (
             <div className="text-xs text-content-muted">
-              提示：只显示已抓取成功且不在目标表格中的达人
+              提示：显示已抓取成功或可复用数据且不在目标表格中的达人
             </div>
           )}
         </div>

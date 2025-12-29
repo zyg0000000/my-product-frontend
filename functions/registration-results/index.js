@@ -114,7 +114,7 @@ async function listTalentsWithResults(db, projectId) {
     collaborations.forEach(collab => {
         const talentKey = collab.talentOneId || collab.talentId;
         const talent = talentMap.get(talentKey);
-        const xingtuId = collab.xingtuId || talent?.platformSpecific?.xingtuId || null;
+        const xingtuId = collab.xingtuId || talent?.platformSpecific?.xingtuId || talent?.platformAccountId || null;
 
         if (xingtuId) {
             allXingtuIds.push(xingtuId);
