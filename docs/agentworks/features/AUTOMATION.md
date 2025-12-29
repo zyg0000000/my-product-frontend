@@ -283,5 +283,63 @@ DELETE /automation-workflows?id=xxx            # 删除
 
 ---
 
-**最后更新**: 2025-12-24
-**文档版本**: v2.0
+## 报名管理 - 飞书表格生成
+
+### 概述
+
+报名管理模块支持将抓取的达人数据生成飞书表格，以及追加新数据到已有表格。
+
+### 生成表格
+
+选择已抓取成功的达人，点击「生成飞书表格」：
+1. 选择报告模板
+2. 输入表格名称
+3. 可选：指定保存目录
+4. 生成后自动打开飞书文档
+
+### 追加数据到已有表格
+
+在「已生成表格」区域点击「追加」按钮：
+1. 自动筛选可追加的达人（已抓取成功且未在该表格中）
+2. 勾选要追加的达人
+3. 点击「追加」按钮写入飞书表格
+4. 数据追加到表格末尾，保持格式一致
+
+### 数据模型
+
+```typescript
+// 生成的表格记录
+interface GeneratedSheet {
+    _id: string;
+    projectId: string;
+    type: 'registration';
+    fileName: string;
+    sheetUrl: string;
+    sheetToken: string;
+    templateId: string;
+    templateName: string;
+    talentCount: number;
+    collaborationIds: string[];   // 包含的达人ID列表
+    createdAt: Date;
+}
+
+// 追加请求
+interface AppendToSheetRequest {
+    sheetId: string;           // generated_sheets 记录 ID
+    sheetToken: string;        // 飞书表格 Token
+    templateId: string;        // 报告模板 ID
+    projectId: string;         // 项目 ID
+    collaborationIds: string[]; // 要追加的合作 ID 列表
+}
+```
+
+### 相关文件
+
+- **前端组件**: `RegistrationTab/GeneratedSheetsTable.tsx`, `AppendToSheetModal.tsx`
+- **云函数**: `syncFromFeishu/utils.js` - `appendToRegistrationSheet()`
+- **类型定义**: `types/registration.ts`
+
+---
+
+**最后更新**: 2025-12-29
+**文档版本**: v2.1

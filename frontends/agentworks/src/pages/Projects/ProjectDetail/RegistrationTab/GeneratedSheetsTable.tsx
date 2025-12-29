@@ -9,15 +9,18 @@ import {
   FileExcelOutlined,
   LinkOutlined,
   DeleteOutlined,
+  PlusOutlined,
 } from '@ant-design/icons';
 import { registrationApi } from '../../../../api/registration';
 import type { GeneratedSheet } from '../../../../types/registration';
 
 interface GeneratedSheetsTableProps {
   projectId: string;
+  /** 追加按钮点击回调 */
+  onAppendClick?: (sheet: GeneratedSheet) => void;
 }
 
-export function GeneratedSheetsTable({ projectId }: GeneratedSheetsTableProps) {
+export function GeneratedSheetsTable({ projectId, onAppendClick }: GeneratedSheetsTableProps) {
   const { message } = App.useApp();
 
   const [loading, setLoading] = useState(true);
@@ -138,7 +141,7 @@ export function GeneratedSheetsTable({ projectId }: GeneratedSheetsTableProps) {
     {
       title: '操作',
       key: 'actions',
-      width: 150,
+      width: 200,
       render: (_, record) => (
         <Space size="small">
           <Button
@@ -150,6 +153,16 @@ export function GeneratedSheetsTable({ projectId }: GeneratedSheetsTableProps) {
           >
             打开
           </Button>
+          {onAppendClick && (
+            <Button
+              type="link"
+              size="small"
+              icon={<PlusOutlined />}
+              onClick={() => onAppendClick(record)}
+            >
+              追加
+            </Button>
+          )}
           <Popconfirm
             title="确定要删除这个表格记录吗？"
             description="删除后无法恢复，但飞书文档不会被删除"

@@ -120,6 +120,24 @@ export interface RegistrationTalentItem {
   historyRecords?: HistoryRecord[];
   /** 系统推荐的复用记录（未过期且距离最近） */
   recommendedRecord?: HistoryRecord | null;
+
+  // ===== 已生成表格关联 =====
+  /** 该达人已在哪些表格中（当前项目） */
+  generatedSheets?: GeneratedSheetRef[];
+}
+
+/**
+ * 已生成表格的简要引用（用于达人列表展示）
+ */
+export interface GeneratedSheetRef {
+  /** 表格记录 ID */
+  sheetId: string;
+  /** 表格文件名 */
+  fileName: string;
+  /** 飞书文档 URL */
+  sheetUrl: string;
+  /** 生成时间 */
+  createdAt: string;
 }
 
 /**
@@ -270,6 +288,34 @@ export interface GenerateSheetRequest {
   collaborationIds: string[];
   /** 目标文件夹 Token（可选，留空则保存在模板所在文件夹） */
   destinationFolderToken?: string;
+}
+
+/**
+ * 追加数据到已有表格请求参数
+ */
+export interface AppendToSheetRequest {
+  /** generated_sheets 记录 ID */
+  sheetId: string;
+  /** 飞书表格 Token */
+  sheetToken: string;
+  /** 报告模板 ID */
+  templateId: string;
+  /** 项目 ID */
+  projectId: string;
+  /** 要追加的合作 ID 列表 */
+  collaborationIds: string[];
+}
+
+/**
+ * 追加数据响应
+ */
+export interface AppendToSheetResponse {
+  /** 追加的达人数量 */
+  appendedCount: number;
+  /** 跳过的达人数量（已在表格中） */
+  skippedCount?: number;
+  /** 追加后的总达人数量 */
+  totalCount: number;
 }
 
 /**

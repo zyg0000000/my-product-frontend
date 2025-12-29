@@ -813,9 +813,12 @@ async function generateRegistrationSheet(payload) {
         talentCount: results.length,
         requestKey,  // 用于幂等性检查
         createdAt: new Date(),
+        // 保存达人ID列表，用于反向查询"达人在哪些表格中"
+        collaborationIds: collaborationIds,
+        xingtuIds: results.map(r => r.xingtuId),
     };
     await db.collection(GENERATED_SHEETS_COLLECTION).insertOne(generatedSheet);
-    console.log("--> 生成记录已保存");
+    console.log("--> 生成记录已保存（含达人ID列表）");
 
     console.log("\n======== [END] generateRegistrationSheet ========");
     return {
@@ -824,6 +827,267 @@ async function generateRegistrationSheet(payload) {
         fileName: newFileName,
         sheetToken: newSpreadsheetToken,
         talentCount: results.length
+    };
+}
+
+/**
+ * [v12.5.0] 追加达人数据到已有飞书表格
+ *
+ * @param {Object} payload - 请求参数
+ * @param {string} payload.sheetId - generated_sheets 记录 ID
+ * @param {string} payload.sheetToken - 飞书表格 Token
+ * @param {string} payload.templateId - 报告模板 ID
+ * @param {string} payload.projectId - 项目 ID
+ * @param {string[]} payload.collaborationIds - 要追加的合作 ID 列表
+ */
+async function appendToRegistrationSheet(payload) {
+    const { sheetId, sheetToken, templateId, projectId, collaborationIds } = payload;
+
+    console.log("======== [START] appendToRegistrationSheet ========");
+    console.log("收到的参数:", JSON.stringify(payload, null, 2));
+
+    if (!sheetId || !sheetToken || !templateId || !projectId || !collaborationIds || !collaborationIds.length) {
+        throw new AppError('Missing required parameters: sheetId, sheetToken, templateId, projectId, collaborationIds.', 400);
+    }
+
+    const token = await getTenantAccessToken();
+    const client = await getDbConnection();
+    const db = client.db('agentworks_db');
+
+    // 1. 获取目标表格记录，检查已有的 collaborationIds
+    console.log("\n--- [步骤 1] 检查目标表格记录 ---");
+    const targetSheet = await db.collection(GENERATED_SHEETS_COLLECTION)
+        .findOne({ _id: new ObjectId(sheetId) });
+
+    if (!targetSheet) {
+        throw new AppError('表格记录不存在', 404);
+    }
+    console.log(`--> 目标表格: ${targetSheet.fileName}, 已有达人数: ${targetSheet.talentCount || 0}`);
+
+    const existingIds = new Set(targetSheet.collaborationIds || []);
+
+    // 2. 过滤掉已在表格中的达人
+    const newCollaborationIds = collaborationIds.filter(id => !existingIds.has(id));
+    const skippedCount = collaborationIds.length - newCollaborationIds.length;
+
+    console.log(`--> 请求追加 ${collaborationIds.length} 个达人，过滤已有 ${skippedCount} 个，实际追加 ${newCollaborationIds.length} 个`);
+
+    if (newCollaborationIds.length === 0) {
+        return {
+            message: '所选达人均已在表格中，无需追加',
+            appendedCount: 0,
+            skippedCount: skippedCount,
+            totalCount: targetSheet.talentCount || 0
+        };
+    }
+
+    // 3. 获取模板配置
+    console.log("\n--- [步骤 2] 获取模板配置 ---");
+    const template = await db.collection(REPORT_TEMPLATES_COLLECTION).findOne({ _id: new ObjectId(templateId) });
+    if (!template) {
+        throw new AppError(`模板不存在: ${templateId}`, 404);
+    }
+    console.log(`--> 模板: ${template.name}, 表头数: ${template.feishuSheetHeaders?.length || 0}`);
+
+    // 4. 获取飞书表格元信息（工作表 ID 和行数）
+    console.log("\n--- [步骤 3] 获取飞书表格元信息 ---");
+    const metaInfoResponse = await axios.get(
+        `https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/${sheetToken}/metainfo`,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+    );
+    if (metaInfoResponse.data.code !== 0) {
+        console.error("--> [错误] 获取工作表信息失败:", JSON.stringify(metaInfoResponse.data, null, 2));
+        throw new AppError(`获取工作表信息失败: ${metaInfoResponse.data.msg}`, 500);
+    }
+    const firstSheetId = metaInfoResponse.data.data?.sheets?.[0]?.sheetId;
+    const firstSheetRowCount = metaInfoResponse.data.data?.sheets?.[0]?.rowCount || 1;
+    if (!firstSheetId) throw new AppError('无法获取工作表ID', 500);
+
+    // 读取现有数据确定实际有数据的行数（因为 rowCount 可能包含空行）
+    console.log(`--> 工作表ID: ${firstSheetId}, 总行数: ${firstSheetRowCount}`);
+
+    // 使用现有记录中的 talentCount + 1（表头）来确定起始行
+    const existingDataRowCount = (targetSheet.talentCount || 0) + 1; // +1 表头
+    const START_ROW = existingDataRowCount + 1;
+    console.log(`--> 现有数据行数: ${existingDataRowCount}（含表头），新数据起始行: ${START_ROW}`);
+
+    // 5. 查询新增达人的报名结果
+    console.log("\n--- [步骤 4] 查询报名结果数据 ---");
+    const regResults = await db.collection(REGISTRATION_RESULTS_COLLECTION)
+        .find({ collaborationId: { $in: newCollaborationIds }, status: 'success' })
+        .toArray();
+    console.log(`--> 查询到 ${regResults.length} 条成功的报名结果`);
+
+    if (regResults.length === 0) {
+        throw new AppError('没有找到匹配的报名结果数据', 400);
+    }
+
+    // 关联查询达人信息（通过 xingtuId）以获取价格
+    const xingtuIds = regResults.map(r => r.xingtuId).filter(Boolean);
+    const talentsMap = {};
+    if (xingtuIds.length > 0) {
+        const talents = await db.collection(TALENTS_COLLECTION)
+            .find({ 'platformSpecific.xingtuId': { $in: xingtuIds } })
+            .toArray();
+        console.log(`--> 关联查询到 ${talents.length} 个达人信息`);
+
+        talents.forEach(talent => {
+            const xingtuId = talent.platformSpecific?.xingtuId;
+            if (xingtuId) {
+                let latestPrice = 0;
+                if (Array.isArray(talent.prices) && talent.prices.length > 0) {
+                    const sortedPrices = [...talent.prices].sort((a, b) => (b.year - a.year) || (b.month - a.month));
+                    const latestPriceEntry = sortedPrices.find(p => p.status === 'confirmed') || sortedPrices[0];
+                    if (latestPriceEntry) {
+                        latestPrice = latestPriceEntry.price;
+                    }
+                }
+                talentsMap[xingtuId] = {
+                    ...talent,
+                    latestPrice
+                };
+            }
+        });
+    }
+
+    // 合并数据
+    const results = regResults.map(doc => ({
+        ...doc,
+        _talent: talentsMap[doc.xingtuId] || null
+    }));
+
+    // 6. 构建上下文数据并应用映射规则（复用 generateRegistrationSheet 的逻辑）
+    console.log("\n--- [步骤 5] 应用映射规则并构建数据 ---");
+    const headers = template.feishuSheetHeaders || [];
+    const mappingRules = template.mappingRules || {};
+
+    const contextData = results.map(doc => {
+        const talent = doc._talent;
+        const latestPriceInFen = talent?.latestPrice || 0;
+        const latestPriceInYuan = latestPriceInFen / 100;
+
+        return {
+            talents: {
+                xingtuId: doc.xingtuId,
+                nickname: doc.talentName,
+                uid: talent?.platformSpecific?.uid || '',
+                latestPrice: latestPriceInYuan,
+            },
+            'automation-tasks': {
+                result: {
+                    data: doc.extractedData || {},
+                    screenshots: doc.screenshots || [],
+                }
+            },
+            projects: {
+                name: doc.projectName || '',
+            },
+            collaborations: {
+                id: doc.collaborationId,
+            }
+        };
+    });
+
+    // 构建数据行和图片写入队列
+    const dataToWrite = [];
+    const imageWriteQueue = [];
+
+    for (let i = 0; i < contextData.length; i++) {
+        const context = contextData[i];
+        const rowData = [];
+
+        for (let j = 0; j < headers.length; j++) {
+            const feishuHeader = headers[j];
+            const rule = mappingRules[feishuHeader];
+            let finalValue = null;
+
+            if (typeof rule === 'string') {
+                const pathParts = rule.split('.');
+                if (pathParts.length > 1) {
+                    const collection = pathParts[0];
+                    const trueContext = context[collection];
+                    finalValue = pathParts.slice(1).reduce((obj, key) => (obj && obj[key] !== undefined) ? obj[key] : null, trueContext);
+                }
+            } else if (typeof rule === 'object' && rule !== null && rule.formula) {
+                const rawResult = evaluateFormula(rule.formula, context);
+                finalValue = rule.output ? formatOutput(rawResult, rule.output) : rawResult;
+            }
+
+            const isImageField = (typeof rule === 'string' && rule.includes('screenshots'));
+            if (isImageField && typeof finalValue === 'string' && finalValue.startsWith('http')) {
+                rowData.push(null);
+                imageWriteQueue.push({
+                    range: `${columnIndexToLetter(j)}${START_ROW + i}`,
+                    url: finalValue,
+                    name: `${feishuHeader}.png`
+                });
+            } else {
+                rowData.push(finalValue === null || finalValue === undefined ? null : finalValue);
+            }
+        }
+        dataToWrite.push(rowData);
+    }
+
+    // 7. 写入文本数据
+    console.log("\n--- [步骤 6] 写入数据到飞书表格 ---");
+    if (dataToWrite.length > 0) {
+        const textRange = `${firstSheetId}!A${START_ROW}:${columnIndexToLetter(dataToWrite[0].length - 1)}${START_ROW + dataToWrite.length - 1}`;
+        console.log(`--> [写入文本] 目标范围: ${textRange}, 行数: ${dataToWrite.length}`);
+
+        try {
+            await axios.put(
+                `https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/${sheetToken}/values`,
+                { valueRange: { range: textRange, values: dataToWrite } },
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            );
+            console.log(`--> [写入文本] 成功写入 ${dataToWrite.length} 行数据。`);
+        } catch (writeError) {
+            console.error(`--> [写入文本] 写入失败: ${writeError.response?.data?.msg || writeError.message}`);
+            throw new AppError(`写入飞书表格失败: ${writeError.response?.data?.msg || writeError.message}`, 500);
+        }
+    }
+
+    // 8. 写入图片数据
+    if (imageWriteQueue.length > 0) {
+        console.log(`--> [写入图片] 准备写入 ${imageWriteQueue.length} 张图片...`);
+        for (const imageJob of imageWriteQueue) {
+            const imageRange = `${firstSheetId}!${imageJob.range}:${imageJob.range}`;
+            await writeImageToCell(token, sheetToken, imageRange, imageJob.url, imageJob.name);
+        }
+        console.log(`--> [写入图片] 图片写入完成。`);
+    }
+
+    // 9. 更新 generated_sheets 记录
+    console.log("\n--- [步骤 7] 更新生成记录 ---");
+    const newTotalCount = (targetSheet.talentCount || 0) + results.length;
+    const appendedXingtuIds = results.map(r => r.xingtuId);
+
+    await db.collection(GENERATED_SHEETS_COLLECTION).updateOne(
+        { _id: new ObjectId(sheetId) },
+        {
+            $set: {
+                talentCount: newTotalCount,
+                updatedAt: new Date()
+            },
+            $push: {
+                collaborationIds: { $each: newCollaborationIds },
+                xingtuIds: { $each: appendedXingtuIds },
+                appendHistory: {
+                    collaborationIds: newCollaborationIds,
+                    count: results.length,
+                    appendedAt: new Date()
+                }
+            }
+        }
+    );
+    console.log(`--> 记录已更新，新达人数: ${newTotalCount}`);
+
+    console.log("\n======== [END] appendToRegistrationSheet ========");
+    return {
+        message: `成功追加 ${results.length} 个达人数据`,
+        appendedCount: results.length,
+        skippedCount: skippedCount,
+        totalCount: newTotalCount
     };
 }
 
@@ -1382,6 +1646,12 @@ async function handleFeishuRequest(requestBody) {
                 throw new AppError('Invalid payload structure for generateRegistrationSheet. Required: templateId, collaborationIds.', 400);
             }
             return await generateRegistrationSheet(payload);
+        case 'appendToRegistrationSheet':
+            // AgentWorks: 追加达人数据到已有飞书表格
+            if (!payload || !payload.sheetId || !payload.sheetToken || !payload.templateId || !payload.collaborationIds) {
+                throw new AppError('Invalid payload structure for appendToRegistrationSheet. Required: sheetId, sheetToken, templateId, projectId, collaborationIds.', 400);
+            }
+            return await appendToRegistrationSheet(payload);
         case 'talentPerformance':
         case 't7':
         case 't21':
@@ -1400,7 +1670,7 @@ async function handleFeishuRequest(requestBody) {
             }
         }
         default:
-            throw new AppError(`Invalid dataType "${dataType}". Supported types are: getMappingSchemas, getSheetHeaders, generateAutomationReport, generateRegistrationSheet, talentPerformance, t7, t21, manualDailyUpdate.`, 400);
+            throw new AppError(`Invalid dataType "${dataType}". Supported types are: getMappingSchemas, getSheetHeaders, generateAutomationReport, generateRegistrationSheet, appendToRegistrationSheet, talentPerformance, t7, t21, manualDailyUpdate.`, 400);
     }
 }
 

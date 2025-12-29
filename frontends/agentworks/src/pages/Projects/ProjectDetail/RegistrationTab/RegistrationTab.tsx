@@ -50,6 +50,8 @@ import { ResultViewModal } from './ResultViewModal';
 import { GeneratedSheetsTable } from './GeneratedSheetsTable';
 import { GenerateSheetModal } from './GenerateSheetModal';
 import { HistoryRecordsModal } from './HistoryRecordsModal';
+import { AppendToSheetModal } from './AppendToSheetModal';
+import type { GeneratedSheet } from '../../../../types/registration';
 
 interface RegistrationTabProps {
   projectId: string;
@@ -103,6 +105,10 @@ export function RegistrationTab({
 
   // 生成表格弹窗
   const [generateModalOpen, setGenerateModalOpen] = useState(false);
+
+  // 追加数据弹窗
+  const [appendModalOpen, setAppendModalOpen] = useState(false);
+  const [appendTargetSheet, setAppendTargetSheet] = useState<GeneratedSheet | null>(null);
 
   // 已生成表格列表刷新触发器
   const [sheetsRefreshKey, setSheetsRefreshKey] = useState(0);
@@ -312,6 +318,24 @@ export function RegistrationTab({
     setGenerateModalOpen(false);
     // 刷新已生成表格列表
     setSheetsRefreshKey(prev => prev + 1);
+    // 刷新达人列表（更新「已在表格」列）
+    loadData();
+  };
+
+  // 追加数据点击回调
+  const handleAppendClick = (sheet: GeneratedSheet) => {
+    setAppendTargetSheet(sheet);
+    setAppendModalOpen(true);
+  };
+
+  // 追加数据成功回调
+  const handleAppendSuccess = () => {
+    setAppendModalOpen(false);
+    setAppendTargetSheet(null);
+    // 刷新已生成表格列表
+    setSheetsRefreshKey(prev => prev + 1);
+    // 刷新达人列表（更新「已在表格」列）
+    loadData();
   };
 
   // 查看结果
@@ -598,6 +622,40 @@ export function RegistrationTab({
       width: 180,
       render: (fetchedAt?: string) =>
         fetchedAt ? new Date(fetchedAt).toLocaleString('zh-CN') : '-',
+    },
+    {
+      title: '已在表格',
+      dataIndex: 'generatedSheets',
+      key: 'generatedSheets',
+      width: 120,
+      render: (sheets: RegistrationTalentItem['generatedSheets']) => {
+        if (!sheets || sheets.length === 0) return '-';
+
+        // Tooltip 内容：可点击跳转的表格链接列表
+        const tooltipContent = (
+          <div className="flex flex-col gap-1">
+            {sheets.map(s => (
+              <a
+                key={s.sheetId}
+                href={s.sheetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white hover:underline"
+              >
+                {s.fileName}
+              </a>
+            ))}
+          </div>
+        );
+
+        return (
+          <Tooltip title={tooltipContent}>
+            <Tag color="blue" className="cursor-pointer">
+              📋 {sheets.length === 1 ? '已生成' : `${sheets.length}个表格`}
+            </Tag>
+          </Tooltip>
+        );
+      },
     },
     {
       title: '操作',
@@ -972,7 +1030,11 @@ export function RegistrationTab({
       </Card>
 
       {/* 已生成表格列表 */}
-      <GeneratedSheetsTable projectId={projectId} key={sheetsRefreshKey} />
+      <GeneratedSheetsTable
+        projectId={projectId}
+        key={sheetsRefreshKey}
+        onAppendClick={handleAppendClick}
+      />
 
       {/* 结果查看弹窗 */}
       <ResultViewModal
@@ -1002,6 +1064,19 @@ export function RegistrationTab({
           setHistoryModalOpen(false);
           setHistoryViewingTalent(null);
         }}
+      />
+
+      {/* 追加数据弹窗 */}
+      <AppendToSheetModal
+        open={appendModalOpen}
+        onClose={() => {
+          setAppendModalOpen(false);
+          setAppendTargetSheet(null);
+        }}
+        onSuccess={handleAppendSuccess}
+        projectId={projectId}
+        targetSheet={appendTargetSheet}
+        allTalents={talents}
       />
     </div>
   );

@@ -150,6 +150,27 @@ async function listTalentsWithResults(db, projectId) {
         : [];
     const projectNameMap = new Map(projects.map(p => [p.id, p.name]));
 
+    // 7.5 查询当前项目的已生成表格，构建 collaborationId → sheets 的映射
+    const generatedSheets = await db.collection('generated_sheets').find({
+        projectId,
+        type: 'registration'
+    }).toArray();
+
+    const talentSheetsMap = new Map();
+    for (const sheet of generatedSheets) {
+        for (const collabId of sheet.collaborationIds || []) {
+            if (!talentSheetsMap.has(collabId)) {
+                talentSheetsMap.set(collabId, []);
+            }
+            talentSheetsMap.get(collabId).push({
+                sheetId: sheet._id.toString(),
+                fileName: sheet.fileName,
+                sheetUrl: sheet.sheetUrl,
+                createdAt: sheet.createdAt
+            });
+        }
+    }
+
     // 8. 合并数据，计算状态
     const talentItems = collaborations.map(collab => {
         const talentKey = collab.talentOneId || collab.talentId;
@@ -199,7 +220,9 @@ async function listTalentsWithResults(db, projectId) {
             // 新增：跨项目复用相关字段
             fetchStatusType,  // 'fetched' | 'reusable' | 'expired' | 'none'
             historyRecords,   // 其他项目的历史记录列表
-            recommendedRecord // 系统推荐的复用记录
+            recommendedRecord, // 系统推荐的复用记录
+            // 新增：该达人已在哪些表格中（当前项目）
+            generatedSheets: talentSheetsMap.get(collab.id) || []
         };
     });
 

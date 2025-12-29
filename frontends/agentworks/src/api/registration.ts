@@ -21,6 +21,8 @@ import type {
   WorkflowOption,
   ReportTemplateOption,
   GenerateSheetRequest,
+  AppendToSheetRequest,
+  AppendToSheetResponse,
   RegistrationApiResponse,
 } from '../types/registration';
 
@@ -541,6 +543,36 @@ export async function deleteGeneratedSheet(
   });
 }
 
+// ========== 追加数据到已有表格 API ==========
+
+/**
+ * 追加达人数据到已有飞书表格
+ *
+ * @param request - 追加请求参数
+ */
+export async function appendToRegistrationSheet(
+  request: AppendToSheetRequest
+): Promise<RegistrationApiResponse<AppendToSheetResponse>> {
+  return post(
+    '/sync-from-feishu',
+    {
+      dataType: 'appendToRegistrationSheet',
+      payload: {
+        sheetId: request.sheetId,
+        sheetToken: request.sheetToken,
+        templateId: request.templateId,
+        projectId: request.projectId,
+        collaborationIds: request.collaborationIds,
+      },
+    },
+    {
+      // 追加操作也是写操作，需要较长超时
+      timeout: 120000,
+      skipRetry: true,
+    }
+  );
+}
+
 // ========== 导出 API 对象 ==========
 
 export const registrationApi = {
@@ -568,4 +600,5 @@ export const registrationApi = {
   generateRegistrationSheet,
   getGeneratedSheets,
   deleteGeneratedSheet,
+  appendToRegistrationSheet,
 };
