@@ -42,6 +42,8 @@ export function TalentDetailTable({
 }: TalentDetailTableProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [pageSize, setPageSize] = useState(20);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // 编辑操作
   const handleEdit = (record: DailyReportDetail) => {
@@ -258,9 +260,20 @@ export function TalentDetailTable({
         columns={columns}
         dataSource={data}
         rowKey="collaborationId"
-        pagination={
-          data.length > 20 ? { pageSize: 20, showSizeChanger: true } : false
-        }
+        pagination={{
+          current: currentPage,
+          pageSize: pageSize,
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50', '100'],
+          onChange: (page, size) => {
+            setCurrentPage(page);
+            setPageSize(size);
+          },
+          onShowSizeChange: (_, size) => {
+            setCurrentPage(1);
+            setPageSize(size);
+          },
+        }}
         size="small"
         scroll={{ x: 890 }}
         className="border border-[var(--aw-gray-200)] rounded-lg overflow-hidden"

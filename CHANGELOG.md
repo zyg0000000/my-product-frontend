@@ -2,6 +2,27 @@
 
 所有重要的更改都将记录在此文件中。
 
+## [3.0.2] - 2025-12-31
+
+### 🐛 Bug 修复 (Bug Fixes)
+
+#### 日报分页组件失效
+- **问题**：日报分组页面的表格分页下拉框无法切换每页显示条数
+- **原因**：Ant Design Table 的 pagination 配置缺少受控状态和回调函数
+- **修复**：添加 `pageSize`、`currentPage` 状态管理和 `onChange`、`onShowSizeChange` 回调
+- **文件**：`frontends/agentworks/src/pages/Projects/DailyReport/components/TalentDetailTable.tsx`
+
+#### 跨项目追加达人失败
+- **问题**：追加"可复用"状态的达人到飞书表格时报错"没有找到匹配的报名结果数据"
+- **根因**：查询 talents 集合时使用了错误的字段 `{ id: talentKey }`，实际应为 `{ oneId: talentKey }`
+- **修复**：修改 `appendToRegistrationSheet` 函数中的 talents 查询条件
+- **文件**：`functions/syncFromFeishu/utils.js:940`
+
+### 📝 受影响的文件
+
+- `frontends/agentworks/src/pages/Projects/DailyReport/components/TalentDetailTable.tsx`
+- `functions/syncFromFeishu/utils.js`
+
 ## [3.0.1] - 2025-12-25
 
 ### 🎨 UI 优化 (UI Improvements)

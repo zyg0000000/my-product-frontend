@@ -911,12 +911,73 @@ async function appendToRegistrationSheet(payload) {
     const START_ROW = existingDataRowCount + 1;
     console.log(`--> 现有数据行数: ${existingDataRowCount}（含表头），新数据起始行: ${START_ROW}`);
 
-    // 5. 查询新增达人的报名结果
-    console.log("\n--- [步骤 4] 查询报名结果数据 ---");
-    const regResults = await db.collection(REGISTRATION_RESULTS_COLLECTION)
+    // 5. 查询新增达人的报名结果（支持跨项目复用）
+    console.log("\n--- [步骤 4] 查询报名结果数据（支持跨项目复用） ---");
+
+    // 5.1 先尝试用 collaborationId 直接查询当前项目的结果
+    let regResults = await db.collection(REGISTRATION_RESULTS_COLLECTION)
         .find({ collaborationId: { $in: newCollaborationIds }, status: 'success' })
         .toArray();
-    console.log(`--> 查询到 ${regResults.length} 条成功的报名结果`);
+    console.log(`--> 当前项目查询到 ${regResults.length} 条成功的报名结果`);
+
+    // 5.2 对于没找到结果的 collaborationId，尝试通过 xingtuId 跨项目查找
+    const foundCollabIds = new Set(regResults.map(r => r.collaborationId));
+    const missingCollabIds = newCollaborationIds.filter(id => !foundCollabIds.has(id));
+
+    if (missingCollabIds.length > 0) {
+        console.log(`--> 有 ${missingCollabIds.length} 个达人需要跨项目查找: ${missingCollabIds.join(', ')}`);
+
+        // 获取这些 collaboration 对应的 xingtuId
+        const collabs = await db.collection('collaborations')
+            .find({ id: { $in: missingCollabIds } })
+            .toArray();
+
+        // 构建 collaborationId -> xingtuId 的映射
+        const collabToXingtuId = new Map();
+        for (const collab of collabs) {
+            const talentKey = collab.talentOneId || collab.talentId;
+            if (talentKey) {
+                const talent = await db.collection(TALENTS_COLLECTION).findOne({ oneId: talentKey });
+                const xingtuId = talent?.platformSpecific?.xingtuId || talent?.platformAccountId;
+                if (xingtuId) {
+                    collabToXingtuId.set(collab.id, xingtuId);
+                }
+            }
+        }
+
+        // 用 xingtuId 查找跨项目的成功结果
+        const xingtuIdsToFind = [...new Set(collabToXingtuId.values())];
+        if (xingtuIdsToFind.length > 0) {
+            const crossProjectResults = await db.collection(REGISTRATION_RESULTS_COLLECTION)
+                .find({ xingtuId: { $in: xingtuIdsToFind }, status: 'success' })
+                .sort({ fetchedAt: -1 })
+                .toArray();
+
+            // 按 xingtuId 分组，取最新的
+            const latestByXingtuId = new Map();
+            for (const r of crossProjectResults) {
+                if (!latestByXingtuId.has(r.xingtuId)) {
+                    latestByXingtuId.set(r.xingtuId, r);
+                }
+            }
+
+            // 将跨项目结果添加到 regResults，并映射回当前 collaborationId
+            for (const [collabId, xingtuId] of collabToXingtuId) {
+                const result = latestByXingtuId.get(xingtuId);
+                if (result) {
+                    // 复制结果并更新 collaborationId 为当前项目的
+                    regResults.push({
+                        ...result,
+                        collaborationId: collabId,  // 映射到当前项目的 collaborationId
+                        _isReused: true  // 标记为复用数据
+                    });
+                    console.log(`--> 找到 ${result.talentName} 的跨项目复用数据 (xingtuId: ${xingtuId})`);
+                }
+            }
+        }
+    }
+
+    console.log(`--> 最终查询到 ${regResults.length} 条报名结果（含跨项目复用）`);
 
     if (regResults.length === 0) {
         throw new AppError('没有找到匹配的报名结果数据', 400);
