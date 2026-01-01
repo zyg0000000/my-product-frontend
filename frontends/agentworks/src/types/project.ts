@@ -484,6 +484,10 @@ export interface EffectMetrics {
   likes?: number; // 点赞数
   comments?: number; // 评论数
   shares?: number; // 转发数
+  componentImpressions?: number; // 组件展示量
+  componentClicks?: number; // 组件点击量
+  completionRate?: number; // 视频完播率 (%)
+  reach?: number; // 总触达人数
   cpm?: number; // CPM（计算值）
   cpe?: number; // CPE（计算值）
   gmv?: number; // GMV（成交金额，分）

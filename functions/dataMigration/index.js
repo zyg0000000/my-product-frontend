@@ -352,11 +352,11 @@ const operations = {
       customerPricingModel = douyinConfig.pricingModel || 'framework';
 
       if (douyinConfig.configs) {
-        // 根据项目财务月份找到对应的配置
+        // 根据项目投放月份找到对应的配置
         discountConfig = findMatchingDiscountConfig(
           douyinConfig.configs,
           sourceProject.financialYear,
-          sourceProject.financialMonth
+          sourceProject.month
         );
         customerDiscount = discountConfig?.discountRate;
         // 根据该时间段配置计算报价系数（而不是直接用客户当前系数）
@@ -390,9 +390,9 @@ const operations = {
       year: typeof sourceProject.financialYear === 'string'
         ? parseInt(sourceProject.financialYear, 10)
         : sourceProject.financialYear,
-      month: typeof sourceProject.financialMonth === 'string' && sourceProject.financialMonth.startsWith('M')
-        ? parseInt(sourceProject.financialMonth.replace('M', ''), 10)
-        : (typeof sourceProject.financialMonth === 'string' ? parseInt(sourceProject.financialMonth, 10) : sourceProject.financialMonth),
+      month: typeof sourceProject.month === 'string' && sourceProject.month.startsWith('M')
+        ? parseInt(sourceProject.month.replace('M', ''), 10)
+        : (typeof sourceProject.month === 'string' ? parseInt(sourceProject.month, 10) : sourceProject.month),
 
       // 预算
       budget: parseBudget(sourceProject.budget),
@@ -571,8 +571,8 @@ const operations = {
         actualReleaseDate: collab.publishDate || null,
 
         // 财务管理
-        orderDate: null,
-        recoveryDate: null,
+        orderDate: collab.orderDate || null,
+        recoveryDate: collab.paymentDate || null,  // ByteProject 的 paymentDate → AgentWorks 的 recoveryDate
 
         // 差异处理
         discrepancyReason: null,
@@ -617,6 +617,9 @@ const operations = {
       return { success: false, message: '缺少 sourceProjectId 参数' };
     }
 
+    console.log('[migrateEffects] sourceProjectId:', sourceProjectId);
+    console.log('[migrateEffects] collaborationMappings keys:', Object.keys(collaborationMappings || {}).length);
+
     const sourceDb = dbClient.db(DB_SOURCE);
     const targetDb = dbClient.db(DB_TARGET);
 
@@ -626,6 +629,20 @@ const operations = {
       .find({ projectId: sourceProjectId })
       .toArray();
 
+    console.log('[migrateEffects] works found:', works.length);
+    if (works.length > 0) {
+      const worksWithCollabId = works.filter(w => w.collaborationId).length;
+      const worksWithVideoId = works.filter(w => w.videoId).length;
+      console.log('[migrateEffects] works with collaborationId:', worksWithCollabId);
+      console.log('[migrateEffects] works with videoId:', worksWithVideoId);
+      console.log('[migrateEffects] sample work:', JSON.stringify({
+        id: works[0].id,
+        collaborationId: works[0].collaborationId,
+        videoId: works[0].videoId,
+        projectId: works[0].projectId
+      }, null, 2));
+    }
+
     if (works.length === 0) {
       return {
         success: true,
@@ -634,37 +651,102 @@ const operations = {
       };
     }
 
+    // 查找目标项目（用于方式2匹配）
+    const targetProject = await targetDb.collection('projects').findOne({
+      'migratedFrom.sourceProjectId': sourceProjectId,
+    });
+    const targetProjectId = targetProject?.id;
+    console.log('[migrateEffects] targetProject found:', !!targetProject, 'id:', targetProjectId);
+
     // 按 videoId 或 collaborationId 关联到合作记录
     let updatedCount = 0;
+    let skippedCount = 0;
     for (const work of works) {
-      // 构建 effectData
-      const effectData = {
-        t7: work.t7 || null,
-        t21: work.t21 || null,
-        t30: work.t30 || null,
+      // 构建 effectData：将扁平化字段组装成对象
+      const buildEffectObject = (prefix) => {
+        // 检查是否有该时间段的数据
+        if (!work[`${prefix}_totalViews`] && !work[`${prefix}_platformWorkId`]) {
+          return null;
+        }
+
+        return {
+          platformWorkId: work[`${prefix}_platformWorkId`] || null,
+          publishedAt: work[`${prefix}_publishedAt`] || null,
+          statsUpdatedAt: work[`${prefix}_statsUpdatedAt`] || null,
+          totalViews: work[`${prefix}_totalViews`] || 0,
+          likeCount: work[`${prefix}_likeCount`] || 0,
+          commentCount: work[`${prefix}_commentCount`] || 0,
+          shareCount: work[`${prefix}_shareCount`] || 0,
+          componentImpressionCount: work[`${prefix}_componentImpressionCount`] || 0,
+          componentClickCount: work[`${prefix}_componentClickCount`] || 0,
+          completionRate: work[`${prefix}_completionRate`] || 0,
+          reachByFrequency: work[`${prefix}_reachByFrequency`] || null,
+        };
       };
 
-      // 通过 videoId 找到对应的合作记录并更新
-      if (work.videoId) {
-        const result = await targetDb.collection('collaborations').updateOne(
-          { videoId: work.videoId },
-          {
-            $set: {
-              effectData,
-              'migratedFrom.effectMigratedAt': new Date().toISOString(),
-            },
-          }
-        );
-        if (result.modifiedCount > 0) {
-          updatedCount++;
+      const effectData = {
+        t7: buildEffectObject('t7'),
+        t21: buildEffectObject('t21'),
+        t30: buildEffectObject('t30'),
+      };
+
+      // 尝试多种方式找到目标合作记录
+      let targetCollab = null;
+
+      // 方式1: 通过 collaborationMappings（从 Step 3b 传入）
+      if (collaborationMappings && Object.keys(collaborationMappings).length > 0 && work.collaborationId) {
+        const targetCollabId = collaborationMappings[work.collaborationId];
+        if (targetCollabId) {
+          targetCollab = await targetDb.collection('collaborations').findOne({ id: targetCollabId });
         }
       }
+
+      // 方式2: 通过 migratedFrom.sourceCollabId 匹配（继续迁移场景）
+      if (!targetCollab && work.collaborationId && targetProjectId) {
+        targetCollab = await targetDb.collection('collaborations').findOne({
+          projectId: targetProjectId,
+          'migratedFrom.sourceCollabId': work.collaborationId,
+        });
+      }
+
+      // 方式3: 通过 videoId 匹配（回退方案）
+      if (!targetCollab && work.videoId) {
+        targetCollab = await targetDb.collection('collaborations').findOne({ videoId: work.videoId });
+      }
+
+      // 如果无法匹配，跳过并记录
+      if (!targetCollab) {
+        console.log('[migrateEffects] skipped work - collaborationId:', work.collaborationId, 'videoId:', work.videoId);
+        skippedCount++;
+        continue;
+      }
+
+      // 更新合作记录的效果数据
+      const result = await targetDb.collection('collaborations').updateOne(
+        { id: targetCollab.id },
+        {
+          $set: {
+            effectData,
+            'migratedFrom.effectMigratedAt': new Date().toISOString(),
+          },
+        }
+      );
+
+      if (result.modifiedCount > 0) {
+        updatedCount++;
+      }
     }
+
+    console.log('[migrateEffects] migration complete - total:', works.length, 'updated:', updatedCount, 'skipped:', skippedCount);
 
     return {
       success: true,
       totalWorks: works.length,
       updatedCount,
+      skippedCount,
+      message: skippedCount > 0
+        ? `迁移完成，更新了 ${updatedCount} 条，跳过了 ${skippedCount} 条（无法找到对应合作记录）`
+        : `迁移完成，更新了 ${updatedCount} 条`,
     };
   },
 
@@ -850,7 +932,8 @@ const operations = {
       .find({ projectId: sourceProjectId })
       .toArray();
 
-    const sourceTotalAmount = sourceCollabs.reduce((sum, c) => sum + (c.amount || 0), 0);
+    // 源金额单位：元，需要乘以100转换为分（与目标统一）
+    const sourceTotalAmount = sourceCollabs.reduce((sum, c) => sum + (c.amount || 0), 0) * 100;
 
     const sourceWorksCount = await sourceDb
       .collection('works')
@@ -866,6 +949,7 @@ const operations = {
       .find({ projectId: newProjectId })
       .toArray();
 
+    // 目标金额单位：分（与源统一后的单位一致）
     const targetTotalAmount = targetCollabs.reduce((sum, c) => sum + (c.amount || 0), 0);
 
     const targetEffectCount = targetCollabs.filter((c) => c.effectData).length;

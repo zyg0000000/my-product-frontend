@@ -1,0 +1,160 @@
+/**
+ * ProgressSection Styles - 紧凑版本
+ * 使用 CSS 变量，自动支持深浅色模式
+ */
+
+.progress-section-modern {
+  background: var(--color-bg-elevated);
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  padding: 12px 14px;
+  margin: 12px 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.progress-section-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 头部信息 - 单行紧凑布局 */
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.progress-icon {
+  font-size: 12px;
+}
+
+.progress-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--aw-success-100);
+  color: var(--aw-success-600);
+}
+
+.progress-numbers {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  font-feature-settings: 'tnum' on;
+}
+
+.progress-current {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.progress-separator {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.progress-target {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.progress-percent {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--aw-success-600);
+}
+
+/* 进度条 - 更紧凑 */
+.progress-bar-wrapper {
+  position: relative;
+  margin: 2px 0;
+}
+
+.progress-bar-modern :global(.ant-progress-bg) {
+  border-radius: 2px !important;
+}
+
+/* GAP 展示 - 内联紧凑版 */
+.progress-gap-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-fill);
+}
+
+.progress-gap-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  min-width: 50px;
+}
+
+.progress-gap-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.progress-gap-value {
+  font-size: 12px;
+  font-weight: 700;
+  font-feature-settings: 'tnum' on;
+}
+
+.progress-gap-display.positive .progress-gap-value {
+  color: var(--aw-success-600);
+}
+
+.progress-gap-display.negative .progress-gap-value {
+  color: var(--aw-danger-600);
+}
+
+.progress-gap-icon {
+  font-size: 10px;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .progress-section-modern {
+    padding: 14px;
+  }
+
+  .progress-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .progress-gap-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .progress-gap-visual {
+    width: 100%;
+  }
+}

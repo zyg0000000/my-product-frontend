@@ -1,0 +1,132 @@
+/**
+ * MetricCard Styles - 紧凑信息密集版
+ * 使用 CSS 变量，自动支持深浅色模式
+ */
+
+.metric-card-modern {
+  background: var(--color-bg-elevated);
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  padding: 12px 14px;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  height: 100%;
+}
+
+.metric-card-modern:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.metric-card-content {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+/* 图标区域 */
+.metric-card-icon-wrapper {
+  flex-shrink: 0;
+}
+
+.metric-card-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: white;
+  background: var(--card-accent, var(--aw-primary-500));
+  border-radius: 5px;
+}
+
+/* 数据区域 */
+.metric-card-data {
+  flex: 1;
+  min-width: 0;
+}
+
+.metric-card-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.metric-card-value-section {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.metric-card-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+  font-feature-settings: 'tnum' on;
+}
+
+.metric-card-trend {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+.metric-card-trend.positive {
+  color: var(--aw-success-600);
+  background: var(--aw-success-100);
+}
+
+.metric-card-trend.negative {
+  color: var(--aw-danger-600);
+  background: var(--aw-danger-100);
+}
+
+.metric-card-description {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  margin-top: 1px;
+}
+
+.metric-card-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-top: 4px;
+  background: var(--aw-primary-50);
+  color: var(--card-accent, var(--aw-primary-500));
+}
+
+.metric-card-progress {
+  margin-top: 6px;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .metric-card-modern {
+    padding: 14px;
+  }
+
+  .metric-card-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .metric-card-value {
+    font-size: 20px;
+  }
+}

@@ -1,0 +1,223 @@
+/**
+ * EffectSummary Styles - 参考 ByteProject 设计
+ * 使用 AgentWorks 设计系统的 CSS 变量，自动支持深浅色模式
+ */
+
+.effect-summary-card {
+  background: var(--color-bg-elevated);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+/* 标题行：标题 + 验收日期 */
+.effect-summary-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  gap: 20px;
+}
+
+.effect-summary-header {
+  flex: 1;
+}
+
+.effect-summary-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 4px 0;
+}
+
+.effect-summary-subtitle {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* 验收日期 - 内联样式 */
+.effect-summary-date-inline {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.effect-summary-date-inline .effect-summary-date-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 2px;
+}
+
+.effect-summary-date-inline .effect-summary-date-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--aw-primary-500);
+}
+
+/* 播放量达成进度 */
+.effect-summary-progress-section {
+  background: var(--color-bg-sunken);
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.effect-summary-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.effect-summary-progress-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.effect-summary-progress-numbers {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-feature-settings: 'tnum' on;
+}
+
+.effect-summary-progress-current {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.effect-summary-progress-separator {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.effect-summary-progress-target {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.effect-summary-progress-bar {
+  position: relative;
+}
+
+.effect-summary-progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.effect-summary-progress-percent {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--aw-metric-blue);
+}
+
+.effect-summary-progress-percent.achieved {
+  color: var(--aw-success-500);
+}
+
+.effect-summary-gap {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.effect-summary-gap.positive {
+  color: var(--aw-success-500);
+}
+
+.effect-summary-gap.negative {
+  color: var(--aw-danger-500);
+}
+
+/* 指标卡片区域 */
+.effect-summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.effect-summary-metric-card {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 16px;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.effect-summary-metric-card:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.effect-summary-metric-card.highlight {
+  background: var(--aw-success-50);
+  border-color: var(--aw-success-200);
+}
+
+.effect-summary-metric-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.effect-summary-metric-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  font-feature-settings: 'tnum' on;
+}
+
+.effect-summary-metric-value.success {
+  color: var(--aw-success-500);
+}
+
+.effect-summary-metric-value.warning {
+  color: var(--aw-danger-500);
+}
+
+/* 响应式 */
+@media (max-width: 1024px) {
+  .effect-summary-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .effect-summary-header-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .effect-summary-date-inline {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+@media (max-width: 640px) {
+  .effect-summary-card {
+    padding: 16px;
+  }
+
+  .effect-summary-metrics {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .effect-summary-progress-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

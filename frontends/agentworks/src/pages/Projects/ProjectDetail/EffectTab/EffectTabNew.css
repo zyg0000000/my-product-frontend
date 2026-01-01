@@ -1,0 +1,174 @@
+/**
+ * EffectTabNew Styles - AgentWorks 统一风格
+ * 使用 CSS 变量，自动支持深浅色模式
+ */
+
+.effect-tab-new-container {
+  padding: 20px;
+  min-height: 600px;
+  background: var(--color-bg-base);
+}
+
+/* 顶部控制栏 */
+.effect-tab-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* 周期切换 - 胶囊按钮组 */
+.effect-tab-period-tabs {
+  display: inline-flex;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.effect-tab-period-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.effect-tab-period-btn:hover:not(.active) {
+  background: var(--color-bg-sunken);
+  color: var(--color-text-primary);
+}
+
+.effect-tab-period-btn.active {
+  background: var(--aw-primary-600);
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
+}
+
+/* 指标卡片网格 */
+.effect-tab-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 1280px) {
+  .effect-tab-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .effect-tab-metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+/* 表格包装器 */
+.effect-tab-table-wrapper {
+  background: var(--color-bg-elevated);
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.effect-tab-table-wrapper .ant-pro-table-list-toolbar {
+  padding: 14px 16px !important;
+  background: transparent;
+  border-bottom: 1px solid var(--color-fill);
+}
+
+.effect-tab-table-wrapper .ant-pro-table-list-toolbar-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.effect-tab-table-wrapper .ant-table {
+  background: transparent !important;
+}
+
+.effect-tab-table-wrapper .ant-table-thead > tr > th {
+  background: var(--color-bg-sunken) !important;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.effect-tab-table-wrapper .ant-table-tbody > tr {
+  transition: background 0.15s ease;
+}
+
+.effect-tab-table-wrapper .ant-table-tbody > tr:hover > td {
+  background: var(--color-bg-sunken) !important;
+}
+
+.effect-tab-table-wrapper .ant-table-tbody > tr > td {
+  border-bottom: 1px solid var(--color-fill) !important;
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+/* 加载状态 */
+.effect-tab-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  background: var(--color-bg-elevated);
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+}
+
+.effect-tab-loading .ant-spin {
+  color: var(--aw-primary-500);
+}
+
+.effect-tab-loading .ant-spin-text {
+  color: var(--color-text-secondary);
+  margin-top: 10px;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+/* 空状态 */
+.effect-tab-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  background: var(--color-bg-sunken);
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .effect-tab-new-container {
+    padding: 14px;
+  }
+
+  .effect-tab-period-tabs {
+    width: 100%;
+  }
+
+  .effect-tab-period-btn {
+    flex: 1;
+    text-align: center;
+    padding: 8px 12px;
+  }
+}

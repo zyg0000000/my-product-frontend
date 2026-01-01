@@ -238,18 +238,9 @@ export function ProjectDetail() {
     const publishedCount = collabs.filter(
       c => c.status === '视频已发布'
     ).length;
-    const totalAmount = validCollabs.reduce(
-      (sum, c) => sum + (c.amount || 0),
-      0
-    );
 
-    // 预算使用率（%）
-    const budgetUtilization =
-      project?.budget && project.budget > 0
-        ? (totalAmount / project.budget) * 100
-        : 0;
-
-    // 计算财务数据（客户收入、基础利润）
+    // 计算财务数据（刊例价格、客户收入、基础利润）
+    let totalAmount = 0; // 刊例价格总额
     let totalRevenue = 0;
     let baseProfit = 0;
     let baseProfitRate = 0;
@@ -265,15 +256,26 @@ export function ProjectDetail() {
         undefined,
         true // filterByStatus
       );
+      // 刊例价格 = 所有合作的 amount 总和
+      totalAmount = validCollabs.reduce((sum, c) => sum + (c.amount || 0), 0);
       totalRevenue = financeStats.totalRevenue;
       baseProfit = financeStats.baseProfit;
       baseProfitRate = financeStats.baseProfitRate;
+    } else {
+      // 降级：如果没有平台配置，直接累加 amount
+      totalAmount = validCollabs.reduce((sum, c) => sum + (c.amount || 0), 0);
     }
+
+    // 预算使用率（%）- 基于刊例价格
+    const budgetUtilization =
+      project?.budget && project.budget > 0
+        ? (totalAmount / project.budget) * 100
+        : 0;
 
     return {
       collaborationCount,
       publishedCount,
-      totalAmount,
+      totalAmount, // 刊例价格总额
       budgetUtilization,
       totalRevenue,
       baseProfit,
@@ -391,8 +393,14 @@ export function ProjectDetail() {
       children: (
         <EffectTab
           projectId={project.id}
+          projectName={project.name}
           platforms={project.platforms}
-          benchmarkCPM={project.benchmarkCPM}
+          benchmarkCPM={
+            // 优先从 platformKPIConfigs 读取第一个平台的 CPM 目标值
+            project.platformKPIConfigs?.[project.platforms[0]]?.targets?.cpm ??
+            project.benchmarkCPM ??
+            10
+          }
           effectConfig={projectConfig.effectConfig}
           onRefresh={refreshProject}
         />
@@ -557,8 +565,9 @@ export function ProjectDetail() {
             </div>
           </div>
 
-          {/* 中间区域：核心指标 Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 py-5 border-b border-stroke">
+          {/* 核心指标网格 - 统一 4 列布局 */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-5 py-5">
+            {/* 第一行 */}
             <InfoItem label="投放平台">
               <div className="flex flex-wrap gap-1">
                 {project.platforms.map(platform => (
@@ -579,42 +588,12 @@ export function ProjectDetail() {
               </span>
             </InfoItem>
 
-            <InfoItem label="执行金额">
+            <InfoItem label="刊例价格">
               <span className="font-semibold">
                 {formatMoney(computedStats.totalAmount)}
               </span>
             </InfoItem>
 
-            <InfoItem label="合作达人">
-              <span className="font-semibold">
-                {computedStats.collaborationCount}
-                <span className="font-normal text-content-muted ml-0.5">
-                  人
-                </span>
-              </span>
-            </InfoItem>
-
-            <InfoItem
-              label="执行进度"
-              className="col-span-2 sm:col-span-1 lg:col-span-2"
-            >
-              <div className="flex items-center gap-3">
-                <Progress
-                  percent={progress}
-                  size="small"
-                  strokeColor={progress === 100 ? '#52c41a' : '#3b82f6'}
-                  className="flex-1 max-w-[200px]"
-                />
-                <span className="text-xs text-content-secondary whitespace-nowrap shrink-0">
-                  {computedStats.publishedCount}/
-                  {computedStats.collaborationCount} 已发布
-                </span>
-              </div>
-            </InfoItem>
-          </div>
-
-          {/* 第二行：财务指标 */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 py-5">
             <InfoItem label="预算使用率">
               <span
                 className={`font-semibold ${
@@ -626,6 +605,14 @@ export function ProjectDetail() {
                 }`}
               >
                 {computedStats.budgetUtilization.toFixed(1)}%
+              </span>
+            </InfoItem>
+
+            {/* 第二行 */}
+            <InfoItem label="合作达人">
+              <span className="font-semibold">
+                {computedStats.collaborationCount}
+                <span className="font-normal text-content-muted ml-0.5">人</span>
               </span>
             </InfoItem>
 
@@ -648,6 +635,21 @@ export function ProjectDetail() {
                   }`}
                 >
                   {computedStats.baseProfitRate.toFixed(1)}%
+                </span>
+              </div>
+            </InfoItem>
+
+            <InfoItem label="执行进度">
+              <div className="flex items-center gap-2">
+                <Progress
+                  percent={progress}
+                  size="small"
+                  strokeColor={progress === 100 ? '#52c41a' : '#3b82f6'}
+                  showInfo={false}
+                  className="flex-1"
+                />
+                <span className="text-xs text-content-secondary whitespace-nowrap">
+                  {computedStats.publishedCount}/{computedStats.collaborationCount}
                 </span>
               </div>
             </InfoItem>

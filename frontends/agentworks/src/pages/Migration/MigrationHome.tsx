@@ -490,7 +490,15 @@ export function MigrationHome() {
       width: 120,
       render: (_: unknown, record: SourceProject) => {
         if (record.migrationStatus === 'completed') {
-          return <Tag color="success">已完成</Tag>;
+          return (
+            <Button
+              type="default"
+              size="small"
+              onClick={() => handleContinueMigration(record)}
+            >
+              重新迁移
+            </Button>
+          );
         }
         if (record.migrationStatus === 'partial') {
           return (
@@ -793,12 +801,20 @@ export function MigrationHome() {
                 T7/T21/T30 播放量数据
               </div>
               {state.effectMigration ? (
-                <div className="text-sm">
-                  处理 {state.effectMigration.totalWorks} 条，更新{' '}
-                  <span className="font-medium text-success-600">
-                    {state.effectMigration.updatedCount}
-                  </span>{' '}
-                  条
+                <div className="text-sm space-y-1">
+                  <div>
+                    处理 {state.effectMigration.totalWorks} 条，更新{' '}
+                    <span className="font-medium text-success-600">
+                      {state.effectMigration.updatedCount}
+                    </span>{' '}
+                    条
+                  </div>
+                  {(state.effectMigration.skippedCount || 0) > 0 && (
+                    <div className="text-warning-600">
+                      跳过 {state.effectMigration.skippedCount}{' '}
+                      条（无法匹配合作记录）
+                    </div>
+                  )}
                 </div>
               ) : (
                 <Button

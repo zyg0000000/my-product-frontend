@@ -87,6 +87,7 @@ export interface EffectMigrationResult {
   success: boolean;
   totalWorks: number;
   updatedCount: number;
+  skippedCount?: number;
   message?: string;
 }
 
